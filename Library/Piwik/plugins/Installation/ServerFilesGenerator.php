@@ -66,83 +66,9 @@ class ServerFilesGenerator
         }
     }
 
-    /**
-     * @return string
-     */
-    protected static function getDenyAllHtaccessContent()
+    public static function createHtAccessDenyAll($path)
     {
-        $deny = self::getDenyHtaccessContent();
-        $denyAll =
-            "# First, deny access to all files in this directory\n" .
-            "<Files \"*\">\n" .
-            $deny . "\n" .
-            "</Files>\n";
-
-        return $denyAll;
-    }
-
-    /**
-     * @return string
-     */
-    protected static function getDenyHtaccessContent()
-    {
-# Source: https://github.com/phpbb/phpbb/pull/2386/files#diff-f72a38c4bec79cc6ded3f8e435d6bd55L11
-# With Apache 2.4 the "Order, Deny" syntax has been deprecated and moved from
-# module mod_authz_host to a new module called mod_access_compat (which may be
-# disabled) and a new "Require" syntax has been introduced to mod_authz_host.
-# We could just conditionally provide both versions, but unfortunately Apache
-# does not explicitly tell us its version if the module mod_version is not
-# available. In this case, we check for the availability of module
-# mod_authz_core (which should be on 2.4 or higher only) as a best guess.
-        $deny = <<<HTACCESS_DENY
-<IfModule mod_version.c>
-	<IfVersion < 2.4>
-		Order Deny,Allow
-		Deny from All
-	</IfVersion>
-	<IfVersion >= 2.4>
-		Require all denied
-	</IfVersion>
-</IfModule>
-<IfModule !mod_version.c>
-	<IfModule !mod_authz_core.c>
-		Order Deny,Allow
-		Deny from All
-	</IfModule>
-	<IfModule mod_authz_core.c>
-		Require all denied
-	</IfModule>
-</IfModule>
-HTACCESS_DENY;
-        return $deny;
-    }
-
-    /**
-     * @return string
-     */
-    protected static function getAllowHtaccessContent()
-    {
-        $allow = <<<HTACCESS_ALLOW
-<IfModule mod_version.c>
-	<IfVersion < 2.4>
-		Order Allow,Deny
-		Allow from All
-	</IfVersion>
-	<IfVersion >= 2.4>
-		Require all granted
-	</IfVersion>
-</IfModule>
-<IfModule !mod_version.c>
-	<IfModule !mod_authz_core.c>
-		Order Allow,Deny
-		Allow from All
-	</IfModule>
-	<IfModule mod_authz_core.c>
-		Require all granted
-	</IfModule>
-</IfModule>
-HTACCESS_ALLOW;
-        return $allow;
+        self::createHtAccess($path, $overwrite = false, self::getDenyAllHtaccessContent());
     }
 
     /**
@@ -162,11 +88,6 @@ HTACCESS_ALLOW;
                 @file_put_contents($file, $content);
             }
         }
-    }
-
-    public static function createHtAccessDenyAll($path)
-    {
-        self::createHtAccess($path, $overwrite = false, self::getDenyAllHtaccessContent());
     }
 
     /**
@@ -266,6 +187,85 @@ HTACCESS_ALLOW;
         foreach ($filesToCreate as $file) {
             @file_put_contents(PIWIK_DOCUMENT_ROOT . $file, '');
         }
+    }
+
+    /**
+     * @return string
+     */
+    protected static function getDenyAllHtaccessContent()
+    {
+        $deny = self::getDenyHtaccessContent();
+        $denyAll =
+            "# First, deny access to all files in this directory\n" .
+            "<Files \"*\">\n" .
+            $deny . "\n" .
+            "</Files>\n";
+
+        return $denyAll;
+    }
+
+    /**
+     * @return string
+     */
+    protected static function getDenyHtaccessContent()
+    {
+# Source: https://github.com/phpbb/phpbb/pull/2386/files#diff-f72a38c4bec79cc6ded3f8e435d6bd55L11
+# With Apache 2.4 the "Order, Deny" syntax has been deprecated and moved from
+# module mod_authz_host to a new module called mod_access_compat (which may be
+# disabled) and a new "Require" syntax has been introduced to mod_authz_host.
+# We could just conditionally provide both versions, but unfortunately Apache
+# does not explicitly tell us its version if the module mod_version is not
+# available. In this case, we check for the availability of module
+# mod_authz_core (which should be on 2.4 or higher only) as a best guess.
+        $deny = <<<HTACCESS_DENY
+<IfModule mod_version.c>
+	<IfVersion < 2.4>
+		Order Deny,Allow
+		Deny from All
+	</IfVersion>
+	<IfVersion >= 2.4>
+		Require all denied
+	</IfVersion>
+</IfModule>
+<IfModule !mod_version.c>
+	<IfModule !mod_authz_core.c>
+		Order Deny,Allow
+		Deny from All
+	</IfModule>
+	<IfModule mod_authz_core.c>
+		Require all denied
+	</IfModule>
+</IfModule>
+HTACCESS_DENY;
+        return $deny;
+    }
+
+    /**
+     * @return string
+     */
+    protected static function getAllowHtaccessContent()
+    {
+        $allow = <<<HTACCESS_ALLOW
+<IfModule mod_version.c>
+	<IfVersion < 2.4>
+		Order Allow,Deny
+		Allow from All
+	</IfVersion>
+	<IfVersion >= 2.4>
+		Require all granted
+	</IfVersion>
+</IfModule>
+<IfModule !mod_version.c>
+	<IfModule !mod_authz_core.c>
+		Order Allow,Deny
+		Allow from All
+	</IfModule>
+	<IfModule mod_authz_core.c>
+		Require all granted
+	</IfModule>
+</IfModule>
+HTACCESS_ALLOW;
+        return $allow;
     }
 
     /**

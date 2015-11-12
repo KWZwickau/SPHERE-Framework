@@ -11,8 +11,8 @@
 
 namespace Monolog\Handler;
 
-use Monolog\Formatter\NormalizerFormatter;
 use Monolog\Logger;
+use Monolog\Formatter\NormalizerFormatter;
 
 /**
  * Logs to a MongoDB database.

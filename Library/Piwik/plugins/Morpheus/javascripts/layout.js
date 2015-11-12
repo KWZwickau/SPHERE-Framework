@@ -5,8 +5,7 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-$(function ()
-{
+$(function () {
     var contentUser = $('#content.user');
 
     function adjustSize(content)
@@ -17,8 +16,7 @@ $(function ()
 
     if (contentUser.length) {
         adjustSize(contentUser);
-        $(window).resize(function ()
-        {
+        $(window).resize(function () {
             adjustSize(contentUser);
         });
     }
@@ -27,8 +25,7 @@ $(function ()
 
     if (contentAdmin.length) {
         adjustSize(contentAdmin);
-        $(window).resize(function ()
-        {
+        $(window).resize(function () {
             adjustSize(contentAdmin);
         });
     }

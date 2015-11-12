@@ -30,7 +30,7 @@ while (count($argv) > 0 && preg_match('/^-([-hvrwncXT]$|[f]=)/', $argv[0])) {
 function has() {
 	global $opts;
 	foreach (func_get_args() as $arg) {
-		if (isset($opts[$arg])) {return true;}
+		if (isset($opts[$arg])) return true;
 	}
 	return false;
 }
@@ -62,7 +62,7 @@ function make_less($fname = null) {
 
 	if (has("f")) {
 		$format = $opts["f"];
-		if ($format != "default") {$l->setFormatter($format);}
+		if ($format != "default") $l->setFormatter($format);
 	}
 
 	if (has("c")) {
@@ -76,7 +76,7 @@ function process($data, $import = null) {
 	global $fa;
 
 	$l = make_less();
-	if ($import) {$l->importDir = $import;}
+	if ($import) $l->importDir = $import;
 
 	try {
 		echo $l->parse($data);
@@ -131,7 +131,7 @@ if (has("w")) {
 					break;
 				}
 			}
-		} else {$updated = true;}
+		} else $updated = true;
 
 		// try to compile it
 		if ($updated) {
@@ -177,10 +177,10 @@ function dumpValue($node, $depth = 0) {
 		}
 		return $out;
 	} elseif (is_array($node)) {
-		if (empty($node)) {return "[]";}
+		if (empty($node)) return "[]";
 		$type = $node[0];
 		if ($type == "block")
-			{return dumpValue($node[1], $depth);}
+			return dumpValue($node[1], $depth);
 
 		$out = array();
 		foreach ($node as $value) {
@@ -229,9 +229,9 @@ try {
 		$parser = new lessc_parser($less, $fname);
 		$tree = $parser->parse(file_get_contents($fname));
 		if (has("X"))
-			{$out = print_r($tree, 1);}
+			$out = print_r($tree, 1);
 		else
-			{$out = dumpValue($tree)."\n";}
+			$out = dumpValue($tree)."\n";
 	} else {
 		$out = $less->parse();
 	}

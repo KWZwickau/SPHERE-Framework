@@ -7,7 +7,6 @@
  *
  */
 namespace Piwik;
-
 use Piwik\Container\StaticContainer;
 use Piwik\Translation\Translator;
 
@@ -74,60 +73,6 @@ class NumberFormatter
     }
 
     /**
-     * @deprecated
-     * @return self
-     */
-    public static function getInstance()
-    {
-        return StaticContainer::get('Piwik\NumberFormatter');
-    }
-
-    /**
-     * Formats a given number or percent value (if $value starts or ends with a %)
-     *
-     * @param string|int|float $value
-     * @param int $maximumFractionDigits
-     * @param int $minimumFractionDigits
-     * @return mixed|string
-     */
-    public function format($value, $maximumFractionDigits = 0, $minimumFractionDigits = 0)
-    {
-        if (is_string($value)
-            && trim($value, '%') != $value
-        ) {
-            return $this->formatPercent($value, $maximumFractionDigits, $minimumFractionDigits);
-        }
-
-        return $this->formatNumber($value, $maximumFractionDigits, $minimumFractionDigits);
-    }
-
-    /**
-     * Formats given number as percent value
-     * @param string|int|float $value
-     * @param int $maximumFractionDigits
-     * @param int $minimumFractionDigits
-     * @return mixed|string
-     */
-    public function formatPercent($value, $maximumFractionDigits = 0, $minimumFractionDigits = 0)
-    {
-        static $positivePattern, $negativePattern;
-
-        if (empty($positivePatter) || empty($negativePattern)) {
-            list($positivePattern, $negativePattern) = $this->parsePattern($this->patternPercent);
-        }
-
-        $newValue = trim($value, " \0\x0B%");
-        if (!is_numeric($newValue)) {
-            return $value;
-        }
-
-        $negative = $this->isNegative($value);
-        $pattern = $negative ? $negativePattern : $positivePattern;
-
-        return $this->formatNumberWithPattern($pattern, $newValue, $maximumFractionDigits, $minimumFractionDigits);
-    }
-
-    /**
      * Parses the given pattern and returns patterns for positive and negative numbers
      *
      * @param string $pattern
@@ -144,12 +89,125 @@ class NumberFormatter
     }
 
     /**
-     * @param $value
-     * @return bool
+     * Formats a given number or percent value (if $value starts or ends with a %)
+     *
+     * @param string|int|float $value
+     * @param int $maximumFractionDigits
+     * @param int $minimumFractionDigits
+     * @return mixed|string
      */
-    protected function isNegative($value)
+    public function format($value, $maximumFractionDigits=0, $minimumFractionDigits=0)
     {
-        return $value < 0;
+        if (is_string($value)
+            && trim($value, '%') != $value
+        ) {
+            return $this->formatPercent($value, $maximumFractionDigits, $minimumFractionDigits);
+        }
+
+        return $this->formatNumber($value, $maximumFractionDigits, $minimumFractionDigits);
+    }
+
+    /**
+     * Formats a given number
+     *
+     * @see \Piwik\NumberFormatter::format()
+     *
+     * @param string|int|float $value
+     * @param int $maximumFractionDigits
+     * @param int $minimumFractionDigits
+     * @return mixed|string
+     */
+    public function formatNumber($value, $maximumFractionDigits=0, $minimumFractionDigits=0)
+    {
+
+        static $positivePattern, $negativePattern;
+
+        if (empty($positivePatter) || empty($negativePattern)) {
+            list($positivePattern, $negativePattern) = $this->parsePattern($this->patternNumber);
+        }
+        $negative = $this->isNegative($value);
+        $pattern = $negative ? $negativePattern : $positivePattern;
+
+        return $this->formatNumberWithPattern($pattern, $value, $maximumFractionDigits, $minimumFractionDigits);
+    }
+
+    /**
+     * Formats given number as percent value
+     * @param string|int|float $value
+     * @param int $maximumFractionDigits
+     * @param int $minimumFractionDigits
+     * @return mixed|string
+     */
+    public function formatPercent($value, $maximumFractionDigits=0, $minimumFractionDigits=0)
+    {
+        static $positivePattern, $negativePattern;
+
+        if (empty($positivePatter) || empty($negativePattern)) {
+            list($positivePattern, $negativePattern) = $this->parsePattern($this->patternPercent);
+        }
+
+        $newValue =  trim($value, " \0\x0B%");
+        if (!is_numeric($newValue)) {
+            return $value;
+        }
+
+        $negative = $this->isNegative($value);
+        $pattern = $negative ? $negativePattern : $positivePattern;
+
+        return $this->formatNumberWithPattern($pattern, $newValue, $maximumFractionDigits, $minimumFractionDigits);
+    }
+
+
+    /**
+     * Formats given number as percent value, but keep the leading + sign if found
+     *
+     * @param $value
+     * @return string
+     */
+    public function formatPercentEvolution($value)
+    {
+        $isPositiveEvolution = !empty($value) && ($value > 0 || $value[0] == '+');
+
+        $formatted = self::formatPercent($value);
+
+        if($isPositiveEvolution) {
+            return $this->symbolPlus . $formatted;
+        }
+        return $formatted;
+    }
+
+    /**
+     * Formats given number as percent value
+     * @param string|int|float $value
+     * @param string $currency
+     * @param int $precision
+     * @return mixed|string
+     */
+    public function formatCurrency($value, $currency, $precision=2)
+    {
+        static $positivePattern, $negativePattern;
+
+        if (empty($positivePatter) || empty($negativePattern)) {
+            list($positivePattern, $negativePattern) = $this->parsePattern($this->patternCurrency);
+        }
+
+        $newValue =  trim($value, " \0\x0B$currency");
+        if (!is_numeric($newValue)) {
+            return $value;
+        }
+
+        $negative = $this->isNegative($value);
+        $pattern = $negative ? $negativePattern : $positivePattern;
+
+        if ($newValue == round($newValue)) {
+            // if no fraction digits available, don't show any
+            $value = $this->formatNumberWithPattern($pattern, $newValue, 0, 0);
+        } else {
+            // show given count of fraction digits otherwise
+            $value = $this->formatNumberWithPattern($pattern, $newValue, $precision, $precision);
+        }
+
+        return str_replace('¤', $currency, $value);
     }
 
     /**
@@ -161,7 +219,7 @@ class NumberFormatter
      * @param int $minimumFractionDigits
      * @return mixed|string
      */
-    protected function formatNumberWithPattern($pattern, $value, $maximumFractionDigits = 0, $minimumFractionDigits = 0)
+    protected function formatNumberWithPattern($pattern, $value, $maximumFractionDigits=0, $minimumFractionDigits=0)
     {
         if (!is_numeric($value)) {
             return $value;
@@ -225,6 +283,7 @@ class NumberFormatter
         return $value;
     }
 
+
     /**
      * Replaces number symbols with their localized equivalents.
      *
@@ -247,78 +306,20 @@ class NumberFormatter
     }
 
     /**
-     * Formats a given number
-     *
-     * @see \Piwik\NumberFormatter::format()
-     *
-     * @param string|int|float $value
-     * @param int $maximumFractionDigits
-     * @param int $minimumFractionDigits
-     * @return mixed|string
-     */
-    public function formatNumber($value, $maximumFractionDigits = 0, $minimumFractionDigits = 0)
-    {
-
-        static $positivePattern, $negativePattern;
-
-        if (empty($positivePatter) || empty($negativePattern)) {
-            list($positivePattern, $negativePattern) = $this->parsePattern($this->patternNumber);
-        }
-        $negative = $this->isNegative($value);
-        $pattern = $negative ? $negativePattern : $positivePattern;
-
-        return $this->formatNumberWithPattern($pattern, $value, $maximumFractionDigits, $minimumFractionDigits);
-    }
-
-    /**
-     * Formats given number as percent value, but keep the leading + sign if found
-     *
      * @param $value
-     * @return string
+     * @return bool
      */
-    public function formatPercentEvolution($value)
+    protected function isNegative($value)
     {
-        $isPositiveEvolution = !empty($value) && ($value > 0 || $value[0] == '+');
-
-        $formatted = self::formatPercent($value);
-
-        if ($isPositiveEvolution) {
-            return $this->symbolPlus . $formatted;
-        }
-        return $formatted;
+        return $value < 0;
     }
 
     /**
-     * Formats given number as percent value
-     * @param string|int|float $value
-     * @param string $currency
-     * @param int $precision
-     * @return mixed|string
+     * @deprecated
+     * @return self
      */
-    public function formatCurrency($value, $currency, $precision = 2)
+    public static function getInstance()
     {
-        static $positivePattern, $negativePattern;
-
-        if (empty($positivePatter) || empty($negativePattern)) {
-            list($positivePattern, $negativePattern) = $this->parsePattern($this->patternCurrency);
-        }
-
-        $newValue = trim($value, " \0\x0B$currency");
-        if (!is_numeric($newValue)) {
-            return $value;
-        }
-
-        $negative = $this->isNegative($value);
-        $pattern = $negative ? $negativePattern : $positivePattern;
-
-        if ($newValue == round($newValue)) {
-            // if no fraction digits available, don't show any
-            $value = $this->formatNumberWithPattern($pattern, $newValue, 0, 0);
-        } else {
-            // show given count of fraction digits otherwise
-            $value = $this->formatNumberWithPattern($pattern, $newValue, $precision, $precision);
-        }
-
-        return str_replace('¤', $currency, $value);
+        return StaticContainer::get('Piwik\NumberFormatter');
     }
 }

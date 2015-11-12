@@ -98,26 +98,14 @@ class Profiler
         self::getSqlProfilingQueryBreakdownOutput($infoIndexedByQuery);
     }
 
-    /**
-     * Log a breakdown by query
-     *
-     * @param array $infoIndexedByQuery
-     */
-    private static function getSqlProfilingQueryBreakdownOutput($infoIndexedByQuery)
+    private static function maxSumMsFirst($a, $b)
     {
-        $output = '<hr /><strong>Breakdown by query</strong><br/>';
-        foreach ($infoIndexedByQuery as $query => $queryInfo) {
-            $timeMs = round($queryInfo['sumTimeMs'], 1);
-            $count = $queryInfo['count'];
-            $avgTimeString = '';
-            if ($count > 1) {
-                $avgTimeMs = $timeMs / $count;
-                $avgTimeString = " (average = <b>" . round($avgTimeMs, 1) . "ms</b>)";
-            }
-            $query = preg_replace('/([\t\n\r ]+)/', ' ', $query);
-            $output .= "Executed <b>$count</b> time" . ($count == 1 ? '' : 's') . " in <b>" . $timeMs . "ms</b> $avgTimeString <pre>\t$query</pre>";
-        }
-        Log::debug($output);
+        return $a['sum_time_ms'] < $b['sum_time_ms'];
+    }
+
+    private static function sortTimeDesc($a, $b)
+    {
+        return $a['sumTimeMs'] < $b['sumTimeMs'];
     }
 
     /**
@@ -180,6 +168,28 @@ class Profiler
     {
         $profiler = Db::get()->getProfiler();
         return $profiler->getTotalNumQueries();
+    }
+
+    /**
+     * Log a breakdown by query
+     *
+     * @param array $infoIndexedByQuery
+     */
+    private static function getSqlProfilingQueryBreakdownOutput($infoIndexedByQuery)
+    {
+        $output = '<hr /><strong>Breakdown by query</strong><br/>';
+        foreach ($infoIndexedByQuery as $query => $queryInfo) {
+            $timeMs = round($queryInfo['sumTimeMs'], 1);
+            $count = $queryInfo['count'];
+            $avgTimeString = '';
+            if ($count > 1) {
+                $avgTimeMs = $timeMs / $count;
+                $avgTimeString = " (average = <b>" . round($avgTimeMs, 1) . "ms</b>)";
+            }
+            $query = preg_replace('/([\t\n\r ]+)/', ' ', $query);
+            $output .= "Executed <b>$count</b> time" . ($count == 1 ? '' : 's') . " in <b>" . $timeMs . "ms</b> $avgTimeString <pre>\t$query</pre>";
+        }
+        Log::debug($output);
     }
 
     /**
@@ -278,30 +288,6 @@ class Profiler
         self::$isXhprofSetup = true;
     }
 
-    public static function setProfilingRunIds($ids)
-    {
-        file_put_contents(self::getPathToXHProfRunIds(), json_encode($ids));
-        @chmod(self::getPathToXHProfRunIds(), 0777);
-    }
-
-    /**
-     * @return string
-     */
-    private static function getPathToXHProfRunIds()
-    {
-        return PIWIK_INCLUDE_PATH . '/tmp/cache/tests-xhprof-runs';
-    }
-
-    public static function getProfilingRunIds()
-    {
-        $runIds = file_get_contents(self::getPathToXHProfRunIds());
-        $array = json_decode($runIds, $assoc = true);
-        if (!is_array($array)) {
-            $array = array();
-        }
-        return $array;
-    }
-
     /**
      * Aggregates xhprof runs w/o normalizing (xhprof_aggregate_runs will always average data which
      * does not fit Piwik's use case).
@@ -336,13 +322,27 @@ class Profiler
         $xhprofRuns->save_run($aggregatedData, $profilerNamespace, $saveToRunId);
     }
 
-    private static function maxSumMsFirst($a, $b)
+    public static function setProfilingRunIds($ids)
     {
-        return $a['sum_time_ms'] < $b['sum_time_ms'];
+        file_put_contents(self::getPathToXHProfRunIds(), json_encode($ids));
+        @chmod(self::getPathToXHProfRunIds(), 0777);
     }
 
-    private static function sortTimeDesc($a, $b)
+    public static function getProfilingRunIds()
     {
-        return $a['sumTimeMs'] < $b['sumTimeMs'];
+        $runIds = file_get_contents(self::getPathToXHProfRunIds());
+        $array = json_decode($runIds, $assoc = true);
+        if (!is_array($array)) {
+            $array = array();
+        }
+        return $array;
+    }
+
+    /**
+     * @return string
+     */
+    private static function getPathToXHProfRunIds()
+    {
+        return PIWIK_INCLUDE_PATH . '/tmp/cache/tests-xhprof-runs';
     }
 }

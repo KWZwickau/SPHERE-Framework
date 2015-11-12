@@ -88,6 +88,20 @@ class HTML_QuickForm2_Element_InputCheckable extends HTML_QuickForm2_Element_Inp
         $this->watchedAttributes[] = 'value';
     }
 
+    protected function onAttributeChange($name, $value = null)
+    {
+        if ('value' != $name) {
+            return parent::onAttributeChange($name, $value);
+        }
+        if (null === $value) {
+            unset($this->attributes['value'], $this->attributes['checked']);
+        } else {
+            $this->attributes['value'] = $value;
+            $this->updateValue();
+        }
+    }
+
+
    /**
     * Sets the label to be rendered glued to the element
     *
@@ -112,6 +126,7 @@ class HTML_QuickForm2_Element_InputCheckable extends HTML_QuickForm2_Element_Inp
     {
         return $this->data['content'];
     }
+
 
     public function setValue($value)
     {
@@ -151,19 +166,6 @@ class HTML_QuickForm2_Element_InputCheckable extends HTML_QuickForm2_Element_Inp
             return $this->frozenHtml['checked'] . $this->getPersistentContent();
         } else {
             return $this->frozenHtml['unchecked'];
-        }
-    }
-
-    protected function onAttributeChange($name, $value = null)
-    {
-        if ('value' != $name) {
-            return parent::onAttributeChange($name, $value);
-        }
-        if (null === $value) {
-            unset($this->attributes['value'], $this->attributes['checked']);
-        } else {
-            $this->attributes['value'] = $value;
-            $this->updateValue();
         }
     }
 }

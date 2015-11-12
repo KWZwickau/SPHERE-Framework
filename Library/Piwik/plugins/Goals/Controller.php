@@ -8,6 +8,7 @@
  */
 namespace Piwik\Plugins\Goals;
 
+use Exception;
 use Piwik\API\Request;
 use Piwik\Common;
 use Piwik\DataTable;
@@ -52,6 +53,23 @@ class Controller extends \Piwik\Plugin\Controller
      */
     private $translationHelper;
 
+    private function formatConversionRate($conversionRate, $columnName = 'conversion_rate')
+    {
+        if ($conversionRate instanceof DataTable) {
+            if ($conversionRate->getRowsCount() == 0) {
+                $conversionRate = 0;
+            } else {
+                $conversionRate = $conversionRate->getFirstRow()->getColumn($columnName);
+            }
+        }
+
+        if (!is_numeric($conversionRate)) {
+            $conversionRate = sprintf('%.' . self::CONVERSION_RATE_PRECISION . 'f%%', $conversionRate);
+        }
+
+        return $conversionRate;
+    }
+
     public function __construct(Translator $translator, TranslationHelper $translationHelper)
     {
         parent::__construct();
@@ -67,6 +85,13 @@ class Controller extends \Piwik\Plugin\Controller
     {
         $view = $this->getGoalReportView($idGoal = Common::getRequestVar('idGoal', null, 'string'));
         $view->displayFullReport = false;
+        return $view->render();
+    }
+
+    public function goalReport()
+    {
+        $view = $this->getGoalReportView($idGoal = Common::getRequestVar('idGoal', null, 'string'));
+        $view->displayFullReport = true;
         return $view->render();
     }
 
@@ -114,61 +139,109 @@ class Controller extends \Piwik\Plugin\Controller
         return $view;
     }
 
-    protected function getMetricsForGoal($idGoal)
+    public function index()
     {
-        $request = new Request("method=Goals.get&format=original&idGoal=$idGoal");
-        $datatable = $request->process();
-        $dataRow = $datatable->getFirstRow();
-        $nbConversions = $dataRow->getColumn('nb_conversions');
-        $nbVisitsConverted = $dataRow->getColumn('nb_visits_converted');
-        // Backward compatibilty before 1.3, this value was not processed
-        if (empty($nbVisitsConverted)) {
-            $nbVisitsConverted = $nbConversions;
-        }
-        $revenue = $dataRow->getColumn('revenue');
-        $return = array(
-            'id'                         => $idGoal,
-            'nb_conversions'             => (int)$nbConversions,
-            'nb_visits_converted'        => (int)$nbVisitsConverted,
-            'conversion_rate'            => $this->formatConversionRate($dataRow->getColumn('conversion_rate')),
-            'revenue'                    => $revenue ? $revenue : 0,
-            'urlSparklineConversions'    => $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('nb_conversions'), 'idGoal' => $idGoal)),
-            'urlSparklineConversionRate' => $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('conversion_rate'), 'idGoal' => $idGoal)),
-            'urlSparklineRevenue'        => $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('revenue'), 'idGoal' => $idGoal)),
-        );
-        if ($idGoal == Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER) {
-            $items = $dataRow->getColumn('items');
-            $aov = $dataRow->getColumn('avg_order_revenue');
-            $return = array_merge($return, array(
-                                                'revenue_subtotal'              => $dataRow->getColumn('revenue_subtotal'),
-                                                'revenue_tax'                   => $dataRow->getColumn('revenue_tax'),
-                                                'revenue_shipping'              => $dataRow->getColumn('revenue_shipping'),
-                                                'revenue_discount'              => $dataRow->getColumn('revenue_discount'),
+        $view = $this->getOverviewView();
 
-                                                'items'                         => $items ? $items : 0,
-                                                'avg_order_revenue'             => $aov ? $aov : 0,
-                                                'urlSparklinePurchasedProducts' => $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('items'), 'idGoal' => $idGoal)),
-                                                'urlSparklineAverageOrderValue' => $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('avg_order_revenue'), 'idGoal' => $idGoal)),
-                                           ));
-        }
-        return $return;
+        // unsanitize goal names and other text data (not done in API so as not to break
+        // any other code/cause security issues)
+        $goals = $this->goals;
+        $view->goalsJSON = json_encode($goals);
+
+        $view->ecommerceEnabled = $this->site->isEcommerceEnabled();
+        $view->displayFullReport = true;
+        return $view->render();
     }
 
-    private function formatConversionRate($conversionRate, $columnName = 'conversion_rate')
+    public function manage()
     {
-        if ($conversionRate instanceof DataTable) {
-            if ($conversionRate->getRowsCount() == 0) {
-                $conversionRate = 0;
-            } else {
-                $conversionRate = $conversionRate->getFirstRow()->getColumn($columnName);
-            }
+        Piwik::checkUserHasAdminAccess($this->idSite);
+
+        $view = new View('@Goals/manageGoals');
+        $this->setGeneralVariablesView($view);
+        $this->setEditGoalsViewVariables($view);
+        $this->setUserCanEditGoals($view);
+        return $view->render();
+    }
+
+    public function widgetGoalsOverview()
+    {
+        $view = $this->getOverviewView();
+        $view->displayFullReport = false;
+        return $view->render();
+    }
+
+    protected function getOverviewView()
+    {
+        $view = new View('@Goals/getOverviewView');
+        $this->setGeneralVariablesView($view);
+
+        $view->graphEvolution = $this->getEvolutionGraph(array(), false, array('nb_conversions'));
+        $view->nameGraphEvolution = 'GoalsgetEvolutionGraph';
+
+        // sparkline for the historical data of the above values
+        $view->urlSparklineConversions = $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('nb_conversions'), 'idGoal' => ''));
+        $view->urlSparklineConversionRate = $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('conversion_rate'), 'idGoal' => ''));
+        $view->urlSparklineRevenue = $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('revenue'), 'idGoal' => ''));
+
+        // Pass empty idGoal will return Goal overview
+        $request = new Request("method=Goals.get&format=original&idGoal=");
+        $datatable = $request->process();
+        $dataRow = $datatable->getFirstRow();
+
+        $view->nb_conversions = $dataRow->getColumn('nb_conversions');
+        $view->nb_visits_converted = $dataRow->getColumn('nb_visits_converted');
+        $view->conversion_rate = $this->formatConversionRate($dataRow->getColumn('conversion_rate'));
+        $view->revenue = $dataRow->getColumn('revenue');
+
+        $goalMetrics = array();
+        foreach ($this->goals as $idGoal => $goal) {
+            $goalMetrics[$idGoal] = $this->getMetricsForGoal($idGoal);
+            $goalMetrics[$idGoal]['name'] = $goal['name'];
+            $goalMetrics[$idGoal]['goalAllowMultipleConversionsPerVisit'] = $goal['allow_multiple'];
         }
 
-        if (!is_numeric($conversionRate)) {
-            $conversionRate = sprintf('%.' . self::CONVERSION_RATE_PRECISION . 'f%%', $conversionRate);
-        }
+        $view->goalMetrics = $goalMetrics;
+        $view->goals = $this->goals;
+        $view->goalReportsByDimension = $this->getGoalReportsByDimensionTable(
+            $view->nb_conversions, $ecommerce = false, !empty($view->cart_nb_conversions));
+        return $view;
+    }
 
-        return $conversionRate;
+    public function getLastNbConversionsGraph()
+    {
+        $view = $this->getLastUnitGraph($this->pluginName, __FUNCTION__, 'Goals.getConversions');
+        return $this->renderView($view);
+    }
+
+    public function getLastConversionRateGraph()
+    {
+        $view = $this->getLastUnitGraph($this->pluginName, __FUNCTION__, 'Goals.getConversionRate');
+        return $this->renderView($view);
+    }
+
+    public function getLastRevenueGraph()
+    {
+        $view = $this->getLastUnitGraph($this->pluginName, __FUNCTION__, 'Goals.getRevenue');
+        return $this->renderView($view);
+    }
+
+    public function addNewGoal()
+    {
+        $view = new View('@Goals/addNewGoal');
+        $this->setGeneralVariablesView($view);
+        $this->setUserCanEditGoals($view);
+        $view->onlyShowAddNewGoal = true;
+        return $view->render();
+    }
+
+    public function editGoals()
+    {
+        $view = new View('@Goals/editGoals');
+        $this->setGeneralVariablesView($view);
+        $this->setEditGoalsViewVariables($view);
+        $this->setUserCanEditGoals($view);
+        return $view->render();
     }
 
     public function getEvolutionGraph(array $columns = array(), $idGoal = false, array $defaultColumns = array())
@@ -294,6 +367,46 @@ class Controller extends \Piwik\Plugin\Controller
         return $topDimensions;
     }
 
+    protected function getMetricsForGoal($idGoal)
+    {
+        $request = new Request("method=Goals.get&format=original&idGoal=$idGoal");
+        $datatable = $request->process();
+        $dataRow = $datatable->getFirstRow();
+        $nbConversions = $dataRow->getColumn('nb_conversions');
+        $nbVisitsConverted = $dataRow->getColumn('nb_visits_converted');
+        // Backward compatibilty before 1.3, this value was not processed
+        if (empty($nbVisitsConverted)) {
+            $nbVisitsConverted = $nbConversions;
+        }
+        $revenue = $dataRow->getColumn('revenue');
+        $return = array(
+            'id'                         => $idGoal,
+            'nb_conversions'             => (int)$nbConversions,
+            'nb_visits_converted'        => (int)$nbVisitsConverted,
+            'conversion_rate'            => $this->formatConversionRate($dataRow->getColumn('conversion_rate')),
+            'revenue'                    => $revenue ? $revenue : 0,
+            'urlSparklineConversions'    => $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('nb_conversions'), 'idGoal' => $idGoal)),
+            'urlSparklineConversionRate' => $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('conversion_rate'), 'idGoal' => $idGoal)),
+            'urlSparklineRevenue'        => $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('revenue'), 'idGoal' => $idGoal)),
+        );
+        if ($idGoal == Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER) {
+            $items = $dataRow->getColumn('items');
+            $aov = $dataRow->getColumn('avg_order_revenue');
+            $return = array_merge($return, array(
+                                                'revenue_subtotal'              => $dataRow->getColumn('revenue_subtotal'),
+                                                'revenue_tax'                   => $dataRow->getColumn('revenue_tax'),
+                                                'revenue_shipping'              => $dataRow->getColumn('revenue_shipping'),
+                                                'revenue_discount'              => $dataRow->getColumn('revenue_discount'),
+
+                                                'items'                         => $items ? $items : 0,
+                                                'avg_order_revenue'             => $aov ? $aov : 0,
+                                                'urlSparklinePurchasedProducts' => $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('items'), 'idGoal' => $idGoal)),
+                                                'urlSparklineAverageOrderValue' => $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('avg_order_revenue'), 'idGoal' => $idGoal)),
+                                           ));
+        }
+        return $return;
+    }
+
     /**
      * Utility function that returns HTML that displays Goal information for reports. This
      * is the HTML that is at the bottom of every goals page.
@@ -355,75 +468,6 @@ class Controller extends \Piwik\Plugin\Controller
         return $goalReportsByDimension->render();
     }
 
-    public function goalReport()
-    {
-        $view = $this->getGoalReportView($idGoal = Common::getRequestVar('idGoal', null, 'string'));
-        $view->displayFullReport = true;
-        return $view->render();
-    }
-
-    public function index()
-    {
-        $view = $this->getOverviewView();
-
-        // unsanitize goal names and other text data (not done in API so as not to break
-        // any other code/cause security issues)
-        $goals = $this->goals;
-        $view->goalsJSON = json_encode($goals);
-
-        $view->ecommerceEnabled = $this->site->isEcommerceEnabled();
-        $view->displayFullReport = true;
-        return $view->render();
-    }
-
-    protected function getOverviewView()
-    {
-        $view = new View('@Goals/getOverviewView');
-        $this->setGeneralVariablesView($view);
-
-        $view->graphEvolution = $this->getEvolutionGraph(array(), false, array('nb_conversions'));
-        $view->nameGraphEvolution = 'GoalsgetEvolutionGraph';
-
-        // sparkline for the historical data of the above values
-        $view->urlSparklineConversions = $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('nb_conversions'), 'idGoal' => ''));
-        $view->urlSparklineConversionRate = $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('conversion_rate'), 'idGoal' => ''));
-        $view->urlSparklineRevenue = $this->getUrlSparkline('getEvolutionGraph', array('columns' => array('revenue'), 'idGoal' => ''));
-
-        // Pass empty idGoal will return Goal overview
-        $request = new Request("method=Goals.get&format=original&idGoal=");
-        $datatable = $request->process();
-        $dataRow = $datatable->getFirstRow();
-
-        $view->nb_conversions = $dataRow->getColumn('nb_conversions');
-        $view->nb_visits_converted = $dataRow->getColumn('nb_visits_converted');
-        $view->conversion_rate = $this->formatConversionRate($dataRow->getColumn('conversion_rate'));
-        $view->revenue = $dataRow->getColumn('revenue');
-
-        $goalMetrics = array();
-        foreach ($this->goals as $idGoal => $goal) {
-            $goalMetrics[$idGoal] = $this->getMetricsForGoal($idGoal);
-            $goalMetrics[$idGoal]['name'] = $goal['name'];
-            $goalMetrics[$idGoal]['goalAllowMultipleConversionsPerVisit'] = $goal['allow_multiple'];
-        }
-
-        $view->goalMetrics = $goalMetrics;
-        $view->goals = $this->goals;
-        $view->goalReportsByDimension = $this->getGoalReportsByDimensionTable(
-            $view->nb_conversions, $ecommerce = false, !empty($view->cart_nb_conversions));
-        return $view;
-    }
-
-    public function manage()
-    {
-        Piwik::checkUserHasAdminAccess($this->idSite);
-
-        $view = new View('@Goals/manageGoals');
-        $this->setGeneralVariablesView($view);
-        $this->setEditGoalsViewVariables($view);
-        $this->setUserCanEditGoals($view);
-        return $view->render();
-    }
-
     private function setEditGoalsViewVariables($view)
     {
         $goals = $this->goals;
@@ -451,48 +495,5 @@ class Controller extends \Piwik\Plugin\Controller
     private function setUserCanEditGoals(View $view)
     {
         $view->userCanEditGoals = Piwik::isUserHasAdminAccess($this->idSite);
-    }
-
-    public function widgetGoalsOverview()
-    {
-        $view = $this->getOverviewView();
-        $view->displayFullReport = false;
-        return $view->render();
-    }
-
-    public function getLastNbConversionsGraph()
-    {
-        $view = $this->getLastUnitGraph($this->pluginName, __FUNCTION__, 'Goals.getConversions');
-        return $this->renderView($view);
-    }
-
-    public function getLastConversionRateGraph()
-    {
-        $view = $this->getLastUnitGraph($this->pluginName, __FUNCTION__, 'Goals.getConversionRate');
-        return $this->renderView($view);
-    }
-
-    public function getLastRevenueGraph()
-    {
-        $view = $this->getLastUnitGraph($this->pluginName, __FUNCTION__, 'Goals.getRevenue');
-        return $this->renderView($view);
-    }
-
-    public function addNewGoal()
-    {
-        $view = new View('@Goals/addNewGoal');
-        $this->setGeneralVariablesView($view);
-        $this->setUserCanEditGoals($view);
-        $view->onlyShowAddNewGoal = true;
-        return $view->render();
-    }
-
-    public function editGoals()
-    {
-        $view = new View('@Goals/editGoals');
-        $this->setGeneralVariablesView($view);
-        $this->setEditGoalsViewVariables($view);
-        $this->setUserCanEditGoals($view);
-        return $view->render();
     }
 }

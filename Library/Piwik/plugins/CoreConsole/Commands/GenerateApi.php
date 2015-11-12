@@ -21,8 +21,7 @@ class GenerateApi extends GeneratePluginBase
     {
         $this->setName('generate:api')
             ->setDescription('Adds an API to an existing plugin')
-            ->addOption('pluginname', null, InputOption::VALUE_REQUIRED,
-                'The name of an existing plugin which does not have an API yet');
+            ->addOption('pluginname', null, InputOption::VALUE_REQUIRED, 'The name of an existing plugin which does not have an API yet');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -30,16 +29,16 @@ class GenerateApi extends GeneratePluginBase
         $pluginName = $this->getPluginName($input, $output);
         $this->checkAndUpdateRequiredPiwikVersion($pluginName, $output);
 
-        $exampleFolder = PIWIK_INCLUDE_PATH . '/plugins/ExamplePlugin';
-        $replace = array('ExamplePlugin' => $pluginName);
+        $exampleFolder  = PIWIK_INCLUDE_PATH . '/plugins/ExamplePlugin';
+        $replace        = array('ExamplePlugin' => $pluginName);
         $whitelistFiles = array('/API.php');
 
         $this->copyTemplateToPlugin($exampleFolder, $pluginName, $replace, $whitelistFiles);
 
         $this->writeSuccessMessage($output, array(
-            sprintf('API.php for %s generated.', $pluginName),
-            'You can now start adding API methods',
-            'Enjoy!'
+             sprintf('API.php for %s generated.', $pluginName),
+             'You can now start adding API methods',
+             'Enjoy!'
         ));
     }
 

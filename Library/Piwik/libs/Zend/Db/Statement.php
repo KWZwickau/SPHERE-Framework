@@ -118,6 +118,17 @@ abstract class Zend_Db_Statement implements Zend_Db_Statement_Interface
     }
 
     /**
+     * Internal method called by abstract statment constructor to setup
+     * the driver level statement
+     *
+     * @return void
+     */
+    protected function _prepare($sql)
+    {
+        return;
+    }
+
+    /**
      * @param string $sql
      * @return void
      */
@@ -140,7 +151,7 @@ abstract class Zend_Db_Statement implements Zend_Db_Statement_Interface
                     // require_once 'Zend/Db/Statement/Exception.php';
                     throw new Zend_Db_Statement_Exception("Invalid bind-variable position '$val'");
                 }
-            } else {if ($val[0] == ':') {
+            } else if ($val[0] == ':') {
                 if ($this->_adapter->supportsParameters('named') === false) {
                     /**
                      * @see Zend_Db_Statement_Exception
@@ -148,7 +159,7 @@ abstract class Zend_Db_Statement implements Zend_Db_Statement_Interface
                     // require_once 'Zend/Db/Statement/Exception.php';
                     throw new Zend_Db_Statement_Exception("Invalid bind-variable name '$val'");
                 }
-            }}
+            }
             $this->_sqlParam[] = $val;
         }
 
@@ -200,17 +211,6 @@ abstract class Zend_Db_Statement implements Zend_Db_Statement_Interface
     }
 
     /**
-     * Internal method called by abstract statment constructor to setup
-     * the driver level statement
-     *
-     * @return void
-     */
-    protected function _prepare($sql)
-    {
-        return;
-    }
-
-    /**
      * Bind a column of the statement result set to a PHP variable.
      *
      * @param string $column Name the column in the result set, either by
@@ -223,19 +223,6 @@ abstract class Zend_Db_Statement implements Zend_Db_Statement_Interface
     {
         $this->_bindColumn[$column] =& $param;
         return true;
-    }
-
-    /**
-     * Binds a value to a parameter.
-     *
-     * @param mixed $parameter Name the parameter, either integer or string.
-     * @param mixed $value     Scalar value to bind to the parameter.
-     * @param mixed $type      OPTIONAL Datatype of the parameter.
-     * @return bool
-     */
-    public function bindValue($parameter, $value, $type = null)
-    {
-        return $this->bindParam($parameter, $value, $type);
     }
 
     /**
@@ -263,14 +250,14 @@ abstract class Zend_Db_Statement implements Zend_Db_Statement_Interface
             if ($intval >= 1 || $intval <= count($this->_sqlParam)) {
                 $position = $intval;
             }
-        } else {if ($this->_adapter->supportsParameters('named')) {
+        } else if ($this->_adapter->supportsParameters('named')) {
             if ($parameter[0] != ':') {
                 $parameter = ':' . $parameter;
             }
             if (in_array($parameter, $this->_sqlParam) !== false) {
                 $position = $parameter;
             }
-        }}
+        }
 
         if ($position === null) {
             /**
@@ -283,6 +270,19 @@ abstract class Zend_Db_Statement implements Zend_Db_Statement_Interface
         // Finally we are assured that $position is valid
         $this->_bindParam[$position] =& $variable;
         return $this->_bindParam($position, $variable, $type, $length, $options);
+    }
+
+    /**
+     * Binds a value to a parameter.
+     *
+     * @param mixed $parameter Name the parameter, either integer or string.
+     * @param mixed $value     Scalar value to bind to the parameter.
+     * @param mixed $type      OPTIONAL Datatype of the parameter.
+     * @return bool
+     */
+    public function bindValue($parameter, $value, $type = null)
+    {
+        return $this->bindParam($parameter, $value, $type);
     }
 
     /**

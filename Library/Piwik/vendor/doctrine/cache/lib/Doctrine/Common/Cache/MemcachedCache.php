@@ -19,7 +19,7 @@
 
 namespace Doctrine\Common\Cache;
 
-use Memcached;
+use \Memcached;
 
 /**
  * Memcached cache provider.
@@ -40,16 +40,6 @@ class MemcachedCache extends CacheProvider
     private $memcached;
 
     /**
-     * Gets the memcached instance used by the cache.
-     *
-     * @return Memcached|null
-     */
-    public function getMemcached()
-    {
-        return $this->memcached;
-    }
-
-    /**
      * Sets the memcache instance to use.
      *
      * @param Memcached $memcached
@@ -59,6 +49,16 @@ class MemcachedCache extends CacheProvider
     public function setMemcached(Memcached $memcached)
     {
         $this->memcached = $memcached;
+    }
+
+    /**
+     * Gets the memcached instance used by the cache.
+     *
+     * @return Memcached|null
+     */
+    public function getMemcached()
+    {
+        return $this->memcached;
     }
 
     /**

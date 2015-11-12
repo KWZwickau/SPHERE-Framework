@@ -54,24 +54,6 @@ class ZendMonitorHandler extends AbstractProcessingHandler
     /**
      * {@inheritdoc}
      */
-    public function getDefaultFormatter()
-    {
-        return new NormalizerFormatter();
-    }
-
-    /**
-     * Get the level map
-     *
-     * @return array
-     */
-    public function getLevelMap()
-    {
-        return $this->levelMap;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     protected function write(array $record)
     {
         $this->writeZendMonitorCustomEvent(
@@ -91,5 +73,23 @@ class ZendMonitorHandler extends AbstractProcessingHandler
     protected function writeZendMonitorCustomEvent($level, $message, $formatted)
     {
         zend_monitor_custom_event($level, $message, $formatted);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getDefaultFormatter()
+    {
+        return new NormalizerFormatter();
+    }
+
+    /**
+     * Get the level map
+     *
+     * @return array
+     */
+    public function getLevelMap()
+    {
+        return $this->levelMap;
     }
 }

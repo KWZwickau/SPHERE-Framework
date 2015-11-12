@@ -85,17 +85,6 @@ class DomainAge implements MetricsProvider
         return 0;
     }
 
-    private function getUrl($url)
-    {
-        try {
-            return str_replace('&nbsp;', ' ', Http::sendHttpRequest($url, $timeout = 10, @$_SERVER['HTTP_USER_AGENT']));
-        } catch (\Exception $e) {
-            $this->logger->warning('Error while getting SEO stats (domain age): {message}',
-                array('message' => $e->getMessage()));
-            return '';
-        }
-    }
-
     /**
      * Returns the domain age who.is lists for the current url
      *
@@ -138,5 +127,15 @@ class DomainAge implements MetricsProvider
             return $value;
         }
         return 0;
+    }
+
+    private function getUrl($url)
+    {
+        try {
+            return str_replace('&nbsp;', ' ', Http::sendHttpRequest($url, $timeout = 10, @$_SERVER['HTTP_USER_AGENT']));
+        } catch (\Exception $e) {
+            $this->logger->warning('Error while getting SEO stats (domain age): {message}', array('message' => $e->getMessage()));
+            return '';
+        }
     }
 }

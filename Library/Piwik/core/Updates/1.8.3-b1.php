@@ -20,6 +20,30 @@ use Piwik\Updates;
 class Updates_1_8_3_b1 extends Updates
 {
 
+    public function getMigrationQueries(Updater $updater)
+    {
+        return array(
+            'ALTER TABLE `' . Common::prefixTable('site') . '`
+				CHANGE `excluded_parameters` `excluded_parameters` TEXT NOT NULL'                      => false,
+
+            'CREATE TABLE `' . Common::prefixTable('report') . '` (
+					`idreport` INT(11) NOT NULL AUTO_INCREMENT,
+					`idsite` INTEGER(11) NOT NULL,
+					`login` VARCHAR(100) NOT NULL,
+					`description` VARCHAR(255) NOT NULL,
+					`period` VARCHAR(10) NOT NULL,
+					`type` VARCHAR(10) NOT NULL,
+					`format` VARCHAR(10) NOT NULL,
+					`reports` TEXT NOT NULL,
+					`parameters` TEXT NULL,
+					`ts_created` TIMESTAMP NULL,
+					`ts_last_sent` TIMESTAMP NULL,
+					`deleted` tinyint(4) NOT NULL default 0,
+					PRIMARY KEY (`idreport`)
+				) DEFAULT CHARSET=utf8' => 1050,
+        );
+    }
+
     public function doUpdate(Updater $updater)
     {
         $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
@@ -66,18 +90,18 @@ class Updates_1_8_3_b1 extends Updates
 					type = ?, format = ?, reports = ?, parameters = ?, ts_created = ?,
 					ts_last_sent = ?, deleted = ?',
                     array(
-                        $idreport,
-                        $idsite,
-                        $login,
-                        $description,
-                        is_null($period) ? ScheduledReports::DEFAULT_PERIOD : $period,
-                        ScheduledReports::EMAIL_TYPE,
-                        is_null($format) ? ScheduledReports::DEFAULT_REPORT_FORMAT : $format,
-                        json_encode(preg_split('/,/', $reports)),
-                        json_encode($parameters),
-                        $ts_created,
-                        $ts_last_sent,
-                        $deleted
+                         $idreport,
+                         $idsite,
+                         $login,
+                         $description,
+                         is_null($period) ? ScheduledReports::DEFAULT_PERIOD : $period,
+                         ScheduledReports::EMAIL_TYPE,
+                         is_null($format) ? ScheduledReports::DEFAULT_REPORT_FORMAT : $format,
+                         json_encode(preg_split('/,/', $reports)),
+                         json_encode($parameters),
+                         $ts_created,
+                         $ts_last_sent,
+                         $deleted
                     )
                 );
             }
@@ -85,29 +109,5 @@ class Updates_1_8_3_b1 extends Updates
             Db::query('DROP TABLE `' . Common::prefixTable('pdf') . '`');
         } catch (\Exception $e) {
         }
-    }
-
-    public function getMigrationQueries(Updater $updater)
-    {
-        return array(
-            'ALTER TABLE `' . Common::prefixTable('site') . '`
-				CHANGE `excluded_parameters` `excluded_parameters` TEXT NOT NULL' => false,
-
-            'CREATE TABLE `' . Common::prefixTable('report') . '` (
-					`idreport` INT(11) NOT NULL AUTO_INCREMENT,
-					`idsite` INTEGER(11) NOT NULL,
-					`login` VARCHAR(100) NOT NULL,
-					`description` VARCHAR(255) NOT NULL,
-					`period` VARCHAR(10) NOT NULL,
-					`type` VARCHAR(10) NOT NULL,
-					`format` VARCHAR(10) NOT NULL,
-					`reports` TEXT NOT NULL,
-					`parameters` TEXT NULL,
-					`ts_created` TIMESTAMP NULL,
-					`ts_last_sent` TIMESTAMP NULL,
-					`deleted` tinyint(4) NOT NULL default 0,
-					PRIMARY KEY (`idreport`)
-				) DEFAULT CHARSET=utf8' => 1050,
-        );
     }
 }

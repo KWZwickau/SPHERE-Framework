@@ -142,7 +142,7 @@ class Zend_Validate_CreditCard extends Zend_Validate_Abstract
     {
         if ($options instanceof Zend_Config) {
             $options = $options->toArray();
-        } else {if (!is_array($options)) {
+        } else if (!is_array($options)) {
             $options = func_get_args();
             $temp['type'] = array_shift($options);
             if (!empty($options)) {
@@ -150,7 +150,7 @@ class Zend_Validate_CreditCard extends Zend_Validate_Abstract
             }
 
             $options = $temp;
-        }}
+        }
 
         if (!array_key_exists('type', $options)) {
             $options['type'] = self::ALL;
@@ -160,6 +160,28 @@ class Zend_Validate_CreditCard extends Zend_Validate_Abstract
         if (array_key_exists('service', $options)) {
             $this->setService($options['service']);
         }
+    }
+
+    /**
+     * Returns a list of accepted CCIs
+     *
+     * @return array
+     */
+    public function getType()
+    {
+        return $this->_type;
+    }
+
+    /**
+     * Sets CCIs which are accepted by validation
+     *
+     * @param string|array $type Type to allow for validation
+     * @return Zend_Validate_CreditCard Provides a fluid interface
+     */
+    public function setType($type)
+    {
+        $this->_type = array();
+        return $this->addType($type);
     }
 
     /**
@@ -291,27 +313,5 @@ class Zend_Validate_CreditCard extends Zend_Validate_Abstract
         }
 
         return true;
-    }
-
-    /**
-     * Returns a list of accepted CCIs
-     *
-     * @return array
-     */
-    public function getType()
-    {
-        return $this->_type;
-    }
-
-    /**
-     * Sets CCIs which are accepted by validation
-     *
-     * @param string|array $type Type to allow for validation
-     * @return Zend_Validate_CreditCard Provides a fluid interface
-     */
-    public function setType($type)
-    {
-        $this->_type = array();
-        return $this->addType($type);
     }
 }

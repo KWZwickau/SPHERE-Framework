@@ -34,6 +34,14 @@ class ActionClickUrl extends Action
         return !empty($outlinkUrl);
     }
 
+    protected function getActionsToLookup()
+    {
+        return array(
+            // Note: we do not normalize outlink URL
+            'idaction_url' => array($this->getActionUrl(), $this->getActionType())
+        );
+    }
+
     public function writeDebugInfo()
     {
         parent::writeDebugInfo();
@@ -59,13 +67,5 @@ class ActionClickUrl extends Action
         }
 
         return Visit::isHostKnownAliasHost($actionUrlParsed['host'], $idSite);
-    }
-
-    protected function getActionsToLookup()
-    {
-        return array(
-            // Note: we do not normalize outlink URL
-            'idaction_url' => array($this->getActionUrl(), $this->getActionType())
-        );
     }
 }

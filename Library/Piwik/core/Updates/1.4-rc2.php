@@ -17,11 +17,6 @@ use Piwik\Updates;
  */
 class Updates_1_4_rc2 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -40,5 +35,10 @@ class Updates_1_4_rc2 extends Updates
             'UPDATE ' . Common::prefixTable('logger_api_call') . "
 				SET caller_ip = UNHEX(LPAD(HEX(CONVERT(caller_ip, UNSIGNED)), 8, '0'))" => 1146,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

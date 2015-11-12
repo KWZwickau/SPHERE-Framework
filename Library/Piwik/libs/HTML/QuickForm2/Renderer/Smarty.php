@@ -180,7 +180,7 @@ class HTML_QuickForm2_Renderer_Smarty extends HTML_QuickForm2_Renderer_Array
         // Note that the name may be empty.
         $key_val = $ary[$keyn];
         if($key_val == '')
-            {$key_val = $ary['id'];}
+            $key_val = $ary['id'];
 
         if ($labels = $element->getLabel()) {
             if (!is_array($labels) || !$this->options['static_labels']) {
@@ -218,7 +218,7 @@ class HTML_QuickForm2_Renderer_Smarty extends HTML_QuickForm2_Renderer_Array
     public function startForm(HTML_QuickForm2_Node $form)
     {
         if($this->options['old_compat'])
-            {$this->options['group_hiddens'] = true;}
+            $this->options['group_hiddens'] = true;
 
         parent::startForm($form);
     }
@@ -242,11 +242,11 @@ class HTML_QuickForm2_Renderer_Smarty extends HTML_QuickForm2_Renderer_Array
 
         // Create top level elements keyed by form field 'name' or 'id'
         if(isset($this->array['elements']['0']))
-            {$this->linkToLevelAbove($this->array, $this->array['elements']);}
+            $this->linkToLevelAbove($this->array, $this->array['elements']);
 
         // For compat: it is expected that 'hidden' is a string, not an array:
         if($this->options['old_compat'] && isset($this->array['hidden']) && is_array($this->array['hidden']))
-            {$this->array['hidden'] = join(' ', $this->array['hidden']);}
+            $this->array['hidden'] = join(' ', $this->array['hidden']);
     }
 
     // Look through the elements (numerically indexed) array, make fields
@@ -264,27 +264,27 @@ class HTML_QuickForm2_Renderer_Smarty extends HTML_QuickForm2_Renderer_Array
             // Don't do if key_id as the value is a straight id.
             if( !$this->options['key_id'] && $inGroup && $top_key != '') {
                 if(!(preg_match("/\[?([\w_]+)\]?$/i", $top_key, $match)))
-                    {throw new HTML_QuickForm2_InvalidArgumentException(
-                        "linkToLevelAbove can't obtain the name from '$top_key'");}
+                    throw new HTML_QuickForm2_InvalidArgumentException(
+                        "linkToLevelAbove can't obtain the name from '$top_key'");
                 $top_key = $match[1];
             }
 
             // Radio buttons: several elements with the same name, make an array
             if(isset($elem['type']) && $elem['type'] == 'radio') {
                 if( ! isset($top[$top_key]))
-                    {$top[$top_key] = array('id' => $top_key, 'type' => 'radio', 'elements' => array(0));}
+                    $top[$top_key] = array('id' => $top_key, 'type' => 'radio', 'elements' => array(0));
                 $top[$top_key][$elem['id']] = &$elem;
             } else    // Normal field, just link into the level above.
-                {if( ! isset($top[$top_key]))
-                    {$top[$top_key] = &$elem;}}    // Link into the level above
+                if( ! isset($top[$top_key]))
+                    $top[$top_key] = &$elem;    // Link into the level above
 
             // If we have a group link its fields up to this level:
             if(isset($elem['elements']['0']))
-                {$this->linkToLevelAbove($elem, $elem['elements'], true);}
+                $this->linkToLevelAbove($elem, $elem['elements'], true);
 
             // Link errors to the top level:
             if(isset($elem['error']) && isset($this->array[$elem['error']]))
-                {$this->array['errors'][$top_key] = $this->array[$elem['error']];}
+                $this->array['errors'][$top_key] = $this->array[$elem['error']];
         }
     }
 

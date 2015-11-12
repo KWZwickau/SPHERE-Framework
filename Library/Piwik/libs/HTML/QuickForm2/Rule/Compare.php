@@ -84,6 +84,53 @@ class HTML_QuickForm2_Rule_Compare extends HTML_QuickForm2_Rule
     */
     protected $operators = array('==', '!=', '===', '!==', '<', '<=', '>', '>=');
 
+
+   /**
+    * Validates the owner element
+    *
+    * @return   bool    whether (element_value operator operand) expression is true
+    */
+    protected function validateOwner()
+    {
+        $value  = $this->owner->getValue();
+        $config = $this->getConfig();
+        if (!in_array($config['operator'], array('===', '!=='))) {
+            $compareFn = create_function(
+                '$a, $b', 'return floatval($a) ' . $config['operator'] . ' floatval($b);'
+            );
+        } else {
+            $compareFn = create_function(
+                '$a, $b', 'return strval($a) ' . $config['operator'] . ' strval($b);'
+            );
+        }
+        return $compareFn($value, $config['operand'] instanceof HTML_QuickForm2_Node
+                                  ? $config['operand']->getValue(): $config['operand']);
+    }
+
+    protected function getJavascriptCallback()
+    {
+        $config   = $this->getConfig();
+        $operand1 = $this->owner->getJavascriptValue();
+        $operand2 = $config['operand'] instanceof HTML_QuickForm2_Node
+                    ? $config['operand']->getJavascriptValue()
+                    : "'" . strtr($config['operand'], array(
+                                "\r" => '\r',
+                                "\n" => '\n',
+                                "\t" => '\t',
+                                "'"  => "\\'",
+                                '"'  => '\"',
+                                '\\' => '\\\\'
+                            )) . "'";
+
+        if (!in_array($config['operator'], array('===', '!=='))) {
+            $check = "Number({$operand1}) {$config['operator']} Number({$operand2})";
+        } else {
+            $check = "String({$operand1}) {$config['operator']} String({$operand2})";
+        }
+
+        return "function () { return {$check}; }";
+    }
+
    /**
     * Merges local configuration with that provided for registerRule()
     *
@@ -93,7 +140,8 @@ class HTML_QuickForm2_Rule_Compare extends HTML_QuickForm2_Rule
     *  - operator
     *  - array(operator[, operand])
     *  - array(['operator' => operator, ]['operand' => operand])
- * "Local" configuration may be passed to the constructor in either of
+
+    * "Local" configuration may be passed to the constructor in either of
     * the following formats
     *  - operand
     *  - array([operator, ]operand)
@@ -178,52 +226,6 @@ class HTML_QuickForm2_Rule_Compare extends HTML_QuickForm2_Rule
         }
 
         return parent::setConfig($config);
-    }
-
-   /**
-    * Validates the owner element
-    *
-    * @return   bool    whether (element_value operator operand) expression is true
-    */
-    protected function validateOwner()
-    {
-        $value  = $this->owner->getValue();
-        $config = $this->getConfig();
-        if (!in_array($config['operator'], array('===', '!=='))) {
-            $compareFn = create_function(
-                '$a, $b', 'return floatval($a) ' . $config['operator'] . ' floatval($b);'
-            );
-        } else {
-            $compareFn = create_function(
-                '$a, $b', 'return strval($a) ' . $config['operator'] . ' strval($b);'
-            );
-        }
-        return $compareFn($value, $config['operand'] instanceof HTML_QuickForm2_Node
-                                  ? $config['operand']->getValue(): $config['operand']);
-    }
-
-    protected function getJavascriptCallback()
-    {
-        $config   = $this->getConfig();
-        $operand1 = $this->owner->getJavascriptValue();
-        $operand2 = $config['operand'] instanceof HTML_QuickForm2_Node
-                    ? $config['operand']->getJavascriptValue()
-                    : "'" . strtr($config['operand'], array(
-                                "\r" => '\r',
-                                "\n" => '\n',
-                                "\t" => '\t',
-                                "'"  => "\\'",
-                                '"'  => '\"',
-                                '\\' => '\\\\'
-                            )) . "'";
-
-        if (!in_array($config['operator'], array('===', '!=='))) {
-            $check = "Number({$operand1}) {$config['operator']} Number({$operand2})";
-        } else {
-            $check = "String({$operand1}) {$config['operator']} String({$operand2})";
-        }
-
-        return "function () { return {$check}; }";
     }
 }
 ?>

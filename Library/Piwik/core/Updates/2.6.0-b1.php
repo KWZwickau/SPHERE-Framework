@@ -10,8 +10,8 @@
 namespace Piwik\Updates;
 
 use Piwik\Config;
-use Piwik\Updater;
 use Piwik\Updates;
+use Piwik\Updater;
 
 /**
  * Update for version 2.6.0-b1.

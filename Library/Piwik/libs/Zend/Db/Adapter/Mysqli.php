@@ -95,6 +95,22 @@ class Zend_Db_Adapter_Mysqli extends Zend_Db_Adapter_Abstract
     protected $_defaultStmtClass = 'Zend_Db_Statement_Mysqli';
 
     /**
+     * Quote a raw string.
+     *
+     * @param mixed $value Raw string
+     *
+     * @return string           Quoted string
+     */
+    protected function _quote($value)
+    {
+        if (is_int($value) || is_float($value)) {
+            return $value;
+        }
+        $this->_connect();
+        return "'" . $this->_connection->real_escape_string($value) . "'";
+    }
+
+    /**
      * Returns the symbol the adapter uses for delimiting identifiers.
      *
      * @return string
@@ -209,21 +225,21 @@ class Zend_Db_Adapter_Mysqli extends Zend_Db_Adapter_Abstract
             if (preg_match('/^((?:var)?char)\((\d+)\)/', $row['Type'], $matches)) {
                 $row['Type'] = $matches[1];
                 $row['Length'] = $matches[2];
-            } else {if (preg_match('/^decimal\((\d+),(\d+)\)/', $row['Type'], $matches)) {
+            } else if (preg_match('/^decimal\((\d+),(\d+)\)/', $row['Type'], $matches)) {
                 $row['Type'] = 'decimal';
                 $row['Precision'] = $matches[1];
                 $row['Scale'] = $matches[2];
-            } else {if (preg_match('/^float\((\d+),(\d+)\)/', $row['Type'], $matches)) {
+            } else if (preg_match('/^float\((\d+),(\d+)\)/', $row['Type'], $matches)) {
                 $row['Type'] = 'float';
                 $row['Precision'] = $matches[1];
                 $row['Scale'] = $matches[2];
-            } else {if (preg_match('/^((?:big|medium|small|tiny)?int)\((\d+)\)/', $row['Type'], $matches)) {
+            } else if (preg_match('/^((?:big|medium|small|tiny)?int)\((\d+)\)/', $row['Type'], $matches)) {
                 $row['Type'] = $matches[1];
                 /**
                  * The optional argument of a MySQL int type is not precision
                  * or length; it is only a hint for display width.
                  */
-            }}}}
+            }
             if (strtoupper($row['Key']) == 'PRI') {
                 $row['Primary'] = true;
                 $row['PrimaryPosition'] = $p;
@@ -253,6 +269,96 @@ class Zend_Db_Adapter_Mysqli extends Zend_Db_Adapter_Abstract
             ++$i;
         }
         return $desc;
+    }
+
+    /**
+     * Creates a connection to the database.
+     *
+     * @return void
+     * @throws Zend_Db_Adapter_Mysqli_Exception
+     */
+    protected function _connect()
+    {
+        if ($this->_connection) {
+            return;
+        }
+
+        if (!extension_loaded('mysqli')) {
+            /**
+             * @see Zend_Db_Adapter_Mysqli_Exception
+             */
+            // require_once 'Zend/Db/Adapter/Mysqli/Exception.php';
+            throw new Zend_Db_Adapter_Mysqli_Exception('The Mysqli extension is required for this adapter but the extension is not loaded');
+        }
+
+        if (isset($this->_config['port'])) {
+            $port = (integer) $this->_config['port'];
+        } else {
+            $port = null;
+        }
+
+        $this->_connection = mysqli_init();
+
+        if(!empty($this->_config['driver_options'])) {
+            foreach($this->_config['driver_options'] as $option=>$value) {
+                if(is_string($option)) {
+                    // Suppress warnings here
+                    // Ignore it if it's not a valid constant
+                    $option = @constant(strtoupper($option));
+                    if($option === null)
+                        continue;
+                }
+                mysqli_options($this->_connection, $option, $value);
+            }
+        }
+
+        // Suppress connection warnings here.
+        // Throw an exception instead.
+        $_isConnected = @mysqli_real_connect(
+            $this->_connection,
+            $this->_config['host'],
+            $this->_config['username'],
+            $this->_config['password'],
+            $this->_config['dbname'],
+            $port
+        );
+
+        if ($_isConnected === false || mysqli_connect_errno()) {
+
+            $this->closeConnection();
+            /**
+             * @see Zend_Db_Adapter_Mysqli_Exception
+             */
+            // require_once 'Zend/Db/Adapter/Mysqli/Exception.php';
+            throw new Zend_Db_Adapter_Mysqli_Exception(mysqli_connect_error());
+        }
+
+        if (!empty($this->_config['charset'])) {
+            mysqli_set_charset($this->_connection, $this->_config['charset']);
+        }
+    }
+
+    /**
+     * Test if a connection is active
+     *
+     * @return boolean
+     */
+    public function isConnected()
+    {
+        return ((bool) ($this->_connection instanceof mysqli));
+    }
+
+    /**
+     * Force the connection to close.
+     *
+     * @return void
+     */
+    public function closeConnection()
+    {
+        if ($this->isConnected()) {
+            $this->_connection->close();
+        }
+        $this->_connection = null;
     }
 
     /**
@@ -302,6 +408,41 @@ class Zend_Db_Adapter_Mysqli extends Zend_Db_Adapter_Abstract
     {
         $mysqli = $this->_connection;
         return (string) $mysqli->insert_id;
+    }
+
+    /**
+     * Begin a transaction.
+     *
+     * @return void
+     */
+    protected function _beginTransaction()
+    {
+        $this->_connect();
+        $this->_connection->autocommit(false);
+    }
+
+    /**
+     * Commit a transaction.
+     *
+     * @return void
+     */
+    protected function _commit()
+    {
+        $this->_connect();
+        $this->_connection->commit();
+        $this->_connection->autocommit(true);
+    }
+
+    /**
+     * Roll-back a transaction.
+     *
+     * @return void
+     */
+    protected function _rollBack()
+    {
+        $this->_connect();
+        $this->_connection->rollback();
+        $this->_connection->autocommit(true);
     }
 
     /**
@@ -404,146 +545,5 @@ class Zend_Db_Adapter_Mysqli extends Zend_Db_Adapter_Abstract
         $minor = (int) ($version % 10000 / 100);
         $revision = (int) ($version % 100);
         return $major . '.' . $minor . '.' . $revision;
-    }
-
-    /**
-     * Quote a raw string.
-     *
-     * @param mixed $value Raw string
-     *
-     * @return string           Quoted string
-     */
-    protected function _quote($value)
-    {
-        if (is_int($value) || is_float($value)) {
-            return $value;
-        }
-        $this->_connect();
-        return "'" . $this->_connection->real_escape_string($value) . "'";
-    }
-
-    /**
-     * Creates a connection to the database.
-     *
-     * @return void
-     * @throws Zend_Db_Adapter_Mysqli_Exception
-     */
-    protected function _connect()
-    {
-        if ($this->_connection) {
-            return;
-        }
-
-        if (!extension_loaded('mysqli')) {
-            /**
-             * @see Zend_Db_Adapter_Mysqli_Exception
-             */
-            // require_once 'Zend/Db/Adapter/Mysqli/Exception.php';
-            throw new Zend_Db_Adapter_Mysqli_Exception('The Mysqli extension is required for this adapter but the extension is not loaded');
-        }
-
-        if (isset($this->_config['port'])) {
-            $port = (integer) $this->_config['port'];
-        } else {
-            $port = null;
-        }
-
-        $this->_connection = mysqli_init();
-
-        if(!empty($this->_config['driver_options'])) {
-            foreach($this->_config['driver_options'] as $option=>$value) {
-                if(is_string($option)) {
-                    // Suppress warnings here
-                    // Ignore it if it's not a valid constant
-                    $option = @constant(strtoupper($option));
-                    if($option === null)
-                        {continue;}
-                }
-                mysqli_options($this->_connection, $option, $value);
-            }
-        }
-
-        // Suppress connection warnings here.
-        // Throw an exception instead.
-        $_isConnected = @mysqli_real_connect(
-            $this->_connection,
-            $this->_config['host'],
-            $this->_config['username'],
-            $this->_config['password'],
-            $this->_config['dbname'],
-            $port
-        );
-
-        if ($_isConnected === false || mysqli_connect_errno()) {
-
-            $this->closeConnection();
-            /**
-             * @see Zend_Db_Adapter_Mysqli_Exception
-             */
-            // require_once 'Zend/Db/Adapter/Mysqli/Exception.php';
-            throw new Zend_Db_Adapter_Mysqli_Exception(mysqli_connect_error());
-        }
-
-        if (!empty($this->_config['charset'])) {
-            mysqli_set_charset($this->_connection, $this->_config['charset']);
-        }
-    }
-
-    /**
-     * Force the connection to close.
-     *
-     * @return void
-     */
-    public function closeConnection()
-    {
-        if ($this->isConnected()) {
-            $this->_connection->close();
-        }
-        $this->_connection = null;
-    }
-
-    /**
-     * Test if a connection is active
-     *
-     * @return boolean
-     */
-    public function isConnected()
-    {
-        return ((bool) ($this->_connection instanceof mysqli));
-    }
-
-    /**
-     * Begin a transaction.
-     *
-     * @return void
-     */
-    protected function _beginTransaction()
-    {
-        $this->_connect();
-        $this->_connection->autocommit(false);
-    }
-
-    /**
-     * Commit a transaction.
-     *
-     * @return void
-     */
-    protected function _commit()
-    {
-        $this->_connect();
-        $this->_connection->commit();
-        $this->_connection->autocommit(true);
-    }
-
-    /**
-     * Roll-back a transaction.
-     *
-     * @return void
-     */
-    protected function _rollBack()
-    {
-        $this->_connect();
-        $this->_connection->rollback();
-        $this->_connection->autocommit(true);
     }
 }

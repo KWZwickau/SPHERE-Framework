@@ -8,10 +8,10 @@
  */
 namespace Piwik\Plugins\UserCountry\Commands;
 
-use Piwik\DataAccess\RawLogDao;
 use Piwik\Plugin\ConsoleCommand;
-use Piwik\Plugins\UserCountry\LocationProvider;
 use Piwik\Plugins\UserCountry\VisitorGeolocator;
+use Piwik\Plugins\UserCountry\LocationProvider;
+use Piwik\DataAccess\RawLogDao;
 use Piwik\Timer;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -113,6 +113,53 @@ class AttributeHistoricalDataWithLocations extends ConsoleCommand
         return 0;
     }
 
+    protected function processSpecifiedLogsInChunks(OutputInterface $output, $from, $to, $segmentLimit)
+    {
+        $self = $this;
+        $this->visitorGeolocator->reattributeVisitLogs($from, $to, $idSite = null, $segmentLimit, function () use ($output, $self) {
+            $self->onVisitProcessed($output);
+        });
+    }
+
+    /**
+     * @param InputInterface $input
+     * @return int
+     */
+    protected function getPercentStep(InputInterface $input)
+    {
+        $percentStep = $input->getOption(self::PERCENT_STEP_ARGUMENT);
+
+        if (!is_numeric($percentStep)) {
+            return self::PERCENT_STEP_ARGUMENT_DEFAULT;
+        }
+
+        // Percent step should be between maximum percent value and minimum percent value (1-100)
+        if ($percentStep > 99 || $percentStep < 1) {
+            return 100;
+        }
+
+        return $percentStep;
+    }
+
+    /**
+     * Print information about progress.
+     * @param OutputInterface $output
+     */
+    protected function onVisitProcessed(OutputInterface $output)
+    {
+        ++$this->processed;
+
+        $percent = ceil($this->processed / $this->amountOfVisits * 100);
+
+        if ($percent > $this->processedPercent
+            && $percent % $this->percentStep === 0
+        ) {
+            $output->writeln(sprintf('%d%% processed. <comment>%s</comment>', $percent, $this->timer->__toString()));
+
+            $this->processedPercent = $percent;
+        }
+    }
+
     private function getDateRangeToAttribute(InputInterface $input)
     {
         $dateRangeString = $input->getArgument(self::DATES_RANGE_ARGUMENT);
@@ -151,52 +198,5 @@ class AttributeHistoricalDataWithLocations extends ConsoleCommand
         }
 
         return $geolocator;
-    }
-
-    /**
-     * @param InputInterface $input
-     * @return int
-     */
-    protected function getPercentStep(InputInterface $input)
-    {
-        $percentStep = $input->getOption(self::PERCENT_STEP_ARGUMENT);
-
-        if (!is_numeric($percentStep)) {
-            return self::PERCENT_STEP_ARGUMENT_DEFAULT;
-        }
-
-        // Percent step should be between maximum percent value and minimum percent value (1-100)
-        if ($percentStep > 99 || $percentStep < 1) {
-            return 100;
-        }
-
-        return $percentStep;
-    }
-
-    protected function processSpecifiedLogsInChunks(OutputInterface $output, $from, $to, $segmentLimit)
-    {
-        $self = $this;
-        $this->visitorGeolocator->reattributeVisitLogs($from, $to, $idSite = null, $segmentLimit, function () use ($output, $self) {
-            $self->onVisitProcessed($output);
-        });
-    }
-
-    /**
-     * Print information about progress.
-     * @param OutputInterface $output
-     */
-    protected function onVisitProcessed(OutputInterface $output)
-    {
-        ++$this->processed;
-
-        $percent = ceil($this->processed / $this->amountOfVisits * 100);
-
-        if ($percent > $this->processedPercent
-            && $percent % $this->percentStep === 0
-        ) {
-            $output->writeln(sprintf('%d%% processed. <comment>%s</comment>', $percent, $this->timer->__toString()));
-
-            $this->processedPercent = $percent;
-        }
     }
 }

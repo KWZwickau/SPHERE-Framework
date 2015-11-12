@@ -45,6 +45,13 @@ abstract class BaseFilter
     }
 
     /**
+     * Manipulates a {@link DataTable} in some way.
+     *
+     * @param DataTable $table
+     */
+    abstract public function filter($table);
+
+    /**
      * Enables/Disables recursive filtering. Whether this property is actually used
      * is up to the derived BaseFilter class.
      *
@@ -70,11 +77,4 @@ abstract class BaseFilter
             $this->filter($subTable);
         }
     }
-
-    /**
-     * Manipulates a {@link DataTable} in some way.
-     *
-     * @param DataTable $table
-     */
-    abstract public function filter($table);
 }

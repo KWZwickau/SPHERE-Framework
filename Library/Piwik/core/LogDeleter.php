@@ -27,6 +27,44 @@ class LogDeleter
     }
 
     /**
+     * Deletes visits by ID. This method cascades, so conversions, conversion items and visit actions for
+     * the visits are also deleted.
+     *
+     * @param int[] $visitIds
+     * @return int The number of deleted visits.
+     */
+    public function deleteVisits($visitIds)
+    {
+        $this->deleteConversions($visitIds);
+        $this->rawLogDao->deleteVisitActionsForVisits($visitIds);
+
+        return $this->rawLogDao->deleteVisits($visitIds);
+    }
+
+    /**
+     * Deletes conversions by visit ID. This method cascades, so conversion items are also deleted.
+     *
+     * @param int[] $visitIds The list of visits to delete conversions for.
+     * @return int The number rows deleted.
+     */
+    public function deleteConversions($visitIds)
+    {
+        $this->deleteConversionItems($visitIds);
+        return $this->rawLogDao->deleteConversions($visitIds);
+    }
+
+    /**
+     * Deletes conversion items by visit ID.
+     *
+     * @param int[] $visitIds The list of visits to delete conversions for.
+     * @return int The number rows deleted.
+     */
+    public function deleteConversionItems($visitIds)
+    {
+        return $this->rawLogDao->deleteConversionItems($visitIds);
+    }
+
+    /**
      * Deletes visits within the specified date range and belonging to the specified site (if any). Visits are
      * deleted in chunks, so only `$iterationStep` visits are deleted at a time.
      *
@@ -68,43 +106,5 @@ class LogDeleter
         });
 
         return $logsDeleted;
-    }
-
-    /**
-     * Deletes visits by ID. This method cascades, so conversions, conversion items and visit actions for
-     * the visits are also deleted.
-     *
-     * @param int[] $visitIds
-     * @return int The number of deleted visits.
-     */
-    public function deleteVisits($visitIds)
-    {
-        $this->deleteConversions($visitIds);
-        $this->rawLogDao->deleteVisitActionsForVisits($visitIds);
-
-        return $this->rawLogDao->deleteVisits($visitIds);
-    }
-
-    /**
-     * Deletes conversions by visit ID. This method cascades, so conversion items are also deleted.
-     *
-     * @param int[] $visitIds The list of visits to delete conversions for.
-     * @return int The number rows deleted.
-     */
-    public function deleteConversions($visitIds)
-    {
-        $this->deleteConversionItems($visitIds);
-        return $this->rawLogDao->deleteConversions($visitIds);
-    }
-
-    /**
-     * Deletes conversion items by visit ID.
-     *
-     * @param int[] $visitIds The list of visits to delete conversions for.
-     * @return int The number rows deleted.
-     */
-    public function deleteConversionItems($visitIds)
-    {
-        return $this->rawLogDao->deleteConversionItems($visitIds);
     }
 }

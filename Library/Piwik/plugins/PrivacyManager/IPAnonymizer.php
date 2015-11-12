@@ -17,21 +17,17 @@ use Piwik\Network\IP;
 class IPAnonymizer
 {
     /**
-     * Deactivates IP anonymization. This function will not be called by the Tracker.
+     * Internal function to mask portions of the visitor IP address
+     *
+     * @param IP $ip
+     * @param int $maskLength Number of octets to reset
+     * @return IP
      */
-    public static function deactivate()
+    public static function applyIPMask(IP $ip, $maskLength)
     {
-        $privacyConfig = new Config();
-        $privacyConfig->ipAnonymizerEnabled = false;
-    }
+        $newIpObject = $ip->anonymize($maskLength);
 
-    /**
-     * Activates IP anonymization. This function will not be called by the Tracker.
-     */
-    public static function activate()
-    {
-        $privacyConfig = new Config();
-        $privacyConfig->ipAnonymizerEnabled = true;
+        return $newIpObject;
     }
 
     /**
@@ -56,6 +52,24 @@ class IPAnonymizer
     }
 
     /**
+     * Deactivates IP anonymization. This function will not be called by the Tracker.
+     */
+    public static function deactivate()
+    {
+        $privacyConfig = new Config();
+        $privacyConfig->ipAnonymizerEnabled = false;
+    }
+
+    /**
+     * Activates IP anonymization. This function will not be called by the Tracker.
+     */
+    public static function activate()
+    {
+        $privacyConfig = new Config();
+        $privacyConfig->ipAnonymizerEnabled = true;
+    }
+
+    /**
      * Returns true if IP anonymization support is enabled, false if otherwise.
      *
      * @return bool
@@ -64,19 +78,5 @@ class IPAnonymizer
     {
         $privacyConfig = new Config();
         return $privacyConfig->ipAnonymizerEnabled;
-    }
-
-    /**
-     * Internal function to mask portions of the visitor IP address
-     *
-     * @param IP $ip
-     * @param int $maskLength Number of octets to reset
-     * @return IP
-     */
-    public static function applyIPMask(IP $ip, $maskLength)
-    {
-        $newIpObject = $ip->anonymize($maskLength);
-
-        return $newIpObject;
     }
 }

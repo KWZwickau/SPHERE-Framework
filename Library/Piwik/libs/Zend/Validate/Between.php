@@ -100,7 +100,7 @@ class Zend_Validate_Between extends Zend_Validate_Abstract
     {
         if ($options instanceof Zend_Config) {
             $options = $options->toArray();
-        } else {if (!is_array($options)) {
+        } else if (!is_array($options)) {
             $options = func_get_args();
             $temp['min'] = array_shift($options);
             if (!empty($options)) {
@@ -112,7 +112,7 @@ class Zend_Validate_Between extends Zend_Validate_Abstract
             }
 
             $options = $temp;
-        }}
+        }
 
         if (!array_key_exists('min', $options) || !array_key_exists('max', $options)) {
             // require_once 'Zend/Validate/Exception.php';

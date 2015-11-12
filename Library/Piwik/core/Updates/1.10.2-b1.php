@@ -17,11 +17,6 @@ use Piwik\Updates;
  */
 class Updates_1_10_2_b1 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -29,5 +24,10 @@ class Updates_1_10_2_b1 extends Updates
             'ALTER TABLE ' . Common::prefixTable('report')
             . " ADD COLUMN hour tinyint NOT NULL default 0 AFTER period" => 1060,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

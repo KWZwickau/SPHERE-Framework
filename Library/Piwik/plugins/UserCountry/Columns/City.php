@@ -10,15 +10,24 @@ namespace Piwik\Plugins\UserCountry\Columns;
 
 use Piwik\Piwik;
 use Piwik\Plugins\UserCountry\LocationProvider;
-use Piwik\Plugins\UserCountry\Segment;
-use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Action;
+use Piwik\Plugins\UserCountry\Segment;
 
 class City extends Base
 {
     protected $columnName = 'location_city';
     protected $columnType = 'varchar(255) DEFAULT NULL';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('city');
+        $segment->setName('UserCountry_City');
+        $segment->setAcceptedValues('Sydney, Sao Paolo, Rome, etc.');
+        $this->addSegment($segment);
+    }
 
     public function getName()
     {
@@ -64,14 +73,5 @@ class City extends Base
     public function onAnyGoalConversion(Request $request, Visitor $visitor, $action)
     {
         return $visitor->getVisitorColumn($this->columnName);
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('city');
-        $segment->setName('UserCountry_City');
-        $segment->setAcceptedValues('Sydney, Sao Paolo, Rome, etc.');
-        $this->addSegment($segment);
     }
 }

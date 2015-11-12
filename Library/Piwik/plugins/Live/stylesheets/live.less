@@ -4,13 +4,13 @@
     color: @theme-color-text-light;
     border-top: 1px solid @color-silver-l90;
 
-    .dataTable {
-        margin-bottom: -1px;
-    }
+   .dataTable {
+     margin-bottom: -1px;
+   }
 }
 
 #visitsLive .settings {
-    border-bottom: 1px solid @color-silver-l90;
+  border-bottom: 1px solid @color-silver-l90;
 }
 
 #visitsLive .datetime, #visitsLive .country, #visitsLive .settings, #visitsLive .returning {
@@ -30,9 +30,9 @@
 }
 
 #visitsLive .referrer {
-    display: block;
-    padding-top: 4px;
-    padding-bottom: 1px;
+  display: block;
+  padding-top: 4px;
+  padding-bottom: 1px;
 }
 
 #visitsLive .pagesTitle {
@@ -65,14 +65,14 @@
 }
 
 .ui-dialog.ui-widget {
-    .dataTableVizVisitorLog {
-        .dataTableFeatures {
-            border-bottom: 0px;
-        }
-        .expandDataTableFooterDrawer {
-            display: none;
-        }
+  .dataTableVizVisitorLog {
+    .dataTableFeatures {
+      border-bottom: 0px;
     }
+    .expandDataTableFooterDrawer {
+      display: none;
+    }
+  }
 }
 
 .visitsLiveFooter a.rightLink {
@@ -92,13 +92,13 @@ ol.visitorLog {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    display: inline-block;
-    max-width: 90%;
+    display:inline-block;
+    max-width:90%;
     overflow: -moz-hidden-unscrollable;
 
     &.event {
-        margin-top: 1px;
-        margin-right: 15px;
+      margin-top: 1px;
+      margin-right: 15px;
     }
 }
 
@@ -187,52 +187,52 @@ ol.visitorLog li {
 }
 
 ol.visitorLog p {
-    margin: 0;
-    padding: 0;
+    margin:0;
+    padding:0;
 }
 
 .dataTableVizVisitorLog {
 
-    .card {
-        padding: 15px 0px;
-        font-size: 13px;
-        text-align: left;
+  .card {
+    padding: 15px 0px;
+    font-size: 13px;
+    text-align: left;
 
-        a {
-            text-decoration: none !important;
-            color: @theme-color-link;
-            width: inherit;
-        }
+    a {
+      text-decoration: none !important;
+      color: @theme-color-link;
+      width: inherit;
     }
+  }
 
-    .visitorLog > li > div {
-        width: 95%;
+  .visitorLog > li > div {
+    width: 95%;
+  }
+
+  .dataTableWrapper {
+     width:100%;
+  }
+
+  .card {
+
+    &:hover .visitor-log-visitor-profile-link {
+      display:inline;
     }
-
-    .dataTableWrapper {
-        width: 100%;
-    }
-
-    .card {
-
-        &:hover .visitor-log-visitor-profile-link {
-            display: inline;
-        }
-    }
+  }
 }
 
 .visitor-log-page-list {
-    position: relative;
+    position:relative;
 }
 
 a.visitor-log-visitor-profile-link {
     z-index: 2;
-    position: absolute;
-    display: none;
+    position:absolute;
+    display:none;
     right: 15px;
     top: 15px;
-    font-style: italic;
-    font-size: 13px;
+    font-style:italic;
+    font-size:13px;
     background-color: inherit !important;
 
     img {
@@ -241,33 +241,33 @@ a.visitor-log-visitor-profile-link {
     }
 }
 
-.visitorLog, .visitor-profile-actions {
+.visitorLog,.visitor-profile-actions {
     > li > div {
-        display: inline-block;
-        width: 90%;
-        vertical-align: top;
+        display:inline-block;
+        width:90%;
+        vertical-align:top;
     }
 }
 
 .action-list-action-icon {
-    float: left;
-    margin-right: 4px;
+    float:left;
+    margin-right:4px;
 
     &.event {
-        margin-top: 0;
+      margin-top: 0;
     }
     &.outlink {
-        margin-top: 4px;
-        margin-right: 4px;
-        margin-left: 4px;
+      margin-top: 4px;
+      margin-right: 4px;
+      margin-left: 4px;
     }
     &.search {
-        margin-right: 4px;
+      margin-right: 4px;
     }
 }
 
 .action-list-url {
-    display: block;
+    display:block;
 }
 
 .visitorLogIcons {
@@ -279,37 +279,37 @@ a.visitor-log-visitor-profile-link {
     display: none;
 }
 
-.visitorLogIcons > span > span > img {
+.visitorLogIcons>span>span>img {
     margin: auto 0 auto 0px;
 }
 
-.visitorLogIcons .visitorLogIconWithDetails > img {
+.visitorLogIcons .visitorLogIconWithDetails>img {
     margin: auto 5px auto 0;
 }
 
-.visitorLogIcons > span.visitorRank > img {
+.visitorLogIcons>span.visitorRank>img {
     margin: auto 0;
 }
 
 .visitorLogIcons {
-    .visitorDetails, .visitorType {
-        display: block;
-        margin-top: 4px;
-    }
+  .visitorDetails, .visitorType {
+    display: block;
+    margin-top: 4px;
+  }
 }
 
 .own-visitor-column {
-    .visitorLogIcons {
-        .visitorDetails {
-            margin-top: 0px;
-        }
-        .visitorType {
-            margin-top: 8px;
-        }
+  .visitorLogIcons {
+    .visitorDetails {
+      margin-top: 0px;
     }
+    .visitorType {
+      margin-top: 8px;
+    }
+  }
 }
 
 .visitorReferrer {
-    clear: both;
+    clear:both;
     padding-top: 1em;
 }

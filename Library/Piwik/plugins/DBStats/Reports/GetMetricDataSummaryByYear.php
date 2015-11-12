@@ -18,6 +18,11 @@ use Piwik\Plugins\CoreVisualizations\Visualizations\Graph;
  */
 class GetMetricDataSummaryByYear extends Base
 {
+    protected function init()
+    {
+        $this->name = Piwik::translate('DBStats_MetricDataByYear');
+    }
+
     public function configureView(ViewDataTable $view)
     {
         $this->addBaseDisplayProperties($view);
@@ -32,11 +37,6 @@ class GetMetricDataSummaryByYear extends Base
         return array(
             self::factory('DBStats', 'getMetricDataSummary'),
         );
-    }
-
-    protected function init()
-    {
-        $this->name = Piwik::translate('DBStats_MetricDataByYear');
     }
 
 }

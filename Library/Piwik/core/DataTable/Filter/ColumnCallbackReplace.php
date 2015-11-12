@@ -8,8 +8,8 @@
  */
 namespace Piwik\DataTable\Filter;
 
-use Piwik\DataTable;
 use Piwik\DataTable\BaseFilter;
+use Piwik\DataTable;
 use Piwik\DataTable\Row;
 
 /**
@@ -51,22 +51,18 @@ class ColumnCallbackReplace extends BaseFilter
      * @param array $extraColumnParameters Extra column values that should be passed to the callback, but
      *                                     shouldn't be replaced.
      */
-    public function __construct(
-        $table,
-        $columnsToFilter,
-        $functionToApply,
-        $functionParameters = null,
-        $extraColumnParameters = array()
-    ) {
+    public function __construct($table, $columnsToFilter, $functionToApply, $functionParameters = null,
+                                $extraColumnParameters = array())
+    {
         parent::__construct($table);
-        $this->functionToApply = $functionToApply;
+        $this->functionToApply    = $functionToApply;
         $this->functionParameters = $functionParameters;
 
         if (!is_array($columnsToFilter)) {
             $columnsToFilter = array($columnsToFilter);
         }
 
-        $this->columnsToFilter = $columnsToFilter;
+        $this->columnsToFilter       = $columnsToFilter;
         $this->extraColumnParameters = $extraColumnParameters;
     }
 
@@ -110,18 +106,6 @@ class ColumnCallbackReplace extends BaseFilter
     }
 
     /**
-     * Returns the element that should be replaced
-     *
-     * @param Row $row
-     * @param string $columnToFilter
-     * @return mixed
-     */
-    protected function getElementToReplace($row, $columnToFilter)
-    {
-        return $row->getColumn($columnToFilter);
-    }
-
-    /**
      * Replaces the given column within given row with the given value
      *
      * @param Row $row
@@ -131,5 +115,17 @@ class ColumnCallbackReplace extends BaseFilter
     protected function setElementToReplace($row, $columnToFilter, $newValue)
     {
         $row->setColumn($columnToFilter, $newValue);
+    }
+
+    /**
+     * Returns the element that should be replaced
+     *
+     * @param Row $row
+     * @param string $columnToFilter
+     * @return mixed
+     */
+    protected function getElementToReplace($row, $columnToFilter)
+    {
+        return $row->getColumn($columnToFilter);
     }
 }

@@ -33,15 +33,6 @@ class Config
         'ipAnonymizerEnabled'               => array('type' => 'boolean', 'default' => true),
     );
 
-    public function __get($name)
-    {
-        if (!array_key_exists($name, $this->properties)) {
-            throw new \Exception(sprintf('Property %s does not exist', $name));
-        }
-
-        return $this->getFromTrackerCache($name, $this->properties[$name]);
-    }
-
     public function __set($name, $value)
     {
         if (!array_key_exists($name, $this->properties)) {
@@ -51,16 +42,13 @@ class Config
         $this->set($name, $value, $this->properties[$name]);
     }
 
-    private function set($name, $value, $config)
+    public function __get($name)
     {
-        if ('boolean' == $config['type']) {
-            $value = $value ? '1' : '0';
-        } else {
-            settype($value, $config['type']);
+        if (!array_key_exists($name, $this->properties)) {
+            throw new \Exception(sprintf('Property %s does not exist', $name));
         }
 
-        Option::set($this->prefix($name), $value);
-        Cache::clearCacheGeneral();
+        return $this->getFromTrackerCache($name, $this->properties[$name]);
     }
 
     private function prefix($optionName)
@@ -83,15 +71,6 @@ class Config
         return $config['default'];
     }
 
-    public function setTrackerCacheGeneral($cacheContent)
-    {
-        foreach ($this->properties as $name => $config) {
-            $cacheContent[$this->prefix($name)] = $this->getFromOption($name, $config);
-        }
-
-        return $cacheContent;
-    }
-
     private function getFromOption($name, $config)
     {
         $name  = $this->prefix($name);
@@ -104,6 +83,27 @@ class Config
         }
 
         return $value;
+    }
+
+    private function set($name, $value, $config)
+    {
+        if ('boolean' == $config['type']) {
+            $value = $value ? '1' : '0';
+        } else {
+            settype($value, $config['type']);
+        }
+
+        Option::set($this->prefix($name), $value);
+        Cache::clearCacheGeneral();
+    }
+
+    public function setTrackerCacheGeneral($cacheContent)
+    {
+        foreach ($this->properties as $name => $config) {
+            $cacheContent[$this->prefix($name)] = $this->getFromOption($name, $config);
+        }
+
+        return $cacheContent;
     }
 
 }

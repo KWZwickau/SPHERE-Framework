@@ -8,19 +8,16 @@
 
     <script type="text/javascript">
         <!--
-        $(function ()
-        {
+        $(function () {
             // client-side test for broken tracker (e.g., mod_security rule)
             $('.next-step').hide();
             $.ajax({
                 url: 'piwik.php',
                 data: 'url=http://example.com',
-                complete: function ()
-                {
+                complete: function () {
                     $('.next-step').show();
                 },
-                error: function (req)
-                {
+                error: function (req) {
                     $('.next-step a').attr('href', $('.next-step a').attr('href') + '&trackerStatus=' + req.status);
                 }
             });

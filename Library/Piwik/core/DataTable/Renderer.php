@@ -9,11 +9,11 @@
 namespace Piwik\DataTable;
 
 use Exception;
-use Piwik\BaseFactory;
 use Piwik\Common;
 use Piwik\DataTable;
 use Piwik\Metrics;
 use Piwik\Piwik;
+use Piwik\BaseFactory;
 
 /**
  * A DataTable Renderer can produce an output given a DataTable object.
@@ -25,6 +25,117 @@ use Piwik\Piwik;
  */
 abstract class Renderer extends BaseFactory
 {
+    protected $table;
+
+    /**
+     * @var Exception
+     */
+    protected $exception;
+    protected $renderSubTables = false;
+    protected $hideIdSubDatatable = false;
+
+    /**
+     * Whether to translate column names (i.e. metric names) or not
+     * @var bool
+     */
+    public $translateColumnNames = false;
+
+    /**
+     * Column translations
+     * @var array
+     */
+    private $columnTranslations = false;
+
+    /**
+     * The API method that has returned the data that should be rendered
+     * @var string
+     */
+    public $apiMethod = false;
+
+    /**
+     * API metadata for the current report
+     * @var array
+     */
+    private $apiMetaData = null;
+
+    /**
+     * The current idSite
+     * @var int
+     */
+    public $idSite = 'all';
+
+    public function __construct()
+    {
+    }
+
+    /**
+     * Sets whether to render subtables or not
+     *
+     * @param bool $enableRenderSubTable
+     */
+    public function setRenderSubTables($enableRenderSubTable)
+    {
+        $this->renderSubTables = (bool)$enableRenderSubTable;
+    }
+
+    /**
+     * @param bool $bool
+     */
+    public function setHideIdSubDatableFromResponse($bool)
+    {
+        $this->hideIdSubDatatable = (bool)$bool;
+    }
+
+    /**
+     * Returns whether to render subtables or not
+     *
+     * @return bool
+     */
+    protected function isRenderSubtables()
+    {
+        return $this->renderSubTables;
+    }
+
+    /**
+     * Output HTTP Content-Type header
+     */
+    protected function renderHeader()
+    {
+        Common::sendHeader('Content-Type: text/plain; charset=utf-8');
+    }
+
+    /**
+     * Computes the dataTable output and returns the string/binary
+     *
+     * @return mixed
+     */
+    abstract public function render();
+
+    /**
+     * @see render()
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->render();
+    }
+
+    /**
+     * Set the DataTable to be rendered
+     *
+     * @param DataTable|Simple|DataTable\Map $table table to be rendered
+     * @throws Exception
+     */
+    public function setTable($table)
+    {
+        if (!is_array($table)
+            && !($table instanceof DataTableInterface)
+        ) {
+            throw new Exception("DataTable renderers renderer accepts only DataTable, Simple and Map instances, and arrays.");
+        }
+        $this->table = $table;
+    }
+
     /**
      * @var array
      */
@@ -35,41 +146,31 @@ abstract class Renderer extends BaseFactory
                                                  'html',
                                                  'php'
     );
-    /**
-     * Whether to translate column names (i.e. metric names) or not
-     * @var bool
-     */
-    public $translateColumnNames = false;
-    /**
-     * The API method that has returned the data that should be rendered
-     * @var string
-     */
-    public $apiMethod = false;
-    /**
-     * The current idSite
-     * @var int
-     */
-    public $idSite = 'all';
-    protected $table;
-    /**
-     * @var Exception
-     */
-    protected $exception;
-    protected $renderSubTables = false;
-    protected $hideIdSubDatatable = false;
-    /**
-     * Column translations
-     * @var array
-     */
-    private $columnTranslations = false;
-    /**
-     * API metadata for the current report
-     * @var array
-     */
-    private $apiMetaData = null;
 
-    public function __construct()
+    /**
+     * Returns available renderers
+     *
+     * @return array
+     */
+    public static function getRenderers()
     {
+        return self::$availableRenderers;
+    }
+
+    protected static function getClassNameFromClassId($id)
+    {
+        $className = ucfirst(strtolower($id));
+        $className = 'Piwik\DataTable\Renderer\\' . $className;
+
+        return $className;
+    }
+
+    protected static function getInvalidClassIdExceptionMessage($id)
+    {
+        $availableRenderers = implode(', ', self::getRenderers());
+        $klassName = self::getClassNameFromClassId($id);
+
+        return Piwik::translate('General_ExceptionInvalidRendererFormat', array($klassName, $availableRenderers));
     }
 
     /**
@@ -98,205 +199,6 @@ abstract class Renderer extends BaseFactory
         }
 
         return $value;
-    }
-
-    protected static function getInvalidClassIdExceptionMessage($id)
-    {
-        $availableRenderers = implode(', ', self::getRenderers());
-        $klassName = self::getClassNameFromClassId($id);
-
-        return Piwik::translate('General_ExceptionInvalidRendererFormat', array($klassName, $availableRenderers));
-    }
-
-    /**
-     * Returns available renderers
-     *
-     * @return array
-     */
-    public static function getRenderers()
-    {
-        return self::$availableRenderers;
-    }
-
-    protected static function getClassNameFromClassId($id)
-    {
-        $className = ucfirst(strtolower($id));
-        $className = 'Piwik\DataTable\Renderer\\' . $className;
-
-        return $className;
-    }
-
-    /**
-     * Returns true if an array should be wrapped before rendering. This is used to
-     * mimic quirks in the old rendering logic (for backwards compatibility). The
-     * specific meaning of 'wrap' is left up to the Renderer. For XML, this means a
-     * new <row> node. For JSON, this means wrapping in an array.
-     *
-     * In the old code, arrays were added to new DataTable instances, and then rendered.
-     * This transformation wrapped associative arrays except under certain circumstances,
-     * including:
-     *  - single element (ie, array('nb_visits' => 0))   (not wrapped for some renderers)
-     *  - empty array (ie, array())
-     *  - array w/ arrays/DataTable instances as values (ie,
-     *            array('name' => 'myreport',
-     *                  'reportData' => new DataTable())
-     *        OR  array('name' => 'myreport',
-     *                  'reportData' => array(...)) )
-     *
-     * @param array $array
-     * @param bool $wrapSingleValues Whether to wrap array('key' => 'value') arrays. Some
-     *                               renderers wrap them and some don't.
-     * @param bool|null $isAssociativeArray Whether the array is associative or not.
-     *                                      If null, it is determined.
-     * @return bool
-     */
-    protected static function shouldWrapArrayBeforeRendering(
-        $array, $wrapSingleValues = true, $isAssociativeArray = null)
-    {
-        if (empty($array)) {
-            return false;
-        }
-
-        if ($isAssociativeArray === null) {
-            $isAssociativeArray = Piwik::isAssociativeArray($array);
-        }
-
-        $wrap = true;
-        if ($isAssociativeArray) {
-            // we don't wrap if the array has one element that is a value
-            $firstValue = reset($array);
-            if (!$wrapSingleValues
-                && count($array) === 1
-                && (!is_array($firstValue)
-                    && !is_object($firstValue))
-            ) {
-                $wrap = false;
-            } else {
-                foreach ($array as $value) {
-                    if (is_array($value)
-                        || is_object($value)
-                    ) {
-                        $wrap = false;
-                        break;
-                    }
-                }
-            }
-        } else {
-            $wrap = false;
-        }
-
-        return $wrap;
-    }
-
-    /**
-     * @param bool $bool
-     */
-    public function setHideIdSubDatableFromResponse($bool)
-    {
-        $this->hideIdSubDatatable = (bool)$bool;
-    }
-
-    /**
-     * @see render()
-     * @return string
-     */
-    public function __toString()
-    {
-        return $this->render();
-    }
-
-    /**
-     * Computes the dataTable output and returns the string/binary
-     *
-     * @return mixed
-     */
-    abstract public function render();
-
-    /**
-     * Set the DataTable to be rendered
-     *
-     * @param DataTable|Simple|DataTable\Map $table table to be rendered
-     * @throws Exception
-     */
-    public function setTable($table)
-    {
-        if (!is_array($table)
-            && !($table instanceof DataTableInterface)
-        ) {
-            throw new Exception("DataTable renderers renderer accepts only DataTable, Simple and Map instances, and arrays.");
-        }
-        $this->table = $table;
-    }
-
-    /**
-     * Enables column translating
-     *
-     * @param bool $bool
-     */
-    public function setTranslateColumnNames($bool)
-    {
-        $this->translateColumnNames = $bool;
-    }
-
-    /**
-     * Sets the api method
-     *
-     * @param $method
-     */
-    public function setApiMethod($method)
-    {
-        $this->apiMethod = $method;
-    }
-
-    /**
-     * Sets the site id
-     *
-     * @param int $idSite
-     */
-    public function setIdSite($idSite)
-    {
-        $this->idSite = $idSite;
-    }
-
-    /**
-     * Returns whether to render subtables or not
-     *
-     * @return bool
-     */
-    protected function isRenderSubtables()
-    {
-        return $this->renderSubTables;
-    }
-
-    /**
-     * Sets whether to render subtables or not
-     *
-     * @param bool $enableRenderSubTable
-     */
-    public function setRenderSubTables($enableRenderSubTable)
-    {
-        $this->renderSubTables = (bool)$enableRenderSubTable;
-    }
-
-    /**
-     * Output HTTP Content-Type header
-     */
-    protected function renderHeader()
-    {
-        Common::sendHeader('Content-Type: text/plain; charset=utf-8');
-    }
-
-    /**
-     * Translates the given column name
-     *
-     * @param string $column
-     * @return mixed
-     */
-    protected function translateColumnName($column)
-    {
-        $columns = array($column);
-        $columns = $this->translateColumnNames($columns);
-        return $columns[0];
     }
 
     /**
@@ -362,5 +264,110 @@ abstract class Renderer extends BaseFactory
         }
 
         return $this->apiMetaData;
+    }
+
+    /**
+     * Translates the given column name
+     *
+     * @param string $column
+     * @return mixed
+     */
+    protected function translateColumnName($column)
+    {
+        $columns = array($column);
+        $columns = $this->translateColumnNames($columns);
+        return $columns[0];
+    }
+
+    /**
+     * Enables column translating
+     *
+     * @param bool $bool
+     */
+    public function setTranslateColumnNames($bool)
+    {
+        $this->translateColumnNames = $bool;
+    }
+
+    /**
+     * Sets the api method
+     *
+     * @param $method
+     */
+    public function setApiMethod($method)
+    {
+        $this->apiMethod = $method;
+    }
+
+    /**
+     * Sets the site id
+     *
+     * @param int $idSite
+     */
+    public function setIdSite($idSite)
+    {
+        $this->idSite = $idSite;
+    }
+
+    /**
+     * Returns true if an array should be wrapped before rendering. This is used to
+     * mimic quirks in the old rendering logic (for backwards compatibility). The
+     * specific meaning of 'wrap' is left up to the Renderer. For XML, this means a
+     * new <row> node. For JSON, this means wrapping in an array.
+     *
+     * In the old code, arrays were added to new DataTable instances, and then rendered.
+     * This transformation wrapped associative arrays except under certain circumstances,
+     * including:
+     *  - single element (ie, array('nb_visits' => 0))   (not wrapped for some renderers)
+     *  - empty array (ie, array())
+     *  - array w/ arrays/DataTable instances as values (ie,
+     *            array('name' => 'myreport',
+     *                  'reportData' => new DataTable())
+     *        OR  array('name' => 'myreport',
+     *                  'reportData' => array(...)) )
+     *
+     * @param array $array
+     * @param bool $wrapSingleValues Whether to wrap array('key' => 'value') arrays. Some
+     *                               renderers wrap them and some don't.
+     * @param bool|null $isAssociativeArray Whether the array is associative or not.
+     *                                      If null, it is determined.
+     * @return bool
+     */
+    protected static function shouldWrapArrayBeforeRendering(
+        $array, $wrapSingleValues = true, $isAssociativeArray = null)
+    {
+        if (empty($array)) {
+            return false;
+        }
+
+        if ($isAssociativeArray === null) {
+            $isAssociativeArray = Piwik::isAssociativeArray($array);
+        }
+
+        $wrap = true;
+        if ($isAssociativeArray) {
+            // we don't wrap if the array has one element that is a value
+            $firstValue = reset($array);
+            if (!$wrapSingleValues
+                && count($array) === 1
+                && (!is_array($firstValue)
+                    && !is_object($firstValue))
+            ) {
+                $wrap = false;
+            } else {
+                foreach ($array as $value) {
+                    if (is_array($value)
+                        || is_object($value)
+                    ) {
+                        $wrap = false;
+                        break;
+                    }
+                }
+            }
+        } else {
+            $wrap = false;
+        }
+
+        return $wrap;
     }
 }

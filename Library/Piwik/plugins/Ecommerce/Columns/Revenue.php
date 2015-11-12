@@ -8,8 +8,8 @@
  */
 namespace Piwik\Plugins\Ecommerce\Columns;
 
-use Piwik\Tracker\Action;
 use Piwik\Tracker\GoalManager;
+use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
 
@@ -42,9 +42,12 @@ class Revenue extends BaseConversion
      *
      * @return mixed|false
      */
-    public function onEcommerceCartUpdateConversion(Request $request, Visitor $visitor, $action, GoalManager $goalManager)
+    public function onEcommerceOrderConversion(Request $request, Visitor $visitor, $action, GoalManager $goalManager)
     {
-        return $this->onEcommerceOrderConversion($request, $visitor, $action, $goalManager);
+        $defaultRevenue = 0;
+        $revenue = $request->getGoalRevenue($defaultRevenue);
+
+        return $this->roundRevenueIfNeeded($revenue);
     }
 
     /**
@@ -55,11 +58,8 @@ class Revenue extends BaseConversion
      *
      * @return mixed|false
      */
-    public function onEcommerceOrderConversion(Request $request, Visitor $visitor, $action, GoalManager $goalManager)
+    public function onEcommerceCartUpdateConversion(Request $request, Visitor $visitor, $action, GoalManager $goalManager)
     {
-        $defaultRevenue = 0;
-        $revenue = $request->getGoalRevenue($defaultRevenue);
-
-        return $this->roundRevenueIfNeeded($revenue);
+        return $this->onEcommerceOrderConversion($request, $visitor, $action, $goalManager);
     }
 }

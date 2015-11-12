@@ -12,8 +12,8 @@ namespace Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
 use Piwik\Common;
 use Piwik\IP;
 use Piwik\Piwik;
-use Piwik\Plugins\UserCountry\LocationProvider;
 use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
+use Piwik\Plugins\UserCountry\LocationProvider;
 
 /**
  * A LocationProvider that uses an GeoIP module installed in an HTTP Server.
@@ -110,39 +110,6 @@ class ServerBased extends GeoIp
         }
         $this->completeLocationResult($result);
         return $result;
-    }
-
-    /**
-     * Checks if two IP addresses are the same or if the first is the anonymized
-     * version of the other.
-     *
-     * @param string $ip
-     * @param string $currentIp This IP should not be anonymized.
-     * @return bool
-     */
-    public static function isSameOrAnonymizedIp($ip, $currentIp)
-    {
-        $ip = array_reverse(explode('.', $ip));
-        $currentIp = array_reverse(explode('.', $currentIp));
-
-        if (count($ip) != count($currentIp)) {
-            return false;
-        }
-
-        foreach ($ip as $i => $byte) {
-            if ($byte == 0) {
-                $currentIp[$i] = 0;
-            } else {
-                break;
-            }
-        }
-
-        foreach ($ip as $i => $byte) {
-            if ($byte != $currentIp[$i]) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
@@ -287,5 +254,38 @@ class ServerBased extends GeoIp
                      'order'         => 4,
                      'install_docs'  => $installDocs,
                      'extra_message' => $extraMessage);
+    }
+
+    /**
+     * Checks if two IP addresses are the same or if the first is the anonymized
+     * version of the other.
+     *
+     * @param string $ip
+     * @param string $currentIp This IP should not be anonymized.
+     * @return bool
+     */
+    public static function isSameOrAnonymizedIp($ip, $currentIp)
+    {
+        $ip = array_reverse(explode('.', $ip));
+        $currentIp = array_reverse(explode('.', $currentIp));
+
+        if (count($ip) != count($currentIp)) {
+            return false;
+        }
+
+        foreach ($ip as $i => $byte) {
+            if ($byte == 0) {
+                $currentIp[$i] = 0;
+            } else {
+                break;
+            }
+        }
+
+        foreach ($ip as $i => $byte) {
+            if ($byte != $currentIp[$i]) {
+                return false;
+            }
+        }
+        return true;
     }
 }

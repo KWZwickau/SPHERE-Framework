@@ -141,8 +141,8 @@ a.rowevolution-startmulti {
 }
 
 /** IE7 does not support inline image data, which is needed for spark lines */
-* + html .multirowevolution table.metrics td.sparkline,
-* + html .rowevolution table.metrics td.sparkline {
+*+html .multirowevolution table.metrics td.sparkline,
+*+html .rowevolution table.metrics td.sparkline {
     display: none;
 }
 

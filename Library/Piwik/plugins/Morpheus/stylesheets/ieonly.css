@@ -1,18 +1,18 @@
 .ui-dialog.ui-widget-content {
-    z-index: 1003 !important;
+	z-index: 1003!important;
 }
 
 .ui-widget-overlay {
-    z-index: 1002 !important;
+    z-index: 1002!important;
 }
 
 .widgetContent {
-    width: 99.8%;
-    overflow: hidden;
+	width: 99.8%;
+	overflow: hidden;
 }
 
 #topLeftBar {
-    z-index: 300 !important;
+    z-index: 300!important;
 }
 
 .submit {
@@ -25,9 +25,9 @@ input[type=checkbox], input[type=radio] {
 }
 
 .jqplot-seriespicker-popover p input {
-    width: 15px;
-    margin: 0;
-    padding: 0;
+	width: 15px;
+	margin: 0;
+	padding: 0;
 }
 
 /* Don't override select style */

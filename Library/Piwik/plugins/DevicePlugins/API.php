@@ -12,8 +12,8 @@ use Piwik\Archive;
 use Piwik\DataTable;
 use Piwik\Metrics;
 use Piwik\Piwik;
+use Piwik\Plugins\DevicesDetection\Archiver AS DDArchiver;
 use Piwik\Plugins\CoreHome\Columns\Metrics\VisitsPercent;
-use Piwik\Plugins\DevicesDetection\Archiver as DDArchiver;
 
 /**
  * @see plugins/DevicePlugins/functions.php
@@ -27,6 +27,16 @@ require_once PIWIK_INCLUDE_PATH . '/plugins/DevicePlugins/functions.php';
  */
 class API extends \Piwik\Plugin\API
 {
+    protected function getDataTable($name, $idSite, $period, $date, $segment)
+    {
+        Piwik::checkUserHasViewAccess($idSite);
+        $archive = Archive::build($idSite, $period, $date, $segment);
+        $dataTable = $archive->getDataTable($name);
+        $dataTable->queueFilter('ReplaceColumnNames');
+        $dataTable->queueFilter('ReplaceSummaryRowLabel');
+        return $dataTable;
+    }
+
     public function getPlugin($idSite, $period, $date, $segment = false)
     {
         // fetch all archive data required
@@ -84,16 +94,6 @@ class API extends \Piwik\Plugin\API
         $dataTable->queueFilter('ColumnCallbackReplace', array('label', 'ucfirst'));
         $dataTable->queueFilter('RangeCheck', array('nb_visits_percentage', 0, 1));
 
-        return $dataTable;
-    }
-
-    protected function getDataTable($name, $idSite, $period, $date, $segment)
-    {
-        Piwik::checkUserHasViewAccess($idSite);
-        $archive = Archive::build($idSite, $period, $date, $segment);
-        $dataTable = $archive->getDataTable($name);
-        $dataTable->queueFilter('ReplaceColumnNames');
-        $dataTable->queueFilter('ReplaceSummaryRowLabel');
         return $dataTable;
     }
 }

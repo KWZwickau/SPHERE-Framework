@@ -31,6 +31,84 @@ class Widgets
     }
 
     /**
+     * @ignore
+     */
+    public function getCategory()
+    {
+        return $this->category;
+    }
+
+    private function getModule()
+    {
+        $className = get_class($this);
+        $className = explode('\\', $className);
+
+        return $className[2];
+    }
+
+    /**
+     * Adds a widget. You can add a widget by calling this method and passing the name of the widget as well as a method
+     * name that will be executed to render the widget. The method can be defined either directly here in this widget
+     * class or in the controller in case you want to reuse the same action for instance in the menu etc.
+     * @api
+     */
+    protected function addWidget($name, $method, $parameters = array())
+    {
+        $this->addWidgetWithCustomCategory($this->category, $name, $method, $parameters);
+    }
+
+    /**
+     * Adds a widget with a custom category. By default all widgets that you define in your class will be added under
+     * the same category which is defined in the {@link $category} property. Sometimes you may have a widget that
+     * belongs to a different category where this method comes handy. It does the same as {@link addWidget()} but
+     * allows you to define the category name as well.
+     * @api
+     */
+    protected function addWidgetWithCustomCategory($category, $name, $method, $parameters = array())
+    {
+        $this->checkIsValidWidget($name, $method);
+
+        $this->widgets[] = array('category' => $category,
+                                 'name'     => $name,
+                                 'params'   => $parameters,
+                                 'method'   => $method,
+                                 'module'   => $this->getModule());
+    }
+
+    /**
+     * Here you can add one or multiple widgets. To do so call the method {@link addWidget()} or
+     * {@link addWidgetWithCustomCategory()}.
+     * @api
+     */
+    protected function init()
+    {
+    }
+
+    /**
+     * @ignore
+     */
+    public function getWidgets()
+    {
+        $this->widgets = array();
+
+        $this->init();
+
+        return $this->widgets;
+    }
+
+    /**
+     * Allows you to configure previously added widgets.
+     * For instance you can remove any widgets defined by any plugin by calling the
+     * {@link \Piwik\WidgetsList::remove()} method.
+     *
+     * @param WidgetsList $widgetsList
+     * @api
+     */
+    public function configureWidgetsList(WidgetsList $widgetsList)
+    {
+    }
+
+    /**
      * @return \Piwik\Plugin\Widgets[]
      * @ignore
      */
@@ -84,76 +162,6 @@ class Widgets
         return $widgetContainer;
     }
 
-    /**
-     * @ignore
-     */
-    public function getCategory()
-    {
-        return $this->category;
-    }
-
-    /**
-     * @ignore
-     */
-    public function getWidgets()
-    {
-        $this->widgets = array();
-
-        $this->init();
-
-        return $this->widgets;
-    }
-
-    /**
-     * Here you can add one or multiple widgets. To do so call the method {@link addWidget()} or
-     * {@link addWidgetWithCustomCategory()}.
-     * @api
-     */
-    protected function init()
-    {
-    }
-
-    /**
-     * Allows you to configure previously added widgets.
-     * For instance you can remove any widgets defined by any plugin by calling the
-     * {@link \Piwik\WidgetsList::remove()} method.
-     *
-     * @param WidgetsList $widgetsList
-     * @api
-     */
-    public function configureWidgetsList(WidgetsList $widgetsList)
-    {
-    }
-
-    /**
-     * Adds a widget. You can add a widget by calling this method and passing the name of the widget as well as a method
-     * name that will be executed to render the widget. The method can be defined either directly here in this widget
-     * class or in the controller in case you want to reuse the same action for instance in the menu etc.
-     * @api
-     */
-    protected function addWidget($name, $method, $parameters = array())
-    {
-        $this->addWidgetWithCustomCategory($this->category, $name, $method, $parameters);
-    }
-
-    /**
-     * Adds a widget with a custom category. By default all widgets that you define in your class will be added under
-     * the same category which is defined in the {@link $category} property. Sometimes you may have a widget that
-     * belongs to a different category where this method comes handy. It does the same as {@link addWidget()} but
-     * allows you to define the category name as well.
-     * @api
-     */
-    protected function addWidgetWithCustomCategory($category, $name, $method, $parameters = array())
-    {
-        $this->checkIsValidWidget($name, $method);
-
-        $this->widgets[] = array('category' => $category,
-                                 'name'     => $name,
-                                 'params'   => $parameters,
-                                 'method'   => $method,
-                                 'module'   => $this->getModule());
-    }
-
     private function checkIsValidWidget($name, $method)
     {
         if (!Development::isEnabled()) {
@@ -186,13 +194,5 @@ class Widgets
         }
 
         Development::error('The method "' . $method . '" is not callable on "' . $definedInClass . '". Make sure the method is public.');
-    }
-
-    private function getModule()
-    {
-        $className = get_class($this);
-        $className = explode('\\', $className);
-
-        return $className[2];
     }
 }

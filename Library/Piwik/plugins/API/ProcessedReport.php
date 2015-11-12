@@ -11,8 +11,8 @@ namespace Piwik\Plugins\API;
 use Exception;
 use Piwik\API\Request;
 use Piwik\Archive\DataTableFactory;
-use Piwik\Cache as PiwikCache;
 use Piwik\CacheId;
+use Piwik\Cache as PiwikCache;
 use Piwik\Common;
 use Piwik\DataTable;
 use Piwik\DataTable\Row;
@@ -30,41 +30,40 @@ use Piwik\Url;
 class ProcessedReport
 {
     /**
-     * API metadata are sorted by category/name,
-     * with a little tweak to replicate the standard Piwik category ordering
-     *
-     * @param array $a
-     * @param array $b
-     * @return int
+     * Loads reports metadata, then return the requested one,
+     * matching optional API parameters.
      */
-    private static function sortReports($a, $b)
+    public function getMetadata($idSite, $apiModule, $apiAction, $apiParameters = array(), $language = false,
+                                $period = false, $date = false, $hideMetricsDoc = false, $showSubtableReports = false)
     {
-        static $order = null;
-        if (is_null($order)) {
-            $order = array();
-            foreach (Report::$orderOfReports as $category) {
-                $order[] = Piwik::translate($category);
+        $reportsMetadata = $this->getReportMetadata($idSite, $period, $date, $hideMetricsDoc, $showSubtableReports);
+
+        foreach ($reportsMetadata as $report) {
+            // See ArchiveProcessor/Aggregator.php - unique visitors are not processed for period != day
+            // todo: should use SettingsPiwik::isUniqueVisitorsEnabled instead
+            if (($period && $period != 'day') && !($apiModule == 'VisitsSummary' && $apiAction == 'get')) {
+                unset($report['metrics']['nb_uniq_visitors']);
+                unset($report['metrics']['nb_users']);
+            }
+            if ($report['module'] == $apiModule
+                && $report['action'] == $apiAction
+            ) {
+                // No custom parameters
+                if (empty($apiParameters)
+                    && empty($report['parameters'])
+                ) {
+                    return array($report);
+                }
+                if (empty($report['parameters'])) {
+                    continue;
+                }
+                $diff = array_diff($report['parameters'], $apiParameters);
+                if (empty($diff)) {
+                    return array($report);
+                }
             }
         }
-
-        $posA = array_search($a['category'], $order);
-        $posB = array_search($b['category'], $order);
-
-        if ($posA === false && $posB === false) {
-            return strcmp($a['category'], $b['category']);
-        } elseif ($posA === false) {
-            return 1;
-        } elseif ($posB === false) {
-            return -1;
-        }
-
-        $category = strcmp($posA, $posB);
-
-        if ($category == 0) {
-            return (@$a['order'] < @$b['order'] ? -1 : 1);
-        }
-
-        return $category;
+        return false;
     }
 
     /**
@@ -82,6 +81,22 @@ class ProcessedReport
         return !empty($report);
     }
 
+    /**
+     * Verfies whether the given metric belongs to the given report.
+     *
+     * @param int $idSite
+     * @param string $metric     For example 'nb_visits'
+     * @param string $apiMethodUniqueId  For example 'MultiSites_getAll'
+     *
+     * @return bool
+     */
+    public function isValidMetricForReport($metric, $idSite, $apiMethodUniqueId)
+    {
+        $translation = $this->translateMetric($metric, $idSite, $apiMethodUniqueId);
+
+        return !empty($translation);
+    }
+
     public function getReportMetadataByUniqueId($idSite, $apiMethodUniqueId)
     {
         $metadata = $this->getReportMetadata(array($idSite));
@@ -89,6 +104,32 @@ class ProcessedReport
         foreach ($metadata as $report) {
             if ($report['uniqueId'] == $apiMethodUniqueId) {
                 return $report;
+            }
+        }
+    }
+
+    /**
+     * Translates the given metric in case the report exists and in case the metric acutally belongs to the report.
+     *
+     * @param string $metric     For example 'nb_visits'
+     * @param int    $idSite
+     * @param string $apiMethodUniqueId  For example 'MultiSites_getAll'
+     *
+     * @return null|string
+     */
+    public function translateMetric($metric, $idSite, $apiMethodUniqueId)
+    {
+        $report = $this->getReportMetadataByUniqueId($idSite, $apiMethodUniqueId);
+
+        if (empty($report)) {
+            return;
+        }
+
+        $properties = array('metrics', 'processedMetrics', 'processedMetricsGoal');
+
+        foreach ($properties as $prop) {
+            if (!empty($report[$prop]) && is_array($report[$prop]) && array_key_exists($metric, $report[$prop])) {
+                return $report[$prop][$metric];
             }
         }
     }
@@ -192,11 +233,11 @@ class ProcessedReport
             if ($hideMetricsDoc) // remove metric documentation if it's not wanted
             {
                 unset($availableReport['metricsDocumentation']);
-            } else {if (!isset($availableReport['metricsDocumentation'])) {
+            } else if (!isset($availableReport['metricsDocumentation'])) {
                 // set metric documentation to default if it's not set
                 // can be removed once we remove hook API.getReportMetadata
                 $availableReport['metricsDocumentation'] = Metrics::getDefaultMetricsDocumentation();
-            }}
+            }
         }
 
         /**
@@ -298,149 +339,42 @@ class ProcessedReport
         return $actualReports; // make sure array has contiguous key values
     }
 
-    private function buildReportMetadataCacheKey($idSites, $period, $date, $hideMetricsDoc, $showSubtableReports)
-    {
-        if (isset($_GET) && isset($_POST) && is_array($_GET) && is_array($_POST)) {
-            $request = $_GET + $_POST;
-        } elseif (isset($_GET) && is_array($_GET)) {
-            $request = $_GET;
-        } elseif (isset($_POST) && is_array($_POST)) {
-            $request = $_POST;
-        } else {
-            $request = array();
-        }
-
-        $key = '';
-        foreach ($request as $k => $v) {
-            if (is_array($v)) {
-                $key .= $k . $this->getImplodedArray($v) . ',';
-            } else {
-                $key .= $k . $v . ',';
-            }
-        }
-
-        $key .= implode(',', $idSites) . ($period === false ? 0 : $period) . ($date === false ? 0 : $date);
-        $key .= (int)$hideMetricsDoc . (int)$showSubtableReports . Piwik::getCurrentUserLogin();
-        return 'reportMetadata' . md5($key);
-    }
-
     /**
-     * @param $v
-     * @return string
+     * API metadata are sorted by category/name,
+     * with a little tweak to replicate the standard Piwik category ordering
+     *
+     * @param array $a
+     * @param array $b
+     * @return int
      */
-    private function getImplodedArray($v)
+    private static function sortReports($a, $b)
     {
-        return implode(', ', array_map(function ($entry) {
-            if (is_array($entry)) {
-                return implode(":", $entry);
-            }
-            return $entry;
-        }, $v));
-    }
-
-    private function getColumnsToKeep()
-    {
-        $columnsToKeep = Common::getRequestVar('showColumns', '');
-
-        if ($columnsToKeep != '') {
-            $columnsToKeep = explode(',', $columnsToKeep);
-            $columnsToKeep[] = 'label';
-
-            return $columnsToKeep;
-        }
-
-        return null;
-    }
-
-    private function getColumnsToRemove()
-    {
-        $columnsToRemove = Common::getRequestVar('hideColumns', '');
-
-        if ($columnsToRemove != '') {
-            return explode(',', $columnsToRemove);
-        }
-
-        return null;
-    }
-
-    private function hideShowMetricsWithParams($columns, $columnsToRemove, $columnsToKeep, $emptyColumns = array())
-    {
-        if (!is_array($columns)) {
-            return $columns;
-        }
-
-        if (null !== $columnsToRemove) {
-            foreach ($columnsToRemove as $name) {
-                // if a column to remove is in the column list, remove it
-                if (isset($columns[$name])) {
-                    unset($columns[$name]);
-                }
+        static $order = null;
+        if (is_null($order)) {
+            $order = array();
+            foreach (Report::$orderOfReports as $category) {
+                $order[] = Piwik::translate($category);
             }
         }
 
-        if (null !== $columnsToKeep) {
-            foreach ($columns as $name => $ignore) {
-                // if the current column should not be kept, remove it
-                $idx = array_search($name, $columnsToKeep);
-                if ($idx === false) // if $name is not in $columnsToKeep
-                {
-                    unset($columns[$name]);
-                }
-            }
+        $posA = array_search($a['category'], $order);
+        $posB = array_search($b['category'], $order);
+
+        if ($posA === false && $posB === false) {
+            return strcmp($a['category'], $b['category']);
+        } elseif ($posA === false) {
+            return 1;
+        } elseif ($posB === false) {
+            return -1;
         }
 
-        // remove empty columns
-        if (is_array($emptyColumns)) {
-            foreach ($emptyColumns as $column) {
-                if (isset($columns[$column])) {
-                    unset($columns[$column]);
-                }
-            }
+        $category = strcmp($posA, $posB);
+
+        if ($category == 0) {
+            return (@$a['order'] < @$b['order'] ? -1 : 1);
         }
 
-        return $columns;
-    }
-
-    /**
-     * Verfies whether the given metric belongs to the given report.
-     *
-     * @param int $idSite
-     * @param string $metric     For example 'nb_visits'
-     * @param string $apiMethodUniqueId  For example 'MultiSites_getAll'
-     *
-     * @return bool
-     */
-    public function isValidMetricForReport($metric, $idSite, $apiMethodUniqueId)
-    {
-        $translation = $this->translateMetric($metric, $idSite, $apiMethodUniqueId);
-
-        return !empty($translation);
-    }
-
-    /**
-     * Translates the given metric in case the report exists and in case the metric acutally belongs to the report.
-     *
-     * @param string $metric     For example 'nb_visits'
-     * @param int    $idSite
-     * @param string $apiMethodUniqueId  For example 'MultiSites_getAll'
-     *
-     * @return null|string
-     */
-    public function translateMetric($metric, $idSite, $apiMethodUniqueId)
-    {
-        $report = $this->getReportMetadataByUniqueId($idSite, $apiMethodUniqueId);
-
-        if (empty($report)) {
-            return;
-        }
-
-        $properties = array('metrics', 'processedMetrics', 'processedMetricsGoal');
-
-        foreach ($properties as $prop) {
-            if (!empty($report[$prop]) && is_array($report[$prop]) && array_key_exists($metric, $report[$prop])) {
-                return $report[$prop][$metric];
-            }
-        }
+        return $category;
     }
 
     public function getProcessedReport($idSite, $period, $date, $apiModule, $apiAction, $segment = false,
@@ -478,7 +412,7 @@ class ProcessedReport
                                                        'idSubtable' => $idSubtable,
                                                   ));
 
-        if (!empty($segment)) {$parameters['segment'] = $segment;}
+        if (!empty($segment)) $parameters['segment'] = $segment;
 
         if (!empty($reportMetadata['processedMetrics'])
             && !empty($reportMetadata['metrics']['nb_visits'])
@@ -521,43 +455,6 @@ class ProcessedReport
             $return['timerMillis'] = $timer->getTimeMs(0);
         }
         return $return;
-    }
-
-    /**
-     * Loads reports metadata, then return the requested one,
-     * matching optional API parameters.
-     */
-    public function getMetadata($idSite, $apiModule, $apiAction, $apiParameters = array(), $language = false,
-                                $period = false, $date = false, $hideMetricsDoc = false, $showSubtableReports = false)
-    {
-        $reportsMetadata = $this->getReportMetadata($idSite, $period, $date, $hideMetricsDoc, $showSubtableReports);
-
-        foreach ($reportsMetadata as $report) {
-            // See ArchiveProcessor/Aggregator.php - unique visitors are not processed for period != day
-            // todo: should use SettingsPiwik::isUniqueVisitorsEnabled instead
-            if (($period && $period != 'day') && !($apiModule == 'VisitsSummary' && $apiAction == 'get')) {
-                unset($report['metrics']['nb_uniq_visitors']);
-                unset($report['metrics']['nb_users']);
-            }
-            if ($report['module'] == $apiModule
-                && $report['action'] == $apiAction
-            ) {
-                // No custom parameters
-                if (empty($apiParameters)
-                    && empty($report['parameters'])
-                ) {
-                    return array($report);
-                }
-                if (empty($report['parameters'])) {
-                    continue;
-                }
-                $diff = array_diff($report['parameters'], $apiParameters);
-                if (empty($diff)) {
-                    return array($report);
-                }
-            }
-        }
-        return false;
     }
 
     /**
@@ -655,30 +552,6 @@ class ProcessedReport
     }
 
     /**
-     * Removes column names from an array based on the values in the hideColumns,
-     * showColumns query parameters. This is a hack that provides the ColumnDelete
-     * filter functionality in processed reports.
-     *
-     * @param array $columns List of metrics shown in a processed report.
-     * @param array $emptyColumns Empty columns from the data table meta data.
-     * @return array Filtered list of metrics.
-     */
-    private function hideShowMetrics($columns, $emptyColumns = array())
-    {
-        if (!is_array($columns)) {
-            return $columns;
-        }
-
-        // remove columns if hideColumns query parameters exist
-        $columnsToRemove = $this->getColumnsToRemove();
-
-        // remove columns if showColumns query parameters exist
-        $columnsToKeep = $this->getColumnsToKeep();
-
-        return $this->hideShowMetricsWithParams($columns, $columnsToRemove, $columnsToKeep, $emptyColumns);
-    }
-
-    /**
      * Removes metrics from the list of columns and the report meta data if they are marked empty
      * in the data table meta data.
      */
@@ -702,6 +575,68 @@ class ProcessedReport
         if (isset($reportMetadata['metricsDocumentation'])) {
             $reportMetadata['metricsDocumentation'] = $this->hideShowMetricsWithParams($reportMetadata['metricsDocumentation'], $columnsToRemove, $columnsToKeep, $emptyColumns);
         }
+    }
+
+    /**
+     * Removes column names from an array based on the values in the hideColumns,
+     * showColumns query parameters. This is a hack that provides the ColumnDelete
+     * filter functionality in processed reports.
+     *
+     * @param array $columns List of metrics shown in a processed report.
+     * @param array $emptyColumns Empty columns from the data table meta data.
+     * @return array Filtered list of metrics.
+     */
+    private function hideShowMetrics($columns, $emptyColumns = array())
+    {
+        if (!is_array($columns)) {
+            return $columns;
+        }
+
+        // remove columns if hideColumns query parameters exist
+        $columnsToRemove = $this->getColumnsToRemove();
+
+        // remove columns if showColumns query parameters exist
+        $columnsToKeep = $this->getColumnsToKeep();
+
+        return $this->hideShowMetricsWithParams($columns, $columnsToRemove, $columnsToKeep, $emptyColumns);
+    }
+
+    private function hideShowMetricsWithParams($columns, $columnsToRemove, $columnsToKeep, $emptyColumns = array())
+    {
+        if (!is_array($columns)) {
+            return $columns;
+        }
+
+        if (null !== $columnsToRemove) {
+            foreach ($columnsToRemove as $name) {
+                // if a column to remove is in the column list, remove it
+                if (isset($columns[$name])) {
+                    unset($columns[$name]);
+                }
+            }
+        }
+
+        if (null !== $columnsToKeep) {
+            foreach ($columns as $name => $ignore) {
+                // if the current column should not be kept, remove it
+                $idx = array_search($name, $columnsToKeep);
+                if ($idx === false) // if $name is not in $columnsToKeep
+                {
+                    unset($columns[$name]);
+                }
+            }
+        }
+
+        // remove empty columns
+        if (is_array($emptyColumns)) {
+            foreach ($emptyColumns as $column) {
+                if (isset($columns[$column])) {
+                    unset($columns[$column]);
+                }
+            }
+        }
+
+        return $columns;
     }
 
     /**
@@ -772,12 +707,12 @@ class ProcessedReport
                     }
                     $enhancedRow->addColumn($columnName, $prettyValue);
                 } // For example the Maps Widget requires the raw metrics to do advanced datavis
-                else {if ($returnRawMetrics) {
+                else if ($returnRawMetrics) {
                     if (!isset($columnValue)) {
                         $columnValue = 0;
                     }
                     $enhancedRow->addColumn($columnName, $columnValue);
-                }}
+                }
             }
 
             // If report has a dimension, extract metadata into a distinct DataTable
@@ -807,45 +742,6 @@ class ProcessedReport
         );
     }
 
-    /**
-     * Prettifies a metric value based on the column name.
-     *
-     * @param int $idSite The ID of the site the metric is for (used if the column value is an amount of money).
-     * @param string $columnName The metric name.
-     * @param mixed $value The metric value.
-     * @param bool $isHtml If true, replaces all spaces with `'&nbsp;'`.
-     * @return string
-     */
-    public static function getPrettyValue(Formatter $formatter, $idSite, $columnName, $value)
-    {
-        if (!is_numeric($value)) {
-            return $value;
-        }
-
-        // Display time in human readable
-		if (strpos($columnName, 'time_generation') !== false) {
-			return $formatter->getPrettyTimeFromSeconds($value, true);
-		}
-		if (strpos($columnName, 'time') !== false) {
-            return $formatter->getPrettyTimeFromSeconds($value);
-        }
-
-        // Add revenue symbol to revenues
-        $isMoneyMetric = strpos($columnName, 'revenue') !== false || strpos($columnName, 'price') !== false;
-        if ($isMoneyMetric && strpos($columnName, 'evolution') === false) {
-            return $formatter->getPrettyMoney($value, $idSite);
-        }
-
-        // Add % symbol to rates
-        if (strpos($columnName, '_rate') !== false) {
-            if (strpos($value, "%") === false) {
-                return $value . "%";
-            }
-        }
-
-        return $value;
-    }
-
     private function aggregateReportTotalValues($simpleDataTable, $totals)
     {
         $metadataTotals = $simpleDataTable->getMetadata('totals');
@@ -866,5 +762,109 @@ class ProcessedReport
         }
 
         return $totals;
+    }
+
+    private function getColumnsToRemove()
+    {
+        $columnsToRemove = Common::getRequestVar('hideColumns', '');
+
+        if ($columnsToRemove != '') {
+            return explode(',', $columnsToRemove);
+        }
+
+        return null;
+    }
+
+    private function getColumnsToKeep()
+    {
+        $columnsToKeep = Common::getRequestVar('showColumns', '');
+
+        if ($columnsToKeep != '') {
+            $columnsToKeep = explode(',', $columnsToKeep);
+            $columnsToKeep[] = 'label';
+
+            return $columnsToKeep;
+        }
+
+        return null;
+    }
+
+    private function buildReportMetadataCacheKey($idSites, $period, $date, $hideMetricsDoc, $showSubtableReports)
+    {
+        if (isset($_GET) && isset($_POST) && is_array($_GET) && is_array($_POST)) {
+            $request = $_GET + $_POST;
+        } elseif (isset($_GET) && is_array($_GET)) {
+            $request = $_GET;
+        } elseif (isset($_POST) && is_array($_POST)) {
+            $request = $_POST;
+        } else {
+            $request = array();
+        }
+
+        $key = '';
+        foreach ($request as $k => $v) {
+            if (is_array($v)) {
+                $key .= $k . $this->getImplodedArray($v) . ',';
+            } else {
+                $key .= $k . $v . ',';
+            }
+        }
+
+        $key .= implode(',', $idSites) . ($period === false ? 0 : $period) . ($date === false ? 0 : $date);
+        $key .= (int)$hideMetricsDoc . (int)$showSubtableReports . Piwik::getCurrentUserLogin();
+        return 'reportMetadata' . md5($key);
+    }
+
+    /**
+     * @param $v
+     * @return string
+     */
+    private function getImplodedArray($v)
+    {
+        return implode(', ', array_map(function ($entry) {
+            if (is_array($entry)) {
+                return implode(":", $entry);
+            }
+            return $entry;
+        }, $v));
+    }
+
+    /**
+     * Prettifies a metric value based on the column name.
+     *
+     * @param int $idSite The ID of the site the metric is for (used if the column value is an amount of money).
+     * @param string $columnName The metric name.
+     * @param mixed $value The metric value.
+     * @param bool $isHtml If true, replaces all spaces with `'&nbsp;'`.
+     * @return string
+     */
+    public static function getPrettyValue(Formatter $formatter, $idSite, $columnName, $value)
+    {
+        if (!is_numeric($value)) {
+            return $value;
+        }
+
+        // Display time in human readable
+		if (strpos($columnName, 'time_generation') !== false) {
+			return $formatter->getPrettyTimeFromSeconds($value, true);
+		} 
+		if (strpos($columnName, 'time') !== false) {
+            return $formatter->getPrettyTimeFromSeconds($value);
+        }
+
+        // Add revenue symbol to revenues
+        $isMoneyMetric = strpos($columnName, 'revenue') !== false || strpos($columnName, 'price') !== false;
+        if ($isMoneyMetric && strpos($columnName, 'evolution') === false) {
+            return $formatter->getPrettyMoney($value, $idSite);
+        }
+
+        // Add % symbol to rates
+        if (strpos($columnName, '_rate') !== false) {
+            if (strpos($value, "%") === false) {
+                return $value . "%";
+            }
+        }
+
+        return $value;
     }
 }

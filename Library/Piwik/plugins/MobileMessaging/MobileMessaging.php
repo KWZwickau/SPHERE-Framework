@@ -60,18 +60,6 @@ class MobileMessaging extends \Piwik\Plugin
         ),
     );
 
-    public static function template_reportParametersScheduledReports(&$out)
-    {
-        if (Piwik::isUserIsAnonymous()) {
-            return;
-        }
-
-        $view = new View('@MobileMessaging/reportParametersScheduledReports');
-        $view->reportType = self::MOBILE_TYPE;
-        $view->phoneNumbers = APIMobileMessaging::getInstance()->getActivatedPhoneNumbers();
-        $out .= $view->render();
-    }
-
     /**
      * @see Piwik\Plugin::registerEvents
      */
@@ -123,11 +111,6 @@ class MobileMessaging extends \Piwik\Plugin
             // 'unset' seems to transform the array to an associative array
             $parameters[self::PHONE_NUMBERS_PARAMETER] = array_values($phoneNumbers);
         }
-    }
-
-    private static function manageEvent($reportType)
-    {
-        return in_array($reportType, array_keys(self::$managedReportTypes));
     }
 
     public function getReportMetadata(&$availableReportMetadata, $reportType, $idSite)
@@ -215,6 +198,23 @@ class MobileMessaging extends \Piwik\Plugin
                 );
             }
         }
+    }
+
+    public static function template_reportParametersScheduledReports(&$out)
+    {
+        if (Piwik::isUserIsAnonymous()) {
+            return;
+        }
+
+        $view = new View('@MobileMessaging/reportParametersScheduledReports');
+        $view->reportType = self::MOBILE_TYPE;
+        $view->phoneNumbers = APIMobileMessaging::getInstance()->getActivatedPhoneNumbers();
+        $out .= $view->render();
+    }
+
+    private static function manageEvent($reportType)
+    {
+        return in_array($reportType, array_keys(self::$managedReportTypes));
     }
 
     function install()

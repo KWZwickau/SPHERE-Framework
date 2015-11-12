@@ -8,7 +8,9 @@
 namespace Piwik\Metrics;
 
 use Piwik\Common;
+use Piwik\Container\StaticContainer;
 use Piwik\DataTable;
+use Piwik\Intl\Data\Provider\CurrencyDataProvider;
 use Piwik\NumberFormatter;
 use Piwik\Piwik;
 use Piwik\Plugin\Metric;
@@ -137,29 +139,6 @@ class Formatter
         return $size . " " . $sizeUnit;
     }
 
-    protected function getPrettySizeFromBytesWithUnit($size, $unit = null, $precision = 1)
-    {
-        $units = array('B', 'K', 'M', 'G', 'T');
-        $numUnits = count($units) - 1;
-
-        $currentUnit = null;
-        foreach ($units as $idx => $currentUnit) {
-            if ($unit && $unit !== $currentUnit) {
-                $size = $size / 1024;
-            } elseif ($unit && $unit === $currentUnit) {
-                break;
-            } elseif ($size >= 1024 && $idx != $numUnits) {
-                $size = $size / 1024;
-            } else {
-                break;
-            }
-        }
-
-        $size = round($size, $precision);
-
-        return array($size, $currentUnit);
-    }
-
     /**
      * Returns a pretty formated monetary value using the currency associated with a site.
      *
@@ -256,14 +235,27 @@ class Formatter
         }
     }
 
-    /**
-     * @param DataTable $dataTable
-     * @param Report $report
-     * @return Metric[]
-     */
-    private function getMetricsToFormat(DataTable $dataTable, Report $report = null)
+    protected function getPrettySizeFromBytesWithUnit($size, $unit = null, $precision = 1)
     {
-        return Report::getMetricsForTable($dataTable, $report, $baseType = 'Piwik\\Plugin\\Metric');
+        $units = array('B', 'K', 'M', 'G', 'T');
+        $numUnits = count($units) - 1;
+
+        $currentUnit = null;
+        foreach ($units as $idx => $currentUnit) {
+            if ($unit && $unit !== $currentUnit) {
+                $size = $size / 1024;
+            } elseif ($unit && $unit === $currentUnit) {
+                break;
+            } elseif ($size >= 1024 && $idx != $numUnits) {
+                $size = $size / 1024;
+            } else {
+                break;
+            }
+        }
+
+        $size = round($size, $precision);
+
+        return array($size, $currentUnit);
     }
 
     private function makeRegexToMatchMetrics($metricsToFormat)
@@ -277,5 +269,15 @@ class Formatter
             }
         }
         return '/^' . implode('|', $metricsRegexParts) . '$/';
+    }
+
+    /**
+     * @param DataTable $dataTable
+     * @param Report $report
+     * @return Metric[]
+     */
+    private function getMetricsToFormat(DataTable $dataTable, Report $report = null)
+    {
+        return Report::getMetricsForTable($dataTable, $report, $baseType = 'Piwik\\Plugin\\Metric');
     }
 }

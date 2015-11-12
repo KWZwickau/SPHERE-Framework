@@ -19,6 +19,15 @@ class ContentInteraction extends ActionDimension
     protected $columnName = 'idaction_content_interaction';
     protected $columnType = 'INTEGER(10) UNSIGNED DEFAULT NULL';
 
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('contentInteraction');
+        $segment->setName('Contents_Interaction');
+        $segment->setAcceptedValues('The type of interaction with the content. For instance "click" or "submit".');
+        $this->addSegment($segment);
+    }
+
     public function getName()
     {
         return Piwik::translate('Contents_Interaction');
@@ -44,14 +53,5 @@ class ContentInteraction extends ActionDimension
         }
 
         return false;
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('contentInteraction');
-        $segment->setName('Contents_Interaction');
-        $segment->setAcceptedValues('The type of interaction with the content. For instance "click" or "submit".');
-        $this->addSegment($segment);
     }
 }

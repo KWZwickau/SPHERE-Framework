@@ -63,6 +63,13 @@ abstract class UIAssetFetcher
         return $this->catalog;
     }
 
+    abstract protected function retrieveFileLocations();
+
+    /**
+     * @return string[]
+     */
+    abstract protected function getPriorityOrder();
+
     private function createCatalog()
     {
         $this->retrieveFileLocations();
@@ -74,18 +81,11 @@ abstract class UIAssetFetcher
         $this->sortCatalog();
     }
 
-    abstract protected function retrieveFileLocations();
-
     private function initCatalog()
     {
         $catalogSorter = new UIAssetCatalogSorter($this->getPriorityOrder());
         $this->catalog = new UIAssetCatalog($catalogSorter);
     }
-
-    /**
-     * @return string[]
-     */
-    abstract protected function getPriorityOrder();
 
     private function populateCatalog()
     {
@@ -95,6 +95,11 @@ abstract class UIAssetFetcher
         }
     }
 
+    private function sortCatalog()
+    {
+        $this->catalog = $this->catalog->getSortedCatalog();
+    }
+
     /**
      * @return string
      */
@@ -102,11 +107,6 @@ abstract class UIAssetFetcher
     {
         // served by web server directly, so must be a public path
         return PIWIK_USER_PATH;
-    }
-
-    private function sortCatalog()
-    {
-        $this->catalog = $this->catalog->getSortedCatalog();
     }
 
     /**

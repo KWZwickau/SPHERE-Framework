@@ -76,12 +76,14 @@ class GenerateAngularDirective extends GeneratePluginBase
         ));
     }
 
-    protected function getPluginName(InputInterface $input, OutputInterface $output)
+    /**
+     * Convert MyComponentName => my-component-name
+     * @param  string $directiveCamelCase
+     * @return string
+     */
+    protected function getDirectiveComponentName($directiveCamelCase)
     {
-        $pluginNames = $this->getPluginNames();
-        $invalidName = 'You have to enter the name of an existing plugin';
-
-        return $this->askPluginNameAndValidate($input, $output, $pluginNames, $invalidName);
+        return strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $directiveCamelCase));
     }
 
     /**
@@ -118,13 +120,11 @@ class GenerateAngularDirective extends GeneratePluginBase
         return $testname;
     }
 
-    /**
-     * Convert MyComponentName => my-component-name
-     * @param  string $directiveCamelCase
-     * @return string
-     */
-    protected function getDirectiveComponentName($directiveCamelCase)
+    protected function getPluginName(InputInterface $input, OutputInterface $output)
     {
-        return strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $directiveCamelCase));
+        $pluginNames = $this->getPluginNames();
+        $invalidName = 'You have to enter the name of an existing plugin';
+
+        return $this->askPluginNameAndValidate($input, $output, $pluginNames, $invalidName);
     }
 }

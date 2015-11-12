@@ -63,6 +63,14 @@ class CachedDefinitionSource implements DefinitionSource
     }
 
     /**
+     * @return Cache
+     */
+    public function getCache()
+    {
+        return $this->cache;
+    }
+
+    /**
      * Fetches a definition from the cache
      *
      * @param string $name Entry name
@@ -92,13 +100,5 @@ class CachedDefinitionSource implements DefinitionSource
         $cacheKey = self::CACHE_PREFIX . $name;
 
         $this->cache->save($cacheKey, $definition);
-    }
-
-    /**
-     * @return Cache
-     */
-    public function getCache()
-    {
-        return $this->cache;
     }
 }

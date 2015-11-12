@@ -8,9 +8,10 @@
  */
 namespace Piwik\Plugins\MobileMessaging;
 
-use Piwik\BaseFactory;
+use Exception;
 use Piwik\Development;
 use Piwik\Piwik;
+use Piwik\BaseFactory;
 
 /**
  * The SMSProvider abstract class is used as a base class for SMS provider implementations.
@@ -38,40 +39,32 @@ abstract class SMSProvider extends BaseFactory
 			',
     );
 
-    /**
-     * Truncate $string and append $appendedString at the end if $string can not fit the
-     * the $maximumNumberOfConcatenatedSMS.
-     *
-     * @param string $string String to truncate
-     * @param int $maximumNumberOfConcatenatedSMS
-     * @param string $appendedString
-     * @return string original $string or truncated $string appended with $appendedString
-     */
-    public static function truncate($string, $maximumNumberOfConcatenatedSMS, $appendedString = 'MobileMessaging_SMS_Content_Too_Long')
+    protected static function getClassNameFromClassId($id)
     {
-        $appendedString = Piwik::translate($appendedString);
+        return __NAMESPACE__ . '\\SMSProvider\\' . $id;
+    }
 
-        $smsContentContainsUCS2Chars = self::containsUCS2Characters($string);
-        $maxCharsAllowed = self::maxCharsAllowed($maximumNumberOfConcatenatedSMS, $smsContentContainsUCS2Chars);
-        $sizeOfSMSContent = self::sizeOfSMSContent($string, $smsContentContainsUCS2Chars);
+    protected static function getInvalidClassIdExceptionMessage($id)
+    {
+        return Piwik::translate('MobileMessaging_Exception_UnknownProvider',
+            array($id, implode(', ', array_keys(self::getAvailableSMSProviders())))
+        );
+    }
 
-        if ($sizeOfSMSContent <= $maxCharsAllowed) {return $string;}
+    /**
+     * Returns all available SMS Providers
+     * 
+     * @return array
+     */
+    public static function getAvailableSMSProviders()
+    {
+        $smsProviders = self::$availableSMSProviders;
 
-        $smsContentContainsUCS2Chars = $smsContentContainsUCS2Chars || self::containsUCS2Characters($appendedString);
-        $maxCharsAllowed = self::maxCharsAllowed($maximumNumberOfConcatenatedSMS, $smsContentContainsUCS2Chars);
-        $sizeOfSMSContent = self::sizeOfSMSContent($string . $appendedString, $smsContentContainsUCS2Chars);
-
-        $sizeToTruncate = $sizeOfSMSContent - $maxCharsAllowed;
-
-        $subStrToTruncate = '';
-        $subStrSize = 0;
-        $reversedStringChars = array_reverse(self::mb_str_split($string));
-        for ($i = 0; $subStrSize < $sizeToTruncate; $i++) {
-            $subStrToTruncate = $reversedStringChars[$i] . $subStrToTruncate;
-            $subStrSize = self::sizeOfSMSContent($subStrToTruncate, $smsContentContainsUCS2Chars);
+        if (Development::isEnabled()) {
+            $smsProviders['Development'] = 'Development SMS Provider<br />All sent SMS will be displayed as Notification';
         }
 
-        return preg_replace('/' . preg_quote($subStrToTruncate, '/') . '$/', $appendedString, $string);
+        return $smsProviders;
     }
 
     /**
@@ -93,9 +86,56 @@ abstract class SMSProvider extends BaseFactory
         return false;
     }
 
+    /**
+     * Truncate $string and append $appendedString at the end if $string can not fit the
+     * the $maximumNumberOfConcatenatedSMS.
+     *
+     * @param string $string String to truncate
+     * @param int $maximumNumberOfConcatenatedSMS
+     * @param string $appendedString
+     * @return string original $string or truncated $string appended with $appendedString
+     */
+    public static function truncate($string, $maximumNumberOfConcatenatedSMS, $appendedString = 'MobileMessaging_SMS_Content_Too_Long')
+    {
+        $appendedString = Piwik::translate($appendedString);
+
+        $smsContentContainsUCS2Chars = self::containsUCS2Characters($string);
+        $maxCharsAllowed = self::maxCharsAllowed($maximumNumberOfConcatenatedSMS, $smsContentContainsUCS2Chars);
+        $sizeOfSMSContent = self::sizeOfSMSContent($string, $smsContentContainsUCS2Chars);
+
+        if ($sizeOfSMSContent <= $maxCharsAllowed) return $string;
+
+        $smsContentContainsUCS2Chars = $smsContentContainsUCS2Chars || self::containsUCS2Characters($appendedString);
+        $maxCharsAllowed = self::maxCharsAllowed($maximumNumberOfConcatenatedSMS, $smsContentContainsUCS2Chars);
+        $sizeOfSMSContent = self::sizeOfSMSContent($string . $appendedString, $smsContentContainsUCS2Chars);
+
+        $sizeToTruncate = $sizeOfSMSContent - $maxCharsAllowed;
+
+        $subStrToTruncate = '';
+        $subStrSize = 0;
+        $reversedStringChars = array_reverse(self::mb_str_split($string));
+        for ($i = 0; $subStrSize < $sizeToTruncate; $i++) {
+            $subStrToTruncate = $reversedStringChars[$i] . $subStrToTruncate;
+            $subStrSize = self::sizeOfSMSContent($subStrToTruncate, $smsContentContainsUCS2Chars);
+        }
+
+        return preg_replace('/' . preg_quote($subStrToTruncate, '/') . '$/', $appendedString, $string);
+    }
+
     private static function mb_str_split($string)
     {
         return preg_split('//u', $string, -1, PREG_SPLIT_NO_EMPTY);
+    }
+
+    private static function sizeOfSMSContent($smsContent, $containsUCS2Chars)
+    {
+        if ($containsUCS2Chars) return mb_strlen($smsContent, 'UTF-8');
+
+        $sizeOfSMSContent = 0;
+        foreach (self::mb_str_split($smsContent) as $char) {
+            $sizeOfSMSContent += GSMCharset::$GSMCharset[$char];
+        }
+        return $sizeOfSMSContent;
     }
 
     private static function maxCharsAllowed($maximumNumberOfConcatenatedSMS, $containsUCS2Chars)
@@ -108,45 +148,6 @@ abstract class SMSProvider extends BaseFactory
         return $uniqueSMS ?
             $maxCharsInOneUniqueSMS :
             $maxCharsInOneConcatenatedSMS * $maximumNumberOfConcatenatedSMS;
-    }
-
-    private static function sizeOfSMSContent($smsContent, $containsUCS2Chars)
-    {
-        if ($containsUCS2Chars) {return mb_strlen($smsContent, 'UTF-8');}
-
-        $sizeOfSMSContent = 0;
-        foreach (self::mb_str_split($smsContent) as $char) {
-            $sizeOfSMSContent += GSMCharset::$GSMCharset[$char];
-        }
-        return $sizeOfSMSContent;
-    }
-
-    protected static function getClassNameFromClassId($id)
-    {
-        return __NAMESPACE__ . '\\SMSProvider\\' . $id;
-    }
-
-    protected static function getInvalidClassIdExceptionMessage($id)
-    {
-        return Piwik::translate('MobileMessaging_Exception_UnknownProvider',
-            array($id, implode(', ', array_keys(self::getAvailableSMSProviders())))
-        );
-    }
-
-    /**
-     * Returns all available SMS Providers
-     *
-     * @return array
-     */
-    public static function getAvailableSMSProviders()
-    {
-        $smsProviders = self::$availableSMSProviders;
-
-        if (Development::isEnabled()) {
-            $smsProviders['Development'] = 'Development SMS Provider<br />All sent SMS will be displayed as Notification';
-        }
-
-        return $smsProviders;
     }
 
     /**

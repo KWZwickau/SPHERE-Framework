@@ -29,19 +29,12 @@ abstract class Zend_Cache
 {
 
     /**
-     * Consts for clean() method
-     */
-    const CLEANING_MODE_ALL              = 'all';
-    const CLEANING_MODE_OLD              = 'old';
-    const CLEANING_MODE_MATCHING_TAG     = 'matchingTag';
-    const CLEANING_MODE_NOT_MATCHING_TAG = 'notMatchingTag';
-    const CLEANING_MODE_MATCHING_ANY_TAG = 'matchingAnyTag';
-    /**
      * Standard frontends
      *
      * @var array
      */
     public static $standardFrontends = array('Core', 'Output', 'Class', 'File', 'Function', 'Page');
+
     /**
      * Standard backends
      *
@@ -49,12 +42,14 @@ abstract class Zend_Cache
      */
     public static $standardBackends = array('File', 'Sqlite', 'Memcached', 'Libmemcached', 'Apc', 'ZendPlatform',
                                             'Xcache', 'TwoLevels', 'WinCache', 'ZendServer_Disk', 'ZendServer_ShMem');
+
     /**
      * Standard backends which implement the ExtendedInterface
      *
      * @var array
      */
     public static $standardExtendedBackends = array('File', 'Apc', 'TwoLevels', 'Memcached', 'Libmemcached', 'Sqlite', 'WinCache');
+
     /**
      * Only for backward compatibility (may be removed in next major release)
      *
@@ -62,6 +57,7 @@ abstract class Zend_Cache
      * @deprecated
      */
     public static $availableFrontends = array('Core', 'Output', 'Class', 'File', 'Function', 'Page');
+
     /**
      * Only for backward compatibility (may be removed in next major release)
      *
@@ -69,6 +65,15 @@ abstract class Zend_Cache
      * @deprecated
      */
     public static $availableBackends = array('File', 'Sqlite', 'Memcached', 'Libmemcached', 'Apc', 'ZendPlatform', 'Xcache', 'WinCache', 'TwoLevels');
+
+    /**
+     * Consts for clean() method
+     */
+    const CLEANING_MODE_ALL              = 'all';
+    const CLEANING_MODE_OLD              = 'old';
+    const CLEANING_MODE_MATCHING_TAG     = 'matchingTag';
+    const CLEANING_MODE_NOT_MATCHING_TAG = 'notMatchingTag';
+    const CLEANING_MODE_MATCHING_ANY_TAG = 'matchingAnyTag';
 
     /**
      * Factory
@@ -149,58 +154,6 @@ abstract class Zend_Cache
     }
 
     /**
-     * Normalize frontend and backend names to allow multiple words TitleCased
-     *
-     * @param  string $name  Name to normalize
-     * @return string
-     */
-    protected static function _normalizeName($name)
-    {
-        $name = ucfirst(strtolower($name));
-        $name = str_replace(array('-', '_', '.'), ' ', $name);
-        $name = ucwords($name);
-        $name = str_replace(' ', '', $name);
-        if (stripos($name, 'ZendServer') === 0) {
-            $name = 'ZendServer_' . substr($name, strlen('ZendServer'));
-        }
-
-        return $name;
-    }
-
-    /**
-     * Throw an exception
-     *
-     * Note : for perf reasons, the "load" of Zend/Cache/Exception is dynamic
-     * @param  string $msg  Message for the exception
-     * @throws Zend_Cache_Exception
-     */
-    public static function throwException($msg, Exception $e = null)
-    {
-        // For perfs reasons, we use this dynamic inclusion
-        // require_once 'Zend/Cache/Exception.php';
-        throw new Zend_Cache_Exception($msg, 0, $e);
-    }
-
-    /**
-     * Returns TRUE if the $filename is readable, or FALSE otherwise.
-     * This function uses the PHP include_path, where PHP's is_readable()
-     * does not.
-     *
-     * Note : this method comes from Zend_Loader (see #ZF-2891 for details)
-     *
-     * @param string   $filename
-     * @return boolean
-     */
-    private static function _isReadable($filename)
-    {
-        if (!$fh = @fopen($filename, 'r', true)) {
-            return false;
-        }
-        @fclose($fh);
-        return true;
-    }
-
-    /**
      * Frontend Constructor
      *
      * @param string  $frontend
@@ -240,6 +193,58 @@ abstract class Zend_Cache
             }
         }
         return new $frontendClass($frontendOptions);
+    }
+
+    /**
+     * Throw an exception
+     *
+     * Note : for perf reasons, the "load" of Zend/Cache/Exception is dynamic
+     * @param  string $msg  Message for the exception
+     * @throws Zend_Cache_Exception
+     */
+    public static function throwException($msg, Exception $e = null)
+    {
+        // For perfs reasons, we use this dynamic inclusion
+        // require_once 'Zend/Cache/Exception.php';
+        throw new Zend_Cache_Exception($msg, 0, $e);
+    }
+
+    /**
+     * Normalize frontend and backend names to allow multiple words TitleCased
+     *
+     * @param  string $name  Name to normalize
+     * @return string
+     */
+    protected static function _normalizeName($name)
+    {
+        $name = ucfirst(strtolower($name));
+        $name = str_replace(array('-', '_', '.'), ' ', $name);
+        $name = ucwords($name);
+        $name = str_replace(' ', '', $name);
+        if (stripos($name, 'ZendServer') === 0) {
+            $name = 'ZendServer_' . substr($name, strlen('ZendServer'));
+        }
+
+        return $name;
+    }
+
+    /**
+     * Returns TRUE if the $filename is readable, or FALSE otherwise.
+     * This function uses the PHP include_path, where PHP's is_readable()
+     * does not.
+     *
+     * Note : this method comes from Zend_Loader (see #ZF-2891 for details)
+     *
+     * @param string   $filename
+     * @return boolean
+     */
+    private static function _isReadable($filename)
+    {
+        if (!$fh = @fopen($filename, 'r', true)) {
+            return false;
+        }
+        @fclose($fh);
+        return true;
     }
 
 }

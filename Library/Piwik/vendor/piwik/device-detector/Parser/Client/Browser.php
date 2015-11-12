@@ -18,6 +18,9 @@ use DeviceDetector\Parser\Client\Browser\Engine;
  */
 class Browser extends ClientParserAbstract
 {
+    protected $fixtureFile = 'regexes/client/browsers.yml';
+    protected $parserName = 'browser';
+
     /**
      * Known browsers mapped to their internal short codes
      *
@@ -142,6 +145,7 @@ class Browser extends ClientParserAbstract
         'YA' => 'Yandex Browser',
         'XI' => 'Xiino'
     );
+
     /**
      * Browser families mapped to the short codes of the associated browsers
      *
@@ -162,8 +166,15 @@ class Browser extends ClientParserAbstract
         'Safari'             => array('SF', 'MF'),
         'Sailfish Browser'   => array('SA')
     );
-    protected $fixtureFile = 'regexes/client/browsers.yml';
-    protected $parserName = 'browser';
+
+    /**
+     * Returns list of all available browsers
+     * @return array
+     */
+    public static function getAvailableBrowsers()
+    {
+        return self::$availableBrowsers;
+    }
 
     /**
      * Returns list of all available browser families
@@ -173,6 +184,7 @@ class Browser extends ClientParserAbstract
     {
         return self::$browserFamilies;
     }
+
 
     /**
      * @param $browserLabel
@@ -219,15 +231,6 @@ class Browser extends ClientParserAbstract
 
         // This Exception should never be thrown. If so a defined browser name is missing in $availableBrowsers
         throw new \Exception('Detected browser name was not found in $availableBrowsers'); // @codeCoverageIgnore
-    }
-
-    /**
-     * Returns list of all available browsers
-     * @return array
-     */
-    public static function getAvailableBrowsers()
-    {
-        return self::$availableBrowsers;
     }
 
     protected function buildEngine($engineData, $browserVersion)

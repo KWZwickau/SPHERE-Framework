@@ -9,8 +9,8 @@
 
 namespace DI\Definition\Source;
 
-use DI\Definition\EntryReference;
 use DI\Definition\ObjectDefinition;
+use DI\Definition\EntryReference;
 use DI\Definition\ObjectDefinition\MethodInjection;
 
 /**

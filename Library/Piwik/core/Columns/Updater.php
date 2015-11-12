@@ -8,15 +8,15 @@
  */
 namespace Piwik\Columns;
 
-use Piwik\Cache as PiwikCache;
 use Piwik\Common;
-use Piwik\Db;
 use Piwik\DbHelper;
-use Piwik\Filesystem;
 use Piwik\Plugin\Dimension\ActionDimension;
-use Piwik\Plugin\Dimension\ConversionDimension;
 use Piwik\Plugin\Dimension\VisitDimension;
+use Piwik\Plugin\Dimension\ConversionDimension;
+use Piwik\Db;
 use Piwik\Updater as PiwikUpdater;
+use Piwik\Filesystem;
+use Piwik\Cache as PiwikCache;
 
 /**
  * Class that handles dimension updates
@@ -52,19 +52,6 @@ class Updater extends \Piwik\Updates
         $this->conversionDimensions = $conversionDimensions;
     }
 
-    public static function isDimensionComponent($name)
-    {
-        return 0 === strpos($name, 'log_visit.')
-            || 0 === strpos($name, 'log_conversion.')
-            || 0 === strpos($name, 'log_conversion_item.')
-            || 0 === strpos($name, 'log_link_visit_action.');
-    }
-
-    public function doUpdate(PiwikUpdater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(PiwikUpdater $updater)
     {
         $sqls = array();
@@ -80,6 +67,41 @@ class Updater extends \Piwik\Updates
         }
 
         return $sqls;
+    }
+
+    public function doUpdate(PiwikUpdater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
+    }
+
+    private function getVisitDimensions()
+    {
+        // see eg https://github.com/piwik/piwik/issues/8399 we fetch them only on demand to improve performance
+        if (!isset($this->visitDimensions)) {
+            $this->visitDimensions = VisitDimension::getAllDimensions();
+        }
+
+        return $this->visitDimensions;
+    }
+
+    private function getActionDimensions()
+    {
+        // see eg https://github.com/piwik/piwik/issues/8399 we fetch them only on demand to improve performance
+        if (!isset($this->actionDimensions)) {
+            $this->actionDimensions = ActionDimension::getAllDimensions();
+        }
+
+        return $this->actionDimensions;
+    }
+
+    private function getConversionDimensions()
+    {
+        // see eg https://github.com/piwik/piwik/issues/8399 we fetch them only on demand to improve performance
+        if (!isset($this->conversionDimensions)) {
+            $this->conversionDimensions = ConversionDimension::getAllDimensions();
+        }
+
+        return $this->conversionDimensions;
     }
 
     private function getUpdates(PiwikUpdater $updater)
@@ -106,16 +128,6 @@ class Updater extends \Piwik\Updates
         }
 
         return $allUpdatesToRun;
-    }
-
-    private function getVisitDimensions()
-    {
-        // see eg https://github.com/piwik/piwik/issues/8399 we fetch them only on demand to improve performance
-        if (!isset($this->visitDimensions)) {
-            $this->visitDimensions = VisitDimension::getAllDimensions();
-        }
-
-        return $this->visitDimensions;
     }
 
     /**
@@ -162,26 +174,6 @@ class Updater extends \Piwik\Updates
         return $allUpdatesToRun;
     }
 
-    private function getActionDimensions()
-    {
-        // see eg https://github.com/piwik/piwik/issues/8399 we fetch them only on demand to improve performance
-        if (!isset($this->actionDimensions)) {
-            $this->actionDimensions = ActionDimension::getAllDimensions();
-        }
-
-        return $this->actionDimensions;
-    }
-
-    private function getConversionDimensions()
-    {
-        // see eg https://github.com/piwik/piwik/issues/8399 we fetch them only on demand to improve performance
-        if (!isset($this->conversionDimensions)) {
-            $this->conversionDimensions = ConversionDimension::getAllDimensions();
-        }
-
-        return $this->conversionDimensions;
-    }
-
     public function getAllVersions(PiwikUpdater $updater)
     {
         // to avoid having to load all dimensions on each request we check if there were any changes on the file system
@@ -213,34 +205,6 @@ class Updater extends \Piwik\Updates
         }
 
         return $versions;
-    }
-
-    private static function getCachedDimensionFileChanges()
-    {
-        $cache = self::buildCache();
-
-        if ($cache->contains(self::$cacheId)) {
-            return $cache->fetch(self::$cacheId);
-        }
-
-        return array();
-    }
-
-    private static function buildCache()
-    {
-        return PiwikCache::getEagerCache();
-    }
-
-    private static function getCurrentDimensionFileChanges()
-    {
-        $files = Filesystem::globr(PIWIK_INCLUDE_PATH . '/plugins/*/Columns', '*.php');
-
-        $times = array();
-        foreach ($files as $file) {
-            $times[$file] = filemtime($file);
-        }
-
-        return $times;
     }
 
     /**
@@ -277,6 +241,14 @@ class Updater extends \Piwik\Updates
         $versions[$component] = $version;
 
         return $versions;
+    }
+
+    public static function isDimensionComponent($name)
+    {
+        return 0 === strpos($name, 'log_visit.')
+            || 0 === strpos($name, 'log_conversion.')
+            || 0 === strpos($name, 'log_conversion_item.')
+            || 0 === strpos($name, 'log_link_visit_action.');
     }
 
     public static function wasDimensionMovedFromCoreToPlugin($name, $version)
@@ -362,11 +334,39 @@ class Updater extends \Piwik\Updates
         }
     }
 
+    private static function getCurrentDimensionFileChanges()
+    {
+        $files = Filesystem::globr(PIWIK_INCLUDE_PATH . '/plugins/*/Columns', '*.php');
+
+        $times = array();
+        foreach ($files as $file) {
+            $times[$file] = filemtime($file);
+        }
+
+        return $times;
+    }
+
     private static function cacheCurrentDimensionFileChanges()
     {
         $changes = self::getCurrentDimensionFileChanges();
 
         $cache = self::buildCache();
         $cache->save(self::$cacheId, $changes);
+    }
+
+    private static function buildCache()
+    {
+        return PiwikCache::getEagerCache();
+    }
+
+    private static function getCachedDimensionFileChanges()
+    {
+        $cache = self::buildCache();
+
+        if ($cache->contains(self::$cacheId)) {
+            return $cache->fetch(self::$cacheId);
+        }
+
+        return array();
     }
 }

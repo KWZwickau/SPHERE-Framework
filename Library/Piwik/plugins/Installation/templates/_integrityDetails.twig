@@ -1,5 +1,4 @@
-<div id="integrity-results" title="{{ 'Installation_SystemCheckFileIntegrity'|translate }}"
-     style="display:none; font-size: 62.5%;">
+<div id="integrity-results" title="{{ 'Installation_SystemCheckFileIntegrity'|translate }}" style="display:none; font-size: 62.5%;">
     <table>
         {% for msg in warningMessages %}
             <tr>
@@ -10,35 +9,28 @@
 </div>
 <script type="text/javascript">
     <!--
-    $(function ()
-    {
+    $(function () {
         $("#integrity-results").dialog({
             modal: true,
             autoOpen: false,
             width: 600,
             buttons: {
-                Ok: function ()
-                {
+                Ok: function () {
                     $(this).dialog('close');
                 }
             }
         });
     });
-    $('#more-results').click(function ()
-    {
+    $('#more-results').click(function () {
         $('#integrity-results').dialog('open');
-    }).hover(function ()
-        {
-            $(this).addClass("ui-state-hover");
-        },
-        function ()
-        {
-            $(this).removeClass("ui-state-hover");
-        }).mousedown(function ()
-    {
+    }).hover(function () {
+        $(this).addClass("ui-state-hover");
+    },
+    function () {
+        $(this).removeClass("ui-state-hover");
+    }).mousedown(function () {
         $(this).addClass("ui-state-active");
-    }).mouseup(function ()
-    {
+    }).mouseup(function () {
         $(this).removeClass("ui-state-active");
     });
     //-->

@@ -24,14 +24,6 @@ class Settings
         return $this->getDbSetting('type');
     }
 
-    private function getDbSetting($key)
-    {
-        $dbInfos = Db::getDatabaseConfig();
-        $engine  = $dbInfos[$key];
-
-        return $engine;
-    }
-
     public function getTablePrefix()
     {
         return $this->getDbSetting('tables_prefix');
@@ -40,5 +32,13 @@ class Settings
     public function getDbName()
     {
         return $this->getDbSetting('dbname');
+    }
+
+    private function getDbSetting($key)
+    {
+        $dbInfos = Db::getDatabaseConfig();
+        $engine  = $dbInfos[$key];
+
+        return $engine;
     }
 }

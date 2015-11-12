@@ -44,7 +44,7 @@ class PurgeOldArchiveData extends ConsoleCommand
     public function __construct(ArchivePurger $archivePurger = null)
     {
         parent::__construct();
-
+        
         $this->archivePurger = $archivePurger;
     }
 
@@ -53,27 +53,18 @@ class PurgeOldArchiveData extends ConsoleCommand
         $this->setName('core:purge-old-archive-data');
         $this->setDescription('Purges out of date and invalid archive data from archive tables.');
         $this->addArgument("dates", InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
-            "The months of the archive tables to purge data from. By default, only deletes from the current month. Use '" . self::ALL_DATES_STRING . "' for all dates.",
+            "The months of the archive tables to purge data from. By default, only deletes from the current month. Use '" . self::ALL_DATES_STRING. "' for all dates.",
             array(self::getToday()->toString()));
         $this->addOption('exclude-outdated', null, InputOption::VALUE_NONE, "Do not purge outdated archive data.");
-        $this->addOption('exclude-invalidated', null, InputOption::VALUE_NONE,
-            "Do not purge invalidated archive data.");
+        $this->addOption('exclude-invalidated', null, InputOption::VALUE_NONE, "Do not purge invalidated archive data.");
         $this->addOption('exclude-ranges', null, InputOption::VALUE_NONE, "Do not purge custom ranges.");
-        $this->addOption('skip-optimize-tables', null, InputOption::VALUE_NONE,
-            "Do not run OPTIMIZE TABLES query on affected archive tables.");
-        $this->addOption('include-year-archives', null, InputOption::VALUE_NONE,
-            "If supplied, the command will purge archive tables that contain year archives for every supplied date.");
-        $this->addOption('force-optimize-tables', null, InputOption::VALUE_NONE,
-            "If supplied, forces optimize table SQL to be run, even on InnoDB tables.");
+        $this->addOption('skip-optimize-tables', null, InputOption::VALUE_NONE, "Do not run OPTIMIZE TABLES query on affected archive tables.");
+        $this->addOption('include-year-archives', null, InputOption::VALUE_NONE, "If supplied, the command will purge archive tables that contain year archives for every supplied date.");
+        $this->addOption('force-optimize-tables', null, InputOption::VALUE_NONE, "If supplied, forces optimize table SQL to be run, even on InnoDB tables.");
         $this->setHelp("By default old and invalidated archives are purged. Custom ranges are also purged with outdated archives.\n\n"
-            . "Note: archive purging is done during scheduled task execution, so under normal circumstances, you should not need to "
-            . "run this command manually.");
+                     . "Note: archive purging is done during scheduled task execution, so under normal circumstances, you should not need to "
+                     . "run this command manually.");
 
-    }
-
-    private static function getToday()
-    {
-        return self::$todayOverride ?: Date::today();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -198,16 +189,19 @@ class PurgeOldArchiveData extends ConsoleCommand
 
         foreach ($dates as $date) {
             $numericTable = ArchiveTableCreator::getNumericTable($date);
-            $this->performTimedPurging($output, "Optimizing table $numericTable...",
-                function () use ($numericTable, $forceOptimzation) {
-                    Db::optimizeTables($numericTable, $forceOptimzation);
-                });
+            $this->performTimedPurging($output, "Optimizing table $numericTable...", function () use ($numericTable, $forceOptimzation) {
+                Db::optimizeTables($numericTable, $forceOptimzation);
+            });
 
             $blobTable = ArchiveTableCreator::getBlobTable($date);
-            $this->performTimedPurging($output, "Optimizing table $blobTable...",
-                function () use ($blobTable, $forceOptimzation) {
-                    Db::optimizeTables($blobTable, $forceOptimzation);
-                });
+            $this->performTimedPurging($output, "Optimizing table $blobTable...", function () use ($blobTable, $forceOptimzation) {
+                Db::optimizeTables($blobTable, $forceOptimzation);
+            });
         }
+    }
+
+    private static function getToday()
+    {
+        return self::$todayOverride ?: Date::today();
     }
 }

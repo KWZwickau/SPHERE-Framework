@@ -160,6 +160,32 @@ class Zend_Config_Ini extends Zend_Config
     }
 
     /**
+     * Load the INI file from disk using parse_ini_file(). Use a private error
+     * handler to convert any loading errors into a Zend_Config_Exception
+     *
+     * @param string $filename
+     * @throws Zend_Config_Exception
+     * @return array
+     */
+    protected function _parseIniFile($filename)
+    {
+        set_error_handler(array($this, '_loadFileErrorHandler'));
+        $iniArray = parse_ini_file($filename, true); // Warnings and errors are suppressed
+        restore_error_handler();
+
+        // Check if there was a error while loading file
+        if ($this->_loadFileErrorStr !== null) {
+            /**
+             * @see Zend_Config_Exception
+             */
+            // require_once 'Zend/Config/Exception.php';
+            throw new Zend_Config_Exception($this->_loadFileErrorStr);
+        }
+
+        return $iniArray;
+    }
+
+    /**
      * Load the ini file and preprocess the section separator (':' in the
      * section name (that is used for section extension) so that the resultant
      * array has the correct section names and the extension information is
@@ -202,29 +228,40 @@ class Zend_Config_Ini extends Zend_Config
     }
 
     /**
-     * Load the INI file from disk using parse_ini_file(). Use a private error
-     * handler to convert any loading errors into a Zend_Config_Exception
+     * Process each element in the section and handle the ";extends" inheritance
+     * key. Passes control to _processKey() to handle the nest separator
+     * sub-property syntax that may be used within the key name.
      *
-     * @param string $filename
+     * @param  array  $iniArray
+     * @param  string $section
+     * @param  array  $config
      * @throws Zend_Config_Exception
      * @return array
      */
-    protected function _parseIniFile($filename)
+    protected function _processSection($iniArray, $section, $config = array())
     {
-        set_error_handler(array($this, '_loadFileErrorHandler'));
-        $iniArray = parse_ini_file($filename, true); // Warnings and errors are suppressed
-        restore_error_handler();
+        $thisSection = $iniArray[$section];
 
-        // Check if there was a error while loading file
-        if ($this->_loadFileErrorStr !== null) {
-            /**
-             * @see Zend_Config_Exception
-             */
-            // require_once 'Zend/Config/Exception.php';
-            throw new Zend_Config_Exception($this->_loadFileErrorStr);
+        foreach ($thisSection as $key => $value) {
+            if (strtolower($key) == ';extends') {
+                if (isset($iniArray[$value])) {
+                    $this->_assertValidExtend($section, $value);
+
+                    if (!$this->_skipExtends) {
+                        $config = $this->_processSection($iniArray, $value, $config);
+                    }
+                } else {
+                    /**
+                     * @see Zend_Config_Exception
+                     */
+                    // require_once 'Zend/Config/Exception.php';
+                    throw new Zend_Config_Exception("Parent section '$section' cannot be found");
+                }
+            } else {
+                $config = $this->_processKey($config, $key, $value);
+            }
         }
-
-        return $iniArray;
+        return $config;
     }
 
     /**
@@ -266,43 +303,6 @@ class Zend_Config_Ini extends Zend_Config
             }
         } else {
             $config[$key] = $value;
-        }
-        return $config;
-    }
-
-    /**
-     * Process each element in the section and handle the ";extends" inheritance
-     * key. Passes control to _processKey() to handle the nest separator
-     * sub-property syntax that may be used within the key name.
-     *
-     * @param  array  $iniArray
-     * @param  string $section
-     * @param  array  $config
-     * @throws Zend_Config_Exception
-     * @return array
-     */
-    protected function _processSection($iniArray, $section, $config = array())
-    {
-        $thisSection = $iniArray[$section];
-
-        foreach ($thisSection as $key => $value) {
-            if (strtolower($key) == ';extends') {
-                if (isset($iniArray[$value])) {
-                    $this->_assertValidExtend($section, $value);
-
-                    if (!$this->_skipExtends) {
-                        $config = $this->_processSection($iniArray, $value, $config);
-                    }
-                } else {
-                    /**
-                     * @see Zend_Config_Exception
-                     */
-                    // require_once 'Zend/Config/Exception.php';
-                    throw new Zend_Config_Exception("Parent section '$section' cannot be found");
-                }
-            } else {
-                $config = $this->_processKey($config, $key, $value);
-            }
         }
         return $config;
     }

@@ -33,27 +33,19 @@
 abstract class Zend_Session_Abstract
 {
     /**
-     * Error message thrown when an action requires modification,
-     * but current Zend_Session has been marked as read-only.
-     */
-    const _THROW_NOT_WRITABLE_MSG = 'Zend_Session is currently marked as read-only.';
-    /**
-     * Error message thrown when an action requires reading session data,
-     * but current Zend_Session is not marked as readable.
-     */
-    const _THROW_NOT_READABLE_MSG = 'Zend_Session is not marked as readable.';
-    /**
      * Whether or not session permits writing (modification of $_SESSION[])
      *
      * @var bool
      */
     protected static $_writable = false;
+
     /**
      * Whether or not session permits reading (reading data in $_SESSION[])
      *
      * @var bool
      */
     protected static $_readable = false;
+
     /**
      * Since expiring data is handled at startup to avoid __destruct difficulties,
      * the data that will be expiring at end of this request is held here
@@ -61,6 +53,21 @@ abstract class Zend_Session_Abstract
      * @var array
      */
     protected static $_expiringData = array();
+
+
+    /**
+     * Error message thrown when an action requires modification,
+     * but current Zend_Session has been marked as read-only.
+     */
+    const _THROW_NOT_WRITABLE_MSG = 'Zend_Session is currently marked as read-only.';
+
+
+    /**
+     * Error message thrown when an action requires reading session data,
+     * but current Zend_Session is not marked as readable.
+     */
+    const _THROW_NOT_READABLE_MSG = 'Zend_Session is not marked as readable.';
+
 
     /**
      * namespaceIsset() - check to see if a namespace or a variable within a namespace is set

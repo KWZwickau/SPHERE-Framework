@@ -13,6 +13,7 @@ use Piwik\Config;
 use Piwik\Filesystem;
 use Piwik\Plugin\ConsoleCommand;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -29,9 +30,9 @@ class DevelopmentEnable extends ConsoleCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $commandName = $input->getFirstArgument();
-        $enable = (false !== strpos($commandName, 'enable'));
+        $enable      = (false !== strpos($commandName, 'enable'));
 
-        $config = Config::getInstance();
+        $config      = Config::getInstance();
         $development = $config->Development;
 
         if ($enable) {

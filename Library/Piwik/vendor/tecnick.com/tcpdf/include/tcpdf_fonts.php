@@ -919,39 +919,25 @@ class TCPDF_FONTS {
 	}
 
 	/**
-	 * Return fonts path
-	 * @return string
-	 * @public static
-	 */
-	public static function _getfontpath() {
-		if (!defined('K_PATH_FONTS') AND is_dir($fdir = realpath(dirname(__FILE__).'/../fonts'))) {
-			if (substr($fdir, -1) != '/') {
-				$fdir .= '/';
-			}
-			define('K_PATH_FONTS', $fdir);
-		}
-		return defined('K_PATH_FONTS') ? K_PATH_FONTS : '';
-	}
-
-	/**
-	 * Update the CIDToGIDMap string with a new value.
-	 * @param $map (string) CIDToGIDMap.
-	 * @param $cid (int) CID value.
-	 * @param $gid (int) GID value.
-	 * @return (string) CIDToGIDMap.
+	 * Returs the checksum of a TTF table.
+	 * @param $table (string) table to check
+	 * @param $length (int) length of table in bytes
+	 * @return int checksum
 	 * @author Nicola Asuni
-	 * @since 5.9.123 (2011-09-29)
+	 * @since 5.2.000 (2010-06-02)
 	 * @public static
 	 */
-	public static function updateCIDtoGIDmap($map, $cid, $gid) {
-		if (($cid >= 0) AND ($cid <= 0xFFFF) AND ($gid >= 0)) {
-			if ($gid > 0xFFFF) {
-				$gid -= 0x10000;
-			}
-			$map[($cid * 2)] = chr($gid >> 8);
-			$map[(($cid * 2) + 1)] = chr($gid & 0xFF);
+	public static function _getTTFtableChecksum($table, $length) {
+		$sum = 0;
+		$tlen = ($length / 4);
+		$offset = 0;
+		for ($i = 0; $i < $tlen; ++$i) {
+			$v = unpack('Ni', substr($table, $offset, 4));
+			$sum += $v['i'];
+			$offset += 4;
 		}
-		return $map;
+		$sum = unpack('Ni', pack('N', $sum));
+		return $sum['i'];
 	}
 
 	/**
@@ -1163,7 +1149,7 @@ class TCPDF_FONTS {
 								$subsetglyphs[$g] = true;
 							}
 						}
-					}
+					}	
 					break;
 				}
 				case 6: { // Format 6: Trimmed table mapping
@@ -1400,28 +1386,6 @@ class TCPDF_FONTS {
 	}
 
 	/**
-	 * Returs the checksum of a TTF table.
-	 * @param $table (string) table to check
-	 * @param $length (int) length of table in bytes
-	 * @return int checksum
-	 * @author Nicola Asuni
-	 * @since 5.2.000 (2010-06-02)
-	 * @public static
-	 */
-	public static function _getTTFtableChecksum($table, $length) {
-		$sum = 0;
-		$tlen = ($length / 4);
-		$offset = 0;
-		for ($i = 0; $i < $tlen; ++$i) {
-			$v = unpack('Ni', substr($table, $offset, 4));
-			$sum += $v['i'];
-			$offset += 4;
-		}
-		$sum = unpack('Ni', pack('N', $sum));
-		return $sum['i'];
-	}
-
-	/**
 	 * Outputs font widths
 	 * @param $font (array) font data
 	 * @param $cidoffset (int) offset for CID values
@@ -1527,16 +1491,6 @@ class TCPDF_FONTS {
 	}
 
 	/**
-	 * Returns the unicode caracter specified by UTF-8 value
-	 * @param $c (int) UTF-8 value
-	 * @return Returns the specified character.
-	 * @public static
-	 */
-	public static function unichrUnicode($c) {
-		return self::unichr($c, true);
-	}
-
-	/**
 	 * Returns the unicode caracter specified by the value
 	 * @param $c (int) UTF-8 value
 	 * @param $unicode (boolean) True if we are in unicode mode, false otherwise.
@@ -1565,6 +1519,16 @@ class TCPDF_FONTS {
 	}
 
 	/**
+	 * Returns the unicode caracter specified by UTF-8 value
+	 * @param $c (int) UTF-8 value
+	 * @return Returns the specified character.
+	 * @public static
+	 */
+	public static function unichrUnicode($c) {
+		return self::unichr($c, true);
+	}
+
+	/**
 	 * Returns the unicode caracter specified by ASCII value
 	 * @param $c (int) UTF-8 value
 	 * @return Returns the specified character.
@@ -1572,6 +1536,70 @@ class TCPDF_FONTS {
 	 */
 	public static function unichrASCII($c) {
 		return self::unichr($c, false);
+	}
+
+	/**
+	 * Converts array of UTF-8 characters to UTF16-BE string.<br>
+	 * Based on: http://www.faqs.org/rfcs/rfc2781.html
+	 * <pre>
+	 *   Encoding UTF-16:
+	 *
+	 *   Encoding of a single character from an ISO 10646 character value to
+	 *    UTF-16 proceeds as follows. Let U be the character number, no greater
+	 *    than 0x10FFFF.
+	 *
+	 *    1) If U < 0x10000, encode U as a 16-bit unsigned integer and
+	 *       terminate.
+	 *
+	 *    2) Let U' = U - 0x10000. Because U is less than or equal to 0x10FFFF,
+	 *       U' must be less than or equal to 0xFFFFF. That is, U' can be
+	 *       represented in 20 bits.
+	 *
+	 *    3) Initialize two 16-bit unsigned integers, W1 and W2, to 0xD800 and
+	 *       0xDC00, respectively. These integers each have 10 bits free to
+	 *       encode the character value, for a total of 20 bits.
+	 *
+	 *    4) Assign the 10 high-order bits of the 20-bit U' to the 10 low-order
+	 *       bits of W1 and the 10 low-order bits of U' to the 10 low-order
+	 *       bits of W2. Terminate.
+	 *
+	 *    Graphically, steps 2 through 4 look like:
+	 *    U' = yyyyyyyyyyxxxxxxxxxx
+	 *    W1 = 110110yyyyyyyyyy
+	 *    W2 = 110111xxxxxxxxxx
+	 * </pre>
+	 * @param $unicode (array) array containing UTF-8 unicode values
+	 * @param $setbom (boolean) if true set the Byte Order Mark (BOM = 0xFEFF)
+	 * @return string
+	 * @protected
+	 * @author Nicola Asuni
+	 * @since 2.1.000 (2008-01-08)
+	 * @public static
+	 */
+	public static function arrUTF8ToUTF16BE($unicode, $setbom=false) {
+		$outstr = ''; // string to be returned
+		if ($setbom) {
+			$outstr .= "\xFE\xFF"; // Byte Order Mark (BOM)
+		}
+		foreach ($unicode as $char) {
+			if ($char == 0x200b) {
+				// skip Unicode Character 'ZERO WIDTH SPACE' (DEC:8203, U+200B)
+			} elseif ($char == 0xFFFD) {
+				$outstr .= "\xFF\xFD"; // replacement character
+			} elseif ($char < 0x10000) {
+				$outstr .= chr($char >> 0x08);
+				$outstr .= chr($char & 0xFF);
+			} else {
+				$char -= 0x10000;
+				$w1 = 0xD800 | ($char >> 0x0a);
+				$w2 = 0xDC00 | ($char & 0x3FF);
+				$outstr .= chr($w1 >> 0x08);
+				$outstr .= chr($w1 & 0xFF);
+				$outstr .= chr($w2 >> 0x08);
+				$outstr .= chr($w2 & 0xFF);
+			}
+		}
+		return $outstr;
 	}
 
 	/**
@@ -1587,6 +1615,29 @@ class TCPDF_FONTS {
 			return array_map(array('TCPDF_FONTS', 'unichrUnicode'), $ta);
 		}
 		return array_map(array('TCPDF_FONTS', 'unichrASCII'), $ta);
+	}
+
+	/**
+	 * Extract a slice of the $strarr array and return it as string.
+	 * @param $strarr (string) The input array of characters.
+	 * @param $start (int) the starting element of $strarr.
+	 * @param $end (int) first element that will not be returned.
+	 * @param $unicode (boolean) True if we are in unicode mode, false otherwise.
+	 * @return Return part of a string
+	 * @public static
+	 */
+	public static function UTF8ArrSubString($strarr, $start='', $end='', $unicode=true) {
+		if (strlen($start) == 0) {
+			$start = 0;
+		}
+		if (strlen($end) == 0) {
+			$end = count($strarr);
+		}
+		$string = '';
+		for ($i = $start; $i < $end; ++$i) {
+			$string .= self::unichr($strarr[$i], $unicode);
+		}
+		return $string;
 	}
 
 	/**
@@ -1610,6 +1661,42 @@ class TCPDF_FONTS {
 			$string .= $uniarr[$i];
 		}
 		return $string;
+	}
+
+	/**
+	 * Update the CIDToGIDMap string with a new value.
+	 * @param $map (string) CIDToGIDMap.
+	 * @param $cid (int) CID value.
+	 * @param $gid (int) GID value.
+	 * @return (string) CIDToGIDMap.
+	 * @author Nicola Asuni
+	 * @since 5.9.123 (2011-09-29)
+	 * @public static
+	 */
+	public static function updateCIDtoGIDmap($map, $cid, $gid) {
+		if (($cid >= 0) AND ($cid <= 0xFFFF) AND ($gid >= 0)) {
+			if ($gid > 0xFFFF) {
+				$gid -= 0x10000;
+			}
+			$map[($cid * 2)] = chr($gid >> 8);
+			$map[(($cid * 2) + 1)] = chr($gid & 0xFF);
+		}
+		return $map;
+	}
+
+	/**
+	 * Return fonts path
+	 * @return string
+	 * @public static
+	 */
+	public static function _getfontpath() {
+		if (!defined('K_PATH_FONTS') AND is_dir($fdir = realpath(dirname(__FILE__).'/../fonts'))) {
+			if (substr($fdir, -1) != '/') {
+				$fdir .= '/';
+			}
+			define('K_PATH_FONTS', $fdir);
+		}
+		return defined('K_PATH_FONTS') ? K_PATH_FONTS : '';
 	}
 
 	/**
@@ -1657,6 +1744,31 @@ class TCPDF_FONTS {
 			}
 		}
 		return $outarr;
+	}
+
+	/**
+	 * Converts UTF-8 characters array to array of Latin1 string<br>
+	 * @param $unicode (array) array containing UTF-8 unicode values
+	 * @return array
+	 * @author Nicola Asuni
+	 * @since 4.8.023 (2010-01-15)
+	 * @public static
+	 */
+	public static function UTF8ArrToLatin1($unicode) {
+		$outstr = ''; // string to be returned
+		foreach ($unicode as $char) {
+			if ($char < 256) {
+				$outstr .= chr($char);
+			} elseif (array_key_exists($char, TCPDF_FONT_DATA::$uni_utf8tolatin)) {
+				// map from UTF-8
+				$outstr .= chr(TCPDF_FONT_DATA::$uni_utf8tolatin[$char]);
+			} elseif ($char == 0xFFFD) {
+				// skip
+			} else {
+				$outstr .= '?';
+			}
+		}
+		return $outstr;
 	}
 
 	/**
@@ -1766,20 +1878,6 @@ class TCPDF_FONTS {
 	}
 
 	/**
-	 * Converts UTF-8 strings to Latin1 when using the standard 14 core fonts.<br>
-	 * @param $str (string) string to process.
-	 * @param $isunicode (boolean) True when the documetn is in Unicode mode, false otherwise.
-	 * @param $currentfont (array) Reference to current font array.
-	 * @return string
-	 * @since 3.2.000 (2008-06-23)
-	 * @public static
-	 */
-	public static function UTF8ToLatin1($str, $isunicode=true, &$currentfont) {
-		$unicode = self::UTF8StringToArray($str, $isunicode, $currentfont); // array containing UTF-8 unicode values
-		return self::UTF8ArrToLatin1($unicode);
-	}
-
-	/**
 	 * Converts UTF-8 strings to codepoints array.<br>
 	 * Invalid byte sequences will be replaced with 0xFFFD (replacement character)<br>
 	 * @param $str (string) string to process.
@@ -1803,28 +1901,17 @@ class TCPDF_FONTS {
 	}
 
 	/**
-	 * Converts UTF-8 characters array to array of Latin1 string<br>
-	 * @param $unicode (array) array containing UTF-8 unicode values
-	 * @return array
-	 * @author Nicola Asuni
-	 * @since 4.8.023 (2010-01-15)
+	 * Converts UTF-8 strings to Latin1 when using the standard 14 core fonts.<br>
+	 * @param $str (string) string to process.
+	 * @param $isunicode (boolean) True when the documetn is in Unicode mode, false otherwise.
+	 * @param $currentfont (array) Reference to current font array.
+	 * @return string
+	 * @since 3.2.000 (2008-06-23)
 	 * @public static
 	 */
-	public static function UTF8ArrToLatin1($unicode) {
-		$outstr = ''; // string to be returned
-		foreach ($unicode as $char) {
-			if ($char < 256) {
-				$outstr .= chr($char);
-			} elseif (array_key_exists($char, TCPDF_FONT_DATA::$uni_utf8tolatin)) {
-				// map from UTF-8
-				$outstr .= chr(TCPDF_FONT_DATA::$uni_utf8tolatin[$char]);
-			} elseif ($char == 0xFFFD) {
-				// skip
-			} else {
-				$outstr .= '?';
-			}
-		}
-		return $outstr;
+	public static function UTF8ToLatin1($str, $isunicode=true, &$currentfont) {
+		$unicode = self::UTF8StringToArray($str, $isunicode, $currentfont); // array containing UTF-8 unicode values
+		return self::UTF8ArrToLatin1($unicode);
 	}
 
 	/**
@@ -1844,70 +1931,6 @@ class TCPDF_FONTS {
 		}
 		$unicode = self::UTF8StringToArray($str, $isunicode, $currentfont); // array containing UTF-8 unicode values
 		return self::arrUTF8ToUTF16BE($unicode, $setbom);
-	}
-
-	/**
-	 * Converts array of UTF-8 characters to UTF16-BE string.<br>
-	 * Based on: http://www.faqs.org/rfcs/rfc2781.html
-	 * <pre>
-	 *   Encoding UTF-16:
-	 *
-	 *   Encoding of a single character from an ISO 10646 character value to
-	 *    UTF-16 proceeds as follows. Let U be the character number, no greater
-	 *    than 0x10FFFF.
-	 *
-	 *    1) If U < 0x10000, encode U as a 16-bit unsigned integer and
-	 *       terminate.
-	 *
-	 *    2) Let U' = U - 0x10000. Because U is less than or equal to 0x10FFFF,
-	 *       U' must be less than or equal to 0xFFFFF. That is, U' can be
-	 *       represented in 20 bits.
-	 *
-	 *    3) Initialize two 16-bit unsigned integers, W1 and W2, to 0xD800 and
-	 *       0xDC00, respectively. These integers each have 10 bits free to
-	 *       encode the character value, for a total of 20 bits.
-	 *
-	 *    4) Assign the 10 high-order bits of the 20-bit U' to the 10 low-order
-	 *       bits of W1 and the 10 low-order bits of U' to the 10 low-order
-	 *       bits of W2. Terminate.
-	 *
-	 *    Graphically, steps 2 through 4 look like:
-	 *    U' = yyyyyyyyyyxxxxxxxxxx
-	 *    W1 = 110110yyyyyyyyyy
-	 *    W2 = 110111xxxxxxxxxx
-	 * </pre>
-	 * @param $unicode (array) array containing UTF-8 unicode values
-	 * @param $setbom (boolean) if true set the Byte Order Mark (BOM = 0xFEFF)
-	 * @return string
-	 * @protected
-	 * @author Nicola Asuni
-	 * @since 2.1.000 (2008-01-08)
-	 * @public static
-	 */
-	public static function arrUTF8ToUTF16BE($unicode, $setbom=false) {
-		$outstr = ''; // string to be returned
-		if ($setbom) {
-			$outstr .= "\xFE\xFF"; // Byte Order Mark (BOM)
-		}
-		foreach ($unicode as $char) {
-			if ($char == 0x200b) {
-				// skip Unicode Character 'ZERO WIDTH SPACE' (DEC:8203, U+200B)
-			} elseif ($char == 0xFFFD) {
-				$outstr .= "\xFF\xFD"; // replacement character
-			} elseif ($char < 0x10000) {
-				$outstr .= chr($char >> 0x08);
-				$outstr .= chr($char & 0xFF);
-			} else {
-				$char -= 0x10000;
-				$w1 = 0xD800 | ($char >> 0x0a);
-				$w2 = 0xDC00 | ($char & 0x3FF);
-				$outstr .= chr($w1 >> 0x08);
-				$outstr .= chr($w1 & 0xFF);
-				$outstr .= chr($w2 >> 0x08);
-				$outstr .= chr($w2 & 0xFF);
-			}
-		}
-		return $outstr;
 	}
 
 	/**
@@ -2510,29 +2533,6 @@ class TCPDF_FONTS {
 			$currentfont['subsetchars'][$cd['char']] = true;
 		}
 		return $ordarray;
-	}
-
-	/**
-	 * Extract a slice of the $strarr array and return it as string.
-	 * @param $strarr (string) The input array of characters.
-	 * @param $start (int) the starting element of $strarr.
-	 * @param $end (int) first element that will not be returned.
-	 * @param $unicode (boolean) True if we are in unicode mode, false otherwise.
-	 * @return Return part of a string
-	 * @public static
-	 */
-	public static function UTF8ArrSubString($strarr, $start='', $end='', $unicode=true) {
-		if (strlen($start) == 0) {
-			$start = 0;
-		}
-		if (strlen($end) == 0) {
-			$end = count($strarr);
-		}
-		$string = '';
-		for ($i = $start; $i < $end; ++$i) {
-			$string .= self::unichr($strarr[$i], $unicode);
-		}
-		return $string;
 	}
 
 	/**

@@ -25,7 +25,6 @@ use HTML_QuickForm2_Renderer;
  */
 abstract class QuickForm2 extends HTML_QuickForm2
 {
-    protected static $registered = false;
     protected $a_formElements = array();
 
     public function __construct($id, $method = 'post', $attributes = null, $trackSubmit = false)
@@ -118,6 +117,8 @@ abstract class QuickForm2 extends HTML_QuickForm2
 
         return array_filter($messages);
     }
+
+    protected static $registered = false;
 
     /**
      * Returns the rendered form as an array.

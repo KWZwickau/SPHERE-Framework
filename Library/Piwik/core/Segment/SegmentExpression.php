@@ -42,11 +42,6 @@ class SegmentExpression
 
     const SQL_WHERE_DO_NOT_MATCH_ANY_ROW = "(1 = 0)";
     const SQL_WHERE_MATCHES_ALL_ROWS = "(1 = 1)";
-    protected $joins = array();
-    protected $valuesBind = array();
-    protected $parsedTree = array();
-    protected $tree = array();
-    protected $parsedSubExpressions = array();
 
     public function __construct($string)
     {
@@ -54,62 +49,21 @@ class SegmentExpression
         $this->tree = $this->parseTree();
     }
 
-    /**
-     * Given a filter string,
-     * will parse it into an array where each row contains the boolean operator applied to it,
-     * and the operand
-     *
-     * @return array
-     */
-    protected function parseTree()
-    {
-        $string = $this->string;
-        if (empty($string)) {
-            return array();
-        }
-        $tree = array();
-        $i = 0;
-        $length = strlen($string);
-        $isBackslash = false;
-        $operand = '';
-        while ($i <= $length) {
-            $char = $string[$i];
-
-            $isAND = ($char == self::AND_DELIMITER);
-            $isOR = ($char == self::OR_DELIMITER);
-            $isEnd = ($length == $i + 1);
-
-            if ($isEnd) {
-                if ($isBackslash && ($isAND || $isOR)) {
-                    $operand = substr($operand, 0, -1);
-                }
-                $operand .= $char;
-                $tree[] = array(self::INDEX_BOOL_OPERATOR => '', self::INDEX_OPERAND => $operand);
-                break;
-            }
-
-            if ($isAND && !$isBackslash) {
-                $tree[] = array(self::INDEX_BOOL_OPERATOR => 'AND', self::INDEX_OPERAND => $operand);
-                $operand = '';
-            } elseif ($isOR && !$isBackslash) {
-                $tree[] = array(self::INDEX_BOOL_OPERATOR => 'OR', self::INDEX_OPERAND => $operand);
-                $operand = '';
-            } else {
-                if ($isBackslash && ($isAND || $isOR)) {
-                    $operand = substr($operand, 0, -1);
-                }
-                $operand .= $char;
-            }
-            $isBackslash = ($char == "\\");
-            $i++;
-        }
-        return $tree;
-    }
-
     public function getSegmentDefinition()
     {
         return $this->string;
     }
+
+    public function isEmpty()
+    {
+        return count($this->tree) == 0;
+    }
+
+    protected $joins = array();
+    protected $valuesBind = array();
+    protected $parsedTree = array();
+    protected $tree = array();
+    protected $parsedSubExpressions = array();
 
     /**
      * Given the array of parsed filters containing, for each filter,
@@ -354,18 +308,6 @@ class SegmentExpression
     }
 
     /**
-     * Escape the characters % and _ in the given string
-     * @param string $str
-     * @return string
-     */
-    private function escapeLikeString($str)
-    {
-        $str = str_replace("%", "\%", $str);
-        $str = str_replace("_", "\_", $str);
-        return $str;
-    }
-
-    /**
      * Check whether the field is available
      * If not, add it to the available tables
      *
@@ -386,6 +328,70 @@ class SegmentExpression
         if (!$tableExists) {
             $availableTables[] = $table;
         }
+    }
+
+    /**
+     * Escape the characters % and _ in the given string
+     * @param string $str
+     * @return string
+     */
+    private function escapeLikeString($str)
+    {
+        $str = str_replace("%", "\%", $str);
+        $str = str_replace("_", "\_", $str);
+        return $str;
+    }
+
+    /**
+     * Given a filter string,
+     * will parse it into an array where each row contains the boolean operator applied to it,
+     * and the operand
+     *
+     * @return array
+     */
+    protected function parseTree()
+    {
+        $string = $this->string;
+        if (empty($string)) {
+            return array();
+        }
+        $tree = array();
+        $i = 0;
+        $length = strlen($string);
+        $isBackslash = false;
+        $operand = '';
+        while ($i <= $length) {
+            $char = $string[$i];
+
+            $isAND = ($char == self::AND_DELIMITER);
+            $isOR = ($char == self::OR_DELIMITER);
+            $isEnd = ($length == $i + 1);
+
+            if ($isEnd) {
+                if ($isBackslash && ($isAND || $isOR)) {
+                    $operand = substr($operand, 0, -1);
+                }
+                $operand .= $char;
+                $tree[] = array(self::INDEX_BOOL_OPERATOR => '', self::INDEX_OPERAND => $operand);
+                break;
+            }
+
+            if ($isAND && !$isBackslash) {
+                $tree[] = array(self::INDEX_BOOL_OPERATOR => 'AND', self::INDEX_OPERAND => $operand);
+                $operand = '';
+            } elseif ($isOR && !$isBackslash) {
+                $tree[] = array(self::INDEX_BOOL_OPERATOR => 'OR', self::INDEX_OPERAND => $operand);
+                $operand = '';
+            } else {
+                if ($isBackslash && ($isAND || $isOR)) {
+                    $operand = substr($operand, 0, -1);
+                }
+                $operand .= $char;
+            }
+            $isBackslash = ($char == "\\");
+            $i++;
+        }
+        return $tree;
     }
 
     /**
@@ -435,11 +441,6 @@ class SegmentExpression
             'bind'  => $this->valuesBind,
             'join'  => implode(' ', $this->joins)
         );
-    }
-
-    public function isEmpty()
-    {
-        return count($this->tree) == 0;
     }
 }
 

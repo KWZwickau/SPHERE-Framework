@@ -81,15 +81,6 @@ class Environment
     }
 
     /**
-     * @param EnvironmentManipulator $manipulator
-     * @internal
-     */
-    public static function setGlobalEnvironmentManipulator(EnvironmentManipulator $manipulator)
-    {
-        self::$globalEnvironmentManipulator = $manipulator;
-    }
-
-    /**
      * Initializes the kernel globals and DI container.
      */
     public function init()
@@ -107,11 +98,23 @@ class Environment
         Piwik::postEvent('Environment.bootstrapped'); // this event should be removed eventually
     }
 
-    private function invokeBeforeContainerCreatedHook()
+    /**
+     * Destroys an environment. MUST be called when embedding environments.
+     */
+    public function destroy()
     {
-        if (self::$globalEnvironmentManipulator) {
-            return self::$globalEnvironmentManipulator->beforeContainerCreated();
-        }
+        StaticContainer::pop();
+    }
+
+    /**
+     * Returns the DI container. All Piwik objects for a specific Piwik instance should be stored
+     * in this container.
+     *
+     * @return Container
+     */
+    public function getContainer()
+    {
+        return $this->container;
     }
 
     /**
@@ -132,24 +135,6 @@ class Environment
         return $containerFactory->create();
     }
 
-    protected function getPluginListCached()
-    {
-        if ($this->pluginList === null) {
-            $pluginList = $this->getPluginListOverride();
-            $this->pluginList = $pluginList ?: $this->getPluginList();
-        }
-        return $this->pluginList;
-    }
-
-    private function getPluginListOverride()
-    {
-        if (self::$globalEnvironmentManipulator) {
-            return self::$globalEnvironmentManipulator->makePluginList($this->getGlobalSettingsCached());
-        } else {
-            return null;
-        }
-    }
-
     protected function getGlobalSettingsCached()
     {
         if ($this->globalSettingsProvider === null) {
@@ -161,6 +146,15 @@ class Environment
         return $this->globalSettingsProvider;
     }
 
+    protected function getPluginListCached()
+    {
+        if ($this->pluginList === null) {
+            $pluginList = $this->getPluginListOverride();
+            $this->pluginList = $pluginList ?: $this->getPluginList();
+        }
+        return $this->pluginList;
+    }
+
     /**
      * Returns the kernel global GlobalSettingsProvider object. Derived classes can override this method
      * to provide a different implementation.
@@ -170,15 +164,6 @@ class Environment
     protected function getGlobalSettings()
     {
         return new GlobalSettingsProvider();
-    }
-
-    private function getGlobalSettingsProviderOverride(GlobalSettingsProvider $original)
-    {
-        if (self::$globalEnvironmentManipulator) {
-            return self::$globalEnvironmentManipulator->makeGlobalSettingsProvider($original);
-        } else {
-            return null;
-        }
     }
 
     /**
@@ -193,12 +178,51 @@ class Environment
         return new PluginList($this->getGlobalSettingsCached());
     }
 
+    private function validateEnvironment()
+    {
+        /** @var EnvironmentValidator $validator */
+        $validator = $this->container->get('Piwik\Application\Kernel\EnvironmentValidator');
+        $validator->validate();
+    }
+
+    /**
+     * @param EnvironmentManipulator $manipulator
+     * @internal
+     */
+    public static function setGlobalEnvironmentManipulator(EnvironmentManipulator $manipulator)
+    {
+        self::$globalEnvironmentManipulator = $manipulator;
+    }
+
+    private function getGlobalSettingsProviderOverride(GlobalSettingsProvider $original)
+    {
+        if (self::$globalEnvironmentManipulator) {
+            return self::$globalEnvironmentManipulator->makeGlobalSettingsProvider($original);
+        } else {
+            return null;
+        }
+    }
+
+    private function invokeBeforeContainerCreatedHook()
+    {
+        if (self::$globalEnvironmentManipulator) {
+            return self::$globalEnvironmentManipulator->beforeContainerCreated();
+        }
+    }
+
     private function getExtraDefinitionsFromManipulators()
     {
         if (self::$globalEnvironmentManipulator) {
             return self::$globalEnvironmentManipulator->getExtraDefinitions();
         } else {
             return array();
+        }
+    }
+
+    private function invokeEnvironmentBootstrappedHook()
+    {
+        if (self::$globalEnvironmentManipulator) {
+            self::$globalEnvironmentManipulator->onEnvironmentBootstrapped();
         }
     }
 
@@ -211,36 +235,12 @@ class Environment
         }
     }
 
-    private function validateEnvironment()
-    {
-        /** @var EnvironmentValidator $validator */
-        $validator = $this->container->get('Piwik\Application\Kernel\EnvironmentValidator');
-        $validator->validate();
-    }
-
-    private function invokeEnvironmentBootstrappedHook()
+    private function getPluginListOverride()
     {
         if (self::$globalEnvironmentManipulator) {
-            self::$globalEnvironmentManipulator->onEnvironmentBootstrapped();
+            return self::$globalEnvironmentManipulator->makePluginList($this->getGlobalSettingsCached());
+        } else {
+            return null;
         }
-    }
-
-    /**
-     * Destroys an environment. MUST be called when embedding environments.
-     */
-    public function destroy()
-    {
-        StaticContainer::pop();
-    }
-
-    /**
-     * Returns the DI container. All Piwik objects for a specific Piwik instance should be stored
-     * in this container.
-     *
-     * @return Container
-     */
-    public function getContainer()
-    {
-        return $this->container;
     }
 }

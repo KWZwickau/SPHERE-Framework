@@ -8,9 +8,9 @@
  */
 namespace Piwik\Plugins\Referrers\DataTable\Filter;
 
-use Piwik\DataTable;
 use Piwik\DataTable\BaseFilter;
 use Piwik\DataTable\Row;
+use Piwik\DataTable;
 
 class UrlsFromWebsiteId extends BaseFilter
 {

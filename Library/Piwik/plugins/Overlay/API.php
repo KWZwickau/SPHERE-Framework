@@ -42,40 +42,6 @@ class API extends \Piwik\Plugin\API
         return array_map(array('\\Piwik\\Piwik','translate'), $translations);
     }
 
-    /** Do cookie authentication. This way, the token can remain secret. */
-    private function authenticate($idSite)
-    {
-        /**
-         * Triggered immediately before the user is authenticated.
-         *
-         * This event can be used by plugins that provide their own authentication mechanism
-         * to make that mechanism available. Subscribers should set the `'Piwik\Auth'` object in
-         * the container to an object that implements the {@link Piwik\Auth} interface.
-         *
-         * **Example**
-         *
-         *     use Piwik\Container\StaticContainer;
-         *
-         *     public function initAuthenticationObject($activateCookieAuth)
-         *     {
-         *         StaticContainer::getContainer()->set('Piwik\Auth', new LDAPAuth($activateCookieAuth));
-         *     }
-         *
-         * @param bool $activateCookieAuth Whether authentication based on `$_COOKIE` values should
-         *                                        be allowed.
-         */
-        Piwik::postEvent('Request.initAuthenticationObject', array($activateCookieAuth = true));
-
-        $auth = StaticContainer::get('Piwik\Auth');
-        $success = Access::getInstance()->reloadAccess($auth);
-
-        if (!$success) {
-            throw new Exception('Authentication failed');
-        }
-
-        Piwik::checkUserHasViewAccess($idSite);
-    }
-
     /**
      * Get excluded query parameters for a site.
      * This information is used for client side url normalization.
@@ -133,5 +99,39 @@ class API extends \Piwik\Plugin\API
         }
 
         return $resultDataTable;
+    }
+
+    /** Do cookie authentication. This way, the token can remain secret. */
+    private function authenticate($idSite)
+    {
+        /**
+         * Triggered immediately before the user is authenticated.
+         *
+         * This event can be used by plugins that provide their own authentication mechanism
+         * to make that mechanism available. Subscribers should set the `'Piwik\Auth'` object in
+         * the container to an object that implements the {@link Piwik\Auth} interface.
+         *
+         * **Example**
+         *
+         *     use Piwik\Container\StaticContainer;
+         *
+         *     public function initAuthenticationObject($activateCookieAuth)
+         *     {
+         *         StaticContainer::getContainer()->set('Piwik\Auth', new LDAPAuth($activateCookieAuth));
+         *     }
+         *
+         * @param bool $activateCookieAuth Whether authentication based on `$_COOKIE` values should
+         *                                        be allowed.
+         */
+        Piwik::postEvent('Request.initAuthenticationObject', array($activateCookieAuth = true));
+
+        $auth = StaticContainer::get('Piwik\Auth');
+        $success = Access::getInstance()->reloadAccess($auth);
+
+        if (!$success) {
+            throw new Exception('Authentication failed');
+        }
+
+        Piwik::checkUserHasViewAccess($idSite);
     }
 }

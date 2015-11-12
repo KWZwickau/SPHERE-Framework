@@ -9,8 +9,8 @@
 namespace Piwik\Plugins\Events;
 
 use Piwik\Archive;
-use Piwik\DataTable;
 use Piwik\DataTable\Row;
+use Piwik\DataTable;
 use Piwik\Metrics;
 use Piwik\Piwik;
 
@@ -89,6 +89,17 @@ class API extends \Piwik\Plugin\API
         return $apiMethod;
     }
 
+    /**
+     * @ignore
+     */
+    public function getDefaultSecondaryDimension($apiMethod)
+    {
+        if (isset($this->defaultMappingApiToSecondaryDimension[$apiMethod])) {
+            return $this->defaultMappingApiToSecondaryDimension[$apiMethod];
+        }
+        return false;
+    }
+
     protected function getRecordNameForAction($apiMethod, $secondaryDimension = false)
     {
         if (empty($secondaryDimension)) {
@@ -107,18 +118,34 @@ class API extends \Piwik\Plugin\API
 
     /**
      * @ignore
+     * @param $apiMethod
+     * @return array
      */
-    public function getDefaultSecondaryDimension($apiMethod)
+    public function getSecondaryDimensions($apiMethod)
     {
-        if (isset($this->defaultMappingApiToSecondaryDimension[$apiMethod])) {
-            return $this->defaultMappingApiToSecondaryDimension[$apiMethod];
+        $records = $this->mappingApiToRecord[$apiMethod];
+        if (!is_array($records)) {
+            return false;
         }
-        return false;
+        return array_keys($records);
     }
 
-    public function getCategory($idSite, $period, $date, $segment = false, $expanded = false, $secondaryDimension = false, $flat = false)
+    protected function checkSecondaryDimension($apiMethod, $secondaryDimension)
     {
-        return $this->getDataTable(__FUNCTION__, $idSite, $period, $date, $segment, $expanded, $idSubtable = false, $secondaryDimension, $flat);
+        if (empty($secondaryDimension)) {
+            return;
+        }
+
+        $isSecondaryDimensionValid =
+            isset($this->mappingApiToRecord[$apiMethod])
+            && isset($this->mappingApiToRecord[$apiMethod][$secondaryDimension]);
+
+        if (!$isSecondaryDimensionValid) {
+            throw new \Exception(
+                "Secondary dimension '$secondaryDimension' is not valid for the API $apiMethod. ".
+                "Use one of: " . implode(", ", $this->getSecondaryDimensions($apiMethod))
+            );
+        }
     }
 
     protected function getDataTable($name, $idSite, $period, $date, $segment, $expanded = false, $idSubtable = null, $secondaryDimension = false, $flat = false)
@@ -146,36 +173,9 @@ class API extends \Piwik\Plugin\API
         return $dataTable;
     }
 
-    protected function checkSecondaryDimension($apiMethod, $secondaryDimension)
+    public function getCategory($idSite, $period, $date, $segment = false, $expanded = false, $secondaryDimension = false, $flat = false)
     {
-        if (empty($secondaryDimension)) {
-            return;
-        }
-
-        $isSecondaryDimensionValid =
-            isset($this->mappingApiToRecord[$apiMethod])
-            && isset($this->mappingApiToRecord[$apiMethod][$secondaryDimension]);
-
-        if (!$isSecondaryDimensionValid) {
-            throw new \Exception(
-                "Secondary dimension '$secondaryDimension' is not valid for the API $apiMethod. ".
-                "Use one of: " . implode(", ", $this->getSecondaryDimensions($apiMethod))
-            );
-        }
-    }
-
-    /**
-     * @ignore
-     * @param $apiMethod
-     * @return array
-     */
-    public function getSecondaryDimensions($apiMethod)
-    {
-        $records = $this->mappingApiToRecord[$apiMethod];
-        if (!is_array($records)) {
-            return false;
-        }
-        return array_keys($records);
+        return $this->getDataTable(__FUNCTION__, $idSite, $period, $date, $segment, $expanded, $idSubtable = false, $secondaryDimension, $flat);
     }
 
     public function getAction($idSite, $period, $date, $segment = false, $expanded = false, $secondaryDimension = false, $flat = false)

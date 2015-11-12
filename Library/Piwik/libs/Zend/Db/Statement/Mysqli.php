@@ -79,6 +79,22 @@ class Zend_Db_Statement_Mysqli extends Zend_Db_Statement
     }
 
     /**
+     * Binds a parameter to the specified variable name.
+     *
+     * @param mixed $parameter Name the parameter, either integer or string.
+     * @param mixed $variable  Reference to PHP variable containing the value.
+     * @param mixed $type      OPTIONAL Datatype of SQL parameter.
+     * @param mixed $length    OPTIONAL Length of SQL parameter.
+     * @param mixed $options   OPTIONAL Other options.
+     * @return bool
+     * @throws Zend_Db_Statement_Mysqli_Exception
+     */
+    protected function _bindParam($parameter, &$variable, $type = null, $length = null, $options = null)
+    {
+        return true;
+    }
+
+    /**
      * Closes the cursor and the statement.
      *
      * @return bool
@@ -241,6 +257,7 @@ class Zend_Db_Statement_Mysqli extends Zend_Db_Statement
         return $retval;
     }
 
+
     /**
      * Fetches a row from the result set.
      *
@@ -340,22 +357,6 @@ class Zend_Db_Statement_Mysqli extends Zend_Db_Statement
         }
         $mysqli = $this->_adapter->getConnection();
         return $mysqli->affected_rows;
-    }
-
-    /**
-     * Binds a parameter to the specified variable name.
-     *
-     * @param mixed $parameter Name the parameter, either integer or string.
-     * @param mixed $variable  Reference to PHP variable containing the value.
-     * @param mixed $type      OPTIONAL Datatype of SQL parameter.
-     * @param mixed $length    OPTIONAL Length of SQL parameter.
-     * @param mixed $options   OPTIONAL Other options.
-     * @return bool
-     * @throws Zend_Db_Statement_Mysqli_Exception
-     */
-    protected function _bindParam($parameter, &$variable, $type = null, $length = null, $options = null)
-    {
-        return true;
     }
 
 }

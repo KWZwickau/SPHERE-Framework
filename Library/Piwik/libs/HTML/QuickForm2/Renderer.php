@@ -108,15 +108,6 @@ abstract class HTML_QuickForm2_Renderer
     protected $jsBuilder;
 
    /**
-    * Constructor
-    *
-    * Renderer instances should not be created directly, use {@link factory()}
-    */
-    protected function __construct()
-    {
-    }
-
-   /**
     * Creates a new renderer instance of the given type
     *
     * A renderer is always wrapped by a Proxy, which handles calling its
@@ -203,6 +194,15 @@ abstract class HTML_QuickForm2_Renderer
             }
             self::$_pluginClasses[$type][] = array($className, $includeFile);
         }
+    }
+
+   /**
+    * Constructor
+    *
+    * Renderer instances should not be created directly, use {@link factory()}
+    */
+    protected function __construct()
+    {
     }
 
    /**

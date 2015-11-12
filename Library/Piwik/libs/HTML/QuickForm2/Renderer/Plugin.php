@@ -56,15 +56,14 @@ abstract class HTML_QuickForm2_Renderer_Plugin
 {
     protected $renderer;
 
-    /**
-     * Sets the base renderer this plugin is enhancing
-     *
-     * @param    HTML_QuickForm2_Renderer    base renderer
-     */
+   /**
+    * Sets the base renderer this plugin is enhancing
+    *
+    * @param    HTML_QuickForm2_Renderer    base renderer
+    */
     public function setRenderer(HTML_QuickForm2_Renderer $renderer)
     {
         $this->renderer = $renderer;
     }
 }
-
 ?>

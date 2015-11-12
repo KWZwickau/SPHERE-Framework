@@ -215,11 +215,6 @@ class Archiver extends \Piwik\Plugin\Archiver
         return !in_array($idGoal, $this->getEcommerceIdGoals());
     }
 
-    protected function getEcommerceIdGoals()
-    {
-        return array(GoalManager::IDGOAL_CART, GoalManager::IDGOAL_ORDER);
-    }
-
     protected function aggregateEcommerceItems()
     {
         $this->initItemReports();
@@ -243,6 +238,21 @@ class Archiver extends \Piwik\Plugin\Archiver
         }
     }
 
+    protected function insertItemReports()
+    {
+        /** @var DataArray $array */
+        foreach ($this->itemReports as $dimension => $itemAggregatesByType) {
+            foreach ($itemAggregatesByType as $ecommerceType => $itemAggregate) {
+                $recordName = $this->dimensionRecord[$dimension];
+                if ($ecommerceType == GoalManager::IDGOAL_CART) {
+                    $recordName = self::getItemRecordNameAbandonedCart($recordName);
+                }
+                $table = $itemAggregate->asDataTable();
+                $this->getProcessor()->insertBlobRecord($recordName, $table->getSerialized());
+            }
+        }
+    }
+
     protected function getItemsDimensions()
     {
         $dimensions = array_keys($this->dimensionRecord);
@@ -255,6 +265,11 @@ class Archiver extends \Piwik\Plugin\Archiver
     protected function getItemExtraCategories()
     {
         return array(self::CATEGORY2_FIELD, self::CATEGORY3_FIELD, self::CATEGORY4_FIELD, self::CATEGORY5_FIELD);
+    }
+
+    protected function isItemExtraCategory($field)
+    {
+        return in_array($field, $this->getItemExtraCategories());
     }
 
     protected function aggregateFromEcommerceItems($query, $dimension)
@@ -307,11 +322,6 @@ class Archiver extends \Piwik\Plugin\Archiver
         return $label;
     }
 
-    protected function isItemExtraCategory($field)
-    {
-        return in_array($field, $this->getItemExtraCategories());
-    }
-
     protected function roundColumnValues(&$row)
     {
         $columnsToRound = array(
@@ -329,19 +339,9 @@ class Archiver extends \Piwik\Plugin\Archiver
         }
     }
 
-    protected function insertItemReports()
+    protected function getEcommerceIdGoals()
     {
-        /** @var DataArray $array */
-        foreach ($this->itemReports as $dimension => $itemAggregatesByType) {
-            foreach ($itemAggregatesByType as $ecommerceType => $itemAggregate) {
-                $recordName = $this->dimensionRecord[$dimension];
-                if ($ecommerceType == GoalManager::IDGOAL_CART) {
-                    $recordName = self::getItemRecordNameAbandonedCart($recordName);
-                }
-                $table = $itemAggregate->asDataTable();
-                $this->getProcessor()->insertBlobRecord($recordName, $table->getSerialized());
-            }
-        }
+        return array(GoalManager::IDGOAL_CART, GoalManager::IDGOAL_ORDER);
     }
 
     public static function getItemRecordNameAbandonedCart($recordName)

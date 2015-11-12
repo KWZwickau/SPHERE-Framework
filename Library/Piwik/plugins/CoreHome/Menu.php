@@ -53,16 +53,16 @@ class Menu extends \Piwik\Plugin\Menu
         }
     }
 
-    private function getLoginModule()
-    {
-        return Piwik::getLoginPluginName();
-    }
-
     public function configureUserMenu(MenuUser $menu)
     {
         $menu->addPersonalItem(null, array(), 1, false);
         $menu->addManageItem(null, array(), 2, false);
         $menu->addPlatformItem(null, array(), 3, false);
+    }
+
+    private function getLoginModule()
+    {
+        return Piwik::getLoginPluginName();
     }
 
 }

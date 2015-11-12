@@ -51,30 +51,6 @@ class Console extends Application
         $this->getDefinition()->addOption($option);
     }
 
-    private function setServerArgsIfPhpCgi()
-    {
-        if (Common::isPhpCgiType()) {
-            $_SERVER['argv'] = array();
-            foreach ($_GET as $name => $value) {
-                $argument = $name;
-                if (!empty($value)) {
-                    $argument .= '=' . $value;
-                }
-
-                $_SERVER['argv'][] = $argument;
-            }
-
-            if (!defined('STDIN')) {
-                define('STDIN', fopen('php://stdin', 'r'));
-            }
-        }
-    }
-
-    public static function isSupported()
-    {
-        return Common::isPhpCliMode() && !Common::isPhpCgiType();
-    }
-
     public function doRun(InputInterface $input, OutputInterface $output)
     {
         if ($input->hasParameterOption('--xhprof')) {
@@ -102,6 +78,82 @@ class Console extends Application
         return Access::doAsSuperUser(function () use ($input, $output, $self) {
             return call_user_func(array($self, 'Symfony\Component\Console\Application::doRun'), $input, $output);
         });
+    }
+
+    private function addCommandIfExists($command)
+    {
+        if (!class_exists($command)) {
+            Log::warning(sprintf('Cannot add command %s, class does not exist', $command));
+        } elseif (!is_subclass_of($command, 'Piwik\Plugin\ConsoleCommand')) {
+            Log::warning(sprintf('Cannot add command %s, class does not extend Piwik\Plugin\ConsoleCommand', $command));
+        } else {
+            /** @var Command $commandInstance */
+            $commandInstance = new $command;
+
+            // do not add the command if it already exists; this way we can add the command ourselves in tests
+            if (!$this->has($commandInstance->getName())) {
+                $this->add($commandInstance);
+            }
+        }
+    }
+
+    /**
+     * Returns a list of available command classnames.
+     *
+     * @return string[]
+     */
+    private function getAvailableCommands()
+    {
+        $commands = $this->getDefaultPiwikCommands();
+        $detected = PluginManager::getInstance()->findMultipleComponents('Commands', 'Piwik\\Plugin\\ConsoleCommand');
+
+        $commands = array_merge($commands, $detected);
+
+        /**
+         * Triggered to filter / restrict console commands. Plugins that want to restrict commands
+         * should subscribe to this event and remove commands from the existing list.
+         *
+         * **Example**
+         *
+         *     public function filterConsoleCommands(&$commands)
+         *     {
+         *         $key = array_search('Piwik\Plugins\MyPlugin\Commands\MyCommand', $commands);
+         *         if (false !== $key) {
+         *             unset($commands[$key]);
+         *         }
+         *     }
+         *
+         * @param array &$commands An array containing a list of command class names.
+         */
+        Piwik::postEvent('Console.filterCommands', array(&$commands));
+
+        $commands = array_values(array_unique($commands));
+
+        return $commands;
+    }
+
+    private function setServerArgsIfPhpCgi()
+    {
+        if (Common::isPhpCgiType()) {
+            $_SERVER['argv'] = array();
+            foreach ($_GET as $name => $value) {
+                $argument = $name;
+                if (!empty($value)) {
+                    $argument .= '=' . $value;
+                }
+
+                $_SERVER['argv'][] = $argument;
+            }
+
+            if (!defined('STDIN')) {
+                define('STDIN', fopen('php://stdin', 'r'));
+            }
+        }
+    }
+
+    public static function isSupported()
+    {
+        return Common::isPhpCliMode() && !Common::isPhpCgiType();
     }
 
     protected function initPiwikHost(InputInterface $input)
@@ -152,41 +204,6 @@ class Console extends Application
         Plugin\Manager::getInstance()->loadPluginTranslations();
     }
 
-    /**
-     * Returns a list of available command classnames.
-     *
-     * @return string[]
-     */
-    private function getAvailableCommands()
-    {
-        $commands = $this->getDefaultPiwikCommands();
-        $detected = PluginManager::getInstance()->findMultipleComponents('Commands', 'Piwik\\Plugin\\ConsoleCommand');
-
-        $commands = array_merge($commands, $detected);
-
-        /**
-         * Triggered to filter / restrict console commands. Plugins that want to restrict commands
-         * should subscribe to this event and remove commands from the existing list.
-         *
-         * **Example**
-         *
-         *     public function filterConsoleCommands(&$commands)
-         *     {
-         *         $key = array_search('Piwik\Plugins\MyPlugin\Commands\MyCommand', $commands);
-         *         if (false !== $key) {
-         *             unset($commands[$key]);
-         *         }
-         *     }
-         *
-         * @param array &$commands An array containing a list of command class names.
-         */
-        Piwik::postEvent('Console.filterCommands', array(&$commands));
-
-        $commands = array_values(array_unique($commands));
-
-        return $commands;
-    }
-
     private function getDefaultPiwikCommands()
     {
         $commands = array(
@@ -199,22 +216,5 @@ class Console extends Application
         }
 
         return $commands;
-    }
-
-    private function addCommandIfExists($command)
-    {
-        if (!class_exists($command)) {
-            Log::warning(sprintf('Cannot add command %s, class does not exist', $command));
-        } elseif (!is_subclass_of($command, 'Piwik\Plugin\ConsoleCommand')) {
-            Log::warning(sprintf('Cannot add command %s, class does not extend Piwik\Plugin\ConsoleCommand', $command));
-        } else {
-            /** @var Command $commandInstance */
-            $commandInstance = new $command;
-
-            // do not add the command if it already exists; this way we can add the command ourselves in tests
-            if (!$this->has($commandInstance->getName())) {
-                $this->add($commandInstance);
-            }
-        }
     }
 }

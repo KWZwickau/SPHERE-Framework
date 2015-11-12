@@ -67,15 +67,16 @@ class HTML_QuickForm2_DataSource_SuperGlobal
     implements HTML_QuickForm2_DataSource_Submit
 {
    /**
-    * Keys present in the $_FILES array
-    * @var array
-    */
-    private static $_fileKeys = array('name', 'type', 'size', 'tmp_name', 'error');
-   /**
     * Information on file uploads (from $_FILES)
     * @var array
     */
     protected $files = array();
+
+   /**
+    * Keys present in the $_FILES array
+    * @var array
+    */
+    private static $_fileKeys = array('name', 'type', 'size', 'tmp_name', 'error');
 
    /**
     * Class constructor, intializes the internal arrays from superglobals

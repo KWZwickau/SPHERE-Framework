@@ -19,11 +19,11 @@ class Controller extends \Piwik\Plugin\Controller
         $reportsView = new View\ReportsByDimension('Contents');
 
         /** @var \Piwik\Plugin\Report[] $reports */
-        $contentNames = Report::factory($this->pluginName, 'getContentNames');
+        $contentNames  = Report::factory($this->pluginName, 'getContentNames');
         $contentPieces = Report::factory($this->pluginName, 'getContentPieces');
         $reports = array($contentNames, $contentPieces);
 
-        foreach ($reports as $report) {
+        foreach($reports as $report) {
             $reportsView->addReport(
                 $report->getCategory(),
                 $report->getName(),

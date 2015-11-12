@@ -17,14 +17,6 @@ use Piwik\Updates;
  */
 class Updates_1_4_rc1 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        try {
-            $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-        } catch (\Exception $e) {
-        }
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -33,5 +25,13 @@ class Updates_1_4_rc1 extends Updates
             'ALTER TABLE `' . Common::prefixTable('pdf') . '`
 		    	ADD COLUMN `format` VARCHAR(10)' => '42S22',
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        try {
+            $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
+        } catch (\Exception $e) {
+        }
     }
 }

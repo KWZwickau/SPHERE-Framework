@@ -10,9 +10,9 @@ namespace Piwik\Plugins\DevicePlugins\Columns;
 
 use Piwik\Common;
 use Piwik\Plugin\Dimension\VisitDimension;
-use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Action;
 
 class PluginPdf extends VisitDimension
 {

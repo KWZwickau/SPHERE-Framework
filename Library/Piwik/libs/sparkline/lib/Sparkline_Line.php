@@ -48,14 +48,14 @@ class Sparkline_Line extends Sparkline {
 
     $this->Debug("Sparkline_Line :: SetData($x, $y, $series)", DEBUG_SET);
 
-    if (!is_numeric($x) ||
+    if (!is_numeric($x) || 
         !is_numeric($y)) {
       $this->Debug("Sparkline_Line :: SetData rejected values($x, $y) in series $series", DEBUG_WARNING);
       return false;
     } // if
 
     $this->dataSeries[$series][$x] = $y;
-
+   
     if (!isset($this->dataSeriesStats[$series]['yMin']) ||
         $y < $this->dataSeriesStats[$series]['yMin']) {
       $this->dataSeriesStats[$series]['yMin'] = $y;
@@ -87,85 +87,7 @@ class Sparkline_Line extends Sparkline {
     $this->yMax = $value;
   } // function SetYMin
 
-  function SetFeaturePoint($x, $y, $color, $diameter, $text = '', $position = TEXT_TOP, $font = FONT_1) {
-    $this->Debug("Sparkline_Line :: SetFeaturePoint($x, $y, '$color', $diameter, '$text')", DEBUG_CALLS);
-
-    $this->featurePoint[] = array('ptX'      => $x,
-                                  'ptY'      => $y,
-                                  'color'    => $color,
-                                  'diameter' => $diameter,
-                                  'text'     => $text,
-                                  'textpos'  => $position,
-                                  'font'     => $font);
-  } // function ConvertDataSeries
-
-  ////////////////////////////////////////////////////////////////////////////
-  // features
-  //
-
-function Render($x, $y) {
-    $this->Debug("Sparkline_Line :: Render($x, $y)", DEBUG_CALLS);
-
-    if (!parent::Init($x, $y)) {
-      return false;
-    }
-
-    // convert based on graphAreaPx bounds
-    //
-    $this->ConvertDataSeries(1, $this->GetGraphWidth(), $this->GetGraphHeight());
-
-    // stats debugging
-    //
-    $this->Debug('Sparkline_Line :: Draw' .
-                 ' series: 1 min: ' . $this->dataSeriesStats[1]['yMin'] .
-                 ' max: ' .           $this->dataSeriesStats[1]['yMax'] .
-                 ' offset: ' .        ($this->dataSeriesStats[1]['yMin'] * -1) .
-                 ' height: ' .        $this->GetGraphHeight() + 1 .
-                 ' yfactor: ' .       ($this->GetGraphHeight() / ($this->dataSeriesStats[1]['yMax'] + ($this->dataSeriesStats[1]['yMin'] * -1))));
-    $this->Debug('Sparkline_Line :: Draw' .
-                 ' drawing area:' .
-                 ' (' . $this->graphAreaPx[0][0] . ',' . $this->graphAreaPx[0][1] .  '), ' .
-                 ' (' . $this->graphAreaPx[1][0] . ',' . $this->graphAreaPx[1][1] .  ')');
-
-    $this->DrawBackground();
-
-    // draw graph
-    //
-    for ($i = 0; $i < sizeof($this->dataSeriesConverted[1]) - 1; $i++) {
-      $this->DrawLine($this->dataSeriesConverted[1][$i][0] + $this->graphAreaPx[0][0],
-                      $this->dataSeriesConverted[1][$i][1] + $this->graphAreaPx[0][1],
-                      $this->dataSeriesConverted[1][$i+1][0] + $this->graphAreaPx[0][0],
-                      $this->dataSeriesConverted[1][$i+1][1] + $this->graphAreaPx[0][1],
-                      'lineColor');
-    }
-
-    // draw features
-    //
-    while (list(, $v) = each($this->featurePoint)) {
-      $pxY = round(($v['ptY'] + ($this->yMin * -1)) * ($this->GetGraphHeight() / $this->yRange));
-      $pxX = round($v['ptX'] * $this->GetGraphWidth() / sizeof($this->dataSeries[1]));
-
-      $this->DrawCircleFilled($pxX + $this->graphAreaPx[0][0],
-                              $pxY + $this->graphAreaPx[0][1],
-                              $v['diameter'],
-                              $v['color'],
-                              $this->imageHandle);
-      $this->DrawTextRelative($v['text'],
-                              $pxX + $this->graphAreaPx[0][0],
-                              $pxY + $this->graphAreaPx[0][1],
-                              $v['color'],
-                              $v['textpos'],
-                              round($v['diameter'] / 2),
-                              $v['font'],
-                              $this->imageHandle);
-    }
-  } // function SetFeaturePoint
-
-  ////////////////////////////////////////////////////////////////////////////
-  // low quality rendering
-  //
-
-function ConvertDataSeries($series, $xBound, $yBound) {
+  function ConvertDataSeries($series, $xBound, $yBound) {
     $this->Debug("Sparkline_Line :: ConvertDataSeries($series, $xBound, $yBound)", DEBUG_CALLS);
 
     if (!isset($this->yMin)) {
@@ -192,13 +114,88 @@ function ConvertDataSeries($series, $xBound, $yBound) {
       $this->dataSeriesConverted[$series][] = array($x, $y);
       $this->Debug("Sparkline :: ConvertDataSeries series $series value $i ($x, $y)", DEBUG_SET);
     }
+  } // function ConvertDataSeries
+
+  ////////////////////////////////////////////////////////////////////////////
+  // features
+  // 
+  function SetFeaturePoint($x, $y, $color, $diameter, $text = '', $position = TEXT_TOP, $font = FONT_1) {
+    $this->Debug("Sparkline_Line :: SetFeaturePoint($x, $y, '$color', $diameter, '$text')", DEBUG_CALLS);
+
+    $this->featurePoint[] = array('ptX'      => $x,
+                                  'ptY'      => $y,
+                                  'color'    => $color,
+                                  'diameter' => $diameter,
+                                  'text'     => $text,
+                                  'textpos'  => $position,
+                                  'font'     => $font);
+  } // function SetFeaturePoint
+
+  ////////////////////////////////////////////////////////////////////////////
+  // low quality rendering
+  //
+  function Render($x, $y) {
+    $this->Debug("Sparkline_Line :: Render($x, $y)", DEBUG_CALLS);
+
+    if (!parent::Init($x, $y)) {
+      return false;
+    }
+
+    // convert based on graphAreaPx bounds
+    //
+    $this->ConvertDataSeries(1, $this->GetGraphWidth(), $this->GetGraphHeight());
+
+    // stats debugging
+    //
+    $this->Debug('Sparkline_Line :: Draw' . 
+                 ' series: 1 min: ' . $this->dataSeriesStats[1]['yMin'] . 
+                 ' max: ' .           $this->dataSeriesStats[1]['yMax'] . 
+                 ' offset: ' .        ($this->dataSeriesStats[1]['yMin'] * -1) . 
+                 ' height: ' .        $this->GetGraphHeight() + 1 . 
+                 ' yfactor: ' .       ($this->GetGraphHeight() / ($this->dataSeriesStats[1]['yMax'] + ($this->dataSeriesStats[1]['yMin'] * -1))));
+    $this->Debug('Sparkline_Line :: Draw' .
+                 ' drawing area:' . 
+                 ' (' . $this->graphAreaPx[0][0] . ',' . $this->graphAreaPx[0][1] .  '), ' . 
+                 ' (' . $this->graphAreaPx[1][0] . ',' . $this->graphAreaPx[1][1] .  ')');
+
+    $this->DrawBackground();
+
+    // draw graph
+    //
+    for ($i = 0; $i < sizeof($this->dataSeriesConverted[1]) - 1; $i++) {
+      $this->DrawLine($this->dataSeriesConverted[1][$i][0] + $this->graphAreaPx[0][0], 
+                      $this->dataSeriesConverted[1][$i][1] + $this->graphAreaPx[0][1], 
+                      $this->dataSeriesConverted[1][$i+1][0] + $this->graphAreaPx[0][0], 
+                      $this->dataSeriesConverted[1][$i+1][1] + $this->graphAreaPx[0][1],  
+                      'lineColor');
+    }
+
+    // draw features
+    //
+    while (list(, $v) = each($this->featurePoint)) {
+      $pxY = round(($v['ptY'] + ($this->yMin * -1)) * ($this->GetGraphHeight() / $this->yRange));
+      $pxX = round($v['ptX'] * $this->GetGraphWidth() / sizeof($this->dataSeries[1]));
+
+      $this->DrawCircleFilled($pxX + $this->graphAreaPx[0][0], 
+                              $pxY + $this->graphAreaPx[0][1], 
+                              $v['diameter'], 
+                              $v['color'], 
+                              $this->imageHandle);
+      $this->DrawTextRelative($v['text'],
+                              $pxX + $this->graphAreaPx[0][0], 
+                              $pxY + $this->graphAreaPx[0][1], 
+                              $v['color'], 
+                              $v['textpos'], 
+                              round($v['diameter'] / 2),
+                              $v['font'],
+                              $this->imageHandle);
+    }
   } // function Render
 
   ////////////////////////////////////////////////////////////////////////////
   // high quality rendering
   //
-
-function RenderResampled($x, $y) {
+  function RenderResampled($x, $y) {
     $this->Debug("Sparkline_Line :: RenderResampled($x, $y)", DEBUG_CALLS);
 
     if (!parent::Init($x, $y)) {
@@ -218,15 +215,15 @@ function RenderResampled($x, $y) {
 
     // stats debugging
     //
-    $this->Debug('Sparkline_Line :: DrawResampled' .
-                 ' series: 1 min: ' . $this->dataSeriesStats[1]['yMin'] .
-                 ' max: ' . $this->dataSeriesStats[1]['yMax'] .
-                 ' offset: ' . ($this->dataSeriesStats[1]['yMin'] * -1) .
-                 ' height: ' . $this->GetGraphHeight() .
+    $this->Debug('Sparkline_Line :: DrawResampled' . 
+                 ' series: 1 min: ' . $this->dataSeriesStats[1]['yMin'] . 
+                 ' max: ' . $this->dataSeriesStats[1]['yMax'] . 
+                 ' offset: ' . ($this->dataSeriesStats[1]['yMin'] * -1) . 
+                 ' height: ' . $this->GetGraphHeight() . 
                  ' yfactor: ' . ($this->GetGraphHeight() / ($this->dataSeriesStats[1]['yMax'] + ($this->dataSeriesStats[1]['yMin'] * -1))), DEBUG_STATS);
     $this->Debug('Sparkline_Line :: DrawResampled' .
-                 ' drawing area:' .
-                 ' (' . $this->graphAreaPx[0][0] . ',' . $this->graphAreaPx[0][1] .  '), ' .
+                 ' drawing area:' . 
+                 ' (' . $this->graphAreaPx[0][0] . ',' . $this->graphAreaPx[0][1] .  '), ' . 
                  ' (' . $this->graphAreaPx[1][0] . ',' . $this->graphAreaPx[1][1] .  ')');
 
     // create virtual image
@@ -249,12 +246,12 @@ function RenderResampled($x, $y) {
                       $this->dataSeriesConverted[1][$i+1][0],
                       $this->dataSeriesConverted[1][$i+1][1],
                       'lineColor',
-                      $this->GetLineSize(),
+                      $this->GetLineSize(), 
                       $imageVCHandle);
     }
 
-    $this->DrawImageCopyResampled($this->imageHandle,
-                                  $imageVCHandle,
+    $this->DrawImageCopyResampled($this->imageHandle, 
+                                  $imageVCHandle, 
                                   $this->graphAreaPx[0][0], // dest x
                                   $this->GetImageHeight() - $this->graphAreaPx[1][1], // dest y
                                   0, 0,                     // src x, y
@@ -269,16 +266,16 @@ function RenderResampled($x, $y) {
       $pxY = round(($v['ptY'] + ($this->yMin * -1)) * ($this->GetGraphHeight() / $this->yRange));
       $pxX = round($v['ptX'] * $this->GetGraphWidth() / sizeof($this->dataSeries[1]));
 
-      $this->DrawCircleFilled($pxX + $this->graphAreaPx[0][0],
-                              $pxY + $this->graphAreaPx[0][1],
-                              $v['diameter'],
-                              $v['color'],
+      $this->DrawCircleFilled($pxX + $this->graphAreaPx[0][0], 
+                              $pxY + $this->graphAreaPx[0][1], 
+                              $v['diameter'], 
+                              $v['color'], 
                               $this->imageHandle);
       $this->DrawTextRelative($v['text'],
-                              $pxX + $this->graphAreaPx[0][0],
-                              $pxY + $this->graphAreaPx[0][1],
-                              $v['color'],
-                              $v['textpos'],
+                              $pxX + $this->graphAreaPx[0][0], 
+                              $pxY + $this->graphAreaPx[0][1], 
+                              $v['color'], 
+                              $v['textpos'], 
                               round($v['diameter'] / 2),
                               $v['font'],
                               $this->imageHandle);

@@ -192,6 +192,172 @@ class Model
 
     /**
      * @param $idSite
+     * @param $lastMinutes
+     * @param $segment
+     * @return int
+     * @throws Exception
+     */
+    public function getNumActions($idSite, $lastMinutes, $segment)
+    {
+        return $this->getLastMinutesCounterForQuery(
+            $idSite,
+            $lastMinutes,
+            $segment,
+            'COUNT(*)',
+            'log_link_visit_action',
+            'log_link_visit_action.server_time >= ?'
+        );
+    }
+
+    /**
+     * @param $idSite
+     * @param $lastMinutes
+     * @param $segment
+     * @return int
+     * @throws Exception
+     */
+    public function getNumVisitsConverted($idSite, $lastMinutes, $segment)
+    {
+        return $this->getLastMinutesCounterForQuery(
+            $idSite,
+            $lastMinutes,
+            $segment,
+            'COUNT(*)',
+            'log_conversion',
+            'log_conversion.server_time >= ?'
+        );
+    }
+
+    /**
+     * @param $idSite
+     * @param $lastMinutes
+     * @param $segment
+     * @return int
+     * @throws Exception
+     */
+    public function getNumVisits($idSite, $lastMinutes, $segment)
+    {
+        return $this->getLastMinutesCounterForQuery(
+            $idSite,
+            $lastMinutes,
+            $segment,
+            'COUNT(log_visit.visit_last_action_time)',
+            'log_visit',
+            'log_visit.visit_last_action_time >= ?'
+        );
+    }
+
+    /**
+     * @param $idSite
+     * @param $lastMinutes
+     * @param $segment
+     * @return int
+     * @throws Exception
+     */
+    public function getNumVisitors($idSite, $lastMinutes, $segment)
+    {
+        return $this->getLastMinutesCounterForQuery(
+            $idSite,
+            $lastMinutes,
+            $segment,
+            'COUNT(DISTINCT log_visit.idvisitor)',
+            'log_visit',
+            'log_visit.visit_last_action_time >= ?'
+        );
+    }
+
+    private function getLastMinutesCounterForQuery($idSite, $lastMinutes, $segment, $select, $from, $where)
+    {
+        $lastMinutes = (int)$lastMinutes;
+
+        if (empty($lastMinutes)) {
+            return 0;
+        }
+
+        list($whereIdSites, $idSites) = $this->getIdSitesWhereClause($idSite, $from);
+
+        $bind   = $idSites;
+        $bind[] = Date::factory(time() - $lastMinutes * 60)->toString('Y-m-d H:i:s');
+
+        $where = $whereIdSites . "AND " . $where;
+
+        $segment = new Segment($segment, $idSite);
+        $query   = $segment->getSelectQuery($select, $from, $where, $bind);
+
+        $numVisitors = Db::fetchOne($query['sql'], $query['bind']);
+
+        return $numVisitors;
+    }
+
+    /**
+     * @param $idSite
+     * @param string $table
+     * @return array
+     */
+    private function getIdSitesWhereClause($idSite, $table = 'log_visit')
+    {
+        $idSites = array($idSite);
+        Piwik::postEvent('Live.API.getIdSitesString', array(&$idSites));
+
+        $idSitesBind = Common::getSqlStringFieldsArray($idSites);
+        $whereClause = $table . ".idsite in ($idSitesBind) ";
+        return array($whereClause, $idSites);
+    }
+
+
+    /**
+     * Returns the ID of a visitor that is adjacent to another visitor (by time of last action)
+     * in the log_visit table.
+     *
+     * @param int $idSite The ID of the site whose visits should be looked at.
+     * @param string $visitorId The ID of the visitor to get an adjacent visitor for.
+     * @param string $visitLastActionTime The last action time of the latest visit for $visitorId.
+     * @param string $segment
+     * @param bool $getNext Whether to retrieve the next visitor or the previous visitor. The next
+     *                      visitor will be the visitor that appears chronologically later in the
+     *                      log_visit table. The previous visitor will be the visitor that appears
+     *                      earlier.
+     * @return string The hex visitor ID.
+     * @throws Exception
+     */
+    public function queryAdjacentVisitorId($idSite, $visitorId, $visitLastActionTime, $segment, $getNext)
+    {
+        if ($getNext) {
+            $visitLastActionTimeCondition = "sub.visit_last_action_time <= ?";
+            $orderByDir = "DESC";
+        } else {
+            $visitLastActionTimeCondition = "sub.visit_last_action_time >= ?";
+            $orderByDir = "ASC";
+        }
+
+        $visitLastActionDate = Date::factory($visitLastActionTime);
+        $dateOneDayAgo = $visitLastActionDate->subDay(1);
+        $dateOneDayInFuture = $visitLastActionDate->addDay(1);
+
+        $select = "log_visit.idvisitor, MAX(log_visit.visit_last_action_time) as visit_last_action_time";
+        $from = "log_visit";
+        $where = "log_visit.idsite = ? AND log_visit.idvisitor <> ? AND visit_last_action_time >= ? and visit_last_action_time <= ?";
+        $whereBind = array($idSite, @Common::hex2bin($visitorId), $dateOneDayAgo->toString('Y-m-d H:i:s'), $dateOneDayInFuture->toString('Y-m-d H:i:s'));
+        $orderBy = "MAX(log_visit.visit_last_action_time) $orderByDir";
+        $groupBy = "log_visit.idvisitor";
+
+        $segment = new Segment($segment, $idSite);
+        $queryInfo = $segment->getSelectQuery($select, $from, $where, $whereBind, $orderBy, $groupBy);
+
+        $sql = "SELECT sub.idvisitor, sub.visit_last_action_time FROM ({$queryInfo['sql']}) as sub
+                 WHERE $visitLastActionTimeCondition
+                 LIMIT 1";
+        $bind = array_merge($queryInfo['bind'], array($visitLastActionTime));
+
+        $visitorId = Db::fetchOne($sql, $bind);
+        if (!empty($visitorId)) {
+            $visitorId = bin2hex($visitorId);
+        }
+        return $visitorId;
+    }
+
+    /**
+     * @param $idSite
      * @param $period
      * @param $date
      * @param $segment
@@ -244,6 +410,15 @@ class Model
 			ORDER BY $orderByParent
 		";
         return array($sql, $bind);
+    }
+
+    /**
+     * @param $idSite
+     * @return Site
+     */
+    protected function makeSite($idSite)
+    {
+        return new Site($idSite);
     }
 
     /**
@@ -318,178 +493,4 @@ class Model
         }
         return array($whereBind, $where);
     }
-
-    /**
-     * @param $idSite
-     * @param string $table
-     * @return array
-     */
-    private function getIdSitesWhereClause($idSite, $table = 'log_visit')
-    {
-        $idSites = array($idSite);
-        Piwik::postEvent('Live.API.getIdSitesString', array(&$idSites));
-
-        $idSitesBind = Common::getSqlStringFieldsArray($idSites);
-        $whereClause = $table . ".idsite in ($idSitesBind) ";
-        return array($whereClause, $idSites);
-    }
-
-    /**
-     * @param $idSite
-     * @return Site
-     */
-    protected function makeSite($idSite)
-    {
-        return new Site($idSite);
-    }
-
-    /**
-     * @param $idSite
-     * @param $lastMinutes
-     * @param $segment
-     * @return int
-     * @throws Exception
-     */
-    public function getNumActions($idSite, $lastMinutes, $segment)
-    {
-        return $this->getLastMinutesCounterForQuery(
-            $idSite,
-            $lastMinutes,
-            $segment,
-            'COUNT(*)',
-            'log_link_visit_action',
-            'log_link_visit_action.server_time >= ?'
-        );
-    }
-
-    private function getLastMinutesCounterForQuery($idSite, $lastMinutes, $segment, $select, $from, $where)
-    {
-        $lastMinutes = (int)$lastMinutes;
-
-        if (empty($lastMinutes)) {
-            return 0;
-        }
-
-        list($whereIdSites, $idSites) = $this->getIdSitesWhereClause($idSite, $from);
-
-        $bind   = $idSites;
-        $bind[] = Date::factory(time() - $lastMinutes * 60)->toString('Y-m-d H:i:s');
-
-        $where = $whereIdSites . "AND " . $where;
-
-        $segment = new Segment($segment, $idSite);
-        $query   = $segment->getSelectQuery($select, $from, $where, $bind);
-
-        $numVisitors = Db::fetchOne($query['sql'], $query['bind']);
-
-        return $numVisitors;
-    }
-
-    /**
-     * @param $idSite
-     * @param $lastMinutes
-     * @param $segment
-     * @return int
-     * @throws Exception
-     */
-    public function getNumVisitsConverted($idSite, $lastMinutes, $segment)
-    {
-        return $this->getLastMinutesCounterForQuery(
-            $idSite,
-            $lastMinutes,
-            $segment,
-            'COUNT(*)',
-            'log_conversion',
-            'log_conversion.server_time >= ?'
-        );
-    }
-
-    /**
-     * @param $idSite
-     * @param $lastMinutes
-     * @param $segment
-     * @return int
-     * @throws Exception
-     */
-    public function getNumVisits($idSite, $lastMinutes, $segment)
-    {
-        return $this->getLastMinutesCounterForQuery(
-            $idSite,
-            $lastMinutes,
-            $segment,
-            'COUNT(log_visit.visit_last_action_time)',
-            'log_visit',
-            'log_visit.visit_last_action_time >= ?'
-        );
-    }
-
-    /**
-     * @param $idSite
-     * @param $lastMinutes
-     * @param $segment
-     * @return int
-     * @throws Exception
-     */
-    public function getNumVisitors($idSite, $lastMinutes, $segment)
-    {
-        return $this->getLastMinutesCounterForQuery(
-            $idSite,
-            $lastMinutes,
-            $segment,
-            'COUNT(DISTINCT log_visit.idvisitor)',
-            'log_visit',
-            'log_visit.visit_last_action_time >= ?'
-        );
-    }
-
-    /**
-     * Returns the ID of a visitor that is adjacent to another visitor (by time of last action)
-     * in the log_visit table.
-     *
-     * @param int $idSite The ID of the site whose visits should be looked at.
-     * @param string $visitorId The ID of the visitor to get an adjacent visitor for.
-     * @param string $visitLastActionTime The last action time of the latest visit for $visitorId.
-     * @param string $segment
-     * @param bool $getNext Whether to retrieve the next visitor or the previous visitor. The next
-     *                      visitor will be the visitor that appears chronologically later in the
-     *                      log_visit table. The previous visitor will be the visitor that appears
-     *                      earlier.
-     * @return string The hex visitor ID.
-     * @throws Exception
-     */
-    public function queryAdjacentVisitorId($idSite, $visitorId, $visitLastActionTime, $segment, $getNext)
-    {
-        if ($getNext) {
-            $visitLastActionTimeCondition = "sub.visit_last_action_time <= ?";
-            $orderByDir = "DESC";
-        } else {
-            $visitLastActionTimeCondition = "sub.visit_last_action_time >= ?";
-            $orderByDir = "ASC";
-        }
-
-        $visitLastActionDate = Date::factory($visitLastActionTime);
-        $dateOneDayAgo = $visitLastActionDate->subDay(1);
-        $dateOneDayInFuture = $visitLastActionDate->addDay(1);
-
-        $select = "log_visit.idvisitor, MAX(log_visit.visit_last_action_time) as visit_last_action_time";
-        $from = "log_visit";
-        $where = "log_visit.idsite = ? AND log_visit.idvisitor <> ? AND visit_last_action_time >= ? and visit_last_action_time <= ?";
-        $whereBind = array($idSite, @Common::hex2bin($visitorId), $dateOneDayAgo->toString('Y-m-d H:i:s'), $dateOneDayInFuture->toString('Y-m-d H:i:s'));
-        $orderBy = "MAX(log_visit.visit_last_action_time) $orderByDir";
-        $groupBy = "log_visit.idvisitor";
-
-        $segment = new Segment($segment, $idSite);
-        $queryInfo = $segment->getSelectQuery($select, $from, $where, $whereBind, $orderBy, $groupBy);
-
-        $sql = "SELECT sub.idvisitor, sub.visit_last_action_time FROM ({$queryInfo['sql']}) as sub
-                 WHERE $visitLastActionTimeCondition
-                 LIMIT 1";
-        $bind = array_merge($queryInfo['bind'], array($visitLastActionTime));
-
-        $visitorId = Db::fetchOne($sql, $bind);
-        if (!empty($visitorId)) {
-            $visitorId = bin2hex($visitorId);
-        }
-        return $visitorId;
-    }
-}
+} 

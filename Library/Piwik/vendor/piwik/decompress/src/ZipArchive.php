@@ -16,13 +16,13 @@ use Exception;
 class ZipArchive implements DecompressInterface
 {
     /**
-     * @var string
-     */
-    public $filename;
-    /**
      * @var \ZipArchive
      */
     private $ziparchive;
+    /**
+     * @var string
+     */
+    public $filename;
 
     /**
      * Constructor

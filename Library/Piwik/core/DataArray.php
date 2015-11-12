@@ -20,7 +20,6 @@ use Piwik\Tracker\GoalManager;
 
 class DataArray
 {
-    const EVENT_VALUE_PRECISION = 2;
     protected $data = array();
     protected $dataTwoLevels = array();
 
@@ -31,14 +30,18 @@ class DataArray
     }
 
     /**
-     * Returns true if the row looks like an Action metrics row
+     * This returns the actual raw data array
      *
-     * @param $row
-     * @return bool
+     * @return array
      */
-    public static function isRowActions($row)
+    public function &getDataArray()
     {
-        return (count($row) == count(self::makeEmptyActionRow())) && isset($row[Metrics::INDEX_NB_ACTIONS]);
+        return $this->data;
+    }
+
+    public function getDataArrayWithTwoLevels()
+    {
+        return $this->dataTwoLevels;
     }
 
     public function sumMetricsVisits($label, $row)
@@ -233,6 +236,8 @@ class DataArray
         );
     }
 
+    const EVENT_VALUE_PRECISION = 2;
+
     /**
      * @param array $newRowToAdd
      * @param array $oldRowToUpdate
@@ -370,6 +375,17 @@ class DataArray
     }
 
     /**
+     * Returns true if the row looks like an Action metrics row
+     *
+     * @param $row
+     * @return bool
+     */
+    public static function isRowActions($row)
+    {
+        return (count($row) == count(self::makeEmptyActionRow())) && isset($row[Metrics::INDEX_NB_ACTIONS]);
+    }
+
+    /**
      * Converts array to a datatable
      *
      * @return \Piwik\DataTable
@@ -387,20 +403,5 @@ class DataArray
             }
         }
         return DataTable::makeFromIndexedArray($dataArray, $subtableByLabel);
-    }
-
-    /**
-     * This returns the actual raw data array
-     *
-     * @return array
-     */
-    public function &getDataArray()
-    {
-        return $this->data;
-    }
-
-    public function getDataArrayWithTwoLevels()
-    {
-        return $this->dataTwoLevels;
     }
 }

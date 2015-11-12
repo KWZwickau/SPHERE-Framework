@@ -18,6 +18,20 @@ class GetNumberOfVisitsPerVisitDuration extends Base
 {
     protected $defaultSortColumn = '';
 
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new VisitDuration();
+        $this->name          = Piwik::translate('VisitorInterest_WidgetLengths');
+        $this->documentation = Piwik::translate('VisitorInterest_WidgetLengthsDocumentation')
+                             . '<br />' . Piwik::translate('General_ChangeTagCloudView');
+        $this->metrics       = array('nb_visits');
+        $this->processedMetrics  = false;
+        $this->constantRowsCount = true;
+        $this->order = 15;
+        $this->widgetTitle  = 'VisitorInterest_WidgetLengths';
+    }
+
     public function getDefaultTypeViewDataTable()
     {
         return Cloud::ID;
@@ -43,20 +57,6 @@ class GetNumberOfVisitsPerVisitDuration extends Base
             $view->config->selectable_columns = array();
             $view->config->max_graph_elements = 10;
         }
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension     = new VisitDuration();
-        $this->name          = Piwik::translate('VisitorInterest_WidgetLengths');
-        $this->documentation = Piwik::translate('VisitorInterest_WidgetLengthsDocumentation')
-                             . '<br />' . Piwik::translate('General_ChangeTagCloudView');
-        $this->metrics       = array('nb_visits');
-        $this->processedMetrics  = false;
-        $this->constantRowsCount = true;
-        $this->order = 15;
-        $this->widgetTitle  = 'VisitorInterest_WidgetLengths';
     }
 
 }

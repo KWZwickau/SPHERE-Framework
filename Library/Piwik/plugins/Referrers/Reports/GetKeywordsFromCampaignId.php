@@ -14,13 +14,6 @@ use Piwik\Plugins\Referrers\Columns\Keyword;
 
 class GetKeywordsFromCampaignId extends Base
 {
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->show_search = false;
-        $view->config->show_exclude_low_population = false;
-        $view->config->addTranslation('label', $this->dimension->getName());
-    }
-
     protected function init()
     {
         parent::init();
@@ -30,6 +23,13 @@ class GetKeywordsFromCampaignId extends Base
                                array('<br />', '<a href="http://piwik.org/docs/tracking-campaigns/" rel="noreferrer"  target="_blank">', '</a>'));
         $this->isSubtableReport = true;
         $this->order = 10;
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->show_search = false;
+        $view->config->show_exclude_low_population = false;
+        $view->config->addTranslation('label', $this->dimension->getName());
     }
 
 }

@@ -23,16 +23,6 @@ class SimpleTable extends Visualization
     const FOOTER_ICON_TITLE = 'Simple Table';
     const FOOTER_ICON       = 'plugins/ExampleVisualization/images/table.png';
 
-    public static function canDisplayViewDataTable(ViewDataTable $view)
-    {
-        // You usually do not need to implement this method. Here you can define whether your visualization can display
-        // a specific data table or not. For instance you may only display your visualization in case a single data
-        // table is requested. Example:
-        // return $view->isRequestingSingleDataTable();
-
-        return parent::canDisplayViewDataTable($view);
-    }
-
     public function beforeLoadDataTable()
     {
         // Here you can change the request that is sent to the API, for instance
@@ -67,5 +57,15 @@ class SimpleTable extends Visualization
         // By defining the config properties shortly before rendering you make sure the config properties have a certain
         // value because they could be changed by a report or by request parameters ($_GET / $_POST) before.
         // $this->config->show_search = false
+    }
+
+    public static function canDisplayViewDataTable(ViewDataTable $view)
+    {
+        // You usually do not need to implement this method. Here you can define whether your visualization can display
+        // a specific data table or not. For instance you may only display your visualization in case a single data
+        // table is requested. Example:
+        // return $view->isRequestingSingleDataTable();
+
+        return parent::canDisplayViewDataTable($view);
     }
 }

@@ -8,9 +8,9 @@
  */
 namespace Piwik;
 
-use Piwik\Archive\ArchiveInvalidator;
 use Piwik\Archive\Parameters;
 use Piwik\ArchiveProcessor\Rules;
+use Piwik\Archive\ArchiveInvalidator;
 use Piwik\Container\StaticContainer;
 use Piwik\DataAccess\ArchiveSelector;
 use Piwik\Period\Factory as PeriodFactory;
@@ -112,10 +112,7 @@ class Archive
     const REQUEST_ALL_WEBSITES_FLAG = 'all';
     const ARCHIVE_ALL_PLUGINS_FLAG = 'all';
     const ID_SUBTABLE_LOAD_ALL_SUBTABLES = 'all';
-    /**
-     * @var \Piwik\Cache\Cache
-     */
-    private static $cache;
+
     /**
      * List of archive IDs for the site, periods and segment we are querying with.
      * Archive IDs are indexed by done flag and period, ie:
@@ -143,6 +140,7 @@ class Archive
      * @var array
      */
     private $idarchives = array();
+
     /**
      * If set to true, the result of all get functions (ie, getNumeric, getBlob, etc.)
      * will be indexed by the site ID, even if we're only querying data for one site.
@@ -150,6 +148,7 @@ class Archive
      * @var bool
      */
     private $forceIndexedBySite;
+
     /**
      * If set to true, the result of all get functions (ie, getNumeric, getBlob, etc.)
      * will be indexed by the period, even if we're only querying data for one period.
@@ -157,10 +156,17 @@ class Archive
      * @var bool
      */
     private $forceIndexedByDate;
+
     /**
      * @var Parameters
      */
     private $params;
+
+    /**
+     * @var \Piwik\Cache\Cache
+     */
+    private static $cache;
+
     /**
      * @var ArchiveInvalidator
      */
@@ -171,108 +177,14 @@ class Archive
      * @param bool $forceIndexedBySite Whether to force index the result of a query by site ID.
      * @param bool $forceIndexedByDate Whether to force index the result of a query by period.
      */
-    protected function __construct(
-        Parameters $params,
-        $forceIndexedBySite = false,
-        $forceIndexedByDate = false
-    ) {
+    protected function __construct(Parameters $params, $forceIndexedBySite = false,
+                                   $forceIndexedByDate = false)
+    {
         $this->params = $params;
         $this->forceIndexedBySite = $forceIndexedBySite;
         $this->forceIndexedByDate = $forceIndexedByDate;
 
         $this->invalidator = StaticContainer::get('Piwik\Archive\ArchiveInvalidator');
-    }
-
-    /**
-     * Helper function that creates an Archive instance and queries for report data using
-     * query parameter data. API methods can use this method to reduce code redundancy.
-     *
-     * @param string $recordName The name of the report to return.
-     * @param int|string|array $idSite @see {@link build()}
-     * @param string $period @see {@link build()}
-     * @param string $date @see {@link build()}
-     * @param string $segment @see {@link build()}
-     * @param bool $expanded If true, loads all subtables. See {@link getDataTableExpanded()}
-     * @param bool $flat If true, loads all subtables and disabled all recursive filters.
-     * @param int|null $idSubtable See {@link getDataTableExpanded()}
-     * @param int|null $depth See {@link getDataTableExpanded()}
-     * @return DataTable|DataTable\Map
-     */
-    public static function createDataTableFromArchive(
-        $recordName,
-        $idSite,
-        $period,
-        $date,
-        $segment,
-        $expanded = false,
-        $flat = false,
-        $idSubtable = null,
-        $depth = null
-    ) {
-        if ($flat && !$idSubtable) {
-            $expanded = true;
-        }
-
-        $dataTable = self::getDataTableFromArchive($recordName, $idSite, $period, $date, $segment, $expanded,
-            $idSubtable, $depth);
-
-        $dataTable->queueFilter('ReplaceColumnNames');
-
-        if ($expanded) {
-            $dataTable->queueFilterSubtables('ReplaceColumnNames');
-        }
-
-        if ($flat) {
-            $dataTable->disableRecursiveFilters();
-        }
-
-        return $dataTable;
-    }
-
-    /**
-     * Helper function that creates an Archive instance and queries for report data using
-     * query parameter data. API methods can use this method to reduce code redundancy.
-     *
-     * @param string $name The name of the report to return.
-     * @param int|string|array $idSite @see {@link build()}
-     * @param string $period @see {@link build()}
-     * @param string $date @see {@link build()}
-     * @param string $segment @see {@link build()}
-     * @param bool $expanded If true, loads all subtables. See {@link getDataTableExpanded()}
-     * @param int|null $idSubtable See {@link getDataTableExpanded()}
-     * @param int|null $depth See {@link getDataTableExpanded()}
-     * @throws \Exception
-     * @return DataTable|DataTable\Map See {@link getDataTable()} and
-     *                                 {@link getDataTableExpanded()} for more
-     *                                 information
-     * @deprecated Since Piwik 2.12.0 Use Archive::createDataTableFromArchive() instead
-     */
-    public static function getDataTableFromArchive(
-        $name,
-        $idSite,
-        $period,
-        $date,
-        $segment,
-        $expanded,
-        $idSubtable = null,
-        $depth = null
-    ) {
-        Piwik::checkUserHasViewAccess($idSite);
-
-        $archive = Archive::build($idSite, $period, $date, $segment, $_restrictSitesToLogin = false);
-        if ($idSubtable === false) {
-            $idSubtable = null;
-        }
-
-        if ($expanded) {
-            $dataTable = $archive->getDataTableExpanded($name, $idSubtable, $depth);
-        } else {
-            $dataTable = $archive->getDataTable($name, $idSubtable);
-        }
-
-        $dataTable->queueFilter('ReplaceSummaryRowLabel');
-
-        return $dataTable;
     }
 
     /**
@@ -304,15 +216,15 @@ class Archive
         }
 
         if (Period::isMultiplePeriod($strDate, $period)) {
-            $oPeriod = PeriodFactory::build($period, $strDate, $timezone);
+            $oPeriod    = PeriodFactory::build($period, $strDate, $timezone);
             $allPeriods = $oPeriod->getSubperiods();
         } else {
-            $oPeriod = PeriodFactory::makePeriodFromQueryParams($timezone, $period, $strDate);
+            $oPeriod    = PeriodFactory::makePeriodFromQueryParams($timezone, $period, $strDate);
             $allPeriods = array($oPeriod);
         }
 
-        $segment = new Segment($segment, $websiteIds);
-        $idSiteIsAll = $idSites == self::REQUEST_ALL_WEBSITES_FLAG;
+        $segment        = new Segment($segment, $websiteIds);
+        $idSiteIsAll    = $idSites == self::REQUEST_ALL_WEBSITES_FLAG;
         $isMultipleDate = Period::isMultiplePeriod($strDate, $period);
 
         return static::factory($segment, $allPeriods, $websiteIds, $idSiteIsAll, $isMultipleDate);
@@ -340,13 +252,8 @@ class Archive
      *
      * @return Archive
      */
-    public static function factory(
-        Segment $segment,
-        array $periods,
-        array $idSites,
-        $idSiteIsAll = false,
-        $isMultipleDate = false
-    ) {
+    public static function factory(Segment $segment, array $periods, array $idSites, $idSiteIsAll = false, $isMultipleDate = false)
+    {
         $forceIndexedBySite = false;
         $forceIndexedByDate = false;
 
@@ -361,69 +268,6 @@ class Archive
         $params = new Parameters($idSites, $periods, $segment);
 
         return new static($params, $forceIndexedBySite, $forceIndexedByDate);
-    }
-
-    /**
-     * Queries and returns one report with all of its subtables loaded.
-     *
-     * If multiple sites were requested in {@link build()} or {@link factory()} the result will
-     * be a DataTable\Map that is indexed by site ID.
-     *
-     * If multiple periods were requested in {@link build()} or {@link factory()} the result will
-     * be a DataTable\Map that is indexed by period.
-     *
-     * The site ID index is always first, so if multiple sites & periods were requested, the result
-     * will be a {@link DataTable\Map indexed} by site ID which contains {@link DataTable\Map} instances that are
-     * indexed by period.
-     *
-     * @param string $name The name of the record to get.
-     * @param int|string|null $idSubtable The ID of the subtable to get (if any). The subtable will be expanded.
-     * @param int|null $depth The maximum number of subtable levels to load. If null, all levels are loaded.
-     *                        For example, if `1` is supplied, then the DataTable returned will have its subtables
-     *                        loaded. Those subtables, however, will NOT have their subtables loaded.
-     * @param bool $addMetadataSubtableId Whether to add the database subtable ID as metadata to each datatable,
-     *                                    or not.
-     * @return DataTable|DataTable\Map
-     */
-    public function getDataTableExpanded($name, $idSubtable = null, $depth = null, $addMetadataSubtableId = true)
-    {
-        $data = $this->get($name, 'blob', self::ID_SUBTABLE_LOAD_ALL_SUBTABLES);
-        return $data->getExpandedDataTable($this->getResultIndices(), $idSubtable, $depth, $addMetadataSubtableId);
-    }
-
-    /**
-     * Queries and returns one or more reports as DataTable instances.
-     *
-     * This method will query blob data that is a serialized array of of {@link DataTable\Row}'s and
-     * unserialize it.
-     *
-     * If multiple sites were requested in {@link build()} or {@link factory()} the result will
-     * be a {@link DataTable\Map} that is indexed by site ID.
-     *
-     * If multiple periods were requested in {@link build()} or {@link factory()} the result will
-     * be a DataTable\Map that is indexed by period.
-     *
-     * The site ID index is always first, so if multiple sites & periods were requested, the result
-     * will be a {@link DataTable\Map} indexed by site ID which contains {@link DataTable\Map} instances that are
-     * indexed by period.
-     *
-     * @param string $name The name of the record to get. This method can only query one record at a time.
-     * @param int|string|null $idSubtable The ID of the subtable to get (if any).
-     * @return DataTable|DataTable\Map A DataTable if multiple sites and periods were not requested.
-     *                                 An appropriately indexed {@link DataTable\Map} if otherwise.
-     */
-    public function getDataTable($name, $idSubtable = null)
-    {
-        $data = $this->get($name, 'blob', $idSubtable);
-        return $data->getDataTable($this->getResultIndices());
-    }
-
-    /**
-     * @internal
-     */
-    public static function clearStaticCache()
-    {
-        self::$cache = null;
     }
 
     /**
@@ -460,6 +304,271 @@ class Archive
         }
 
         return $result;
+    }
+
+    /**
+     * Queries and returns metric data in a DataTable instance.
+     *
+     * If multiple sites were requested in {@link build()} or {@link factory()} the result will
+     * be a DataTable\Map that is indexed by site ID.
+     *
+     * If multiple periods were requested in {@link build()} or {@link factory()} the result will
+     * be a {@link DataTable\Map} that is indexed by period.
+     *
+     * The site ID index is always first, so if multiple sites & periods were requested, the result
+     * will be a {@link DataTable\Map} indexed by site ID which contains {@link DataTable\Map} instances that are
+     * indexed by period.
+     *
+     * _Note: Every DataTable instance returned will have at most one row in it. The contents of each
+     *        row will be the requested metrics for the appropriate site and period._
+     *
+     * @param string|array $names One or more archive names, eg, 'nb_visits', 'Referrers_distinctKeywords',
+     *                            etc.
+     * @return DataTable|DataTable\Map A DataTable if multiple sites and periods were not requested.
+     *                                 An appropriately indexed DataTable\Map if otherwise.
+     */
+    public function getDataTableFromNumeric($names)
+    {
+        $data = $this->get($names, 'numeric');
+        return $data->getDataTable($this->getResultIndices());
+    }
+
+    /**
+     * Similar to {@link getDataTableFromNumeric()} but merges all children on the created DataTable.
+     *
+     * This is the same as doing `$this->getDataTableFromNumeric()->mergeChildren()` but this way it is much faster.
+     *
+     * @return DataTable|DataTable\Map
+     *
+     * @internal Currently only used by MultiSites.getAll plugin. Feel free to remove internal tag if needed somewhere
+     *           else. If no longer needed by MultiSites.getAll please remove this method. If you need this to work in
+     *           a bit different way feel free to refactor as always.
+     */
+    public function getDataTableFromNumericAndMergeChildren($names)
+    {
+        $data  = $this->get($names, 'numeric');
+        $resultIndexes = $this->getResultIndices();
+        return $data->getMergedDataTable($resultIndexes);
+    }
+
+    /**
+     * Queries and returns one or more reports as DataTable instances.
+     *
+     * This method will query blob data that is a serialized array of of {@link DataTable\Row}'s and
+     * unserialize it.
+     *
+     * If multiple sites were requested in {@link build()} or {@link factory()} the result will
+     * be a {@link DataTable\Map} that is indexed by site ID.
+     *
+     * If multiple periods were requested in {@link build()} or {@link factory()} the result will
+     * be a DataTable\Map that is indexed by period.
+     *
+     * The site ID index is always first, so if multiple sites & periods were requested, the result
+     * will be a {@link DataTable\Map} indexed by site ID which contains {@link DataTable\Map} instances that are
+     * indexed by period.
+     *
+     * @param string $name The name of the record to get. This method can only query one record at a time.
+     * @param int|string|null $idSubtable The ID of the subtable to get (if any).
+     * @return DataTable|DataTable\Map A DataTable if multiple sites and periods were not requested.
+     *                                 An appropriately indexed {@link DataTable\Map} if otherwise.
+     */
+    public function getDataTable($name, $idSubtable = null)
+    {
+        $data = $this->get($name, 'blob', $idSubtable);
+        return $data->getDataTable($this->getResultIndices());
+    }
+
+    /**
+     * Queries and returns one report with all of its subtables loaded.
+     *
+     * If multiple sites were requested in {@link build()} or {@link factory()} the result will
+     * be a DataTable\Map that is indexed by site ID.
+     *
+     * If multiple periods were requested in {@link build()} or {@link factory()} the result will
+     * be a DataTable\Map that is indexed by period.
+     *
+     * The site ID index is always first, so if multiple sites & periods were requested, the result
+     * will be a {@link DataTable\Map indexed} by site ID which contains {@link DataTable\Map} instances that are
+     * indexed by period.
+     *
+     * @param string $name The name of the record to get.
+     * @param int|string|null $idSubtable The ID of the subtable to get (if any). The subtable will be expanded.
+     * @param int|null $depth The maximum number of subtable levels to load. If null, all levels are loaded.
+     *                        For example, if `1` is supplied, then the DataTable returned will have its subtables
+     *                        loaded. Those subtables, however, will NOT have their subtables loaded.
+     * @param bool $addMetadataSubtableId Whether to add the database subtable ID as metadata to each datatable,
+     *                                    or not.
+     * @return DataTable|DataTable\Map
+     */
+    public function getDataTableExpanded($name, $idSubtable = null, $depth = null, $addMetadataSubtableId = true)
+    {
+        $data = $this->get($name, 'blob', self::ID_SUBTABLE_LOAD_ALL_SUBTABLES);
+        return $data->getExpandedDataTable($this->getResultIndices(), $idSubtable, $depth, $addMetadataSubtableId);
+    }
+
+    /**
+     * Returns the list of plugins that archive the given reports.
+     *
+     * @param array $archiveNames
+     * @return array
+     */
+    private function getRequestedPlugins($archiveNames)
+    {
+        $result = array();
+
+        foreach ($archiveNames as $name) {
+            $result[] = self::getPluginForReport($name);
+        }
+
+        return array_unique($result);
+    }
+
+    /**
+     * Returns an object describing the set of sites, the set of periods and the segment
+     * this Archive will query data for.
+     *
+     * @return Parameters
+     */
+    public function getParams()
+    {
+        return $this->params;
+    }
+
+    /**
+     * Helper function that creates an Archive instance and queries for report data using
+     * query parameter data. API methods can use this method to reduce code redundancy.
+     *
+     * @param string $name The name of the report to return.
+     * @param int|string|array $idSite @see {@link build()}
+     * @param string $period @see {@link build()}
+     * @param string $date @see {@link build()}
+     * @param string $segment @see {@link build()}
+     * @param bool $expanded If true, loads all subtables. See {@link getDataTableExpanded()}
+     * @param int|null $idSubtable See {@link getDataTableExpanded()}
+     * @param int|null $depth See {@link getDataTableExpanded()}
+     * @throws \Exception
+     * @return DataTable|DataTable\Map See {@link getDataTable()} and
+     *                                 {@link getDataTableExpanded()} for more
+     *                                 information
+     * @deprecated Since Piwik 2.12.0 Use Archive::createDataTableFromArchive() instead
+     */
+    public static function getDataTableFromArchive($name, $idSite, $period, $date, $segment, $expanded,
+                                                   $idSubtable = null, $depth = null)
+    {
+        Piwik::checkUserHasViewAccess($idSite);
+
+        $archive = Archive::build($idSite, $period, $date, $segment, $_restrictSitesToLogin = false);
+        if ($idSubtable === false) {
+            $idSubtable = null;
+        }
+
+        if ($expanded) {
+            $dataTable = $archive->getDataTableExpanded($name, $idSubtable, $depth);
+        } else {
+            $dataTable = $archive->getDataTable($name, $idSubtable);
+        }
+
+        $dataTable->queueFilter('ReplaceSummaryRowLabel');
+
+        return $dataTable;
+    }
+
+    /**
+     * Helper function that creates an Archive instance and queries for report data using
+     * query parameter data. API methods can use this method to reduce code redundancy.
+     *
+     * @param string $recordName The name of the report to return.
+     * @param int|string|array $idSite @see {@link build()}
+     * @param string $period @see {@link build()}
+     * @param string $date @see {@link build()}
+     * @param string $segment @see {@link build()}
+     * @param bool $expanded If true, loads all subtables. See {@link getDataTableExpanded()}
+     * @param bool $flat If true, loads all subtables and disabled all recursive filters.
+     * @param int|null $idSubtable See {@link getDataTableExpanded()}
+     * @param int|null $depth See {@link getDataTableExpanded()}
+     * @return DataTable|DataTable\Map
+     */
+    public static function createDataTableFromArchive($recordName, $idSite, $period, $date, $segment, $expanded = false, $flat = false, $idSubtable = null, $depth = null)
+    {
+        if ($flat && !$idSubtable) {
+            $expanded = true;
+        }
+
+        $dataTable = self::getDataTableFromArchive($recordName, $idSite, $period, $date, $segment, $expanded, $idSubtable, $depth);
+
+        $dataTable->queueFilter('ReplaceColumnNames');
+
+        if ($expanded) {
+            $dataTable->queueFilterSubtables('ReplaceColumnNames');
+        }
+
+        if ($flat) {
+            $dataTable->disableRecursiveFilters();
+        }
+
+        return $dataTable;
+    }
+
+    private function getSiteIdsThatAreRequestedInThisArchiveButWereNotInvalidatedYet()
+    {
+        if (is_null(self::$cache)) {
+            self::$cache = Cache::getTransientCache();
+        }
+
+        $id = 'Archive.SiteIdsOfRememberedReportsInvalidated';
+
+        if (!self::$cache->contains($id)) {
+            self::$cache->save($id, array());
+        }
+
+        $siteIdsAlreadyHandled = self::$cache->fetch($id);
+        $siteIdsRequested      = $this->params->getIdSites();
+
+        foreach ($siteIdsRequested as $index => $siteIdRequested) {
+            $siteIdRequested = (int) $siteIdRequested;
+
+            if (in_array($siteIdRequested, $siteIdsAlreadyHandled)) {
+                unset($siteIdsRequested[$index]); // was already handled previously, do not do it again
+            } else {
+                $siteIdsAlreadyHandled[] = $siteIdRequested; // we will handle this id this time
+            }
+        }
+
+        self::$cache->save($id, $siteIdsAlreadyHandled);
+
+        return $siteIdsRequested;
+    }
+
+    private function invalidatedReportsIfNeeded()
+    {
+        $siteIdsRequested = $this->getSiteIdsThatAreRequestedInThisArchiveButWereNotInvalidatedYet();
+
+        if (empty($siteIdsRequested)) {
+            return; // all requested site ids were already handled
+        }
+
+        $sitesPerDays = $this->invalidator->getRememberedArchivedReportsThatShouldBeInvalidated();
+
+        foreach ($sitesPerDays as $date => $siteIds) {
+            if (empty($siteIds)) {
+                continue;
+            }
+
+            $siteIdsToActuallyInvalidate = array_intersect($siteIds, $siteIdsRequested);
+
+            if (empty($siteIdsToActuallyInvalidate)) {
+                continue; // all site ids that should be handled are already handled
+            }
+
+            try {
+                $this->invalidator->markArchivesAsInvalidated($siteIdsToActuallyInvalidate, array(Date::factory($date)), false);
+            } catch (\Exception $e) {
+                Site::clearCache();
+                throw $e;
+            }
+        }
+
+        Site::clearCache();
     }
 
     /**
@@ -510,8 +619,7 @@ class Archive
             if ($isNumeric) {
                 $row['value'] = $this->formatNumericValue($row['value']);
             } else {
-                $result->addMetadata($row['idsite'], $periodStr, DataTable::ARCHIVED_DATE_METADATA_NAME,
-                    $row['ts_archived']);
+                $result->addMetadata($row['idsite'], $periodStr, DataTable::ARCHIVED_DATE_METADATA_NAME, $row['ts_archived']);
             }
 
             $result->set($row['idsite'], $periodStr, $row['name'], $row['value']);
@@ -535,7 +643,7 @@ class Archive
 
         // figure out which archives haven't been processed (if an archive has been processed,
         // then we have the archive IDs in $this->idarchives)
-        $doneFlags = array();
+        $doneFlags     = array();
         $archiveGroups = array();
         foreach ($plugins as $plugin) {
             $doneFlag = $this->getDoneStringForPlugin($plugin);
@@ -555,9 +663,7 @@ class Archive
 
         // cache id archives for plugins we haven't processed yet
         if (!empty($archiveGroups)) {
-            if (!Rules::isArchivingDisabledFor($this->params->getIdSites(), $this->params->getSegment(),
-                $this->getPeriodLabel())
-            ) {
+            if (!Rules::isArchivingDisabledFor($this->params->getIdSites(), $this->params->getSegment(), $this->getPeriodLabel())) {
                 $this->cacheArchiveIdsAfterLaunching($archiveGroups, $plugins);
             } else {
                 $this->cacheArchiveIdsWithoutLaunching($plugins);
@@ -567,100 +673,6 @@ class Archive
         $idArchivesByMonth = $this->getIdArchivesByMonth($doneFlags);
 
         return $idArchivesByMonth;
-    }
-
-    /**
-     * Returns the list of plugins that archive the given reports.
-     *
-     * @param array $archiveNames
-     * @return array
-     */
-    private function getRequestedPlugins($archiveNames)
-    {
-        $result = array();
-
-        foreach ($archiveNames as $name) {
-            $result[] = self::getPluginForReport($name);
-        }
-
-        return array_unique($result);
-    }
-
-    /**
-     * Returns the name of the plugin that archives a given report.
-     *
-     * @param string $report Archive data name, eg, `'nb_visits'`, `'DevicesDetection_...'`, etc.
-     * @return string Plugin name.
-     * @throws \Exception If a plugin cannot be found or if the plugin for the report isn't
-     *                    activated.
-     */
-    private static function getPluginForReport($report)
-    {
-        // Core metrics are always processed in Core, for the requested date/period/segment
-        if (in_array($report, Metrics::getVisitsMetricNames())) {
-            $report = 'VisitsSummary_CoreMetrics';
-        } // Goal_* metrics are processed by the Goals plugin (HACK)
-        elseif (strpos($report, 'Goal_') === 0) {
-            $report = 'Goals_Metrics';
-        } elseif (strrpos($report, '_returning') === strlen($report) - strlen('_returning')) { // HACK
-            $report = 'VisitFrequency_Metrics';
-        }
-
-        $plugin = substr($report, 0, strpos($report, '_'));
-        if (empty($plugin)
-            || !\Piwik\Plugin\Manager::getInstance()->isPluginActivated($plugin)
-        ) {
-            throw new \Exception("Error: The report '$report' was requested but it is not available at this stage."
-                . " (Plugin '$plugin' is not activated.)");
-        }
-        return $plugin;
-    }
-
-    /**
-     * Returns the done string flag for a plugin using this instance's segment & periods.
-     * @param string $plugin
-     * @return string
-     */
-    private function getDoneStringForPlugin($plugin)
-    {
-        return Rules::getDoneStringFlagFor(
-            $this->params->getIdSites(),
-            $this->params->getSegment(),
-            $this->getPeriodLabel(),
-            $plugin
-        );
-    }
-
-    private function getPeriodLabel()
-    {
-        $periods = $this->params->getPeriods();
-        return reset($periods)->getLabel();
-    }
-
-    /**
-     * Returns the archiving group identifier given a plugin.
-     *
-     * More than one plugin can be called at once when archiving. In such a case
-     * we don't want to launch archiving three times for three plugins if doing
-     * it once is enough, so getArchiveIds makes sure to get the archive group of
-     * all reports.
-     *
-     * If the period isn't a range, then all plugins' archiving code is executed.
-     * If the period is a range, then archiving code is executed individually for
-     * each plugin.
-     */
-    private function getArchiveGroupOfPlugin($plugin)
-    {
-        $periods = $this->params->getPeriods();
-        $periodLabel = reset($periods)->getLabel();
-
-        if (Rules::shouldProcessReportsAllPlugins($this->params->getIdSites(), $this->params->getSegment(),
-            $periodLabel)
-        ) {
-            return self::ARCHIVE_ALL_PLUGINS_FLAG;
-        }
-
-        return $plugin;
     }
 
     /**
@@ -705,115 +717,6 @@ class Archive
         }
     }
 
-    private function invalidatedReportsIfNeeded()
-    {
-        $siteIdsRequested = $this->getSiteIdsThatAreRequestedInThisArchiveButWereNotInvalidatedYet();
-
-        if (empty($siteIdsRequested)) {
-            return; // all requested site ids were already handled
-        }
-
-        $sitesPerDays = $this->invalidator->getRememberedArchivedReportsThatShouldBeInvalidated();
-
-        foreach ($sitesPerDays as $date => $siteIds) {
-            if (empty($siteIds)) {
-                continue;
-            }
-
-            $siteIdsToActuallyInvalidate = array_intersect($siteIds, $siteIdsRequested);
-
-            if (empty($siteIdsToActuallyInvalidate)) {
-                continue; // all site ids that should be handled are already handled
-            }
-
-            try {
-                $this->invalidator->markArchivesAsInvalidated($siteIdsToActuallyInvalidate, array(Date::factory($date)),
-                    false);
-            } catch (\Exception $e) {
-                Site::clearCache();
-                throw $e;
-            }
-        }
-
-        Site::clearCache();
-    }
-
-    private function getSiteIdsThatAreRequestedInThisArchiveButWereNotInvalidatedYet()
-    {
-        if (is_null(self::$cache)) {
-            self::$cache = Cache::getTransientCache();
-        }
-
-        $id = 'Archive.SiteIdsOfRememberedReportsInvalidated';
-
-        if (!self::$cache->contains($id)) {
-            self::$cache->save($id, array());
-        }
-
-        $siteIdsAlreadyHandled = self::$cache->fetch($id);
-        $siteIdsRequested = $this->params->getIdSites();
-
-        foreach ($siteIdsRequested as $index => $siteIdRequested) {
-            $siteIdRequested = (int)$siteIdRequested;
-
-            if (in_array($siteIdRequested, $siteIdsAlreadyHandled)) {
-                unset($siteIdsRequested[$index]); // was already handled previously, do not do it again
-            } else {
-                $siteIdsAlreadyHandled[] = $siteIdRequested; // we will handle this id this time
-            }
-        }
-
-        self::$cache->save($id, $siteIdsAlreadyHandled);
-
-        return $siteIdsRequested;
-    }
-
-    /**
-     * @param $archiveGroups
-     * @param $site
-     * @param $period
-     */
-    private function prepareArchive(array $archiveGroups, Site $site, Period $period)
-    {
-        $parameters = new ArchiveProcessor\Parameters($site, $period, $this->params->getSegment());
-        $archiveLoader = new ArchiveProcessor\Loader($parameters);
-
-        $periodString = $period->getRangeString();
-
-        // process for each plugin as well
-        foreach ($archiveGroups as $plugin) {
-            $doneFlag = $this->getDoneStringForPlugin($plugin);
-            $this->initializeArchiveIdCache($doneFlag);
-
-            $idArchive = $archiveLoader->prepareArchive($plugin);
-
-            if ($idArchive) {
-                $this->idarchives[$doneFlag][$periodString][] = $idArchive;
-            }
-        }
-    }
-
-    /**
-     * Initializes the archive ID cache ($this->idarchives) for a particular 'done' flag.
-     *
-     * It is necessary that each archive ID caching function call this method for each
-     * unique 'done' flag it encounters, since the getArchiveIds function determines
-     * whether archiving should be launched based on whether $this->idarchives has a
-     * an entry for a specific 'done' flag.
-     *
-     * If this  function is not called, then periods with no visits will not add
-     * entries to the cache. If the archive is used again, SQL will be executed to
-     * try and find the archive IDs even though we know there are none.
-     *
-     * @param string $doneFlag
-     */
-    private function initializeArchiveIdCache($doneFlag)
-    {
-        if (!isset($this->idarchives[$doneFlag])) {
-            $this->idarchives[$doneFlag] = array();
-        }
-    }
-
     /**
      * Gets the IDs of the archives we're querying for and stores them in $this->archives.
      * This function will not launch the archiving process (and is thus much, much faster
@@ -841,40 +744,25 @@ class Archive
         }
     }
 
-    private function getIdArchivesByMonth($doneFlags)
+    /**
+     * Returns the done string flag for a plugin using this instance's segment & periods.
+     * @param string $plugin
+     * @return string
+     */
+    private function getDoneStringForPlugin($plugin)
     {
-        // order idarchives by the table month they belong to
-        $idArchivesByMonth = array();
-
-        foreach (array_keys($doneFlags) as $doneFlag) {
-            if (empty($this->idarchives[$doneFlag])) {
-                continue;
-            }
-
-            foreach ($this->idarchives[$doneFlag] as $dateRange => $idarchives) {
-                foreach ($idarchives as $id) {
-                    $idArchivesByMonth[$dateRange][] = $id;
-                }
-            }
-        }
-
-        return $idArchivesByMonth;
+        return Rules::getDoneStringFlagFor(
+                    $this->params->getIdSites(),
+                    $this->params->getSegment(),
+                    $this->getPeriodLabel(),
+                    $plugin
+        );
     }
 
-    private function formatNumericValue($value)
+    private function getPeriodLabel()
     {
-        // If there is no dot, we return as is
-        // Note: this could be an integer bigger than 32 bits
-        if (strpos($value, '.') === false) {
-            if ($value === false) {
-                return 0;
-            }
-            return (float)$value;
-        }
-
-        // Round up the value with 2 decimals
-        // we cast the result as float because returns false when no visitors
-        return round((float)$value, 2);
+        $periods = $this->params->getPeriods();
+        return reset($periods)->getLabel();
     }
 
     /**
@@ -902,59 +790,147 @@ class Archive
         return $indices;
     }
 
-    /**
-     * Queries and returns metric data in a DataTable instance.
-     *
-     * If multiple sites were requested in {@link build()} or {@link factory()} the result will
-     * be a DataTable\Map that is indexed by site ID.
-     *
-     * If multiple periods were requested in {@link build()} or {@link factory()} the result will
-     * be a {@link DataTable\Map} that is indexed by period.
-     *
-     * The site ID index is always first, so if multiple sites & periods were requested, the result
-     * will be a {@link DataTable\Map} indexed by site ID which contains {@link DataTable\Map} instances that are
-     * indexed by period.
-     *
-     * _Note: Every DataTable instance returned will have at most one row in it. The contents of each
-     *        row will be the requested metrics for the appropriate site and period._
-     *
-     * @param string|array $names One or more archive names, eg, 'nb_visits', 'Referrers_distinctKeywords',
-     *                            etc.
-     * @return DataTable|DataTable\Map A DataTable if multiple sites and periods were not requested.
-     *                                 An appropriately indexed DataTable\Map if otherwise.
-     */
-    public function getDataTableFromNumeric($names)
+    private function formatNumericValue($value)
     {
-        $data = $this->get($names, 'numeric');
-        return $data->getDataTable($this->getResultIndices());
+        // If there is no dot, we return as is
+        // Note: this could be an integer bigger than 32 bits
+        if (strpos($value, '.') === false) {
+            if ($value === false) {
+                return 0;
+            }
+            return (float)$value;
+        }
+
+        // Round up the value with 2 decimals
+        // we cast the result as float because returns false when no visitors
+        return round((float)$value, 2);
     }
 
     /**
-     * Similar to {@link getDataTableFromNumeric()} but merges all children on the created DataTable.
+     * Initializes the archive ID cache ($this->idarchives) for a particular 'done' flag.
      *
-     * This is the same as doing `$this->getDataTableFromNumeric()->mergeChildren()` but this way it is much faster.
+     * It is necessary that each archive ID caching function call this method for each
+     * unique 'done' flag it encounters, since the getArchiveIds function determines
+     * whether archiving should be launched based on whether $this->idarchives has a
+     * an entry for a specific 'done' flag.
      *
-     * @return DataTable|DataTable\Map
+     * If this  function is not called, then periods with no visits will not add
+     * entries to the cache. If the archive is used again, SQL will be executed to
+     * try and find the archive IDs even though we know there are none.
      *
-     * @internal Currently only used by MultiSites.getAll plugin. Feel free to remove internal tag if needed somewhere
-     *           else. If no longer needed by MultiSites.getAll please remove this method. If you need this to work in
-     *           a bit different way feel free to refactor as always.
+     * @param string $doneFlag
      */
-    public function getDataTableFromNumericAndMergeChildren($names)
+    private function initializeArchiveIdCache($doneFlag)
     {
-        $data = $this->get($names, 'numeric');
-        $resultIndexes = $this->getResultIndices();
-        return $data->getMergedDataTable($resultIndexes);
+        if (!isset($this->idarchives[$doneFlag])) {
+            $this->idarchives[$doneFlag] = array();
+        }
     }
 
     /**
-     * Returns an object describing the set of sites, the set of periods and the segment
-     * this Archive will query data for.
+     * Returns the archiving group identifier given a plugin.
      *
-     * @return Parameters
+     * More than one plugin can be called at once when archiving. In such a case
+     * we don't want to launch archiving three times for three plugins if doing
+     * it once is enough, so getArchiveIds makes sure to get the archive group of
+     * all reports.
+     *
+     * If the period isn't a range, then all plugins' archiving code is executed.
+     * If the period is a range, then archiving code is executed individually for
+     * each plugin.
      */
-    public function getParams()
+    private function getArchiveGroupOfPlugin($plugin)
     {
-        return $this->params;
+        $periods = $this->params->getPeriods();
+        $periodLabel = reset($periods)->getLabel();
+        
+        if (Rules::shouldProcessReportsAllPlugins($this->params->getIdSites(), $this->params->getSegment(), $periodLabel)) {
+            return self::ARCHIVE_ALL_PLUGINS_FLAG;
+        }
+
+        return $plugin;
+    }
+
+    /**
+     * Returns the name of the plugin that archives a given report.
+     *
+     * @param string $report Archive data name, eg, `'nb_visits'`, `'DevicesDetection_...'`, etc.
+     * @return string Plugin name.
+     * @throws \Exception If a plugin cannot be found or if the plugin for the report isn't
+     *                    activated.
+     */
+    private static function getPluginForReport($report)
+    {
+        // Core metrics are always processed in Core, for the requested date/period/segment
+        if (in_array($report, Metrics::getVisitsMetricNames())) {
+            $report = 'VisitsSummary_CoreMetrics';
+        } // Goal_* metrics are processed by the Goals plugin (HACK)
+        elseif (strpos($report, 'Goal_') === 0) {
+            $report = 'Goals_Metrics';
+        } elseif (strrpos($report, '_returning') === strlen($report) - strlen('_returning')) { // HACK
+            $report = 'VisitFrequency_Metrics';
+        }
+
+        $plugin = substr($report, 0, strpos($report, '_'));
+        if (empty($plugin)
+            || !\Piwik\Plugin\Manager::getInstance()->isPluginActivated($plugin)
+        ) {
+            throw new \Exception("Error: The report '$report' was requested but it is not available at this stage."
+                               . " (Plugin '$plugin' is not activated.)");
+        }
+        return $plugin;
+    }
+
+    /**
+     * @param $archiveGroups
+     * @param $site
+     * @param $period
+     */
+    private function prepareArchive(array $archiveGroups, Site $site, Period $period)
+    {
+        $parameters = new ArchiveProcessor\Parameters($site, $period, $this->params->getSegment());
+        $archiveLoader = new ArchiveProcessor\Loader($parameters);
+
+        $periodString = $period->getRangeString();
+
+        // process for each plugin as well
+        foreach ($archiveGroups as $plugin) {
+            $doneFlag = $this->getDoneStringForPlugin($plugin);
+            $this->initializeArchiveIdCache($doneFlag);
+
+            $idArchive = $archiveLoader->prepareArchive($plugin);
+
+            if ($idArchive) {
+                $this->idarchives[$doneFlag][$periodString][] = $idArchive;
+            }
+        }
+    }
+
+    private function getIdArchivesByMonth($doneFlags)
+    {
+        // order idarchives by the table month they belong to
+        $idArchivesByMonth = array();
+
+        foreach (array_keys($doneFlags) as $doneFlag) {
+            if (empty($this->idarchives[$doneFlag])) {
+                continue;
+            }
+
+            foreach ($this->idarchives[$doneFlag] as $dateRange => $idarchives) {
+                foreach ($idarchives as $id) {
+                    $idArchivesByMonth[$dateRange][] = $id;
+                }
+            }
+        }
+
+        return $idArchivesByMonth;
+    }
+
+    /**
+     * @internal
+     */
+    public static function clearStaticCache()
+    {
+        self::$cache = null;
     }
 }

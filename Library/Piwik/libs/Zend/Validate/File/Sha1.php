@@ -80,6 +80,16 @@ class Zend_Validate_File_Sha1 extends Zend_Validate_File_Hash
     }
 
     /**
+     * Returns all set sha1 hashes
+     *
+     * @return array
+     */
+    public function getSha1()
+    {
+        return $this->getHash();
+    }
+
+    /**
      * Sets the sha1 hash for one or multiple files
      *
      * @param  string|array $options
@@ -94,16 +104,6 @@ class Zend_Validate_File_Sha1 extends Zend_Validate_File_Hash
         $options['algorithm'] = 'sha1';
         parent::setHash($options);
         return $this;
-    }
-
-    /**
-     * Returns all set sha1 hashes
-     *
-     * @return array
-     */
-    public function getSha1()
-    {
-        return $this->getHash();
     }
 
     /**
@@ -124,9 +124,14 @@ class Zend_Validate_File_Sha1 extends Zend_Validate_File_Hash
      * @param  string|array $options
      * @return Zend_Validate_File_Hash Provides a fluent interface
      */
-    public function addSha1($options)
+    public function addHash($options)
     {
-        $this->addHash($options);
+        if (!is_array($options)) {
+            $options = (array) $options;
+        }
+
+        $options['algorithm'] = 'sha1';
+        parent::addHash($options);
         return $this;
     }
 
@@ -136,14 +141,9 @@ class Zend_Validate_File_Sha1 extends Zend_Validate_File_Hash
      * @param  string|array $options
      * @return Zend_Validate_File_Hash Provides a fluent interface
      */
-    public function addHash($options)
+    public function addSha1($options)
     {
-        if (!is_array($options)) {
-            $options = (array) $options;
-        }
-
-        $options['algorithm'] = 'sha1';
-        parent::addHash($options);
+        $this->addHash($options);
         return $this;
     }
 

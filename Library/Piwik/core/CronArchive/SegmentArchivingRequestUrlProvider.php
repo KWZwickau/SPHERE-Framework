@@ -49,13 +49,9 @@ class SegmentArchivingRequestUrlProvider
      */
     private $logger;
 
-    public function __construct(
-        $processNewSegmentsFrom,
-        Model $segmentEditorModel = null,
-        Cache $segmentListCache = null,
-        Date $now = null,
-        LoggerInterface $logger = null
-    ) {
+    public function __construct($processNewSegmentsFrom, Model $segmentEditorModel = null, Cache $segmentListCache = null,
+                                Date $now = null, LoggerInterface $logger = null)
+    {
         $this->processNewSegmentsFrom = $processNewSegmentsFrom;
         $this->segmentEditorModel = $segmentEditorModel ?: new Model();
         $this->segmentListCache = $segmentListCache ?: new Transient();
@@ -74,10 +70,9 @@ class SegmentArchivingRequestUrlProvider
         // use the minimum allowed date as the start date
         $periodObj = PeriodFactory::build($period, $date);
         if ($periodObj->getDateStart()->getTimestamp() < $oldestDateToProcessForNewSegment->getTimestamp()) {
-            $this->logger->debug("Start date of archiving request period ({start}) is older than configured oldest date to process for the segment.",
-                array(
-                    'start' => $periodObj->getDateStart()
-                ));
+            $this->logger->debug("Start date of archiving request period ({start}) is older than configured oldest date to process for the segment.", array(
+                'start' => $periodObj->getDateStart()
+            ));
 
             $endDate = $periodObj->getDateEnd();
 
@@ -85,18 +80,16 @@ class SegmentArchivingRequestUrlProvider
             // blindly rewrite the date string, since the resulting range would be incorrect. instead we make the
             // start date equal to the end date, so less archiving occurs, and no fatal error occurs.
             if ($oldestDateToProcessForNewSegment->getTimestamp() > $endDate->getTimestamp()) {
-                $this->logger->debug("Oldest date to process is greater than end date of archiving request period ({end}), so setting oldest date to end date.",
-                    array(
-                        'end' => $endDate
-                    ));
+                $this->logger->debug("Oldest date to process is greater than end date of archiving request period ({end}), so setting oldest date to end date.", array(
+                    'end' => $endDate
+                ));
 
                 $oldestDateToProcessForNewSegment = $endDate;
             }
 
-            $date = $oldestDateToProcessForNewSegment->toString() . ',' . $endDate;
+            $date = $oldestDateToProcessForNewSegment->toString().','.$endDate;
 
-            $this->logger->debug("Archiving request date range changed to {date} w/ period {period}.",
-                array('date' => $date, 'period' => $period));
+            $this->logger->debug("Archiving request date range changed to {date} w/ period {period}.", array('date' => $date, 'period' => $period));
         }
 
         return $date;
@@ -111,8 +104,7 @@ class SegmentArchivingRequestUrlProvider
         list($segmentCreatedTime, $segmentLastEditedTime) = $this->getCreatedTimeOfSegment($idSite, $segment);
 
         if ($this->processNewSegmentsFrom == self::CREATION_TIME) {
-            $this->logger->debug("process_new_segments_from set to segment_creation_time, oldest date to process is {time}",
-                array('time' => $segmentCreatedTime));
+            $this->logger->debug("process_new_segments_from set to segment_creation_time, oldest date to process is {time}", array('time' => $segmentCreatedTime));
 
             return $segmentCreatedTime;
         } elseif ($this->processNewSegmentsFrom == self::LAST_EDIT_TIME) {
@@ -134,8 +126,7 @@ class SegmentArchivingRequestUrlProvider
             list($lastDate, $lastPeriod) = Range::getDateXPeriodsAgo($lastN, $segmentCreatedTime, 'day');
             $result = Date::factory($lastDate);
 
-            $this->logger->debug("process_new_segments_from set to last{N}, oldest date to process is {time}",
-                array('N' => $lastN, 'time' => $result));
+            $this->logger->debug("process_new_segments_from set to last{N}, oldest date to process is {time}", array('N' => $lastN, 'time' => $result));
 
             return $result;
         } else {
@@ -212,6 +203,6 @@ class SegmentArchivingRequestUrlProvider
     private function isSegmentForSite($segment, $idSite)
     {
         return $segment['enable_only_idsite'] == 0
-        || $segment['enable_only_idsite'] == $idSite;
+            || $segment['enable_only_idsite'] == $idSite;
     }
 }

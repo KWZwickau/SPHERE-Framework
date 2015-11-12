@@ -104,42 +104,6 @@ class Zend_Validate_PostCode extends Zend_Validate_Abstract
     }
 
     /**
-     * Returns the set postal code format
-     *
-     * @return string
-     */
-    public function getFormat()
-    {
-        return $this->_format;
-    }
-
-    /**
-     * Sets a self defined postal format as regex
-     *
-     * @param string $format
-     * @throws Zend_Validate_Exception On empty format
-     * @return Zend_Validate_PostCode  Provides fluid interface
-     */
-    public function setFormat($format)
-    {
-        if (empty($format) || !is_string($format)) {
-            // require_once 'Zend/Validate/Exception.php';
-            throw new Zend_Validate_Exception("A postcode-format string has to be given for validation");
-        }
-
-        if ($format[0] !== '/') {
-            $format = '/^' . $format;
-        }
-
-        if ($format[strlen($format) - 1] !== '/') {
-            $format .= '$/';
-        }
-
-        $this->_format = $format;
-        return $this;
-    }
-
-    /**
      * Returns the set locale
      *
      * @return string|Zend_Locale The set locale
@@ -180,6 +144,42 @@ class Zend_Validate_PostCode extends Zend_Validate_Abstract
         }
 
         $this->setFormat($format);
+        return $this;
+    }
+
+    /**
+     * Returns the set postal code format
+     *
+     * @return string
+     */
+    public function getFormat()
+    {
+        return $this->_format;
+    }
+
+    /**
+     * Sets a self defined postal format as regex
+     *
+     * @param string $format
+     * @throws Zend_Validate_Exception On empty format
+     * @return Zend_Validate_PostCode  Provides fluid interface
+     */
+    public function setFormat($format)
+    {
+        if (empty($format) || !is_string($format)) {
+            // require_once 'Zend/Validate/Exception.php';
+            throw new Zend_Validate_Exception("A postcode-format string has to be given for validation");
+        }
+
+        if ($format[0] !== '/') {
+            $format = '/^' . $format;
+        }
+
+        if ($format[strlen($format) - 1] !== '/') {
+            $format .= '$/';
+        }
+
+        $this->_format = $format;
         return $this;
     }
 

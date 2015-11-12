@@ -11,27 +11,15 @@ namespace Piwik\Updates;
 use Piwik\Common;
 use Piwik\Db;
 use Piwik\Piwik;
-use Piwik\Plugins\Dashboard\Model as DashboardModel;
 use Piwik\Updater;
 use Piwik\Updates;
+use Piwik\Plugins\Dashboard\Model as DashboardModel;
 
 /**
  * Update for version 2.11.0-b2.
  */
 class Updates_2_11_0_b2 extends Updates
 {
-
-    public function doUpdate(Updater $updater)
-    {
-        $pluginManager = \Piwik\Plugin\Manager::getInstance();
-
-        try {
-            $pluginManager->activatePlugin('Ecommerce');
-        } catch (\Exception $e) {
-        }
-
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
 
     public function getMigrationQueries(Updater $updater)
     {
@@ -61,5 +49,17 @@ class Updates_2_11_0_b2 extends Updates
         }
 
         return $sqls;
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $pluginManager = \Piwik\Plugin\Manager::getInstance();
+
+        try {
+            $pluginManager->activatePlugin('Ecommerce');
+        } catch (\Exception $e) {
+        }
+
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

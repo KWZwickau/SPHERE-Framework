@@ -14,17 +14,6 @@ use Piwik\Plugins\UserCountry\Columns\Region;
 
 class GetRegion extends Base
 {
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->show_exclude_low_population = false;
-        $view->config->documentation = $this->documentation;
-        $view->config->addTranslation('label', $this->dimension->getName());
-
-        $view->requestConfig->filter_limit = 5;
-
-        $this->checkIfNoDataForGeoIpReport($view);
-    }
-
     protected function init()
     {
         parent::init();
@@ -36,6 +25,17 @@ class GetRegion extends Base
         $this->order = 7;
         $this->widgetTitle = Piwik::translate('UserCountry_WidgetLocation')
                            . ' (' . Piwik::translate('UserCountry_Region') . ')';
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->show_exclude_low_population = false;
+        $view->config->documentation = $this->documentation;
+        $view->config->addTranslation('label', $this->dimension->getName());
+
+        $view->requestConfig->filter_limit = 5;
+
+        $this->checkIfNoDataForGeoIpReport($view);
     }
 
 }

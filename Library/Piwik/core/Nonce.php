@@ -55,27 +55,6 @@ class Nonce
     }
 
     /**
-     * Verifies and discards a nonce.
-     *
-     * @param string $nonceName The nonce's unique ID. See {@link getNonce()}.
-     * @param string|null $nonce The nonce from the client. If `null`, the value from the
-     *                           **nonce** query parameter is used.
-     * @throws \Exception if the nonce is invalid. See {@link verifyNonce()}.
-     */
-    public static function checkNonce($nonceName, $nonce = null)
-    {
-        if ($nonce === null) {
-            $nonce = Common::getRequestVar('nonce', null, 'string');
-        }
-
-        if (!self::verifyNonce($nonceName, $nonce)) {
-            throw new \Exception(Piwik::translate('General_ExceptionNonceMismatch'));
-        }
-
-        self::discardNonce($nonceName);
-    }
-
-    /**
      * Returns if a nonce is valid and comes from a valid request.
      *
      * A nonce is valid if it matches the current nonce and if the current nonce
@@ -114,6 +93,17 @@ class Nonce
         }
 
         return true;
+    }
+
+    /**
+     * Force expiration of the current nonce.
+     *
+     * @param string $id The unique nonce ID.
+     */
+    public static function discardNonce($id)
+    {
+        $ns = new SessionNamespace($id);
+        $ns->unsetAll();
     }
 
     /**
@@ -165,13 +155,23 @@ class Nonce
     }
 
     /**
-     * Force expiration of the current nonce.
+     * Verifies and discards a nonce.
      *
-     * @param string $id The unique nonce ID.
+     * @param string $nonceName The nonce's unique ID. See {@link getNonce()}.
+     * @param string|null $nonce The nonce from the client. If `null`, the value from the
+     *                           **nonce** query parameter is used.
+     * @throws \Exception if the nonce is invalid. See {@link verifyNonce()}.
      */
-    public static function discardNonce($id)
+    public static function checkNonce($nonceName, $nonce = null)
     {
-        $ns = new SessionNamespace($id);
-        $ns->unsetAll();
+        if ($nonce === null) {
+            $nonce = Common::getRequestVar('nonce', null, 'string');
+        }
+
+        if (!self::verifyNonce($nonceName, $nonce)) {
+            throw new \Exception(Piwik::translate('General_ExceptionNonceMismatch'));
+        }
+
+        self::discardNonce($nonceName);
     }
 }

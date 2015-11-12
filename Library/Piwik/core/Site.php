@@ -44,14 +44,16 @@ use Piwik\Plugins\SitesManager\API;
 class Site
 {
     const DEFAULT_SITE_TYPE = "website";
-    /**
-     * @var array
-     */
-    protected static $infoSites = array();
+
     /**
      * @var int|null
      */
     protected $id = null;
+
+    /**
+     * @var array
+     */
+    protected static $infoSites = array();
 
     /**
      * Constructor.
@@ -65,25 +67,6 @@ class Site
             $site = API::getInstance()->getSiteFromId($this->id);
             self::setSiteFromArray($this->id, $site);
         }
-    }
-
-    /**
-     * Sets a site information in memory (statically cached).
-     *
-     * Plugins can filter the website attributes before it is cached, eg. to change the website name,
-     * creation date, etc.
-     *
-     * @param $idSite
-     * @param $infoSite
-     * @throws Exception if website or idsite is invalid
-     */
-    public static function setSiteFromArray($idSite, $infoSite)
-    {
-        if (empty($idSite) || empty($infoSite)) {
-            throw new UnexpectedWebsiteFoundException("An unexpected website was found in the request: website id was set to '$idSite' .");
-        }
-
-        self::$infoSites[$idSite] = $infoSite;
     }
 
     /**
@@ -127,6 +110,25 @@ class Site
          * @ignore
          */
         Piwik::postEvent('Site.setSites', array(&$sites));
+    }
+
+    /**
+     * Sets a site information in memory (statically cached).
+     *
+     * Plugins can filter the website attributes before it is cached, eg. to change the website name,
+     * creation date, etc.
+     *
+     * @param $idSite
+     * @param $infoSite
+     * @throws Exception if website or idsite is invalid
+     */
+    public static function setSiteFromArray($idSite, $infoSite)
+    {
+        if (empty($idSite) || empty($infoSite)) {
+            throw new UnexpectedWebsiteFoundException("An unexpected website was found in the request: website id was set to '$idSite' .");
+        }
+
+        self::$infoSites[$idSite] = $infoSite;
     }
 
     /**
@@ -188,248 +190,6 @@ class Site
     }
 
     /**
-     * Checks the given string for valid site IDs and returns them as an array.
-     *
-     * @param string|array $ids Comma separated idSite list, eg, `'1,2,3,4'` or an array of IDs, eg,
-     *                          `array(1, 2, 3, 4)`.
-     * @param bool|string $_restrictSitesToLogin Implementation detail. Used only when running as a scheduled task.
-     * @return array An array of valid, unique integers.
-     */
-    public static function getIdSitesFromIdSitesString($ids, $_restrictSitesToLogin = false)
-    {
-        if ($ids === 'all') {
-            return API::getInstance()->getSitesIdWithAtLeastViewAccess($_restrictSitesToLogin);
-        }
-
-        if (is_bool($ids)) {
-            return array();
-        }
-        if (!is_array($ids)) {
-            $ids = explode(',', $ids);
-        }
-        $validIds = array();
-        foreach ($ids as $id) {
-            $id = trim($id);
-            if (!empty($id) && is_numeric($id) && $id > 0) {
-                $validIds[] = $id;
-            }
-        }
-        $validIds = array_filter($validIds);
-        $validIds = array_unique($validIds);
-
-        return $validIds;
-    }
-
-    /**
-     * Returns the timezone of the site with the specified ID.
-     *
-     * @param int $idsite The site ID.
-     * @return string
-     */
-    public static function getTimezoneFor($idsite)
-    {
-        return self::getFor($idsite, 'timezone');
-    }
-
-    /**
-     * Utility function. Returns the value of the specified field for the
-     * site with the specified ID.
-     *
-     * @param int $idsite The ID of the site whose data is being accessed.
-     * @param string $field The name of the field to get.
-     * @return string
-     */
-    protected static function getFor($idsite, $field)
-    {
-        if (!isset(self::$infoSites[$idsite])) {
-            $site = API::getInstance()->getSiteFromId($idsite);
-            self::setSiteFromArray($idsite, $site);
-        }
-
-        return self::$infoSites[$idsite][$field];
-    }
-
-    /**
-     * Returns the creation date of the site with the specified ID.
-     *
-     * @param int $idsite The site ID.
-     * @return string
-     */
-    public static function getCreationDateFor($idsite)
-    {
-        return self::getFor($idsite, 'ts_created');
-    }
-
-    /**
-     * Clears the site data cache.
-     *
-     * See also {@link setSites()} and {@link setSitesFromArray()}.
-     */
-    public static function clearCache()
-    {
-        self::$infoSites = array();
-    }
-
-    /**
-     * Returns all websites pre-cached
-     *
-     * @ignore
-     */
-    public static function getSites()
-    {
-        return self::$infoSites;
-    }
-
-    /**
-     * @ignore
-     */
-    public static function getSite($idsite)
-    {
-        $idsite = (int)$idsite;
-
-        if (!isset(self::$infoSites[$idsite])) {
-            $site = API::getInstance()->getSiteFromId($idsite);
-            self::setSiteFromArray($idsite, $site);
-        }
-
-        return self::$infoSites[$idsite];
-    }
-
-    /**
-     * Returns the name of the site with the specified ID.
-     *
-     * @param int $idsite The site ID.
-     * @return string
-     */
-    public static function getNameFor($idsite)
-    {
-        return self::getFor($idsite, 'name');
-    }
-
-    /**
-     * Returns the group of the site with the specified ID.
-     *
-     * @param int $idsite The site ID.
-     * @return string
-     */
-    public static function getGroupFor($idsite)
-    {
-        return self::getFor($idsite, 'group');
-    }
-
-    /**
-     * Returns the type of the site with the specified ID.
-     *
-     * @param $idsite
-     * @return string
-     */
-    public static function getTypeFor($idsite)
-    {
-        return self::getFor($idsite, 'type');
-    }
-
-    /**
-     * Returns the url for the site with the specified ID.
-     *
-     * @param int $idsite The site ID.
-     * @return string
-     */
-    public static function getMainUrlFor($idsite)
-    {
-        return self::getFor($idsite, 'main_url');
-    }
-
-    /**
-     * Returns whether the site with the specified ID is ecommerce enabled or not.
-     *
-     * @param int $idsite The site ID.
-     * @return string
-     */
-    public static function isEcommerceEnabledFor($idsite)
-    {
-        return self::getFor($idsite, 'ecommerce') == 1;
-    }
-
-    /**
-     * Returns whether the site with the specified ID is Site Search enabled.
-     *
-     * @param int $idsite The site ID.
-     * @return string
-     */
-    public static function isSiteSearchEnabledFor($idsite)
-    {
-        return self::getFor($idsite, 'sitesearch') == 1;
-    }
-
-    /**
-     * Returns the currency of the site with the specified ID.
-     *
-     * @param int $idsite The site ID.
-     * @return string
-     */
-    public static function getCurrencySymbolFor($idsite)
-    {
-        $currency = self::getCurrencyFor($idsite);
-        $symbols  = self::getCurrencyList();
-
-        if (isset($symbols[$currency])) {
-            return $symbols[$currency][0];
-        }
-
-        return '';
-    }
-
-    /**
-     * Returns the currency of the site with the specified ID.
-     *
-     * @param int $idsite The site ID.
-     * @return string
-     */
-    public static function getCurrencyFor($idsite)
-    {
-        return self::getFor($idsite, 'currency');
-    }
-
-    /**
-     * Returns the list of all known currency symbols.
-     *
-     * @return array An array mapping currency codes to their respective currency symbols
-     *               and a description, eg, `array('USD' => array('$', 'US dollar'))`.
-     *
-     * @deprecated Use Piwik\Intl\Data\Provider\CurrencyDataProvider instead.
-     * @see \Piwik\Intl\Data\Provider\CurrencyDataProvider::getCurrencyList()
-     * @api
-     */
-    public static function getCurrencyList()
-    {
-        /** @var CurrencyDataProvider $dataProvider */
-        $dataProvider = StaticContainer::get('Piwik\Intl\Data\Provider\CurrencyDataProvider');
-        return $dataProvider->getCurrencyList();
-    }
-
-    /**
-     * Returns the excluded IP addresses of the site with the specified ID.
-     *
-     * @param int $idsite The site ID.
-     * @return string
-     */
-    public static function getExcludedIpsFor($idsite)
-    {
-        return self::getFor($idsite, 'excluded_ips');
-    }
-
-    /**
-     * Returns the excluded query parameters for the site with the specified ID.
-     *
-     * @param int $idsite The site ID.
-     * @return string
-     */
-    public static function getExcludedQueryParametersFor($idsite)
-    {
-        return self::getFor($idsite, 'excluded_parameters');
-    }
-
-    /**
      * Returns a string representation of the site this instance references.
      *
      * Useful for debugging.
@@ -448,17 +208,6 @@ class Site
     }
 
     /**
-     * Returns the id of the site.
-     *
-     * @return int
-     * @throws Exception if data for the site cannot be found.
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
      * Returns the name of the site.
      *
      * @return string
@@ -467,6 +216,28 @@ class Site
     public function getName()
     {
         return $this->get('name');
+    }
+
+    /**
+     * Returns the main url of the site.
+     *
+     * @return string
+     * @throws Exception if data for the site cannot be found.
+     */
+    public function getMainUrl()
+    {
+        return $this->get('main_url');
+    }
+
+    /**
+     * Returns the id of the site.
+     *
+     * @return int
+     * @throws Exception if data for the site cannot be found.
+     */
+    public function getId()
+    {
+        return $this->id;
     }
 
     /**
@@ -494,25 +265,26 @@ class Site
     }
 
     /**
-     * Returns the main url of the site.
+     * Returns the website type (by default `"website"`, which means it is a single website).
      *
      * @return string
-     * @throws Exception if data for the site cannot be found.
      */
-    public function getMainUrl()
+    public function getType()
     {
-        return $this->get('main_url');
+        $type = $this->get('type');
+        return $type;
     }
 
     /**
-     * Returns the excluded ips of the site.
+     * Returns the creation date of the site.
      *
-     * @return string
+     * @return Date
      * @throws Exception if data for the site cannot be found.
      */
-    public function getExcludedIps()
+    public function getCreationDate()
     {
-        return $this->get('excluded_ips');
+        $date = $this->get('ts_created');
+        return Date::factory($date);
     }
 
     /**
@@ -538,26 +310,14 @@ class Site
     }
 
     /**
-     * Returns the creation date of the site.
-     *
-     * @return Date
-     * @throws Exception if data for the site cannot be found.
-     */
-    public function getCreationDate()
-    {
-        $date = $this->get('ts_created');
-        return Date::factory($date);
-    }
-
-    /**
-     * Returns the website type (by default `"website"`, which means it is a single website).
+     * Returns the excluded ips of the site.
      *
      * @return string
+     * @throws Exception if data for the site cannot be found.
      */
-    public function getType()
+    public function getExcludedIps()
     {
-        $type = $this->get('type');
-        return $type;
+        return $this->get('excluded_ips');
     }
 
     /**
@@ -613,5 +373,248 @@ class Site
     public function isSiteSearchEnabled()
     {
         return $this->get('sitesearch') == 1;
+    }
+
+    /**
+     * Checks the given string for valid site IDs and returns them as an array.
+     *
+     * @param string|array $ids Comma separated idSite list, eg, `'1,2,3,4'` or an array of IDs, eg,
+     *                          `array(1, 2, 3, 4)`.
+     * @param bool|string $_restrictSitesToLogin Implementation detail. Used only when running as a scheduled task.
+     * @return array An array of valid, unique integers.
+     */
+    public static function getIdSitesFromIdSitesString($ids, $_restrictSitesToLogin = false)
+    {
+        if ($ids === 'all') {
+            return API::getInstance()->getSitesIdWithAtLeastViewAccess($_restrictSitesToLogin);
+        }
+
+        if (is_bool($ids)) {
+            return array();
+        }
+        if (!is_array($ids)) {
+            $ids = explode(',', $ids);
+        }
+        $validIds = array();
+        foreach ($ids as $id) {
+            $id = trim($id);
+            if (!empty($id) && is_numeric($id) && $id > 0) {
+                $validIds[] = $id;
+            }
+        }
+        $validIds = array_filter($validIds);
+        $validIds = array_unique($validIds);
+
+        return $validIds;
+    }
+
+    /**
+     * Clears the site data cache.
+     *
+     * See also {@link setSites()} and {@link setSitesFromArray()}.
+     */
+    public static function clearCache()
+    {
+        self::$infoSites = array();
+    }
+
+    /**
+     * Utility function. Returns the value of the specified field for the
+     * site with the specified ID.
+     *
+     * @param int $idsite The ID of the site whose data is being accessed.
+     * @param string $field The name of the field to get.
+     * @return string
+     */
+    protected static function getFor($idsite, $field)
+    {
+        if (!isset(self::$infoSites[$idsite])) {
+            $site = API::getInstance()->getSiteFromId($idsite);
+            self::setSiteFromArray($idsite, $site);
+        }
+
+        return self::$infoSites[$idsite][$field];
+    }
+
+    /**
+     * Returns all websites pre-cached
+     *
+     * @ignore
+     */
+    public static function getSites()
+    {
+        return self::$infoSites;
+    }
+
+    /**
+     * @ignore
+     */
+    public static function getSite($idsite)
+    {
+        $idsite = (int)$idsite;
+
+        if (!isset(self::$infoSites[$idsite])) {
+            $site = API::getInstance()->getSiteFromId($idsite);
+            self::setSiteFromArray($idsite, $site);
+        }
+
+        return self::$infoSites[$idsite];
+    }
+
+    /**
+     * Returns the name of the site with the specified ID.
+     *
+     * @param int $idsite The site ID.
+     * @return string
+     */
+    public static function getNameFor($idsite)
+    {
+        return self::getFor($idsite, 'name');
+    }
+
+    /**
+     * Returns the group of the site with the specified ID.
+     *
+     * @param int $idsite The site ID.
+     * @return string
+     */
+    public static function getGroupFor($idsite)
+    {
+        return self::getFor($idsite, 'group');
+    }
+
+    /**
+     * Returns the timezone of the site with the specified ID.
+     *
+     * @param int $idsite The site ID.
+     * @return string
+     */
+    public static function getTimezoneFor($idsite)
+    {
+        return self::getFor($idsite, 'timezone');
+    }
+
+    /**
+     * Returns the type of the site with the specified ID.
+     *
+     * @param $idsite
+     * @return string
+     */
+    public static function getTypeFor($idsite)
+    {
+        return self::getFor($idsite, 'type');
+    }
+
+    /**
+     * Returns the creation date of the site with the specified ID.
+     *
+     * @param int $idsite The site ID.
+     * @return string
+     */
+    public static function getCreationDateFor($idsite)
+    {
+        return self::getFor($idsite, 'ts_created');
+    }
+
+    /**
+     * Returns the url for the site with the specified ID.
+     *
+     * @param int $idsite The site ID.
+     * @return string
+     */
+    public static function getMainUrlFor($idsite)
+    {
+        return self::getFor($idsite, 'main_url');
+    }
+
+    /**
+     * Returns whether the site with the specified ID is ecommerce enabled or not.
+     *
+     * @param int $idsite The site ID.
+     * @return string
+     */
+    public static function isEcommerceEnabledFor($idsite)
+    {
+        return self::getFor($idsite, 'ecommerce') == 1;
+    }
+
+    /**
+     * Returns whether the site with the specified ID is Site Search enabled.
+     *
+     * @param int $idsite The site ID.
+     * @return string
+     */
+    public static function isSiteSearchEnabledFor($idsite)
+    {
+        return self::getFor($idsite, 'sitesearch') == 1;
+    }
+
+    /**
+     * Returns the currency of the site with the specified ID.
+     *
+     * @param int $idsite The site ID.
+     * @return string
+     */
+    public static function getCurrencyFor($idsite)
+    {
+        return self::getFor($idsite, 'currency');
+    }
+
+    /**
+     * Returns the currency of the site with the specified ID.
+     *
+     * @param int $idsite The site ID.
+     * @return string
+     */
+    public static function getCurrencySymbolFor($idsite)
+    {
+        $currency = self::getCurrencyFor($idsite);
+        $symbols  = self::getCurrencyList();
+
+        if (isset($symbols[$currency])) {
+            return $symbols[$currency][0];
+        }
+
+        return '';
+    }
+
+
+    /**
+     * Returns the list of all known currency symbols.
+     *
+     * @return array An array mapping currency codes to their respective currency symbols
+     *               and a description, eg, `array('USD' => array('$', 'US dollar'))`.
+     *
+     * @deprecated Use Piwik\Intl\Data\Provider\CurrencyDataProvider instead.
+     * @see \Piwik\Intl\Data\Provider\CurrencyDataProvider::getCurrencyList()
+     * @api
+     */
+    public static function getCurrencyList()
+    {
+        /** @var CurrencyDataProvider $dataProvider */
+        $dataProvider = StaticContainer::get('Piwik\Intl\Data\Provider\CurrencyDataProvider');
+        return $dataProvider->getCurrencyList();
+    }
+
+    /**
+     * Returns the excluded IP addresses of the site with the specified ID.
+     *
+     * @param int $idsite The site ID.
+     * @return string
+     */
+    public static function getExcludedIpsFor($idsite)
+    {
+        return self::getFor($idsite, 'excluded_ips');
+    }
+
+    /**
+     * Returns the excluded query parameters for the site with the specified ID.
+     *
+     * @param int $idsite The site ID.
+     * @return string
+     */
+    public static function getExcludedQueryParametersFor($idsite)
+    {
+        return self::getFor($idsite, 'excluded_parameters');
     }
 }

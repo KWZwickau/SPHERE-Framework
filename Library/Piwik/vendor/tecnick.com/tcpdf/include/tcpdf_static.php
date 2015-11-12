@@ -52,46 +52,60 @@
 class TCPDF_STATIC {
 
 	/**
+	 * Current TCPDF version.
+	 * @private static
+	 */
+	private static $tcpdf_version = '6.2.11';
+
+	/**
 	 * String alias for total number of pages.
 	 * @public static
 	 */
 	public static $alias_tot_pages = '{:ptp:}';
+
 	/**
 	 * String alias for page number.
 	 * @public static
 	 */
 	public static $alias_num_page = '{:pnp:}';
+
 	/**
 	 * String alias for total number of pages in a single group.
 	 * @public static
 	 */
 	public static $alias_group_tot_pages = '{:ptg:}';
+
 	/**
 	 * String alias for group page number.
 	 * @public static
 	 */
 	public static $alias_group_num_page = '{:png:}';
+
 	/**
 	 * String alias for right shift compensation used to correctly align page numbers on the right.
 	 * @public static
 	 */
 	public static $alias_right_shift = '{rsc:';
+
 	/**
 	 * Encryption padding string.
 	 * @public static
 	 */
 	public static $enc_padding = "\x28\xBF\x4E\x5E\x4E\x75\x8A\x41\x64\x00\x4E\x56\xFF\xFA\x01\x08\x2E\x2E\x00\xB6\xD0\x68\x3E\x80\x2F\x0C\xA9\xFE\x64\x53\x69\x7A";
+
 	/**
 	 * ByteRange placemark used during digital signature process.
 	 * @since 4.6.028 (2009-08-25)
 	 * @public static
 	 */
 	public static $byterange_string = '/ByteRange[0 ********** ********** **********]';
+
 	/**
 	 * Array page boxes names
 	 * @public static
 	 */
 	public static $pageboxes = array('MediaBox', 'CropBox', 'BleedBox', 'TrimBox', 'ArtBox');
+	
 	/**
 	 * Array of page formats
 	 * measures are calculated in this way: (inches * 72) or (millimeters * 72 / 25.4)
@@ -447,23 +461,8 @@ class TCPDF_STATIC {
 		'FR_TELLIERE'            => array(  963.780,  1247.244), // = (  340 x 440  ) mm  = ( 13.39 x 17.32 ) in
 		'FR_POT'                 => array(  878.740,  1133.858), // = (  310 x 400  ) mm  = ( 12.20 x 15.75 ) in
 	);
-	/**
-	 * Current TCPDF version.
-	 * @private static
-	 */
-	private static $tcpdf_version = '6.2.11';
 
 	// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-	/**
-	 * Return the current TCPDF producer.
-	 * @return TCPDF producer string
-	 * @since 6.0.000 (2013-03-16)
-	 * @public static
-	 */
-	public static function getTCPDFProducer() {
-		return "\x54\x43\x50\x44\x46\x20".self::getTCPDFVersion()."\x20\x28\x68\x74\x74\x70\x3a\x2f\x2f\x77\x77\x77\x2e\x74\x63\x70\x64\x66\x2e\x6f\x72\x67\x29";
-	}
 
 	/**
 	 * Return the current TCPDF version.
@@ -473,6 +472,16 @@ class TCPDF_STATIC {
 	 */
 	public static function getTCPDFVersion() {
 		return self::$tcpdf_version;
+	}
+
+	/**
+	 * Return the current TCPDF producer.
+	 * @return TCPDF producer string
+	 * @since 6.0.000 (2013-03-16)
+	 * @public static
+	 */
+	public static function getTCPDFProducer() {
+		return "\x54\x43\x50\x44\x46\x20".self::getTCPDFVersion()."\x20\x28\x68\x74\x74\x70\x3a\x2f\x2f\x77\x77\x77\x2e\x74\x63\x70\x64\x66\x2e\x6f\x72\x67\x29";
 	}
 
 	/**
@@ -773,6 +782,17 @@ class TCPDF_STATIC {
 	}
 
 	/**
+	 * Determine whether a string is empty.
+	 * @param $str (string) string to be checked
+	 * @return boolean true if string is empty
+	 * @since 4.5.044 (2009-04-16)
+	 * @public static
+	 */
+	public static function empty_string($str) {
+		return (is_null($str) OR (is_string($str) AND (strlen($str) == 0)));
+	}
+
+	/**
 	 * Returns a temporary filename for caching object on filesystem.
 	 * @param $type (string) Type of file (name of the subdir on the tcpdf cache folder).
 	 * @param $file_id (string) TCPDF file_id.
@@ -782,30 +802,6 @@ class TCPDF_STATIC {
 	 */
 	public static function getObjFilename($type='tmp', $file_id='') {
 		return tempnam(K_PATH_CACHE, '__tcpdf_'.$file_id.'_'.$type.'_'.md5(TCPDF_STATIC::getRandomSeed()).'_');
-	}
-
-	/**
-	 * Returns a string containing random data to be used as a seed for encryption methods.
-	 * @param $seed (string) starting seed value
-	 * @return string containing random data
-	 * @author Nicola Asuni
-	 * @since 5.9.006 (2010-10-19)
-	 * @public static
-	 */
-	public static function getRandomSeed($seed='') {
-		$rnd = uniqid(rand().microtime(true), true);
-		if (function_exists('posix_getpid')) {
-			$rnd .= posix_getpid();
-		}
-		if (function_exists('openssl_random_pseudo_bytes') AND (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN')) {
-			// this is not used on windows systems because it is very slow for a know bug
-			$rnd .= openssl_random_pseudo_bytes(512);
-		} else {
-			for ($i = 0; $i < 23; ++$i) {
-				$rnd .= uniqid('', true);
-			}
-		}
-		return $rnd.$seed.__FILE__.serialize($_SERVER).microtime(true);
 	}
 
 	/**
@@ -923,6 +919,20 @@ class TCPDF_STATIC {
 	}
 
 	/**
+	 * Get USHORT from string (Big Endian 16-bit unsigned integer).
+	 * @param $str (string) string from where to extract value
+	 * @param $offset (int) point from where to read the data
+	 * @return int 16 bit value
+	 * @author Nicola Asuni
+	 * @since 5.2.000 (2010-06-02)
+	 * @public static
+	 */
+	public static function _getUSHORT($str, $offset) {
+		$v = unpack('ni', substr($str, $offset, 2));
+		return $v['i'];
+	}
+
+	/**
 	 * Get SHORT from string (Big Endian 16-bit signed integer).
 	 * @param $str (string) String from where to extract value.
 	 * @param $offset (int) Point from where to read the data.
@@ -934,6 +944,23 @@ class TCPDF_STATIC {
 	public static function _getSHORT($str, $offset) {
 		$v = unpack('si', substr($str, $offset, 2));
 		return $v['i'];
+	}
+
+	/**
+	 * Get FWORD from string (Big Endian 16-bit signed integer).
+	 * @param $str (string) String from where to extract value.
+	 * @param $offset (int) Point from where to read the data.
+	 * @return int 16 bit value
+	 * @author Nicola Asuni
+	 * @since 5.9.123 (2011-09-30)
+	 * @public static
+	 */
+	public static function _getFWORD($str, $offset) {
+		$v = self::_getUSHORT($str, $offset);
+		if ($v > 0x7fff) {
+			$v -= 0x10000;
+		}
+		return $v;
 	}
 
 	/**
@@ -951,20 +978,6 @@ class TCPDF_STATIC {
 	}
 
 	/**
-	 * Get USHORT from string (Big Endian 16-bit unsigned integer).
-	 * @param $str (string) string from where to extract value
-	 * @param $offset (int) point from where to read the data
-	 * @return int 16 bit value
-	 * @author Nicola Asuni
-	 * @since 5.2.000 (2010-06-02)
-	 * @public static
-	 */
-	public static function _getUSHORT($str, $offset) {
-		$v = unpack('ni', substr($str, $offset, 2));
-		return $v['i'];
-	}
-
-	/**
 	 * Get FIXED from string (32-bit signed fixed-point number (16.16).
 	 * @param $str (string) string from where to extract value
 	 * @param $offset (int) point from where to read the data
@@ -979,23 +992,6 @@ class TCPDF_STATIC {
 		// fraction
 		$f = self::_getUSHORT($str, ($offset + 2));
 		$v = floatval(''.$m.'.'.$f.'');
-		return $v;
-	}
-
-	/**
-	 * Get FWORD from string (Big Endian 16-bit signed integer).
-	 * @param $str (string) String from where to extract value.
-	 * @param $offset (int) Point from where to read the data.
-	 * @return int 16 bit value
-	 * @author Nicola Asuni
-	 * @since 5.9.123 (2011-09-30)
-	 * @public static
-	 */
-	public static function _getFWORD($str, $offset) {
-		$v = self::_getUSHORT($str, $offset);
-		if ($v > 0x7fff) {
-			$v -= 0x10000;
-		}
 		return $v;
 	}
 
@@ -1043,6 +1039,30 @@ class TCPDF_STATIC {
 	public static function _freadint($f) {
 		$a = unpack('Ni', fread($f, 4));
 		return $a['i'];
+	}
+
+	/**
+	 * Returns a string containing random data to be used as a seed for encryption methods.
+	 * @param $seed (string) starting seed value
+	 * @return string containing random data
+	 * @author Nicola Asuni
+	 * @since 5.9.006 (2010-10-19)
+	 * @public static
+	 */
+	public static function getRandomSeed($seed='') {
+		$rnd = uniqid(rand().microtime(true), true);
+		if (function_exists('posix_getpid')) {
+			$rnd .= posix_getpid();
+		}
+		if (function_exists('openssl_random_pseudo_bytes') AND (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN')) {
+			// this is not used on windows systems because it is very slow for a know bug
+			$rnd .= openssl_random_pseudo_bytes(512);
+		} else {
+			for ($i = 0; $i < 23; ++$i) {
+				$rnd .= uniqid('', true);
+			}
+		}
+		return $rnd.$seed.__FILE__.serialize($_SERVER).microtime(true);
 	}
 
 	/**
@@ -1819,53 +1839,6 @@ class TCPDF_STATIC {
 	}
 
 	/**
-	 * Returns the styles array that apply for the selected HTML tag.
-	 * @param $dom (array) array of HTML tags and properties
-	 * @param $key (int) key of the current HTML tag
-	 * @param $css (array) array of CSS properties
-	 * @return array containing CSS properties
-	 * @since 5.1.000 (2010-05-25)
-	 * @public static
-	 */
-	public static function getCSSdataArray($dom, $key, $css) {
-		$cssarray = array(); // style to be returned
-		// get parent CSS selectors
-		$selectors = array();
-		if (isset($dom[($dom[$key]['parent'])]['csssel'])) {
-			$selectors = $dom[($dom[$key]['parent'])]['csssel'];
-		}
-		// get all styles that apply
-		foreach($css as $selector => $style) {
-			$pos = strpos($selector, ' ');
-			// get specificity
-			$specificity = substr($selector, 0, $pos);
-			// remove specificity
-			$selector = substr($selector, $pos);
-			// check if this selector apply to current tag
-			if (self::isValidCSSSelectorForTag($dom, $key, $selector)) {
-				if (!in_array($selector, $selectors)) {
-					// add style if not already added on parent selector
-					$cssarray[] = array('k' => $selector, 's' => $specificity, 'c' => $style);
-					$selectors[] = $selector;
-				}
-			}
-		}
-		if (isset($dom[$key]['attribute']['style'])) {
-			// attach inline style (latest properties have high priority)
-			$cssarray[] = array('k' => '', 's' => '1000', 'c' => $dom[$key]['attribute']['style']);
-		}
-		// order the css array to account for specificity
-		$cssordered = array();
-		foreach ($cssarray as $key => $val) {
-			$skey = sprintf('%04d', $key);
-			$cssordered[$val['s'].'_'.$skey] = $val;
-		}
-		// sort selectors alphabetically to account for specificity
-		ksort($cssordered, SORT_STRING);
-		return array($selectors, $cssordered);
-	}
-
-	/**
 	 * Returns true if the CSS selector is valid for the selected HTML tag
 	 * @param $dom (array) array of HTML tags and properties
 	 * @param $key (int) key of the current HTML tag
@@ -2026,6 +1999,53 @@ class TCPDF_STATIC {
 	}
 
 	/**
+	 * Returns the styles array that apply for the selected HTML tag.
+	 * @param $dom (array) array of HTML tags and properties
+	 * @param $key (int) key of the current HTML tag
+	 * @param $css (array) array of CSS properties
+	 * @return array containing CSS properties
+	 * @since 5.1.000 (2010-05-25)
+	 * @public static
+	 */
+	public static function getCSSdataArray($dom, $key, $css) {
+		$cssarray = array(); // style to be returned
+		// get parent CSS selectors
+		$selectors = array();
+		if (isset($dom[($dom[$key]['parent'])]['csssel'])) {
+			$selectors = $dom[($dom[$key]['parent'])]['csssel'];
+		}
+		// get all styles that apply
+		foreach($css as $selector => $style) {
+			$pos = strpos($selector, ' ');
+			// get specificity
+			$specificity = substr($selector, 0, $pos);
+			// remove specificity
+			$selector = substr($selector, $pos);
+			// check if this selector apply to current tag
+			if (self::isValidCSSSelectorForTag($dom, $key, $selector)) {
+				if (!in_array($selector, $selectors)) {
+					// add style if not already added on parent selector
+					$cssarray[] = array('k' => $selector, 's' => $specificity, 'c' => $style);
+					$selectors[] = $selector;
+				}
+			}
+		}
+		if (isset($dom[$key]['attribute']['style'])) {
+			// attach inline style (latest properties have high priority)
+			$cssarray[] = array('k' => '', 's' => '1000', 'c' => $dom[$key]['attribute']['style']);
+		}
+		// order the css array to account for specificity
+		$cssordered = array();
+		foreach ($cssarray as $key => $val) {
+			$skey = sprintf('%04d', $key);
+			$cssordered[$val['s'].'_'.$skey] = $val;
+		}
+		// sort selectors alphabetically to account for specificity
+		ksort($cssordered, SORT_STRING);
+		return array($selectors, $cssordered);
+	}
+
+	/**
 	 * Compact CSS data array into single string.
 	 * @param $css (array) array of CSS properties
 	 * @return string containing merged CSS properties
@@ -2170,17 +2190,6 @@ class TCPDF_STATIC {
 	}
 
 	/**
-	 * Determine whether a string is empty.
-	 * @param $str (string) string to be checked
-	 * @return boolean true if string is empty
-	 * @since 4.5.044 (2009-04-16)
-	 * @public static
-	 */
-	public static function empty_string($str) {
-		return (is_null($str) OR (is_string($str) AND (strlen($str) == 0)));
-	}
-
-	/**
 	 * Get the Path-Painting Operators.
 	 * @param $style (string) Style of rendering. Possible values are:
 	 * <ul>
@@ -2269,6 +2278,26 @@ class TCPDF_STATIC {
 			}
 		}
 		return $op;
+	}
+
+	/**
+	 * Get the product of two SVG tranformation matrices
+	 * @param $ta (array) first SVG tranformation matrix
+	 * @param $tb (array) second SVG tranformation matrix
+	 * @return transformation array
+	 * @author Nicola Asuni
+	 * @since 5.0.000 (2010-05-02)
+	 * @public static
+	 */
+	public static function getTransformationMatrixProduct($ta, $tb) {
+		$tm = array();
+		$tm[0] = ($ta[0] * $tb[0]) + ($ta[2] * $tb[1]);
+		$tm[1] = ($ta[1] * $tb[0]) + ($ta[3] * $tb[1]);
+		$tm[2] = ($ta[0] * $tb[2]) + ($ta[2] * $tb[3]);
+		$tm[3] = ($ta[1] * $tb[2]) + ($ta[3] * $tb[3]);
+		$tm[4] = ($ta[0] * $tb[4]) + ($ta[2] * $tb[5]) + $ta[4];
+		$tm[5] = ($ta[1] * $tb[4]) + ($ta[3] * $tb[5]) + $ta[5];
+		return $tm;
 	}
 
 	/**
@@ -2367,26 +2396,6 @@ class TCPDF_STATIC {
 	}
 
 	/**
-	 * Get the product of two SVG tranformation matrices
-	 * @param $ta (array) first SVG tranformation matrix
-	 * @param $tb (array) second SVG tranformation matrix
-	 * @return transformation array
-	 * @author Nicola Asuni
-	 * @since 5.0.000 (2010-05-02)
-	 * @public static
-	 */
-	public static function getTransformationMatrixProduct($ta, $tb) {
-		$tm = array();
-		$tm[0] = ($ta[0] * $tb[0]) + ($ta[2] * $tb[1]);
-		$tm[1] = ($ta[1] * $tb[0]) + ($ta[3] * $tb[1]);
-		$tm[2] = ($ta[0] * $tb[2]) + ($ta[2] * $tb[3]);
-		$tm[3] = ($ta[1] * $tb[2]) + ($ta[3] * $tb[3]);
-		$tm[4] = ($ta[0] * $tb[4]) + ($ta[2] * $tb[5]) + $ta[4];
-		$tm[5] = ($ta[1] * $tb[4]) + ($ta[3] * $tb[5]) + $ta[5];
-		return $tm;
-	}
-
-	/**
 	 * Returns the angle in radiants between two vectors
 	 * @param $x1 (int) X coordinate of first vector point
 	 * @param $y1 (int) Y coordinate of first vector point
@@ -2423,14 +2432,14 @@ class TCPDF_STATIC {
 	 * @since 6.0.023
 	 * @public static
 	 */
-	public static function pregSplit($pattern, $modifiers, $subject, $limit=null, $flags=null) {
+	public static function pregSplit($pattern, $modifiers, $subject, $limit=NULL, $flags=NULL) {
 		// the bug only happens on PHP 5.2 when using the u modifier
-		if ((strpos($modifiers, 'u') === false) OR (count(preg_split('//u', "\n\t", -1, PREG_SPLIT_NO_EMPTY)) == 2)) {
+		if ((strpos($modifiers, 'u') === FALSE) OR (count(preg_split('//u', "\n\t", -1, PREG_SPLIT_NO_EMPTY)) == 2)) {
 			return preg_split($pattern.$modifiers, $subject, $limit, $flags);
 		}
 		// preg_split is bugged - try alternative solution
 		$ret = array();
-		while (($nl = strpos($subject, "\n")) !== false) {
+		while (($nl = strpos($subject, "\n")) !== FALSE) {
 			$ret = array_merge($ret, preg_split($pattern.$modifiers, substr($subject, 0, $nl), $limit, $flags));
 			$ret[] = "\n";
 			$subject = substr($subject, ($nl + 1));
@@ -2444,8 +2453,8 @@ class TCPDF_STATIC {
 	/**
 	 * Wrapper to use fopen only with local files
 	 * @param filename (string) Name of the file to open
-	 * @param $mode (string)
-	 * @return Returns a file pointer resource on success, or FALSE on error.
+	 * @param $mode (string) 
+	 * @return Returns a file pointer resource on success, or FALSE on error.  
 	 * @public static
 	 */
 	public static function fopenLocal($filename, $mode) {
@@ -2461,7 +2470,7 @@ class TCPDF_STATIC {
 	 * Reads entire file into a string.
 	 * The file can be also an URL.
 	 * @param $file (string) Name of the file or URL to read.
-	 * @return The function returns the read data or FALSE on failure.
+	 * @return The function returns the read data or FALSE on failure. 
 	 * @author Nicola Asuni
 	 * @since 6.0.025
 	 * @public static

@@ -88,7 +88,7 @@ class Zend_Config_Writer_Ini extends Zend_Config_Writer_FileAbstract
 
         if($this->_renderWithoutSections == true) {
             $iniString .= $this->_addBranch($this->_config);
-        } else {if (is_string($sectionName)) {
+        } else if (is_string($sectionName)) {
             $iniString .= '[' . $sectionName . ']' . "\n"
                        .  $this->_addBranch($this->_config)
                        .  "\n";
@@ -110,7 +110,7 @@ class Zend_Config_Writer_Ini extends Zend_Config_Writer_FileAbstract
                                .  "\n";
                 }
             }
-        }}
+        }
 
         return $iniString;
     }

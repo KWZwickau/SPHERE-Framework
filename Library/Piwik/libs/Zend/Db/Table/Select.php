@@ -156,6 +156,32 @@ class Zend_Db_Table_Select extends Zend_Db_Select
     }
 
     /**
+     * Adds a FROM table and optional columns to the query.
+     *
+     * The table name can be expressed
+     *
+     * @param  array|string|Zend_Db_Expr|Zend_Db_Table_Abstract $name The table name or an
+                                                                      associative array relating
+                                                                      table name to correlation
+                                                                      name.
+     * @param  array|string|Zend_Db_Expr $cols The columns to select from this table.
+     * @param  string $schema The schema name to specify, if any.
+     * @return Zend_Db_Table_Select This Zend_Db_Table_Select object.
+     */
+    public function from($name, $cols = self::SQL_WILDCARD, $schema = null)
+    {
+        if ($name instanceof Zend_Db_Table_Abstract) {
+            $info = $name->info();
+            $name = $info[Zend_Db_Table_Abstract::NAME];
+            if (isset($info[Zend_Db_Table_Abstract::SCHEMA])) {
+                $schema = $info[Zend_Db_Table_Abstract::SCHEMA];
+            }
+        }
+
+        return $this->joinInner($name, null, $cols, $schema);
+    }
+
+    /**
      * Performs a validation on the select query before passing back to the parent class.
      * Ensures that only columns from the primary Zend_Db_Table are returned in the result.
      *
@@ -194,31 +220,5 @@ class Zend_Db_Table_Select extends Zend_Db_Select
         }
 
         return parent::assemble();
-    }
-
-    /**
-     * Adds a FROM table and optional columns to the query.
-     *
-     * The table name can be expressed
-     *
-     * @param  array|string|Zend_Db_Expr|Zend_Db_Table_Abstract $name The table name or an
-                                                                      * associative array relating
-                                                                      * table name to correlation
-                                                                      * name.
-     * @param  array|string|Zend_Db_Expr $cols The columns to select from this table.
-     * @param  string $schema The schema name to specify, if any.
-     * @return Zend_Db_Table_Select This Zend_Db_Table_Select object.
-     */
-    public function from($name, $cols = self::SQL_WILDCARD, $schema = null)
-    {
-        if ($name instanceof Zend_Db_Table_Abstract) {
-            $info = $name->info();
-            $name = $info[Zend_Db_Table_Abstract::NAME];
-            if (isset($info[Zend_Db_Table_Abstract::SCHEMA])) {
-                $schema = $info[Zend_Db_Table_Abstract::SCHEMA];
-            }
-        }
-
-        return $this->joinInner($name, null, $cols, $schema);
     }
 }

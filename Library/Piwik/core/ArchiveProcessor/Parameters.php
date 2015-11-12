@@ -56,17 +56,19 @@ class Parameters
     }
 
     /**
-     * Returns the array of Period which make up this archive.
-     *
-     * @return \Piwik\Period[]
      * @ignore
      */
-    public function getSubPeriods()
+    public function setRequestedPlugin($plugin)
     {
-        if ($this->getPeriod()->getLabel() == 'day') {
-            return array( $this->getPeriod() );
-        }
-        return $this->getPeriod()->getSubperiods();
+        $this->requestedPlugin = $plugin;
+    }
+
+    /**
+     * @ignore
+     */
+    public function getRequestedPlugin()
+    {
+        return $this->requestedPlugin;
     }
 
     /**
@@ -81,18 +83,17 @@ class Parameters
     }
 
     /**
-     * @return bool
+     * Returns the array of Period which make up this archive.
+     *
+     * @return \Piwik\Period[]
+     * @ignore
      */
-    public function isSingleSiteDayArchive()
+    public function getSubPeriods()
     {
-        $oneSite = $this->isSingleSite();
-        $oneDay = $this->getPeriod()->getLabel() == 'day';
-        return $oneDay && $oneSite;
-    }
-
-    public function isSingleSite()
-    {
-        return count($this->getIdSites()) == 1;
+        if ($this->getPeriod()->getLabel() == 'day') {
+            return array( $this->getPeriod() );
+        }
+        return $this->getPeriod()->getSubperiods();
     }
 
     /**
@@ -121,6 +122,52 @@ class Parameters
         return $this->site;
     }
 
+    /**
+     * The Segment used to limit the set of visits that are being aggregated.
+     *
+     * @return Segment
+     * @api
+     */
+    public function getSegment()
+    {
+        return $this->segment;
+    }
+
+    /**
+     * Returns the end day of the period in the site's timezone.
+     *
+     * @return Date
+     */
+    public function getDateEnd()
+    {
+        return $this->getPeriod()->getDateEnd()->setTimezone($this->getSite()->getTimezone());
+    }
+
+    /**
+     * Returns the start day of the period in the site's timezone.
+     *
+     * @return Date
+     */
+    public function getDateStart()
+    {
+        return $this->getPeriod()->getDateStart()->setTimezone($this->getSite()->getTimezone());
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSingleSiteDayArchive()
+    {
+        $oneSite = $this->isSingleSite();
+        $oneDay = $this->getPeriod()->getLabel() == 'day';
+        return $oneDay && $oneSite;
+    }
+
+    public function isSingleSite()
+    {
+        return count($this->getIdSites()) == 1;
+    }
+
     public function logStatusDebug($isTemporary)
     {
         $temporary = 'definitive archive';
@@ -137,52 +184,5 @@ class Parameters
             $this->getDateStart()->getDateStartUTC(),
             $this->getDateEnd()->getDateEndUTC()
         );
-    }
-
-    /**
-     * The Segment used to limit the set of visits that are being aggregated.
-     *
-     * @return Segment
-     * @api
-     */
-    public function getSegment()
-    {
-        return $this->segment;
-    }
-
-    /**
-     * @ignore
-     */
-    public function getRequestedPlugin()
-    {
-        return $this->requestedPlugin;
-    }
-
-    /**
-     * @ignore
-     */
-    public function setRequestedPlugin($plugin)
-    {
-        $this->requestedPlugin = $plugin;
-    }
-
-    /**
-     * Returns the start day of the period in the site's timezone.
-     *
-     * @return Date
-     */
-    public function getDateStart()
-    {
-        return $this->getPeriod()->getDateStart()->setTimezone($this->getSite()->getTimezone());
-    }
-
-    /**
-     * Returns the end day of the period in the site's timezone.
-     *
-     * @return Date
-     */
-    public function getDateEnd()
-    {
-        return $this->getPeriod()->getDateEnd()->setTimezone($this->getSite()->getTimezone());
     }
 }

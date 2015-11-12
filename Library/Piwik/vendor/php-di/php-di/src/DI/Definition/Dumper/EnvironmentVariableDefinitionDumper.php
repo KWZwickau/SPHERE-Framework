@@ -11,6 +11,7 @@ namespace DI\Definition\Dumper;
 
 use DI\Debug;
 use DI\Definition\Definition;
+use DI\Definition\EntryReference;
 use DI\Definition\EnvironmentVariableDefinition;
 use DI\Definition\Helper\DefinitionHelper;
 

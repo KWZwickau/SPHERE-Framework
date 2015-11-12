@@ -28,6 +28,14 @@ class StylesheetUIAssetMerger extends UIAssetMerger
         $this->lessCompiler = self::getLessCompiler();
     }
 
+    protected function getMergedAssets()
+    {
+        // note: we're using setImportDir on purpose (not addImportDir)
+        $this->lessCompiler->setImportDir(PIWIK_USER_PATH);
+        $concatenatedAssets = $this->getConcatenatedAssets();
+        return $this->lessCompiler->compile($concatenatedAssets);
+    }
+
     /**
      * @return lessc
      * @throws Exception
@@ -39,19 +47,6 @@ class StylesheetUIAssetMerger extends UIAssetMerger
         }
         $less = new lessc();
         return $less;
-    }
-
-    public function getFileSeparator()
-    {
-        return '';
-    }
-
-    protected function getMergedAssets()
-    {
-        // note: we're using setImportDir on purpose (not addImportDir)
-        $this->lessCompiler->setImportDir(PIWIK_USER_PATH);
-        $concatenatedAssets = $this->getConcatenatedAssets();
-        return $this->lessCompiler->compile($concatenatedAssets);
     }
 
     protected function generateCacheBuster()
@@ -79,12 +74,43 @@ class StylesheetUIAssetMerger extends UIAssetMerger
         Piwik::postEvent('AssetManager.filterMergedStylesheets', array(&$mergedContent));
     }
 
+    public function getFileSeparator()
+    {
+        return '';
+    }
+
     protected function processFileContent($uiAsset)
     {
         $pathsRewriter = $this->getCssPathsRewriter($uiAsset);
         $content = $uiAsset->getContent();
         $content = $this->rewriteCssImagePaths($content, $pathsRewriter);
         $content = $this->rewriteCssImportPaths($content, $pathsRewriter);
+        return $content;
+    }
+
+    /**
+     * Rewrite CSS url() directives
+     *
+     * @param string $content
+     * @param callable $pathsRewriter
+     * @return string
+     */
+    private function rewriteCssImagePaths($content, $pathsRewriter)
+    {
+        $content = preg_replace_callback("/(url\(['\"]?)([^'\")]*)/", $pathsRewriter, $content);
+        return $content;
+    }
+
+    /**
+     * Rewrite CSS import directives
+     *
+     * @param string $content
+     * @param callable $pathsRewriter
+     * @return string
+     */
+    private function rewriteCssImportPaths($content, $pathsRewriter)
+    {
+        $content = preg_replace_callback("/(@import \")([^\")]*)/", $pathsRewriter, $content);
         return $content;
     }
 
@@ -120,32 +146,6 @@ class StylesheetUIAssetMerger extends UIAssetMerger
 
             return $publicPath;
         };
-    }
-
-    /**
-     * Rewrite CSS url() directives
-     *
-     * @param string $content
-     * @param callable $pathsRewriter
-     * @return string
-     */
-    private function rewriteCssImagePaths($content, $pathsRewriter)
-    {
-        $content = preg_replace_callback("/(url\(['\"]?)([^'\")]*)/", $pathsRewriter, $content);
-        return $content;
-    }
-
-    /**
-     * Rewrite CSS import directives
-     *
-     * @param string $content
-     * @param callable $pathsRewriter
-     * @return string
-     */
-    private function rewriteCssImportPaths($content, $pathsRewriter)
-    {
-        $content = preg_replace_callback("/(@import \")([^\")]*)/", $pathsRewriter, $content);
-        return $content;
     }
 
     /**

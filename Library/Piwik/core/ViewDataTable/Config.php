@@ -498,24 +498,6 @@ class Config
         }
     }
 
-    private function setShouldShowPivotBySubtable()
-    {
-        $report = Report::factory($this->controllerName, $this->controllerAction);
-
-        if (empty($report)) {
-            $this->show_pivot_by_subtable = false;
-            $this->pivot_by_dimension = false;
-        } else {
-            $this->show_pivot_by_subtable =  PivotByDimension::isPivotingReportBySubtableSupported($report);
-
-            $subtableDimension = $report->getSubtableDimension();
-            if (!empty($subtableDimension)) {
-                $this->pivot_by_dimension = $subtableDimension->getId();
-                $this->pivot_dimension_name = $subtableDimension->getName();
-            }
-        }
-    }
-
     /**
      * Marks display properties as client side properties. [Read this](#client-side-properties-desc)
      * to learn more.
@@ -574,13 +556,6 @@ class Config
         $this->columns_to_display = array_filter($columnsToDisplay);
     }
 
-    public function getPriorityFilters()
-    {
-        $filters = $this->getFiltersToRun();
-
-        return $filters[0];
-    }
-
     /**
      * @ignore
      */
@@ -608,35 +583,18 @@ class Config
         return array($priorityFilters, $presentationFilters);
     }
 
+    public function getPriorityFilters()
+    {
+        $filters = $this->getFiltersToRun();
+
+        return $filters[0];
+    }
+
     public function getPresentationFilters()
     {
         $filters = $this->getFiltersToRun();
 
         return $filters[1];
-    }
-
-    /**
-     * Adds several related reports to the {@link $related_reports} property. If
-     * any of the reports references the report that is currently being displayed, it will not
-     * be added to the list. All other reports will still be added though.
-     *
-     * If you need to make sure the related report URL has some extra query parameters,
-     * use {@link addRelatedReport()}.
-     *
-     * @param array $relatedReports Array mapping report IDs with their internationalized display
-     *                              titles, eg,
-     *                              ```
-     *                              array(
-     *                                  'DevicesDetection.getBrowsers' => 'Browsers',
-     *                                  'Resolution.getConfiguration' => 'Configurations'
-     *                              )
-     *                              ```
-     */
-    public function addRelatedReports($relatedReports)
-    {
-        foreach ($relatedReports as $report => $title) {
-            $this->addRelatedReport($report, $title);
-        }
     }
 
     /**
@@ -667,6 +625,44 @@ class Config
     }
 
     /**
+     * Adds several related reports to the {@link $related_reports} property. If
+     * any of the reports references the report that is currently being displayed, it will not
+     * be added to the list. All other reports will still be added though.
+     *
+     * If you need to make sure the related report URL has some extra query parameters,
+     * use {@link addRelatedReport()}.
+     *
+     * @param array $relatedReports Array mapping report IDs with their internationalized display
+     *                              titles, eg,
+     *                              ```
+     *                              array(
+     *                                  'DevicesDetection.getBrowsers' => 'Browsers',
+     *                                  'Resolution.getConfiguration' => 'Configurations'
+     *                              )
+     *                              ```
+     */
+    public function addRelatedReports($relatedReports)
+    {
+        foreach ($relatedReports as $report => $title) {
+            $this->addRelatedReport($report, $title);
+        }
+    }
+
+    /**
+     * Associates internationalized text with a metric. Overwrites existing mappings.
+     *
+     * See {@link $translations}.
+     *
+     * @param string $columnName The name of a column in the report data, eg, `'nb_visits'` or
+     *                           `'goal_1_nb_conversions'`.
+     * @param string $translation The internationalized text, eg, `'Visits'` or `"Conversions for 'My Goal'"`.
+     */
+    public function addTranslation($columnName, $translation)
+    {
+        $this->translations[$columnName] = $translation;
+    }
+
+    /**
      * Associates multiple translations with metrics.
      *
      * See {@link $translations} and {@link addTranslation()}.
@@ -686,18 +682,22 @@ class Config
         }
     }
 
-    /**
-     * Associates internationalized text with a metric. Overwrites existing mappings.
-     *
-     * See {@link $translations}.
-     *
-     * @param string $columnName The name of a column in the report data, eg, `'nb_visits'` or
-     *                           `'goal_1_nb_conversions'`.
-     * @param string $translation The internationalized text, eg, `'Visits'` or `"Conversions for 'My Goal'"`.
-     */
-    public function addTranslation($columnName, $translation)
+    private function setShouldShowPivotBySubtable()
     {
-        $this->translations[$columnName] = $translation;
+        $report = Report::factory($this->controllerName, $this->controllerAction);
+
+        if (empty($report)) {
+            $this->show_pivot_by_subtable = false;
+            $this->pivot_by_dimension = false;
+        } else {
+            $this->show_pivot_by_subtable =  PivotByDimension::isPivotingReportBySubtableSupported($report);
+
+            $subtableDimension = $report->getSubtableDimension();
+            if (!empty($subtableDimension)) {
+                $this->pivot_by_dimension = $subtableDimension->getId();
+                $this->pivot_dimension_name = $subtableDimension->getName();
+            }
+        }
     }
 
     public function disablePivotBySubtableIfTableHasNoSubtables(DataTable $table)

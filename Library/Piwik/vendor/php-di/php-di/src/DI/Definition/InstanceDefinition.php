@@ -32,7 +32,7 @@ class InstanceDefinition implements Definition
     private $objectDefinition;
 
     /**
-     * @param object $instance
+     * @param object          $instance
      * @param ObjectDefinition $objectDefinition
      */
     public function __construct($instance, ObjectDefinition $objectDefinition)

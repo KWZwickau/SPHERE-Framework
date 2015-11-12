@@ -64,21 +64,173 @@ abstract class Db
         return self::$profiling;
     }
 
-    public static function connectPiwikTrackerDb()
+    /**
+     * Initialize profiler
+     *
+     * @return Timer
+     */
+    protected function initProfiler()
     {
-        $db = null;
-        $configDb = Config::getInstance()->database;
+        return new Timer;
+    }
 
-        if (!isset($configDb['port'])) {
-            // before 0.2.4 there is no port specified in config file
-            $configDb['port'] = '3306';
+    /**
+     * Record query profile
+     *
+     * @param string $query
+     * @param Timer $timer
+     */
+    protected function recordQueryProfile($query, $timer)
+    {
+        if (!isset($this->queriesProfiling[$query])) {
+            $this->queriesProfiling[$query] = array('sum_time_ms' => 0, 'count' => 0);
         }
 
-        $db = self::factory($configDb);
-        $db->connect();
+        $time  = $timer->getTimeMs(2);
+        $time += $this->queriesProfiling[$query]['sum_time_ms'];
+        $count = $this->queriesProfiling[$query]['count'] + 1;
 
-        return $db;
+        $this->queriesProfiling[$query] = array('sum_time_ms' => $time, 'count' => $count);
     }
+
+    /**
+     * When destroyed, if SQL profiled enabled, logs the SQL profiling information
+     */
+    public function recordProfiling()
+    {
+        if (is_null($this->connection)) {
+            return;
+        }
+
+        // turn off the profiler so we don't profile the following queries
+        self::$profiling = false;
+
+        foreach ($this->queriesProfiling as $query => $info) {
+            $time  = $info['sum_time_ms'];
+            $time  = Common::forceDotAsSeparatorForDecimalPoint($time);
+            $count = $info['count'];
+
+            $queryProfiling = "INSERT INTO " . Common::prefixTable('log_profiling') . "
+						(query,count,sum_time_ms) VALUES (?,$count,$time)
+						ON DUPLICATE KEY UPDATE count=count+$count,sum_time_ms=sum_time_ms+$time";
+            $this->query($queryProfiling, array($query));
+        }
+
+        // turn back on profiling
+        self::$profiling = true;
+    }
+
+    /**
+     * Connects to the DB
+     *
+     * @throws \Piwik\Tracker\Db\DbException if there was an error connecting the DB
+     */
+    abstract public function connect();
+
+    /**
+     * Disconnects from the server
+     */
+    public function disconnect()
+    {
+        $this->connection = null;
+    }
+
+    /**
+     * Returns an array containing all the rows of a query result, using optional bound parameters.
+     *
+     * @param string $query Query
+     * @param array $parameters Parameters to bind
+     * @see query()
+     * @throws \Piwik\Tracker\Db\DbException if an exception occurred
+     */
+    abstract public function fetchAll($query, $parameters = array());
+
+    /**
+     * Returns the first row of a query result, using optional bound parameters.
+     *
+     * @param string $query Query
+     * @param array $parameters Parameters to bind
+     * @see also query()
+     *
+     * @throws DbException if an exception occurred
+     */
+    abstract public function fetch($query, $parameters = array());
+
+    /**
+     * This function is a proxy to fetch(), used to maintain compatibility with Zend_Db interface
+     *
+     * @see fetch()
+     * @param string $query Query
+     * @param array $parameters Parameters to bind
+     * @return
+     */
+    public function fetchRow($query, $parameters = array())
+    {
+        return $this->fetch($query, $parameters);
+    }
+
+    /**
+     * This function is a proxy to fetch(), used to maintain compatibility with Zend_Db interface
+     *
+     * @see fetch()
+     * @param string $query Query
+     * @param array $parameters Parameters to bind
+     * @return bool|mixed
+     */
+    public function fetchOne($query, $parameters = array())
+    {
+        $result = $this->fetch($query, $parameters);
+        return is_array($result) && !empty($result) ? reset($result) : false;
+    }
+
+    /**
+     * This function is a proxy to fetch(), used to maintain compatibility with Zend_Db + PDO interface
+     *
+     * @see fetch()
+     * @param string $query Query
+     * @param array $parameters Parameters to bind
+     * @return
+     */
+    public function exec($query, $parameters = array())
+    {
+        return $this->fetch($query, $parameters);
+    }
+
+    /**
+     * Return number of affected rows in last query
+     *
+     * @param mixed $queryResult Result from query()
+     * @return int
+     */
+    abstract public function rowCount($queryResult);
+
+    /**
+     * Executes a query, using optional bound parameters.
+     *
+     * @param string $query Query
+     * @param array $parameters Parameters to bind array('idsite'=> 1)
+     *
+     * @return PDOStatement or false if failed
+     * @throws DbException if an exception occurred
+     */
+    abstract public function query($query, $parameters = array());
+
+    /**
+     * Returns the last inserted ID in the DB
+     * Wrapper of PDO::lastInsertId()
+     *
+     * @return int
+     */
+    abstract public function lastInsertId();
+
+    /**
+     * Test error number
+     *
+     * @param Exception $e
+     * @param string $errno
+     * @return bool  True if error number matches; false otherwise
+     */
+    abstract public function isErrNo($e, $errno);
 
     /**
      * Factory to create database objects
@@ -123,171 +275,19 @@ abstract class Db
         throw new Exception('Unsupported database adapter ' . $configDb['adapter']);
     }
 
-    /**
-     * When destroyed, if SQL profiled enabled, logs the SQL profiling information
-     */
-    public function recordProfiling()
+    public static function connectPiwikTrackerDb()
     {
-        if (is_null($this->connection)) {
-            return;
+        $db = null;
+        $configDb = Config::getInstance()->database;
+
+        if (!isset($configDb['port'])) {
+            // before 0.2.4 there is no port specified in config file
+            $configDb['port'] = '3306';
         }
 
-        // turn off the profiler so we don't profile the following queries
-        self::$profiling = false;
+        $db = self::factory($configDb);
+        $db->connect();
 
-        foreach ($this->queriesProfiling as $query => $info) {
-            $time = $info['sum_time_ms'];
-            $time = Common::forceDotAsSeparatorForDecimalPoint($time);
-            $count = $info['count'];
-
-            $queryProfiling = "INSERT INTO " . Common::prefixTable('log_profiling') . "
-						(query,count,sum_time_ms) VALUES (?,$count,$time)
-						ON DUPLICATE KEY UPDATE count=count+$count,sum_time_ms=sum_time_ms+$time";
-            $this->query($queryProfiling, array($query));
-        }
-
-        // turn back on profiling
-        self::$profiling = true;
-    }
-
-    /**
-     * Executes a query, using optional bound parameters.
-     *
-     * @param string $query Query
-     * @param array $parameters Parameters to bind array('idsite'=> 1)
-     *
-     * @return PDOStatement or false if failed
-     * @throws DbException if an exception occurred
-     */
-    abstract public function query($query, $parameters = array());
-
-    /**
-     * Connects to the DB
-     *
-     * @throws \Piwik\Tracker\Db\DbException if there was an error connecting the DB
-     */
-    abstract public function connect();
-
-    /**
-     * Disconnects from the server
-     */
-    public function disconnect()
-    {
-        $this->connection = null;
-    }
-
-    /**
-     * Returns an array containing all the rows of a query result, using optional bound parameters.
-     *
-     * @param string $query Query
-     * @param array $parameters Parameters to bind
-     * @see query()
-     * @throws \Piwik\Tracker\Db\DbException if an exception occurred
-     */
-    abstract public function fetchAll($query, $parameters = array());
-
-    /**
-     * This function is a proxy to fetch(), used to maintain compatibility with Zend_Db interface
-     *
-     * @see fetch()
-     * @param string $query Query
-     * @param array $parameters Parameters to bind
-     * @return
-     */
-    public function fetchRow($query, $parameters = array())
-    {
-        return $this->fetch($query, $parameters);
-    }
-
-    /**
-     * Returns the first row of a query result, using optional bound parameters.
-     *
-     * @param string $query Query
-     * @param array $parameters Parameters to bind
-     * @see also query()
-     *
-     * @throws DbException if an exception occurred
-     */
-    abstract public function fetch($query, $parameters = array());
-
-    /**
-     * This function is a proxy to fetch(), used to maintain compatibility with Zend_Db interface
-     *
-     * @see fetch()
-     * @param string $query Query
-     * @param array $parameters Parameters to bind
-     * @return bool|mixed
-     */
-    public function fetchOne($query, $parameters = array())
-    {
-        $result = $this->fetch($query, $parameters);
-        return is_array($result) && !empty($result) ? reset($result) : false;
-    }
-
-    /**
-     * This function is a proxy to fetch(), used to maintain compatibility with Zend_Db + PDO interface
-     *
-     * @see fetch()
-     * @param string $query Query
-     * @param array $parameters Parameters to bind
-     * @return
-     */
-    public function exec($query, $parameters = array())
-    {
-        return $this->fetch($query, $parameters);
-    }
-
-    /**
-     * Return number of affected rows in last query
-     *
-     * @param mixed $queryResult Result from query()
-     * @return int
-     */
-    abstract public function rowCount($queryResult);
-
-    /**
-     * Returns the last inserted ID in the DB
-     * Wrapper of PDO::lastInsertId()
-     *
-     * @return int
-     */
-    abstract public function lastInsertId();
-
-    /**
-     * Test error number
-     *
-     * @param Exception $e
-     * @param string $errno
-     * @return bool  True if error number matches; false otherwise
-     */
-    abstract public function isErrNo($e, $errno);
-
-    /**
-     * Initialize profiler
-     *
-     * @return Timer
-     */
-    protected function initProfiler()
-    {
-        return new Timer;
-    }
-
-    /**
-     * Record query profile
-     *
-     * @param string $query
-     * @param Timer $timer
-     */
-    protected function recordQueryProfile($query, $timer)
-    {
-        if (!isset($this->queriesProfiling[$query])) {
-            $this->queriesProfiling[$query] = array('sum_time_ms' => 0, 'count' => 0);
-        }
-
-        $time = $timer->getTimeMs(2);
-        $time += $this->queriesProfiling[$query]['sum_time_ms'];
-        $count = $this->queriesProfiling[$query]['count'] + 1;
-
-        $this->queriesProfiling[$query] = array('sum_time_ms' => $time, 'count' => $count);
+        return $db;
     }
 }

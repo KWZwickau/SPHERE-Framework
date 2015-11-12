@@ -10,11 +10,11 @@ namespace Piwik\Plugins\Dashboard;
 use Piwik\Common;
 use Piwik\DataTable\Renderer\Json;
 use Piwik\Db;
-use Piwik\FrontController;
 use Piwik\Piwik;
 use Piwik\Session\SessionNamespace;
 use Piwik\View;
 use Piwik\WidgetsList;
+use Piwik\FrontController;
 
 /**
  * Dashboard Controller
@@ -27,10 +27,11 @@ class Controller extends \Piwik\Plugin\Controller
      */
     private $dashboard;
 
-    public function embeddedIndex()
+    protected function init()
     {
-        $view = $this->_getDashboardView('@Dashboard/embeddedIndex');
-        return $view->render();
+        parent::init();
+
+        $this->dashboard = new Dashboard();
     }
 
     protected function _getDashboardView($template)
@@ -50,19 +51,10 @@ class Controller extends \Piwik\Plugin\Controller
         return $view;
     }
 
-    /**
-     * Returns all available column layouts for the dashboard
-     *
-     * @return array
-     */
-    protected function getAvailableLayouts()
+    public function embeddedIndex()
     {
-        return array(
-            array(100),
-            array(50, 50), array(67, 33), array(33, 67),
-            array(33, 33, 33), array(40, 30, 30), array(30, 40, 30), array(30, 30, 40),
-            array(25, 25, 25, 25)
-        );
+        $view = $this->_getDashboardView('@Dashboard/embeddedIndex');
+        return $view->render();
     }
 
     public function index()
@@ -97,39 +89,6 @@ class Controller extends \Piwik\Plugin\Controller
         $layout = $this->getLayout($idDashboard);
 
         Json::sendHeaderJSON();
-        return $layout;
-    }
-
-    /**
-     * Get the dashboard layout for the current user (anonymous or logged user)
-     *
-     * @param int $idDashboard
-     *
-     * @return string $layout
-     */
-    protected function getLayout($idDashboard)
-    {
-        if (Piwik::isUserIsAnonymous()) {
-
-            $session = new SessionNamespace("Dashboard");
-            if (!isset($session->dashboardLayout)) {
-
-                return $this->dashboard->getDefaultLayout();
-            }
-
-            $layout = $session->dashboardLayout;
-        } else {
-            $layout = $this->dashboard->getLayoutForUser(Piwik::getCurrentUserLogin(), $idDashboard);
-        }
-
-        if (!empty($layout)) {
-            $layout = $this->dashboard->removeDisabledPluginFromLayout($layout);
-        }
-
-        if (empty($layout)) {
-            $layout = $this->dashboard->getDefaultLayout();
-        }
-
         return $layout;
     }
 
@@ -283,11 +242,52 @@ class Controller extends \Piwik\Plugin\Controller
         }
     }
 
-    protected function init()
+    /**
+     * Get the dashboard layout for the current user (anonymous or logged user)
+     *
+     * @param int $idDashboard
+     *
+     * @return string $layout
+     */
+    protected function getLayout($idDashboard)
     {
-        parent::init();
+        if (Piwik::isUserIsAnonymous()) {
 
-        $this->dashboard = new Dashboard();
+            $session = new SessionNamespace("Dashboard");
+            if (!isset($session->dashboardLayout)) {
+
+                return $this->dashboard->getDefaultLayout();
+            }
+
+            $layout = $session->dashboardLayout;
+        } else {
+            $layout = $this->dashboard->getLayoutForUser(Piwik::getCurrentUserLogin(), $idDashboard);
+        }
+
+        if (!empty($layout)) {
+            $layout = $this->dashboard->removeDisabledPluginFromLayout($layout);
+        }
+
+        if (empty($layout)) {
+            $layout = $this->dashboard->getDefaultLayout();
+        }
+
+        return $layout;
+    }
+
+    /**
+     * Returns all available column layouts for the dashboard
+     *
+     * @return array
+     */
+    protected function getAvailableLayouts()
+    {
+        return array(
+            array(100),
+            array(50, 50), array(67, 33), array(33, 67),
+            array(33, 33, 33), array(40, 30, 30), array(30, 40, 30), array(30, 30, 40),
+            array(25, 25, 25, 25)
+        );
     }
 }
 

@@ -17,11 +17,6 @@ use Piwik\Updates;
  */
 class Updates_1_6_b1 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -64,5 +59,10 @@ class Updates_1_6_b1 extends Updates
 				 CHANGE custom_var_k5 custom_var_k5 VARCHAR(200) DEFAULT NULL,
 				 CHANGE custom_var_v5 custom_var_v5 VARCHAR(200) DEFAULT NULL' => 1060,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

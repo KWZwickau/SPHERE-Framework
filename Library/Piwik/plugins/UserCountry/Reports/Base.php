@@ -23,12 +23,10 @@ abstract class Base extends \Piwik\Plugin\Report
     protected function getGeoIPReportDocSuffix()
     {
         return Piwik::translate('UserCountry_GeoIPDocumentationSuffix',
-            array(
-                '<a rel="noreferrer"  target="_blank" href="http://www.maxmind.com/?rId=piwik">',
+            array('<a rel="noreferrer"  target="_blank" href="http://www.maxmind.com/?rId=piwik">',
                 '</a>',
                 '<a rel="noreferrer"  target="_blank" href="http://www.maxmind.com/en/city_accuracy?rId=piwik">',
-                '</a>'
-            )
+                '</a>')
         );
     }
 
@@ -50,18 +48,13 @@ abstract class Base extends \Piwik\Plugin\Report
                 if (!$userCountry->isGeoIPWorking()) {
                     $params = array('module' => 'UserCountry', 'action' => 'adminIndex');
                     $footerMessage .= ' ' . Piwik::translate('UserCountry_NoDataForGeoIPReport2',
-                            array(
-                                '<a target="_blank" href="' . Url::getCurrentQueryStringWithParametersModified($params) . '">',
+                            array('<a target="_blank" href="' . Url::getCurrentQueryStringWithParametersModified($params) . '">',
                                 '</a>',
                                 '<a rel="noreferrer"  target="_blank" href="http://dev.maxmind.com/geoip/geolite?rId=piwik">',
-                                '</a>'
-                            ));
+                                '</a>'));
                 } else {
                     $footerMessage .= ' ' . Piwik::translate('UserCountry_ToGeolocateOldVisits',
-                            array(
-                                '<a rel="noreferrer"  target="_blank" href="http://piwik.org/faq/how-to/#faq_167">',
-                                '</a>'
-                            ));
+                            array('<a rel="noreferrer"  target="_blank" href="http://piwik.org/faq/how-to/#faq_167">', '</a>'));
                 }
 
                 $view->config->show_footer_message = $footerMessage;

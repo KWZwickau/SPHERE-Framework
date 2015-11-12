@@ -16,6 +16,11 @@ namespace Piwik\Composer;
  */
 class ScriptHandler
 {
+    private static function isPhp7orLater()
+    {
+        return version_compare('7.0.0-dev', PHP_VERSION) < 1;
+    }
+
     public static function cleanXhprof()
     {
         if (! is_dir('vendor/facebook/xhprof/extension')) {
@@ -26,11 +31,6 @@ class ScriptHandler
             // doesn't work with PHP 7 at the moment
             passthru('misc/composer/clean-xhprof.sh');
         }
-    }
-
-    private static function isPhp7orLater()
-    {
-        return version_compare('7.0.0-dev', PHP_VERSION) < 1;
     }
 
     public static function buildXhprof()

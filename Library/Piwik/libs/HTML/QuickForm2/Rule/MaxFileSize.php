@@ -72,6 +72,20 @@
 class HTML_QuickForm2_Rule_MaxFileSize extends HTML_QuickForm2_Rule
 {
    /**
+    * Validates the owner element
+    *
+    * @return   bool    whether uploaded file's size is within given limit
+    */
+    protected function validateOwner()
+    {
+        $value = $this->owner->getValue();
+        if (!isset($value['error']) || UPLOAD_ERR_NO_FILE == $value['error']) {
+            return true;
+        }
+        return ($this->getConfig() >= @filesize($value['tmp_name']));
+    }
+
+   /**
     * Sets maximum allowed file size
     *
     * @param    int     Maximum allowed size
@@ -105,20 +119,6 @@ class HTML_QuickForm2_Rule_MaxFileSize extends HTML_QuickForm2_Rule
             );
         }
         parent::setOwner($owner);
-    }
-
-   /**
-    * Validates the owner element
-    *
-    * @return   bool    whether uploaded file's size is within given limit
-    */
-    protected function validateOwner()
-    {
-        $value = $this->owner->getValue();
-        if (!isset($value['error']) || UPLOAD_ERR_NO_FILE == $value['error']) {
-            return true;
-        }
-        return ($this->getConfig() >= @filesize($value['tmp_name']));
     }
 }
 ?>

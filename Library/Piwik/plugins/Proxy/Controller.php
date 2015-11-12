@@ -50,14 +50,6 @@ class Controller extends \Piwik\Plugin\Controller
     }
 
     /**
-     * @param UIAsset $uiAsset
-     */
-    private function serveJsFile($uiAsset)
-    {
-        ProxyHttp::serverStaticFile($uiAsset->getAbsoluteLocation(), self::JS_MIME_TYPE);
-    }
-
-    /**
      * Output the merged non core JavaScript file.
      * This method is called when the asset manager is enabled.
      *
@@ -67,6 +59,14 @@ class Controller extends \Piwik\Plugin\Controller
     {
         $jsMergedFile = AssetManager::getInstance()->getMergedNonCoreJavaScript();
         $this->serveJsFile($jsMergedFile);
+    }
+
+    /**
+     * @param UIAsset $uiAsset
+     */
+    private function serveJsFile($uiAsset)
+    {
+        ProxyHttp::serverStaticFile($uiAsset->getAbsoluteLocation(), self::JS_MIME_TYPE);
     }
 
     /**

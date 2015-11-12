@@ -139,18 +139,6 @@ class Controller extends ControllerAdmin
         return $view->render();
     }
 
-    private function noAdminAccessToWebsite($idSiteSelected, $defaultReportSiteName, $message)
-    {
-        $view = new View('@UsersManager/noWebsiteAdminAccess');
-
-        $view->idSiteSelected = $idSiteSelected;
-        $view->defaultReportSiteName = $defaultReportSiteName;
-        $view->message = $message;
-        $this->setBasicVariablesView($view);
-
-        return $view->render();
-    }
-
     private function hasAnonymousUserViewAccess($usersAccessByWebsite)
     {
         $anonymousHasViewAccess = false;
@@ -164,62 +152,6 @@ class Controller extends ControllerAdmin
         }
 
         return $anonymousHasViewAccess;
-    }
-
-    /**
-     * The "User Settings" admin UI screen view
-     */
-    public function userSettings()
-    {
-        Piwik::checkUserIsNotAnonymous();
-
-        $view = new View('@UsersManager/userSettings');
-
-        $userLogin = Piwik::getCurrentUserLogin();
-        $user = APIUsersManager::getInstance()->getUser($userLogin);
-        $view->userAlias = $user['alias'];
-        $view->userEmail = $user['email'];
-
-        $view->ignoreSalt = $this->getIgnoreCookieSalt();
-
-        $userPreferences = new UserPreferences();
-        $defaultReport   = $userPreferences->getDefaultReport();
-
-        if ($defaultReport === false) {
-            $defaultReport = $userPreferences->getDefaultWebsiteId();
-        }
-
-        $view->defaultReport = $defaultReport;
-
-        if ($defaultReport == 'MultiSites') {
-
-            $defaultSiteId = $userPreferences->getDefaultWebsiteId();
-
-            $view->defaultReportIdSite   = $defaultSiteId;
-            $view->defaultReportSiteName = Site::getNameFor($defaultSiteId);
-        } else {
-            $view->defaultReportIdSite   = $defaultReport;
-            $view->defaultReportSiteName = Site::getNameFor($defaultReport);
-        }
-
-        $view->defaultDate = $this->getDefaultDateForUser($userLogin);
-        $view->availableDefaultDates = $this->getDefaultDates();
-
-        $view->languages = APILanguagesManager::getInstance()->getAvailableLanguageNames();
-        $view->currentLanguageCode = LanguagesManager::getLanguageCodeForCurrentUser();
-        $view->ignoreCookieSet = IgnoreCookie::isIgnoreCookieFound();
-        $view->piwikHost = Url::getCurrentHost();
-        $this->setBasicVariablesView($view);
-
-        return $view->render();
-    }
-
-    /**
-     * @return string
-     */
-    private function getIgnoreCookieSalt()
-    {
-        return md5(SettingsPiwik::getSalt());
     }
 
     /**
@@ -287,6 +219,54 @@ class Controller extends ControllerAdmin
     }
 
     /**
+     * The "User Settings" admin UI screen view
+     */
+    public function userSettings()
+    {
+        Piwik::checkUserIsNotAnonymous();
+
+        $view = new View('@UsersManager/userSettings');
+
+        $userLogin = Piwik::getCurrentUserLogin();
+        $user = APIUsersManager::getInstance()->getUser($userLogin);
+        $view->userAlias = $user['alias'];
+        $view->userEmail = $user['email'];
+
+        $view->ignoreSalt = $this->getIgnoreCookieSalt();
+
+        $userPreferences = new UserPreferences();
+        $defaultReport   = $userPreferences->getDefaultReport();
+
+        if ($defaultReport === false) {
+            $defaultReport = $userPreferences->getDefaultWebsiteId();
+        }
+
+        $view->defaultReport = $defaultReport;
+
+        if ($defaultReport == 'MultiSites') {
+
+            $defaultSiteId = $userPreferences->getDefaultWebsiteId();
+
+            $view->defaultReportIdSite   = $defaultSiteId;
+            $view->defaultReportSiteName = Site::getNameFor($defaultSiteId);
+        } else {
+            $view->defaultReportIdSite   = $defaultReport;
+            $view->defaultReportSiteName = Site::getNameFor($defaultReport);
+        }
+
+        $view->defaultDate = $this->getDefaultDateForUser($userLogin);
+        $view->availableDefaultDates = $this->getDefaultDates();
+
+        $view->languages = APILanguagesManager::getInstance()->getAvailableLanguageNames();
+        $view->currentLanguageCode = LanguagesManager::getLanguageCodeForCurrentUser();
+        $view->ignoreCookieSet = IgnoreCookie::isIgnoreCookieFound();
+        $view->piwikHost = Url::getCurrentHost();
+        $this->setBasicVariablesView($view);
+
+        return $view->render();
+    }
+
+    /**
      * The "Anonymous Settings" admin UI screen view
      */
     public function anonymousSettings()
@@ -301,6 +281,20 @@ class Controller extends ControllerAdmin
         $this->setBasicVariablesView($view);
 
         return $view->render();
+    }
+
+    public function setIgnoreCookie()
+    {
+        Piwik::checkUserHasSomeViewAccess();
+        Piwik::checkUserIsNotAnonymous();
+
+        $salt = Common::getRequestVar('ignoreSalt', false, 'string');
+        if ($salt !== $this->getIgnoreCookieSalt()) {
+            throw new Exception("Not authorized");
+        }
+
+        IgnoreCookie::setIgnoreCookie();
+        Piwik::redirectToModule('UsersManager', 'userSettings', array('token_auth' => false));
     }
 
     /**
@@ -343,20 +337,6 @@ class Controller extends ControllerAdmin
         $view->anonymousDefaultReport = $anonymousDefaultReport;
 
         $view->anonymousDefaultDate = $this->getDefaultDateForUser($userLogin);
-    }
-
-    public function setIgnoreCookie()
-    {
-        Piwik::checkUserHasSomeViewAccess();
-        Piwik::checkUserIsNotAnonymous();
-
-        $salt = Common::getRequestVar('ignoreSalt', false, 'string');
-        if ($salt !== $this->getIgnoreCookieSalt()) {
-            throw new Exception("Not authorized");
-        }
-
-        IgnoreCookie::setIgnoreCookie();
-        Piwik::redirectToModule('UsersManager', 'userSettings', array('token_auth' => false));
     }
 
     /**
@@ -420,6 +400,18 @@ class Controller extends ControllerAdmin
         return $toReturn;
     }
 
+    private function noAdminAccessToWebsite($idSiteSelected, $defaultReportSiteName, $message)
+    {
+        $view = new View('@UsersManager/noWebsiteAdminAccess');
+
+        $view->idSiteSelected = $idSiteSelected;
+        $view->defaultReportSiteName = $defaultReportSiteName;
+        $view->message = $message;
+        $this->setBasicVariablesView($view);
+
+        return $view->render();
+    }
+
     private function processPasswordChange($userLogin)
     {
         $alias = Common::getRequestVar('alias');
@@ -456,5 +448,13 @@ class Controller extends ControllerAdmin
             $auth->setPassword($password);
             $sessionInitializer->initSession($auth, $rememberMe = false);
         }
+    }
+
+    /**
+     * @return string
+     */
+    private function getIgnoreCookieSalt()
+    {
+        return md5(SettingsPiwik::getSalt());
     }
 }

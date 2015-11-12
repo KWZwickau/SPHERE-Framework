@@ -61,29 +61,45 @@ class PluginInstaller
         $this->removeFolderIfExists($tmpPluginFolder);
     }
 
+    public function installOrUpdatePluginFromFile($pathToZip)
+    {
+        $tmpPluginFolder = StaticContainer::get('path.tmp') . self::PATH_TO_DOWNLOAD . $this->pluginName;
+
+        try {
+            $this->makeSureFoldersAreWritable();
+            $this->extractPluginFiles($pathToZip, $tmpPluginFolder);
+
+            $this->makeSurePluginJsonExists($tmpPluginFolder);
+            $metadata = $this->getPluginMetadataIfValid($tmpPluginFolder);
+            $this->makeSureThereAreNoMissingRequirements($metadata);
+
+            $this->pluginName = $metadata->name;
+
+            $this->fixPluginFolderIfNeeded($tmpPluginFolder);
+            $this->copyPluginToDestination($tmpPluginFolder);
+
+            Filesystem::deleteAllCacheOnUpdate($this->pluginName);
+
+        } catch (\Exception $e) {
+
+            $this->removeFileIfExists($pathToZip);
+            $this->removeFolderIfExists($tmpPluginFolder);
+
+            throw $e;
+        }
+
+        $this->removeFileIfExists($pathToZip);
+        $this->removeFolderIfExists($tmpPluginFolder);
+
+        return $metadata;
+    }
+
     private function makeSureFoldersAreWritable()
     {
         Filechecks::dieIfDirectoriesNotWritable(array(
             StaticContainer::get('path.tmp') . self::PATH_TO_DOWNLOAD,
             self::PATH_TO_EXTRACT
         ));
-    }
-
-    /**
-     * @throws PluginInstallerException
-     */
-    private function makeSurePluginNameIsValid()
-    {
-        try {
-            $marketplace = new MarketplaceApiClient();
-            $pluginDetails = $marketplace->getPluginInfo($this->pluginName);
-        } catch (\Exception $e) {
-            throw new PluginInstallerException($e->getMessage());
-        }
-
-        if (empty($pluginDetails)) {
-            throw new PluginInstallerException('This plugin was not found in the Marketplace.');
-        }
     }
 
     private function downloadPluginFromMarketplace($pluginZipTargetFile)
@@ -109,16 +125,6 @@ class PluginInstaller
     }
 
     /**
-     * @param $targetTmpFile
-     */
-    private function removeFileIfExists($targetTmpFile)
-    {
-        if (file_exists($targetTmpFile)) {
-            unlink($targetTmpFile);
-        }
-    }
-
-    /**
      * @param $pluginZipFile
      * @param $pathExtracted
      * @throws \Exception
@@ -138,14 +144,6 @@ class PluginInstaller
         }
     }
 
-    /**
-     * @param $pathExtracted
-     */
-    private function removeFolderIfExists($pathExtracted)
-    {
-        Filesystem::unlinkRecursive($pathExtracted, true);
-    }
-
     private function makeSurePluginJsonExists($tmpPluginFolder)
     {
         $pluginJsonPath = $this->getPathToPluginJson($tmpPluginFolder);
@@ -153,6 +151,64 @@ class PluginInstaller
         if (!file_exists($pluginJsonPath)) {
             throw new PluginInstallerException('Plugin is not valid, it is missing the plugin.json file.');
         }
+    }
+
+    private function makeSureThereAreNoMissingRequirements($metadata)
+    {
+        $requires = array();
+        if (!empty($metadata->require)) {
+            $requires = (array) $metadata->require;
+        }
+
+        $dependency = new PluginDependency();
+        $missingDependencies = $dependency->getMissingDependencies($requires);
+
+        if (!empty($missingDependencies)) {
+            $message = '';
+            foreach ($missingDependencies as $dep) {
+                if (empty($dep['actualVersion'])) {
+                    $params   = array(ucfirst($dep['requirement']), $dep['requiredVersion'], $metadata->name);
+                    $message .= Piwik::translate('CorePluginsAdmin_MissingRequirementsPleaseInstallNotice', $params);
+                } else {
+                    $params   = array(ucfirst($dep['requirement']), $dep['actualVersion'], $dep['requiredVersion']);
+                    $message .= Piwik::translate('CorePluginsAdmin_MissingRequirementsNotice', $params);
+                }
+
+            }
+
+            throw new PluginInstallerException($message);
+        }
+    }
+
+    private function getPluginMetadataIfValid($tmpPluginFolder)
+    {
+        $pluginJsonPath = $this->getPathToPluginJson($tmpPluginFolder);
+
+        $metadata = file_get_contents($pluginJsonPath);
+        $metadata = json_decode($metadata);
+
+        if (empty($metadata)) {
+            throw new PluginInstallerException('Plugin is not valid, plugin.json is empty or does not contain valid JSON.');
+        }
+
+        if (empty($metadata->name)) {
+            throw new PluginInstallerException('Plugin is not valid, the plugin.json file does not specify the plugin name.');
+        }
+
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $metadata->name)) {
+            throw new PluginInstallerException('The plugin name specified in plugin.json contains illegal characters. ' .
+                'Plugin name can only contain following characters: [a-zA-Z0-9-_].');
+        }
+
+        if (empty($metadata->version)) {
+            throw new PluginInstallerException('Plugin is not valid, the plugin.json file does not specify the plugin version.');
+        }
+
+        if (empty($metadata->description)) {
+            throw new PluginInstallerException('Plugin is not valid, the plugin.json file does not specify a description.');
+        }
+
+        return $metadata;
     }
 
     private function getPathToPluginJson($tmpPluginFolder)
@@ -189,106 +245,6 @@ class PluginInstaller
         return $firstSubFolder;
     }
 
-    private function getPluginMetadataIfValid($tmpPluginFolder)
-    {
-        $pluginJsonPath = $this->getPathToPluginJson($tmpPluginFolder);
-
-        $metadata = file_get_contents($pluginJsonPath);
-        $metadata = json_decode($metadata);
-
-        if (empty($metadata)) {
-            throw new PluginInstallerException('Plugin is not valid, plugin.json is empty or does not contain valid JSON.');
-        }
-
-        if (empty($metadata->name)) {
-            throw new PluginInstallerException('Plugin is not valid, the plugin.json file does not specify the plugin name.');
-        }
-
-        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $metadata->name)) {
-            throw new PluginInstallerException('The plugin name specified in plugin.json contains illegal characters. ' .
-                'Plugin name can only contain following characters: [a-zA-Z0-9-_].');
-        }
-
-        if (empty($metadata->version)) {
-            throw new PluginInstallerException('Plugin is not valid, the plugin.json file does not specify the plugin version.');
-        }
-
-        if (empty($metadata->description)) {
-            throw new PluginInstallerException('Plugin is not valid, the plugin.json file does not specify a description.');
-        }
-
-        return $metadata;
-    }
-
-    private function makeSureThereAreNoMissingRequirements($metadata)
-    {
-        $requires = array();
-        if (!empty($metadata->require)) {
-            $requires = (array) $metadata->require;
-        }
-
-        $dependency = new PluginDependency();
-        $missingDependencies = $dependency->getMissingDependencies($requires);
-
-        if (!empty($missingDependencies)) {
-            $message = '';
-            foreach ($missingDependencies as $dep) {
-                if (empty($dep['actualVersion'])) {
-                    $params   = array(ucfirst($dep['requirement']), $dep['requiredVersion'], $metadata->name);
-                    $message .= Piwik::translate('CorePluginsAdmin_MissingRequirementsPleaseInstallNotice', $params);
-                } else {
-                    $params   = array(ucfirst($dep['requirement']), $dep['actualVersion'], $dep['requiredVersion']);
-                    $message .= Piwik::translate('CorePluginsAdmin_MissingRequirementsNotice', $params);
-                }
-
-            }
-
-            throw new PluginInstallerException($message);
-        }
-    }
-
-    private function copyPluginToDestination($tmpPluginFolder)
-    {
-        $pluginTargetPath = PIWIK_USER_PATH . self::PATH_TO_EXTRACT . $this->pluginName;
-
-        $this->removeFolderIfExists($pluginTargetPath);
-
-        Filesystem::copyRecursive($tmpPluginFolder, PIWIK_USER_PATH . self::PATH_TO_EXTRACT);
-    }
-
-    public function installOrUpdatePluginFromFile($pathToZip)
-    {
-        $tmpPluginFolder = StaticContainer::get('path.tmp') . self::PATH_TO_DOWNLOAD . $this->pluginName;
-
-        try {
-            $this->makeSureFoldersAreWritable();
-            $this->extractPluginFiles($pathToZip, $tmpPluginFolder);
-
-            $this->makeSurePluginJsonExists($tmpPluginFolder);
-            $metadata = $this->getPluginMetadataIfValid($tmpPluginFolder);
-            $this->makeSureThereAreNoMissingRequirements($metadata);
-
-            $this->pluginName = $metadata->name;
-
-            $this->fixPluginFolderIfNeeded($tmpPluginFolder);
-            $this->copyPluginToDestination($tmpPluginFolder);
-
-            Filesystem::deleteAllCacheOnUpdate($this->pluginName);
-
-        } catch (\Exception $e) {
-
-            $this->removeFileIfExists($pathToZip);
-            $this->removeFolderIfExists($tmpPluginFolder);
-
-            throw $e;
-        }
-
-        $this->removeFileIfExists($pathToZip);
-        $this->removeFolderIfExists($tmpPluginFolder);
-
-        return $metadata;
-    }
-
     private function fixPluginFolderIfNeeded($tmpPluginFolder)
     {
         $firstSubFolder = $this->getNameOfFirstSubfolder($tmpPluginFolder);
@@ -300,6 +256,50 @@ class PluginInstaller
         $from = $tmpPluginFolder . DIRECTORY_SEPARATOR . $firstSubFolder;
         $to = $tmpPluginFolder . DIRECTORY_SEPARATOR . $this->pluginName;
         rename($from, $to);
+    }
+
+    private function copyPluginToDestination($tmpPluginFolder)
+    {
+        $pluginTargetPath = PIWIK_USER_PATH . self::PATH_TO_EXTRACT . $this->pluginName;
+
+        $this->removeFolderIfExists($pluginTargetPath);
+
+        Filesystem::copyRecursive($tmpPluginFolder, PIWIK_USER_PATH . self::PATH_TO_EXTRACT);
+    }
+
+    /**
+     * @param $pathExtracted
+     */
+    private function removeFolderIfExists($pathExtracted)
+    {
+        Filesystem::unlinkRecursive($pathExtracted, true);
+    }
+
+    /**
+     * @param $targetTmpFile
+     */
+    private function removeFileIfExists($targetTmpFile)
+    {
+        if (file_exists($targetTmpFile)) {
+            unlink($targetTmpFile);
+        }
+    }
+
+    /**
+     * @throws PluginInstallerException
+     */
+    private function makeSurePluginNameIsValid()
+    {
+        try {
+            $marketplace = new MarketplaceApiClient();
+            $pluginDetails = $marketplace->getPluginInfo($this->pluginName);
+        } catch (\Exception $e) {
+            throw new PluginInstallerException($e->getMessage());
+        }
+
+        if (empty($pluginDetails)) {
+            throw new PluginInstallerException('This plugin was not found in the Marketplace.');
+        }
     }
 
 }

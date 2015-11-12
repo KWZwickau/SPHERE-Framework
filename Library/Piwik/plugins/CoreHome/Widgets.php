@@ -27,6 +27,12 @@ class Widgets extends \Piwik\Plugin\Widgets
         $this->translator = $translator;
     }
 
+    protected function init()
+    {
+        $this->addWidget('CoreHome_SupportPiwik', 'getDonateForm');
+        $this->addWidget('Installation_Welcome', 'getPromoVideo');
+    }
+
     /**
      * Renders and echo's the in-app donate form w/ slider.
      */
@@ -53,11 +59,5 @@ class Widgets extends \Piwik\Plugin\Widgets
         $view->promoVideoUrl = 'https://www.youtube.com/watch?v=OslfF_EH81g';
 
         return $view->render();
-    }
-
-    protected function init()
-    {
-        $this->addWidget('CoreHome_SupportPiwik', 'getDonateForm');
-        $this->addWidget('Installation_Welcome', 'getPromoVideo');
     }
 }

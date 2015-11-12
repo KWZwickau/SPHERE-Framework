@@ -9,8 +9,8 @@
 
 namespace Piwik\Scheduler;
 
-use Piwik\Date;
 use Piwik\Option;
+use Piwik\Date;
 
 /**
  * This data structure holds the scheduled times for each active scheduled task.
@@ -66,27 +66,6 @@ class Timetable
     }
 
     /**
-     * Checks if a task should be rescheduled
-     *
-     * Task has to be rescheduled if :
-     *  - the task has to be executed
-     *  - the task has never been scheduled before
-     *
-     * @param string $taskName
-     *
-     * @return boolean
-     */
-    public function taskShouldBeRescheduled($taskName)
-    {
-        return !$this->taskHasBeenScheduledOnce($taskName) || $this->shouldExecuteTask($taskName);
-    }
-
-    public function taskHasBeenScheduledOnce($taskName)
-    {
-        return isset($this->timetable[$taskName]);
-    }
-
-    /**
      * Checks if the task should be executed
      *
      * Task has to be executed if :
@@ -106,6 +85,22 @@ class Timetable
         }
 
         return $this->taskHasBeenScheduledOnce($taskName) && time() >= $this->timetable[$taskName];
+    }
+
+    /**
+     * Checks if a task should be rescheduled
+     *
+     * Task has to be rescheduled if :
+     *  - the task has to be executed
+     *  - the task has never been scheduled before
+     *
+     * @param string $taskName
+     *
+     * @return boolean
+     */
+    public function taskShouldBeRescheduled($taskName)
+    {
+        return !$this->taskHasBeenScheduledOnce($taskName) || $this->shouldExecuteTask($taskName);
     }
 
     public function rescheduleTask(Task $task)
@@ -129,5 +124,10 @@ class Timetable
         $taskName = Task::getTaskName($className, $methodName, $methodParameter);
 
         return $this->taskHasBeenScheduledOnce($taskName) ? $this->timetable[$taskName] : false;
+    }
+
+    public function taskHasBeenScheduledOnce($taskName)
+    {
+        return isset($this->timetable[$taskName]);
     }
 }

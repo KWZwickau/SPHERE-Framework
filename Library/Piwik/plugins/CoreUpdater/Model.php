@@ -12,15 +12,6 @@ use Piwik\Filesystem;
 
 class Model
 {
-    public function removeGoneFiles($source, $target)
-    {
-        Filesystem::unlinkTargetFilesNotPresentInSource($source . '/core', $target . '/core');
-
-        foreach ($this->getPluginsFromDirectoy($source) as $pluginDir) {
-            Filesystem::unlinkTargetFilesNotPresentInSource($source . $pluginDir, $target . $pluginDir);
-        }
-    }
-
     public function getPluginsFromDirectoy($directoryToLook)
     {
         $directories = _glob($directoryToLook . '/plugins/' . '*', GLOB_ONLYDIR);
@@ -30,5 +21,14 @@ class Model
         }, $directories);
 
         return $directories;
+    }
+
+    public function removeGoneFiles($source, $target)
+    {
+        Filesystem::unlinkTargetFilesNotPresentInSource($source . '/core', $target . '/core');
+
+        foreach ($this->getPluginsFromDirectoy($source) as $pluginDir) {
+            Filesystem::unlinkTargetFilesNotPresentInSource($source . $pluginDir, $target . $pluginDir);
+        }
     }
 }

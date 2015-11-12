@@ -78,6 +78,73 @@
 class HTML_QuickForm2_Rule_Length extends HTML_QuickForm2_Rule
 {
    /**
+    * Validates the owner element
+    *
+    * @return   bool    whether length of the element's value is within allowed range
+    */
+    protected function validateOwner()
+    {
+        if (0 == ($valueLength = strlen($this->owner->getValue()))) {
+            return true;
+        }
+
+        $allowedLength = $this->getConfig();
+        if (is_scalar($allowedLength)) {
+            return $valueLength == $allowedLength;
+        } else {
+            return (empty($allowedLength['min']) || $valueLength >= $allowedLength['min']) &&
+                   (empty($allowedLength['max']) || $valueLength <= $allowedLength['max']);
+        }
+    }
+
+    protected function getJavascriptCallback()
+    {
+        $allowedLength = $this->getConfig();
+        if (is_scalar($allowedLength)) {
+            $check = "length == {$allowedLength}";
+        } else {
+            $checks = array();
+            if (!empty($allowedLength['min'])) {
+                $checks[] = "length >= {$allowedLength['min']}";
+            }
+            if (!empty($allowedLength['max'])) {
+                $checks[] = "length <= {$allowedLength['max']}";
+            }
+            $check = implode(' && ', $checks);
+        }
+        return "function() { var length = " . $this->owner->getJavascriptValue() .
+               ".length; if (0 == length) { return true; } else { return {$check}; } }";
+    }
+
+   /**
+    * Adds the 'min' and 'max' fields from one array to the other
+    *
+    * @param    array   Rule configuration, array with 'min' and 'max' keys
+    * @param    array   Additional configuration, fields will be added to
+    *                   $length if it doesn't contain such a key already
+    * @return   array
+    */
+    protected static function mergeMinMaxLength($length, $config)
+    {
+        if (array_key_exists('min', $config) || array_key_exists('max', $config)) {
+            if (!array_key_exists('min', $length) && array_key_exists('min', $config)) {
+                $length['min'] = $config['min'];
+            }
+            if (!array_key_exists('max', $length) && array_key_exists('max', $config)) {
+                $length['max'] = $config['max'];
+            }
+        } else {
+            if (!array_key_exists('min', $length)) {
+                $length['min'] = reset($config);
+            }
+            if (!array_key_exists('max', $length)) {
+                $length['max'] = end($config);
+            }
+        }
+        return $length;
+    }
+
+   /**
     * Merges length limits given on rule creation with those given to registerRule()
     *
     * "Global" length limits may be passed to
@@ -115,34 +182,6 @@ class HTML_QuickForm2_Rule_Length extends HTML_QuickForm2_Rule
                 $length = self::mergeMinMaxLength(
                     $length, is_array($localConfig)? $localConfig: array($localConfig)
                 );
-            }
-        }
-        return $length;
-    }
-
-   /**
-    * Adds the 'min' and 'max' fields from one array to the other
-    *
-    * @param    array   Rule configuration, array with 'min' and 'max' keys
-    * @param    array   Additional configuration, fields will be added to
-    *                   $length if it doesn't contain such a key already
-    * @return   array
-    */
-    protected static function mergeMinMaxLength($length, $config)
-    {
-        if (array_key_exists('min', $config) || array_key_exists('max', $config)) {
-            if (!array_key_exists('min', $length) && array_key_exists('min', $config)) {
-                $length['min'] = $config['min'];
-            }
-            if (!array_key_exists('max', $length) && array_key_exists('max', $config)) {
-                $length['max'] = $config['max'];
-            }
-        } else {
-            if (!array_key_exists('min', $length)) {
-                $length['min'] = reset($config);
-            }
-            if (!array_key_exists('max', $length)) {
-                $length['max'] = end($config);
             }
         }
         return $length;
@@ -192,45 +231,6 @@ class HTML_QuickForm2_Rule_Length extends HTML_QuickForm2_Rule
             }
         }
         return parent::setConfig($config);
-    }
-
-   /**
-    * Validates the owner element
-    *
-    * @return   bool    whether length of the element's value is within allowed range
-    */
-    protected function validateOwner()
-    {
-        if (0 == ($valueLength = strlen($this->owner->getValue()))) {
-            return true;
-        }
-
-        $allowedLength = $this->getConfig();
-        if (is_scalar($allowedLength)) {
-            return $valueLength == $allowedLength;
-        } else {
-            return (empty($allowedLength['min']) || $valueLength >= $allowedLength['min']) &&
-                   (empty($allowedLength['max']) || $valueLength <= $allowedLength['max']);
-        }
-    }
-
-    protected function getJavascriptCallback()
-    {
-        $allowedLength = $this->getConfig();
-        if (is_scalar($allowedLength)) {
-            $check = "length == {$allowedLength}";
-        } else {
-            $checks = array();
-            if (!empty($allowedLength['min'])) {
-                $checks[] = "length >= {$allowedLength['min']}";
-            }
-            if (!empty($allowedLength['max'])) {
-                $checks[] = "length <= {$allowedLength['max']}";
-            }
-            $check = implode(' && ', $checks);
-        }
-        return "function() { var length = " . $this->owner->getJavascriptValue() .
-               ".length; if (0 == length) { return true; } else { return {$check}; } }";
     }
 }
 ?>

@@ -8,21 +8,55 @@
  */
 namespace Piwik\Plugins\Actions\Reports;
 
-use Piwik\API\Request;
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
+use Piwik\API\Request;
+use Piwik\Common;
+use Piwik\Plugins\Actions\Columns\PageTitle;
 use Piwik\Plugins\Actions\Columns\Metrics\AveragePageGenerationTime;
 use Piwik\Plugins\Actions\Columns\Metrics\AverageTimeOnPage;
 use Piwik\Plugins\Actions\Columns\Metrics\BounceRate;
 use Piwik\Plugins\Actions\Columns\Metrics\ExitRate;
-use Piwik\Plugins\Actions\Columns\PageTitle;
 
 class GetPageTitles extends Base
 {
+    protected function init()
+    {
+        parent::init();
+
+        $this->dimension     = new PageTitle();
+        $this->name          = Piwik::translate('Actions_SubmenuPageTitles');
+        $this->documentation = Piwik::translate('Actions_PageTitlesReportDocumentation',
+                                                array('<br />', htmlentities('<title>')));
+
+        $this->order   = 5;
+        $this->metrics = array('nb_hits', 'nb_visits');
+        $this->processedMetrics = array(
+            new AverageTimeOnPage(),
+            new BounceRate(),
+            new ExitRate(),
+            new AveragePageGenerationTime()
+        );
+
+        $this->actionToLoadSubTables = $this->action;
+
+        $this->menuTitle   = 'Actions_SubmenuPageTitles';
+        $this->widgetTitle = 'Actions_WidgetPageTitles';
+    }
+
     public function getMetrics()
     {
         $metrics = parent::getMetrics();
         $metrics['nb_visits'] = Piwik::translate('General_ColumnUniquePageviews');
+
+        return $metrics;
+    }
+
+    protected function getMetricsDocumentation()
+    {
+        $metrics = parent::getMetricsDocumentation();
+        $metrics['nb_visits']   = Piwik::translate('General_ColumnUniquePageviewsDocumentation');
+        $metrics['bounce_rate'] = Piwik::translate('General_ColumnPageBounceRateDocumentation');
 
         return $metrics;
     }
@@ -50,38 +84,5 @@ class GetPageTitles extends Base
             self::factory('Actions', 'getEntryPageTitles'),
             self::factory('Actions', 'getExitPageTitles'),
         );
-    }
-
-    protected function init()
-    {
-        parent::init();
-
-        $this->dimension     = new PageTitle();
-        $this->name          = Piwik::translate('Actions_SubmenuPageTitles');
-        $this->documentation = Piwik::translate('Actions_PageTitlesReportDocumentation',
-                                                array('<br />', htmlentities('<title>')));
-
-        $this->order   = 5;
-        $this->metrics = array('nb_hits', 'nb_visits');
-        $this->processedMetrics = array(
-            new AverageTimeOnPage(),
-            new BounceRate(),
-            new ExitRate(),
-            new AveragePageGenerationTime()
-        );
-
-        $this->actionToLoadSubTables = $this->action;
-
-        $this->menuTitle   = 'Actions_SubmenuPageTitles';
-        $this->widgetTitle = 'Actions_WidgetPageTitles';
-    }
-
-    protected function getMetricsDocumentation()
-    {
-        $metrics = parent::getMetricsDocumentation();
-        $metrics['nb_visits']   = Piwik::translate('General_ColumnUniquePageviewsDocumentation');
-        $metrics['bounce_rate'] = Piwik::translate('General_ColumnPageBounceRateDocumentation');
-
-        return $metrics;
     }
 }

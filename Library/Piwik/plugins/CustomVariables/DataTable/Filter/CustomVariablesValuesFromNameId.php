@@ -8,9 +8,9 @@
  */
 namespace Piwik\Plugins\CustomVariables\DataTable\Filter;
 
-use Piwik\DataTable;
 use Piwik\DataTable\BaseFilter;
 use Piwik\DataTable\Row;
+use Piwik\DataTable;
 use Piwik\Piwik;
 
 class CustomVariablesValuesFromNameId extends BaseFilter
@@ -31,16 +31,12 @@ class CustomVariablesValuesFromNameId extends BaseFilter
      */
     public function filter($table)
     {
-        $notDefinedLabel = Piwik::translate('General_NotDefined',
-            Piwik::translate('CustomVariables_ColumnCustomVariableValue'));
+        $notDefinedLabel = Piwik::translate('General_NotDefined', Piwik::translate('CustomVariables_ColumnCustomVariableValue'));
 
-        $table->queueFilter('ColumnCallbackReplace', array(
-            'label',
-            function ($label) use ($notDefinedLabel) {
-                return $label == \Piwik\Plugins\CustomVariables\Archiver::LABEL_CUSTOM_VALUE_NOT_DEFINED
-                    ? $notDefinedLabel
-                    : $label;
-            }
-        ));
+        $table->queueFilter('ColumnCallbackReplace', array('label', function ($label) use ($notDefinedLabel) {
+            return $label == \Piwik\Plugins\CustomVariables\Archiver::LABEL_CUSTOM_VALUE_NOT_DEFINED
+                ? $notDefinedLabel
+                : $label;
+        }));
     }
 }

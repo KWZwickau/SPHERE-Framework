@@ -10,8 +10,8 @@
 namespace Piwik\Updates;
 
 use Piwik\Filesystem;
-use Piwik\Updater;
 use Piwik\Updates;
+use Piwik\Updater;
 
 /**
  * Update for version 2.5.0-rc2.
@@ -32,6 +32,15 @@ class Updates_2_5_0_rc2 extends Updates
                 }
                 self::deleteIfLastModifiedBefore14August2014($path);
             }
+        }
+    }
+
+    private static function deleteIfLastModifiedBefore14August2014($path)
+    {
+        $modifiedTime = filemtime($path);
+
+        if ($modifiedTime && $modifiedTime < 1408000000) {
+            Filesystem::deleteFileIfExists($path);
         }
     }
 
@@ -56,14 +65,5 @@ class Updates_2_5_0_rc2 extends Updates
             '/plugins/VisitorInterest/Widgets.php',
             '/plugins/CoreVisualizations/Visualizations/HtmlTable/Goals.php'
         );
-    }
-
-    private static function deleteIfLastModifiedBefore14August2014($path)
-    {
-        $modifiedTime = filemtime($path);
-
-        if ($modifiedTime && $modifiedTime < 1408000000) {
-            Filesystem::deleteFileIfExists($path);
-        }
     }
 }

@@ -62,17 +62,17 @@ class GoalManager
      */
     private $currentGoal = array();
 
-    public static function getGoalDefinition($idSite, $idGoal)
+    public function detectIsThereExistingCartInVisit($visitInformation)
     {
-        $goals = self::getGoalDefinitions($idSite);
-
-        foreach ($goals as $goal) {
-            if ($goal['idgoal'] == $idGoal) {
-                return $goal;
-            }
+        if (empty($visitInformation['visit_goal_buyer'])) {
+            return false;
         }
 
-        throw new Exception('Goal not found');
+        $goalBuyer = $visitInformation['visit_goal_buyer'];
+        $types     = array(GoalManager::TYPE_BUYER_OPEN_CART, GoalManager::TYPE_BUYER_ORDERED_AND_OPEN_CART);
+
+        // Was there a Cart for this visit prior to the order?
+        return in_array($goalBuyer, $types);
     }
 
     public static function getGoalDefinitions($idSite)
@@ -86,6 +86,19 @@ class GoalManager
         return array();
     }
 
+    public static function getGoalDefinition($idSite, $idGoal)
+    {
+        $goals = self::getGoalDefinitions($idSite);
+
+        foreach ($goals as $goal) {
+            if ($goal['idgoal'] == $idGoal) {
+                return $goal;
+            }
+        }
+
+        throw new Exception('Goal not found');
+    }
+
     public static function getGoalIds($idSite)
     {
         $goals   = self::getGoalDefinitions($idSite);
@@ -96,19 +109,6 @@ class GoalManager
         }
 
         return $goalIds;
-    }
-
-    public function detectIsThereExistingCartInVisit($visitInformation)
-    {
-        if (empty($visitInformation['visit_goal_buyer'])) {
-            return false;
-        }
-
-        $goalBuyer = $visitInformation['visit_goal_buyer'];
-        $types     = array(GoalManager::TYPE_BUYER_OPEN_CART, GoalManager::TYPE_BUYER_ORDERED_AND_OPEN_CART);
-
-        // Was there a Cart for this visit prior to the order?
-        return in_array($goalBuyer, $types);
     }
 
     /**
@@ -192,75 +192,6 @@ class GoalManager
         return $action->getActionUrl();
     }
 
-    /**
-     * @param $goal
-     * @param $pattern_type
-     * @param $url
-     * @return bool
-     * @throws \Exception
-     */
-    protected function isUrlMatchingGoal($goal, $pattern_type, $url)
-    {
-        $url = Common::unsanitizeInputValue($url);
-        $goal['pattern'] = Common::unsanitizeInputValue($goal['pattern']);
-
-        $match = $this->isGoalPatternMatchingUrl($goal, $pattern_type, $url);
-
-        if (!$match) {
-            // Users may set Goal matching URL as URL encoded
-            $goal['pattern'] = urldecode($goal['pattern']);
-
-            $match = $this->isGoalPatternMatchingUrl($goal, $pattern_type, $url);
-        }
-        return $match;
-    }
-
-    /**
-     * @param $goal
-     * @param $pattern_type
-     * @param $url
-     * @return bool
-     * @throws Exception
-     */
-    protected function isGoalPatternMatchingUrl($goal, $pattern_type, $url)
-    {
-        switch ($pattern_type) {
-            case 'regex':
-                $pattern = $goal['pattern'];
-                if (strpos($pattern, '/') !== false
-                    && strpos($pattern, '\\/') === false
-                ) {
-                    $pattern = str_replace('/', '\\/', $pattern);
-                }
-                $pattern = '/' . $pattern . '/';
-                if (!$goal['case_sensitive']) {
-                    $pattern .= 'i';
-                }
-                $match = (@preg_match($pattern, $url) == 1);
-                break;
-            case 'contains':
-                if ($goal['case_sensitive']) {
-                    $matched = strpos($url, $goal['pattern']);
-                } else {
-                    $matched = stripos($url, $goal['pattern']);
-                }
-                $match = ($matched !== false);
-                break;
-            case 'exact':
-                if ($goal['case_sensitive']) {
-                    $matched = strcmp($goal['pattern'], $url);
-                } else {
-                    $matched = strcasecmp($goal['pattern'], $url);
-                }
-                $match = ($matched == 0);
-                break;
-            default:
-                throw new Exception(Piwik::translate('General_ExceptionInvalidGoalPattern', array($pattern_type)));
-                break;
-        }
-        return $match;
-    }
-
     public function detectGoalId($idSite, Request $request)
     {
         if (!Common::isGoalPluginEnabled()) {
@@ -327,25 +258,21 @@ class GoalManager
         }
     }
 
-    private function getGoalFromVisitor(VisitProperties $visitProperties, Request $request, $action)
+    /**
+     * Returns rounded decimal revenue, or if revenue is integer, then returns as is.
+     *
+     * @param int|float $revenue
+     * @return int|float
+     */
+    protected function getRevenue($revenue)
     {
-        $goal = array(
-            'idvisit'     => $visitProperties->getProperty('idvisit'),
-            'idvisitor'   => $visitProperties->getProperty('idvisitor'),
-            'server_time' => Date::getDatetimeFromTimestamp($visitProperties->getProperty('visit_last_action_time')),
-        );
-
-        $visitDimensions = VisitDimension::getAllDimensions();
-
-        $visit = Visitor::makeFromVisitProperties($visitProperties, $request);
-        foreach ($visitDimensions as $dimension) {
-            $value = $dimension->onAnyGoalConversion($request, $visit, $action);
-            if (false !== $value) {
-                $goal[$dimension->getColumnName()] = $value;
-            }
+        if (round($revenue) != $revenue) {
+            $revenue = round($revenue, self::REVENUE_PRECISION);
         }
 
-        return $goal;
+        $revenue = Common::forceDotAsSeparatorForDecimalPoint($revenue);
+
+        return $revenue;
     }
 
     /**
@@ -434,35 +361,6 @@ class GoalManager
     }
 
     /**
-     * @param ConversionDimension[] $dimensions
-     * @param string $hook
-     * @param Visitor $visitor
-     * @param Action|null $action
-     * @param array|null $valuesToUpdate If null, $this->visitorInfo will be updated
-     *
-     * @return array|null The updated $valuesToUpdate or null if no $valuesToUpdate given
-     */
-    private function triggerHookOnDimensions(Request $request, $dimensions, $hook, $visitor, $action, $valuesToUpdate)
-    {
-        foreach ($dimensions as $dimension) {
-            $value = $dimension->$hook($request, $visitor, $action, $this);
-
-            if (false !== $value) {
-                if (is_float($value)) {
-                    $value = Common::forceDotAsSeparatorForDecimalPoint($value);
-                }
-
-                $fieldName = $dimension->getColumnName();
-                $visitor->setVisitorColumn($fieldName, $value);
-
-                $valuesToUpdate[$fieldName] = $value;
-            }
-        }
-
-        return $valuesToUpdate;
-    }
-
-    /**
      * Returns Items read from the request string
      * @return array|bool
      */
@@ -485,6 +383,80 @@ class GoalManager
 
         $cleanedItems = $this->getCleanedEcommerceItems($items);
         return $cleanedItems;
+    }
+
+    /**
+     * Loads the Ecommerce items from the request and records them in the DB
+     *
+     * @param array $goal
+     * @param array $items
+     * @throws Exception
+     * @return int Number of items in the cart
+     */
+    protected function recordEcommerceItems($goal, $items)
+    {
+        $itemInCartBySku = array();
+        foreach ($items as $item) {
+            $itemInCartBySku[$item[0]] = $item;
+        }
+
+        $itemsInDb = $this->getModel()->getAllItemsCurrentlyInTheCart($goal, self::ITEM_IDORDER_ABANDONED_CART);
+
+        // Look at which items need to be deleted, which need to be added or updated, based on the SKU
+        $skuFoundInDb = $itemsToUpdate = array();
+
+        foreach ($itemsInDb as $itemInDb) {
+            $skuFoundInDb[] = $itemInDb['idaction_sku'];
+
+            // Ensure price comparisons will have the same assumption
+            $itemInDb['price'] = $this->getRevenue($itemInDb['price']);
+            $itemInDbOriginal = $itemInDb;
+            $itemInDb = array_values($itemInDb);
+
+            // Cast all as string, because what comes out of the fetchAll() are strings
+            $itemInDb = $this->getItemRowCast($itemInDb);
+
+            //Item in the cart in the DB, but not anymore in the cart
+            if (!isset($itemInCartBySku[$itemInDb[0]])) {
+                $itemToUpdate = array_merge($itemInDb,
+                    array('deleted'                => 1,
+                          'idorder_original_value' => $itemInDbOriginal['idorder_original_value']
+                    )
+                );
+
+                $itemsToUpdate[] = $itemToUpdate;
+                Common::printDebug("Item found in the previous Cart, but no in the current cart/order");
+                Common::printDebug($itemToUpdate);
+                continue;
+            }
+
+            $newItem = $itemInCartBySku[$itemInDb[0]];
+            $newItem = $this->getItemRowCast($newItem);
+
+            if (count($itemInDb) != count($newItem)) {
+                Common::printDebug("ERROR: Different format in items from cart and DB");
+                throw new Exception(" Item in DB and Item in cart have a different format, this is not expected... " . var_export($itemInDb, true) . var_export($newItem, true));
+            }
+            Common::printDebug("Item has changed since the last cart. Previous item stored in cart in database:");
+            Common::printDebug($itemInDb);
+            Common::printDebug("New item to UPDATE the previous row:");
+            $newItem['idorder_original_value'] = $itemInDbOriginal['idorder_original_value'];
+            Common::printDebug($newItem);
+            $itemsToUpdate[] = $newItem;
+        }
+
+        // Items to UPDATE
+        $this->updateEcommerceItems($goal, $itemsToUpdate);
+
+        // Items to INSERT
+        $itemsToInsert = array();
+        foreach ($items as $item) {
+            if (!in_array($item[0], $skuFoundInDb)) {
+                $itemsToInsert[] = $item;
+            }
+        }
+
+        $this->insertEcommerceItems($goal, $itemsToInsert);
     }
 
     /**
@@ -599,156 +571,6 @@ class GoalManager
     }
 
     /**
-     * Returns rounded decimal revenue, or if revenue is integer, then returns as is.
-     *
-     * @param int|float $revenue
-     * @return int|float
-     */
-    protected function getRevenue($revenue)
-    {
-        if (round($revenue) != $revenue) {
-            $revenue = round($revenue, self::REVENUE_PRECISION);
-        }
-
-        $revenue = Common::forceDotAsSeparatorForDecimalPoint($revenue);
-
-        return $revenue;
-    }
-
-    private function getModel()
-    {
-        return new Model();
-    }
-
-    /**
-     * Helper function used by other record* methods which will INSERT or UPDATE the conversion in the DB
-     *
-     * @param array $conversion
-     * @param array $visitInformation
-     * @return bool
-     */
-    protected function insertNewConversion($conversion, $visitInformation, Request $request)
-    {
-        /**
-         * Triggered before persisting a new [conversion entity](/guides/persistence-and-the-mysql-backend#conversions).
-         *
-         * This event can be used to modify conversion information or to add new information to be persisted.
-         *
-         * This event is deprecated, use [Dimensions](http://developer.piwik.org/guides/dimensions) instead.
-         *
-         * @param array $conversion The conversion entity. Read [this](/guides/persistence-and-the-mysql-backend#conversions)
-         *                          to see what it contains.
-         * @param array $visitInformation The visit entity that we are tracking a conversion for. See what
-         *                                information it contains [here](/guides/persistence-and-the-mysql-backend#visits).
-         * @param \Piwik\Tracker\Request $request An object describing the tracking request being processed.
-         * @deprecated
-         */
-        Piwik::postEvent('Tracker.newConversionInformation', array(&$conversion, $visitInformation, $request));
-
-        $newGoalDebug = $conversion;
-        $newGoalDebug['idvisitor'] = bin2hex($newGoalDebug['idvisitor']);
-        Common::printDebug($newGoalDebug);
-
-        $wasInserted = $this->getModel()->createConversion($conversion);
-
-        return $wasInserted;
-    }
-
-    /**
-     * Loads the Ecommerce items from the request and records them in the DB
-     *
-     * @param array $goal
-     * @param array $items
-     * @throws Exception
-     * @return int Number of items in the cart
-     */
-    protected function recordEcommerceItems($goal, $items)
-    {
-        $itemInCartBySku = array();
-        foreach ($items as $item) {
-            $itemInCartBySku[$item[0]] = $item;
-        }
-
-        $itemsInDb = $this->getModel()->getAllItemsCurrentlyInTheCart($goal, self::ITEM_IDORDER_ABANDONED_CART);
-
-        // Look at which items need to be deleted, which need to be added or updated, based on the SKU
-        $skuFoundInDb = $itemsToUpdate = array();
-
-        foreach ($itemsInDb as $itemInDb) {
-            $skuFoundInDb[] = $itemInDb['idaction_sku'];
-
-            // Ensure price comparisons will have the same assumption
-            $itemInDb['price'] = $this->getRevenue($itemInDb['price']);
-            $itemInDbOriginal = $itemInDb;
-            $itemInDb = array_values($itemInDb);
-
-            // Cast all as string, because what comes out of the fetchAll() are strings
-            $itemInDb = $this->getItemRowCast($itemInDb);
-
-            //Item in the cart in the DB, but not anymore in the cart
-            if (!isset($itemInCartBySku[$itemInDb[0]])) {
-                $itemToUpdate = array_merge($itemInDb,
-                    array('deleted'                => 1,
-                          'idorder_original_value' => $itemInDbOriginal['idorder_original_value']
-                    )
-                );
-
-                $itemsToUpdate[] = $itemToUpdate;
-                Common::printDebug("Item found in the previous Cart, but no in the current cart/order");
-                Common::printDebug($itemToUpdate);
-                continue;
-            }
-
-            $newItem = $itemInCartBySku[$itemInDb[0]];
-            $newItem = $this->getItemRowCast($newItem);
-
-            if (count($itemInDb) != count($newItem)) {
-                Common::printDebug("ERROR: Different format in items from cart and DB");
-                throw new Exception(" Item in DB and Item in cart have a different format, this is not expected... " . var_export($itemInDb, true) . var_export($newItem, true));
-            }
-            Common::printDebug("Item has changed since the last cart. Previous item stored in cart in database:");
-            Common::printDebug($itemInDb);
-            Common::printDebug("New item to UPDATE the previous row:");
-            $newItem['idorder_original_value'] = $itemInDbOriginal['idorder_original_value'];
-            Common::printDebug($newItem);
-            $itemsToUpdate[] = $newItem;
-        }
-
-        // Items to UPDATE
-        $this->updateEcommerceItems($goal, $itemsToUpdate);
-
-        // Items to INSERT
-        $itemsToInsert = array();
-        foreach ($items as $item) {
-            if (!in_array($item[0], $skuFoundInDb)) {
-                $itemsToInsert[] = $item;
-            }
-        }
-
-        $this->insertEcommerceItems($goal, $itemsToInsert);
-    }
-
-    /**
-     * Casts the item array so that array comparisons work nicely
-     * @param array $row
-     * @return array
-     */
-    protected function getItemRowCast($row)
-    {
-        return array(
-            (string)(int)$row[self::INTERNAL_ITEM_SKU],
-            (string)(int)$row[self::INTERNAL_ITEM_NAME],
-            (string)(int)$row[self::INTERNAL_ITEM_CATEGORY],
-            (string)(int)$row[self::INTERNAL_ITEM_CATEGORY2],
-            (string)(int)$row[self::INTERNAL_ITEM_CATEGORY3],
-            (string)(int)$row[self::INTERNAL_ITEM_CATEGORY4],
-            (string)(int)$row[self::INTERNAL_ITEM_CATEGORY5],
-            (string)$row[self::INTERNAL_ITEM_PRICE],
-            (string)$row[self::INTERNAL_ITEM_QUANTITY],
-        );
-    }
-
-    /**
      * Updates the cart items in the DB
      * that have been modified since the last cart update
      *
@@ -774,26 +596,9 @@ class GoalManager
         }
     }
 
-    protected function getItemRowEnriched($goal, $item)
+    private function getModel()
     {
-        $newRow = array(
-            'idaction_sku'       => (int)$item[self::INTERNAL_ITEM_SKU],
-            'idaction_name'      => (int)$item[self::INTERNAL_ITEM_NAME],
-            'idaction_category'  => (int)$item[self::INTERNAL_ITEM_CATEGORY],
-            'idaction_category2' => (int)$item[self::INTERNAL_ITEM_CATEGORY2],
-            'idaction_category3' => (int)$item[self::INTERNAL_ITEM_CATEGORY3],
-            'idaction_category4' => (int)$item[self::INTERNAL_ITEM_CATEGORY4],
-            'idaction_category5' => (int)$item[self::INTERNAL_ITEM_CATEGORY5],
-            'price'              => Common::forceDotAsSeparatorForDecimalPoint($item[self::INTERNAL_ITEM_PRICE]),
-            'quantity'           => $item[self::INTERNAL_ITEM_QUANTITY],
-            'deleted'            => isset($item['deleted']) ? $item['deleted'] : 0, //deleted
-            'idorder'            => isset($goal['idorder']) ? $goal['idorder'] : self::ITEM_IDORDER_ABANDONED_CART, //idorder = 0 in log_conversion_item for carts
-            'idsite'             => $goal['idsite'],
-            'idvisitor'          => $goal['idvisitor'],
-            'server_time'        => $goal['server_time'],
-            'idvisit'            => $goal['idvisit']
-        );
-        return $newRow;
+        return new Model();
     }
 
     /**
@@ -821,6 +626,37 @@ class GoalManager
         }
 
         $this->getModel()->createEcommerceItems($items);
+    }
+
+    protected function getItemRowEnriched($goal, $item)
+    {
+        $newRow = array(
+            'idaction_sku'       => (int)$item[self::INTERNAL_ITEM_SKU],
+            'idaction_name'      => (int)$item[self::INTERNAL_ITEM_NAME],
+            'idaction_category'  => (int)$item[self::INTERNAL_ITEM_CATEGORY],
+            'idaction_category2' => (int)$item[self::INTERNAL_ITEM_CATEGORY2],
+            'idaction_category3' => (int)$item[self::INTERNAL_ITEM_CATEGORY3],
+            'idaction_category4' => (int)$item[self::INTERNAL_ITEM_CATEGORY4],
+            'idaction_category5' => (int)$item[self::INTERNAL_ITEM_CATEGORY5],
+            'price'              => Common::forceDotAsSeparatorForDecimalPoint($item[self::INTERNAL_ITEM_PRICE]),
+            'quantity'           => $item[self::INTERNAL_ITEM_QUANTITY],
+            'deleted'            => isset($item['deleted']) ? $item['deleted'] : 0, //deleted
+            'idorder'            => isset($goal['idorder']) ? $goal['idorder'] : self::ITEM_IDORDER_ABANDONED_CART, //idorder = 0 in log_conversion_item for carts
+            'idsite'             => $goal['idsite'],
+            'idvisitor'          => $goal['idvisitor'],
+            'server_time'        => $goal['server_time'],
+            'idvisit'            => $goal['idvisit']
+        );
+        return $newRow;
+    }
+
+    public function getGoalColumn($column)
+    {
+        if (array_key_exists($column, $this->currentGoal)) {
+            return $this->currentGoal[$column];
+        }
+
+        return false;
     }
 
     /**
@@ -874,12 +710,176 @@ class GoalManager
         }
     }
 
-    public function getGoalColumn($column)
+    /**
+     * Helper function used by other record* methods which will INSERT or UPDATE the conversion in the DB
+     *
+     * @param array $conversion
+     * @param array $visitInformation
+     * @return bool
+     */
+    protected function insertNewConversion($conversion, $visitInformation, Request $request)
     {
-        if (array_key_exists($column, $this->currentGoal)) {
-            return $this->currentGoal[$column];
+        /**
+         * Triggered before persisting a new [conversion entity](/guides/persistence-and-the-mysql-backend#conversions).
+         *
+         * This event can be used to modify conversion information or to add new information to be persisted.
+         *
+         * This event is deprecated, use [Dimensions](http://developer.piwik.org/guides/dimensions) instead.
+         *
+         * @param array $conversion The conversion entity. Read [this](/guides/persistence-and-the-mysql-backend#conversions)
+         *                          to see what it contains.
+         * @param array $visitInformation The visit entity that we are tracking a conversion for. See what
+         *                                information it contains [here](/guides/persistence-and-the-mysql-backend#visits).
+         * @param \Piwik\Tracker\Request $request An object describing the tracking request being processed.
+         * @deprecated
+         */
+        Piwik::postEvent('Tracker.newConversionInformation', array(&$conversion, $visitInformation, $request));
+
+        $newGoalDebug = $conversion;
+        $newGoalDebug['idvisitor'] = bin2hex($newGoalDebug['idvisitor']);
+        Common::printDebug($newGoalDebug);
+
+        $wasInserted = $this->getModel()->createConversion($conversion);
+
+        return $wasInserted;
+    }
+
+    /**
+     * Casts the item array so that array comparisons work nicely
+     * @param array $row
+     * @return array
+     */
+    protected function getItemRowCast($row)
+    {
+        return array(
+            (string)(int)$row[self::INTERNAL_ITEM_SKU],
+            (string)(int)$row[self::INTERNAL_ITEM_NAME],
+            (string)(int)$row[self::INTERNAL_ITEM_CATEGORY],
+            (string)(int)$row[self::INTERNAL_ITEM_CATEGORY2],
+            (string)(int)$row[self::INTERNAL_ITEM_CATEGORY3],
+            (string)(int)$row[self::INTERNAL_ITEM_CATEGORY4],
+            (string)(int)$row[self::INTERNAL_ITEM_CATEGORY5],
+            (string)$row[self::INTERNAL_ITEM_PRICE],
+            (string)$row[self::INTERNAL_ITEM_QUANTITY],
+        );
+    }
+
+    /**
+     * @param $goal
+     * @param $pattern_type
+     * @param $url
+     * @return bool
+     * @throws \Exception
+     */
+    protected function isUrlMatchingGoal($goal, $pattern_type, $url)
+    {
+        $url = Common::unsanitizeInputValue($url);
+        $goal['pattern'] = Common::unsanitizeInputValue($goal['pattern']);
+
+        $match = $this->isGoalPatternMatchingUrl($goal, $pattern_type, $url);
+
+        if (!$match) {
+            // Users may set Goal matching URL as URL encoded
+            $goal['pattern'] = urldecode($goal['pattern']);
+
+            $match = $this->isGoalPatternMatchingUrl($goal, $pattern_type, $url);
+        }
+        return $match;
+    }
+
+    /**
+     * @param ConversionDimension[] $dimensions
+     * @param string $hook
+     * @param Visitor $visitor
+     * @param Action|null $action
+     * @param array|null $valuesToUpdate If null, $this->visitorInfo will be updated
+     *
+     * @return array|null The updated $valuesToUpdate or null if no $valuesToUpdate given
+     */
+    private function triggerHookOnDimensions(Request $request, $dimensions, $hook, $visitor, $action, $valuesToUpdate)
+    {
+        foreach ($dimensions as $dimension) {
+            $value = $dimension->$hook($request, $visitor, $action, $this);
+
+            if (false !== $value) {
+                if (is_float($value)) {
+                    $value = Common::forceDotAsSeparatorForDecimalPoint($value);
+                }
+
+                $fieldName = $dimension->getColumnName();
+                $visitor->setVisitorColumn($fieldName, $value);
+
+                $valuesToUpdate[$fieldName] = $value;
+            }
         }
 
-        return false;
+        return $valuesToUpdate;
+    }
+
+    private function getGoalFromVisitor(VisitProperties $visitProperties, Request $request, $action)
+    {
+        $goal = array(
+            'idvisit'     => $visitProperties->getProperty('idvisit'),
+            'idvisitor'   => $visitProperties->getProperty('idvisitor'),
+            'server_time' => Date::getDatetimeFromTimestamp($visitProperties->getProperty('visit_last_action_time')),
+        );
+
+        $visitDimensions = VisitDimension::getAllDimensions();
+
+        $visit = Visitor::makeFromVisitProperties($visitProperties, $request);
+        foreach ($visitDimensions as $dimension) {
+            $value = $dimension->onAnyGoalConversion($request, $visit, $action);
+            if (false !== $value) {
+                $goal[$dimension->getColumnName()] = $value;
+            }
+        }
+
+        return $goal;
+    }
+
+    /**
+     * @param $goal
+     * @param $pattern_type
+     * @param $url
+     * @return bool
+     * @throws Exception
+     */
+    protected function isGoalPatternMatchingUrl($goal, $pattern_type, $url)
+    {
+        switch ($pattern_type) {
+            case 'regex':
+                $pattern = $goal['pattern'];
+                if (strpos($pattern, '/') !== false
+                    && strpos($pattern, '\\/') === false
+                ) {
+                    $pattern = str_replace('/', '\\/', $pattern);
+                }
+                $pattern = '/' . $pattern . '/';
+                if (!$goal['case_sensitive']) {
+                    $pattern .= 'i';
+                }
+                $match = (@preg_match($pattern, $url) == 1);
+                break;
+            case 'contains':
+                if ($goal['case_sensitive']) {
+                    $matched = strpos($url, $goal['pattern']);
+                } else {
+                    $matched = stripos($url, $goal['pattern']);
+                }
+                $match = ($matched !== false);
+                break;
+            case 'exact':
+                if ($goal['case_sensitive']) {
+                    $matched = strcmp($goal['pattern'], $url);
+                } else {
+                    $matched = strcasecmp($goal['pattern'], $url);
+                }
+                $match = ($matched == 0);
+                break;
+            default:
+                throw new Exception(Piwik::translate('General_ExceptionInvalidGoalPattern', array($pattern_type)));
+                break;
+        }
+        return $match;
     }
 }

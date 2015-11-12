@@ -80,6 +80,11 @@ class HTML_QuickForm2_Container_Group extends HTML_QuickForm2_Container
         return 'group';
     }
 
+    protected function prependsName()
+    {
+        return strlen($this->name) > 0;
+    }
+
     public function getValue()
     {
         $value = parent::getValue();
@@ -101,57 +106,6 @@ class HTML_QuickForm2_Container_Group extends HTML_QuickForm2_Container
             } while ($tokens);
             return $valueAry;
         }
-    }
-
-    protected function prependsName()
-    {
-        return strlen($this->name) > 0;
-    }
-
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    public function setName($name)
-    {
-        $this->previousName = $this->name;
-        $this->name = $name;
-        foreach ($this as $child) {
-            $this->renameChild($child);
-        }
-        return $this;
-    }
-
-    protected function renameChild(HTML_QuickForm2_Node $element)
-    {
-        $tokens = explode('[', str_replace(']', '', $element->getName()));
-        if ($this === $element->getContainer()) {
-            // Child has already been renamed by its group before
-            if (!is_null($this->previousName) &&
-                $this->previousName !== '') {
-                $gtokens = explode('[', str_replace(']', '', $this->previousName));
-                $pos = array_search(end($gtokens), $tokens);
-                if (!is_null($pos)) {
-                    $tokens = array_slice($tokens, $pos+1);
-                }
-            }
-        }
-        if (is_null($this->name) || $this->name === '') {
-            if (is_null($this->previousName) || $this->previousName === '') {
-                return $element;
-            } else {
-                $elname = $tokens[0];
-                unset($tokens[0]);
-                foreach ($tokens as $v) {
-                    $elname .= '['.$v.']';
-                }
-            }
-        } else {
-            $elname = $this->getName().'['.implode('][', $tokens).']';
-        }
-        $element->setName($elname);
-        return $element;
     }
 
     public function setValue($value)
@@ -217,6 +171,76 @@ class HTML_QuickForm2_Container_Group extends HTML_QuickForm2_Container
         }
     }
 
+
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    public function setName($name)
+    {
+        $this->previousName = $this->name;
+        $this->name = $name;
+        foreach ($this as $child) {
+            $this->renameChild($child);
+        }
+        return $this;
+    }
+
+    protected function renameChild(HTML_QuickForm2_Node $element)
+    {
+        $tokens = explode('[', str_replace(']', '', $element->getName()));
+        if ($this === $element->getContainer()) {
+            // Child has already been renamed by its group before
+            if (!is_null($this->previousName) &&
+                $this->previousName !== '') {
+                $gtokens = explode('[', str_replace(']', '', $this->previousName));
+                $pos = array_search(end($gtokens), $tokens);
+                if (!is_null($pos)) {
+                    $tokens = array_slice($tokens, $pos+1);
+                }
+            }
+        }
+        if (is_null($this->name) || $this->name === '') {
+            if (is_null($this->previousName) || $this->previousName === '') {
+                return $element;
+            } else {
+                $elname = $tokens[0];
+                unset($tokens[0]);
+                foreach ($tokens as $v) {
+                    $elname .= '['.$v.']';
+                }
+            }
+        } else {
+            $elname = $this->getName().'['.implode('][', $tokens).']';
+        }
+        $element->setName($elname);
+        return $element;
+    }
+
+   /**
+    * Appends an element to the container
+    *
+    * If the element was previously added to the container or to another
+    * container, it is first removed there.
+    *
+    * @param    HTML_QuickForm2_Node     Element to add
+    * @return   HTML_QuickForm2_Node     Added element
+    * @throws   HTML_QuickForm2_InvalidArgumentException
+    */
+    public function appendChild(HTML_QuickForm2_Node $element)
+    {
+        if (null !== ($container = $element->getContainer())) {
+            $container->removeChild($element);
+        }
+        // Element can be renamed only after being removed from container
+        $this->renameChild($element);
+
+        $element->setContainer($this);
+        $this->elements[] = $element;
+        return $element;
+    }
+
    /**
     * Removes the element from this container
     *
@@ -253,29 +277,6 @@ class HTML_QuickForm2_Container_Group extends HTML_QuickForm2_Container
     }
 
    /**
-    * Appends an element to the container
-    *
-    * If the element was previously added to the container or to another
-    * container, it is first removed there.
-    *
-    * @param    HTML_QuickForm2_Node     Element to add
-    * @return   HTML_QuickForm2_Node     Added element
-    * @throws   HTML_QuickForm2_InvalidArgumentException
-    */
-    public function appendChild(HTML_QuickForm2_Node $element)
-    {
-        if (null !== ($container = $element->getContainer())) {
-            $container->removeChild($element);
-        }
-        // Element can be renamed only after being removed from container
-        $this->renameChild($element);
-
-        $element->setContainer($this);
-        $this->elements[] = $element;
-        return $element;
-    }
-
-   /**
     * Sets string(s) to separate grouped elements
     *
     * @param    string|array    Use a string for one separator, array for
@@ -298,16 +299,6 @@ class HTML_QuickForm2_Container_Group extends HTML_QuickForm2_Container
         return isset($this->data['separator'])? $this->data['separator']: null;
     }
 
-    public function __toString()
-    {
-        // require_once 'HTML/QuickForm2/Renderer.php';
-
-        return $this->render(
-                   HTML_QuickForm2_Renderer::factory('default')
-                       ->setTemplateForId($this->getId(), '{content}')
-               )->__toString();
-    }
-
    /**
     * Renders the group using the given renderer
     *
@@ -322,6 +313,16 @@ class HTML_QuickForm2_Container_Group extends HTML_QuickForm2_Container
         }
         $renderer->finishGroup($this);
         return $renderer;
+    }
+
+    public function __toString()
+    {
+        // require_once 'HTML/QuickForm2/Renderer.php';
+
+        return $this->render(
+                   HTML_QuickForm2_Renderer::factory('default')
+                       ->setTemplateForId($this->getId(), '{content}')
+               )->__toString();
     }
 }
 ?>

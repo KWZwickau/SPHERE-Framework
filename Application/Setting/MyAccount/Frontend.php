@@ -198,9 +198,13 @@ class Frontend extends Extension implements IFrontendInterface
                                                             'Aussehen der Programmoberfläche',
                                                             array(1 => 'Webseite', 2 => 'Anwendung')
                                                         ),
+                                                    )
+                                                    , Panel::PANEL_TYPE_DEFAULT),
+                                                new Panel(
+                                                    'Statistik', array(
                                                         '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>',
                                                     )
-                                                    , Panel::PANEL_TYPE_DEFAULT)
+                                                    , Panel::PANEL_TYPE_DEFAULT),
                                             ))
                                         )
                                     )

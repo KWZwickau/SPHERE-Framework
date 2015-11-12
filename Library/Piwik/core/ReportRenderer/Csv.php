@@ -50,14 +50,6 @@ class Csv extends ReportRenderer
     }
 
     /**
-     * Get rendered report
-     */
-    public function getRenderedReport()
-    {
-        return $this->rendered;
-    }
-
-    /**
      * Send rendering to browser with a 'download file' prompt
      *
      * @param string $filename without path & without format extension
@@ -85,6 +77,14 @@ class Csv extends ReportRenderer
             "application/" . ReportRenderer::CSV_FORMAT,
             $this->getRenderedReport()
         );
+    }
+
+    /**
+     * Get rendered report
+     */
+    public function getRenderedReport()
+    {
+        return $this->rendered;
     }
 
     /**

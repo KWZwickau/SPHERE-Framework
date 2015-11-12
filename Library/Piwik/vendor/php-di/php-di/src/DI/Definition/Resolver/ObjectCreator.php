@@ -9,11 +9,11 @@
 
 namespace DI\Definition\Resolver;
 
+use DI\Definition\ObjectDefinition;
 use DI\Definition\Definition;
 use DI\Definition\Exception\DefinitionException;
-use DI\Definition\Helper\DefinitionHelper;
-use DI\Definition\ObjectDefinition;
 use DI\Definition\ObjectDefinition\PropertyInjection;
+use DI\Definition\Helper\DefinitionHelper;
 use DI\DependencyException;
 use DI\Proxy\ProxyFactory;
 use Exception;
@@ -79,14 +79,25 @@ class ObjectCreator implements DefinitionResolver
         return $this->createInstance($definition, $parameters);
     }
 
-    private function assertIsObjectDefinition(Definition $definition)
+    /**
+     * The definition is not resolvable if the class is not instantiable (interface or abstract)
+     * or if the class doesn't exist.
+     *
+     * @param ObjectDefinition $definition
+     *
+     * {@inheritdoc}
+     */
+    public function isResolvable(Definition $definition, array $parameters = array())
     {
-        if (!$definition instanceof ObjectDefinition) {
-            throw new \InvalidArgumentException(sprintf(
-                'This definition resolver is only compatible with ObjectDefinition objects, %s given',
-                get_class($definition)
-            ));
+        $this->assertIsObjectDefinition($definition);
+
+        if (! class_exists($definition->getClassName())) {
+            return false;
         }
+
+        $classReflection = new ReflectionClass($definition->getClassName());
+
+        return $classReflection->isInstantiable();
     }
 
     /**
@@ -168,30 +179,6 @@ class ObjectCreator implements DefinitionResolver
         return $object;
     }
 
-    private function assertClassExists(ObjectDefinition $definition)
-    {
-        if (!class_exists($definition->getClassName()) && !interface_exists($definition->getClassName())) {
-            throw DefinitionException::create($definition,
-            sprintf(
-                "Entry %s cannot be resolved: class %s doesn't exist",
-                $definition->getName(),
-                $definition->getClassName()
-            ));
-        }
-    }
-
-    private function assertClassIsInstantiable(ObjectDefinition $definition, ReflectionClass $classReflection)
-    {
-        if (!$classReflection->isInstantiable()) {
-            throw DefinitionException::create($definition,
-            sprintf(
-                "Entry %s cannot be resolved: class %s is not instantiable",
-                $definition->getName(),
-                $definition->getClassName()
-            ));
-        }
-    }
-
     protected function injectMethodsAndProperties($object, ObjectDefinition $objectDefinition)
     {
         // Property injections
@@ -248,24 +235,37 @@ class ObjectCreator implements DefinitionResolver
         $property->setValue($object, $value);
     }
 
-    /**
-     * The definition is not resolvable if the class is not instantiable (interface or abstract)
-     * or if the class doesn't exist.
-     *
-     * @param ObjectDefinition $definition
-     *
-     * {@inheritdoc}
-     */
-    public function isResolvable(Definition $definition, array $parameters = array())
+    private function assertIsObjectDefinition(Definition $definition)
     {
-        $this->assertIsObjectDefinition($definition);
-
-        if (! class_exists($definition->getClassName())) {
-            return false;
+        if (!$definition instanceof ObjectDefinition) {
+            throw new \InvalidArgumentException(sprintf(
+                'This definition resolver is only compatible with ObjectDefinition objects, %s given',
+                get_class($definition)
+            ));
         }
+    }
 
-        $classReflection = new ReflectionClass($definition->getClassName());
+    private function assertClassExists(ObjectDefinition $definition)
+    {
+        if (!class_exists($definition->getClassName()) && !interface_exists($definition->getClassName())) {
+            throw DefinitionException::create($definition,
+            sprintf(
+                "Entry %s cannot be resolved: class %s doesn't exist",
+                $definition->getName(),
+                $definition->getClassName()
+            ));
+        }
+    }
 
-        return $classReflection->isInstantiable();
+    private function assertClassIsInstantiable(ObjectDefinition $definition, ReflectionClass $classReflection)
+    {
+        if (!$classReflection->isInstantiable()) {
+            throw DefinitionException::create($definition,
+            sprintf(
+                "Entry %s cannot be resolved: class %s is not instantiable",
+                $definition->getName(),
+                $definition->getClassName()
+            ));
+        }
     }
 }

@@ -39,25 +39,12 @@ class Timer
     }
 
     /**
-     * @return float
+     * @param int $decimals
+     * @return string
      */
-    private function getMicrotime()
+    public function getTime($decimals = 3)
     {
-        list($micro_seconds, $seconds) = explode(" ", microtime());
-        return ((float)$micro_seconds + (float)$seconds);
-    }
-
-    /**
-     * Returns current memory usage, if available
-     *
-     * @return int
-     */
-    private function getMemoryUsage()
-    {
-        if (function_exists('memory_get_usage')) {
-            return memory_get_usage();
-        }
-        return 0;
+        return number_format($this->getMicrotime() - $this->timerStart, $decimals, '.', '');
     }
 
     /**
@@ -86,11 +73,24 @@ class Timer
     }
 
     /**
-     * @param int $decimals
-     * @return string
+     * @return float
      */
-    public function getTime($decimals = 3)
+    private function getMicrotime()
     {
-        return number_format($this->getMicrotime() - $this->timerStart, $decimals, '.', '');
+        list($micro_seconds, $seconds) = explode(" ", microtime());
+        return ((float)$micro_seconds + (float)$seconds);
+    }
+
+    /**
+     * Returns current memory usage, if available
+     *
+     * @return int
+     */
+    private function getMemoryUsage()
+    {
+        if (function_exists('memory_get_usage')) {
+            return memory_get_usage();
+        }
+        return 0;
     }
 }

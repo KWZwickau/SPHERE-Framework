@@ -44,27 +44,6 @@ class LogQueryBuilder
         );
     }
 
-    /**
-     * @param $where
-     * @param $segmentWhere
-     * @return string
-     * @throws
-     */
-    protected function getWhereMatchBoth($where, $segmentWhere)
-    {
-        if (empty($segmentWhere) && empty($where)) {
-            throw new \Exception("Segment where clause should be non empty.");
-        }
-        if (empty($segmentWhere)) {
-            return $where;
-        }
-        if (empty($where)) {
-            return $segmentWhere;
-        }
-        return "( $where )
-                AND
-                ($segmentWhere)";
-    }
 
     /**
      * Generate the join sql based on the needed tables
@@ -171,6 +150,7 @@ class LogQueryBuilder
         return $return;
     }
 
+
     /**
      * Build a select query where actions have to be joined on visits (or conversions)
      * In this case, the query gets wrapped in another query so that grouping by visit is possible
@@ -223,6 +203,7 @@ class LogQueryBuilder
         $query = $this->buildSelectQuery($select, $from, $where, $groupBy, $orderBy, $limit);
         return $query;
     }
+
 
     /**
      * Build select query the normal way
@@ -285,5 +266,27 @@ class LogQueryBuilder
         }
 
         return $sql;
+    }
+
+    /**
+     * @param $where
+     * @param $segmentWhere
+     * @return string
+     * @throws
+     */
+    protected function getWhereMatchBoth($where, $segmentWhere)
+    {
+        if (empty($segmentWhere) && empty($where)) {
+            throw new \Exception("Segment where clause should be non empty.");
+        }
+        if (empty($segmentWhere)) {
+            return $where;
+        }
+        if (empty($where)) {
+            return $segmentWhere;
+        }
+        return "( $where )
+                AND
+                ($segmentWhere)";
     }
 }

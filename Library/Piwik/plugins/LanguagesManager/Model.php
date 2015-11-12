@@ -23,19 +23,6 @@ class Model
         $this->table = Common::prefixTable(self::$rawPrefix);
     }
 
-    public static function install()
-    {
-        $userLanguage = "login VARCHAR( 100 ) NOT NULL ,
-					     language VARCHAR( 10 ) NOT NULL ,
-					     PRIMARY KEY ( login )";
-        DbHelper::createTable(self::$rawPrefix, $userLanguage);
-    }
-
-    public static function uninstall()
-    {
-        Db::dropTables(Common::prefixTable(self::$rawPrefix));
-    }
-
     public function deleteUserLanguage($userLogin)
     {
         Db::query('DELETE FROM ' . $this->table . ' WHERE login = ?', $userLogin);
@@ -68,5 +55,18 @@ class Model
         Db::query($query, $bind);
 
         return true;
+    }
+
+    public static function install()
+    {
+        $userLanguage = "login VARCHAR( 100 ) NOT NULL ,
+					     language VARCHAR( 10 ) NOT NULL ,
+					     PRIMARY KEY ( login )";
+        DbHelper::createTable(self::$rawPrefix, $userLanguage);
+    }
+
+    public static function uninstall()
+    {
+        Db::dropTables(Common::prefixTable(self::$rawPrefix));
     }
 }

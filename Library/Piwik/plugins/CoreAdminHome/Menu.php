@@ -37,8 +37,8 @@ class Menu extends \Piwik\Plugin\Menu
 
         if (Piwik::hasUserSuperUserAccess() && SettingsManager::hasSystemPluginsSettingsForCurrentUser()) {
             $menu->addSettingsItem('CoreAdminHome_PluginSettings',
-                $this->urlForAction('adminPluginSettings'),
-                $order = 7);
+                                   $this->urlForAction('adminPluginSettings'),
+                                   $order = 7);
         }
     }
 
@@ -52,8 +52,7 @@ class Menu extends \Piwik\Plugin\Menu
             }
 
             $menu->registerMenuIcon('CoreAdminHome_Administration', 'icon-configure');
-            $menu->addItem('CoreAdminHome_Administration', null, $url, 980,
-                Piwik::translate('CoreAdminHome_Administration'));
+            $menu->addItem('CoreAdminHome_Administration', null, $url, 980, Piwik::translate('CoreAdminHome_Administration'));
         }
     }
 

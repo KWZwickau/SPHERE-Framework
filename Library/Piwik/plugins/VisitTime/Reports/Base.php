@@ -13,14 +13,14 @@ use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Bar;
 
 abstract class Base extends \Piwik\Plugin\Report
 {
-    public function getDefaultTypeViewDataTable()
-    {
-        return Bar::ID;
-    }
-
     protected function init()
     {
         $this->category = 'VisitsSummary_VisitsSummary';
+    }
+
+    public function getDefaultTypeViewDataTable()
+    {
+        return Bar::ID;
     }
 
     /**

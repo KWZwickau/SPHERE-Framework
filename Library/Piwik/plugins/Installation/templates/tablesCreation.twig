@@ -25,8 +25,7 @@
             </p>
         {% endif %}
         <p class="next-step">
-            <a href="{{ linkTo({'deleteTables':1}) }}"
-               id="eraseAllTables">{{ 'Installation_TablesDelete'|translate }} &raquo;</a>
+            <a href="{{ linkTo({'deleteTables':1}) }}" id="eraseAllTables">{{ 'Installation_TablesDelete'|translate }} &raquo;</a>
         </p>
     {% endif %}
 
@@ -43,12 +42,10 @@
     {% endif %}
 
     <script>
-        $(document).ready(function ()
-        {
+        $(document).ready(function () {
             var strConfirmEraseTables = "{{ 'Installation_ConfirmDeleteExistingTables'|translate("["~tablesInstalled~"]") }} ";
 
-            $("#eraseAllTables").click(function ()
-            {
+            $("#eraseAllTables").click(function () {
                 if (!confirm(strConfirmEraseTables)) {
                     return false;
                 }

@@ -27,6 +27,18 @@ class Widgets extends \Piwik\Plugin\Widgets
     protected $category = 'Example Category';
 
     /**
+     * Here you can add one or multiple widgets. You can add a widget by calling the method "addWidget()" and pass the
+     * name of the widget as well as a method name that should be called to render the widget. The method can be
+     * defined either directly here in this widget class or in the controller in case you want to reuse the same action
+     * for instance in the menu etc.
+     */
+    protected function init()
+    {
+        // $this->addWidget('Example Widget Name', $method = 'myExampleWidget');
+        // $this->addWidget('Example Widget 2', $method = 'myExampleWidget', $params = array('myparam' => 'myvalue'));
+    }
+
+    /**
      * This method renders a widget as defined in "init()". It's on you how to generate the content of the
      * widget. As long as you return a string everything is fine. You can use for instance a "Piwik\View" to render a
      * twig template. In such a case don't forget to create a twig template (eg. myViewTemplate.twig) in the
@@ -51,17 +63,5 @@ class Widgets extends \Piwik\Plugin\Widgets
     {
         // $widgetsList->remove('NameOfWidgetCategory'); // will remove all widgets having this category
         // $widgetsList->remove('NameOfWidgetCategory', 'Widget name'); // will only remove a specific widget
-    }
-
-    /**
-     * Here you can add one or multiple widgets. You can add a widget by calling the method "addWidget()" and pass the
-     * name of the widget as well as a method name that should be called to render the widget. The method can be
-     * defined either directly here in this widget class or in the controller in case you want to reuse the same action
-     * for instance in the menu etc.
-     */
-    protected function init()
-    {
-        // $this->addWidget('Example Widget Name', $method = 'myExampleWidget');
-        // $this->addWidget('Example Widget 2', $method = 'myExampleWidget', $params = array('myparam' => 'myvalue'));
     }
 }

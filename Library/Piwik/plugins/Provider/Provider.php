@@ -17,6 +17,52 @@ use Piwik\Piwik;
 
 class Provider extends \Piwik\Plugin
 {
+    /**
+     * @see Piwik\Plugin::registerEvents
+     */
+    public function registerEvents()
+    {
+        return array(
+            'Live.getAllVisitorDetails' => 'extendVisitorDetails'
+        );
+    }
+
+    public function install()
+    {
+        // add column hostname / hostname ext in the visit table
+        $query = "ALTER TABLE `" . Common::prefixTable('log_visit') . "` ADD `location_provider` VARCHAR( 100 ) NULL";
+
+        // if the column already exist do not throw error. Could be installed twice...
+        try {
+            Db::exec($query);
+        } catch (Exception $e) {
+            if (!Db::get()->isErrNo($e, '1060')) {
+                throw $e;
+            }
+        }
+    }
+
+    public function extendVisitorDetails(&$visitor, $details)
+    {
+        $instance = new Visitor($details);
+
+        $visitor['provider']     = $instance->getProvider();
+        $visitor['providerName'] = $instance->getProviderName();
+        $visitor['providerUrl']  = $instance->getProviderUrl();
+    }
+
+    public function uninstall()
+    {
+        // add column hostname / hostname ext in the visit table
+        $query = "ALTER TABLE `" . Common::prefixTable('log_visit') . "` DROP `location_provider`";
+        Db::exec($query);
+    }
+
+    public function postLoad()
+    {
+        Piwik::addAction('Template.footerUserCountry', array('Piwik\Plugins\Provider\Provider', 'footerUserCountry'));
+    }
+
     public static function footerUserCountry(&$out)
     {
         $out .= '<h2 piwik-enriched-headline>' . Piwik::translate('Provider_WidgetProviders') . '</h2>';
@@ -79,52 +125,6 @@ class Provider extends \Piwik\Plugin
                 return $e[$s - 2] . "." . $e[$s - 1];
             }
         }
-    }
-
-    /**
-     * @see Piwik\Plugin::registerEvents
-     */
-    public function registerEvents()
-    {
-        return array(
-            'Live.getAllVisitorDetails' => 'extendVisitorDetails'
-        );
-    }
-
-    public function install()
-    {
-        // add column hostname / hostname ext in the visit table
-        $query = "ALTER TABLE `" . Common::prefixTable('log_visit') . "` ADD `location_provider` VARCHAR( 100 ) NULL";
-
-        // if the column already exist do not throw error. Could be installed twice...
-        try {
-            Db::exec($query);
-        } catch (Exception $e) {
-            if (!Db::get()->isErrNo($e, '1060')) {
-                throw $e;
-            }
-        }
-    }
-
-    public function extendVisitorDetails(&$visitor, $details)
-    {
-        $instance = new Visitor($details);
-
-        $visitor['provider']     = $instance->getProvider();
-        $visitor['providerName'] = $instance->getProviderName();
-        $visitor['providerUrl']  = $instance->getProviderUrl();
-    }
-
-    public function uninstall()
-    {
-        // add column hostname / hostname ext in the visit table
-        $query = "ALTER TABLE `" . Common::prefixTable('log_visit') . "` DROP `location_provider`";
-        Db::exec($query);
-    }
-
-    public function postLoad()
-    {
-        Piwik::addAction('Template.footerUserCountry', array('Piwik\Plugins\Provider\Provider', 'footerUserCountry'));
     }
 
 }

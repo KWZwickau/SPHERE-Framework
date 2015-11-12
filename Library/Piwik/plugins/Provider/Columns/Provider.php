@@ -14,15 +14,25 @@ use Piwik\Network\IPUtils;
 use Piwik\Piwik;
 use Piwik\Plugin\Dimension\VisitDimension;
 use Piwik\Plugin\Segment;
-use Piwik\Plugins\PrivacyManager\Config as PrivacyManagerConfig;
-use Piwik\Plugins\Provider\Provider as ProviderPlugin;
 use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Plugins\PrivacyManager\Config as PrivacyManagerConfig;
+use Piwik\Plugins\Provider\Provider as ProviderPlugin;
 
 class Provider extends VisitDimension
 {
     protected $columnName = 'location_provider';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('provider');
+        $segment->setCategory('Visit Location');
+        $segment->setName('Provider_ColumnProvider');
+        $segment->setAcceptedValues('comcast.net, proxad.net, etc.');
+        $this->addSegment($segment);
+    }
 
     /**
      * @param Request $request
@@ -69,6 +79,11 @@ class Provider extends VisitDimension
         return $locationProvider;
     }
 
+    public function getRequiredVisitFields()
+    {
+        return array('location_ip');
+    }
+
     /**
      * Returns the hostname given the IP address string
      *
@@ -85,23 +100,8 @@ class Provider extends VisitDimension
         return trim(strtolower($host));
     }
 
-    public function getRequiredVisitFields()
-    {
-        return array('location_ip');
-    }
-
     public function getName()
     {
         return Piwik::translate('Provider_ColumnProvider');
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('provider');
-        $segment->setCategory('Visit Location');
-        $segment->setName('Provider_ColumnProvider');
-        $segment->setAcceptedValues('comcast.net, proxad.net, etc.');
-        $this->addSegment($segment);
     }
 }

@@ -8,8 +8,8 @@
  */
 namespace Piwik\DataTable\Filter;
 
-use Piwik\DataTable;
 use Piwik\DataTable\BaseFilter;
+use Piwik\DataTable;
 use Piwik\Plugin\Metric;
 use Piwik\Plugins\CoreHome\Columns\Metrics\ActionsPerVisit;
 use Piwik\Plugins\CoreHome\Columns\Metrics\AverageTimeOnSite;

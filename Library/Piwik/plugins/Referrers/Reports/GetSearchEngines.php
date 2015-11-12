@@ -15,6 +15,18 @@ use Piwik\Plugins\Referrers\Columns\SearchEngine;
 
 class GetSearchEngines extends Base
 {
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new SearchEngine();
+        $this->name          = Piwik::translate('Referrers_SearchEngines');
+        $this->documentation = Piwik::translate('Referrers_SearchEnginesReportDocumentation', '<br />');
+        $this->actionToLoadSubTables = 'getKeywordsFromSearchEngineId';
+        $this->hasGoalMetrics = true;
+        $this->order = 7;
+        $this->widgetTitle  = 'Referrers_SearchEngines';
+    }
+
     public function configureView(ViewDataTable $view)
     {
         $view->config->show_exclude_low_population = false;
@@ -26,18 +38,6 @@ class GetSearchEngines extends Base
         if ($view->isViewDataTableId(HtmlTable::ID)) {
             $view->config->disable_subtable_when_show_goals = true;
         }
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension     = new SearchEngine();
-        $this->name          = Piwik::translate('Referrers_SearchEngines');
-        $this->documentation = Piwik::translate('Referrers_SearchEnginesReportDocumentation', '<br />');
-        $this->actionToLoadSubTables = 'getKeywordsFromSearchEngineId';
-        $this->hasGoalMetrics = true;
-        $this->order = 7;
-        $this->widgetTitle  = 'Referrers_SearchEngines';
     }
 
 }

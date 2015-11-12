@@ -8,12 +8,12 @@
  */
 namespace Piwik\Plugins\SitesManager;
 
-use Piwik\Archive\ArchiveInvalidator;
 use Piwik\Common;
+use Piwik\Archive\ArchiveInvalidator;
 use Piwik\Container\StaticContainer;
 use Piwik\Db;
-use Piwik\Measurable\Settings\Storage;
 use Piwik\Plugins\PrivacyManager\PrivacyManager;
+use Piwik\Measurable\Settings\Storage;
 use Piwik\Tracker\Cache;
 use Piwik\Tracker\Model as TrackerModel;
 
@@ -131,21 +131,51 @@ class SitesManager extends \Piwik\Plugin
     }
 
     /**
-     * Returns the hosts alias URLs
-     * @param int $idSite
-     * @return array
+     * Returns whether we should keep URL fragments for a specific site.
+     *
+     * @param array $site DB data for the site.
+     * @return bool
      */
-    private function getTrackerHosts($idSite)
+    private static function getTimezoneFromWebsite($site)
     {
-        $urls = API::getInstance()->getSiteUrlsFromId($idSite);
-        $hosts = array();
-        foreach ($urls as $url) {
-            $url = parse_url($url);
-            if (isset($url['host'])) {
-                $hosts[] = $url['host'];
-            }
+        if (!empty($site['timezone'])) {
+            return $site['timezone'];
         }
-        return $hosts;
+    }
+
+    /**
+     * Returns whether we should keep URL fragments for a specific site.
+     *
+     * @param array $site DB data for the site.
+     * @return bool
+     */
+    private static function shouldKeepURLFragmentsFor($site)
+    {
+        if ($site['keep_url_fragment'] == self::KEEP_URL_FRAGMENT_YES) {
+            return true;
+        } else if ($site['keep_url_fragment'] == self::KEEP_URL_FRAGMENT_NO) {
+            return false;
+        }
+
+        return API::getInstance()->getKeepURLFragmentsGlobal();
+    }
+
+    private function getTrackerSearchKeywordParameters($website)
+    {
+        $searchParameters = $website['sitesearch_keyword_parameters'];
+        if (empty($searchParameters)) {
+            $searchParameters = API::getInstance()->getSearchKeywordParametersGlobal();
+        }
+        return explode(",", $searchParameters);
+    }
+
+    private function getTrackerSearchCategoryParameters($website)
+    {
+        $searchParameters = $website['sitesearch_category_parameters'];
+        if (empty($searchParameters)) {
+            $searchParameters = API::getInstance()->getSearchCategoryParametersGlobal();
+        }
+        return explode(",", $searchParameters);
     }
 
     /**
@@ -169,6 +199,22 @@ class SitesManager extends \Piwik\Plugin
             }
         }
         return $ipRanges;
+    }
+
+    /**
+     * Returns the array of excluded user agent substrings for a site. Filters out
+     * any garbage data & trims each entry.
+     *
+     * @param array $website The full set of information for a site.
+     * @return array
+     */
+    private static function getExcludedUserAgents($website)
+    {
+        $excludedUserAgents = API::getInstance()->getExcludedUserAgentsGlobal();
+        if (API::getInstance()->isSiteSpecificUserAgentExcludeEnabled()) {
+            $excludedUserAgents .= ',' . $website['excluded_user_agents'];
+        }
+        return self::filterBlankFromCommaSepList($excludedUserAgents);
     }
 
     /**
@@ -202,67 +248,21 @@ class SitesManager extends \Piwik\Plugin
     }
 
     /**
-     * Returns the array of excluded user agent substrings for a site. Filters out
-     * any garbage data & trims each entry.
-     *
-     * @param array $website The full set of information for a site.
+     * Returns the hosts alias URLs
+     * @param int $idSite
      * @return array
      */
-    private static function getExcludedUserAgents($website)
+    private function getTrackerHosts($idSite)
     {
-        $excludedUserAgents = API::getInstance()->getExcludedUserAgentsGlobal();
-        if (API::getInstance()->isSiteSpecificUserAgentExcludeEnabled()) {
-            $excludedUserAgents .= ',' . $website['excluded_user_agents'];
+        $urls = API::getInstance()->getSiteUrlsFromId($idSite);
+        $hosts = array();
+        foreach ($urls as $url) {
+            $url = parse_url($url);
+            if (isset($url['host'])) {
+                $hosts[] = $url['host'];
+            }
         }
-        return self::filterBlankFromCommaSepList($excludedUserAgents);
-    }
-
-    /**
-     * Returns whether we should keep URL fragments for a specific site.
-     *
-     * @param array $site DB data for the site.
-     * @return bool
-     */
-    private static function shouldKeepURLFragmentsFor($site)
-    {
-        if ($site['keep_url_fragment'] == self::KEEP_URL_FRAGMENT_YES) {
-            return true;
-        } else {if ($site['keep_url_fragment'] == self::KEEP_URL_FRAGMENT_NO) {
-            return false;
-        }}
-
-        return API::getInstance()->getKeepURLFragmentsGlobal();
-    }
-
-    private function getTrackerSearchKeywordParameters($website)
-    {
-        $searchParameters = $website['sitesearch_keyword_parameters'];
-        if (empty($searchParameters)) {
-            $searchParameters = API::getInstance()->getSearchKeywordParametersGlobal();
-        }
-        return explode(",", $searchParameters);
-    }
-
-    private function getTrackerSearchCategoryParameters($website)
-    {
-        $searchParameters = $website['sitesearch_category_parameters'];
-        if (empty($searchParameters)) {
-            $searchParameters = API::getInstance()->getSearchCategoryParametersGlobal();
-        }
-        return explode(",", $searchParameters);
-    }
-
-    /**
-     * Returns whether we should keep URL fragments for a specific site.
-     *
-     * @param array $site DB data for the site.
-     * @return bool
-     */
-    private static function getTimezoneFromWebsite($site)
-    {
-        if (!empty($site['timezone'])) {
-            return $site['timezone'];
-        }
+        return $hosts;
     }
 
     public function getClientSideTranslationKeys(&$translationKeys)

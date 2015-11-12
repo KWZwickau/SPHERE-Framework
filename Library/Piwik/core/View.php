@@ -104,13 +104,14 @@ if (!defined('PIWIK_USER_PATH')) {
  */
 class View implements ViewInterface
 {
-    protected $templateVars = array();
     private $template = '';
+
     /**
      * Instance
      * @var Twig_Environment
      */
     private $twig;
+    protected $templateVars = array();
     private $contentType = 'text/html; charset=utf-8';
     private $xFrameOptions = null;
 
@@ -142,46 +143,67 @@ class View implements ViewInterface
         }
     }
 
+    /**
+     * Returns the template filename.
+     *
+     * @return string
+     */
+    public function getTemplateFile()
+    {
+        return $this->template;
+    }
+
+    /**
+     * Returns the variables to bind to the template when rendering.
+     *
+     * @param array $override Template variable override values. Mainly useful
+     *                        when including View templates in other templates.
+     * @return array
+     */
+    public function getTemplateVars($override = array())
+    {
+        return $override + $this->templateVars;
+    }
+
+    /**
+     * Directly assigns a variable to the view script.
+     * Variable names may not be prefixed with '_'.
+     *
+     * @param string $key The variable name.
+     * @param mixed $val The variable value.
+     */
+    public function __set($key, $val)
+    {
+        $this->templateVars[$key] = $val;
+    }
+
+    /**
+     * Retrieves an assigned variable.
+     * Variable names may not be prefixed with '_'.
+     *
+     * @param string $key The variable name.
+     * @return mixed The variable value.
+     */
+    public function &__get($key)
+    {
+        return $this->templateVars[$key];
+    }
+
+    /**
+     * Returns true if a template variable has been set or not.
+     *
+     * @param string $name The name of the template variable.
+     * @return bool
+     */
+    public function __isset($name)
+    {
+        return isset($this->templateVars[$name]);
+    }
+
     private function initializeTwig()
     {
         $piwikTwig = new Twig();
         $this->twig = $piwikTwig->getTwigEnvironment();
-    }
-
-    /**
-     * Clear compiled Twig templates
-     * @ignore
-     */
-    public static function clearCompiledTemplates()
-    {
-        $twig = new Twig();
-        $environment = $twig->getTwigEnvironment();
-        $environment->clearTemplateCache();
-
-        $cacheDirectory = $environment->getCache();
-        if (!empty($cacheDirectory)
-            && is_dir($cacheDirectory)
-        ) {
-            $environment->clearCacheFiles();
-        }
-    }
-
-    /**
-     * Creates a View for and then renders the single report template.
-     *
-     * Can be used for pages that display only one report to avoid having to create
-     * a new template.
-     *
-     * @param string $title The report title.
-     * @param string $reportHtml The report body HTML.
-     * @return string|void The report contents if `$fetch` is true.
-     */
-    public static function singleReport($title, $reportHtml)
-    {
-        $view = new View('@CoreHome/_singleReport');
-        $view->title = $title;
-        $view->report = $reportHtml;
-        return $view->render();
     }
 
     /**
@@ -204,7 +226,7 @@ class View implements ViewInterface
             $this->latest_version_available = UpdateCheck::isNewestVersionAvailable();
             $this->disableLink = Common::getRequestVar('disableLink', 0, 'int');
             $this->isWidget = Common::getRequestVar('widget', 0, 'int');
-
+            
             if (Development::isEnabled()) {
                 $cacheBuster = rand(0, 10000);
             } else {
@@ -212,7 +234,7 @@ class View implements ViewInterface
             }
 
             $this->cacheBuster = $cacheBuster;
-
+            
             $this->loginModule = Piwik::getLoginPluginName();
 
             $user = APIUsersManager::getInstance()->getUser($this->userLogin);
@@ -251,28 +273,6 @@ class View implements ViewInterface
         return $output;
     }
 
-    /**
-     * Returns the template filename.
-     *
-     * @return string
-     */
-    public function getTemplateFile()
-    {
-        return $this->template;
-    }
-
-    /**
-     * Returns the variables to bind to the template when rendering.
-     *
-     * @param array $override Template variable override values. Mainly useful
-     *                        when including View templates in other templates.
-     * @return array
-     */
-    public function getTemplateVars($override = array())
-    {
-        return $override + $this->templateVars;
-    }
-
     protected function applyFilter_cacheBuster($output)
     {
         $assetManager = AssetManager::getInstance();
@@ -304,41 +304,6 @@ class View implements ViewInterface
         );
 
         return preg_replace($pattern, $replace, $output);
-    }
-
-    /**
-     * Retrieves an assigned variable.
-     * Variable names may not be prefixed with '_'.
-     *
-     * @param string $key The variable name.
-     * @return mixed The variable value.
-     */
-    public function &__get($key)
-    {
-        return $this->templateVars[$key];
-    }
-
-    /**
-     * Directly assigns a variable to the view script.
-     * Variable names may not be prefixed with '_'.
-     *
-     * @param string $key The variable name.
-     * @param mixed $val The variable value.
-     */
-    public function __set($key, $val)
-    {
-        $this->templateVars[$key] = $val;
-    }
-
-    /**
-     * Returns true if a template variable has been set or not.
-     *
-     * @param string $name The name of the template variable.
-     * @return bool
-     */
-    public function __isset($name)
-    {
-        return isset($this->templateVars[$name]);
     }
 
     /**
@@ -400,5 +365,41 @@ class View implements ViewInterface
                 $this->$key = $value;
             }
         }
+    }
+
+    /**
+     * Clear compiled Twig templates
+     * @ignore
+     */
+    public static function clearCompiledTemplates()
+    {
+        $twig = new Twig();
+        $environment = $twig->getTwigEnvironment();
+        $environment->clearTemplateCache();
+
+        $cacheDirectory = $environment->getCache();
+        if (!empty($cacheDirectory)
+            && is_dir($cacheDirectory)
+        ) {
+            $environment->clearCacheFiles();
+        }
+    }
+
+    /**
+     * Creates a View for and then renders the single report template.
+     *
+     * Can be used for pages that display only one report to avoid having to create
+     * a new template.
+     *
+     * @param string $title The report title.
+     * @param string $reportHtml The report body HTML.
+     * @return string|void The report contents if `$fetch` is true.
+     */
+    public static function singleReport($title, $reportHtml)
+    {
+        $view = new View('@CoreHome/_singleReport');
+        $view->title = $title;
+        $view->report = $reportHtml;
+        return $view->render();
     }
 }

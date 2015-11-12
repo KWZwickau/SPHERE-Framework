@@ -69,6 +69,16 @@ class Zend_Mail_Protocol_Pop3
         }
     }
 
+
+    /**
+     * Public destructor
+     */
+    public function __destruct()
+    {
+        $this->logout();
+    }
+
+
     /**
      * Open connection to POP3 server
      *
@@ -125,6 +135,27 @@ class Zend_Mail_Protocol_Pop3
         return $welcome;
     }
 
+
+    /**
+     * Send a request
+     *
+     * @param string $request your request without newline
+     * @return null
+     * @throws Zend_Mail_Protocol_Exception
+     */
+    public function sendRequest($request)
+    {
+        $result = @fputs($this->_socket, $request . "\r\n");
+        if (!$result) {
+            /**
+             * @see Zend_Mail_Protocol_Exception
+             */
+            // require_once 'Zend/Mail/Protocol/Exception.php';
+            throw new Zend_Mail_Protocol_Exception('send failed - connection closed?');
+        }
+    }
+
+
     /**
      * read a response
      *
@@ -174,6 +205,7 @@ class Zend_Mail_Protocol_Pop3
         return $message;
     }
 
+
     /**
      * Send request and get resposne
      *
@@ -190,32 +222,6 @@ class Zend_Mail_Protocol_Pop3
         return $this->readResponse($multiline);
     }
 
-    /**
-     * Send a request
-     *
-     * @param string $request your request without newline
-     * @return null
-     * @throws Zend_Mail_Protocol_Exception
-     */
-    public function sendRequest($request)
-    {
-        $result = @fputs($this->_socket, $request . "\r\n");
-        if (!$result) {
-            /**
-             * @see Zend_Mail_Protocol_Exception
-             */
-            // require_once 'Zend/Mail/Protocol/Exception.php';
-            throw new Zend_Mail_Protocol_Exception('send failed - connection closed?');
-        }
-    }
-
-    /**
-     * Public destructor
-     */
-    public function __destruct()
-    {
-        $this->logout();
-    }
 
     /**
      * End communication with POP3 server (also closes socket)
@@ -401,18 +407,6 @@ class Zend_Mail_Protocol_Pop3
         return $result;
     }
 
-    /**
-     * Make a RETR call for retrieving a full message with headers and body
-     *
-     * @param  int $msgno  message number
-     * @return string message
-     * @throws Zend_Mail_Protocol_Exception
-     */
-    public function retrieve($msgno)
-    {
-        $result = $this->request("RETR $msgno", true);
-        return $result;
-    }
 
     /**
      * Make a RETR call for retrieving a full message with headers and body
@@ -425,6 +419,20 @@ class Zend_Mail_Protocol_Pop3
     public function retrive($msgno)
     {
         return $this->retrieve($msgno);
+    }
+
+
+    /**
+     * Make a RETR call for retrieving a full message with headers and body
+     *
+     * @param  int $msgno  message number
+     * @return string message
+     * @throws Zend_Mail_Protocol_Exception
+     */
+    public function retrieve($msgno)
+    {
+        $result = $this->request("RETR $msgno", true);
+        return $result;
     }
 
     /**

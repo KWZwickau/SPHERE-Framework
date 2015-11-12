@@ -120,6 +120,28 @@ class Zend_Validate_Callback extends Zend_Validate_Abstract
     }
 
     /**
+     * Returns the set options for the callback
+     *
+     * @return mixed
+     */
+    public function getOptions()
+    {
+        return $this->_options;
+    }
+
+    /**
+     * Sets options for the callback
+     *
+     * @param  mixed $max
+     * @return Zend_Validate_Callback Provides a fluent interface
+     */
+    public function setOptions($options)
+    {
+        $this->_options = (array) $options;
+        return $this;
+    }
+
+    /**
      * Defined by Zend_Validate_Interface
      *
      * Returns true if and only if the set callback returns
@@ -148,27 +170,5 @@ class Zend_Validate_Callback extends Zend_Validate_Abstract
         }
 
         return true;
-    }
-
-    /**
-     * Returns the set options for the callback
-     *
-     * @return mixed
-     */
-    public function getOptions()
-    {
-        return $this->_options;
-    }
-
-    /**
-     * Sets options for the callback
-     *
-     * @param  mixed $max
-     * @return Zend_Validate_Callback Provides a fluent interface
-     */
-    public function setOptions($options)
-    {
-        $this->_options = (array) $options;
-        return $this;
     }
 }

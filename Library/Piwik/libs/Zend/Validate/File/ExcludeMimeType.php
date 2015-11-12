@@ -34,7 +34,7 @@
  */
 class Zend_Validate_File_ExcludeMimeType extends Zend_Validate_File_MimeType
 {
-    const FALSE_TYPE = 'fileExcludeMimeTypeFalse';
+    const FALSE_TYPE   = 'fileExcludeMimeTypeFalse';
     const NOT_DETECTED = 'fileExcludeMimeTypeNotDetected';
     const NOT_READABLE = 'fileExcludeMimeTypeNotReadable';
 
@@ -46,7 +46,7 @@ class Zend_Validate_File_ExcludeMimeType extends Zend_Validate_File_MimeType
      * mime types will not be accepted like "image/gif", "image/jpeg" and so on.
      *
      * @param  string $value Real file to check for mimetype
-     * @param  array $file File data from Zend_File_Transfer
+     * @param  array  $file  File data from Zend_File_Transfer
      * @return boolean
      */
     public function isValid($value, $file = null)
@@ -98,7 +98,7 @@ class Zend_Validate_File_ExcludeMimeType extends Zend_Validate_File_MimeType
 
         $types = explode('/', $this->_type);
         $types = array_merge($types, explode('-', $this->_type));
-        foreach ($mimetype as $mime) {
+        foreach($mimetype as $mime) {
             if (in_array($mime, $types)) {
                 return $this->_throw($file, self::FALSE_TYPE);
             }

@@ -14,14 +14,35 @@ use Piwik\Piwik;
 use Piwik\Plugin\Report;
 use Piwik\Plugin\ViewDataTable;
 use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Evolution;
+use Piwik\Plugins\Goals\Goals;
 use Piwik\Plugins\Goals\Columns\Metrics\AveragePrice;
 use Piwik\Plugins\Goals\Columns\Metrics\AverageQuantity;
 use Piwik\Plugins\Goals\Columns\Metrics\ProductConversionRate;
-use Piwik\Plugins\Goals\Goals;
 
 abstract class BaseItem extends Base
 {
     protected $defaultSortColumn = 'revenue';
+
+    protected function init()
+    {
+        parent::init();
+        $this->processedMetrics = array(
+            new AveragePrice(),
+            new AverageQuantity(),
+            new ProductConversionRate()
+        );
+        $this->metrics = array(
+            'revenue', 'quantity', 'orders', 'nb_visits'
+        );
+    }
+
+    public function getMetrics()
+    {
+        $metrics = parent::getMetrics();
+        $metrics['revenue'] = Piwik::translate('General_ProductRevenue');
+        $metrics['orders']  = Piwik::translate('General_UniquePurchases');
+        return $metrics;
+    }
 
     public function getMetricsDocumentation()
     {
@@ -39,11 +60,6 @@ abstract class BaseItem extends Base
         }
 
         return array();
-    }
-
-    private function isAbandonedCart()
-    {
-        return Common::getRequestVar('abandonedCarts', '0', 'string') == 1;
     }
 
     public function configureView(ViewDataTable $view)
@@ -80,12 +96,12 @@ abstract class BaseItem extends Base
         if ($viewDataTable == 'ecommerceOrder') {
             $view->config->custom_parameters['viewDataTable'] = 'table';
             $abandonedCart = false;
-        } else {if ($viewDataTable == 'ecommerceAbandonedCart') {
+        } else if ($viewDataTable == 'ecommerceAbandonedCart') {
             $view->config->custom_parameters['viewDataTable'] = 'table';
             $abandonedCart = true;
         } else {
             $abandonedCart = $this->isAbandonedCart();
-        }}
+        }
 
         if ($abandonedCart) {
             $columns['abandoned_carts'] = Piwik::translate('General_AbandonedCarts');
@@ -111,24 +127,8 @@ abstract class BaseItem extends Base
         $view->config->columns_to_display = $columnsOrdered;
     }
 
-    public function getMetrics()
+    private function isAbandonedCart()
     {
-        $metrics = parent::getMetrics();
-        $metrics['revenue'] = Piwik::translate('General_ProductRevenue');
-        $metrics['orders']  = Piwik::translate('General_UniquePurchases');
-        return $metrics;
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->processedMetrics = array(
-            new AveragePrice(),
-            new AverageQuantity(),
-            new ProductConversionRate()
-        );
-        $this->metrics = array(
-            'revenue', 'quantity', 'orders', 'nb_visits'
-        );
+        return Common::getRequestVar('abandonedCarts', '0', 'string') == 1;
     }
 }

@@ -46,7 +46,7 @@
             if (refreshPromise) {
                 $timeout.cancel(refreshPromise);
                 refreshPromise = null;
-            }
+            };
         }
 
         function onError () {
@@ -110,7 +110,8 @@
 
             model.sortColumn = metric;
             fetchAllSites();
-        }
+        };
+
         function previousPage() {
             model.currentPage = model.currentPage - 1;
             fetchAllSites();

@@ -19,11 +19,6 @@ class SiteUrls
         self::getCache()->delete(self::$cacheId);
     }
 
-    private static function getCache()
-    {
-        return Cache::getLazyCache();
-    }
-
     public function getAllCachedSiteUrls()
     {
         $cache    = $this->getCache();
@@ -53,5 +48,10 @@ class SiteUrls
         }
 
         return $siteUrls;
+    }
+
+    private static function getCache()
+    {
+        return Cache::getLazyCache();
     }
 }

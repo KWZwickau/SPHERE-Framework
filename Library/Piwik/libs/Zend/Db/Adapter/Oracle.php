@@ -99,53 +99,6 @@ class Zend_Db_Adapter_Oracle extends Zend_Db_Adapter_Abstract
     protected $_lobAsString = null;
 
     /**
-     * Force the connection to close.
-     *
-     * @return void
-     */
-    public function closeConnection()
-    {
-        if ($this->isConnected()) {
-            oci_close($this->_connection);
-        }
-        $this->_connection = null;
-    }
-
-    /**
-     * Test if a connection is active
-     *
-     * @return boolean
-     */
-    public function isConnected()
-    {
-        return ((bool) (is_resource($this->_connection)
-                    && (get_resource_type($this->_connection) == 'oci8 connection'
-                     || get_resource_type($this->_connection) == 'oci8 persistent connection')));
-    }
-
-    /**
-     * Returns an SQL statement for preparation.
-     *
-     * @param string $sql The SQL statement with placeholders.
-     * @return Zend_Db_Statement_Oracle
-     */
-    public function prepare($sql)
-    {
-        $this->_connect();
-        $stmtClass = $this->_defaultStmtClass;
-        if (!class_exists($stmtClass)) {
-            // require_once 'Zend/Loader.php';
-            Zend_Loader::loadClass($stmtClass);
-        }
-        $stmt = new $stmtClass($this, $sql);
-        if ($stmt instanceof Zend_Db_Statement_Oracle) {
-            $stmt->setLobAsString($this->getLobAsString());
-        }
-        $stmt->setFetchMode($this->_fetchMode);
-        return $stmt;
-    }
-
-    /**
      * Creates a connection resource.
      *
      * @return void
@@ -187,25 +140,40 @@ class Zend_Db_Adapter_Oracle extends Zend_Db_Adapter_Abstract
     }
 
     /**
-     * @param integer $mode
-     * @throws Zend_Db_Adapter_Oracle_Exception
+     * Test if a connection is active
+     *
+     * @return boolean
      */
-    private function _setExecuteMode($mode)
+    public function isConnected()
     {
-        switch($mode) {
-            case OCI_COMMIT_ON_SUCCESS:
-            case OCI_DEFAULT:
-            case OCI_DESCRIBE_ONLY:
-                $this->_execute_mode = $mode;
-                break;
-            default:
-                /**
-                 * @see Zend_Db_Adapter_Oracle_Exception
-                 */
-                // require_once 'Zend/Db/Adapter/Oracle/Exception.php';
-                throw new Zend_Db_Adapter_Oracle_Exception("Invalid execution mode '$mode' specified");
-                break;
+        return ((bool) (is_resource($this->_connection)
+                    && (get_resource_type($this->_connection) == 'oci8 connection'
+                     || get_resource_type($this->_connection) == 'oci8 persistent connection')));
+    }
+
+    /**
+     * Force the connection to close.
+     *
+     * @return void
+     */
+    public function closeConnection()
+    {
+        if ($this->isConnected()) {
+            oci_close($this->_connection);
         }
+        $this->_connection = null;
+    }
+
+    /**
+     * Activate/deactivate return of LOB as string
+     *
+     * @param string $lob_as_string
+     * @return Zend_Db_Adapter_Oracle
+     */
+    public function setLobAsString($lobAsString)
+    {
+        $this->_lobAsString = (bool) $lobAsString;
+        return $this;
     }
 
     /**
@@ -228,15 +196,40 @@ class Zend_Db_Adapter_Oracle extends Zend_Db_Adapter_Abstract
     }
 
     /**
-     * Activate/deactivate return of LOB as string
+     * Returns an SQL statement for preparation.
      *
-     * @param string $lob_as_string
-     * @return Zend_Db_Adapter_Oracle
+     * @param string $sql The SQL statement with placeholders.
+     * @return Zend_Db_Statement_Oracle
      */
-    public function setLobAsString($lobAsString)
+    public function prepare($sql)
     {
-        $this->_lobAsString = (bool) $lobAsString;
-        return $this;
+        $this->_connect();
+        $stmtClass = $this->_defaultStmtClass;
+        if (!class_exists($stmtClass)) {
+            // require_once 'Zend/Loader.php';
+            Zend_Loader::loadClass($stmtClass);
+        }
+        $stmt = new $stmtClass($this, $sql);
+        if ($stmt instanceof Zend_Db_Statement_Oracle) {
+            $stmt->setLobAsString($this->getLobAsString());
+        }
+        $stmt->setFetchMode($this->_fetchMode);
+        return $stmt;
+    }
+
+    /**
+     * Quote a raw string.
+     *
+     * @param string $value     Raw string
+     * @return string           Quoted string
+     */
+    protected function _quote($value)
+    {
+        if (is_int($value) || is_float($value)) {
+            return $value;
+        }
+        $value = str_replace("'", "''", $value);
+        return "'" . addcslashes($value, "\000\n\r\\\032") . "'";
     }
 
     /**
@@ -251,6 +244,22 @@ class Zend_Db_Adapter_Oracle extends Zend_Db_Adapter_Abstract
     {
         // Oracle doesn't allow the 'AS' keyword between the table identifier/expression and alias.
         return $this->_quoteIdentifierAs($ident, $alias, $auto, ' ');
+    }
+
+    /**
+     * Return the most recent value from the specified sequence in the database.
+     * This is supported only on RDBMS brands that support sequences
+     * (e.g. Oracle, PostgreSQL, DB2).  Other RDBMS brands return null.
+     *
+     * @param string $sequenceName
+     * @return string
+     */
+    public function lastSequenceId($sequenceName)
+    {
+        $this->_connect();
+        $sql = 'SELECT '.$this->quoteIdentifier($sequenceName, true).'.CURRVAL FROM dual';
+        $value = $this->fetchOne($sql);
+        return $value;
     }
 
     /**
@@ -299,22 +308,6 @@ class Zend_Db_Adapter_Oracle extends Zend_Db_Adapter_Abstract
 
         // No support for IDENTITY columns; return null
         return null;
-    }
-
-    /**
-     * Return the most recent value from the specified sequence in the database.
-     * This is supported only on RDBMS brands that support sequences
-     * (e.g. Oracle, PostgreSQL, DB2).  Other RDBMS brands return null.
-     *
-     * @param string $sequenceName
-     * @return string
-     */
-    public function lastSequenceId($sequenceName)
-    {
-        $this->_connect();
-        $sql = 'SELECT '.$this->quoteIdentifier($sequenceName, true).'.CURRVAL FROM dual';
-        $value = $this->fetchOne($sql);
-        return $value;
     }
 
     /**
@@ -454,24 +447,49 @@ class Zend_Db_Adapter_Oracle extends Zend_Db_Adapter_Abstract
     }
 
     /**
-     * Retrieve server version in PHP style
+     * Leave autocommit mode and begin a transaction.
      *
-     * @return string
+     * @return void
      */
-    public function getServerVersion()
+    protected function _beginTransaction()
     {
-        $this->_connect();
-        $version = oci_server_version($this->_connection);
-        if ($version !== false) {
-            $matches = null;
-            if (preg_match('/((?:[0-9]{1,2}\.){1,3}[0-9]{1,2})/', $version, $matches)) {
-                return $matches[1];
-            } else {
-                return null;
-            }
-        } else {
-            return null;
+        $this->_setExecuteMode(OCI_DEFAULT);
+    }
+
+    /**
+     * Commit a transaction and return to autocommit mode.
+     *
+     * @return void
+     * @throws Zend_Db_Adapter_Oracle_Exception
+     */
+    protected function _commit()
+    {
+        if (!oci_commit($this->_connection)) {
+            /**
+             * @see Zend_Db_Adapter_Oracle_Exception
+             */
+            // require_once 'Zend/Db/Adapter/Oracle/Exception.php';
+            throw new Zend_Db_Adapter_Oracle_Exception(oci_error($this->_connection));
         }
+        $this->_setExecuteMode(OCI_COMMIT_ON_SUCCESS);
+    }
+
+    /**
+     * Roll back a transaction and return to autocommit mode.
+     *
+     * @return void
+     * @throws Zend_Db_Adapter_Oracle_Exception
+     */
+    protected function _rollBack()
+    {
+        if (!oci_rollback($this->_connection)) {
+            /**
+             * @see Zend_Db_Adapter_Oracle_Exception
+             */
+            // require_once 'Zend/Db/Adapter/Oracle/Exception.php';
+            throw new Zend_Db_Adapter_Oracle_Exception(oci_error($this->_connection));
+        }
+        $this->_setExecuteMode(OCI_COMMIT_ON_SUCCESS);
     }
 
     /**
@@ -556,6 +574,28 @@ class Zend_Db_Adapter_Oracle extends Zend_Db_Adapter_Abstract
     }
 
     /**
+     * @param integer $mode
+     * @throws Zend_Db_Adapter_Oracle_Exception
+     */
+    private function _setExecuteMode($mode)
+    {
+        switch($mode) {
+            case OCI_COMMIT_ON_SUCCESS:
+            case OCI_DEFAULT:
+            case OCI_DESCRIBE_ONLY:
+                $this->_execute_mode = $mode;
+                break;
+            default:
+                /**
+                 * @see Zend_Db_Adapter_Oracle_Exception
+                 */
+                // require_once 'Zend/Db/Adapter/Oracle/Exception.php';
+                throw new Zend_Db_Adapter_Oracle_Exception("Invalid execution mode '$mode' specified");
+                break;
+        }
+    }
+
+    /**
      * @return int
      */
     public function _getExecuteMode()
@@ -581,63 +621,23 @@ class Zend_Db_Adapter_Oracle extends Zend_Db_Adapter_Abstract
     }
 
     /**
-     * Quote a raw string.
+     * Retrieve server version in PHP style
      *
-     * @param string $value     Raw string
-     * @return string           Quoted string
+     * @return string
      */
-    protected function _quote($value)
+    public function getServerVersion()
     {
-        if (is_int($value) || is_float($value)) {
-            return $value;
+        $this->_connect();
+        $version = oci_server_version($this->_connection);
+        if ($version !== false) {
+            $matches = null;
+            if (preg_match('/((?:[0-9]{1,2}\.){1,3}[0-9]{1,2})/', $version, $matches)) {
+                return $matches[1];
+            } else {
+                return null;
+            }
+        } else {
+            return null;
         }
-        $value = str_replace("'", "''", $value);
-        return "'" . addcslashes($value, "\000\n\r\\\032") . "'";
-    }
-
-    /**
-     * Leave autocommit mode and begin a transaction.
-     *
-     * @return void
-     */
-    protected function _beginTransaction()
-    {
-        $this->_setExecuteMode(OCI_DEFAULT);
-    }
-
-    /**
-     * Commit a transaction and return to autocommit mode.
-     *
-     * @return void
-     * @throws Zend_Db_Adapter_Oracle_Exception
-     */
-    protected function _commit()
-    {
-        if (!oci_commit($this->_connection)) {
-            /**
-             * @see Zend_Db_Adapter_Oracle_Exception
-             */
-            // require_once 'Zend/Db/Adapter/Oracle/Exception.php';
-            throw new Zend_Db_Adapter_Oracle_Exception(oci_error($this->_connection));
-        }
-        $this->_setExecuteMode(OCI_COMMIT_ON_SUCCESS);
-    }
-
-    /**
-     * Roll back a transaction and return to autocommit mode.
-     *
-     * @return void
-     * @throws Zend_Db_Adapter_Oracle_Exception
-     */
-    protected function _rollBack()
-    {
-        if (!oci_rollback($this->_connection)) {
-            /**
-             * @see Zend_Db_Adapter_Oracle_Exception
-             */
-            // require_once 'Zend/Db/Adapter/Oracle/Exception.php';
-            throw new Zend_Db_Adapter_Oracle_Exception(oci_error($this->_connection));
-        }
-        $this->_setExecuteMode(OCI_COMMIT_ON_SUCCESS);
     }
 }

@@ -99,18 +99,18 @@ class EnvironmentVariableDefinition implements CacheableDefinition
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function getScope()
-    {
-        return $this->scope ?: Scope::SINGLETON;
-    }
-
-    /**
      * @param string $scope
      */
     public function setScope($scope)
     {
         $this->scope = $scope;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getScope()
+    {
+        return $this->scope ?: Scope::SINGLETON;
     }
 }

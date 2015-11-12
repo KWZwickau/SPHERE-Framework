@@ -8,8 +8,8 @@
  */
 namespace Piwik\DataTable\Filter;
 
-use Piwik\DataTable;
 use Piwik\DataTable\BaseFilter;
+use Piwik\DataTable;
 
 /**
  * Converts for each row of a {@link DataTable} a segmentValue to a segment (expression). The name of the segment

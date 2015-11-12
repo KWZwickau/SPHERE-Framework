@@ -85,6 +85,18 @@ class HTML_QuickForm2_Element_Static extends HTML_QuickForm2_Element
     }
 
    /**
+    * Sets the contents of the static element
+    *
+    * @param    string  Static content
+    * @return   HTML_QuickForm2_Element_Static
+    */
+    function setContent($content)
+    {
+        $this->data['content'] = $content;
+        return $this;
+    }
+
+   /**
     * Returns the contents of the static element
     *
     * @return   string
@@ -103,18 +115,6 @@ class HTML_QuickForm2_Element_Static extends HTML_QuickForm2_Element
     public function setValue($value)
     {
         $this->setContent($value);
-        return $this;
-    }
-
-   /**
-    * Sets the contents of the static element
-    *
-    * @param    string  Static content
-    * @return   HTML_QuickForm2_Element_Static
-    */
-    function setContent($content)
-    {
-        $this->data['content'] = $content;
         return $this;
     }
 

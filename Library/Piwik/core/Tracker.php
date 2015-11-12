@@ -9,10 +9,9 @@
 namespace Piwik;
 
 use Exception;
-use Piwik\Config;
-use Piwik\Plugin\Manager as PluginManager;
 use Piwik\Plugins\BulkTracking\Tracker\Requests;
 use Piwik\Plugins\PrivacyManager\Config as PrivacyManagerConfig;
+use Piwik\Config;
 use Piwik\Tests\Framework\TestingEnvironmentVariables;
 use Piwik\Tracker\Db as TrackerDb;
 use Piwik\Tracker\Db\DbException;
@@ -21,6 +20,7 @@ use Piwik\Tracker\Request;
 use Piwik\Tracker\RequestSet;
 use Piwik\Tracker\TrackerConfig;
 use Piwik\Tracker\Visit;
+use Piwik\Plugin\Manager as PluginManager;
 
 /**
  * Class used by the logging script piwik.php called by the javascript tag.
@@ -31,17 +31,35 @@ use Piwik\Tracker\Visit;
  */
 class Tracker
 {
-    const LENGTH_HEX_ID_STRING = 16;
-
-    // We use hex ID that are 16 chars in length, ie. 64 bits IDs
-    const LENGTH_BINARY_ID = 8;
-    public static $initTrackerMode = false;
     /**
      * @var Db
      */
     private static $db = null;
-    protected $isInstalled = null;
+
+    // We use hex ID that are 16 chars in length, ie. 64 bits IDs
+    const LENGTH_HEX_ID_STRING = 16;
+    const LENGTH_BINARY_ID = 8;
+
+    public static $initTrackerMode = false;
+
     private $countOfLoggedRequests = 0;
+    protected $isInstalled = null;
+
+    public function isDebugModeEnabled()
+    {
+        return array_key_exists('PIWIK_TRACKER_DEBUG', $GLOBALS) && $GLOBALS['PIWIK_TRACKER_DEBUG'] === true;
+    }
+
+    public function shouldRecordStatistics()
+    {
+        $record = TrackerConfig::getConfigValue('record_statistics') != 0;
+
+        if (!$record) {
+            Common::printDebug('Tracking is disabled in the config.ini.php via record_statistics=0');
+        }
+
+        return $record && $this->isInstalled();
+    }
 
     public static function loadTrackerEnvironment()
     {
@@ -50,22 +68,80 @@ class Tracker
         PluginManager::getInstance()->loadTrackerPlugins();
     }
 
-    private static function isDebugEnabled()
+    private function init()
     {
-        try {
-            $debug = (bool) TrackerConfig::getConfigValue('debug');
-            if ($debug) {
-                return true;
-            }
+        $this->handleFatalErrors();
 
-            $debugOnDemand = (bool) TrackerConfig::getConfigValue('debug_on_demand');
-            if ($debugOnDemand) {
-                return (bool) Common::getRequestVar('debug', false);
-            }
-        } catch (Exception $e) {
+        if ($this->isDebugModeEnabled()) {
+            ErrorHandler::registerErrorHandler();
+            ExceptionHandler::setUp();
+
+            Common::printDebug("Debug enabled - Input parameters: ");
+            Common::printDebug(var_export($_GET, true));
+        }
+    }
+
+    public function isInstalled()
+    {
+        if (is_null($this->isInstalled)) {
+            $this->isInstalled = SettingsPiwik::isPiwikInstalled();
         }
 
-        return false;
+        return $this->isInstalled;
+    }
+
+    public function main(Handler $handler, RequestSet $requestSet)
+    {
+        try {
+            $this->init();
+            $handler->init($this, $requestSet);
+            $this->track($handler, $requestSet);
+        } catch (Exception $e) {
+            $handler->onException($this, $requestSet, $e);
+        }
+
+        Piwik::postEvent('Tracker.end');
+        $response = $handler->finish($this, $requestSet);
+
+        $this->disconnectDatabase();
+
+        return $response;
+    }
+
+    public function track(Handler $handler, RequestSet $requestSet)
+    {
+        if (!$this->shouldRecordStatistics()) {
+            return;
+        }
+
+        $requestSet->initRequestsAndTokenAuth();
+
+        if ($requestSet->hasRequests()) {
+            $handler->onStartTrackRequests($this, $requestSet);
+            $handler->process($this, $requestSet);
+            $handler->onAllRequestsTracked($this, $requestSet);
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @return array
+     */
+    public function trackRequest(Request $request)
+    {
+        if ($request->isEmptyRequest()) {
+            Common::printDebug("The request is empty");
+        } else {
+            Common::printDebug("Current datetime: " . date("Y-m-d H:i:s", $request->getCurrentTimestamp()));
+
+            $visit = Visit\Factory::make();
+            $visit->setRequest($request);
+            $visit->handle();
+        }
+
+        // increment successfully logged request count. make sure to do this after try-catch,
+        // since an excluded visit is considered 'successfully logged'
+        ++$this->countOfLoggedRequests;
     }
 
     /**
@@ -100,6 +176,21 @@ class Tracker
         }
     }
 
+    public function getCountOfLoggedRequests()
+    {
+        return $this->countOfLoggedRequests;
+    }
+
+    public function setCountOfLoggedRequests($numLoggedRequests)
+    {
+        $this->countOfLoggedRequests = $numLoggedRequests;
+    }
+
+    public function hasLoggedRequests()
+    {
+        return 0 !== $this->countOfLoggedRequests;
+    }
+
     /**
      * @deprecated since 2.10.0 use {@link Date::getDatetimeFromTimestamp()} instead
      */
@@ -108,6 +199,33 @@ class Tracker
         return Date::getDatetimeFromTimestamp($timestamp);
     }
 
+    public function isDatabaseConnected()
+    {
+        return !is_null(self::$db);
+    }
+
+    public static function getDatabase()
+    {
+        if (is_null(self::$db)) {
+            try {
+                self::$db = TrackerDb::connectPiwikTrackerDb();
+            } catch (Exception $e) {
+                throw new DbException($e->getMessage(), $e->getCode());
+            }
+        }
+
+        return self::$db;
+    }
+
+    protected function disconnectDatabase()
+    {
+        if ($this->isDatabaseConnected()) { // note: I think we do this only for the tests
+            self::$db->disconnect();
+            self::$db = null;
+        }
+    }
+
+    // for tests
     public static function disconnectCachedDbConnection()
     {
         // code redundancy w/ above is on purpose; above disconnectDatabase depends on method that can potentially be overridden
@@ -179,47 +297,14 @@ class Tracker
         PluginManager::getInstance()->setTrackerPluginsNotToLoad($pluginsDisabled);
     }
 
-    public static function getDatabase()
-    {
-        if (is_null(self::$db)) {
-            try {
-                self::$db = TrackerDb::connectPiwikTrackerDb();
-            } catch (Exception $e) {
-                throw new DbException($e->getMessage(), $e->getCode());
-            }
-        }
-
-        return self::$db;
-    }
-
-    public function main(Handler $handler, RequestSet $requestSet)
+    protected function loadTrackerPlugins()
     {
         try {
-            $this->init();
-            $handler->init($this, $requestSet);
-            $this->track($handler, $requestSet);
+            $pluginManager  = PluginManager::getInstance();
+            $pluginsTracker = $pluginManager->loadTrackerPlugins();
+            Common::printDebug("Loading plugins: { " . implode(", ", $pluginsTracker) . " }");
         } catch (Exception $e) {
-            $handler->onException($this, $requestSet, $e);
-        }
-
-        Piwik::postEvent('Tracker.end');
-        $response = $handler->finish($this, $requestSet);
-
-        $this->disconnectDatabase();
-
-        return $response;
-    }
-
-    private function init()
-    {
-        $this->handleFatalErrors();
-
-        if ($this->isDebugModeEnabled()) {
-            ErrorHandler::registerErrorHandler();
-            ExceptionHandler::setUp();
-
-            Common::printDebug("Debug enabled - Input parameters: ");
-            Common::printDebug(var_export($_GET, true));
+            Common::printDebug("ERROR: " . $e->getMessage());
         }
     }
 
@@ -233,105 +318,21 @@ class Tracker
         });
     }
 
-    public function isDebugModeEnabled()
-    {
-        return array_key_exists('PIWIK_TRACKER_DEBUG', $GLOBALS) && $GLOBALS['PIWIK_TRACKER_DEBUG'] === true;
-    }
-
-    public function track(Handler $handler, RequestSet $requestSet)
-    {
-        if (!$this->shouldRecordStatistics()) {
-            return;
-        }
-
-        $requestSet->initRequestsAndTokenAuth();
-
-        if ($requestSet->hasRequests()) {
-            $handler->onStartTrackRequests($this, $requestSet);
-            $handler->process($this, $requestSet);
-            $handler->onAllRequestsTracked($this, $requestSet);
-        }
-    }
-
-    public function shouldRecordStatistics()
-    {
-        $record = TrackerConfig::getConfigValue('record_statistics') != 0;
-
-        if (!$record) {
-            Common::printDebug('Tracking is disabled in the config.ini.php via record_statistics=0');
-        }
-
-        return $record && $this->isInstalled();
-    }
-
-    public function isInstalled()
-    {
-        if (is_null($this->isInstalled)) {
-            $this->isInstalled = SettingsPiwik::isPiwikInstalled();
-        }
-
-        return $this->isInstalled;
-    }
-
-    protected function disconnectDatabase()
-    {
-        if ($this->isDatabaseConnected()) { // note: I think we do this only for the tests
-            self::$db->disconnect();
-            self::$db = null;
-        }
-    }
-
-    public function isDatabaseConnected()
-    {
-        return !is_null(self::$db);
-    }
-
-    // for tests
-
-    /**
-     * @param Request $request
-     * @return array
-     */
-    public function trackRequest(Request $request)
-    {
-        if ($request->isEmptyRequest()) {
-            Common::printDebug("The request is empty");
-        } else {
-            Common::printDebug("Current datetime: " . date("Y-m-d H:i:s", $request->getCurrentTimestamp()));
-
-            $visit = Visit\Factory::make();
-            $visit->setRequest($request);
-            $visit->handle();
-        }
-
-        // increment successfully logged request count. make sure to do this after try-catch,
-        // since an excluded visit is considered 'successfully logged'
-        ++$this->countOfLoggedRequests;
-    }
-
-    public function getCountOfLoggedRequests()
-    {
-        return $this->countOfLoggedRequests;
-    }
-
-    public function setCountOfLoggedRequests($numLoggedRequests)
-    {
-        $this->countOfLoggedRequests = $numLoggedRequests;
-    }
-
-    public function hasLoggedRequests()
-    {
-        return 0 !== $this->countOfLoggedRequests;
-    }
-
-    protected function loadTrackerPlugins()
+    private static function isDebugEnabled()
     {
         try {
-            $pluginManager  = PluginManager::getInstance();
-            $pluginsTracker = $pluginManager->loadTrackerPlugins();
-            Common::printDebug("Loading plugins: { " . implode(", ", $pluginsTracker) . " }");
+            $debug = (bool) TrackerConfig::getConfigValue('debug');
+            if ($debug) {
+                return true;
+            }
+
+            $debugOnDemand = (bool) TrackerConfig::getConfigValue('debug_on_demand');
+            if ($debugOnDemand) {
+                return (bool) Common::getRequestVar('debug', false);
+            }
         } catch (Exception $e) {
-            Common::printDebug("ERROR: " . $e->getMessage());
         }
+
+        return false;
     }
 }

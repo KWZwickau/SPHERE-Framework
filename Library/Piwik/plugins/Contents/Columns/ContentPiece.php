@@ -19,6 +19,15 @@ class ContentPiece extends ActionDimension
     protected $columnName = 'idaction_content_piece';
     protected $columnType = 'INTEGER(10) UNSIGNED DEFAULT NULL';
 
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('contentPiece');
+        $segment->setName('Contents_ContentPiece');
+        $segment->setAcceptedValues('The actual content. For instance "ad.jpg" or "My text ad"');
+        $this->addSegment($segment);
+    }
+
     public function getName()
     {
         return Piwik::translate('Contents_ContentPiece');
@@ -44,14 +53,5 @@ class ContentPiece extends ActionDimension
         }
 
         return false;
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('contentPiece');
-        $segment->setName('Contents_ContentPiece');
-        $segment->setAcceptedValues('The actual content. For instance "ad.jpg" or "My text ad"');
-        $this->addSegment($segment);
     }
 }

@@ -30,14 +30,35 @@ class Schema extends Singleton
     private $schema = null;
 
     /**
-     * Get the SQL to create a specific Piwik table
+     * Get schema class name
      *
-     * @param string $tableName name of the table to create
-     * @return string  SQL
+     * @param string $schemaName
+     * @return string
      */
-    public function getTableCreateSql($tableName)
+    private static function getSchemaClassName($schemaName)
     {
-        return $this->getSchema()->getTableCreateSql($tableName);
+        // Upgrade from pre 2.0.4
+        if (strtolower($schemaName) == 'myisam'
+            || empty($schemaName)) {
+            $schemaName = self::DEFAULT_SCHEMA;
+        }
+
+        $class = str_replace(' ', '\\', ucwords(str_replace('_', ' ', strtolower($schemaName))));
+        return '\Piwik\Db\Schema\\' . $class;
+    }
+
+
+    /**
+     * Load schema
+     */
+    private function loadSchema()
+    {
+        $config     = Config::getInstance();
+        $dbInfos    = $config->database;
+        $schemaName = trim($dbInfos['schema']);
+
+        $className    = self::getSchemaClassName($schemaName);
+        $this->schema = new $className();
     }
 
     /**
@@ -55,35 +76,14 @@ class Schema extends Singleton
     }
 
     /**
-     * Load schema
-     */
-    private function loadSchema()
-    {
-        $config = Config::getInstance();
-        $dbInfos = $config->database;
-        $schemaName = trim($dbInfos['schema']);
-
-        $className = self::getSchemaClassName($schemaName);
-        $this->schema = new $className();
-    }
-
-    /**
-     * Get schema class name
+     * Get the SQL to create a specific Piwik table
      *
-     * @param string $schemaName
-     * @return string
+     * @param string $tableName name of the table to create
+     * @return string  SQL
      */
-    private static function getSchemaClassName($schemaName)
+    public function getTableCreateSql($tableName)
     {
-        // Upgrade from pre 2.0.4
-        if (strtolower($schemaName) == 'myisam'
-            || empty($schemaName)
-        ) {
-            $schemaName = self::DEFAULT_SCHEMA;
-        }
-
-        $class = str_replace(' ', '\\', ucwords(str_replace('_', ' ', strtolower($schemaName))));
-        return '\Piwik\Db\Schema\\' . $class;
+        return $this->getSchema()->getTableCreateSql($tableName);
     }
 
     /**
@@ -99,8 +99,8 @@ class Schema extends Singleton
     /**
      * Creates a new table in the database.
      *
-     * @param string $nameWithoutPrefix The name of the table without any piwik prefix.
-     * @param string $createDefinition The table create definition
+     * @param string $nameWithoutPrefix   The name of the table without any piwik prefix.
+     * @param string $createDefinition    The table create definition
      */
     public function createTable($nameWithoutPrefix, $createDefinition)
     {

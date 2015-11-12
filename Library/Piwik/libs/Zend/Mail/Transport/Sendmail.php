@@ -138,21 +138,6 @@ class Zend_Mail_Transport_Sendmail extends Zend_Mail_Transport_Abstract
         }
     }
 
-    /**
-     * Temporary error handler for PHP native mail().
-     *
-     * @param int    $errno
-     * @param string $errstr
-     * @param string $errfile
-     * @param string $errline
-     * @param array  $errcontext
-     * @return true
-     */
-    public function _handleMailErrors($errno, $errstr, $errfile = null, $errline = null, array $errcontext = null)
-    {
-        $this->_errstr = $errstr;
-        return true;
-    }
 
     /**
      * Format and fix headers
@@ -214,6 +199,22 @@ class Zend_Mail_Transport_Sendmail extends Zend_Mail_Transport_Abstract
 
         // Fix issue with empty blank line ontop when using Sendmail Trnasport
         $this->header = rtrim($this->header);
+    }
+
+    /**
+     * Temporary error handler for PHP native mail().
+     *
+     * @param int    $errno
+     * @param string $errstr
+     * @param string $errfile
+     * @param string $errline
+     * @param array  $errcontext
+     * @return true
+     */
+    public function _handleMailErrors($errno, $errstr, $errfile = null, $errline = null, array $errcontext = null)
+    {
+        $this->_errstr = $errstr;
+        return true;
     }
 
 }

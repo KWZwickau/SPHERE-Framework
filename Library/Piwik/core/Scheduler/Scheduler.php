@@ -134,39 +134,6 @@ class Scheduler
     }
 
     /**
-     * Executes the given task
-     *
-     * @param Task $task
-     * @return string
-     */
-    private function executeTask($task)
-    {
-        $this->logger->info("Scheduler: executing task {taskName}...", array(
-            'taskName' => $task->getName(),
-        ));
-
-        $this->isRunningTask = true;
-
-        $timer = new Timer();
-
-        try {
-            $callable = array($task->getObjectInstance(), $task->getMethodName());
-            call_user_func($callable, $task->getMethodParameter());
-            $message = $timer->__toString();
-        } catch (Exception $e) {
-            $message = 'ERROR: ' . $e->getMessage();
-        }
-
-        $this->isRunningTask = false;
-
-        $this->logger->info("Scheduler: finished. {timeElapsed}", array(
-            'timeElapsed' => $timer,
-        ));
-
-        return $message;
-    }
-
-    /**
      * Run a specific task now. Will ignore the schedule completely.
      *
      * @param string $taskName
@@ -237,5 +204,38 @@ class Scheduler
         return array_map(function (Task $task) {
             return $task->getName();
         }, $tasks);
+    }
+
+    /**
+     * Executes the given task
+     *
+     * @param Task $task
+     * @return string
+     */
+    private function executeTask($task)
+    {
+        $this->logger->info("Scheduler: executing task {taskName}...", array(
+            'taskName' => $task->getName(),
+        ));
+
+        $this->isRunningTask = true;
+
+        $timer = new Timer();
+
+        try {
+            $callable = array($task->getObjectInstance(), $task->getMethodName());
+            call_user_func($callable, $task->getMethodParameter());
+            $message = $timer->__toString();
+        } catch (Exception $e) {
+            $message = 'ERROR: ' . $e->getMessage();
+        }
+
+        $this->isRunningTask = false;
+
+        $this->logger->info("Scheduler: finished. {timeElapsed}", array(
+            'timeElapsed' => $timer,
+        ));
+
+        return $message;
     }
 }

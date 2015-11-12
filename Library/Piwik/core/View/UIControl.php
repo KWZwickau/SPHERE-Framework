@@ -84,19 +84,19 @@ class UIControl extends \Piwik\View
     }
 
     /**
-     * Gets a view variable. See {@link View::__get()}.
-     */
-    public function &__get($key)
-    {
-        return $this->innerView->__get($key);
-    }
-
-    /**
      * Sets a variable. See {@link View::__set()}.
      */
     public function __set($key, $val)
     {
         $this->innerView->__set($key, $val);
+    }
+
+    /**
+     * Gets a view variable. See {@link View::__get()}.
+     */
+    public function &__get($key)
+    {
+        return $this->innerView->__get($key);
     }
 
     public function __isset($key)

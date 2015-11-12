@@ -38,18 +38,34 @@ class Controller extends \Piwik\Plugin\Controller
         return $this->render($view);
     }
 
-    private function setCounters($view)
+    public function ajaxTotalVisitors()
     {
-        $segment = Request::getRawSegmentFromRequest();
-        $last30min = API::getInstance()->getCounters($this->idSite, $lastMinutes = 30, $segment, array('visits', 'actions'));
-        $last30min = $last30min[0];
-        $today = API::getInstance()->getCounters($this->idSite, $lastMinutes = 24 * 60, $segment, array('visits', 'actions'));
-        $today = $today[0];
-        $view->visitorsCountHalfHour = $last30min['visits'];
-        $view->visitorsCountToday = $today['visits'];
-        $view->pisHalfhour = $last30min['actions'];
-        $view->pisToday = $today['actions'];
-        return $view;
+        $view = new View('@Live/ajaxTotalVisitors');
+        $view = $this->setCounters($view);
+        $view->idSite = $this->idSite;
+        return $this->render($view);
+    }
+
+    private function render(View $view)
+    {
+        $rendered = $view->render();
+
+        return $rendered;
+    }
+
+    public function indexVisitorLog()
+    {
+        $view = new View('@Live/indexVisitorLog.twig');
+        $view->visitorLog = $this->renderReport('getLastVisitsDetails');
+        return $view->render();
+    }
+
+    /**
+     * Widget
+     */
+    public function getVisitorLog()
+    {
+        return $this->renderReport('getLastVisitsDetails');
     }
 
     public function getLastVisitsStart()
@@ -68,34 +84,18 @@ class Controller extends \Piwik\Plugin\Controller
         return $this->render($view);
     }
 
-    private function render(View $view)
+    private function setCounters($view)
     {
-        $rendered = $view->render();
-
-        return $rendered;
-    }
-
-    public function ajaxTotalVisitors()
-    {
-        $view = new View('@Live/ajaxTotalVisitors');
-        $view = $this->setCounters($view);
-        $view->idSite = $this->idSite;
-        return $this->render($view);
-    }
-
-    public function indexVisitorLog()
-    {
-        $view = new View('@Live/indexVisitorLog.twig');
-        $view->visitorLog = $this->renderReport('getLastVisitsDetails');
-        return $view->render();
-    }
-
-    /**
-     * Widget
-     */
-    public function getVisitorLog()
-    {
-        return $this->renderReport('getLastVisitsDetails');
+        $segment = Request::getRawSegmentFromRequest();
+        $last30min = API::getInstance()->getCounters($this->idSite, $lastMinutes = 30, $segment, array('visits', 'actions'));
+        $last30min = $last30min[0];
+        $today = API::getInstance()->getCounters($this->idSite, $lastMinutes = 24 * 60, $segment, array('visits', 'actions'));
+        $today = $today[0];
+        $view->visitorsCountHalfHour = $last30min['visits'];
+        $view->visitorsCountToday = $today['visits'];
+        $view->pisHalfhour = $last30min['actions'];
+        $view->pisToday = $today['actions'];
+        return $view;
     }
 
     /**
@@ -121,65 +121,6 @@ class Controller extends \Piwik\Plugin\Controller
         $this->setWidgetizedVisitorProfileUrl($view);
 
         return $view->render();
-    }
-
-    private function getVisitorProfileExportLink()
-    {
-        return Url::getCurrentQueryStringWithParametersModified(array(
-                                                                     'module'   => 'API',
-                                                                     'action'   => 'index',
-                                                                     'method'   => 'Live.getVisitorProfile',
-                                                                     'format'   => 'XML',
-                                                                     'expanded' => 1
-                                                                ));
-    }
-
-    private function getUserCountryMapUrlForVisitorProfile()
-    {
-        $params = array(
-            'module'             => 'UserCountryMap',
-            'action'             => 'realtimeMap',
-            'segment'            => self::getSegmentWithVisitorId(),
-            'visitorId'          => false,
-            'changeVisitAlpha'   => 0,
-            'removeOldVisits'    => 0,
-            'realtimeWindow'     => 'false',
-            'showFooterMessage'  => 0,
-            'showDateTime'       => 0,
-            'doNotRefreshVisits' => 1
-        );
-        return Url::getCurrentQueryStringWithParametersModified($params);
-    }
-
-    private static function getSegmentWithVisitorId()
-    {
-        static $cached = null;
-        if ($cached === null) {
-            $segment = Request::getRawSegmentFromRequest();
-            if (!empty($segment)) {
-                $segment = urldecode($segment) . ';';
-            }
-
-            $idVisitor = Common::getRequestVar('visitorId', false);
-            if ($idVisitor === false) {
-                $idVisitor = Request::processRequest('Live.getMostRecentVisitorId');
-            }
-
-            $cached = urlencode($segment . 'visitorId==' . $idVisitor);
-        }
-        return $cached;
-    }
-
-    private function setWidgetizedVisitorProfileUrl($view)
-    {
-        if (\Piwik\Plugin\Manager::getInstance()->isPluginLoaded('Widgetize')) {
-            $view->widgetizedLink = Url::getCurrentQueryStringWithParametersModified(array(
-                                                                                          'module'            => 'Widgetize',
-                                                                                          'action'            => 'iframe',
-                                                                                          'moduleToWidgetize' => 'Live',
-                                                                                          'actionToWidgetize' => 'getVisitorProfilePopup'
-                                                                                     ));
-        }
     }
 
     public function getSingleVisitSummary()
@@ -220,5 +161,64 @@ class Controller extends \Piwik\Plugin\Controller
         $view->startCounter = $startCounter + 1;
         $view->visits = $nextVisits;
         return $view->render();
+    }
+
+    private function getVisitorProfileExportLink()
+    {
+        return Url::getCurrentQueryStringWithParametersModified(array(
+                                                                     'module'   => 'API',
+                                                                     'action'   => 'index',
+                                                                     'method'   => 'Live.getVisitorProfile',
+                                                                     'format'   => 'XML',
+                                                                     'expanded' => 1
+                                                                ));
+    }
+
+    private function setWidgetizedVisitorProfileUrl($view)
+    {
+        if (\Piwik\Plugin\Manager::getInstance()->isPluginLoaded('Widgetize')) {
+            $view->widgetizedLink = Url::getCurrentQueryStringWithParametersModified(array(
+                                                                                          'module'            => 'Widgetize',
+                                                                                          'action'            => 'iframe',
+                                                                                          'moduleToWidgetize' => 'Live',
+                                                                                          'actionToWidgetize' => 'getVisitorProfilePopup'
+                                                                                     ));
+        }
+    }
+
+    private function getUserCountryMapUrlForVisitorProfile()
+    {
+        $params = array(
+            'module'             => 'UserCountryMap',
+            'action'             => 'realtimeMap',
+            'segment'            => self::getSegmentWithVisitorId(),
+            'visitorId'          => false,
+            'changeVisitAlpha'   => 0,
+            'removeOldVisits'    => 0,
+            'realtimeWindow'     => 'false',
+            'showFooterMessage'  => 0,
+            'showDateTime'       => 0,
+            'doNotRefreshVisits' => 1
+        );
+        return Url::getCurrentQueryStringWithParametersModified($params);
+    }
+
+    private static function getSegmentWithVisitorId()
+    {
+        static $cached = null;
+        if ($cached === null) {
+            $segment = Request::getRawSegmentFromRequest();
+            if (!empty($segment)) {
+                $segment = urldecode($segment) . ';';
+            }
+
+            $idVisitor = Common::getRequestVar('visitorId', false);
+            if ($idVisitor === false) {
+                $idVisitor = Request::processRequest('Live.getMostRecentVisitorId');
+            }
+
+            $cached = urlencode($segment . 'visitorId==' . $idVisitor);
+        }
+        return $cached;
     }
 }

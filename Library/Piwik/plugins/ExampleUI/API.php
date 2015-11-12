@@ -69,21 +69,6 @@ class API extends \Piwik\Plugin\API
         return DataTable::makeFromIndexedArray($temperatures);
     }
 
-    public function getPlanetRatiosWithLogos()
-    {
-        $planetsDataTable = $this->getPlanetRatios();
-
-        foreach ($planetsDataTable->getRows() as $row) {
-            $logo = sprintf('plugins/ExampleUI/images/icons-planet/%s.png', strtolower($row->getColumn('label')));
-            $url = sprintf('http://en.wikipedia.org/wiki/%s', $row->getColumn('label'));
-
-            $row->addMetadata('logo', $logo);
-            $row->addMetadata('url', $url);
-        }
-
-        return $planetsDataTable;
-    }
-
     public function getPlanetRatios()
     {
         $planetRatios = array(
@@ -98,5 +83,20 @@ class API extends \Piwik\Plugin\API
         );
 
         return DataTable::makeFromIndexedArray($planetRatios);
+    }
+
+    public function getPlanetRatiosWithLogos()
+    {
+        $planetsDataTable = $this->getPlanetRatios();
+
+        foreach ($planetsDataTable->getRows() as $row) {
+            $logo = sprintf('plugins/ExampleUI/images/icons-planet/%s.png', strtolower($row->getColumn('label')));
+            $url = sprintf('http://en.wikipedia.org/wiki/%s', $row->getColumn('label'));
+
+            $row->addMetadata('logo', $logo);
+            $row->addMetadata('url', $url);
+        }
+
+        return $planetsDataTable;
     }
 }

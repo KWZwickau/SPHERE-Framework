@@ -11,11 +11,11 @@
 
 namespace Monolog\Handler;
 
-use AMQPExchange;
-use Monolog\Formatter\JsonFormatter;
 use Monolog\Logger;
-use PhpAmqpLib\Channel\AMQPChannel;
+use Monolog\Formatter\JsonFormatter;
 use PhpAmqpLib\Message\AMQPMessage;
+use PhpAmqpLib\Channel\AMQPChannel;
+use AMQPExchange;
 
 class AmqpHandler extends AbstractProcessingHandler
 {
@@ -30,10 +30,10 @@ class AmqpHandler extends AbstractProcessingHandler
     protected $exchangeName;
 
     /**
-     * @param AMQPExchange|AMQPChannel $exchange AMQPExchange (php AMQP ext) or PHP AMQP lib channel, ready for use
-     * @param string $exchangeName
-     * @param int $level
-     * @param bool $bubble Whether the messages that are handled can bubble up the stack or not
+     * @param AMQPExchange|AMQPChannel $exchange     AMQPExchange (php AMQP ext) or PHP AMQP lib channel, ready for use
+     * @param string                   $exchangeName
+     * @param int                      $level
+     * @param bool                     $bubble       Whether the messages that are handled can bubble up the stack or not
      */
     public function __construct($exchange, $exchangeName = 'log', $level = Logger::DEBUG, $bubble = true)
     {
@@ -76,7 +76,7 @@ class AmqpHandler extends AbstractProcessingHandler
         } else {
             $this->exchange->basic_publish(
                 new AMQPMessage(
-                    (string)$data,
+                    (string) $data,
                     array(
                         'delivery_mode' => 2,
                         'content_type' => 'application/json'

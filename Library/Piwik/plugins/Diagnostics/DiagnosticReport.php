@@ -46,42 +46,12 @@ class DiagnosticReport
         $this->computeErrorAndWarningCount();
     }
 
-    private function computeErrorAndWarningCount()
-    {
-        foreach ($this->getAllResults() as $result) {
-            switch ($result->getStatus()) {
-                case DiagnosticResult::STATUS_ERROR:
-                    $this->errorCount++;
-                    break;
-                case DiagnosticResult::STATUS_WARNING:
-                    $this->warningCount++;
-                    break;
-            }
-        }
-    }
-
-    /**
-     * @return DiagnosticResult[]
-     */
-    public function getAllResults()
-    {
-        return array_merge($this->mandatoryDiagnosticResults, $this->optionalDiagnosticResults);
-    }
-
     /**
      * @return bool
      */
     public function hasErrors()
     {
         return $this->getErrorCount() > 0;
-    }
-
-    /**
-     * @return int
-     */
-    public function getErrorCount()
-    {
-        return $this->errorCount;
     }
 
     /**
@@ -95,9 +65,25 @@ class DiagnosticReport
     /**
      * @return int
      */
+    public function getErrorCount()
+    {
+        return $this->errorCount;
+    }
+
+    /**
+     * @return int
+     */
     public function getWarningCount()
     {
         return $this->warningCount;
+    }
+
+    /**
+     * @return DiagnosticResult[]
+     */
+    public function getAllResults()
+    {
+        return array_merge($this->mandatoryDiagnosticResults, $this->optionalDiagnosticResults);
     }
 
     /**
@@ -114,5 +100,19 @@ class DiagnosticReport
     public function getOptionalDiagnosticResults()
     {
         return $this->optionalDiagnosticResults;
+    }
+
+    private function computeErrorAndWarningCount()
+    {
+        foreach ($this->getAllResults() as $result) {
+            switch ($result->getStatus()) {
+                case DiagnosticResult::STATUS_ERROR:
+                    $this->errorCount++;
+                    break;
+                case DiagnosticResult::STATUS_WARNING:
+                    $this->warningCount++;
+                    break;
+            }
+        }
     }
 }

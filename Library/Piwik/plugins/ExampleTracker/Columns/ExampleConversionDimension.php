@@ -12,10 +12,10 @@ use Piwik\Common;
 use Piwik\Piwik;
 use Piwik\Plugin\Dimension\ConversionDimension;
 use Piwik\Plugin\Segment;
-use Piwik\Tracker\Action;
-use Piwik\Tracker\GoalManager;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Action;
+use Piwik\Tracker\GoalManager;
 
 /**
  * This example dimension counts achievement points for each user. A user gets one achievement point for each action
@@ -49,6 +49,21 @@ class ExampleConversionDimension extends ConversionDimension
     public function getName()
     {
         return Piwik::translate('ExampleTracker_DimensionName');
+    }
+
+    /**
+     * By defining one or multiple segments a user will be able to filter their visitors by this column. For instance
+     * show all reports only considering users having more than 10 achievement points. If you do not want to define a
+     * segment for this dimension just remove the column.
+     */
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('myConversionSegmentName');
+        $segment->setCategory('General_Visit');
+        $segment->setName('ExampleTracker_DimensionName');
+        $segment->setAcceptedValues('Here you should explain which values are accepted/useful: Any number, for instance 1, 2, 3 , 99');
+        $this->addSegment($segment);
     }
 
     /**
@@ -113,21 +128,6 @@ class ExampleConversionDimension extends ConversionDimension
         }
 
         return false;
-    }
-
-    /**
-     * By defining one or multiple segments a user will be able to filter their visitors by this column. For instance
-     * show all reports only considering users having more than 10 achievement points. If you do not want to define a
-     * segment for this dimension just remove the column.
-     */
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('myConversionSegmentName');
-        $segment->setCategory('General_Visit');
-        $segment->setName('ExampleTracker_DimensionName');
-        $segment->setAcceptedValues('Here you should explain which values are accepted/useful: Any number, for instance 1, 2, 3 , 99');
-        $this->addSegment($segment);
     }
 
 }

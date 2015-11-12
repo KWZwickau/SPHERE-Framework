@@ -358,14 +358,14 @@ Segmentation = (function($) {
                 $(self.target).find(".segmentList li:first")
                     .before("<li class=\"filterNoResults grayed\">" + self.translations['General_SearchNoResults'] + "</li>");
             }
-        };
+        }
 
         var clearFilterSegmentList = function () {
             $(self.target).find(" .filterNoResults").remove();
             $(self.target).find(".segmentList li").each(function () {
                 $(this).show();
             });
-        };
+        }
 
         var bindEvents = function () {
             self.target.on('click', '.segmentationContainer', function (e) {

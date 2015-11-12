@@ -63,6 +63,16 @@ class EcommerceRequestProcessor extends RequestProcessor
         }
     }
 
+    public function afterRequestProcessed(VisitProperties $visitProperties, Request $request)
+    {
+        $goalsConverted = $request->getMetadata('Goals', 'goalsConverted');
+        if (!empty($goalsConverted)) {
+            $isThereExistingCartInVisit = $this->goalManager->detectIsThereExistingCartInVisit(
+                $visitProperties->getProperties());
+            $request->setMetadata('Goals', 'isThereExistingCartInVisit', $isThereExistingCartInVisit);
+        }
+    }
+
     private function isRequestForAnOrder(Request $request)
     {
         $orderId = $request->getParam('ec_id');
@@ -73,15 +83,5 @@ class EcommerceRequestProcessor extends RequestProcessor
     {
         $idGoal = $request->getParam('idgoal');
         return 0 == $idGoal;
-    }
-
-    public function afterRequestProcessed(VisitProperties $visitProperties, Request $request)
-    {
-        $goalsConverted = $request->getMetadata('Goals', 'goalsConverted');
-        if (!empty($goalsConverted)) {
-            $isThereExistingCartInVisit = $this->goalManager->detectIsThereExistingCartInVisit(
-                $visitProperties->getProperties());
-            $request->setMetadata('Goals', 'isThereExistingCartInVisit', $isThereExistingCartInVisit);
-        }
     }
 }

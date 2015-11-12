@@ -11,8 +11,8 @@ namespace Piwik\Db\Schema;
 use Exception;
 use Piwik\Common;
 use Piwik\Date;
-use Piwik\Db;
 use Piwik\Db\SchemaInterface;
+use Piwik\Db;
 use Piwik\DbHelper;
 
 /**
@@ -21,140 +21,6 @@ use Piwik\DbHelper;
 class Mysql implements SchemaInterface
 {
     private $tablesInstalled = null;
-
-    /**
-     * Get the SQL to create a specific Piwik table
-     *
-     * @param string $tableName
-     * @throws Exception
-     * @return string  SQL
-     */
-    public function getTableCreateSql($tableName)
-    {
-        $tables = DbHelper::getTablesCreateSql();
-
-        if (!isset($tables[$tableName])) {
-            throw new Exception("The table '$tableName' SQL creation code couldn't be found.");
-        }
-
-        return $tables[$tableName];
-    }
-
-    /**
-     * Get list of installed columns in a table
-     *
-     * @param  string $tableName The name of a table.
-     *
-     * @return array  Installed columns indexed by the column name.
-     */
-    public function getTableColumns($tableName)
-    {
-        $db = $this->getDb();
-
-        $allColumns = $db->fetchAll("SHOW COLUMNS FROM . $tableName");
-
-        $fields = array();
-        foreach ($allColumns as $column) {
-            $fields[trim($column['Field'])] = $column;
-        }
-
-        return $fields;
-    }
-
-    private function getDb()
-    {
-        return Db::get();
-    }
-
-    /**
-     * Checks whether any table exists
-     *
-     * @return bool  True if tables exist; false otherwise
-     */
-    public function hasTables()
-    {
-        return count($this->getTablesInstalled()) != 0;
-    }
-
-    /**
-     * Get list of tables installed
-     *
-     * @param bool $forceReload Invalidate cache
-     * @return array  installed Tables
-     */
-    public function getTablesInstalled($forceReload = true)
-    {
-        if (is_null($this->tablesInstalled)
-            || $forceReload === true
-        ) {
-            $db = $this->getDb();
-            $prefixTables = $this->getTablePrefixEscaped();
-
-            $allTables = $this->getAllExistingTables($prefixTables);
-
-            // all the tables to be installed
-            $allMyTables = $this->getTablesNames();
-
-            // we get the intersection between all the tables in the DB and the tables to be installed
-            $tablesInstalled = array_intersect($allMyTables, $allTables);
-
-            // at this point we have the static list of core tables, but let's add the monthly archive tables
-            $allArchiveNumeric = $db->fetchCol("SHOW TABLES LIKE '" . $prefixTables . "archive_numeric%'");
-            $allArchiveBlob    = $db->fetchCol("SHOW TABLES LIKE '" . $prefixTables . "archive_blob%'");
-
-            $allTablesReallyInstalled = array_merge($tablesInstalled, $allArchiveNumeric, $allArchiveBlob);
-
-            $this->tablesInstalled = $allTablesReallyInstalled;
-        }
-
-        return $this->tablesInstalled;
-    }
-
-    private function getTablePrefixEscaped()
-    {
-        $prefixTables = $this->getTablePrefix();
-        // '_' matches any character; force it to be literal
-        $prefixTables = str_replace('_', '\_', $prefixTables);
-        return $prefixTables;
-    }
-
-    private function getTablePrefix()
-    {
-        return $this->getDbSettings()->getTablePrefix();
-    }
-
-    private function getDbSettings()
-    {
-        return new Db\Settings();
-    }
-
-    private function getAllExistingTables($prefixTables = false)
-    {
-        if (empty($prefixTables)) {
-            $prefixTables = $this->getTablePrefixEscaped();
-        }
-
-        return Db::get()->fetchCol("SHOW TABLES LIKE '" . $prefixTables . "%'");
-    }
-
-    /**
-     * Names of all the prefixed tables in piwik
-     * Doesn't use the DB
-     *
-     * @return array  Table names
-     */
-    public function getTablesNames()
-    {
-        $aTables      = array_keys($this->getTablesCreateSql());
-        $prefixTables = $this->getTablePrefix();
-
-        $return = array();
-        foreach ($aTables as $table) {
-            $return[] = $prefixTables . $table;
-        }
-
-        return $return;
-    }
 
     /**
      * Get the SQL to create Piwik tables
@@ -393,9 +259,106 @@ class Mysql implements SchemaInterface
         return $tables;
     }
 
-    private function getTableEngine()
+    /**
+     * Get the SQL to create a specific Piwik table
+     *
+     * @param string $tableName
+     * @throws Exception
+     * @return string  SQL
+     */
+    public function getTableCreateSql($tableName)
     {
-        return $this->getDbSettings()->getEngine();
+        $tables = DbHelper::getTablesCreateSql();
+
+        if (!isset($tables[$tableName])) {
+            throw new Exception("The table '$tableName' SQL creation code couldn't be found.");
+        }
+
+        return $tables[$tableName];
+    }
+
+    /**
+     * Names of all the prefixed tables in piwik
+     * Doesn't use the DB
+     *
+     * @return array  Table names
+     */
+    public function getTablesNames()
+    {
+        $aTables      = array_keys($this->getTablesCreateSql());
+        $prefixTables = $this->getTablePrefix();
+
+        $return = array();
+        foreach ($aTables as $table) {
+            $return[] = $prefixTables . $table;
+        }
+
+        return $return;
+    }
+
+    /**
+     * Get list of installed columns in a table
+     *
+     * @param  string $tableName The name of a table.
+     *
+     * @return array  Installed columns indexed by the column name.
+     */
+    public function getTableColumns($tableName)
+    {
+        $db = $this->getDb();
+
+        $allColumns = $db->fetchAll("SHOW COLUMNS FROM . $tableName");
+
+        $fields = array();
+        foreach ($allColumns as $column) {
+            $fields[trim($column['Field'])] = $column;
+        }
+
+        return $fields;
+    }
+
+    /**
+     * Get list of tables installed
+     *
+     * @param bool $forceReload Invalidate cache
+     * @return array  installed Tables
+     */
+    public function getTablesInstalled($forceReload = true)
+    {
+        if (is_null($this->tablesInstalled)
+            || $forceReload === true
+        ) {
+            $db = $this->getDb();
+            $prefixTables = $this->getTablePrefixEscaped();
+
+            $allTables = $this->getAllExistingTables($prefixTables);
+
+            // all the tables to be installed
+            $allMyTables = $this->getTablesNames();
+
+            // we get the intersection between all the tables in the DB and the tables to be installed
+            $tablesInstalled = array_intersect($allMyTables, $allTables);
+
+            // at this point we have the static list of core tables, but let's add the monthly archive tables
+            $allArchiveNumeric = $db->fetchCol("SHOW TABLES LIKE '" . $prefixTables . "archive_numeric%'");
+            $allArchiveBlob    = $db->fetchCol("SHOW TABLES LIKE '" . $prefixTables . "archive_blob%'");
+
+            $allTablesReallyInstalled = array_merge($tablesInstalled, $allArchiveNumeric, $allArchiveBlob);
+
+            $this->tablesInstalled = $allTablesReallyInstalled;
+        }
+
+        return $this->tablesInstalled;
+    }
+
+    /**
+     * Checks whether any table exists
+     *
+     * @return bool  True if tables exist; false otherwise
+     */
+    public function hasTables()
+    {
+        return count($this->getTablesInstalled()) != 0;
     }
 
     /**
@@ -410,11 +373,6 @@ class Mysql implements SchemaInterface
         }
 
         Db::exec("CREATE DATABASE IF NOT EXISTS " . $dbName . " DEFAULT CHARACTER SET utf8");
-    }
-
-    private function getDbName()
-    {
-        return $this->getDbSettings()->getDbName();
     }
 
     /**
@@ -494,5 +452,47 @@ class Mysql implements SchemaInterface
         foreach ($tables as $table) {
             Db::query("TRUNCATE `$table`");
         }
+    }
+
+    private function getTablePrefix()
+    {
+        return $this->getDbSettings()->getTablePrefix();
+    }
+
+    private function getTableEngine()
+    {
+        return $this->getDbSettings()->getEngine();
+    }
+
+    private function getDb()
+    {
+        return Db::get();
+    }
+
+    private function getDbSettings()
+    {
+        return new Db\Settings();
+    }
+
+    private function getDbName()
+    {
+        return $this->getDbSettings()->getDbName();
+    }
+
+    private function getAllExistingTables($prefixTables = false)
+    {
+        if (empty($prefixTables)) {
+            $prefixTables = $this->getTablePrefixEscaped();
+        }
+
+        return Db::get()->fetchCol("SHOW TABLES LIKE '" . $prefixTables . "%'");
+    }
+
+    private function getTablePrefixEscaped()
+    {
+        $prefixTables = $this->getTablePrefix();
+        // '_' matches any character; force it to be literal
+        $prefixTables = str_replace('_', '\_', $prefixTables);
+        return $prefixTables;
     }
 }

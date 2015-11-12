@@ -123,28 +123,18 @@ class DataCollection
     }
 
     /**
-     * Returns metadata for a data row.
+     * Returns a reference to the data for a specific site & period. If there is
+     * no data for the given site ID & period, it is set to the default row.
      *
-     * @param array $data The data row.
-     * @return array
+     * @param int $idSite
+     * @param string $period eg, '2012-01-01,2012-01-31'
      */
-    public static function getDataRowMetadata($data)
+    public function &get($idSite, $period)
     {
-        if (isset($data[self::METADATA_CONTAINER_ROW_KEY])) {
-            return $data[self::METADATA_CONTAINER_ROW_KEY];
-        } else {
-            return array();
+        if (!isset($this->data[$idSite][$period])) {
+            $this->data[$idSite][$period] = $this->defaultRow;
         }
-    }
-
-    /**
-     * Removes all table metadata from a data row.
-     *
-     * @param array $data The data row.
-     */
-    public static function removeMetadataFromDataRow(&$data)
-    {
-        unset($data[self::METADATA_CONTAINER_ROW_KEY]);
+        return $this->data[$idSite][$period];
     }
 
     /**
@@ -160,21 +150,6 @@ class DataCollection
     {
         $row = & $this->get($idSite, $period);
         $row[$name] = $value;
-    }
-
-    /**
-     * Returns a reference to the data for a specific site & period. If there is
-     * no data for the given site ID & period, it is set to the default row.
-     *
-     * @param int $idSite
-     * @param string $period eg, '2012-01-01,2012-01-31'
-     */
-    public function &get($idSite, $period)
-    {
-        if (!isset($this->data[$idSite][$period])) {
-            $this->data[$idSite][$period] = $this->defaultRow;
-        }
-        return $this->data[$idSite][$period];
     }
 
     /**
@@ -194,27 +169,6 @@ class DataCollection
     {
         $row = & $this->get($idSite, $period);
         $row[self::METADATA_CONTAINER_ROW_KEY][$name] = $value;
-    }
-
-    /**
-     * Returns archive data as a DataTable indexed by metadata. Indexed data will
-     * be represented by Map instances.
-     *
-     * @param array $resultIndices An array mapping metadata names to pretty labels
-     *                             for them. Each archive data row will be indexed
-     *                             by the metadata specified here.
-     *
-     *                             Eg, array('site' => 'idSite', 'period' => 'Date')
-     * @return DataTable|DataTable\Map
-     */
-    public function getDataTable($resultIndices)
-    {
-        $dataTableFactory = new DataTableFactory(
-            $this->dataNames, $this->dataType, $this->sitesId, $this->periods, $this->defaultRow);
-
-        $index = $this->getIndexedArray($resultIndices);
-
-        return $dataTableFactory->make($index, $resultIndices);
     }
 
     /**
@@ -251,6 +205,111 @@ class DataCollection
         }
 
         return $result;
+    }
+
+    /**
+     * Returns archive data as a DataTable indexed by metadata. Indexed data will
+     * be represented by Map instances.
+     *
+     * @param array $resultIndices An array mapping metadata names to pretty labels
+     *                             for them. Each archive data row will be indexed
+     *                             by the metadata specified here.
+     *
+     *                             Eg, array('site' => 'idSite', 'period' => 'Date')
+     * @return DataTable|DataTable\Map
+     */
+    public function getDataTable($resultIndices)
+    {
+        $dataTableFactory = new DataTableFactory(
+            $this->dataNames, $this->dataType, $this->sitesId, $this->periods, $this->defaultRow);
+
+        $index = $this->getIndexedArray($resultIndices);
+
+        return $dataTableFactory->make($index, $resultIndices);
+    }
+
+    /**
+     * See {@link DataTableFactory::makeMerged()}
+     *
+     * @param array $resultIndices
+     * @return DataTable|DataTable\Map
+     * @throws Exception
+     */
+    public function getMergedDataTable($resultIndices)
+    {
+        $dataTableFactory = new DataTableFactory(
+            $this->dataNames, $this->dataType, $this->sitesId, $this->periods, $this->defaultRow);
+
+        $index = $this->getIndexedArray($resultIndices);
+
+        return $dataTableFactory->makeMerged($index, $resultIndices);
+    }
+
+    /**
+     * Returns archive data as a DataTable indexed by metadata. Indexed data will
+     * be represented by Map instances. Each DataTable will have
+     * its subtable IDs set.
+     *
+     * This function will only work if blob data was loaded and only one record
+     * was loaded (not including subtables of the record).
+     *
+     * @param array $resultIndices An array mapping metadata names to pretty labels
+     *                             for them. Each archive data row will be indexed
+     *                             by the metadata specified here.
+     *
+     *                             Eg, array('site' => 'idSite', 'period' => 'Date')
+     * @param int|null $idSubTable The subtable to return.
+     * @param int|null $depth max depth for subtables.
+     * @param bool $addMetadataSubTableId Whether to add the DB subtable ID as metadata
+     *                                    to each datatable, or not.
+     * @throws Exception
+     * @return DataTable|DataTable\Map
+     */
+    public function getExpandedDataTable($resultIndices, $idSubTable = null, $depth = null, $addMetadataSubTableId = false)
+    {
+        if ($this->dataType != 'blob') {
+            throw new Exception("DataCollection: cannot call getExpandedDataTable with "
+                . "{$this->dataType} data types. Only works with blob data.");
+        }
+
+        if (count($this->dataNames) !== 1) {
+            throw new Exception("DataCollection: cannot call getExpandedDataTable with "
+                . "more than one record.");
+        }
+
+        $dataTableFactory = new DataTableFactory(
+            $this->dataNames, 'blob', $this->sitesId, $this->periods, $this->defaultRow);
+        $dataTableFactory->expandDataTable($depth, $addMetadataSubTableId);
+        $dataTableFactory->useSubtable($idSubTable);
+
+        $index = $this->getIndexedArray($resultIndices);
+
+        return $dataTableFactory->make($index, $resultIndices);
+    }
+
+    /**
+     * Returns metadata for a data row.
+     *
+     * @param array $data The data row.
+     * @return array
+     */
+    public static function getDataRowMetadata($data)
+    {
+        if (isset($data[self::METADATA_CONTAINER_ROW_KEY])) {
+            return $data[self::METADATA_CONTAINER_ROW_KEY];
+        } else {
+            return array();
+        }
+    }
+
+    /**
+     * Removes all table metadata from a data row.
+     *
+     * @param array $data The data row.
+     */
+    public static function removeMetadataFromDataRow(&$data)
+    {
+        unset($data[self::METADATA_CONTAINER_ROW_KEY]);
     }
 
     /**
@@ -312,64 +371,5 @@ class DataCollection
         }
 
         $currentLevel = $row;
-    }
-
-    /**
-     * See {@link DataTableFactory::makeMerged()}
-     *
-     * @param array $resultIndices
-     * @return DataTable|DataTable\Map
-     * @throws Exception
-     */
-    public function getMergedDataTable($resultIndices)
-    {
-        $dataTableFactory = new DataTableFactory(
-            $this->dataNames, $this->dataType, $this->sitesId, $this->periods, $this->defaultRow);
-
-        $index = $this->getIndexedArray($resultIndices);
-
-        return $dataTableFactory->makeMerged($index, $resultIndices);
-    }
-
-    /**
-     * Returns archive data as a DataTable indexed by metadata. Indexed data will
-     * be represented by Map instances. Each DataTable will have
-     * its subtable IDs set.
-     *
-     * This function will only work if blob data was loaded and only one record
-     * was loaded (not including subtables of the record).
-     *
-     * @param array $resultIndices An array mapping metadata names to pretty labels
-     *                             for them. Each archive data row will be indexed
-     *                             by the metadata specified here.
-     *
-     *                             Eg, array('site' => 'idSite', 'period' => 'Date')
-     * @param int|null $idSubTable The subtable to return.
-     * @param int|null $depth max depth for subtables.
-     * @param bool $addMetadataSubTableId Whether to add the DB subtable ID as metadata
-     *                                    to each datatable, or not.
-     * @throws Exception
-     * @return DataTable|DataTable\Map
-     */
-    public function getExpandedDataTable($resultIndices, $idSubTable = null, $depth = null, $addMetadataSubTableId = false)
-    {
-        if ($this->dataType != 'blob') {
-            throw new Exception("DataCollection: cannot call getExpandedDataTable with "
-                . "{$this->dataType} data types. Only works with blob data.");
-        }
-
-        if (count($this->dataNames) !== 1) {
-            throw new Exception("DataCollection: cannot call getExpandedDataTable with "
-                . "more than one record.");
-        }
-
-        $dataTableFactory = new DataTableFactory(
-            $this->dataNames, 'blob', $this->sitesId, $this->periods, $this->defaultRow);
-        $dataTableFactory->expandDataTable($depth, $addMetadataSubTableId);
-        $dataTableFactory->useSubtable($idSubTable);
-
-        $index = $this->getIndexedArray($resultIndices);
-
-        return $dataTableFactory->make($index, $resultIndices);
     }
 }

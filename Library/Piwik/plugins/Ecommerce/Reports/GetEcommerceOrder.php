@@ -12,16 +12,6 @@ use Piwik\Piwik;
 
 class GetEcommerceOrder extends Base
 {
-    public function getMetrics()
-    {
-        $metrics = parent::getMetrics();
-
-        $metrics['nb_conversions'] = Piwik::translate('General_EcommerceOrders');
-        $metrics['items']          = Piwik::translate('General_PurchasedProducts');
-
-        return $metrics;
-    }
-
     protected function init()
     {
         parent::init();
@@ -41,5 +31,15 @@ class GetEcommerceOrder extends Base
         );
 
         $this->parameters = array('idGoal' => Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER);
+    }
+
+    public function getMetrics()
+    {
+        $metrics = parent::getMetrics();
+
+        $metrics['nb_conversions'] = Piwik::translate('General_EcommerceOrders');
+        $metrics['items']          = Piwik::translate('General_PurchasedProducts');
+
+        return $metrics;
     }
 }

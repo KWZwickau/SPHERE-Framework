@@ -12,9 +12,9 @@ use Exception;
 use Piwik\DataTable;
 use Piwik\FrontController;
 use Piwik\Piwik;
-use Piwik\Plugins\Goals\TranslationHelper;
 use Piwik\Translation\Translator;
 use Piwik\View;
+use Piwik\Plugins\Goals\TranslationHelper;
 
 class Controller extends \Piwik\Plugins\Goals\Controller
 {
@@ -28,6 +28,19 @@ class Controller extends \Piwik\Plugins\Goals\Controller
         $this->translator = $translator;
 
         parent::__construct($translator, $translationHelper);
+    }
+
+    public function ecommerceReport()
+    {
+        if (!\Piwik\Plugin\Manager::getInstance()->isPluginActivated('CustomVariables')) {
+            throw new Exception("Ecommerce Tracking requires that the plugin Custom Variables is enabled. Please enable the plugin CustomVariables (or ask your admin).");
+        }
+
+        $view = $this->getGoalReportView($idGoal = Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER);
+        $view->displayFullReport = false;
+        $view->headline = $this->translator->translate('General_EvolutionOverPeriod');
+
+        return $view->render();
     }
 
     public function ecommerceLogReport($fetch = false)
@@ -54,19 +67,6 @@ class Controller extends \Piwik\Plugins\Goals\Controller
     public function index()
     {
         return $this->ecommerceReport();
-    }
-
-    public function ecommerceReport()
-    {
-        if (!\Piwik\Plugin\Manager::getInstance()->isPluginActivated('CustomVariables')) {
-            throw new Exception("Ecommerce Tracking requires that the plugin Custom Variables is enabled. Please enable the plugin CustomVariables (or ask your admin).");
-        }
-
-        $view = $this->getGoalReportView($idGoal = Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER);
-        $view->displayFullReport = false;
-        $view->headline = $this->translator->translate('General_EvolutionOverPeriod');
-
-        return $view->render();
     }
 
     public function products()

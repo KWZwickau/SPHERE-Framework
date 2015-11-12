@@ -3,11 +3,9 @@
     display: block;
     font-family: "Courier New", Courier, monospace;
 }
-
 #javascript-output-section textarea {
     height: 312px;
 }
-
 #image-link-output-section textarea {
     height: 92px;
 }

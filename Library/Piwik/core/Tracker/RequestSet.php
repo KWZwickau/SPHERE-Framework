@@ -31,6 +31,28 @@ class RequestSet
 
     private $env = array();
 
+    public function setRequests($requests)
+    {
+        $this->requests = array();
+
+        foreach ($requests as $request) {
+            if (empty($request) && !is_array($request)) {
+                continue;
+            }
+
+            if (!$request instanceof Request) {
+                $request = new Request($request, $this->getTokenAuth());
+            }
+
+            $this->requests[] = $request;
+        }
+    }
+
+    public function setTokenAuth($tokenAuth)
+    {
+        $this->tokenAuth = $tokenAuth;
+    }
+
     public function getNumberOfRequests()
     {
         if (is_array($this->requests)) {
@@ -38,6 +60,29 @@ class RequestSet
         }
 
         return 0;
+    }
+
+    public function getRequests()
+    {
+        if (!$this->areRequestsInitialized()) {
+            return array();
+        }
+
+        return $this->requests;
+    }
+
+    public function getTokenAuth()
+    {
+        if (!is_null($this->tokenAuth)) {
+            return $this->tokenAuth;
+        }
+
+        return Common::getRequestVar('token_auth', false);
+    }
+
+    private function areRequestsInitialized()
+    {
+        return !is_null($this->requests);
     }
 
     public function initRequestsAndTokenAuth()
@@ -69,11 +114,38 @@ class RequestSet
         }
     }
 
-    private function areRequestsInitialized()
+    public function hasRequests()
     {
-        return !is_null($this->requests);
+        return !empty($this->requests);
     }
 
+    protected function getRedirectUrl()
+    {
+        return Common::getRequestVar('redirecturl', false, 'string');
+    }
+
+    protected function hasRedirectUrl()
+    {
+        $redirectUrl = $this->getRedirectUrl();
+
+        return !empty($redirectUrl);
+    }
+
+    protected function getAllSiteIdsWithinRequest()
+    {
+        if (empty($this->requests)) {
+            return array();
+        }
+
+        $siteIds = array();
+        foreach ($this->requests as $request) {
+            $siteIds[] = (int) $request->getIdSite();
+        }
+
+        return array_values(array_unique($siteIds));
+    }
+
+    // TODO maybe move to reponse? or somewhere else? not sure where!
     public function shouldPerformRedirectToUrl()
     {
         if (!$this->hasRedirectUrl()) {
@@ -108,37 +180,6 @@ class RequestSet
         return false;
     }
 
-    protected function hasRedirectUrl()
-    {
-        $redirectUrl = $this->getRedirectUrl();
-
-        return !empty($redirectUrl);
-    }
-
-    protected function getRedirectUrl()
-    {
-        return Common::getRequestVar('redirecturl', false, 'string');
-    }
-
-    public function hasRequests()
-    {
-        return !empty($this->requests);
-    }
-
-    protected function getAllSiteIdsWithinRequest()
-    {
-        if (empty($this->requests)) {
-            return array();
-        }
-
-        $siteIds = array();
-        foreach ($this->requests as $request) {
-            $siteIds[] = (int) $request->getIdSite();
-        }
-
-        return array_values(array_unique($siteIds));
-    }
-
     public function getState()
     {
         $requests = array(
@@ -153,64 +194,6 @@ class RequestSet
         }
 
         return $requests;
-    }
-
-    protected function getEnvironment()
-    {
-        if (!empty($this->env)) {
-            return $this->env;
-        }
-
-        return $this->getCurrentEnvironment();
-    }
-
-    private function getCurrentEnvironment()
-    {
-        return array(
-            'server' => $_SERVER
-        );
-    }
-
-    // TODO maybe move to reponse? or somewhere else? not sure where!
-
-    public function getTokenAuth()
-    {
-        if (!is_null($this->tokenAuth)) {
-            return $this->tokenAuth;
-        }
-
-        return Common::getRequestVar('token_auth', false);
-    }
-
-    public function setTokenAuth($tokenAuth)
-    {
-        $this->tokenAuth = $tokenAuth;
-    }
-
-    public function getRequests()
-    {
-        if (!$this->areRequestsInitialized()) {
-            return array();
-        }
-
-        return $this->requests;
-    }
-
-    public function setRequests($requests)
-    {
-        $this->requests = array();
-
-        foreach ($requests as $request) {
-            if (empty($request) && !is_array($request)) {
-                continue;
-            }
-
-            if (!$request instanceof Request) {
-                $request = new Request($request, $this->getTokenAuth());
-            }
-
-            $this->requests[] = $request;
-        }
     }
 
     public function restoreState($state)
@@ -230,9 +213,23 @@ class RequestSet
         $this->resetEnvironment($backupEnv);
     }
 
+    public function rememberEnvironment()
+    {
+        $this->setEnvironment($this->getEnvironment());
+    }
+
     public function setEnvironment($env)
     {
         $this->env = $env;
+    }
+
+    protected function getEnvironment()
+    {
+        if (!empty($this->env)) {
+            return $this->env;
+        }
+
+        return $this->getCurrentEnvironment();
     }
 
     public function restoreEnvironment()
@@ -249,8 +246,10 @@ class RequestSet
         $_SERVER = $env['server'];
     }
 
-    public function rememberEnvironment()
+    private function getCurrentEnvironment()
     {
-        $this->setEnvironment($this->getEnvironment());
+        return array(
+            'server' => $_SERVER
+        );
     }
 }

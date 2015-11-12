@@ -60,17 +60,6 @@ class API extends \Piwik\Plugin\API
         $this->sendMail($subject, $body);
     }
 
-    private function getEnglishTranslationForFeatureName($featureName)
-    {
-        if (Translate::getLanguageLoaded() == 'en') {
-            return $featureName;
-        }
-
-        $translationKeyForFeature = Translate::findTranslationKeyForTranslation($featureName);
-
-        return Piwik::translate($translationKeyForFeature, array(), 'en');
-    }
-
     private function sendMail($subject, $body)
     {
         $feedbackEmailAddress = Config::getInstance()->General['feedback_email_address'];
@@ -87,5 +76,16 @@ class API extends \Piwik\Plugin\API
         $mail->setSubject($subject);
         $mail->setBodyText($body);
         @$mail->send();
+    }
+
+    private function getEnglishTranslationForFeatureName($featureName)
+    {
+        if (Translate::getLanguageLoaded() == 'en') {
+            return $featureName;
+        }
+
+        $translationKeyForFeature = Translate::findTranslationKeyForTranslation($featureName);
+
+        return Piwik::translate($translationKeyForFeature, array(), 'en');
     }
 }

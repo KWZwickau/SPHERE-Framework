@@ -25,6 +25,16 @@ require_once PIWIK_INCLUDE_PATH . '/plugins/UserLanguage/functions.php';
  */
 class API extends \Piwik\Plugin\API
 {
+    protected function getDataTable($name, $idSite, $period, $date, $segment)
+    {
+        Piwik::checkUserHasViewAccess($idSite);
+        $archive = Archive::build($idSite, $period, $date, $segment);
+        $dataTable = $archive->getDataTable($name);
+        $dataTable->queueFilter('ReplaceColumnNames');
+        $dataTable->queueFilter('ReplaceSummaryRowLabel');
+        return $dataTable;
+    }
+
     public function getLanguage($idSite, $period, $date, $segment = false)
     {
         $dataTable = $this->getDataTable(Archiver::LANGUAGE_RECORD_NAME, $idSite, $period, $date, $segment);
@@ -37,16 +47,6 @@ class API extends \Piwik\Plugin\API
         }));
         $dataTable->filter('ColumnCallbackReplace', array('label', __NAMESPACE__ . '\languageTranslate'));
 
-        return $dataTable;
-    }
-
-    protected function getDataTable($name, $idSite, $period, $date, $segment)
-    {
-        Piwik::checkUserHasViewAccess($idSite);
-        $archive = Archive::build($idSite, $period, $date, $segment);
-        $dataTable = $archive->getDataTable($name);
-        $dataTable->queueFilter('ReplaceColumnNames');
-        $dataTable->queueFilter('ReplaceSummaryRowLabel');
         return $dataTable;
     }
 

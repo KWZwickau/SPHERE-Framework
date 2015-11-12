@@ -114,19 +114,6 @@ abstract class HTML_QuickForm2_Rule
     }
 
    /**
-    * Sets the element that will be validated by this rule
-    *
-    * @param    HTML_QuickForm2_Node    Element to validate
-    */
-    public function setOwner(HTML_QuickForm2_Node $owner)
-    {
-        if (null !== $this->owner) {
-            $this->owner->removeRule($this);
-        }
-        $this->owner = $owner;
-    }
-
-   /**
     * Merges local configuration with that provided for registerRule()
     *
     * Default behaviour is for global config to override local one, different
@@ -142,16 +129,6 @@ abstract class HTML_QuickForm2_Rule
     }
 
    /**
-    * Returns the rule's configuration data
-    *
-    * @return   mixed   Configuration data (specific for a Rule)
-    */
-    public function getConfig()
-    {
-        return $this->config;
-    }
-
-   /**
     * Sets configuration data for the rule
     *
     * @param    mixed   Rule configuration data (specific for a Rule)
@@ -163,6 +140,51 @@ abstract class HTML_QuickForm2_Rule
     {
         $this->config = $config;
         return $this;
+    }
+
+   /**
+    * Returns the rule's configuration data
+    *
+    * @return   mixed   Configuration data (specific for a Rule)
+    */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+   /**
+    * Sets the error message output by the rule
+    *
+    * @param    string                  Error message to display if validation fails
+    * @return   HTML_QuickForm2_Rule
+    */
+    public function setMessage($message)
+    {
+        $this->message = (string)$message;
+        return $this;
+    }
+
+   /**
+    * Returns the error message output by the rule
+    *
+    * @return   string  Error message
+    */
+    public function getMessage()
+    {
+        return $this->message;
+    }
+
+   /**
+    * Sets the element that will be validated by this rule
+    *
+    * @param    HTML_QuickForm2_Node    Element to validate
+    */
+    public function setOwner(HTML_QuickForm2_Node $owner)
+    {
+        if (null !== $this->owner) {
+            $this->owner->removeRule($this);
+        }
+        $this->owner = $owner;
     }
 
    /**
@@ -256,25 +278,19 @@ abstract class HTML_QuickForm2_Rule
     }
 
    /**
-    * Returns the error message output by the rule
+    * Returns the client-side validation callback
     *
-    * @return   string  Error message
-    */
-    public function getMessage()
-    {
-        return $this->message;
-    }
-
-   /**
-    * Sets the error message output by the rule
+    * This essentially builds a Javascript version of validateOwner() method,
+    * with element ID and Rule configuration hardcoded.
     *
-    * @param    string                  Error message to display if validation fails
-    * @return   HTML_QuickForm2_Rule
+    * @return   string    Javascript function to validate the element's value
+    * @throws   HTML_QuickForm2_Exception   if Rule can only be run server-side
     */
-    public function setMessage($message)
+    protected function getJavascriptCallback()
     {
-        $this->message = (string)$message;
-        return $this;
+        throw new HTML_QuickForm2_Exception(
+            get_class($this) . ' does not implement javascript validation'
+        );
     }
 
    /**
@@ -312,22 +328,6 @@ abstract class HTML_QuickForm2_Rule
         }
         $js .= implode(",\n", $chained) . "]\n}";
         return $js;
-    }
-
-   /**
-    * Returns the client-side validation callback
-    *
-    * This essentially builds a Javascript version of validateOwner() method,
-    * with element ID and Rule configuration hardcoded.
-    *
-    * @return   string    Javascript function to validate the element's value
-    * @throws   HTML_QuickForm2_Exception   if Rule can only be run server-side
-    */
-    protected function getJavascriptCallback()
-    {
-        throw new HTML_QuickForm2_Exception(
-            get_class($this) . ' does not implement javascript validation'
-        );
     }
 }
 ?>

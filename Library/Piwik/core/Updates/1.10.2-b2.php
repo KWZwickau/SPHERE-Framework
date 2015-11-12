@@ -17,11 +17,6 @@ use Piwik\Updates;
  */
 class Updates_1_10_2_b2 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -29,5 +24,10 @@ class Updates_1_10_2_b2 extends Updates
             'ALTER TABLE ' . Common::prefixTable('site')
             . " ADD COLUMN `keep_url_fragment` TINYINT NOT NULL DEFAULT 0 AFTER `group`" => 1060,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

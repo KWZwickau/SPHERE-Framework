@@ -19,21 +19,9 @@ class Model
 {
     private static $rawPrefix = 'segment';
 
-    public static function install()
+    protected function getTable()
     {
-        $segmentTable = "`idsegment` INT(11) NOT NULL AUTO_INCREMENT,
-					     `name` VARCHAR(255) NOT NULL,
-					     `definition` TEXT NOT NULL,
-					     `login` VARCHAR(100) NOT NULL,
-					     `enable_all_users` tinyint(4) NOT NULL default 0,
-					     `enable_only_idsite` INTEGER(11) NULL,
-					     `auto_archive` tinyint(4) NOT NULL default 0,
-					     `ts_created` TIMESTAMP NULL,
-					     `ts_last_edit` TIMESTAMP NULL,
-					     `deleted` tinyint(4) NOT NULL default 0,
-					     PRIMARY KEY (`idsegment`)";
-
-        DbHelper::createTable(self::$rawPrefix, $segmentTable);
+        return Common::prefixTable(self::$rawPrefix);
     }
 
     /**
@@ -49,16 +37,6 @@ class Model
         $segments = $this->getDb()->fetchAll($sql);
 
         return $segments;
-    }
-
-    protected function getTable()
-    {
-        return Common::prefixTable(self::$rawPrefix);
-    }
-
-    private function getDb()
-    {
-        return Db::get();
     }
 
     /**
@@ -84,11 +62,6 @@ class Model
         $segments = $this->getDb()->fetchAll($sql, $bind);
 
         return $segments;
-    }
-
-    private function buildQuerySortedByName($where)
-    {
-        return "SELECT * FROM " . $this->getTable() . " WHERE $where ORDER BY name ASC";
     }
 
     /**
@@ -156,6 +129,33 @@ class Model
         $segment = $db->fetchRow("SELECT * FROM " . $this->getTable() . " WHERE idsegment = ?", $idSegment);
 
         return $segment;
+    }
+
+    private function getDb()
+    {
+        return Db::get();
+    }
+
+    private function buildQuerySortedByName($where)
+    {
+        return "SELECT * FROM " . $this->getTable() . " WHERE $where ORDER BY name ASC";
+    }
+
+    public static function install()
+    {
+        $segmentTable = "`idsegment` INT(11) NOT NULL AUTO_INCREMENT,
+					     `name` VARCHAR(255) NOT NULL,
+					     `definition` TEXT NOT NULL,
+					     `login` VARCHAR(100) NOT NULL,
+					     `enable_all_users` tinyint(4) NOT NULL default 0,
+					     `enable_only_idsite` INTEGER(11) NULL,
+					     `auto_archive` tinyint(4) NOT NULL default 0,
+					     `ts_created` TIMESTAMP NULL,
+					     `ts_last_edit` TIMESTAMP NULL,
+					     `deleted` tinyint(4) NOT NULL default 0,
+					     PRIMARY KEY (`idsegment`)";
+
+        DbHelper::createTable(self::$rawPrefix, $segmentTable);
     }
 
 }

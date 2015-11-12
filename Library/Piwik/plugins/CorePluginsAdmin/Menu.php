@@ -54,6 +54,14 @@ class Menu extends \Piwik\Plugin\Menu
         }
     }
 
+    private function isAllowedToSeeMarketPlace()
+    {
+        $isAnonymous          = Piwik::isUserIsAnonymous();
+        $isMarketplaceEnabled = CorePluginsAdmin::isMarketplaceEnabled();
+
+        return $isMarketplaceEnabled && !$isAnonymous;
+    }
+
     public function configureUserMenu(MenuUser $menu)
     {
         if ($this->isAllowedToSeeMarketPlace()) {
@@ -61,13 +69,5 @@ class Menu extends \Piwik\Plugin\Menu
                                    $this->urlForAction('marketplace', array('activated' => '', 'mode' => 'user')),
                                    $order = 5);
         }
-    }
-
-    private function isAllowedToSeeMarketPlace()
-    {
-        $isAnonymous          = Piwik::isUserIsAnonymous();
-        $isMarketplaceEnabled = CorePluginsAdmin::isMarketplaceEnabled();
-
-        return $isMarketplaceEnabled && !$isAnonymous;
     }
 }

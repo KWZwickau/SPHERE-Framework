@@ -17,11 +17,6 @@ use Piwik\Updates;
  */
 class Updates_0_4 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -35,5 +30,10 @@ class Updates_0_4 extends Updates
             'ALTER TABLE `' . Common::prefixTable('logger_api_call') . '`
 				CHANGE `caller_ip` `caller_ip` BIGINT UNSIGNED'                                   => 1146,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

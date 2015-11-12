@@ -16,6 +16,21 @@ namespace Piwik;
 class SettingsServer
 {
     /**
+     * Returns true if the current script execution was triggered by the cron archiving script.
+     *
+     * Helpful for error handling: directly throw error without HTML (eg. when DB is down).
+     *
+     * @return bool
+     * @api
+     */
+    public static function isArchivePhpTriggered()
+    {
+        return !empty($_GET['trigger'])
+                && $_GET['trigger'] == 'archivephp'
+                && Piwik::hasUserSuperUserAccess();
+    }
+
+    /**
      * Returns true if the current request is a Tracker request.
      *
      * @return bool true if the current request is a Tracking API Request (ie. piwik.php)
@@ -147,6 +162,26 @@ class SettingsServer
     }
 
     /**
+     * Set PHP memory limit
+     *
+     * Note: system settings may prevent scripts from overriding the master value
+     *
+     * @param int $minimumMemoryLimit
+     * @return bool  true if set; false otherwise
+     */
+    protected static function setMemoryLimit($minimumMemoryLimit)
+    {
+        // in Megabytes
+        $currentValue = self::getMemoryLimitValue();
+        if ($currentValue === false
+            || ($currentValue < $minimumMemoryLimit && @ini_set('memory_limit', $minimumMemoryLimit . 'M'))
+        ) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Get php memory_limit (in Megabytes)
      *
      * Prior to PHP 5.2.1, or on Windows, --enable-memory-limit is not a
@@ -179,21 +214,6 @@ class SettingsServer
     }
 
     /**
-     * Returns true if the current script execution was triggered by the cron archiving script.
-     *
-     * Helpful for error handling: directly throw error without HTML (eg. when DB is down).
-     *
-     * @return bool
-     * @api
-     */
-    public static function isArchivePhpTriggered()
-    {
-        return !empty($_GET['trigger'])
-                && $_GET['trigger'] == 'archivephp'
-                && Piwik::hasUserSuperUserAccess();
-    }
-
-    /**
      * Set maximum script execution time.
      *
      * @param int $executionTime max execution time in seconds (0 = no limit)
@@ -203,25 +223,5 @@ class SettingsServer
         // in the event one or the other is disabled...
         @ini_set('max_execution_time', $executionTime);
         @set_time_limit($executionTime);
-    }
-
-    /**
-     * Set PHP memory limit
-     *
-     * Note: system settings may prevent scripts from overriding the master value
-     *
-     * @param int $minimumMemoryLimit
-     * @return bool  true if set; false otherwise
-     */
-    protected static function setMemoryLimit($minimumMemoryLimit)
-    {
-        // in Megabytes
-        $currentValue = self::getMemoryLimitValue();
-        if ($currentValue === false
-            || ($currentValue < $minimumMemoryLimit && @ini_set('memory_limit', $minimumMemoryLimit . 'M'))
-        ) {
-            return true;
-        }
-        return false;
     }
 }

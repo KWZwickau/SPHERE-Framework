@@ -11,10 +11,10 @@ namespace Piwik\Plugins\Diagnostics\Commands;
 use Piwik\Container\StaticContainer;
 use Piwik\Piwik;
 use Piwik\Plugin\ConsoleCommand;
-use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Helper\Table;
 
 /**
  * Diagnostic command that analyzes a single archive table. Displays information like # of segment archives,

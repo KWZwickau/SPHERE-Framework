@@ -73,20 +73,6 @@ class Event
     }
 
     /**
-     * Returns the EventDispatcher that dispatches this Event.
-     *
-     * @return EventDispatcherInterface
-     *
-     * @deprecated Deprecated in 2.4, to be removed in 3.0. The event dispatcher is passed to the listener call.
-     *
-     * @api
-     */
-    public function getDispatcher()
-    {
-        return $this->dispatcher;
-    }
-
-    /**
      * Stores the EventDispatcher that dispatches this Event.
      *
      * @param EventDispatcherInterface $dispatcher
@@ -98,6 +84,20 @@ class Event
     public function setDispatcher(EventDispatcherInterface $dispatcher)
     {
         $this->dispatcher = $dispatcher;
+    }
+
+    /**
+     * Returns the EventDispatcher that dispatches this Event.
+     *
+     * @return EventDispatcherInterface
+     *
+     * @deprecated Deprecated in 2.4, to be removed in 3.0. The event dispatcher is passed to the listener call.
+     *
+     * @api
+     */
+    public function getDispatcher()
+    {
+        return $this->dispatcher;
     }
 
     /**

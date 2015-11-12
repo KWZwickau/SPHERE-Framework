@@ -7,10 +7,10 @@
  */
 namespace DeviceDetector\Parser;
 
-use DeviceDetector\Cache\Cache;
 use DeviceDetector\Cache\StaticCache;
 use DeviceDetector\DeviceDetector;
-use Spyc;
+use DeviceDetector\Cache\Cache;
+use \Spyc;
 
 /**
  * Class ParserAbstract
@@ -19,37 +19,6 @@ use Spyc;
  */
 abstract class ParserAbstract
 {
-    /**
-     * Versioning constant used to set max versioning to major version only
-     * Version examples are: 3, 5, 6, 200, 123, ...
-     */
-
-    const VERSION_TRUNCATION_MAJOR = 0;
-    /**
-     * Versioning constant used to set max versioning to minor version
-     * Version examples are: 3.4, 5.6, 6.234, 0.200, 1.23, ...
-     */
-    const VERSION_TRUNCATION_MINOR = 1;
-    /**
-     * Versioning constant used to set max versioning to path level
-     * Version examples are: 3.4.0, 5.6.344, 6.234.2, 0.200.3, 1.2.3, ...
-     */
-    const VERSION_TRUNCATION_PATCH = 2;
-    /**
-     * Versioning constant used to set versioning to build number
-     * Version examples are: 3.4.0.12, 5.6.334.0, 6.234.2.3, 0.200.3.1, 1.2.3.0, ...
-     */
-    const VERSION_TRUNCATION_BUILD = 3;
-    /**
-     * Versioning constant used to set versioning to unlimited (no truncation)
-     */
-    const VERSION_TRUNCATION_NONE  = null;
-    /**
-     * Indicates how deep versioning will be detected
-     * if $maxMinorParts is 0 only the major version will be returned
-     * @var int
-     */
-    protected static $maxMinorParts = 1;
     /**
      * Holds the path to the yml file containing regexes
      * @var string
@@ -61,39 +30,72 @@ abstract class ParserAbstract
      * @var string
      */
     protected $parserName;
+
     /**
      * Holds the user agent the should be parsed
      * @var string
      */
     protected $userAgent;
+
     /**
      * Holds an array with method that should be available global
      * @var array
      */
     protected $globalMethods;
+
     /**
      * Holds an array with regexes to parse, if already loaded
      * @var array
      */
     protected $regexList;
+
+    /**
+     * Indicates how deep versioning will be detected
+     * if $maxMinorParts is 0 only the major version will be returned
+     * @var int
+     */
+    protected static $maxMinorParts = 1;
+
+    /**
+     * Versioning constant used to set max versioning to major version only
+     * Version examples are: 3, 5, 6, 200, 123, ...
+     */
+
+    const VERSION_TRUNCATION_MAJOR = 0;
+
+    /**
+     * Versioning constant used to set max versioning to minor version
+     * Version examples are: 3.4, 5.6, 6.234, 0.200, 1.23, ...
+     */
+    const VERSION_TRUNCATION_MINOR = 1;
+
+    /**
+     * Versioning constant used to set max versioning to path level
+     * Version examples are: 3.4.0, 5.6.344, 6.234.2, 0.200.3, 1.2.3, ...
+     */
+    const VERSION_TRUNCATION_PATCH = 2;
+
+    /**
+     * Versioning constant used to set versioning to build number
+     * Version examples are: 3.4.0.12, 5.6.334.0, 6.234.2.3, 0.200.3.1, 1.2.3.0, ...
+     */
+    const VERSION_TRUNCATION_BUILD = 3;
+
+    /**
+     * Versioning constant used to set versioning to unlimited (no truncation)
+     */
+    const VERSION_TRUNCATION_NONE  = null;
+
     /**
      * @var Cache|\Doctrine\Common\Cache\Cache
      */
     protected $cache;
 
+    abstract public function parse();
+
     public function __construct($ua='')
     {
         $this->setUserAgent($ua);
-    }
-
-    /**
-     * Sets the user agent to parse
-     *
-     * @param string $ua  user agent
-     */
-    public function setUserAgent($ua)
-    {
-        $this->userAgent = $ua;
     }
 
     /**
@@ -111,7 +113,80 @@ abstract class ParserAbstract
         }
     }
 
-    abstract public function parse();
+    /**
+     * Sets the user agent to parse
+     *
+     * @param string $ua  user agent
+     */
+    public function setUserAgent($ua)
+    {
+        $this->userAgent = $ua;
+    }
+
+    /**
+     * Returns the internal name of the parser
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->parserName;
+    }
+
+    /**
+     * Returns the result of the parsed yml file defined in $fixtureFile
+     *
+     * @return array
+     */
+    protected function getRegexes()
+    {
+        if (empty($this->regexList)) {
+            $cacheKey = 'DeviceDetector-'.DeviceDetector::VERSION.'regexes-'.$this->getName();
+            $cacheKey = preg_replace('/([^a-z0-9_-]+)/i', '', $cacheKey);
+            $this->regexList = $this->getCache()->fetch($cacheKey);
+            if (empty($this->regexList)) {
+                $this->regexList = Spyc::YAMLLoad(dirname(__DIR__).DIRECTORY_SEPARATOR.$this->fixtureFile);
+                $this->getCache()->save($cacheKey, $this->regexList);
+            }
+        }
+        return $this->regexList;
+    }
+
+    /**
+     * Matches the useragent against the given regex
+     *
+     * @param $regex
+     * @return array|bool
+     */
+    protected function matchUserAgent($regex)
+    {
+        // only match if useragent begins with given regex or there is no letter before it
+        $regex = '/(?:^|[^A-Z0-9\_\-])(?:' . str_replace('/', '\/', $regex) . ')/i';
+
+        if (preg_match($regex, $this->userAgent, $matches)) {
+            return $matches;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $item
+     * @param array $matches
+     * @return string type
+     */
+    protected function buildByMatch($item, $matches)
+    {
+        for ($nb=1;$nb<=3;$nb++) {
+            if (strpos($item, '$' . $nb) === false) {
+                continue;
+            }
+
+            $replace = isset($matches[$nb]) ? $matches[$nb] : '';
+            $item = trim(str_replace('$' . $nb, $replace, $item));
+        }
+        return $item;
+    }
 
     /**
      * Builds the version with the given $versionString and $matches
@@ -135,24 +210,6 @@ abstract class ParserAbstract
             $versionString = implode('.', $versionParts);
         }
         return trim($versionString, ' .');
-    }
-
-    /**
-     * @param string $item
-     * @param array $matches
-     * @return string type
-     */
-    protected function buildByMatch($item, $matches)
-    {
-        for ($nb=1;$nb<=3;$nb++) {
-            if (strpos($item, '$' . $nb) === false) {
-                continue;
-            }
-
-            $replace = isset($matches[$nb]) ? $matches[$nb] : '';
-            $item = trim(str_replace('$' . $nb, $replace, $item));
-        }
-        return $item;
     }
 
     /**
@@ -194,49 +251,6 @@ abstract class ParserAbstract
     }
 
     /**
-     * Returns the result of the parsed yml file defined in $fixtureFile
-     *
-     * @return array
-     */
-    protected function getRegexes()
-    {
-        if (empty($this->regexList)) {
-            $cacheKey = 'DeviceDetector-'.DeviceDetector::VERSION.'regexes-'.$this->getName();
-            $cacheKey = preg_replace('/([^a-z0-9_-]+)/i', '', $cacheKey);
-            $this->regexList = $this->getCache()->fetch($cacheKey);
-            if (empty($this->regexList)) {
-                $this->regexList = Spyc::YAMLLoad(dirname(__DIR__).DIRECTORY_SEPARATOR.$this->fixtureFile);
-                $this->getCache()->save($cacheKey, $this->regexList);
-            }
-        }
-        return $this->regexList;
-    }
-
-    /**
-     * Returns the internal name of the parser
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->parserName;
-    }
-
-    /**
-     * Returns Cache object
-     *
-     * @return Cache|\Doctrine\Common\Cache\CacheProvider
-     */
-    public function getCache()
-    {
-        if (!empty($this->cache)) {
-            return $this->cache;
-        }
-
-        return new StaticCache();
-    }
-
-    /**
      * Sets the Cache class
      *
      * @param Cache|\Doctrine\Common\Cache\CacheProvider $cache
@@ -254,20 +268,16 @@ abstract class ParserAbstract
     }
 
     /**
-     * Matches the useragent against the given regex
+     * Returns Cache object
      *
-     * @param $regex
-     * @return array|bool
+     * @return Cache|\Doctrine\Common\Cache\CacheProvider
      */
-    protected function matchUserAgent($regex)
+    public function getCache()
     {
-        // only match if useragent begins with given regex or there is no letter before it
-        $regex = '/(?:^|[^A-Z0-9\_\-])(?:' . str_replace('/', '\/', $regex) . ')/i';
-
-        if (preg_match($regex, $this->userAgent, $matches)) {
-            return $matches;
+        if (!empty($this->cache)) {
+            return $this->cache;
         }
 
-        return false;
+        return new StaticCache();
     }
 }

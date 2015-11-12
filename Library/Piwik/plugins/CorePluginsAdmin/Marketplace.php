@@ -9,6 +9,7 @@
 namespace Piwik\Plugins\CorePluginsAdmin;
 
 use Piwik\Date;
+use Piwik\Piwik;
 use Piwik\Plugin\Dependency as PluginDependency;
 
 /**
@@ -36,43 +37,43 @@ class Marketplace
         return $plugin;
     }
 
-    private function enrichPluginInformation($plugin)
+    public function getAvailablePluginNames($themesOnly)
     {
-        $plugin['isInstalled']  = \Piwik\Plugin\Manager::getInstance()->isPluginLoaded($plugin['name']);
-        $plugin['canBeUpdated'] = $plugin['isInstalled'] && $this->hasPluginUpdate($plugin);
-        $plugin['lastUpdated']  = Date::factory($plugin['lastUpdated'])->getLocalized(Date::DATE_FORMAT_SHORT);
-
-        if ($plugin['canBeUpdated']) {
-            $pluginUpdate = $this->getPluginUpdateInformation($plugin);
-            $plugin['repositoryChangelogUrl'] = $pluginUpdate['repositoryChangelogUrl'];
-            $plugin['currentVersion']         = $pluginUpdate['currentVersion'];
-        }
-
-        if (!empty($plugin['activity']['lastCommitDate'])
-            && false === strpos($plugin['activity']['lastCommitDate'], '0000')) {
-
-            $plugin['activity']['lastCommitDate'] = Date::factory($plugin['activity']['lastCommitDate'])->getLocalized(Date::DATE_FORMAT_LONG);
+        if ($themesOnly) {
+            $plugins = $this->client->searchForThemes('', '', '');
         } else {
-            $plugin['activity']['lastCommitDate'] = null;
+            $plugins = $this->client->searchForPlugins('', '', '');
         }
 
-        if (!empty($plugin['versions'])) {
-
-            foreach ($plugin['versions'] as $index => $version) {
-                $plugin['versions'][$index]['release'] = Date::factory($version['release'])->getLocalized(Date::DATE_FORMAT_LONG);
-            }
+        $names = array();
+        foreach ($plugins as $plugin) {
+            $names[] = $plugin['name'];
         }
 
-        $plugin = $this->addMissingRequirements($plugin);
-
-        return $plugin;
+        return $names;
     }
 
-    private function hasPluginUpdate($plugin)
+    public function getAllAvailablePluginNames()
     {
-        $update = $this->getPluginUpdateInformation($plugin);
+        return array_merge(
+            $this->getAvailablePluginNames(true),
+            $this->getAvailablePluginNames(false)
+        );
+    }
 
-        return !empty($update);
+    public function searchPlugins($query, $sort, $themesOnly)
+    {
+        if ($themesOnly) {
+            $plugins = $this->client->searchForThemes('', $query, $sort);
+        } else {
+            $plugins = $this->client->searchForPlugins('', $query, $sort);
+        }
+
+        foreach ($plugins as $key => $plugin) {
+            $plugins[$key] = $this->enrichPluginInformation($plugin);
+        }
+
+        return $plugins;
     }
 
     private function getPluginUpdateInformation($plugin)
@@ -88,6 +89,13 @@ class Marketplace
                 return $pluginHavingUpdate;
             }
         }
+    }
+
+    private function hasPluginUpdate($plugin)
+    {
+        $update = $this->getPluginUpdateInformation($plugin);
+
+        return !empty($update);
     }
 
     /**
@@ -131,6 +139,38 @@ class Marketplace
         return $pluginsHavingUpdate;
     }
 
+    private function enrichPluginInformation($plugin)
+    {
+        $plugin['isInstalled']  = \Piwik\Plugin\Manager::getInstance()->isPluginLoaded($plugin['name']);
+        $plugin['canBeUpdated'] = $plugin['isInstalled'] && $this->hasPluginUpdate($plugin);
+        $plugin['lastUpdated']  = Date::factory($plugin['lastUpdated'])->getLocalized(Date::DATE_FORMAT_SHORT);
+
+        if ($plugin['canBeUpdated']) {
+            $pluginUpdate = $this->getPluginUpdateInformation($plugin);
+            $plugin['repositoryChangelogUrl'] = $pluginUpdate['repositoryChangelogUrl'];
+            $plugin['currentVersion']         = $pluginUpdate['currentVersion'];
+        }
+
+        if (!empty($plugin['activity']['lastCommitDate'])
+            && false === strpos($plugin['activity']['lastCommitDate'], '0000')) {
+
+            $plugin['activity']['lastCommitDate'] = Date::factory($plugin['activity']['lastCommitDate'])->getLocalized(Date::DATE_FORMAT_LONG);
+        } else {
+            $plugin['activity']['lastCommitDate'] = null;
+        }
+
+        if (!empty($plugin['versions'])) {
+
+            foreach ($plugin['versions'] as $index => $version) {
+                $plugin['versions'][$index]['release'] = Date::factory($version['release'])->getLocalized(Date::DATE_FORMAT_LONG);
+            }
+        }
+
+        $plugin = $this->addMissingRequirements($plugin);
+
+        return $plugin;
+    }
+
     /**
      * @param $plugin
      */
@@ -154,44 +194,5 @@ class Marketplace
         $plugin['missingRequirements'] = $dependency->getMissingDependencies($requires);
 
         return $plugin;
-    }
-
-    public function getAllAvailablePluginNames()
-    {
-        return array_merge(
-            $this->getAvailablePluginNames(true),
-            $this->getAvailablePluginNames(false)
-        );
-    }
-
-    public function getAvailablePluginNames($themesOnly)
-    {
-        if ($themesOnly) {
-            $plugins = $this->client->searchForThemes('', '', '');
-        } else {
-            $plugins = $this->client->searchForPlugins('', '', '');
-        }
-
-        $names = array();
-        foreach ($plugins as $plugin) {
-            $names[] = $plugin['name'];
-        }
-
-        return $names;
-    }
-
-    public function searchPlugins($query, $sort, $themesOnly)
-    {
-        if ($themesOnly) {
-            $plugins = $this->client->searchForThemes('', $query, $sort);
-        } else {
-            $plugins = $this->client->searchForPlugins('', $query, $sort);
-        }
-
-        foreach ($plugins as $key => $plugin) {
-            $plugins[$key] = $this->enrichPluginInformation($plugin);
-        }
-
-        return $plugins;
     }
 }

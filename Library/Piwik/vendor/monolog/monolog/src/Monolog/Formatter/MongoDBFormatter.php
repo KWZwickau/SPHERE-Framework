@@ -34,6 +34,14 @@ class MongoDBFormatter implements FormatterInterface
     /**
      * {@inheritDoc}
      */
+    public function format(array $record)
+    {
+        return $this->formatArray($record);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function formatBatch(array $records)
     {
         foreach ($records as $key => $record) {
@@ -41,14 +49,6 @@ class MongoDBFormatter implements FormatterInterface
         }
 
         return $records;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function format(array $record)
-    {
-        return $this->formatArray($record);
     }
 
     protected function formatArray(array $record, $nestingLevel = 0)
@@ -72,9 +72,12 @@ class MongoDBFormatter implements FormatterInterface
         return $record;
     }
 
-    protected function formatDate(\DateTime $value, $nestingLevel)
+    protected function formatObject($value, $nestingLevel)
     {
-        return new \MongoDate($value->getTimestamp());
+        $objectVars = get_object_vars($value);
+        $objectVars['class'] = get_class($value);
+
+        return $this->formatArray($objectVars, $nestingLevel);
     }
 
     protected function formatException(\Exception $exception, $nestingLevel)
@@ -95,11 +98,8 @@ class MongoDBFormatter implements FormatterInterface
         return $this->formatArray($formattedException, $nestingLevel);
     }
 
-    protected function formatObject($value, $nestingLevel)
+    protected function formatDate(\DateTime $value, $nestingLevel)
     {
-        $objectVars = get_object_vars($value);
-        $objectVars['class'] = get_class($value);
-
-        return $this->formatArray($objectVars, $nestingLevel);
+        return new \MongoDate($value->getTimestamp());
     }
 }

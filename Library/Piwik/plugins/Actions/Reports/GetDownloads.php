@@ -14,24 +14,6 @@ use Piwik\Plugins\Actions\Columns\DownloadUrl;
 
 class GetDownloads extends Base
 {
-    public function getMetrics()
-    {
-        return array(
-            'nb_visits' => Piwik::translate('Actions_ColumnUniqueDownloads'),
-            'nb_hits'   => Piwik::translate('General_Downloads')
-        );
-    }
-
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->addTranslations(array('label' => $this->dimension->getName()));
-
-        $view->config->columns_to_display = array('label', 'nb_visits', 'nb_hits');
-        $view->config->show_exclude_low_population = false;
-
-        $this->addBaseDisplayProperties($view);
-    }
-
     protected function init()
     {
         parent::init();
@@ -48,11 +30,29 @@ class GetDownloads extends Base
         $this->widgetTitle  = 'General_Downloads';
     }
 
+    public function getMetrics()
+    {
+        return array(
+            'nb_visits' => Piwik::translate('Actions_ColumnUniqueDownloads'),
+            'nb_hits'   => Piwik::translate('General_Downloads')
+        );
+    }
+
     protected function getMetricsDocumentation()
     {
         return array(
             'nb_visits' => Piwik::translate('Actions_ColumnUniqueClicksDocumentation'),
             'nb_hits'   => Piwik::translate('Actions_ColumnClicksDocumentation')
         );
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->addTranslations(array('label' => $this->dimension->getName()));
+
+        $view->config->columns_to_display = array('label', 'nb_visits', 'nb_hits');
+        $view->config->show_exclude_low_population = false;
+
+        $this->addBaseDisplayProperties($view);
     }
 }

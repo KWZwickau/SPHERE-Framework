@@ -58,6 +58,23 @@ class Controller extends ControllerAdmin
         return $view->render();
     }
 
+    /**
+     * Mobile Messaging Settings tab :
+     *  - set delegated management
+     *  - provide & validate SMS API credential
+     *  - add & activate phone numbers
+     *  - check remaining credits
+     */
+    public function userSettings()
+    {
+        Piwik::checkUserIsNotAnonymous();
+
+        $view = new View('@MobileMessaging/userSettings');
+        $this->setManageVariables($view);
+
+        return $view->render();
+    }
+
     private function setManageVariables(View $view)
     {
         $view->isSuperUser = Piwik::hasUserSuperUserAccess();
@@ -100,22 +117,5 @@ class Controller extends ControllerAdmin
         $view->phoneNumbers = $mobileMessagingAPI->getPhoneNumbers();
 
         $this->setBasicVariablesView($view);
-    }
-
-    /**
-     * Mobile Messaging Settings tab :
-     *  - set delegated management
-     *  - provide & validate SMS API credential
-     *  - add & activate phone numbers
-     *  - check remaining credits
-     */
-    public function userSettings()
-    {
-        Piwik::checkUserIsNotAnonymous();
-
-        $view = new View('@MobileMessaging/userSettings');
-        $this->setManageVariables($view);
-
-        return $view->render();
     }
 }

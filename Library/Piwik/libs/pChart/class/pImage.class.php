@@ -34,19 +34,19 @@
  class pImage extends pDraw
   {
    /* Image settings, size, quality, .. */
-   var $XSize		= null;				// Width of the picture
-   var $YSize		= null;				// Height of the picture
-   var $Picture		= null;				// GD picture object
-   var $Antialias	= true;				// Turn antialias on or off
+   var $XSize		= NULL;				// Width of the picture
+   var $YSize		= NULL;				// Height of the picture
+   var $Picture		= NULL;				// GD picture object
+   var $Antialias	= TRUE;				// Turn antialias on or off
    var $AntialiasQuality  = 0;				// Quality of the antialiasing implementation (0-1)
    var $Mask		= "";				// Already drawn pixels mask (Filled circle implementation)
-   var $TransparentBackground = false;			// Just to know if we need to flush the alpha channels when rendering
+   var $TransparentBackground = FALSE;			// Just to know if we need to flush the alpha channels when rendering
 
    /* Graph area settings */
-   var $GraphAreaX1	= null;				// Graph area X origin
-   var $GraphAreaY1	= null;				// Graph area Y origin
-   var $GraphAreaX2	= null;				// Graph area bottom right X position
-   var $GraphAreaY2	= null;				// Graph area bottom right Y position
+   var $GraphAreaX1	= NULL;				// Graph area X origin
+   var $GraphAreaY1	= NULL;				// Graph area Y origin
+   var $GraphAreaX2	= NULL;				// Graph area bottom right X position
+   var $GraphAreaY2	= NULL;				// Graph area bottom right Y position
 
    /* Scale settings */
    var $ScaleMinDivHeight = 20;				// Minimum height for scame divs
@@ -54,39 +54,39 @@
    /* Font properties */
    var $FontName	= "fonts/GeosansLight.ttf";	// Default font file
    var $FontSize	= 12;				// Default font size
-   var $FontBox		= null;				// Return the bounding box of the last written string
+   var $FontBox		= NULL;				// Return the bounding box of the last written string
    var $FontColorR	= 0;				// Default color settings
    var $FontColorG	= 0;				// Default color settings
    var $FontColorB	= 0;				// Default color settings
    var $FontColorA	= 100;				// Default transparency
 
    /* Shadow properties */
-   var $Shadow		= false;			// Turn shadows on or off
-   var $ShadowX		= null;				// X Offset of the shadow
-   var $ShadowY		= null;				// Y Offset of the shadow
-   var $ShadowR		= null;				// R component of the shadow
-   var $ShadowG		= null;				// G component of the shadow
-   var $ShadowB		= null;				// B component of the shadow
-   var $Shadowa		= null;				// Alpha level of the shadow
+   var $Shadow		= FALSE;			// Turn shadows on or off
+   var $ShadowX		= NULL;				// X Offset of the shadow
+   var $ShadowY		= NULL;				// Y Offset of the shadow
+   var $ShadowR		= NULL;				// R component of the shadow
+   var $ShadowG		= NULL;				// G component of the shadow
+   var $ShadowB		= NULL;				// B component of the shadow
+   var $Shadowa		= NULL;				// Alpha level of the shadow
 
    /* Image map */
-   var $ImageMap	= null;				// Aray containing the image map
+   var $ImageMap	= NULL;				// Aray containing the image map
    var $ImageMapIndex	= "pChart";			// Name of the session array
-   var $ImageMapStorageMode = null;			// Save the current imagemap storage mode
-   var $ImageMapAutoDelete  = true;			// Automatic deletion of the image map temp files
+   var $ImageMapStorageMode = NULL;			// Save the current imagemap storage mode
+   var $ImageMapAutoDelete  = TRUE;			// Automatic deletion of the image map temp files
 
    /* Data Set */
-   var $DataSet		= null;				// Attached dataset
+   var $DataSet		= NULL;				// Attached dataset
 
    /* Last generated chart info */
    var $LastChartLayout	= CHART_LAST_LAYOUT_REGULAR;	// Last layout : regular or stacked
 
    /* Class constructor */
-   function pImage($XSize,$YSize,$DataSet=null,$TransparentBackground=false)
+   function pImage($XSize,$YSize,$DataSet=NULL,$TransparentBackground=FALSE)
     {
      $this->TransparentBackground = $TransparentBackground;
 
-     if ( $DataSet != null ) { $this->DataSet = $DataSet; }
+     if ( $DataSet != NULL ) { $this->DataSet = $DataSet; }
 
      $this->XSize   = $XSize;
      $this->YSize   = $YSize;
@@ -94,10 +94,10 @@
 
      if ( $this->TransparentBackground )
       {
-       imagealphablending($this->Picture,false);
+       imagealphablending($this->Picture,FALSE);
        imagefilledrectangle($this->Picture, 0,0,$XSize, $YSize, imagecolorallocatealpha($this->Picture, 255, 255, 255, 127));
-       imagealphablending($this->Picture,true);
-       imagesavealpha($this->Picture,true);
+       imagealphablending($this->Picture,TRUE);
+       imagesavealpha($this->Picture,true); 
       }
      else
       {
@@ -107,7 +107,7 @@
     }
 
    /* Enable / Disable and set shadow properties */
-   function setShadow($Enabled=true,$Format="")
+   function setShadow($Enabled=TRUE,$Format="")
     {
      $X	    = isset($Format["X"]) ? $Format["X"] : 2;
      $Y	    = isset($Format["Y"]) ? $Format["Y"] : 2;
@@ -145,26 +145,14 @@
     { return($this->YSize); }
 
    /* Render the picture to a file */
-
-   function autoOutput($FileName="output.png")
-    {
-     if (php_sapi_name() == "cli")
-      {$this->Render($FileName);}
-     else
-      {$this->Stroke();}
-    }
-
-   /* Render the picture to a web browser stream */
-
    function render($FileName)
     {
      if ( $this->TransparentBackground ) { imagealphablending($this->Picture,false); imagesavealpha($this->Picture,true); }
      imagepng($this->Picture,$FileName);
     }
 
-   /* Automatic output method based on the calling interface */
-
-   function stroke($BrowserExpire=false)
+   /* Render the picture to a web browser stream */
+   function stroke($BrowserExpire=FALSE)
     {
      if ( $this->TransparentBackground ) { imagealphablending($this->Picture,false); imagesavealpha($this->Picture,true); }
 
@@ -179,16 +167,27 @@
      imagepng($this->Picture);
     }
 
-   /* Return the length between two points */
+   /* Automatic output method based on the calling interface */
+   function autoOutput($FileName="output.png")
+    {
+     if (php_sapi_name() == "cli")
+      $this->Render($FileName);
+     else
+      $this->Stroke();
+    }
 
+   /* Return the length between two points */
+   function getLength($X1,$Y1,$X2,$Y2)
+    { return(sqrt(pow(max($X1,$X2)-min($X1,$X2),2)+pow(max($Y1,$Y2)-min($Y1,$Y2),2))); }
+
+   /* Return the orientation of a line */
    function getAngle($X1,$Y1,$X2,$Y2)
     {
      $Opposite = $Y2 - $Y1; $Adjacent = $X2 - $X1;$Angle = rad2deg(atan2($Opposite,$Adjacent));
      if ($Angle > 0) { return($Angle); } else { return(360-abs($Angle)); }
     }
 
-   /* Return the orientation of a line */
-
+   /* Return the surrounding box of text area */
    function getTextBox_deprecated($X,$Y,$FontName,$FontSize,$Angle,$Text)
     {
      $Size    = imagettfbbox($FontSize,$Angle,$FontName,$this->getEncodedText($Text));
@@ -206,8 +205,6 @@
      return($RealPos);
     }
 
-   /* Return the surrounding box of text area */
-
      function getEncodedText($text)
      {
          $gdinfo = gd_info();
@@ -218,11 +215,7 @@
          return $text;
      }
 
-   function getLength($X1,$Y1,$X2,$Y2)
-    { return(sqrt(pow(max($X1,$X2)-min($X1,$X2),2)+pow(max($Y1,$Y2)-min($Y1,$Y2),2))); }
-
    /* Return the surrounding box of text area */
-
    function getTextBox($X,$Y,$FontName,$FontSize,$Angle,$Text)
     {
      $coords = imagettfbbox($FontSize, 0, $FontName, $this->getEncodedText($Text));
@@ -254,19 +247,19 @@
      $G		= isset($Format["G"]) ? $Format["G"] : -1;
      $B		= isset($Format["B"]) ? $Format["B"] : -1;
      $Alpha	= isset($Format["Alpha"]) ? $Format["Alpha"] : 100;
-     $FontName	= isset($Format["FontName"]) ? $Format["FontName"] : null;
-     $FontSize	= isset($Format["FontSize"]) ? $Format["FontSize"] : null;
+     $FontName	= isset($Format["FontName"]) ? $Format["FontName"] : NULL;
+     $FontSize	= isset($Format["FontSize"]) ? $Format["FontSize"] : NULL;
 
      if ( $R != -1)       {  $this->FontColorR = $R; }
      if ( $G != -1)       {  $this->FontColorG = $G; }
      if ( $B != -1)       {  $this->FontColorB = $B; }
-     if ( $Alpha != null) {  $this->FontColorA = $Alpha; }
+     if ( $Alpha != NULL) {  $this->FontColorA = $Alpha; }
 
-     if ( $FontName != null  )
-      {$this->FontName = $FontName;}
-
-     if ( $FontSize != null  )
-      {$this->FontSize = $FontSize;}
+     if ( $FontName != NULL  )
+      $this->FontName = $FontName;
+ 
+     if ( $FontSize != NULL  )
+      $this->FontSize = $FontSize;
     }
 
    /* Returns the 1st decimal values (used to correct AA bugs) */
@@ -285,10 +278,29 @@
     { print_r($this->DataSet); }
 
    /* Initialise the image map methods */
-
-   function addToImageMap($Type,$Plots,$Color=null,$Title=null,$Message=null,$HTMLEncode=false)
+   function initialiseImageMap($Name="pChart",$StorageMode=IMAGE_MAP_STORAGE_SESSION,$UniqueID="imageMap",$StorageFolder="tmp")
     {
-     if ( $this->ImageMapStorageMode == null ) { $this->initialiseImageMap(); }
+     $this->ImageMapIndex 		= $Name;
+     $this->ImageMapStorageMode		= $StorageMode;
+
+     if ($StorageMode == IMAGE_MAP_STORAGE_SESSION)
+      {
+       if(!isset($_SESSION)) { session_start(); }
+       $_SESSION[$this->ImageMapIndex]    = NULL;
+      }
+     elseif($StorageMode == IMAGE_MAP_STORAGE_FILE)
+      {
+       $this->ImageMapFileName 		= $UniqueID;
+       $this->ImageMapStorageFolder	= $StorageFolder;
+
+       if (file_exists($StorageFolder."/".$UniqueID.".map")) { unlink($StorageFolder."/".$UniqueID.".map"); }
+      }
+    }
+
+   /* Add a zone to the image map */
+   function addToImageMap($Type,$Plots,$Color=NULL,$Title=NULL,$Message=NULL,$HTMLEncode=FALSE)
+    {
+     if ( $this->ImageMapStorageMode == NULL ) { $this->initialiseImageMap(); }
 
      /* Encode the characters in the imagemap in HTML standards */
      $Title   = str_replace("&#8364;","\u20AC",$Title);
@@ -313,35 +325,24 @@
       }
     }
 
-   /* Add a zone to the image map */
-
-   function initialiseImageMap($Name="pChart",$StorageMode=IMAGE_MAP_STORAGE_SESSION,$UniqueID="imageMap",$StorageFolder="tmp")
+   /* Remove VOID values from an imagemap custom values array */
+   function removeVOIDFromArray($SerieName, $Values)
     {
-     $this->ImageMapIndex 		= $Name;
-     $this->ImageMapStorageMode		= $StorageMode;
+     if ( !isset($this->DataSet->Data["Series"][$SerieName]) ) { return(-1); }
 
-     if ($StorageMode == IMAGE_MAP_STORAGE_SESSION)
-      {
-       if(!isset($_SESSION)) { session_start(); }
-       $_SESSION[$this->ImageMapIndex]    = null;
-      }
-     elseif($StorageMode == IMAGE_MAP_STORAGE_FILE)
-      {
-       $this->ImageMapFileName 		= $UniqueID;
-       $this->ImageMapStorageFolder	= $StorageFolder;
-
-       if (file_exists($StorageFolder."/".$UniqueID.".map")) { unlink($StorageFolder."/".$UniqueID.".map"); }
-      }
+     $Result = "";
+     foreach($this->DataSet->Data["Series"][$SerieName]["Data"] as $Key => $Value)
+      { if ( $Value != VOID && isset($Values[$Key]) ) { $Result[] = $Values[$Key]; } }
+     return($Result);
     }
 
-   /* Remove VOID values from an imagemap custom values array */
-
+   /* Replace the title of one image map serie */
    function replaceImageMapTitle($OldTitle, $NewTitle)
     {
-     if ( $this->ImageMapStorageMode == null ) { return(-1); }
+     if ( $this->ImageMapStorageMode == NULL ) { return(-1); }
 
      if ( is_array($NewTitle) ) { $NewTitle = $this->removeVOIDFromArray($OldTitle, $NewTitle); }
-
+ 
      if ( $this->ImageMapStorageMode == IMAGE_MAP_STORAGE_SESSION )
       {
        if(!isset($_SESSION)) { return(-1); }
@@ -376,26 +377,13 @@
       }
     }
 
-   /* Replace the title of one image map serie */
-
-   function removeVOIDFromArray($SerieName, $Values)
-    {
-     if ( !isset($this->DataSet->Data["Series"][$SerieName]) ) { return(-1); }
-
-     $Result = "";
-     foreach($this->DataSet->Data["Series"][$SerieName]["Data"] as $Key => $Value)
-      { if ( $Value != VOID && isset($Values[$Key]) ) { $Result[] = $Values[$Key]; } }
-     return($Result);
-    }
-
    /* Replace the values of the image map contents */
-
    function replaceImageMapValues($Title, $Values)
     {
-     if ( $this->ImageMapStorageMode == null ) { return(-1); }
+     if ( $this->ImageMapStorageMode == NULL ) { return(-1); }
 
      $Values = $this->removeVOIDFromArray($Title, $Values);
-     $ID = 0;
+     $ID = 0; 
      if ( $this->ImageMapStorageMode == IMAGE_MAP_STORAGE_SESSION )
       {
        if(!isset($_SESSION)) { return(-1); }
@@ -433,7 +421,7 @@
      if ( $this->ImageMapStorageMode == IMAGE_MAP_STORAGE_SESSION )
       {
        if(!isset($_SESSION)) { session_start(); }
-       if ( $_SESSION[$Name] != null )
+       if ( $_SESSION[$Name] != NULL )
         {
          foreach($_SESSION[$Name] as $Key => $Params)
           { echo $Params[0].IMAGE_MAP_DELIMITER.$Params[1].IMAGE_MAP_DELIMITER.$Params[2].IMAGE_MAP_DELIMITER.$Params[3].IMAGE_MAP_DELIMITER.$Params[4]."\r\n"; }
@@ -482,7 +470,7 @@
 
      $Picture = imagecreatetruecolor($this->XSize,$this->YSize);
      imagecopy($Picture,$this->Picture,0,0,0,0,$this->XSize,$this->YSize);
-
+     
      for($i=1;$i<=$Height;$i++)
       {
        if ( $Y+($i-1) < $this->YSize && $Y-$i > 0 ) { imagecopymerge($Picture,$this->Picture,$X,$Y+($i-1),$X,$Y-$i,$Width,1,$StartAlpha-$AlphaStep*$i); }

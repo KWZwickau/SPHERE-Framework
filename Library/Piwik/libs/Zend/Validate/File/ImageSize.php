@@ -139,10 +139,10 @@ class Zend_Validate_File_ImageSize extends Zend_Validate_Abstract
                     $options['maxheight'] = array_shift($argv);
                 }
             }
-        } else {if (!is_array($options)) {
+        } else if (!is_array($options)) {
             // require_once 'Zend/Validate/Exception.php';
             throw new Zend_Validate_Exception ('Invalid options to validator provided');
-        }}
+        }
 
         if (isset($options['minheight']) || isset($options['minwidth'])) {
             $this->setImageMin($options);
@@ -151,6 +151,46 @@ class Zend_Validate_File_ImageSize extends Zend_Validate_Abstract
         if (isset($options['maxheight']) || isset($options['maxwidth'])) {
             $this->setImageMax($options);
         }
+    }
+
+    /**
+     * Returns the set minimum image sizes
+     *
+     * @return array
+     */
+    public function getImageMin()
+    {
+        return array('minwidth' => $this->_minwidth, 'minheight' => $this->_minheight);
+    }
+
+    /**
+     * Returns the set maximum image sizes
+     *
+     * @return array
+     */
+    public function getImageMax()
+    {
+        return array('maxwidth' => $this->_maxwidth, 'maxheight' => $this->_maxheight);
+    }
+
+    /**
+     * Returns the set image width sizes
+     *
+     * @return array
+     */
+    public function getImageWidth()
+    {
+        return array('minwidth' => $this->_minwidth, 'maxwidth' => $this->_maxwidth);
+    }
+
+    /**
+     * Returns the set image height sizes
+     *
+     * @return array
+     */
+    public function getImageHeight()
+    {
+        return array('minheight' => $this->_minheight, 'maxheight' => $this->_maxheight);
     }
 
     /**
@@ -225,46 +265,6 @@ class Zend_Validate_File_ImageSize extends Zend_Validate_Abstract
         }
 
         return $this;
-    }
-
-    /**
-     * Returns the set minimum image sizes
-     *
-     * @return array
-     */
-    public function getImageMin()
-    {
-        return array('minwidth' => $this->_minwidth, 'minheight' => $this->_minheight);
-    }
-
-    /**
-     * Returns the set maximum image sizes
-     *
-     * @return array
-     */
-    public function getImageMax()
-    {
-        return array('maxwidth' => $this->_maxwidth, 'maxheight' => $this->_maxheight);
-    }
-
-    /**
-     * Returns the set image width sizes
-     *
-     * @return array
-     */
-    public function getImageWidth()
-    {
-        return array('minwidth' => $this->_minwidth, 'maxwidth' => $this->_maxwidth);
-    }
-
-    /**
-     * Returns the set image height sizes
-     *
-     * @return array
-     */
-    public function getImageHeight()
-    {
-        return array('minheight' => $this->_minheight, 'maxheight' => $this->_maxheight);
     }
 
     /**

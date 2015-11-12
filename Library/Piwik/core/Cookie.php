@@ -21,46 +21,54 @@ class Cookie
      * Don't create a cookie bigger than 1k
      */
     const MAX_COOKIE_SIZE = 1024;
-    /**
-     * The character used to separate the tuple name=value in the cookie
-     */
-    const VALUE_SEPARATOR = ':';
+
     /**
      * The name of the cookie
      * @var string
      */
     protected $name = null;
+
     /**
      * The expire time for the cookie (expressed in UNIX Timestamp)
      * @var int
      */
     protected $expire = null;
+
     /**
      * Restrict cookie path
      * @var string
      */
     protected $path = '';
+
     /**
      * Restrict cookie to a domain (or subdomains)
      * @var string
      */
     protected $domain = '';
+
     /**
      * If true, cookie should only be transmitted over secure HTTPS
      * @var bool
      */
     protected $secure = false;
+
     /**
      * If true, cookie will only be made available via the HTTP protocol.
      * Note: not well supported by browsers.
      * @var bool
      */
     protected $httponly = false;
+
     /**
      * The content of the cookie
      * @var array
      */
     protected $value = array();
+
+    /**
+     * The character used to separate the tuple name=value in the cookie
+     */
+    const VALUE_SEPARATOR = ':';
 
     /**
      * Instantiate a new Cookie object and tries to load the cookie content if the cookie
@@ -91,6 +99,16 @@ class Cookie
     }
 
     /**
+     * Returns true if the visitor already has the cookie.
+     *
+     * @return bool
+     */
+    public function isCookieFound()
+    {
+        return isset($_COOKIE[$this->name]);
+    }
+
+    /**
      * Returns the default expiry time, 2 years
      *
      * @return int  Timestamp in 2 years
@@ -101,13 +119,98 @@ class Cookie
     }
 
     /**
-     * Returns true if the visitor already has the cookie.
+     * setcookie() replacement -- we don't use the built-in function because
+     * it is buggy for some PHP versions.
      *
-     * @return bool
+     * @link http://php.net/setcookie
+     *
+     * @param string $Name Name of cookie
+     * @param string $Value Value of cookie
+     * @param int $Expires Time the cookie expires
+     * @param string $Path
+     * @param string $Domain
+     * @param bool $Secure
+     * @param bool $HTTPOnly
      */
-    public function isCookieFound()
+    protected function setCookie($Name, $Value, $Expires, $Path = '', $Domain = '', $Secure = false, $HTTPOnly = false)
     {
-        return isset($_COOKIE[$this->name]);
+        if (!empty($Domain)) {
+            // Fix the domain to accept domains with and without 'www.'.
+            if (!strncasecmp($Domain, 'www.', 4)) {
+                $Domain = substr($Domain, 4);
+            }
+            $Domain = '.' . $Domain;
+
+            // Remove port information.
+            $Port = strpos($Domain, ':');
+            if ($Port !== false) {
+                $Domain = substr($Domain, 0, $Port);
+            }
+        }
+
+        $header = 'Set-Cookie: ' . rawurlencode($Name) . '=' . rawurlencode($Value)
+            . (empty($Expires) ? '' : '; expires=' . gmdate('D, d-M-Y H:i:s', $Expires) . ' GMT')
+            . (empty($Path) ? '' : '; path=' . $Path)
+            . (empty($Domain) ? '' : '; domain=' . $Domain)
+            . (!$Secure ? '' : '; secure')
+            . (!$HTTPOnly ? '' : '; HttpOnly');
+
+        Common::sendHeader($header, false);
+    }
+
+    /**
+     * We set the privacy policy header
+     */
+    protected function setP3PHeader()
+    {
+        Common::sendHeader("P3P: CP='OTI DSP COR NID STP UNI OTPa OUR'");
+    }
+
+    /**
+     * Delete the cookie
+     */
+    public function delete()
+    {
+        $this->setP3PHeader();
+        $this->setCookie($this->name, 'deleted', time() - 31536001, $this->path, $this->domain);
+    }
+
+    /**
+     * Saves the cookie (set the Cookie header).
+     * You have to call this method before sending any text to the browser or you would get the
+     * "Header already sent" error.
+     */
+    public function save()
+    {
+        $cookieString = $this->generateContentString();
+        if (strlen($cookieString) > self::MAX_COOKIE_SIZE) {
+            // If the cookie was going to be too large, instead, delete existing cookie and start afresh
+            $this->delete();
+            return;
+        }
+
+        $this->setP3PHeader();
+        $this->setCookie($this->name, $cookieString, $this->expire, $this->path, $this->domain, $this->secure, $this->httponly);
+    }
+
+    /**
+     * Extract signed content from string: content VALUE_SEPARATOR '_=' signature
+     *
+     * @param string $content
+     * @return string|bool  Content or false if unsigned
+     */
+    private function extractSignedContent($content)
+    {
+        $signature = substr($content, -40);
+
+        if (substr($content, -43, 3) == self::VALUE_SEPARATOR . '_=' &&
+            $signature == sha1(substr($content, 0, -40) . SettingsPiwik::getSalt())
+        ) {
+            // strip trailing: VALUE_SEPARATOR '_=' signature"
+            return substr($content, 0, -43);
+        }
+
+        return false;
     }
 
     /**
@@ -149,44 +252,6 @@ class Cookie
     }
 
     /**
-     * Extract signed content from string: content VALUE_SEPARATOR '_=' signature
-     *
-     * @param string $content
-     * @return string|bool  Content or false if unsigned
-     */
-    private function extractSignedContent($content)
-    {
-        $signature = substr($content, -40);
-
-        if (substr($content, -43, 3) == self::VALUE_SEPARATOR . '_=' &&
-            $signature == sha1(substr($content, 0, -40) . SettingsPiwik::getSalt())
-        ) {
-            // strip trailing: VALUE_SEPARATOR '_=' signature"
-            return substr($content, 0, -43);
-        }
-
-        return false;
-    }
-
-    /**
-     * Saves the cookie (set the Cookie header).
-     * You have to call this method before sending any text to the browser or you would get the
-     * "Header already sent" error.
-     */
-    public function save()
-    {
-        $cookieString = $this->generateContentString();
-        if (strlen($cookieString) > self::MAX_COOKIE_SIZE) {
-            // If the cookie was going to be too large, instead, delete existing cookie and start afresh
-            $this->delete();
-            return;
-        }
-
-        $this->setP3PHeader();
-        $this->setCookie($this->name, $cookieString, $this->expire, $this->path, $this->domain, $this->secure, $this->httponly);
-    }
-
-    /**
      * Returns the string to save in the cookie from the $this->value array of values.
      * It goes through the array and generates the cookie content string.
      *
@@ -213,63 +278,6 @@ class Cookie
         }
 
         return '';
-    }
-
-    /**
-     * Delete the cookie
-     */
-    public function delete()
-    {
-        $this->setP3PHeader();
-        $this->setCookie($this->name, 'deleted', time() - 31536001, $this->path, $this->domain);
-    }
-
-    /**
-     * We set the privacy policy header
-     */
-    protected function setP3PHeader()
-    {
-        Common::sendHeader("P3P: CP='OTI DSP COR NID STP UNI OTPa OUR'");
-    }
-
-    /**
-     * setcookie() replacement -- we don't use the built-in function because
-     * it is buggy for some PHP versions.
-     *
-     * @link http://php.net/setcookie
-     *
-     * @param string $Name Name of cookie
-     * @param string $Value Value of cookie
-     * @param int $Expires Time the cookie expires
-     * @param string $Path
-     * @param string $Domain
-     * @param bool $Secure
-     * @param bool $HTTPOnly
-     */
-    protected function setCookie($Name, $Value, $Expires, $Path = '', $Domain = '', $Secure = false, $HTTPOnly = false)
-    {
-        if (!empty($Domain)) {
-            // Fix the domain to accept domains with and without 'www.'.
-            if (!strncasecmp($Domain, 'www.', 4)) {
-                $Domain = substr($Domain, 4);
-            }
-            $Domain = '.' . $Domain;
-
-            // Remove port information.
-            $Port = strpos($Domain, ':');
-            if ($Port !== false) {
-                $Domain = substr($Domain, 0, $Port);
-            }
-        }
-
-        $header = 'Set-Cookie: ' . rawurlencode($Name) . '=' . rawurlencode($Value)
-            . (empty($Expires) ? '' : '; expires=' . gmdate('D, d-M-Y H:i:s', $Expires) . ' GMT')
-            . (empty($Path) ? '' : '; path=' . $Path)
-            . (empty($Domain) ? '' : '; domain=' . $Domain)
-            . (!$Secure ? '' : '; secure')
-            . (!$HTTPOnly ? '' : '; HttpOnly');
-
-        Common::sendHeader($header, false);
     }
 
     /**
@@ -338,18 +346,6 @@ class Cookie
     }
 
     /**
-     * Escape values from the cookie before sending them back to the client
-     * (when using the get() method).
-     *
-     * @param string $value Value to be escaped
-     * @return mixed  The value once cleaned.
-     */
-    protected static function escapeValue($value)
-    {
-        return Common::sanitizeInputValues($value);
-    }
-
-    /**
      * Returns the value defined by $name from the cookie.
      *
      * @param string|integer Index name of the value to return
@@ -385,5 +381,17 @@ class Cookie
         $str .= var_export($this->value, $return = true);
 
         return $str;
+    }
+
+    /**
+     * Escape values from the cookie before sending them back to the client
+     * (when using the get() method).
+     *
+     * @param string $value Value to be escaped
+     * @return mixed  The value once cleaned.
+     */
+    protected static function escapeValue($value)
+    {
+        return Common::sanitizeInputValues($value);
     }
 }

@@ -14,15 +14,6 @@ use Piwik\Plugins\Referrers\Columns\WebsitePage;
 
 class GetUrlsForSocial extends Base
 {
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->show_goals = true;
-        $view->config->show_exclude_low_population = false;
-        $view->config->addTranslation('label', $this->dimension->getName());
-
-        $view->requestConfig->filter_limit = 10;
-    }
-
     protected function init()
     {
         parent::init();
@@ -31,6 +22,15 @@ class GetUrlsForSocial extends Base
         $this->documentation = Piwik::translate('Referrers_WebsitesReportDocumentation', '<br />');
         $this->isSubtableReport = true;
         $this->order = 12;
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->show_goals = true;
+        $view->config->show_exclude_low_population = false;
+        $view->config->addTranslation('label', $this->dimension->getName());
+
+        $view->requestConfig->filter_limit = 10;
     }
 
 }

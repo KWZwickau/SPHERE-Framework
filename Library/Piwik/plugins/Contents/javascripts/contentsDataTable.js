@@ -5,8 +5,7 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-(function ($, require)
-{
+ (function ($, require) {
 
     var exports = require('piwik/UI'),
         DataTable = exports.DataTable,
@@ -17,20 +16,17 @@
      *
      * @constructor
      */
-    exports.ContentsDataTable = function (element)
-    {
+    exports.ContentsDataTable = function (element) {
         DataTable.call(this, element);
     };
 
     $.extend(exports.ContentsDataTable.prototype, dataTablePrototype, {
 
         //see dataTable::bindEventsAndApplyStyle
-        _init: function (domElem)
-        {
-            domElem.find('table > tbody > tr').each(function (index, tr)
-            {
-                var $tr = $(tr);
-                var $td = $tr.find('.label .value');
+        _init: function (domElem) {
+            domElem.find('table > tbody > tr').each(function (index, tr) {
+                var $tr  = $(tr);
+                var $td  = $tr.find('.label .value');
                 var text = $td.text().trim();
 
                 if (text.search('^https?:\/\/[^\/]+') !== -1) {

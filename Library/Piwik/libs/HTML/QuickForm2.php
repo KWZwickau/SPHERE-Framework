@@ -116,15 +116,16 @@ class HTML_QuickForm2 extends HTML_QuickForm2_Container
         }
     }
 
-   /**
-    * Adds a new data source to the form
-    *
-    * @param    HTML_QuickForm2_DataSource  Data source
-    */
-    public function addDataSource(HTML_QuickForm2_DataSource $datasource)
+    protected function onAttributeChange($name, $value = null)
     {
-        $this->datasources[] = $datasource;
-        $this->updateValue();
+        throw new HTML_QuickForm2_InvalidArgumentException(
+            'Attribute \'' . $name . '\' is read-only'
+        );
+    }
+
+    protected function setContainer(HTML_QuickForm2_Container $container = null)
+    {
+        throw new HTML_QuickForm2_Exception('Form cannot be added to container');
     }
 
     public function setId($id = null)
@@ -134,14 +135,16 @@ class HTML_QuickForm2 extends HTML_QuickForm2_Container
         );
     }
 
+
    /**
-    * Returns the list of data sources attached to the form
+    * Adds a new data source to the form
     *
-    * @return   array
+    * @param    HTML_QuickForm2_DataSource  Data source
     */
-    public function getDataSources()
+    public function addDataSource(HTML_QuickForm2_DataSource $datasource)
     {
-        return $this->datasources;
+        $this->datasources[] = $datasource;
+        $this->updateValue();
     }
 
    /**
@@ -162,6 +165,16 @@ class HTML_QuickForm2 extends HTML_QuickForm2_Container
         }
         $this->datasources = $datasources;
         $this->updateValue();
+    }
+
+   /**
+    * Returns the list of data sources attached to the form
+    *
+    * @return   array
+    */
+    public function getDataSources()
+    {
+        return $this->datasources;
     }
 
     public function getType()
@@ -206,18 +219,6 @@ class HTML_QuickForm2 extends HTML_QuickForm2_Container
         }
         $renderer->finishForm($this);
         return $renderer;
-    }
-
-    protected function onAttributeChange($name, $value = null)
-    {
-        throw new HTML_QuickForm2_InvalidArgumentException(
-            'Attribute \'' . $name . '\' is read-only'
-        );
-    }
-
-    protected function setContainer(HTML_QuickForm2_Container $container = null)
-    {
-        throw new HTML_QuickForm2_Exception('Form cannot be added to container');
     }
 }
 ?>

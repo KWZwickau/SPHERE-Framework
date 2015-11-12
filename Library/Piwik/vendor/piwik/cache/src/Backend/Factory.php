@@ -12,6 +12,21 @@ use Piwik\Cache\Backend;
 
 class Factory
 {
+    public function buildArrayCache()
+    {
+        return new ArrayCache();
+    }
+
+    public function buildFileCache($options)
+    {
+        return new File($options['directory']);
+    }
+
+    public function buildNullCache()
+    {
+        return new NullCache();
+    }
+
     public function buildChainedCache($options)
     {
         $backends = array();
@@ -27,6 +42,34 @@ class Factory
         }
 
         return new Chained($backends);
+    }
+
+    public function buildRedisCache($options)
+    {
+        if (empty($options['host']) || empty($options['port'])) {
+            throw new \InvalidArgumentException('RedisCache is not configured. Please provide at least a host and a port');
+        }
+
+        $timeout = 0.0;
+        if (array_key_exists('timeout', $options)) {
+            $timeout = $options['timeout'];
+        }
+
+        $redis = new \Redis();
+        $redis->connect($options['host'], $options['port'], $timeout);
+
+        if (!empty($options['password'])) {
+            $redis->auth($options['password']);
+        }
+
+        if (array_key_exists('database', $options)) {
+            $redis->select((int) $options['database']);
+        }
+
+        $redisCache = new Redis();
+        $redisCache->setRedis($redis);
+
+        return $redisCache;
     }
 
     /**
@@ -64,48 +107,5 @@ class Factory
 
                 throw new Factory\BackendNotFoundException("Cache backend $type not valid");
         }
-    }
-
-    public function buildArrayCache()
-    {
-        return new ArrayCache();
-    }
-
-    public function buildFileCache($options)
-    {
-        return new File($options['directory']);
-    }
-
-    public function buildNullCache()
-    {
-        return new NullCache();
-    }
-
-    public function buildRedisCache($options)
-    {
-        if (empty($options['host']) || empty($options['port'])) {
-            throw new \InvalidArgumentException('RedisCache is not configured. Please provide at least a host and a port');
-        }
-
-        $timeout = 0.0;
-        if (array_key_exists('timeout', $options)) {
-            $timeout = $options['timeout'];
-        }
-
-        $redis = new \Redis();
-        $redis->connect($options['host'], $options['port'], $timeout);
-
-        if (!empty($options['password'])) {
-            $redis->auth($options['password']);
-        }
-
-        if (array_key_exists('database', $options)) {
-            $redis->select((int) $options['database']);
-        }
-
-        $redisCache = new Redis();
-        $redisCache->setRedis($redis);
-
-        return $redisCache;
     }
 }

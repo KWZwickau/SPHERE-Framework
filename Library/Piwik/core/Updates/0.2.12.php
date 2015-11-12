@@ -17,11 +17,6 @@ use Piwik\Updates;
  */
 class Updates_0_2_12 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -34,5 +29,10 @@ class Updates_0_2_12 extends Updates
             // Note: requires INDEX privilege
             'DROP INDEX index_idaction ON `' . Common::prefixTable('log_action') . '`'                      => 1091,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

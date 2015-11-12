@@ -125,11 +125,6 @@ class SessionInitializer
         Piwik::postEvent('Login.initSession.end');
     }
 
-    protected function regenerateSessionId()
-    {
-        Session::regenerateId();
-    }
-
     /**
      * Authenticates the user.
      *
@@ -168,21 +163,6 @@ class SessionInitializer
     }
 
     /**
-     * Executed when the session could not authenticate.
-     *
-     * @param bool $rememberMe Whether the authenticated session should be remembered after
-     *                         the browser is closed or not.
-     * @throws Exception always.
-     */
-    protected function processFailedSession($rememberMe)
-    {
-        $cookie = $this->getAuthCookie($rememberMe);
-        $cookie->delete();
-
-        throw new Exception(Piwik::translate('Login_LoginPasswordNotCorrect'));
-    }
-
-    /**
      * Returns a Cookie instance that manages the browser cookie used to store session
      * information.
      *
@@ -195,6 +175,21 @@ class SessionInitializer
         $authCookieExpiry = $rememberMe ? time() + $this->authCookieValidTime : 0;
         $cookie = new Cookie($this->authCookieName, $authCookieExpiry, $this->authCookiePath);
         return $cookie;
+    }
+
+    /**
+     * Executed when the session could not authenticate.
+     *
+     * @param bool $rememberMe Whether the authenticated session should be remembered after
+     *                         the browser is closed or not.
+     * @throws Exception always.
+     */
+    protected function processFailedSession($rememberMe)
+    {
+        $cookie = $this->getAuthCookie($rememberMe);
+        $cookie->delete();
+
+        throw new Exception(Piwik::translate('Login_LoginPasswordNotCorrect'));
     }
 
     /**
@@ -223,6 +218,11 @@ class SessionInitializer
         $cookie->setSecure(ProxyHttp::isHttps());
         $cookie->setHttpOnly(true);
         $cookie->save();
+    }
+
+    protected function regenerateSessionId()
+    {
+        Session::regenerateId();
     }
 
     /**

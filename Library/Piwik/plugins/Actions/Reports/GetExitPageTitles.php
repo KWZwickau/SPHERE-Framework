@@ -18,45 +18,6 @@ use Piwik\Plugins\Actions\Columns\Metrics\ExitRate;
 
 class GetExitPageTitles extends Base
 {
-    public function getProcessedMetrics()
-    {
-        $result = parent::getProcessedMetrics();
-
-        // these metrics are not displayed in the API.getProcessedReport version of this report,
-        // so they are removed here.
-        unset($result['bounce_rate']);
-        unset($result['avg_time_on_page']);
-
-        return $result;
-    }
-
-    public function getMetrics()
-    {
-        $metrics = parent::getMetrics();
-        $metrics['nb_visits'] = Piwik::translate('General_ColumnUniquePageviews');
-
-        return $metrics;
-    }
-
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->addTranslations(array('label' => $this->dimension->getName()));
-
-        $view->config->title = $this->name;
-        $view->config->columns_to_display = array('label', 'exit_nb_visits', 'nb_visits', 'exit_rate');
-
-        $this->addPageDisplayProperties($view);
-        $this->addBaseDisplayProperties($view);
-    }
-
-    public function getRelatedReports()
-    {
-        return array(
-            self::factory('Actions', 'getPageTitles'),
-            self::factory('Actions', 'getExitPageUrls'),
-        );
-    }
-
     protected function init()
     {
         parent::init();
@@ -80,6 +41,26 @@ class GetExitPageTitles extends Base
         $this->widgetTitle = 'Actions_WidgetExitPageTitles';
     }
 
+    public function getProcessedMetrics()
+    {
+        $result = parent::getProcessedMetrics();
+
+        // these metrics are not displayed in the API.getProcessedReport version of this report,
+        // so they are removed here.
+        unset($result['bounce_rate']);
+        unset($result['avg_time_on_page']);
+
+        return $result;
+    }
+
+    public function getMetrics()
+    {
+        $metrics = parent::getMetrics();
+        $metrics['nb_visits'] = Piwik::translate('General_ColumnUniquePageviews');
+
+        return $metrics;
+    }
+
     protected function getMetricsDocumentation()
     {
         $metrics = parent::getMetricsDocumentation();
@@ -89,5 +70,24 @@ class GetExitPageTitles extends Base
         unset($metrics['avg_time_on_page']);
 
         return $metrics;
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->addTranslations(array('label' => $this->dimension->getName()));
+
+        $view->config->title = $this->name;
+        $view->config->columns_to_display = array('label', 'exit_nb_visits', 'nb_visits', 'exit_rate');
+
+        $this->addPageDisplayProperties($view);
+        $this->addBaseDisplayProperties($view);
+    }
+
+    public function getRelatedReports()
+    {
+        return array(
+            self::factory('Actions', 'getPageTitles'),
+            self::factory('Actions', 'getExitPageUrls'),
+        );
     }
 }

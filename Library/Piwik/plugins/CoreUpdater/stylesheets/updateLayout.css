@@ -14,7 +14,6 @@
     padding: 0;
     max-width: none;
 }
-
 .piwik-donate-call > .piwik-donate-message p {
     margin-left: 0;
 }
@@ -25,10 +24,9 @@ li {
 }
 
 #oneclickupdate .submit {
-    clear: none;
-    float: left;
+    clear:none;
+    float:left;
 }
-
 form#oneclickupdate {
     min-height: 50px;
 }

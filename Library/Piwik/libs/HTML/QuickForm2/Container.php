@@ -94,6 +94,16 @@ abstract class HTML_QuickForm2_Container extends HTML_QuickForm2_Node
     }
 
    /**
+    * Whether container prepends its name to names of contained elements
+    *
+    * @return   bool
+    */
+    protected function prependsName()
+    {
+        return false;
+    }
+
+   /**
     * Returns the element's value
     *
     * The default implementation for Containers is to return an array with
@@ -135,16 +145,6 @@ abstract class HTML_QuickForm2_Container extends HTML_QuickForm2_Node
     }
 
    /**
-    * Whether container prepends its name to names of contained elements
-    *
-    * @return   bool
-    */
-    protected function prependsName()
-    {
-        return false;
-    }
-
-   /**
     * Merges two arrays
     *
     * Merges two arrays like the PHP function array_merge_recursive does,
@@ -177,6 +177,84 @@ abstract class HTML_QuickForm2_Container extends HTML_QuickForm2_Node
     }
 
    /**
+    * Appends an element to the container
+    *
+    * If the element was previously added to the container or to another
+    * container, it is first removed there.
+    *
+    * @param    HTML_QuickForm2_Node     Element to add
+    * @return   HTML_QuickForm2_Node     Added element
+    * @throws   HTML_QuickForm2_InvalidArgumentException
+    */
+    public function appendChild(HTML_QuickForm2_Node $element)
+    {
+        if ($this === $element->getContainer()) {
+            $this->removeChild($element);
+        }
+        $element->setContainer($this);
+        $this->elements[] = $element;
+        return $element;
+    }
+
+   /**
+    * Appends an element to the container (possibly creating it first)
+    *
+    * If the first parameter is an instance of HTML_QuickForm2_Node then all
+    * other parameters are ignored and the method just calls {@link appendChild()}.
+    * In the other case the element is first created via
+    * {@link HTML_QuickForm2_Factory::createElement()} and then added via the
+    * same method. This is a convenience method to reduce typing and ease
+    * porting from HTML_QuickForm.
+    *
+    * @param    string|HTML_QuickForm2_Node  Either type name (treated
+    *               case-insensitively) or an element instance
+    * @param    mixed   Element name
+    * @param    mixed   Element attributes
+    * @param    array   Element-specific data
+    * @return   HTML_QuickForm2_Node     Added element
+    * @throws   HTML_QuickForm2_InvalidArgumentException
+    * @throws   HTML_QuickForm2_NotFoundException
+    */
+    public function addElement($elementOrType, $name = null, $attributes = null,
+                               array $data = array())
+    {
+        if ($elementOrType instanceof HTML_QuickForm2_Node) {
+            return $this->appendChild($elementOrType);
+        } else {
+            return $this->appendChild(HTML_QuickForm2_Factory::createElement(
+                $elementOrType, $name, $attributes, $data
+            ));
+        }
+    }
+
+   /**
+    * Removes the element from this container
+    *
+    * If the reference object is not given, the element will be appended.
+    *
+    * @param    HTML_QuickForm2_Node     Element to remove
+    * @return   HTML_QuickForm2_Node     Removed object
+    */
+    public function removeChild(HTML_QuickForm2_Node $element)
+    {
+
+        if ($element->getContainer() !== $this) {
+            throw new HTML_QuickForm2_NotFoundException(
+                "Element with name '".$element->getName()."' was not found"
+            );
+        }
+        foreach ($this as $key => $child){
+            if ($child === $element) {
+                unset($this->elements[$key]);
+                $element->setContainer(null);
+                break;
+            }
+        }
+        return $element;
+    }
+
+
+   /**
     * Returns an element if its id is found
     *
     * @param    string  Element id to find
@@ -190,19 +268,6 @@ abstract class HTML_QuickForm2_Container extends HTML_QuickForm2_Node
             }
         }
         return null;
-    }
-
-   /**
-    * Returns a recursive iterator iterator for the container elements
-    *
-    * @param    int     mode passed to RecursiveIteratorIterator
-    * @return   RecursiveIteratorIterator
-    */
-    public function getRecursiveIterator($mode = RecursiveIteratorIterator::SELF_FIRST)
-    {
-        return new RecursiveIteratorIterator(
-                        new HTML_QuickForm2_ContainerIterator($this), $mode
-                   );
     }
 
    /**
@@ -254,52 +319,6 @@ abstract class HTML_QuickForm2_Container extends HTML_QuickForm2_Node
     }
 
    /**
-    * Appends an element to the container
-    *
-    * If the element was previously added to the container or to another
-    * container, it is first removed there.
-    *
-    * @param    HTML_QuickForm2_Node     Element to add
-    * @return   HTML_QuickForm2_Node     Added element
-    * @throws   HTML_QuickForm2_InvalidArgumentException
-    */
-    public function appendChild(HTML_QuickForm2_Node $element)
-    {
-        if ($this === $element->getContainer()) {
-            $this->removeChild($element);
-        }
-        $element->setContainer($this);
-        $this->elements[] = $element;
-        return $element;
-    }
-
-   /**
-    * Removes the element from this container
-    *
-    * If the reference object is not given, the element will be appended.
-    *
-    * @param    HTML_QuickForm2_Node     Element to remove
-    * @return   HTML_QuickForm2_Node     Removed object
-    */
-    public function removeChild(HTML_QuickForm2_Node $element)
-    {
-
-        if ($element->getContainer() !== $this) {
-            throw new HTML_QuickForm2_NotFoundException(
-                "Element with name '".$element->getName()."' was not found"
-            );
-        }
-        foreach ($this as $key => $child){
-            if ($child === $element) {
-                unset($this->elements[$key]);
-                $element->setContainer(null);
-                break;
-            }
-        }
-        return $element;
-    }
-
-   /**
     * Returns a recursive iterator for the container elements
     *
     * @return    HTML_QuickForm2_ContainerIterator
@@ -307,6 +326,19 @@ abstract class HTML_QuickForm2_Container extends HTML_QuickForm2_Node
     public function getIterator()
     {
         return new HTML_QuickForm2_ContainerIterator($this);
+    }
+
+   /**
+    * Returns a recursive iterator iterator for the container elements
+    *
+    * @param    int     mode passed to RecursiveIteratorIterator
+    * @return   RecursiveIteratorIterator
+    */
+    public function getRecursiveIterator($mode = RecursiveIteratorIterator::SELF_FIRST)
+    {
+        return new RecursiveIteratorIterator(
+                        new HTML_QuickForm2_ContainerIterator($this), $mode
+                   );
     }
 
    /**
@@ -330,6 +362,23 @@ abstract class HTML_QuickForm2_Container extends HTML_QuickForm2_Node
         foreach ($this as $child) {
             $child->updateValue();
         }
+    }
+
+
+   /**
+    * Performs the server-side validation
+    *
+    * This method also calls validate() on all contained elements.
+    *
+    * @return   boolean Whether the container and all contained elements are valid
+    */
+    protected function validate()
+    {
+        $valid = parent::validate();
+        foreach ($this as $child) {
+            $valid = $child->validate() && $valid;
+        }
+        return $valid;
     }
 
    /**
@@ -362,44 +411,6 @@ abstract class HTML_QuickForm2_Container extends HTML_QuickForm2_Node
     }
 
    /**
-    * Appends an element to the container (possibly creating it first)
-    *
-    * If the first parameter is an instance of HTML_QuickForm2_Node then all
-    * other parameters are ignored and the method just calls {@link appendChild()}.
-    * In the other case the element is first created via
-    * {@link HTML_QuickForm2_Factory::createElement()} and then added via the
-    * same method. This is a convenience method to reduce typing and ease
-    * porting from HTML_QuickForm.
-    *
-    * @param    string|HTML_QuickForm2_Node  Either type name (treated
-    *               case-insensitively) or an element instance
-    * @param    mixed   Element name
-    * @param    mixed   Element attributes
-    * @param    array   Element-specific data
-    * @return   HTML_QuickForm2_Node     Added element
-    * @throws   HTML_QuickForm2_InvalidArgumentException
-    * @throws   HTML_QuickForm2_NotFoundException
-    */
-    public function addElement($elementOrType, $name = null, $attributes = null,
-                               array $data = array())
-    {
-        if ($elementOrType instanceof HTML_QuickForm2_Node) {
-            return $this->appendChild($elementOrType);
-        } else {
-            return $this->appendChild(HTML_QuickForm2_Factory::createElement(
-                $elementOrType, $name, $attributes, $data
-            ));
-        }
-    }
-
-    public function __toString()
-    {
-        // require_once 'HTML/QuickForm2/Renderer.php';
-
-        return $this->render(HTML_QuickForm2_Renderer::factory('default'))->__toString();
-    }
-
-   /**
     * Renders the container using the given renderer
     *
     * @param    HTML_QuickForm2_Renderer    Renderer instance
@@ -420,6 +431,13 @@ abstract class HTML_QuickForm2_Container extends HTML_QuickForm2_Node
         return $renderer;
     }
 
+    public function __toString()
+    {
+        // require_once 'HTML/QuickForm2/Renderer.php';
+
+        return $this->render(HTML_QuickForm2_Renderer::factory('default'))->__toString();
+    }
+
    /**
     * Returns Javascript code for getting the element's value
     *
@@ -436,22 +454,6 @@ abstract class HTML_QuickForm2_Container extends HTML_QuickForm2_Node
             }
         }
         return 'qf.form.getContainerValue(' . implode(', ', $args) . ')';
-    }
-
-   /**
-    * Performs the server-side validation
-    *
-    * This method also calls validate() on all contained elements.
-    *
-    * @return   boolean Whether the container and all contained elements are valid
-    */
-    protected function validate()
-    {
-        $valid = parent::validate();
-        foreach ($this as $child) {
-            $valid = $child->validate() && $valid;
-        }
-        return $valid;
     }
 }
 

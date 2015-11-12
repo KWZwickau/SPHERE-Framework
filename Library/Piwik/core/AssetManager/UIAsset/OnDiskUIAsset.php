@@ -34,6 +34,11 @@ class OnDiskUIAsset extends UIAsset
         $this->relativeLocation = $fileLocation;
     }
 
+    public function getAbsoluteLocation()
+    {
+        return $this->baseDirectory . '/' . $this->relativeLocation;
+    }
+
     public function getRelativeLocation()
     {
         return $this->relativeLocation;
@@ -51,17 +56,19 @@ class OnDiskUIAsset extends UIAsset
         }
     }
 
-    /**
-     * @return boolean
-     */
-    private function assetIsReadable()
+    public function delete()
     {
-        return is_readable($this->getAbsoluteLocation());
-    }
+        if ($this->exists()) {
+            try {
+                Filesystem::remove($this->getAbsoluteLocation());
+            } catch (Exception $e) {
+                throw new Exception("Unable to delete merged file : " . $this->getAbsoluteLocation() . ". Please delete the file and refresh");
+            }
 
-    public function getAbsoluteLocation()
-    {
-        return $this->baseDirectory . '/' . $this->relativeLocation;
+            // try to remove compressed version of the merged file.
+            Filesystem::remove($this->getAbsoluteLocation() . ".deflate", true);
+            Filesystem::remove($this->getAbsoluteLocation() . ".gz", true);
+        }
     }
 
     /**
@@ -83,19 +90,12 @@ class OnDiskUIAsset extends UIAsset
         fclose($newFile);
     }
 
-    public function delete()
+    /**
+     * @return string
+     */
+    public function getContent()
     {
-        if ($this->exists()) {
-            try {
-                Filesystem::remove($this->getAbsoluteLocation());
-            } catch (Exception $e) {
-                throw new Exception("Unable to delete merged file : " . $this->getAbsoluteLocation() . ". Please delete the file and refresh");
-            }
-
-            // try to remove compressed version of the merged file.
-            Filesystem::remove($this->getAbsoluteLocation() . ".deflate", true);
-            Filesystem::remove($this->getAbsoluteLocation() . ".gz", true);
-        }
+        return file_get_contents($this->getAbsoluteLocation());
     }
 
     public function exists()
@@ -104,11 +104,11 @@ class OnDiskUIAsset extends UIAsset
     }
 
     /**
-     * @return string
+     * @return boolean
      */
-    public function getContent()
+    private function assetIsReadable()
     {
-        return file_get_contents($this->getAbsoluteLocation());
+        return is_readable($this->getAbsoluteLocation());
     }
 
     public function getModificationDate()

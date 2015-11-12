@@ -11,10 +11,10 @@ namespace Piwik\Plugins\CoreHome\Columns;
 use Piwik\Date;
 use Piwik\Db;
 use Piwik\Plugin\Dimension\ActionDimension;
-use Piwik\Tracker;
 use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker;
 
 class ServerTime extends ActionDimension
 {

@@ -24,22 +24,21 @@ class Archiver extends \Piwik\Plugin\Archiver
         $this->aggregateByServerTime();
     }
 
-    protected function aggregateByLocalTime()
+    public function aggregateMultipleReports()
     {
-        $array = $this->getLogAggregator()->getMetricsFromVisitByDimension("HOUR(log_visit.visitor_localtime)");
-        $this->ensureAllHoursAreSet($array);
-        $report = $array->asDataTable()->getSerialized();
-        $this->getProcessor()->insertBlobRecord(self::LOCAL_TIME_RECORD_NAME, $report);
-    }
-
-    private function ensureAllHoursAreSet(DataArray &$array)
-    {
-        $data = $array->getDataArray();
-        for ($i = 0; $i <= 23; $i++) {
-            if (empty($data[$i])) {
-                $array->sumMetricsVisits($i, DataArray::makeEmptyRow());
-            }
-        }
+        $dataTableRecords = array(
+            self::LOCAL_TIME_RECORD_NAME,
+            self::SERVER_TIME_RECORD_NAME,
+        );
+        $columnsAggregationOperation = null;
+        $this->getProcessor()->aggregateDataTableRecords(
+            $dataTableRecords,
+            $maximumRowsInDataTableLevelZero = null,
+            $maximumRowsInSubDataTable = null,
+            $columnToSortByBeforeTruncation = null,
+            $columnsAggregationOperation,
+            $columnsToRenameAfterAggregation = null,
+            $countRowsRecursive = array());
     }
 
     protected function aggregateByServerTime()
@@ -60,6 +59,14 @@ class Archiver extends \Piwik\Plugin\Archiver
         $this->getProcessor()->insertBlobRecord(self::SERVER_TIME_RECORD_NAME, $report);
     }
 
+    protected function aggregateByLocalTime()
+    {
+        $array = $this->getLogAggregator()->getMetricsFromVisitByDimension("HOUR(log_visit.visitor_localtime)");
+        $this->ensureAllHoursAreSet($array);
+        $report = $array->asDataTable()->getSerialized();
+        $this->getProcessor()->insertBlobRecord(self::LOCAL_TIME_RECORD_NAME, $report);
+    }
+
     protected function convertTimeToLocalTimezone(DataArray &$array)
     {
         $date = Date::factory($this->getProcessor()->getParams()->getDateStart()->getDateStartUTC())->toString();
@@ -74,21 +81,14 @@ class Archiver extends \Piwik\Plugin\Archiver
         return new DataArray($converted);
     }
 
-    public function aggregateMultipleReports()
+    private function ensureAllHoursAreSet(DataArray &$array)
     {
-        $dataTableRecords = array(
-            self::LOCAL_TIME_RECORD_NAME,
-            self::SERVER_TIME_RECORD_NAME,
-        );
-        $columnsAggregationOperation = null;
-        $this->getProcessor()->aggregateDataTableRecords(
-            $dataTableRecords,
-            $maximumRowsInDataTableLevelZero = null,
-            $maximumRowsInSubDataTable = null,
-            $columnToSortByBeforeTruncation = null,
-            $columnsAggregationOperation,
-            $columnsToRenameAfterAggregation = null,
-            $countRowsRecursive = array());
+        $data = $array->getDataArray();
+        for ($i = 0; $i <= 23; $i++) {
+            if (empty($data[$i])) {
+                $array->sumMetricsVisits($i, DataArray::makeEmptyRow());
+            }
+        }
     }
 
 }

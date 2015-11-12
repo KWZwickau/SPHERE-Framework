@@ -9,6 +9,7 @@
 
 namespace Piwik\Plugins\UserCountry;
 
+use Piwik\Container\StaticContainer;
 use Piwik\DataTable;
 use Piwik\Piwik;
 use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;

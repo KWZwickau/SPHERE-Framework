@@ -24,26 +24,6 @@ use Zend_Db_Profiler;
 class Mssql extends Zend_Db_Adapter_Pdo_Mssql implements AdapterInterface
 {
     /**
-     * Return default port.
-     *
-     * @return int
-     */
-    public static function getDefaultPort()
-    {
-        return 1433;
-    }
-
-    /**
-     * Returns true if this adapter's required extensions are enabled
-     *
-     * @return bool
-     */
-    public static function isEnabled()
-    {
-        return extension_loaded('PDO') && extension_loaded('pdo_sqlsrv');
-    }
-
-    /**
      * Returns connection handle
      *
      * @throws Zend_Db_Adapter_Exception
@@ -138,6 +118,16 @@ class Mssql extends Zend_Db_Adapter_Pdo_Mssql implements AdapterInterface
     }
 
     /**
+     * Return default port.
+     *
+     * @return int
+     */
+    public static function getDefaultPort()
+    {
+        return 1433;
+    }
+
+    /**
      * Check MSSQL version
      *
      * @throws Exception
@@ -189,27 +179,13 @@ class Mssql extends Zend_Db_Adapter_Pdo_Mssql implements AdapterInterface
     }
 
     /**
-     * Retrieve client version in PHP style
+     * Returns true if this adapter's required extensions are enabled
      *
-     * @throws Exception
-     * @return string
+     * @return bool
      */
-    public function getClientVersion()
+    public static function isEnabled()
     {
-        $this->_connect();
-        try {
-            $version = $this->_connection->getAttribute(PDO::ATTR_CLIENT_VERSION);
-            $requiredVersion = Config::getInstance()->General['minimum_mssql_client_version'];
-            if (version_compare($version['DriverVer'], $requiredVersion) === -1) {
-                throw new Exception(Piwik::translate('General_ExceptionDatabaseVersion', array('MSSQL', $version['DriverVer'], $requiredVersion)));
-            } else {
-                return $version['DriverVer'];
-            }
-        } catch (PDOException $e) {
-            // In case of the driver doesn't support getting attributes
-        }
-
-        return null;
+        return extension_loaded('PDO') && extension_loaded('pdo_sqlsrv');
     }
 
     /**
@@ -262,5 +238,29 @@ class Mssql extends Zend_Db_Adapter_Pdo_Mssql implements AdapterInterface
     {
         //check the getconnection, it's specified on the connection string.
         return true;
+    }
+
+    /**
+     * Retrieve client version in PHP style
+     *
+     * @throws Exception
+     * @return string
+     */
+    public function getClientVersion()
+    {
+        $this->_connect();
+        try {
+            $version = $this->_connection->getAttribute(PDO::ATTR_CLIENT_VERSION);
+            $requiredVersion = Config::getInstance()->General['minimum_mssql_client_version'];
+            if (version_compare($version['DriverVer'], $requiredVersion) === -1) {
+                throw new Exception(Piwik::translate('General_ExceptionDatabaseVersion', array('MSSQL', $version['DriverVer'], $requiredVersion)));
+            } else {
+                return $version['DriverVer'];
+            }
+        } catch (PDOException $e) {
+            // In case of the driver doesn't support getting attributes
+        }
+
+        return null;
     }
 }

@@ -10,8 +10,8 @@ namespace Piwik\Plugins\API\Renderer;
 
 use Piwik\API\ApiRenderer;
 use Piwik\Common;
-use Piwik\DataTable;
 use Piwik\DataTable\Renderer;
+use Piwik\DataTable;
 
 class Rss extends ApiRenderer
 {
@@ -21,16 +21,6 @@ class Rss extends ApiRenderer
         self::sendHeader('plain');
 
         return 'Error: ' . $message;
-    }
-
-    public function sendHeader($type = "xml")
-    {
-        Common::sendHeader('Content-Type: text/' . $type . '; charset=utf-8');
-    }
-
-    public function renderArray($array)
-    {
-        return $this->renderDataTable($array);
     }
 
     public function renderDataTable($dataTable)
@@ -45,6 +35,16 @@ class Rss extends ApiRenderer
         $tableRenderer->setTranslateColumnNames(Common::getRequestVar('translateColumnNames', false, 'int', $this->request));
 
         return $tableRenderer->render();
+    }
+
+    public function renderArray($array)
+    {
+        return $this->renderDataTable($array);
+    }
+
+    public function sendHeader($type = "xml")
+    {
+        Common::sendHeader('Content-Type: text/' . $type . '; charset=utf-8');
     }
 
 

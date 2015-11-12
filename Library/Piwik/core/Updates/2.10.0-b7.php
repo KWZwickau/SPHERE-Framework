@@ -16,11 +16,6 @@ use Piwik\Updates;
 class Updates_2_10_0_b7 extends Updates
 {
 
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         $sqls = array();
@@ -37,5 +32,10 @@ class Updates_2_10_0_b7 extends Updates
         }
 
         return $sqls;
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

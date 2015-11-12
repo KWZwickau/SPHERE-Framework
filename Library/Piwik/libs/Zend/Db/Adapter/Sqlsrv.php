@@ -105,53 +105,6 @@ class Zend_Db_Adapter_Sqlsrv extends Zend_Db_Adapter_Abstract
     protected $_defaultStmtClass = 'Zend_Db_Statement_Sqlsrv';
 
     /**
-     * Set the transaction isoltion level.
-     *
-     * @param integer|null $level A fetch mode from SQLSRV_TXN_*.
-     * @return true
-     * @throws Zend_Db_Adapter_Sqlsrv_Exception
-     */
-    public function setTransactionIsolationLevel($level = null)
-    {
-        $this->_connect();
-        $sql = null;
-
-        // Default transaction level in sql server
-        if ($level === null)
-        {
-            $level = SQLSRV_TXN_READ_COMMITTED;
-        }
-
-        switch ($level) {
-            case SQLSRV_TXN_READ_UNCOMMITTED:
-                $sql = "READ UNCOMMITTED";
-                break;
-            case SQLSRV_TXN_READ_COMMITTED:
-                $sql = "READ COMMITTED";
-                break;
-            case SQLSRV_TXN_REPEATABLE_READ:
-                $sql = "REPEATABLE READ";
-                break;
-            case SQLSRV_TXN_SNAPSHOT:
-                $sql = "SNAPSHOT";
-                break;
-            case SQLSRV_TXN_SERIALIZABLE:
-                $sql = "SERIALIZABLE";
-                break;
-            default:
-                // require_once 'Zend/Db/Adapter/Sqlsrv/Exception.php';
-                throw new Zend_Db_Adapter_Sqlsrv_Exception("Invalid transaction isolation level mode '$level' specified");
-        }
-
-        if (!sqlsrv_query($this->_connection, "SET TRANSACTION ISOLATION LEVEL $sql;")) {
-            // require_once 'Zend/Db/Adapter/Sqlsrv/Exception.php';
-            throw new Zend_Db_Adapter_Sqlsrv_Exception("Transaction cannot be changed to '$level'");
-        }
-
-        return true;
-    }
-
-    /**
      * Creates a connection resource.
      *
      * @return void
@@ -217,16 +170,85 @@ class Zend_Db_Adapter_Sqlsrv extends Zend_Db_Adapter_Abstract
     }
 
     /**
-     * Force the connection to close.
+     * Check for config options that are mandatory.
+     * Throw exceptions if any are missing.
      *
-     * @return void
+     * @param array $config
+     * @throws Zend_Db_Adapter_Exception
      */
-    public function closeConnection()
+    protected function _checkRequiredOptions(array $config)
     {
-        if ($this->isConnected()) {
-            sqlsrv_close($this->_connection);
+        // we need at least a dbname
+        if (! array_key_exists('dbname', $config)) {
+            /** @see Zend_Db_Adapter_Exception */
+            // require_once 'Zend/Db/Adapter/Exception.php';
+            throw new Zend_Db_Adapter_Exception("Configuration array must have a key for 'dbname' that names the database instance");
         }
-        $this->_connection = null;
+
+        if (! array_key_exists('password', $config) && array_key_exists('username', $config)) {
+            /**
+             * @see Zend_Db_Adapter_Exception
+             */
+            // require_once 'Zend/Db/Adapter/Exception.php';
+            throw new Zend_Db_Adapter_Exception("Configuration array must have a key for 'password' for login credentials.
+                                                If Windows Authentication is desired, both keys 'username' and 'password' should be ommited from config.");
+        }
+
+        if (array_key_exists('password', $config) && !array_key_exists('username', $config)) {
+            /**
+             * @see Zend_Db_Adapter_Exception
+             */
+            // require_once 'Zend/Db/Adapter/Exception.php';
+            throw new Zend_Db_Adapter_Exception("Configuration array must have a key for 'username' for login credentials.
+                                                If Windows Authentication is desired, both keys 'username' and 'password' should be ommited from config.");
+        }
+    }
+
+    /**
+     * Set the transaction isoltion level.
+     *
+     * @param integer|null $level A fetch mode from SQLSRV_TXN_*.
+     * @return true
+     * @throws Zend_Db_Adapter_Sqlsrv_Exception
+     */
+    public function setTransactionIsolationLevel($level = null)
+    {
+        $this->_connect();
+        $sql = null;
+
+        // Default transaction level in sql server
+        if ($level === null)
+        {
+            $level = SQLSRV_TXN_READ_COMMITTED;
+        }
+
+        switch ($level) {
+            case SQLSRV_TXN_READ_UNCOMMITTED:
+                $sql = "READ UNCOMMITTED";
+                break;
+            case SQLSRV_TXN_READ_COMMITTED:
+                $sql = "READ COMMITTED";
+                break;
+            case SQLSRV_TXN_REPEATABLE_READ:
+                $sql = "REPEATABLE READ";
+                break;
+            case SQLSRV_TXN_SNAPSHOT:
+                $sql = "SNAPSHOT";
+                break;
+            case SQLSRV_TXN_SERIALIZABLE:
+                $sql = "SERIALIZABLE";
+                break;
+            default:
+                // require_once 'Zend/Db/Adapter/Sqlsrv/Exception.php';
+                throw new Zend_Db_Adapter_Sqlsrv_Exception("Invalid transaction isolation level mode '$level' specified");
+        }
+
+        if (!sqlsrv_query($this->_connection, "SET TRANSACTION ISOLATION LEVEL $sql;")) {
+            // require_once 'Zend/Db/Adapter/Sqlsrv/Exception.php';
+            throw new Zend_Db_Adapter_Sqlsrv_Exception("Transaction cannot be changed to '$level'");
+        }
+
+        return true;
     }
 
     /**
@@ -239,6 +261,19 @@ class Zend_Db_Adapter_Sqlsrv extends Zend_Db_Adapter_Abstract
         return (is_resource($this->_connection)
                 && (get_resource_type($this->_connection) == 'SQL Server Connection')
         );
+    }
+
+    /**
+     * Force the connection to close.
+     *
+     * @return void
+     */
+    public function closeConnection()
+    {
+        if ($this->isConnected()) {
+            sqlsrv_close($this->_connection);
+        }
+        $this->_connection = null;
     }
 
     /**
@@ -263,6 +298,23 @@ class Zend_Db_Adapter_Sqlsrv extends Zend_Db_Adapter_Abstract
         $stmt = new $stmtClass($this, $sql);
         $stmt->setFetchMode($this->_fetchMode);
         return $stmt;
+    }
+
+    /**
+     * Quote a raw string.
+     *
+     * @param string $value     Raw string
+     * @return string           Quoted string
+     */
+    protected function _quote($value)
+    {
+        if (is_int($value)) {
+            return $value;
+        } elseif (is_float($value)) {
+            return sprintf('%F', $value);
+        }
+
+        return "'" . str_replace("'", "''", $value) . "'";
     }
 
     /**
@@ -385,7 +437,7 @@ class Zend_Db_Adapter_Sqlsrv extends Zend_Db_Adapter_Abstract
         $sql    = "exec sp_columns @table_name = " . $this->quoteIdentifier($tableName, true);
         $stmt   = $this->query($sql);
         $result = $stmt->fetchAll(Zend_Db::FETCH_NUM);
-
+		
 		// ZF-7698
 		$stmt->closeCursor();
 
@@ -463,6 +515,48 @@ class Zend_Db_Adapter_Sqlsrv extends Zend_Db_Adapter_Abstract
         }
 
         return $desc;
+    }
+
+    /**
+     * Leave autocommit mode and begin a transaction.
+     *
+     * @return void
+     * @throws Zend_Db_Adapter_Sqlsrv_Exception
+     */
+    protected function _beginTransaction()
+    {
+        if (!sqlsrv_begin_transaction($this->_connection)) {
+            // require_once 'Zend/Db/Adapter/Sqlsrv/Exception.php';
+            throw new Zend_Db_Adapter_Sqlsrv_Exception(sqlsrv_errors());
+        }
+    }
+
+    /**
+     * Commit a transaction and return to autocommit mode.
+     *
+     * @return void
+     * @throws Zend_Db_Adapter_Sqlsrv_Exception
+     */
+    protected function _commit()
+    {
+        if (!sqlsrv_commit($this->_connection)) {
+            // require_once 'Zend/Db/Adapter/Sqlsrv/Exception.php';
+            throw new Zend_Db_Adapter_Sqlsrv_Exception(sqlsrv_errors());
+        }
+    }
+
+    /**
+     * Roll back a transaction and return to autocommit mode.
+     *
+     * @return void
+     * @throws Zend_Db_Adapter_Sqlsrv_Exception
+     */
+    protected function _rollBack()
+    {
+        if (!sqlsrv_rollback($this->_connection)) {
+            // require_once 'Zend/Db/Adapter/Sqlsrv/Exception.php';
+            throw new Zend_Db_Adapter_Sqlsrv_Exception(sqlsrv_errors());
+        }
     }
 
     /**
@@ -575,99 +669,5 @@ class Zend_Db_Adapter_Sqlsrv extends Zend_Db_Adapter_Abstract
         }
 
         return null;
-    }
-
-    /**
-     * Check for config options that are mandatory.
-     * Throw exceptions if any are missing.
-     *
-     * @param array $config
-     * @throws Zend_Db_Adapter_Exception
-     */
-    protected function _checkRequiredOptions(array $config)
-    {
-        // we need at least a dbname
-        if (! array_key_exists('dbname', $config)) {
-            /** @see Zend_Db_Adapter_Exception */
-            // require_once 'Zend/Db/Adapter/Exception.php';
-            throw new Zend_Db_Adapter_Exception("Configuration array must have a key for 'dbname' that names the database instance");
-        }
-
-        if (! array_key_exists('password', $config) && array_key_exists('username', $config)) {
-            /**
-             * @see Zend_Db_Adapter_Exception
-             */
-            // require_once 'Zend/Db/Adapter/Exception.php';
-            throw new Zend_Db_Adapter_Exception("Configuration array must have a key for 'password' for login credentials.
-                                                If Windows Authentication is desired, both keys 'username' and 'password' should be ommited from config.");
-        }
-
-        if (array_key_exists('password', $config) && !array_key_exists('username', $config)) {
-            /**
-             * @see Zend_Db_Adapter_Exception
-             */
-            // require_once 'Zend/Db/Adapter/Exception.php';
-            throw new Zend_Db_Adapter_Exception("Configuration array must have a key for 'username' for login credentials.
-                                                If Windows Authentication is desired, both keys 'username' and 'password' should be ommited from config.");
-        }
-    }
-
-    /**
-     * Quote a raw string.
-     *
-     * @param string $value     Raw string
-     * @return string           Quoted string
-     */
-    protected function _quote($value)
-    {
-        if (is_int($value)) {
-            return $value;
-        } elseif (is_float($value)) {
-            return sprintf('%F', $value);
-        }
-
-        return "'" . str_replace("'", "''", $value) . "'";
-    }
-
-    /**
-     * Leave autocommit mode and begin a transaction.
-     *
-     * @return void
-     * @throws Zend_Db_Adapter_Sqlsrv_Exception
-     */
-    protected function _beginTransaction()
-    {
-        if (!sqlsrv_begin_transaction($this->_connection)) {
-            // require_once 'Zend/Db/Adapter/Sqlsrv/Exception.php';
-            throw new Zend_Db_Adapter_Sqlsrv_Exception(sqlsrv_errors());
-        }
-    }
-
-    /**
-     * Commit a transaction and return to autocommit mode.
-     *
-     * @return void
-     * @throws Zend_Db_Adapter_Sqlsrv_Exception
-     */
-    protected function _commit()
-    {
-        if (!sqlsrv_commit($this->_connection)) {
-            // require_once 'Zend/Db/Adapter/Sqlsrv/Exception.php';
-            throw new Zend_Db_Adapter_Sqlsrv_Exception(sqlsrv_errors());
-        }
-    }
-
-    /**
-     * Roll back a transaction and return to autocommit mode.
-     *
-     * @return void
-     * @throws Zend_Db_Adapter_Sqlsrv_Exception
-     */
-    protected function _rollBack()
-    {
-        if (!sqlsrv_rollback($this->_connection)) {
-            // require_once 'Zend/Db/Adapter/Sqlsrv/Exception.php';
-            throw new Zend_Db_Adapter_Sqlsrv_Exception(sqlsrv_errors());
-        }
     }
 }

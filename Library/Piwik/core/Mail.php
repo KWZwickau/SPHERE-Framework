@@ -33,6 +33,55 @@ class Mail extends Zend_Mail
         $this->initSmtpTransport();
     }
 
+    public function setDefaultFromPiwik()
+    {
+        $customLogo = new CustomLogo();
+
+        /** @var Translator $translator */
+        $translator = StaticContainer::get('Piwik\Translation\Translator');
+
+        $fromEmailName = Config::getInstance()->General['noreply_email_name'];
+
+        if (empty($fromEmailName) && $customLogo->isEnabled()) {
+            $fromEmailName = $translator->translate('CoreHome_WebAnalyticsReports');
+        } elseif (empty($fromEmailName)) {
+            $fromEmailName = $translator->translate('ScheduledReports_PiwikReports');
+        }
+
+        $fromEmailAddress = Config::getInstance()->General['noreply_email_address'];
+        $this->setFrom($fromEmailAddress, $fromEmailName);
+    }
+
+    /**
+     * Sets the sender.
+     *
+     * @param string $email Email address of the sender.
+     * @param null|string $name Name of the sender.
+     * @return Zend_Mail
+     */
+    public function setFrom($email, $name = null)
+    {
+        return parent::setFrom(
+            $this->parseDomainPlaceholderAsPiwikHostName($email),
+            $name
+        );
+    }
+
+    /**
+     * Set Reply-To Header
+     *
+     * @param string $email
+     * @param null|string $name
+     * @return Zend_Mail
+     */
+    public function setReplyTo($email, $name = null)
+    {
+        return parent::setReplyTo(
+            $this->parseDomainPlaceholderAsPiwikHostName($email),
+            $name
+        );
+    }
+
     /**
      * @return void
      */
@@ -69,38 +118,13 @@ class Mail extends Zend_Mail
         @ini_set("smtp_port", $mailConfig['port']);
     }
 
-    public function setDefaultFromPiwik()
+    public function send($transport = null)
     {
-        $customLogo = new CustomLogo();
-
-        /** @var Translator $translator */
-        $translator = StaticContainer::get('Piwik\Translation\Translator');
-
-        $fromEmailName = Config::getInstance()->General['noreply_email_name'];
-
-        if (empty($fromEmailName) && $customLogo->isEnabled()) {
-            $fromEmailName = $translator->translate('CoreHome_WebAnalyticsReports');
-        } elseif (empty($fromEmailName)) {
-            $fromEmailName = $translator->translate('ScheduledReports_PiwikReports');
+        if (defined('PIWIK_TEST_MODE')) { // hack
+            Piwik::postTestEvent("Test.Mail.send", array($this));
+        } else {
+            return parent::send($transport);
         }
-
-        $fromEmailAddress = Config::getInstance()->General['noreply_email_address'];
-        $this->setFrom($fromEmailAddress, $fromEmailName);
-    }
-
-    /**
-     * Sets the sender.
-     *
-     * @param string $email Email address of the sender.
-     * @param null|string $name Name of the sender.
-     * @return Zend_Mail
-     */
-    public function setFrom($email, $name = null)
-    {
-        return parent::setFrom(
-            $this->parseDomainPlaceholderAsPiwikHostName($email),
-            $name
-        );
     }
 
     /**
@@ -129,29 +153,5 @@ class Mail extends Zend_Mail
     protected function isHostDefinedAndNotLocal($url)
     {
         return isset($url['host']) && !in_array($url['host'], Url::getLocalHostnames(), true);
-    }
-
-    /**
-     * Set Reply-To Header
-     *
-     * @param string $email
-     * @param null|string $name
-     * @return Zend_Mail
-     */
-    public function setReplyTo($email, $name = null)
-    {
-        return parent::setReplyTo(
-            $this->parseDomainPlaceholderAsPiwikHostName($email),
-            $name
-        );
-    }
-
-    public function send($transport = null)
-    {
-        if (defined('PIWIK_TEST_MODE')) { // hack
-            Piwik::postTestEvent("Test.Mail.send", array($this));
-        } else {
-            return parent::send($transport);
-        }
     }
 }

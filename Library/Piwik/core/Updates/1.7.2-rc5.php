@@ -17,19 +17,19 @@ use Piwik\Updates;
  */
 class Updates_1_7_2_rc5 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        try {
-            $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-        } catch (\Exception $e) {
-        }
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
             'ALTER TABLE `' . Common::prefixTable('pdf') . '`
 		    	CHANGE `aggregate_reports_format` `display_format` TINYINT(1) NOT NULL' => false
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        try {
+            $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
+        } catch (\Exception $e) {
+        }
     }
 }

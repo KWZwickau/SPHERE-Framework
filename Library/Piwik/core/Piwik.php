@@ -32,28 +32,30 @@ require_once PIWIK_INCLUDE_PATH . '/core/Translate.php';
 class Piwik
 {
     /**
+     * Piwik periods
+     * @var array
+     */
+    public static $idPeriods = array(
+        'day'   => Day::PERIOD_ID,
+        'week'  => Week::PERIOD_ID,
+        'month' => Month::PERIOD_ID,
+        'year'  => Year::PERIOD_ID,
+        'range' => Range::PERIOD_ID,
+    );
+
+    /**
      * The idGoal query parameter value for the special 'abandoned carts' goal.
      *
      * @api
      */
     const LABEL_ID_GOAL_IS_ECOMMERCE_CART = 'ecommerceAbandonedCart';
+
     /**
      * The idGoal query parameter value for the special 'ecommerce' goal.
      *
      * @api
      */
     const LABEL_ID_GOAL_IS_ECOMMERCE_ORDER = 'ecommerceOrder';
-    /**
-     * Piwik periods
-     * @var array
-     */
-    public static $idPeriods = array(
-        'day' => Day::PERIOD_ID,
-        'week' => Week::PERIOD_ID,
-        'month' => Month::PERIOD_ID,
-        'year' => Year::PERIOD_ID,
-        'range' => Range::PERIOD_ID,
-    );
 
     /**
      * Trigger E_USER_ERROR with optional message
@@ -168,22 +170,6 @@ class Piwik
     }
 
     /**
-     * Returns the current user's username.
-     *
-     * @return string
-     * @api
-     */
-    public static function getCurrentUserLogin()
-    {
-        $login = Access::getInstance()->getLogin();
-
-        if (empty($login)) {
-            return 'anonymous';
-        }
-        return $login;
-    }
-
-    /**
      * Get a list of all email addresses having Super User access.
      *
      * @return array
@@ -203,6 +189,22 @@ class Piwik
         }
 
         return $emails;
+    }
+
+    /**
+     * Returns the current user's username.
+     *
+     * @return string
+     * @api
+     */
+    public static function getCurrentUserLogin()
+    {
+        $login = Access::getInstance()->getLogin();
+
+        if (empty($login)) {
+            return 'anonymous';
+        }
+        return $login;
     }
 
     /**
@@ -249,39 +251,8 @@ class Piwik
                 Piwik::checkUserHasSuperUserAccess();
             }
         } catch (NoAccessException $e) {
-            throw new NoAccessException(Piwik::translate('General_ExceptionCheckUserHasSuperUserAccessOrIsTheUser',
-                array($theUser)));
+            throw new NoAccessException(Piwik::translate('General_ExceptionCheckUserHasSuperUserAccessOrIsTheUser', array($theUser)));
         }
-    }
-
-    /**
-     * Check that the current user has superuser access.
-     *
-     * @throws Exception if the current user is not the superuser.
-     * @api
-     */
-    public static function checkUserHasSuperUserAccess()
-    {
-        Access::getInstance()->checkUserHasSuperUserAccess();
-    }
-
-    /**
-     * Returns an internationalized string using a translation token. If a translation
-     * cannot be found for the toke, the token is returned.
-     *
-     * @param string $translationId Translation ID, eg, `'General_Date'`.
-     * @param array|string|int $args `sprintf` arguments to be applied to the internationalized
-     *                               string.
-     * @param string|null $language Optionally force the language.
-     * @return string The translated string or `$translationId`.
-     * @api
-     */
-    public static function translate($translationId, $args = array(), $language = null)
-    {
-        /** @var Translator $translator */
-        $translator = StaticContainer::get('Piwik\Translation\Translator');
-
-        return $translator->translate($translationId, $args, $language);
     }
 
     /**
@@ -334,6 +305,18 @@ class Piwik
     }
 
     /**
+     * Returns true if the current user is the special **anonymous** user or not.
+     *
+     * @return bool
+     * @api
+     */
+    public static function isUserIsAnonymous()
+    {
+        $currentUserLogin = Piwik::getCurrentUserLogin();
+        return $currentUserLogin == 'anonymous';
+    }
+
+    /**
      * Checks that the user is not the anonymous user.
      *
      * @throws NoAccessException if the current user is the anonymous user.
@@ -350,15 +333,28 @@ class Piwik
     }
 
     /**
-     * Returns true if the current user is the special **anonymous** user or not.
+     * Helper method user to set the current as superuser.
+     * This should be used with great care as this gives the user all permissions.
      *
-     * @return bool
+     * This method is deprecated, use {@link Access::doAsSuperUser()} instead.
+     *
+     * @param bool $bool true to set current user as Super User
+     * @deprecated
+     */
+    public static function setUserHasSuperUserAccess($bool = true)
+    {
+        Access::getInstance()->setSuperUserAccess($bool);
+    }
+
+    /**
+     * Check that the current user has superuser access.
+     *
+     * @throws Exception if the current user is not the superuser.
      * @api
      */
-    public static function isUserIsAnonymous()
+    public static function checkUserHasSuperUserAccess()
     {
-        $currentUserLogin = Piwik::getCurrentUserLogin();
-        return $currentUserLogin == 'anonymous';
+        Access::getInstance()->checkUserHasSuperUserAccess();
     }
 
     /**
@@ -600,8 +596,7 @@ class Piwik
             && $l <= $loginMaximumLength
             && (preg_match('/^[A-Za-z0-9_.@+-]*$/D', $userLogin) > 0))
         ) {
-            throw new Exception(Piwik::translate('UsersManager_ExceptionInvalidLoginFormat',
-                array($loginMinimumLength, $loginMaximumLength)));
+            throw new Exception(Piwik::translate('UsersManager_ExceptionInvalidLoginFormat', array($loginMinimumLength, $loginMaximumLength)));
         }
     }
 
@@ -689,6 +684,22 @@ class Piwik
     }
 
     /**
+     * Post an event to Piwik's event dispatcher which will execute the event's observers.
+     *
+     * @param string $eventName The event name.
+     * @param array $params The parameter array to forward to observer callbacks.
+     * @param bool $pending If true, plugins that are loaded after this event is fired will
+     *                      have their observers for this event executed.
+     * @param array|null $plugins The list of plugins to execute observers for. If null, all
+     *                            plugin observers will be executed.
+     * @api
+     */
+    public static function postEvent($eventName, $params = array(), $pending = false, $plugins = null)
+    {
+        EventDispatcher::getInstance()->postEvent($eventName, $params, $pending, $plugins);
+    }
+
+    /**
      * Register an observer to an event.
      *
      * **_Note: Observers should normally be defined in plugin objects. It is unlikely that you will
@@ -715,19 +726,22 @@ class Piwik
     }
 
     /**
-     * Post an event to Piwik's event dispatcher which will execute the event's observers.
+     * Returns an internationalized string using a translation token. If a translation
+     * cannot be found for the toke, the token is returned.
      *
-     * @param string $eventName The event name.
-     * @param array $params The parameter array to forward to observer callbacks.
-     * @param bool $pending If true, plugins that are loaded after this event is fired will
-     *                      have their observers for this event executed.
-     * @param array|null $plugins The list of plugins to execute observers for. If null, all
-     *                            plugin observers will be executed.
+     * @param string $translationId Translation ID, eg, `'General_Date'`.
+     * @param array|string|int $args `sprintf` arguments to be applied to the internationalized
+     *                               string.
+     * @param string|null $language Optionally force the language.
+     * @return string The translated string or `$translationId`.
      * @api
      */
-    public static function postEvent($eventName, $params = array(), $pending = false, $plugins = null)
+    public static function translate($translationId, $args = array(), $language = null)
     {
-        EventDispatcher::getInstance()->postEvent($eventName, $params, $pending, $plugins);
+        /** @var Translator $translator */
+        $translator = StaticContainer::get('Piwik\Translation\Translator');
+
+        return $translator->translate($translationId, $args, $language);
     }
 
     /**
@@ -756,19 +770,5 @@ class Piwik
         self::setUserHasSuperUserAccess($isSuperUser);
 
         return $result;
-    }
-
-    /**
-     * Helper method user to set the current as superuser.
-     * This should be used with great care as this gives the user all permissions.
-     *
-     * This method is deprecated, use {@link Access::doAsSuperUser()} instead.
-     *
-     * @param bool $bool true to set current user as Super User
-     * @deprecated
-     */
-    public static function setUserHasSuperUserAccess($bool = true)
-    {
-        Access::getInstance()->setSuperUserAccess($bool);
     }
 }

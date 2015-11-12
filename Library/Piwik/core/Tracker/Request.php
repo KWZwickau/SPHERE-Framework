@@ -9,7 +9,6 @@
 namespace Piwik\Tracker;
 
 use Exception;
-use Piwik\Cache as PiwikCache;
 use Piwik\Common;
 use Piwik\Config;
 use Piwik\Container\StaticContainer;
@@ -21,6 +20,7 @@ use Piwik\Network\IPUtils;
 use Piwik\Piwik;
 use Piwik\Plugins\CustomVariables\CustomVariables;
 use Piwik\Tracker;
+use Piwik\Cache as PiwikCache;
 
 /**
  * The Request object holding the http parameters for this tracking request. Use getParam() to fetch a named parameter.
@@ -28,9 +28,10 @@ use Piwik\Tracker;
  */
 class Request
 {
-    const UNKNOWN_RESOLUTION = 'unknown';
-const CUSTOM_TIMESTAMP_DOES_NOT_REQUIRE_TOKENAUTH_WHEN_NEWER_THAN = 14400;
-const GENERATION_TIME_MS_MAXIMUM = 3600000;
+    private $cdtCache;
+    private $idSiteCache;
+    private $paramsCache = array();
+
     /**
      * @var array
      */
@@ -38,11 +39,10 @@ const GENERATION_TIME_MS_MAXIMUM = 3600000;
     protected $rawParams;
 
     protected $isAuthenticated = null;
+    private $isEmptyRequest = false;
+
     protected $tokenAuth;
-    private $cdtCache;
-    private $idSiteCache;
-    private $paramsCache = array();
-    private $isEmptyRequest = false; // 4 hours
+
     /**
      * Stores plugin specific tracking request metadata. RequestProcessors can store
      * whatever they want in this array, and other RequestProcessors can modify these
@@ -51,6 +51,10 @@ const GENERATION_TIME_MS_MAXIMUM = 3600000;
      * @var string[][]
      */
     private $requestMetadata = array();
+
+    const UNKNOWN_RESOLUTION = 'unknown';
+
+    const CUSTOM_TIMESTAMP_DOES_NOT_REQUIRE_TOKENAUTH_WHEN_NEWER_THAN = 14400; // 4 hours
 
     /**
      * @param $params
@@ -101,178 +105,6 @@ const GENERATION_TIME_MS_MAXIMUM = 3600000;
     public function getTokenAuth()
     {
         return $this->tokenAuth;
-    }
-
-    /**
-     * @return float|int
-     */
-    public function getDaysSinceFirstVisit()
-    {
-        $cookieFirstVisitTimestamp = $this->getParam('_idts');
-
-        if (!$this->isTimestampValid($cookieFirstVisitTimestamp)) {
-            $cookieFirstVisitTimestamp = $this->getCurrentTimestamp();
-        }
-
-        $daysSinceFirstVisit = round(($this->getCurrentTimestamp() - $cookieFirstVisitTimestamp) / 86400, $precision = 0);
-
-        if ($daysSinceFirstVisit < 0) {
-            $daysSinceFirstVisit = 0;
-        }
-
-        return $daysSinceFirstVisit;
-    }
-
-    public function getParam($name)
-    {
-        static $supportedParams = array(
-            // Name => array( defaultValue, type )
-            '_refts'       => array(0, 'int'),
-            '_ref'         => array('', 'string'),
-            '_rcn'         => array('', 'string'),
-            '_rck'         => array('', 'string'),
-            '_idts'        => array(0, 'int'),
-            '_viewts'      => array(0, 'int'),
-            '_ects'        => array(0, 'int'),
-            '_idvc'        => array(1, 'int'),
-            'url'          => array('', 'string'),
-            'urlref'       => array('', 'string'),
-            'res'          => array(self::UNKNOWN_RESOLUTION, 'string'),
-            'idgoal'       => array(-1, 'int'),
-            'ping'         => array(0, 'int'),
-
-            // other
-            'bots'         => array(0, 'int'),
-            'dp'           => array(0, 'int'),
-            'rec'          => array(0, 'int'),
-            'new_visit'    => array(0, 'int'),
-
-            // Ecommerce
-            'ec_id'        => array('', 'string'),
-            'ec_st'        => array(false, 'float'),
-            'ec_tx'        => array(false, 'float'),
-            'ec_sh'        => array(false, 'float'),
-            'ec_dt'        => array(false, 'float'),
-            'ec_items'     => array('', 'json'),
-
-            // Events
-            'e_c'          => array('', 'string'),
-            'e_a'          => array('', 'string'),
-            'e_n'          => array('', 'string'),
-            'e_v'          => array(false, 'float'),
-
-            // some visitor attributes can be overwritten
-            'cip'          => array('', 'string'),
-            'cdt'          => array('', 'string'),
-            'cid'          => array('', 'string'),
-            'uid'          => array('', 'string'),
-
-            // Actions / pages
-            'cs'           => array('', 'string'),
-            'download'     => array('', 'string'),
-            'link'         => array('', 'string'),
-            'action_name'  => array('', 'string'),
-            'search'       => array('', 'string'),
-            'search_cat'   => array('', 'string'),
-            'search_count' => array(-1, 'int'),
-            'gt_ms'        => array(-1, 'int'),
-
-            // Content
-            'c_p'          => array('', 'string'),
-            'c_n'          => array('', 'string'),
-            'c_t'          => array('', 'string'),
-            'c_i'          => array('', 'string'),
-        );
-
-        if (isset($this->paramsCache[$name])) {
-            return $this->paramsCache[$name];
-        }
-
-        if (!isset($supportedParams[$name])) {
-            throw new Exception("Requested parameter $name is not a known Tracking API Parameter.");
-        }
-
-        $paramDefaultValue = $supportedParams[$name][0];
-        $paramType = $supportedParams[$name][1];
-
-        if ($this->hasParam($name)) {
-            $this->paramsCache[$name] = Common::getRequestVar($name, $paramDefaultValue, $paramType, $this->params);
-        } else {
-            $this->paramsCache[$name] = $paramDefaultValue;
-        }
-
-        return $this->paramsCache[$name];
-    }
-
-    private function hasParam($name)
-    {
-        return isset($this->params[$name]);
-    }
-
-    /**
-     * Returns true if the timestamp is valid ie. timestamp is sometime in the last 10 years and is not in the future.
-     *
-     * @param $time int Timestamp to test
-     * @param $now int Current timestamp
-     * @return bool
-     */
-    protected function isTimestampValid($time, $now = null)
-    {
-        if (empty($now)) {
-            $now = $this->getCurrentTimestamp();
-        }
-
-        return $time <= $now
-            && $time > $now - 10 * 365 * 86400;
-    }
-
-    public function getCurrentTimestamp()
-    {
-        if (!isset($this->cdtCache)) {
-            $this->cdtCache = $this->getCustomTimestamp();
-        }
-
-        if (!empty($this->cdtCache)) {
-            return $this->cdtCache;
-        }
-
-        return $this->timestamp;
-    }
-
-    protected function getCustomTimestamp()
-    {
-        if (!$this->hasParam('cdt')) {
-            return false;
-        }
-
-        $cdt = $this->getParam('cdt');
-
-        if (empty($cdt)) {
-            return false;
-        }
-
-        if (!is_numeric($cdt)) {
-            $cdt = strtotime($cdt);
-        }
-
-        if (!$this->isTimestampValid($cdt, $this->timestamp)) {
-            Common::printDebug(sprintf("Datetime %s is not valid", date("Y-m-d H:i:m", $cdt)));
-            return false;
-        }
-
-        // If timestamp in the past, token_auth is required
-        $timeFromNow = $this->timestamp - $cdt;
-        $isTimestampRecent = $timeFromNow < self::CUSTOM_TIMESTAMP_DOES_NOT_REQUIRE_TOKENAUTH_WHEN_NEWER_THAN;
-
-        if (!$isTimestampRecent) {
-            if (!$this->isAuthenticated()) {
-                Common::printDebug(sprintf("Custom timestamp is %s seconds old, requires &token_auth...", $timeFromNow));
-                Common::printDebug("WARN: Tracker API 'cdt' was used with invalid token_auth");
-                return false;
-            }
-        }
-
-        return $cdt;
     }
 
     /**
@@ -334,37 +166,6 @@ const GENERATION_TIME_MS_MAXIMUM = 3600000;
         }
     }
 
-    public function getIdSite()
-    {
-        if (isset($this->idSiteCache)) {
-            return $this->idSiteCache;
-        }
-
-        $idSite = Common::getRequestVar('idsite', 0, 'int', $this->params);
-
-        /**
-         * Triggered when obtaining the ID of the site we are tracking a visit for.
-         *
-         * This event can be used to change the site ID so data is tracked for a different
-         * website.
-         *
-         * @param int &$idSite Initialized to the value of the **idsite** query parameter. If a
-         *                     subscriber sets this variable, the value it uses must be greater
-         *                     than 0.
-         * @param array $params The entire array of request parameters in the current tracking
-         *                      request.
-         */
-        Piwik::postEvent('Tracker.Request.getIdSite', array(&$idSite, $this->params));
-
-        if ($idSite <= 0) {
-            throw new UnexpectedWebsiteFoundException('Invalid idSite: \'' . $idSite . '\'');
-        }
-
-        $this->idSiteCache = $idSite;
-
-        return $idSite;
-    }
-
     public static function authenticateSuperUserOrAdmin($tokenAuth, $idSite)
     {
         if (empty($tokenAuth)) {
@@ -397,6 +198,26 @@ const GENERATION_TIME_MS_MAXIMUM = 3600000;
         Common::printDebug("WARNING! token_auth = $tokenAuth is not valid, Super User / Admin was NOT authenticated");
 
         return false;
+    }
+
+    /**
+     * @return float|int
+     */
+    public function getDaysSinceFirstVisit()
+    {
+        $cookieFirstVisitTimestamp = $this->getParam('_idts');
+
+        if (!$this->isTimestampValid($cookieFirstVisitTimestamp)) {
+            $cookieFirstVisitTimestamp = $this->getCurrentTimestamp();
+        }
+
+        $daysSinceFirstVisit = round(($this->getCurrentTimestamp() - $cookieFirstVisitTimestamp) / 86400, $precision = 0);
+
+        if ($daysSinceFirstVisit < 0) {
+            $daysSinceFirstVisit = 0;
+        }
+
+        return $daysSinceFirstVisit;
     }
 
     /**
@@ -492,10 +313,96 @@ const GENERATION_TIME_MS_MAXIMUM = 3600000;
         return Common::getRequestVar('revenue', $defaultGoalRevenue, 'float', $this->params);
     }
 
+    public function getParam($name)
+    {
+        static $supportedParams = array(
+            // Name => array( defaultValue, type )
+            '_refts'       => array(0, 'int'),
+            '_ref'         => array('', 'string'),
+            '_rcn'         => array('', 'string'),
+            '_rck'         => array('', 'string'),
+            '_idts'        => array(0, 'int'),
+            '_viewts'      => array(0, 'int'),
+            '_ects'        => array(0, 'int'),
+            '_idvc'        => array(1, 'int'),
+            'url'          => array('', 'string'),
+            'urlref'       => array('', 'string'),
+            'res'          => array(self::UNKNOWN_RESOLUTION, 'string'),
+            'idgoal'       => array(-1, 'int'),
+            'ping'         => array(0, 'int'),
+
+            // other
+            'bots'         => array(0, 'int'),
+            'dp'           => array(0, 'int'),
+            'rec'          => array(0, 'int'),
+            'new_visit'    => array(0, 'int'),
+
+            // Ecommerce
+            'ec_id'        => array('', 'string'),
+            'ec_st'        => array(false, 'float'),
+            'ec_tx'        => array(false, 'float'),
+            'ec_sh'        => array(false, 'float'),
+            'ec_dt'        => array(false, 'float'),
+            'ec_items'     => array('', 'json'),
+
+            // Events
+            'e_c'          => array('', 'string'),
+            'e_a'          => array('', 'string'),
+            'e_n'          => array('', 'string'),
+            'e_v'          => array(false, 'float'),
+
+            // some visitor attributes can be overwritten
+            'cip'          => array('', 'string'),
+            'cdt'          => array('', 'string'),
+            'cid'          => array('', 'string'),
+            'uid'          => array('', 'string'),
+
+            // Actions / pages
+            'cs'           => array('', 'string'),
+            'download'     => array('', 'string'),
+            'link'         => array('', 'string'),
+            'action_name'  => array('', 'string'),
+            'search'       => array('', 'string'),
+            'search_cat'   => array('', 'string'),
+            'search_count' => array(-1, 'int'),
+            'gt_ms'        => array(-1, 'int'),
+
+            // Content
+            'c_p'          => array('', 'string'),
+            'c_n'          => array('', 'string'),
+            'c_t'          => array('', 'string'),
+            'c_i'          => array('', 'string'),
+        );
+
+        if (isset($this->paramsCache[$name])) {
+            return $this->paramsCache[$name];
+        }
+
+        if (!isset($supportedParams[$name])) {
+            throw new Exception("Requested parameter $name is not a known Tracking API Parameter.");
+        }
+
+        $paramDefaultValue = $supportedParams[$name][0];
+        $paramType = $supportedParams[$name][1];
+
+        if ($this->hasParam($name)) {
+            $this->paramsCache[$name] = Common::getRequestVar($name, $paramDefaultValue, $paramType, $this->params);
+        } else {
+            $this->paramsCache[$name] = $paramDefaultValue;
+        }
+
+        return $this->paramsCache[$name];
+    }
+
     public function setParam($name, $value)
     {
         $this->params[$name] = $value;
         unset($this->paramsCache[$name]);
+    }
+
+    private function hasParam($name)
+    {
+        return isset($this->params[$name]);
     }
 
     public function getParams()
@@ -503,9 +410,106 @@ const GENERATION_TIME_MS_MAXIMUM = 3600000;
         return $this->params;
     }
 
+    public function getCurrentTimestamp()
+    {
+        if (!isset($this->cdtCache)) {
+            $this->cdtCache = $this->getCustomTimestamp();
+        }
+
+        if (!empty($this->cdtCache)) {
+            return $this->cdtCache;
+        }
+
+        return $this->timestamp;
+    }
+
     public function setCurrentTimestamp($timestamp)
     {
         $this->timestamp = $timestamp;
+    }
+
+    protected function getCustomTimestamp()
+    {
+        if (!$this->hasParam('cdt')) {
+            return false;
+        }
+
+        $cdt = $this->getParam('cdt');
+
+        if (empty($cdt)) {
+            return false;
+        }
+
+        if (!is_numeric($cdt)) {
+            $cdt = strtotime($cdt);
+        }
+
+        if (!$this->isTimestampValid($cdt, $this->timestamp)) {
+            Common::printDebug(sprintf("Datetime %s is not valid", date("Y-m-d H:i:m", $cdt)));
+            return false;
+        }
+
+        // If timestamp in the past, token_auth is required
+        $timeFromNow = $this->timestamp - $cdt;
+        $isTimestampRecent = $timeFromNow < self::CUSTOM_TIMESTAMP_DOES_NOT_REQUIRE_TOKENAUTH_WHEN_NEWER_THAN;
+
+        if (!$isTimestampRecent) {
+            if (!$this->isAuthenticated()) {
+                Common::printDebug(sprintf("Custom timestamp is %s seconds old, requires &token_auth...", $timeFromNow));
+                Common::printDebug("WARN: Tracker API 'cdt' was used with invalid token_auth");
+                return false;
+            }
+        }
+
+        return $cdt;
+    }
+
+    /**
+     * Returns true if the timestamp is valid ie. timestamp is sometime in the last 10 years and is not in the future.
+     *
+     * @param $time int Timestamp to test
+     * @param $now int Current timestamp
+     * @return bool
+     */
+    protected function isTimestampValid($time, $now = null)
+    {
+        if (empty($now)) {
+            $now = $this->getCurrentTimestamp();
+        }
+
+        return $time <= $now
+            && $time > $now - 10 * 365 * 86400;
+    }
+
+    public function getIdSite()
+    {
+        if (isset($this->idSiteCache)) {
+            return $this->idSiteCache;
+        }
+
+        $idSite = Common::getRequestVar('idsite', 0, 'int', $this->params);
+
+        /**
+         * Triggered when obtaining the ID of the site we are tracking a visit for.
+         *
+         * This event can be used to change the site ID so data is tracked for a different
+         * website.
+         *
+         * @param int &$idSite Initialized to the value of the **idsite** query parameter. If a
+         *                     subscriber sets this variable, the value it uses must be greater
+         *                     than 0.
+         * @param array $params The entire array of request parameters in the current tracking
+         *                      request.
+         */
+        Piwik::postEvent('Tracker.Request.getIdSite', array(&$idSite, $this->params));
+
+        if ($idSite <= 0) {
+            throw new UnexpectedWebsiteFoundException('Invalid idSite: \'' . $idSite . '\'');
+        }
+
+        $this->idSiteCache = $idSite;
+
+        return $idSite;
     }
 
     public function getUserAgent()
@@ -522,6 +526,11 @@ const GENERATION_TIME_MS_MAXIMUM = 3600000;
     public function getCustomVariablesInVisitScope()
     {
         return $this->getCustomVariables('visit');
+    }
+
+    public function getCustomVariablesInPageScope()
+    {
+        return $this->getCustomVariables('page');
     }
 
     /**
@@ -576,9 +585,9 @@ const GENERATION_TIME_MS_MAXIMUM = 3600000;
         return substr(trim($input), 0, CustomVariables::getMaxLengthCustomVariables());
     }
 
-    public function getCustomVariablesInPageScope()
+    protected function shouldUseThirdPartyCookie()
     {
-        return $this->getCustomVariables('page');
+        return (bool)Config::getInstance()->Tracker['use_third_party_id_cookie'];
     }
 
     /**
@@ -596,11 +605,6 @@ const GENERATION_TIME_MS_MAXIMUM = 3600000;
         // idcookie has been generated in handleNewVisit or we simply propagate the old value
         $cookie->set(0, bin2hex($idVisitor));
         $cookie->save();
-    }
-
-    protected function shouldUseThirdPartyCookie()
-    {
-        return (bool)Config::getInstance()->Tracker['use_third_party_id_cookie'];
     }
 
     protected function makeThirdPartyCookie()
@@ -694,6 +698,11 @@ const GENERATION_TIME_MS_MAXIMUM = 3600000;
         return false;
     }
 
+    public function getIp()
+    {
+        return IPUtils::stringToBinaryIP($this->getIpString());
+    }
+
     public function getForcedUserId()
     {
         $userId = $this->getParam('uid');
@@ -702,6 +711,49 @@ const GENERATION_TIME_MS_MAXIMUM = 3600000;
         }
 
         return false;
+    }
+
+    public function getForcedVisitorId()
+    {
+        return $this->getParam('cid');
+    }
+
+    public function getPlugins()
+    {
+        static $pluginsInOrder = array('fla', 'java', 'dir', 'qt', 'realp', 'pdf', 'wma', 'gears', 'ag', 'cookie');
+        $plugins = array();
+        foreach ($pluginsInOrder as $param) {
+            $plugins[] = Common::getRequestVar($param, 0, 'int', $this->params);
+        }
+        return $plugins;
+    }
+
+    public function isEmptyRequest()
+    {
+        return $this->isEmptyRequest;
+    }
+
+    const GENERATION_TIME_MS_MAXIMUM = 3600000; // 1 hour
+
+    public function getPageGenerationTime()
+    {
+        $generationTime = $this->getParam('gt_ms');
+        if ($generationTime > 0
+            && $generationTime < self::GENERATION_TIME_MS_MAXIMUM
+        ) {
+            return (int)$generationTime;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $idVisitor
+     * @return string
+     */
+    private function truncateIdAsVisitorId($idVisitor)
+    {
+        return substr($idVisitor, 0, Tracker::LENGTH_HEX_ID_STRING);
     }
 
     /**
@@ -714,25 +766,6 @@ const GENERATION_TIME_MS_MAXIMUM = 3600000;
     {
         return substr(sha1($userId), 0, 16);
     }
-
-    /**
-     * @param $idVisitor
-     * @return string
-     */
-    private function truncateIdAsVisitorId($idVisitor)
-    {
-        return substr($idVisitor, 0, Tracker::LENGTH_HEX_ID_STRING);
-    }
-
-    public function getForcedVisitorId()
-    {
-        return $this->getParam('cid');
-    }
-
-        public function getIp()
-    {
-        return IPUtils::stringToBinaryIP($this->getIpString());
-    } // 1 hour
 
     /**
      * @return mixed|string
@@ -752,33 +785,6 @@ const GENERATION_TIME_MS_MAXIMUM = 3600000;
         }
 
         return $cip;
-    }
-
-    public function getPlugins()
-    {
-        static $pluginsInOrder = array('fla', 'java', 'dir', 'qt', 'realp', 'pdf', 'wma', 'gears', 'ag', 'cookie');
-        $plugins = array();
-        foreach ($pluginsInOrder as $param) {
-            $plugins[] = Common::getRequestVar($param, 0, 'int', $this->params);
-        }
-        return $plugins;
-    }
-
-    public function isEmptyRequest()
-    {
-        return $this->isEmptyRequest;
-    }
-
-    public function getPageGenerationTime()
-    {
-        $generationTime = $this->getParam('gt_ms');
-        if ($generationTime > 0
-            && $generationTime < self::GENERATION_TIME_MS_MAXIMUM
-        ) {
-            return (int)$generationTime;
-        }
-
-        return false;
     }
 
     /**

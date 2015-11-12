@@ -54,20 +54,23 @@ require_once(dirname(__FILE__).'/include/tcpdf_filters.php');
 class TCPDF_PARSER {
 
 	/**
+	 * Raw content of the PDF document.
+	 * @private
+	 */
+	private $pdfdata = '';
+
+	/**
 	 * XREF data.
 	 * @protected
 	 */
 	protected $xref = array();
+
 	/**
 	 * Array of PDF objects.
 	 * @protected
 	 */
 	protected $objects = array();
-	/**
-	 * Raw content of the PDF document.
-	 * @private
-	 */
-	private $pdfdata = '';
+
 	/**
 	 * Class object for decoding filters.
 	 * @private
@@ -101,7 +104,7 @@ class TCPDF_PARSER {
 			$this->Error('Empty PDF data.');
 		}
 		// find the pdf header starting position
-		if (($trimpos = strpos($data, '%PDF-')) === false) {
+		if (($trimpos = strpos($data, '%PDF-')) === FALSE) {
 			$this->Error('Invalid PDF data: missing %PDF header.');
 		}
 		// get PDF content string
@@ -126,20 +129,6 @@ class TCPDF_PARSER {
 	}
 
 	/**
-	 * Throw an exception or print an error message and die if the K_TCPDF_PARSER_THROW_EXCEPTION_ERROR constant is set to true.
-	 * @param $msg (string) The error message
-	 * @public
-	 * @since 1.0.000 (2011-05-23)
-	 */
-	public function Error($msg) {
-		if ($this->cfg['die_for_errors']) {
-			die('<strong>TCPDF_PARSER ERROR: </strong>'.$msg);
-		} else {
-			throw new Exception('TCPDF_PARSER ERROR: '.$msg);
-		}
-	}
-
-	/**
 	 * Set the configuration parameters.
 	 * @param $cfg (array) Array of configuration parameters:
 	 * 			'die_for_errors' : if true termitate the program execution in case of error, otherwise thows an exception;
@@ -157,6 +146,16 @@ class TCPDF_PARSER {
 		if (isset($cfg['ignore_missing_filter_decoders'])) {
 			$this->cfg['ignore_missing_filter_decoders'] = !!$cfg['ignore_missing_filter_decoders'];
 		}
+	}
+
+	/**
+	 * Return an array of parsed PDF document objects.
+	 * @return (array) Array of parsed PDF document objects.
+	 * @public
+	 * @since 1.0.000 (2011-06-26)
+	 */
+	public function getParsedData() {
+		return array($this->xref, $this->objects);
 	}
 
 	/**
@@ -603,7 +602,7 @@ class TCPDF_PARSER {
 						// remove white space characters
 						$objval = strtr($matches[1], "\x09\x0a\x0c\x0d\x20", '');
 						$offset += strlen($matches[0]);
-					} elseif (($endpos = strpos($this->pdfdata, '>', $offset)) !== false) {
+					} elseif (($endpos = strpos($this->pdfdata, '>', $offset)) !== FALSE) {
 						$offset = $endpos + 1;
                     }
 				}
@@ -712,6 +711,28 @@ class TCPDF_PARSER {
 	}
 
 	/**
+	 * Get the content of object, resolving indect object reference if necessary.
+	 * @param $obj (string) Object value.
+	 * @return array containing object data.
+	 * @protected
+	 * @since 1.0.000 (2011-06-26)
+	 */
+	protected function getObjectVal($obj) {
+		if ($obj[0] == 'objref') {
+			// reference to indirect object
+			if (isset($this->objects[$obj[1]])) {
+				// this object has been already parsed
+				return $this->objects[$obj[1]];
+			} elseif (isset($this->xref[$obj[1]])) {
+				// parse new object
+				$this->objects[$obj[1]] = $this->getIndirectObject($obj[1], $this->xref[$obj[1]], false);
+				return $this->objects[$obj[1]];
+			}
+		}
+		return $obj;
+	}
+
+	/**
 	 * Decode the specified stream.
 	 * @param $sdic (array) Stream's dictionary array.
 	 * @param $stream (string) Stream to decode.
@@ -774,35 +795,17 @@ class TCPDF_PARSER {
 	}
 
 	/**
-	 * Get the content of object, resolving indect object reference if necessary.
-	 * @param $obj (string) Object value.
-	 * @return array containing object data.
-	 * @protected
-	 * @since 1.0.000 (2011-06-26)
-	 */
-	protected function getObjectVal($obj) {
-		if ($obj[0] == 'objref') {
-			// reference to indirect object
-			if (isset($this->objects[$obj[1]])) {
-				// this object has been already parsed
-				return $this->objects[$obj[1]];
-			} elseif (isset($this->xref[$obj[1]])) {
-				// parse new object
-				$this->objects[$obj[1]] = $this->getIndirectObject($obj[1], $this->xref[$obj[1]], false);
-				return $this->objects[$obj[1]];
-			}
-		}
-		return $obj;
-	}
-
-	/**
-	 * Return an array of parsed PDF document objects.
-	 * @return (array) Array of parsed PDF document objects.
+	 * Throw an exception or print an error message and die if the K_TCPDF_PARSER_THROW_EXCEPTION_ERROR constant is set to true.
+	 * @param $msg (string) The error message
 	 * @public
-	 * @since 1.0.000 (2011-06-26)
+	 * @since 1.0.000 (2011-05-23)
 	 */
-	public function getParsedData() {
-		return array($this->xref, $this->objects);
+	public function Error($msg) {
+		if ($this->cfg['die_for_errors']) {
+			die('<strong>TCPDF_PARSER ERROR: </strong>'.$msg);
+		} else {
+			throw new Exception('TCPDF_PARSER ERROR: '.$msg);
+		}
 	}
 
 } // END OF TCPDF_PARSER CLASS

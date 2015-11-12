@@ -44,34 +44,6 @@ class RawLogDao
     }
 
     /**
-     * @param array $columnsToSet
-     * @return string
-     */
-    protected function getColumnSetExpressions(array $columnsToSet)
-    {
-        $columnsToSet = array_map(
-            function ($column) {
-                return $column . ' = ?';
-            },
-            $columnsToSet
-        );
-
-        return implode(', ', $columnsToSet);
-    }
-
-    /**
-     * @param array $values
-     * @param $idVisit
-     * @param $sql
-     * @return \Zend_Db_Statement
-     * @throws \Exception
-     */
-    protected function update($sql, array $values, $idVisit)
-    {
-        return Db::query($sql, array_merge(array_values($values), array($idVisit)));
-    }
-
-    /**
      * @param array $values
      * @param string $idVisit
      */
@@ -141,49 +113,6 @@ class RawLogDao
         } while (count($rows) == $iterationStep);
     }
 
-    private function getIdFieldForLogTable($logTable)
-    {
-        switch ($logTable) {
-            case 'log_visit':
-                return 'idvisit';
-            case 'log_link_visit_action':
-                return 'idlink_va';
-            case 'log_conversion':
-                return 'idvisit';
-            case 'log_conversion_item':
-                return 'idvisit';
-            case 'log_action':
-                return 'idaction';
-            default:
-                throw new \InvalidArgumentException("Unknown log table '$logTable'.");
-        }
-    }
-
-    private function createLogIterationQuery($logTable, $idField, $fields, $conditions, $iterationStep)
-    {
-        $bind = array();
-
-        $sql = "SELECT " . implode(', ', $fields) . " FROM `" . Common::prefixTable($logTable) . "` WHERE $idField > ?";
-
-        foreach ($conditions as $condition) {
-            list($column, $operator, $value) = $condition;
-
-            if (is_array($value)) {
-                $sql .= " AND $column IN (" . Common::getSqlStringFieldsArray($value) . ")";
-
-                $bind = array_merge($bind, $value);
-            } else {
-                $sql .= " AND $column $operator ?";
-
-                $bind[] = $value;
-            }
-        }
-
-        $sql .= " ORDER BY $idField ASC LIMIT " . (int)$iterationStep;
-
-        return array($sql, $bind);
-    }
-
     /**
      * Deletes visits with the supplied IDs from log_visit. This method does not cascade, so rows in other tables w/
      * the same visit ID will still exist.
@@ -198,26 +127,6 @@ class RawLogDao
 
         $statement = Db::query($sql);
         return $statement->rowCount();
-    }
-
-    private function getInFieldExpressionWithInts($idVisits)
-    {
-        $sql = "(";
-
-        $isFirst = true;
-        foreach ($idVisits as $idVisit) {
-            if ($isFirst) {
-                $isFirst = false;
-            } else {
-                $sql .= ', ';
-            }
-
-            $sql .= (int)$idVisit;
-        }
-
-        $sql .= ")";
-
-        return $sql;
     }
 
     /**
@@ -266,9 +175,6 @@ class RawLogDao
         return $statement->rowCount();
     }
 
-    // TODO: instead of creating a log query like this, we should re-use segments. to do this, however, there must be a 1-1
-    //       mapping for dimensions => segments, and each dimension should automatically have a segment.
-
     /**
      * Deletes all unused entries from the log_action table. This method uses a temporary table to store used
      * actions, and then deletes rows from log_action that are not in this temporary table.
@@ -301,6 +207,120 @@ class RawLogDao
         Db::unlockAllTables();
     }
 
+
+    /**
+     * Returns the list of the website IDs that received some visits between the specified timestamp.
+     *
+     * @param string $fromDateTime
+     * @param string $toDateTime
+     * @return bool true if there are visits for this site between the given timeframe, false if not
+     */
+    public function hasSiteVisitsBetweenTimeframe($fromDateTime, $toDateTime, $idSite)
+    {
+        $sites = Db::fetchOne("SELECT 1
+                FROM " . Common::prefixTable('log_visit') . "
+                WHERE idsite = ?
+                AND visit_last_action_time > ?
+                AND visit_last_action_time < ?
+                LIMIT 1", array($idSite, $fromDateTime, $toDateTime));
+
+        return (bool) $sites;
+    }
+
+    /**
+     * @param array $columnsToSet
+     * @return string
+     */
+    protected function getColumnSetExpressions(array $columnsToSet)
+    {
+        $columnsToSet = array_map(
+            function ($column) {
+                return $column . ' = ?';
+            },
+            $columnsToSet
+        );
+
+        return implode(', ', $columnsToSet);
+    }
+
+    /**
+     * @param array $values
+     * @param $idVisit
+     * @param $sql
+     * @return \Zend_Db_Statement
+     * @throws \Exception
+     */
+    protected function update($sql, array $values, $idVisit)
+    {
+        return Db::query($sql, array_merge(array_values($values), array($idVisit)));
+    }
+
+    private function getIdFieldForLogTable($logTable)
+    {
+        switch ($logTable) {
+            case 'log_visit':
+                return 'idvisit';
+            case 'log_link_visit_action':
+                return 'idlink_va';
+            case 'log_conversion':
+                return 'idvisit';
+            case 'log_conversion_item':
+                return 'idvisit';
+            case 'log_action':
+                return 'idaction';
+            default:
+                throw new \InvalidArgumentException("Unknown log table '$logTable'.");
+        }
+    }
+
+    // TODO: instead of creating a log query like this, we should re-use segments. to do this, however, there must be a 1-1
+    //       mapping for dimensions => segments, and each dimension should automatically have a segment.
+    private function createLogIterationQuery($logTable, $idField, $fields, $conditions, $iterationStep)
+    {
+        $bind = array();
+
+        $sql = "SELECT " . implode(', ', $fields) . " FROM `" . Common::prefixTable($logTable) . "` WHERE $idField > ?";
+
+        foreach ($conditions as $condition) {
+            list($column, $operator, $value) = $condition;
+
+            if (is_array($value)) {
+                $sql .= " AND $column IN (" . Common::getSqlStringFieldsArray($value) . ")";
+
+                $bind = array_merge($bind, $value);
+            } else {
+                $sql .= " AND $column $operator ?";
+
+                $bind[] = $value;
+            }
+        }
+
+        $sql .= " ORDER BY $idField ASC LIMIT " . (int)$iterationStep;
+
+        return array($sql, $bind);
+    }
+
+    private function getInFieldExpressionWithInts($idVisits)
+    {
+        $sql = "(";
+
+        $isFirst = true;
+        foreach ($idVisits as $idVisit) {
+            if ($isFirst) {
+                $isFirst = false;
+            } else {
+                $sql .= ', ';
+            }
+
+            $sql .= (int)$idVisit;
+        }
+
+        $sql .= ")";
+
+        return $sql;
+    }
+
+
     private function getMaxIdsInLogTables()
     {
         $tables = array('log_conversion', 'log_link_visit_action', 'log_visit', 'log_conversion_item');
@@ -313,16 +333,6 @@ class RawLogDao
         }
 
         return $result;
-    }
-
-    private function getTableIdColumns()
-    {
-        return array(
-            'log_link_visit_action' => 'idlink_va',
-            'log_conversion'        => 'idvisit',
-            'log_visit'             => 'idvisit',
-            'log_conversion_item'   => 'idvisit'
-        );
     }
 
     private function createTempTableForStoringUsedActions()
@@ -380,22 +390,13 @@ class RawLogDao
         Db::query($deleteSql);
     }
 
-    /**
-     * Returns the list of the website IDs that received some visits between the specified timestamp.
-     *
-     * @param string $fromDateTime
-     * @param string $toDateTime
-     * @return bool true if there are visits for this site between the given timeframe, false if not
-     */
-    public function hasSiteVisitsBetweenTimeframe($fromDateTime, $toDateTime, $idSite)
+    private function getTableIdColumns()
     {
-        $sites = Db::fetchOne("SELECT 1
-                FROM " . Common::prefixTable('log_visit') . "
-                WHERE idsite = ?
-                AND visit_last_action_time > ?
-                AND visit_last_action_time < ?
-                LIMIT 1", array($idSite, $fromDateTime, $toDateTime));
-
-        return (bool) $sites;
+        return array(
+            'log_link_visit_action' => 'idlink_va',
+            'log_conversion'        => 'idvisit',
+            'log_visit'             => 'idvisit',
+            'log_conversion_item'   => 'idvisit'
+        );
     }
 }

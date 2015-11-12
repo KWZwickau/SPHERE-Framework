@@ -8,16 +8,23 @@
  */
 namespace Piwik\Plugins\Live\Reports;
 
-use Piwik\API\Request;
 use Piwik\Config;
 use Piwik\Metrics\Formatter;
 use Piwik\Piwik;
 use Piwik\Plugin\Report;
 use Piwik\Plugins\Live\Controller;
+use Piwik\API\Request;
 use Piwik\View;
 
 class GetSimpleLastVisitCount extends Base
 {
+    protected function init()
+    {
+        parent::init();
+        $this->widgetTitle = 'Live_RealTimeVisitorCount';
+        $this->order = 3;
+    }
+
     public function render()
     {
         $lastMinutes = Config::getInstance()->General[Controller::SIMPLE_VISIT_COUNT_WIDGET_LAST_MINUTES_CONFIG_KEY];
@@ -45,12 +52,5 @@ class GetSimpleLastVisitCount extends Base
         );
 
         return $view->render();
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->widgetTitle = 'Live_RealTimeVisitorCount';
-        $this->order = 3;
     }
 }

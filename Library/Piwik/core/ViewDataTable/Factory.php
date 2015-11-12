@@ -188,6 +188,21 @@ class Factory
     }
 
     /**
+     * Returns if the default viewDataTable ID to use is fixed.
+     *
+     * @param Report $report
+     * @return bool
+     */
+    private static function isDefaultViewTypeForReportFixed($report)
+    {
+        if (!empty($report) && $report->isEnabled()) {
+            return $report->alwaysUseDefaultViewDataTable();
+        }
+
+        return false;
+    }
+
+    /**
      * Returns a list of default viewDataTables ID to use when determining which visualization to use for multiple
      * reports.
      */
@@ -202,21 +217,6 @@ class Factory
         }
 
         return self::$defaultViewTypes;
-    }
-
-    /**
-     * Returns if the default viewDataTable ID to use is fixed.
-     *
-     * @param Report $report
-     * @return bool
-     */
-    private static function isDefaultViewTypeForReportFixed($report)
-    {
-        if (!empty($report) && $report->isEnabled()) {
-            return $report->alwaysUseDefaultViewDataTable();
-        }
-
-        return false;
     }
 
     /**

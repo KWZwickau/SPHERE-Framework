@@ -67,54 +67,6 @@ class GenerateTest extends GeneratePluginBase
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
-     * @return array
-     * @throws \RuntimeException
-     */
-    protected function getPluginName(InputInterface $input, OutputInterface $output)
-    {
-        $pluginNames = $this->getPluginNames();
-        $invalidName = 'You have to enter the name of an existing plugin';
-
-        return $this->askPluginNameAndValidate($input, $output, $pluginNames, $invalidName);
-    }
-
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return string Unit, Integration, System
-     */
-    private function getTestType(InputInterface $input, OutputInterface $output)
-    {
-        $testtype = $input->getOption('testtype');
-
-        $self = $this;
-
-        $validate = function ($testtype) use ($self) {
-            if (empty($testtype) || !in_array($testtype, $self->getValidTypes())) {
-                throw new \InvalidArgumentException('You have to enter a valid test type: ' . implode(" or ", $self->getValidTypes()));
-            }
-            return $testtype;
-        };
-
-        if (empty($testtype)) {
-            $dialog   = $this->getHelperSet()->get('dialog');
-            $testtype = $dialog->askAndValidate($output, 'Enter the type of the test to generate ('. implode(", ", $this->getValidTypes()).'): ', $validate, false, null, $this->getValidTypes());
-        } else {
-            $validate($testtype);
-        }
-
-        $testtype = ucfirst($testtype);
-        return $testtype;
-    }
-
-    public function getValidTypes()
-    {
-        return array('unit', 'integration', 'system', 'ui');
-    }
-
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
      * @return string
      * @throws \RuntimeException
      */
@@ -144,6 +96,54 @@ class GenerateTest extends GeneratePluginBase
         $testname = ucfirst($testname);
 
         return $testname;
+    }
+
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return array
+     * @throws \RuntimeException
+     */
+    protected function getPluginName(InputInterface $input, OutputInterface $output)
+    {
+        $pluginNames = $this->getPluginNames();
+        $invalidName = 'You have to enter the name of an existing plugin';
+
+        return $this->askPluginNameAndValidate($input, $output, $pluginNames, $invalidName);
+    }
+
+    public function getValidTypes()
+    {
+        return array('unit', 'integration', 'system', 'ui');
+    }
+
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return string Unit, Integration, System
+     */
+    private function getTestType(InputInterface $input, OutputInterface $output)
+    {
+        $testtype = $input->getOption('testtype');
+
+        $self = $this;
+
+        $validate = function ($testtype) use ($self) {
+            if (empty($testtype) || !in_array($testtype, $self->getValidTypes())) {
+                throw new \InvalidArgumentException('You have to enter a valid test type: ' . implode(" or ", $self->getValidTypes()));
+            }
+            return $testtype;
+        };
+
+        if (empty($testtype)) {
+            $dialog   = $this->getHelperSet()->get('dialog');
+            $testtype = $dialog->askAndValidate($output, 'Enter the type of the test to generate ('. implode(", ", $this->getValidTypes()).'): ', $validate, false, null, $this->getValidTypes());
+        } else {
+            $validate($testtype);
+        }
+
+        $testtype = ucfirst($testtype);
+        return $testtype;
     }
 
     /**

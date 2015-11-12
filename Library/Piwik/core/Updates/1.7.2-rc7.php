@@ -18,6 +18,14 @@ use Piwik\Updates;
  */
 class Updates_1_7_2_rc7 extends Updates
 {
+    public function getMigrationQueries(Updater $updater)
+    {
+        return array(
+            'ALTER TABLE `' . Common::prefixTable('user_dashboard') . '`
+		        ADD `name` VARCHAR( 100 ) NULL DEFAULT NULL AFTER  `iddashboard`' => 1060,
+        );
+    }
+
     public function doUpdate(Updater $updater)
     {
         try {
@@ -33,13 +41,5 @@ class Updates_1_7_2_rc7 extends Updates
             $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
         } catch (\Exception $e) {
         }
-    }
-
-    public function getMigrationQueries(Updater $updater)
-    {
-        return array(
-            'ALTER TABLE `' . Common::prefixTable('user_dashboard') . '`
-		        ADD `name` VARCHAR( 100 ) NULL DEFAULT NULL AFTER  `iddashboard`' => 1060,
-        );
     }
 }

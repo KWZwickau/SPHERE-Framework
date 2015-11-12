@@ -57,6 +57,61 @@ class UrlHelper
     }
 
     /**
+     * Reduce URL to more minimal form.  2 letter country codes are
+     * replaced by '{}', while other parts are simply removed.
+     *
+     * Examples:
+     *   www.example.com -> example.com
+     *   search.example.com -> example.com
+     *   m.example.com -> example.com
+     *   de.example.com -> {}.example.com
+     *   example.de -> example.{}
+     *   example.co.uk -> example.{}
+     *
+     * @param string $url
+     * @return string
+     */
+    public static function getLossyUrl($url)
+    {
+        static $countries;
+        if (!isset($countries)) {
+            /** @var RegionDataProvider $regionDataProvider */
+            $regionDataProvider = StaticContainer::get('Piwik\Intl\Data\Provider\RegionDataProvider');
+            $countries = implode('|', array_keys($regionDataProvider->getCountryList(true)));
+        }
+
+        return preg_replace(
+            array(
+                 '/^(w+[0-9]*|search)\./',
+                 '/(^|\.)m\./',
+                 '/(\.(com|org|net|co|it|edu))?\.(' . $countries . ')(\/|$)/',
+                 '/(^|\.)(' . $countries . ')\./',
+            ),
+            array(
+                 '',
+                 '$1',
+                 '.{}$4',
+                 '$1{}.',
+            ),
+            $url);
+    }
+
+    /**
+     * Returns true if the string passed may be a URL ie. it starts with protocol://.
+     * We don't need a precise test here because the value comes from the website
+     * tracked source code and the URLs may look very strange.
+     *
+     * @api
+     * @param string $url
+     * @return bool
+     */
+    public static function isLookLikeUrl($url)
+    {
+        return preg_match('~^(([[:alpha:]][[:alnum:]+.-]*)?:)?//(.*)$~D', $url, $matches) !== 0
+            && strlen($matches[3]) > 0;
+    }
+
+    /**
      * Returns a URL created from the result of the [parse_url](http://php.net/manual/en/function.parse-url.php)
      * function.
      *
@@ -86,6 +141,98 @@ class UrlHelper
         $uri .= !empty($parsed['query']) ? '?' . $parsed['query'] : '';
         $uri .= !empty($parsed['fragment']) ? '#' . $parsed['fragment'] : '';
         return $uri;
+    }
+
+    /**
+     * Returns a URL query string as an array.
+     *
+     * @param string $urlQuery The query string, eg, `'?param1=value1&param2=value2'`.
+     * @return array eg, `array('param1' => 'value1', 'param2' => 'value2')`
+     * @api
+     */
+    public static function getArrayFromQueryString($urlQuery)
+    {
+        if (strlen($urlQuery) == 0) {
+            return array();
+        }
+
+        // TODO: this method should not use a cache. callers should instead have their own cache, configured through DI.
+        //       one undesirable side effect of using a cache here, is that this method can now init the StaticContainer, which makes setting
+        //       test environment for RequestCommand more complicated.
+        $cache    = Cache::getTransientCache();
+        $cacheKey = 'arrayFromQuery' . $urlQuery;
+
+        if ($cache->contains($cacheKey)) {
+            return $cache->fetch($cacheKey);
+        }
+
+        if ($urlQuery[0] == '?') {
+            $urlQuery = substr($urlQuery, 1);
+        }
+        $separator = '&';
+
+        $urlQuery = $separator . $urlQuery;
+        //		$urlQuery = str_replace(array('%20'), ' ', $urlQuery);
+        $referrerQuery = trim($urlQuery);
+
+        $values = explode($separator, $referrerQuery);
+
+        $nameToValue = array();
+
+        foreach ($values as $value) {
+            $pos = strpos($value, '=');
+            if ($pos !== false) {
+                $name = substr($value, 0, $pos);
+                $value = substr($value, $pos + 1);
+                if ($value === false) {
+                    $value = '';
+                }
+            } else {
+                $name = $value;
+                $value = false;
+            }
+            if (!empty($name)) {
+                $name = Common::sanitizeInputValue($name);
+            }
+            if (!empty($value)) {
+                $value = Common::sanitizeInputValue($value);
+            }
+
+            // if array without indexes
+            $count = 0;
+            $tmp = preg_replace('/(\[|%5b)(]|%5d)$/i', '', $name, -1, $count);
+            if (!empty($tmp) && $count) {
+                $name = $tmp;
+                if (isset($nameToValue[$name]) == false || is_array($nameToValue[$name]) == false) {
+                    $nameToValue[$name] = array();
+                }
+                array_push($nameToValue[$name], $value);
+            } elseif (!empty($name)) {
+                $nameToValue[$name] = $value;
+            }
+        }
+
+        $cache->save($cacheKey, $nameToValue);
+
+        return $nameToValue;
+    }
+
+    /**
+     * Returns the value of a single query parameter from the supplied query string.
+     *
+     * @param string $urlQuery The query string.
+     * @param string $parameter The query parameter name to return.
+     * @return string|null Parameter value if found (can be the empty string!), null if not found.
+     * @api
+     */
+    public static function getParameterFromQueryString($urlQuery, $parameter)
+    {
+        $nameToValue = self::getArrayFromQueryString($urlQuery);
+
+        if (isset($nameToValue[$parameter])) {
+            return $nameToValue[$parameter];
+        }
+        return null;
     }
 
     /**
@@ -348,138 +495,6 @@ class UrlHelper
     }
 
     /**
-     * Reduce URL to more minimal form.  2 letter country codes are
-     * replaced by '{}', while other parts are simply removed.
-     *
-     * Examples:
-     *   www.example.com -> example.com
-     *   search.example.com -> example.com
-     *   m.example.com -> example.com
-     *   de.example.com -> {}.example.com
-     *   example.de -> example.{}
-     *   example.co.uk -> example.{}
-     *
-     * @param string $url
-     * @return string
-     */
-    public static function getLossyUrl($url)
-    {
-        static $countries;
-        if (!isset($countries)) {
-            /** @var RegionDataProvider $regionDataProvider */
-            $regionDataProvider = StaticContainer::get('Piwik\Intl\Data\Provider\RegionDataProvider');
-            $countries = implode('|', array_keys($regionDataProvider->getCountryList(true)));
-        }
-
-        return preg_replace(
-            array(
-                 '/^(w+[0-9]*|search)\./',
-                 '/(^|\.)m\./',
-                 '/(\.(com|org|net|co|it|edu))?\.(' . $countries . ')(\/|$)/',
-                 '/(^|\.)(' . $countries . ')\./',
-            ),
-            array(
-                 '',
-                 '$1',
-                 '.{}$4',
-                 '$1{}.',
-            ),
-            $url);
-    }
-
-    /**
-     * Returns the value of a single query parameter from the supplied query string.
-     *
-     * @param string $urlQuery The query string.
-     * @param string $parameter The query parameter name to return.
-     * @return string|null Parameter value if found (can be the empty string!), null if not found.
-     * @api
-     */
-    public static function getParameterFromQueryString($urlQuery, $parameter)
-    {
-        $nameToValue = self::getArrayFromQueryString($urlQuery);
-
-        if (isset($nameToValue[$parameter])) {
-            return $nameToValue[$parameter];
-        }
-        return null;
-    }
-
-    /**
-     * Returns a URL query string as an array.
-     *
-     * @param string $urlQuery The query string, eg, `'?param1=value1&param2=value2'`.
-     * @return array eg, `array('param1' => 'value1', 'param2' => 'value2')`
-     * @api
-     */
-    public static function getArrayFromQueryString($urlQuery)
-    {
-        if (strlen($urlQuery) == 0) {
-            return array();
-        }
-
-        // TODO: this method should not use a cache. callers should instead have their own cache, configured through DI.
-        //       one undesirable side effect of using a cache here, is that this method can now init the StaticContainer, which makes setting
-        //       test environment for RequestCommand more complicated.
-        $cache    = Cache::getTransientCache();
-        $cacheKey = 'arrayFromQuery' . $urlQuery;
-
-        if ($cache->contains($cacheKey)) {
-            return $cache->fetch($cacheKey);
-        }
-
-        if ($urlQuery[0] == '?') {
-            $urlQuery = substr($urlQuery, 1);
-        }
-        $separator = '&';
-
-        $urlQuery = $separator . $urlQuery;
-        //		$urlQuery = str_replace(array('%20'), ' ', $urlQuery);
-        $referrerQuery = trim($urlQuery);
-
-        $values = explode($separator, $referrerQuery);
-
-        $nameToValue = array();
-
-        foreach ($values as $value) {
-            $pos = strpos($value, '=');
-            if ($pos !== false) {
-                $name = substr($value, 0, $pos);
-                $value = substr($value, $pos + 1);
-                if ($value === false) {
-                    $value = '';
-                }
-            } else {
-                $name = $value;
-                $value = false;
-            }
-            if (!empty($name)) {
-                $name = Common::sanitizeInputValue($name);
-            }
-            if (!empty($value)) {
-                $value = Common::sanitizeInputValue($value);
-            }
-
-            // if array without indexes
-            $count = 0;
-            $tmp = preg_replace('/(\[|%5b)(]|%5d)$/i', '', $name, -1, $count);
-            if (!empty($tmp) && $count) {
-                $name = $tmp;
-                if (isset($nameToValue[$name]) == false || is_array($nameToValue[$name]) == false) {
-                    $nameToValue[$name] = array();
-                }
-                array_push($nameToValue[$name], $value);
-            } elseif (!empty($name)) {
-                $nameToValue[$name] = $value;
-            }
-        }
-
-        $cache->save($cacheKey, $nameToValue);
-
-        return $nameToValue;
-    }
-
-    /**
      * Returns the query part from any valid url and adds additional parameters to the query part if needed.
      *
      * @param string $url    Any url eg `"http://example.com/piwik/?foo=bar"`
@@ -514,20 +529,5 @@ class UrlHelper
             $url = "http://" . $url;
         }
         return parse_url($url, PHP_URL_HOST);
-    }
-
-    /**
-     * Returns true if the string passed may be a URL ie. it starts with protocol://.
-     * We don't need a precise test here because the value comes from the website
-     * tracked source code and the URLs may look very strange.
-     *
-     * @api
-     * @param string $url
-     * @return bool
-     */
-    public static function isLookLikeUrl($url)
-    {
-        return preg_match('~^(([[:alpha:]][[:alnum:]+.-]*)?:)?//(.*)$~D', $url, $matches) !== 0
-            && strlen($matches[3]) > 0;
     }
 }

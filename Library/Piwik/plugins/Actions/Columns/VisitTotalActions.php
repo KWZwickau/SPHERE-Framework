@@ -10,15 +10,24 @@ namespace Piwik\Plugins\Actions\Columns;
 
 use Piwik\Plugin\Dimension\VisitDimension;
 use Piwik\Plugins\CoreHome\Segment;
-use Piwik\Tracker;
 use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
+use Piwik\Tracker;
 use Piwik\Tracker\Visitor;
 
 class VisitTotalActions extends VisitDimension
 {
     protected $columnName = 'visit_total_actions';
     protected $columnType = 'SMALLINT(5) UNSIGNED NOT NULL';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setType(Segment::TYPE_METRIC);
+        $segment->setSegment('actions');
+        $segment->setName('General_NbActions');
+        $this->addSegment($segment);
+    }
 
     /**
      * @param Request $request
@@ -76,15 +85,6 @@ class VisitTotalActions extends VisitDimension
         }
 
         return false;
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setType(Segment::TYPE_METRIC);
-        $segment->setSegment('actions');
-        $segment->setName('General_NbActions');
-        $this->addSegment($segment);
     }
 
 }

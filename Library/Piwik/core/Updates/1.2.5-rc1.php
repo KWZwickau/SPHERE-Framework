@@ -17,11 +17,6 @@ use Piwik\Updates;
  */
 class Updates_1_2_5_rc1 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -32,5 +27,10 @@ class Updates_1_2_5_rc1 extends Updates
 				DROP PRIMARY KEY,
 		    	ADD PRIMARY KEY (idvisit, idgoal, buster)' => 1060,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

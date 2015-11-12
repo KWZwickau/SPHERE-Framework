@@ -17,17 +17,17 @@ class PageTitle extends ActionDimension
     protected $columnName = 'idaction_name';
     protected $columnType = 'INTEGER(10) UNSIGNED';
 
-    public function getName()
-    {
-        return Piwik::translate('Actions_ColumnPageName');
-    }
-
     protected function configureSegments()
     {
         $segment = new Segment();
         $segment->setSegment('pageTitle');
         $segment->setName('Actions_ColumnPageName');
         $this->addSegment($segment);
+    }
+
+    public function getName()
+    {
+        return Piwik::translate('Actions_ColumnPageName');
     }
 
 }

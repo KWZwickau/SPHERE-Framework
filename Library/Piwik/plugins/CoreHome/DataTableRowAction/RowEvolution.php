@@ -85,7 +85,7 @@ class RowEvolution
     public function __construct($idSite, $date, $graphType = 'graphEvolution')
     {
         $this->apiMethod = Common::getRequestVar('apiMethod', '', 'string');
-        if (empty($this->apiMethod)) {throw new Exception("Parameter apiMethod not set.");}
+        if (empty($this->apiMethod)) throw new Exception("Parameter apiMethod not set.");
 
         $this->label = DataTablePostProcessor::getLabelFromRequest($_GET);
         if (!is_array($this->label)) {
@@ -93,7 +93,7 @@ class RowEvolution
         }
         $this->label = $this->label[0];
 
-        if ($this->label === '') {throw new Exception("Parameter label not set.");}
+        if ($this->label === '') throw new Exception("Parameter label not set.");
 
         $this->period = Common::getRequestVar('period', '', 'string');
         PeriodFactory::checkPeriodIsEnabled($this->period);
@@ -109,6 +109,36 @@ class RowEvolution
         $this->segment = \Piwik\API\Request::getRawSegmentFromRequest();
 
         $this->loadEvolutionReport();
+    }
+
+    /**
+     * Render the popover
+     * @param \Piwik\Plugins\CoreHome\Controller $controller
+     * @param View (the popover_rowevolution template)
+     */
+    public function renderPopover($controller, $view)
+    {
+        // render main evolution graph
+        $this->graphType = 'graphEvolution';
+        $this->graphMetrics = $this->availableMetrics;
+        $view->graph = $controller->getRowEvolutionGraph($fetch = true, $rowEvolution = $this);
+
+        // render metrics overview
+        $view->metrics = $this->getMetricsToggles();
+
+        // available metrics text
+        $metricsText = Piwik::translate('RowEvolution_AvailableMetrics');
+        $popoverTitle = '';
+        if ($this->rowLabel) {
+            $icon = $this->rowIcon ? '<img src="' . $this->rowIcon . '" alt="">' : '';
+            $metricsText = sprintf(Piwik::translate('RowEvolution_MetricsFor'), $this->dimension . ': ' . $icon . ' ' . $this->rowLabel);
+            $popoverTitle = $icon . ' ' . $this->rowLabel;
+        }
+
+        $view->availableMetricsText = $metricsText;
+        $view->popoverTitle = $popoverTitle;
+
+        return $view->render();
     }
 
     protected function loadEvolutionReport($column = false)
@@ -153,55 +183,40 @@ class RowEvolution
     }
 
     /**
-     * @param $report
-     * @return string
+     * Generic method to get an evolution graph or a sparkline for the row evolution popover.
+     * Do as much as possible from outside the controller.
+     * @param string|bool $graphType
+     * @param array|bool $metrics
+     * @return Factory
      */
-    protected function extractPrettyLabel($report)
+    public function getRowEvolutionGraph($graphType = false, $metrics = false)
     {
-        // By default, use the specified label
-        $rowLabel = Common::sanitizeInputValue($report['label']);
-        $rowLabel = str_replace('/', '<wbr>/', str_replace('&', '<wbr>&', $rowLabel ));
+        // set up the view data table
+        $view = Factory::build($graphType ? : $this->graphType, $this->apiMethod,
+            $controllerAction = 'CoreHome.getRowEvolutionGraph', $forceDefault = true);
+        $view->setDataTable($this->dataTable);
 
-        // If the dataTable specifies a label_html, use this instead
-        /** @var $dataTableMap \Piwik\DataTable\Map */
-        $dataTableMap = $report['reportData'];
-        $labelPretty = $dataTableMap->getColumn('label_html');
-        $labelPretty = array_filter($labelPretty, 'strlen');
-        $labelPretty = current($labelPretty);
-        if (!empty($labelPretty)) {
-            return $labelPretty;
-        }
-        return $rowLabel;
-    }
-
-    /**
-     * Render the popover
-     * @param \Piwik\Plugins\CoreHome\Controller $controller
-     * @param View (the popover_rowevolution template)
-     */
-    public function renderPopover($controller, $view)
-    {
-        // render main evolution graph
-        $this->graphType = 'graphEvolution';
-        $this->graphMetrics = $this->availableMetrics;
-        $view->graph = $controller->getRowEvolutionGraph($fetch = true, $rowEvolution = $this);
-
-        // render metrics overview
-        $view->metrics = $this->getMetricsToggles();
-
-        // available metrics text
-        $metricsText = Piwik::translate('RowEvolution_AvailableMetrics');
-        $popoverTitle = '';
-        if ($this->rowLabel) {
-            $icon = $this->rowIcon ? '<img src="' . $this->rowIcon . '" alt="">' : '';
-            $metricsText = sprintf(Piwik::translate('RowEvolution_MetricsFor'), $this->dimension . ': ' . $icon . ' ' . $this->rowLabel);
-            $popoverTitle = $icon . ' ' . $this->rowLabel;
+        if (!empty($this->graphMetrics)) { // In row Evolution popover, this is empty
+            $view->config->columns_to_display = array_keys($metrics ? : $this->graphMetrics);
         }
 
-        $view->availableMetricsText = $metricsText;
-        $view->popoverTitle = $popoverTitle;
+        $view->requestConfig->request_parameters_to_modify['label'] = '';
+        $view->config->show_goals = false;
+        $view->config->show_search = false;
+        $view->config->show_all_views_icons = false;
+        $view->config->show_active_view_icon = false;
+        $view->config->show_related_reports  = false;
+        $view->config->show_series_picker    = false;
+        $view->config->show_footer_message   = false;
 
-        return $view->render();
+        foreach ($this->availableMetrics as $metric => $metadata) {
+            $view->config->translations[$metric] = $metadata['name'];
+        }
+
+        $view->config->external_series_toggle = 'RowEvolutionSeriesToggle';
+        $view->config->external_series_toggle_show_all = $this->initiallyShowAllMetrics;
+
+        return $view;
     }
 
     /**
@@ -227,13 +242,13 @@ class RowEvolution
                 if (substr($change, 0, 1) == '+') {
                     $changeClass = $lowerIsBetter ? 'bad' : 'good';
                     $changeImage = $lowerIsBetter ? 'arrow_up_red' : 'arrow_up';
-                } else {if (substr($change, 0, 1) == '-') {
+                } else if (substr($change, 0, 1) == '-') {
                     $changeClass = $lowerIsBetter ? 'good' : 'bad';
                     $changeImage = $lowerIsBetter ? 'arrow_down_green' : 'arrow_down';
                 } else {
                     $changeClass = 'neutral';
                     $changeImage = false;
-                }}
+                }
 
                 $change = '<span class="' . $changeClass . '">'
                     . ($changeImage ? '<img src="plugins/MultiSites/images/' . $changeImage . '.png" /> ' : '')
@@ -279,6 +294,31 @@ class RowEvolution
         return $metrics;
     }
 
+    /** Get the img tag for a sparkline showing a single metric */
+    protected function getSparkline($metric)
+    {
+        // sparkline is always echoed, so we need to buffer the output
+        $view = $this->getRowEvolutionGraph($graphType = 'sparkline', $metrics = array($metric => $metric));
+
+        ob_start();
+        $view->render();
+        $spark = ob_get_contents();
+        ob_end_clean();
+
+        // undo header change by sparkline renderer
+        header('Content-type: text/html');
+
+        // base64 encode the image and put it in an img tag
+        $spark = base64_encode($spark);
+        return '<img src="data:image/png;base64,' . $spark . '" />';
+    }
+
+    /** Use the available metrics for the metrics of the last requested graph. */
+    public function useAvailableMetrics()
+    {
+        $this->graphMetrics = $this->availableMetrics;
+    }
+
     private function getFirstAndLastDataPointsForMetric($metric)
     {
         $first = 0;
@@ -302,65 +342,25 @@ class RowEvolution
         return array($first, $last);
     }
 
-    /** Get the img tag for a sparkline showing a single metric */
-    protected function getSparkline($metric)
-    {
-        // sparkline is always echoed, so we need to buffer the output
-        $view = $this->getRowEvolutionGraph($graphType = 'sparkline', $metrics = array($metric => $metric));
-
-        ob_start();
-        $view->render();
-        $spark = ob_get_contents();
-        ob_end_clean();
-
-        // undo header change by sparkline renderer
-        header('Content-type: text/html');
-
-        // base64 encode the image and put it in an img tag
-        $spark = base64_encode($spark);
-        return '<img src="data:image/png;base64,' . $spark . '" />';
-    }
-
     /**
-     * Generic method to get an evolution graph or a sparkline for the row evolution popover.
-     * Do as much as possible from outside the controller.
-     * @param string|bool $graphType
-     * @param array|bool $metrics
-     * @return Factory
+     * @param $report
+     * @return string
      */
-    public function getRowEvolutionGraph($graphType = false, $metrics = false)
+    protected function extractPrettyLabel($report)
     {
-        // set up the view data table
-        $view = Factory::build($graphType ? : $this->graphType, $this->apiMethod,
-            $controllerAction = 'CoreHome.getRowEvolutionGraph', $forceDefault = true);
-        $view->setDataTable($this->dataTable);
+        // By default, use the specified label
+        $rowLabel = Common::sanitizeInputValue($report['label']);
+        $rowLabel = str_replace('/', '<wbr>/', str_replace('&', '<wbr>&', $rowLabel ));
 
-        if (!empty($this->graphMetrics)) { // In row Evolution popover, this is empty
-            $view->config->columns_to_display = array_keys($metrics ? : $this->graphMetrics);
+        // If the dataTable specifies a label_html, use this instead
+        /** @var $dataTableMap \Piwik\DataTable\Map */
+        $dataTableMap = $report['reportData'];
+        $labelPretty = $dataTableMap->getColumn('label_html');
+        $labelPretty = array_filter($labelPretty, 'strlen');
+        $labelPretty = current($labelPretty);
+        if (!empty($labelPretty)) {
+            return $labelPretty;
         }
-
-        $view->requestConfig->request_parameters_to_modify['label'] = '';
-        $view->config->show_goals = false;
-        $view->config->show_search = false;
-        $view->config->show_all_views_icons = false;
-        $view->config->show_active_view_icon = false;
-        $view->config->show_related_reports  = false;
-        $view->config->show_series_picker    = false;
-        $view->config->show_footer_message   = false;
-
-        foreach ($this->availableMetrics as $metric => $metadata) {
-            $view->config->translations[$metric] = $metadata['name'];
-        }
-
-        $view->config->external_series_toggle = 'RowEvolutionSeriesToggle';
-        $view->config->external_series_toggle_show_all = $this->initiallyShowAllMetrics;
-
-        return $view;
-    }
-
-    /** Use the available metrics for the metrics of the last requested graph. */
-    public function useAvailableMetrics()
-    {
-        $this->graphMetrics = $this->availableMetrics;
+        return $rowLabel;
     }
 }

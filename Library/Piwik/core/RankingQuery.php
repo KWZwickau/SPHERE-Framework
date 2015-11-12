@@ -136,6 +136,24 @@ class RankingQuery
     }
 
     /**
+     * Add a column that has be added to the outer queries.
+     *
+     * @param $column
+     * @param string|bool $aggregationFunction If set, this function is used to aggregate the values of "Others",
+     *                                         eg, `'min'`, `'max'` or `'sum'`.
+     */
+    public function addColumn($column, $aggregationFunction = false)
+    {
+        if (is_array($column)) {
+            foreach ($column as $c) {
+                $this->addColumn($c, $aggregationFunction);
+            }
+            return;
+        }
+        $this->additionalColumns[$column] = $aggregationFunction;
+    }
+
+    /**
      * Sets a column that will be used to filter the result into two categories.
      * Rows where this column has a value > 0 will be removed from the result and put
      * into another array. Both the result and the array of excluded rows are returned
@@ -152,24 +170,6 @@ class RankingQuery
 
         $this->columnToMarkExcludedRows = $column;
         $this->addColumn($this->columnToMarkExcludedRows);
-    }
-
-    /**
-     * Add a column that has be added to the outer queries.
-     *
-     * @param $column
-     * @param string|bool $aggregationFunction If set, this function is used to aggregate the values of "Others",
-     *                                         eg, `'min'`, `'max'` or `'sum'`.
-     */
-    public function addColumn($column, $aggregationFunction = false)
-    {
-        if (is_array($column)) {
-            foreach ($column as $c) {
-                $this->addColumn($c, $aggregationFunction);
-            }
-            return;
-        }
-        $this->additionalColumns[$column] = $aggregationFunction;
     }
 
     /**
@@ -243,6 +243,19 @@ class RankingQuery
         }
 
         return $data;
+    }
+
+    private function splitPartitions(&$data)
+    {
+        $result = array();
+        foreach ($data as &$row) {
+            $partition = $row[$this->partitionColumn];
+            if (!isset($result[$partition])) {
+                $result[$partition] = array();
+            }
+            $result[$partition][] = & $row;
+        }
+        return $result;
     }
 
     /**
@@ -356,18 +369,5 @@ class RankingQuery
 				", $whens) . "
 			END
 		";
-    }
-
-    private function splitPartitions(&$data)
-    {
-        $result = array();
-        foreach ($data as &$row) {
-            $partition = $row[$this->partitionColumn];
-            if (!isset($result[$partition])) {
-                $result[$partition] = array();
-            }
-            $result[$partition][] = & $row;
-        }
-        return $result;
     }
 }

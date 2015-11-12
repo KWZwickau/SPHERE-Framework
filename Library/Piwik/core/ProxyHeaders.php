@@ -41,20 +41,6 @@ class ProxyHeaders
     }
 
     /**
-     * Detect proxy client headers
-     *
-     * @return array Proxy client HTTP headers
-     */
-    public static function getProxyClientHeaders()
-    {
-        return self::getHeaders(array(
-                                     'HTTP_CF_CONNECTING_IP',
-                                     'HTTP_CLIENT_IP',
-                                     'HTTP_X_FORWARDED_FOR',
-                                ));
-    }
-
-    /**
      * Get headers present in the HTTP request
      *
      * @param array $recognizedHeaders
@@ -71,6 +57,20 @@ class ProxyHeaders
         }
 
         return $headers;
+    }
+
+    /**
+     * Detect proxy client headers
+     *
+     * @return array Proxy client HTTP headers
+     */
+    public static function getProxyClientHeaders()
+    {
+        return self::getHeaders(array(
+                                     'HTTP_CF_CONNECTING_IP',
+                                     'HTTP_CLIENT_IP',
+                                     'HTTP_X_FORWARDED_FOR',
+                                ));
     }
 
     /**

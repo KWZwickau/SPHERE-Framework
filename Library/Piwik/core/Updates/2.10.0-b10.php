@@ -16,18 +16,6 @@ use Piwik\Updates;
 class Updates_2_10_0_b10 extends Updates
 {
 
-    public function doUpdate(Updater $updater)
-    {
-        $pluginManager = \Piwik\Plugin\Manager::getInstance();
-
-        try {
-            $pluginManager->activatePlugin('DevicePlugins');
-        } catch (\Exception $e) {
-        }
-
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         $sqls = array();
@@ -43,5 +31,17 @@ class Updates_2_10_0_b10 extends Updates
         }
 
         return $sqls;
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $pluginManager = \Piwik\Plugin\Manager::getInstance();
+
+        try {
+            $pluginManager->activatePlugin('DevicePlugins');
+        } catch (\Exception $e) {
+        }
+
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

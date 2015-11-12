@@ -44,66 +44,6 @@ abstract class GeoIp extends LocationProvider
     private static $regionNames = null;
 
     /**
-     * Returns true if there is a GeoIP database in the 'misc' directory.
-     *
-     * @return bool
-     */
-    public static function isDatabaseInstalled()
-    {
-        return self::getPathToGeoIpDatabase(self::$dbNames['loc'])
-        || self::getPathToGeoIpDatabase(self::$dbNames['isp'])
-        || self::getPathToGeoIpDatabase(self::$dbNames['org']);
-    }
-
-    /**
-     * Returns the path of an existing GeoIP database or false if none can be found.
-     *
-     * @param array $possibleFileNames The list of possible file names for the GeoIP database.
-     * @return string|false
-     */
-    public static function getPathToGeoIpDatabase($possibleFileNames)
-    {
-        foreach ($possibleFileNames as $filename) {
-            $path = self::getPathForGeoIpDatabase($filename);
-            if (file_exists($path)) {
-                return $path;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Returns full path for a GeoIP database managed by Piwik.
-     *
-     * @param string $filename Name of the .dat file.
-     * @return string
-     */
-    public static function getPathForGeoIpDatabase($filename)
-    {
-        return PIWIK_INCLUDE_PATH . '/' . self::$geoIPDatabaseDir . '/' . $filename;
-    }
-
-    /**
-     * Returns the type of GeoIP database ('loc', 'isp' or 'org') based on the
-     * filename (eg, 'GeoLiteCity.dat', 'GeoIPISP.dat', etc).
-     *
-     * @param string $filename
-     * @return string|false 'loc', 'isp', 'org', or false if cannot find a database
-     *                      type.
-     */
-    public static function getGeoIPDatabaseTypeFromFilename($filename)
-    {
-        foreach (self::$dbNames as $key => $names) {
-            foreach ($names as $name) {
-                if ($name === $filename) {
-                    return $key;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
      * Attempts to fill in some missing information in a GeoIP location.
      *
      * This method will call LocationProvider::completeLocationResult and then
@@ -141,43 +81,6 @@ abstract class GeoIp extends LocationProvider
             $location[self::COUNTRY_CODE_KEY] = 'ti';
             $location[self::REGION_CODE_KEY] = '1';
         }
-    }
-
-    /**
-     * Returns a region name for a country code + region code.
-     *
-     * @param string $countryCode
-     * @param string $regionCode
-     * @return string The region name or 'Unknown' (translated).
-     */
-    public static function getRegionNameFromCodes($countryCode, $regionCode)
-    {
-        $regionNames = self::getRegionNames();
-
-        $countryCode = strtoupper($countryCode);
-        $regionCode = strtoupper($regionCode);
-
-        if (isset($regionNames[$countryCode][$regionCode])) {
-            return $regionNames[$countryCode][$regionCode];
-        } else {
-            return Piwik::translate('General_Unknown');
-        }
-    }
-
-    /**
-     * Returns an array of region names mapped by country code & region code.
-     *
-     * @return array
-     */
-    public static function getRegionNames()
-    {
-        if (is_null(self::$regionNames)) {
-            $GEOIP_REGION_NAME = array();
-            require_once PIWIK_INCLUDE_PATH . '/libs/MaxMindGeoIP/geoipregionvars.php';
-            self::$regionNames = $GEOIP_REGION_NAME;
-        }
-
-        return self::$regionNames;
     }
 
     /**
@@ -239,6 +142,71 @@ abstract class GeoIp extends LocationProvider
     }
 
     /**
+     * Returns a region name for a country code + region code.
+     *
+     * @param string $countryCode
+     * @param string $regionCode
+     * @return string The region name or 'Unknown' (translated).
+     */
+    public static function getRegionNameFromCodes($countryCode, $regionCode)
+    {
+        $regionNames = self::getRegionNames();
+
+        $countryCode = strtoupper($countryCode);
+        $regionCode = strtoupper($regionCode);
+
+        if (isset($regionNames[$countryCode][$regionCode])) {
+            return $regionNames[$countryCode][$regionCode];
+        } else {
+            return Piwik::translate('General_Unknown');
+        }
+    }
+
+    /**
+     * Returns an array of region names mapped by country code & region code.
+     *
+     * @return array
+     */
+    public static function getRegionNames()
+    {
+        if (is_null(self::$regionNames)) {
+            $GEOIP_REGION_NAME = array();
+            require_once PIWIK_INCLUDE_PATH . '/libs/MaxMindGeoIP/geoipregionvars.php';
+            self::$regionNames = $GEOIP_REGION_NAME;
+        }
+
+        return self::$regionNames;
+    }
+
+    /**
+     * Returns the path of an existing GeoIP database or false if none can be found.
+     *
+     * @param array $possibleFileNames The list of possible file names for the GeoIP database.
+     * @return string|false
+     */
+    public static function getPathToGeoIpDatabase($possibleFileNames)
+    {
+        foreach ($possibleFileNames as $filename) {
+            $path = self::getPathForGeoIpDatabase($filename);
+            if (file_exists($path)) {
+                return $path;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns full path for a GeoIP database managed by Piwik.
+     *
+     * @param string $filename Name of the .dat file.
+     * @return string
+     */
+    public static function getPathForGeoIpDatabase($filename)
+    {
+        return PIWIK_INCLUDE_PATH . '/' . self::$geoIPDatabaseDir . '/' . $filename;
+    }
+
+    /**
      * Returns test IP used by isWorking and expected result.
      *
      * @return array eg. array('1.2.3.4', array(self::COUNTRY_CODE_KEY => ...))
@@ -254,6 +222,38 @@ abstract class GeoIp extends LocationProvider
             $result = array(self::TEST_IP, $expected);
         }
         return $result;
+    }
+
+    /**
+     * Returns true if there is a GeoIP database in the 'misc' directory.
+     *
+     * @return bool
+     */
+    public static function isDatabaseInstalled()
+    {
+        return self::getPathToGeoIpDatabase(self::$dbNames['loc'])
+        || self::getPathToGeoIpDatabase(self::$dbNames['isp'])
+        || self::getPathToGeoIpDatabase(self::$dbNames['org']);
+    }
+
+    /**
+     * Returns the type of GeoIP database ('loc', 'isp' or 'org') based on the
+     * filename (eg, 'GeoLiteCity.dat', 'GeoIPISP.dat', etc).
+     *
+     * @param string $filename
+     * @return string|false 'loc', 'isp', 'org', or false if cannot find a database
+     *                      type.
+     */
+    public static function getGeoIPDatabaseTypeFromFilename($filename)
+    {
+        foreach (self::$dbNames as $key => $names) {
+            foreach ($names as $name) {
+                if ($name === $filename) {
+                    return $key;
+                }
+            }
+        }
+        return false;
     }
 }
 

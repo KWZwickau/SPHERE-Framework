@@ -140,7 +140,7 @@ abstract class GridGraph extends StaticGraph
         // rounding top scale value to the next multiple of 10
         if ($maxOrdinateValue > 10) {
             $modTen = $maxOrdinateValue % 10;
-            if ($modTen) {$maxOrdinateValue += 10 - $modTen;}
+            if ($modTen) $maxOrdinateValue += 10 - $modTen;
         }
 
         $gridColor = $this->gridColor;
@@ -308,6 +308,30 @@ abstract class GridGraph extends StaticGraph
         }
     }
 
+    protected static function getMaxLogoSize($logoPaths)
+    {
+        $maxLogoWidth = 0;
+        $maxLogoHeight = 0;
+        foreach ($logoPaths as $logoPath) {
+            list($logoWidth, $logoHeight) = self::getLogoSize($logoPath);
+
+            if ($logoWidth > $maxLogoWidth) {
+                $maxLogoWidth = $logoWidth;
+            }
+            if ($logoHeight > $maxLogoHeight) {
+                $maxLogoHeight = $logoHeight;
+            }
+        }
+
+        return array($maxLogoWidth, $maxLogoHeight);
+    }
+
+    protected static function getLogoSize($logoPath)
+    {
+        $pathInfo = getimagesize($logoPath);
+        return array($pathInfo[0], $pathInfo[1]);
+    }
+
     protected function getGridLeftMargin($horizontalGraph, $withLabel)
     {
         $gridLeftMargin = self::LEFT_GRID_MARGIN + self::OUTER_TICK_WIDTH;
@@ -345,6 +369,21 @@ abstract class GridGraph extends StaticGraph
         return $maxMetricLegendHeight + self::HORIZONTAL_LEGEND_BOTTOM_MARGIN + self::HORIZONTAL_LEGEND_TOP_MARGIN;
     }
 
+    protected function getGraphHeight($horizontalGraph, $verticalLegend)
+    {
+        return $this->getGraphBottom($horizontalGraph) - $this->getGridTopMargin($horizontalGraph, $verticalLegend);
+    }
+
+    private function getGridBottomMargin($horizontalGraph)
+    {
+        $gridBottomMargin = self::BOTTOM_GRID_MARGIN;
+        if (!$horizontalGraph) {
+            list($abscissaMaxWidth, $abscissaMaxHeight) = $this->getMaximumTextWidthHeight($this->abscissaSeries);
+            $gridBottomMargin += $abscissaMaxHeight;
+        }
+        return $gridBottomMargin;
+    }
+
     protected function getGridRightMargin($horizontalGraph)
     {
         if ($horizontalGraph) {
@@ -359,45 +398,6 @@ abstract class GridGraph extends StaticGraph
     protected function getGraphBottom($horizontalGraph)
     {
         return $this->height - $this->getGridBottomMargin($horizontalGraph);
-    }
-
-    private function getGridBottomMargin($horizontalGraph)
-    {
-        $gridBottomMargin = self::BOTTOM_GRID_MARGIN;
-        if (!$horizontalGraph) {
-            list($abscissaMaxWidth, $abscissaMaxHeight) = $this->getMaximumTextWidthHeight($this->abscissaSeries);
-            $gridBottomMargin += $abscissaMaxHeight;
-        }
-        return $gridBottomMargin;
-    }
-
-    protected function getGraphHeight($horizontalGraph, $verticalLegend)
-    {
-        return $this->getGraphBottom($horizontalGraph) - $this->getGridTopMargin($horizontalGraph, $verticalLegend);
-    }
-
-    protected static function getMaxLogoSize($logoPaths)
-    {
-        $maxLogoWidth = 0;
-        $maxLogoHeight = 0;
-        foreach ($logoPaths as $logoPath) {
-            list($logoWidth, $logoHeight) = self::getLogoSize($logoPath);
-
-            if ($logoWidth > $maxLogoWidth) {
-                $maxLogoWidth = $logoWidth;
-            }
-            if ($logoHeight > $maxLogoHeight) {
-                $maxLogoHeight = $logoHeight;
-            }
-        }
-
-        return array($maxLogoWidth, $maxLogoHeight);
-    }
-
-    protected static function getLogoSize($logoPath)
-    {
-        $pathInfo = getimagesize($logoPath);
-        return array($pathInfo[0], $pathInfo[1]);
     }
 
     protected function truncateLabel($label, $labelWidthLimit, $fontSize = false)

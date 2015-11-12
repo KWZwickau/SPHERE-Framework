@@ -10,11 +10,11 @@
 namespace DI;
 
 use DI\Definition\Source\AnnotationReader;
-use DI\Definition\Source\Autowiring;
-use DI\Definition\Source\CachedDefinitionSource;
 use DI\Definition\Source\DefinitionArray;
-use DI\Definition\Source\DefinitionFile;
+use DI\Definition\Source\CachedDefinitionSource;
 use DI\Definition\Source\DefinitionSource;
+use DI\Definition\Source\DefinitionFile;
+use DI\Definition\Source\Autowiring;
 use DI\Definition\Source\SourceChain;
 use DI\Proxy\ProxyFactory;
 use Doctrine\Common\Cache\Cache;
@@ -86,14 +86,6 @@ class ContainerBuilder
     private $definitionSources = array();
 
     /**
-     * @param string $containerClass Name of the container class, used to create the container.
-     */
-    public function __construct($containerClass = 'DI\Container')
-    {
-        $this->containerClass = $containerClass;
-    }
-
-    /**
      * Build a container configured for the dev environment.
      *
      * @return Container
@@ -102,6 +94,14 @@ class ContainerBuilder
     {
         $builder = new self();
         return $builder->build();
+    }
+
+    /**
+     * @param string $containerClass Name of the container class, used to create the container.
+     */
+    public function __construct($containerClass = 'DI\Container')
+    {
+        $this->containerClass = $containerClass;
     }
 
     /**
@@ -166,7 +166,7 @@ class ContainerBuilder
 
     /**
      * Enable or disable ignoring phpdoc errors (non-existent classes in `@param` or `@var`)
-     *
+     * 
      * @param boolean $bool
      * @return ContainerBuilder
      */

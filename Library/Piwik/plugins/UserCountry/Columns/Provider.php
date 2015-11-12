@@ -10,9 +10,9 @@ namespace Piwik\Plugins\UserCountry\Columns;
 
 use Piwik\Plugin\Manager;
 use Piwik\Plugins\UserCountry\LocationProvider;
+use Piwik\Tracker\Visitor;
 use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
-use Piwik\Tracker\Visitor;
 
 class Provider extends Base
 {

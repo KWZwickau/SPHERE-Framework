@@ -21,6 +21,14 @@ use Zend_Db_Adapter_Pdo_Pgsql;
 class Pgsql extends Zend_Db_Adapter_Pdo_Pgsql implements AdapterInterface
 {
     /**
+     * Reset the configuration variables in this adapter.
+     */
+    public function resetConfig()
+    {
+        $this->_config = array();
+    }
+
+    /**
      * Return default port.
      *
      * @return int
@@ -28,24 +36,6 @@ class Pgsql extends Zend_Db_Adapter_Pdo_Pgsql implements AdapterInterface
     public static function getDefaultPort()
     {
         return 5432;
-    }
-
-    /**
-     * Returns true if this adapter's required extensions are enabled
-     *
-     * @return bool
-     */
-    public static function isEnabled()
-    {
-        return extension_loaded('PDO') && extension_loaded('pdo_pgsql');
-    }
-
-    /**
-     * Reset the configuration variables in this adapter.
-     */
-    public function resetConfig()
-    {
-        $this->_config = array();
     }
 
     /**
@@ -68,6 +58,16 @@ class Pgsql extends Zend_Db_Adapter_Pdo_Pgsql implements AdapterInterface
      */
     public function checkClientVersion()
     {
+    }
+
+    /**
+     * Returns true if this adapter's required extensions are enabled
+     *
+     * @return bool
+     */
+    public static function isEnabled()
+    {
+        return extension_loaded('PDO') && extension_loaded('pdo_pgsql');
     }
 
     /**

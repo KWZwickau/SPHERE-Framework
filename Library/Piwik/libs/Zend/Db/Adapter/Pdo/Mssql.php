@@ -73,6 +73,110 @@ class Zend_Db_Adapter_Pdo_Mssql extends Zend_Db_Adapter_Pdo_Abstract
     );
 
     /**
+     * Creates a PDO DSN for the adapter from $this->_config settings.
+     *
+     * @return string
+     */
+    protected function _dsn()
+    {
+        // baseline of DSN parts
+        $dsn = $this->_config;
+
+        // don't pass the username and password in the DSN
+        unset($dsn['username']);
+        unset($dsn['password']);
+        unset($dsn['options']);
+        unset($dsn['persistent']);
+        unset($dsn['driver_options']);
+
+        if (isset($dsn['port'])) {
+            $seperator = ':';
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                $seperator = ',';
+            }
+            $dsn['host'] .= $seperator . $dsn['port'];
+            unset($dsn['port']);
+        }
+
+        // this driver supports multiple DSN prefixes
+        // @see http://www.php.net/manual/en/ref.pdo-dblib.connection.php
+        if (isset($dsn['pdoType'])) {
+            switch (strtolower($dsn['pdoType'])) {
+                case 'freetds':
+                case 'sybase':
+                    $this->_pdoType = 'sybase';
+                    break;
+                case 'mssql':
+                    $this->_pdoType = 'mssql';
+                    break;
+                case 'dblib':
+                default:
+                    $this->_pdoType = 'dblib';
+                    break;
+            }
+            unset($dsn['pdoType']);
+        }
+
+        // use all remaining parts in the DSN
+        foreach ($dsn as $key => $val) {
+            $dsn[$key] = "$key=$val";
+        }
+
+        $dsn = $this->_pdoType . ':' . implode(';', $dsn);
+        return $dsn;
+    }
+
+    /**
+     * @return void
+     */
+    protected function _connect()
+    {
+        if ($this->_connection) {
+            return;
+        }
+        parent::_connect();
+        $this->_connection->exec('SET QUOTED_IDENTIFIER ON');
+    }
+
+    /**
+     * Begin a transaction.
+     *
+     * It is necessary to override the abstract PDO transaction functions here, as
+     * the PDO driver for MSSQL does not support transactions.
+     */
+    protected function _beginTransaction()
+    {
+        $this->_connect();
+        $this->_connection->exec('BEGIN TRANSACTION');
+        return true;
+    }
+
+    /**
+     * Commit a transaction.
+     *
+     * It is necessary to override the abstract PDO transaction functions here, as
+     * the PDO driver for MSSQL does not support transactions.
+     */
+    protected function _commit()
+    {
+        $this->_connect();
+        $this->_connection->exec('COMMIT TRANSACTION');
+        return true;
+    }
+
+    /**
+     * Roll-back a transaction.
+     *
+     * It is necessary to override the abstract PDO transaction functions here, as
+     * the PDO driver for MSSQL does not support transactions.
+     */
+    protected function _rollBack() {
+        $this->_connect();
+        $this->_connection->exec('ROLLBACK TRANSACTION');
+        return true;
+    }
+
+    /**
      * Returns a list of the tables in the database.
      *
      * @return array
@@ -315,109 +419,5 @@ class Zend_Db_Adapter_Pdo_Mssql extends Zend_Db_Adapter_Pdo_Abstract
         } catch (PDOException $e) {
             return null;
         }
-    }
-
-    /**
-     * Creates a PDO DSN for the adapter from $this->_config settings.
-     *
-     * @return string
-     */
-    protected function _dsn()
-    {
-        // baseline of DSN parts
-        $dsn = $this->_config;
-
-        // don't pass the username and password in the DSN
-        unset($dsn['username']);
-        unset($dsn['password']);
-        unset($dsn['options']);
-        unset($dsn['persistent']);
-        unset($dsn['driver_options']);
-
-        if (isset($dsn['port'])) {
-            $seperator = ':';
-            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                $seperator = ',';
-            }
-            $dsn['host'] .= $seperator . $dsn['port'];
-            unset($dsn['port']);
-        }
-
-        // this driver supports multiple DSN prefixes
-        // @see http://www.php.net/manual/en/ref.pdo-dblib.connection.php
-        if (isset($dsn['pdoType'])) {
-            switch (strtolower($dsn['pdoType'])) {
-                case 'freetds':
-                case 'sybase':
-                    $this->_pdoType = 'sybase';
-                    break;
-                case 'mssql':
-                    $this->_pdoType = 'mssql';
-                    break;
-                case 'dblib':
-                default:
-                    $this->_pdoType = 'dblib';
-                    break;
-            }
-            unset($dsn['pdoType']);
-        }
-
-        // use all remaining parts in the DSN
-        foreach ($dsn as $key => $val) {
-            $dsn[$key] = "$key=$val";
-        }
-
-        $dsn = $this->_pdoType . ':' . implode(';', $dsn);
-        return $dsn;
-    }
-
-    /**
-     * Begin a transaction.
-     *
-     * It is necessary to override the abstract PDO transaction functions here, as
-     * the PDO driver for MSSQL does not support transactions.
-     */
-    protected function _beginTransaction()
-    {
-        $this->_connect();
-        $this->_connection->exec('BEGIN TRANSACTION');
-        return true;
-    }
-
-    /**
-     * @return void
-     */
-    protected function _connect()
-    {
-        if ($this->_connection) {
-            return;
-        }
-        parent::_connect();
-        $this->_connection->exec('SET QUOTED_IDENTIFIER ON');
-    }
-
-    /**
-     * Commit a transaction.
-     *
-     * It is necessary to override the abstract PDO transaction functions here, as
-     * the PDO driver for MSSQL does not support transactions.
-     */
-    protected function _commit()
-    {
-        $this->_connect();
-        $this->_connection->exec('COMMIT TRANSACTION');
-        return true;
-    }
-
-    /**
-     * Roll-back a transaction.
-     *
-     * It is necessary to override the abstract PDO transaction functions here, as
-     * the PDO driver for MSSQL does not support transactions.
-     */
-    protected function _rollBack() {
-        $this->_connect();
-        $this->_connection->exec('ROLLBACK TRANSACTION');
-        return true;
     }
 }

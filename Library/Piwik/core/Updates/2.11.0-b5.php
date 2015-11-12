@@ -9,8 +9,8 @@
 namespace Piwik\Updates;
 
 use Piwik\Plugin\Manager;
-use Piwik\Updater;
 use Piwik\Updates;
+use Piwik\Updater;
 
 class Updates_2_11_0_b5 extends Updates
 {

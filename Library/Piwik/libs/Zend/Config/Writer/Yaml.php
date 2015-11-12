@@ -45,40 +45,30 @@ class Zend_Config_Writer_Yaml extends Zend_Config_Writer_FileAbstract
     protected $_yamlEncoder = array('Zend_Config_Writer_Yaml', 'encode');
 
     /**
-     * Very dumb YAML encoder
+     * Get callback for decoding YAML
      *
-     * Until we have Zend_Yaml...
-     *
-     * @param array $data YAML data
-     * @return string
+     * @return callable
      */
-    public static function encode($data)
+    public function getYamlEncoder()
     {
-        return self::_encodeYaml(0, $data);
+        return $this->_yamlEncoder;
     }
 
     /**
-     * Service function for encoding YAML
+     * Set callback for decoding YAML
      *
-     * @param int $indent Current indent level
-     * @param array $data Data to encode
-     * @return string
+     * @param  callable $yamlEncoder the decoder to set
+     * @return Zend_Config_Yaml
      */
-    protected static function _encodeYaml($indent, $data)
+    public function setYamlEncoder($yamlEncoder)
     {
-        reset($data);
-        $result = "";
-        $numeric = is_numeric(key($data));
-
-        foreach($data as $key => $value) {
-            if(is_array($value)) {
-                $encoded = "\n".self::_encodeYaml($indent+1, $value);
-            } else {
-                $encoded = (string)$value."\n";
-            }
-            $result .= str_repeat("  ", $indent).($numeric?"- ":"$key: ").$encoded;
+        if (!is_callable($yamlEncoder)) {
+            // require_once 'Zend/Config/Exception.php';
+            throw new Zend_Config_Exception('Invalid parameter to setYamlEncoder - must be callable');
         }
-        return $result;
+
+        $this->_yamlEncoder = $yamlEncoder;
+        return $this;
     }
 
     /**
@@ -116,29 +106,39 @@ class Zend_Config_Writer_Yaml extends Zend_Config_Writer_FileAbstract
     }
 
     /**
-     * Get callback for decoding YAML
+     * Very dumb YAML encoder
      *
-     * @return callable
+     * Until we have Zend_Yaml...
+     *
+     * @param array $data YAML data
+     * @return string
      */
-    public function getYamlEncoder()
+    public static function encode($data)
     {
-        return $this->_yamlEncoder;
+        return self::_encodeYaml(0, $data);
     }
 
     /**
-     * Set callback for decoding YAML
+     * Service function for encoding YAML
      *
-     * @param  callable $yamlEncoder the decoder to set
-     * @return Zend_Config_Yaml
+     * @param int $indent Current indent level
+     * @param array $data Data to encode
+     * @return string
      */
-    public function setYamlEncoder($yamlEncoder)
+    protected static function _encodeYaml($indent, $data)
     {
-        if (!is_callable($yamlEncoder)) {
-            // require_once 'Zend/Config/Exception.php';
-            throw new Zend_Config_Exception('Invalid parameter to setYamlEncoder - must be callable');
-        }
+        reset($data);
+        $result = "";
+        $numeric = is_numeric(key($data));
 
-        $this->_yamlEncoder = $yamlEncoder;
-        return $this;
+        foreach($data as $key => $value) {
+            if(is_array($value)) {
+                $encoded = "\n".self::_encodeYaml($indent+1, $value);
+            } else {
+                $encoded = (string)$value."\n";
+            }
+            $result .= str_repeat("  ", $indent).($numeric?"- ":"$key: ").$encoded;
+        }
+        return $result;
     }
 }

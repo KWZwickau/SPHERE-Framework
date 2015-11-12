@@ -10,8 +10,8 @@ namespace Piwik\Plugins\API\Renderer;
 
 use Piwik\API\ApiRenderer;
 use Piwik\Common;
-use Piwik\DataTable;
 use Piwik\DataTable\Renderer;
+use Piwik\DataTable;
 use Piwik\Piwik;
 use Piwik\ProxyHttp;
 
@@ -31,18 +31,43 @@ class Json extends ApiRenderer
         return $this->applyJsonpIfNeeded($result);
     }
 
-    /**
-     * @param $str
-     * @return string
-     */
-    private function applyJsonpIfNeeded($str)
+    public function renderException($message, \Exception $exception)
     {
-        if ($this->isJsonp()) {
-            $jsonCallback = $this->getJsonpCallback();
-            $str = $jsonCallback . "(" . $str . ")";
+        $exceptionMessage = str_replace(array("\r\n", "\n"), "", $message);
+
+        $result = json_encode(array('result' => 'error', 'message' => $exceptionMessage));
+
+        return $this->applyJsonpIfNeeded($result);
+    }
+
+    public function renderDataTable($dataTable)
+    {
+        $result = parent::renderDataTable($dataTable);
+
+        return $this->applyJsonpIfNeeded($result);
+    }
+
+    public function renderArray($array)
+    {
+        if (Piwik::isMultiDimensionalArray($array)) {
+            $jsonRenderer = Renderer::factory('json');
+            $jsonRenderer->setTable($array);
+            $result = $jsonRenderer->render();
+            return $this->applyJsonpIfNeeded($result);
         }
 
-        return $str;
+        return $this->renderDataTable($array);
+    }
+
+    public function sendHeader()
+    {
+        if ($this->isJsonp()) {
+            Common::sendHeader('Content-Type: application/javascript; charset=utf-8');
+        } else {
+            Renderer\Json::sendHeaderJSON();
+        }
+
+        ProxyHttp::overrideCacheControlHeaders();
     }
 
     private function isJsonp()
@@ -67,42 +92,17 @@ class Json extends ApiRenderer
         return $jsonCallback;
     }
 
-    public function renderException($message, \Exception $exception)
-    {
-        $exceptionMessage = str_replace(array("\r\n", "\n"), "", $message);
-
-        $result = json_encode(array('result' => 'error', 'message' => $exceptionMessage));
-
-        return $this->applyJsonpIfNeeded($result);
-    }
-
-    public function renderArray($array)
-    {
-        if (Piwik::isMultiDimensionalArray($array)) {
-            $jsonRenderer = Renderer::factory('json');
-            $jsonRenderer->setTable($array);
-            $result = $jsonRenderer->render();
-            return $this->applyJsonpIfNeeded($result);
-        }
-
-        return $this->renderDataTable($array);
-    }
-
-    public function renderDataTable($dataTable)
-    {
-        $result = parent::renderDataTable($dataTable);
-
-        return $this->applyJsonpIfNeeded($result);
-    }
-
-    public function sendHeader()
+    /**
+     * @param $str
+     * @return string
+     */
+    private function applyJsonpIfNeeded($str)
     {
         if ($this->isJsonp()) {
-            Common::sendHeader('Content-Type: application/javascript; charset=utf-8');
-        } else {
-            Renderer\Json::sendHeaderJSON();
+            $jsonCallback = $this->getJsonpCallback();
+            $str = $jsonCallback . "(" . $str . ")";
         }
 
-        ProxyHttp::overrideCacheControlHeaders();
+        return $str;
     }
 }

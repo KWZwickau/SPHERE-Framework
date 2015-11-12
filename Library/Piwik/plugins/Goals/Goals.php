@@ -9,10 +9,12 @@
 namespace Piwik\Plugins\Goals;
 
 use Piwik\ArchiveProcessor;
+use Piwik\Common;
 use Piwik\Db;
 use Piwik\Piwik;
 use Piwik\Plugin\Report;
 use Piwik\Tracker\GoalManager;
+use Piwik\Translate;
 
 /**
  *
@@ -36,56 +38,6 @@ class Goals extends \Piwik\Plugin
 
         uksort($dimensionsByGroup, array('self', 'sortGoalDimensionsByModule'));
         return $dimensionsByGroup;
-    }
-
-    private static function getAllReportsWithGoalMetrics()
-    {
-        $reportsWithGoals = array();
-
-        foreach (Report::getAllReports() as $report) {
-            if ($report->hasGoalMetrics()) {
-                $reportsWithGoals[] = array(
-                    'category' => $report->getCategoryKey(),
-                    'name'     => $report->getName(),
-                    'module'   => $report->getModule(),
-                    'action'   => $report->getAction(),
-                );
-            }
-        }
-
-        /**
-         * Triggered when gathering all reports that contain Goal metrics. The list of reports
-         * will be displayed on the left column of the bottom of every _Goals_ page.
-         *
-         * If plugins define reports that contain goal metrics (such as **conversions** or **revenue**),
-         * they can use this event to make sure their reports can be viewed on Goals pages.
-         *
-         * **Example**
-         *
-         *     public function getReportsWithGoalMetrics(&$reports)
-         *     {
-         *         $reports[] = array(
-         *             'category' => Piwik::translate('MyPlugin_myReportCategory'),
-         *             'name' => Piwik::translate('MyPlugin_myReportDimension'),
-         *             'module' => 'MyPlugin',
-         *             'action' => 'getMyReport'
-         *         );
-         *     }
-         *
-         * @param array &$reportsWithGoals The list of arrays describing reports that have Goal metrics.
-         *                                 Each element of this array must be an array with the following
-         *                                 properties:
-         *
-         *                                 - **category**: The report category. This should be a translated string.
-         *                                 - **name**: The report's translated name.
-         *                                 - **module**: The plugin the report is in, eg, `'UserCountry'`.
-         *                                 - **action**: The API method of the report, eg, `'getCountry'`.
-         * @ignore
-         * @deprecated since 2.5.0
-         */
-        Piwik::postEvent('Goals.getReportsWithGoalMetrics', array(&$reportsWithGoals));
-
-        return $reportsWithGoals;
     }
 
     public static function sortGoalDimensionsByModule($a, $b)
@@ -218,6 +170,56 @@ class Goals extends \Piwik\Plugin
                 }
             }
         }
+    }
+
+    private static function getAllReportsWithGoalMetrics()
+    {
+        $reportsWithGoals = array();
+
+        foreach (Report::getAllReports() as $report) {
+            if ($report->hasGoalMetrics()) {
+                $reportsWithGoals[] = array(
+                    'category' => $report->getCategoryKey(),
+                    'name'     => $report->getName(),
+                    'module'   => $report->getModule(),
+                    'action'   => $report->getAction(),
+                );
+            }
+        }
+
+        /**
+         * Triggered when gathering all reports that contain Goal metrics. The list of reports
+         * will be displayed on the left column of the bottom of every _Goals_ page.
+         *
+         * If plugins define reports that contain goal metrics (such as **conversions** or **revenue**),
+         * they can use this event to make sure their reports can be viewed on Goals pages.
+         *
+         * **Example**
+         *
+         *     public function getReportsWithGoalMetrics(&$reports)
+         *     {
+         *         $reports[] = array(
+         *             'category' => Piwik::translate('MyPlugin_myReportCategory'),
+         *             'name' => Piwik::translate('MyPlugin_myReportDimension'),
+         *             'module' => 'MyPlugin',
+         *             'action' => 'getMyReport'
+         *         );
+         *     }
+         *
+         * @param array &$reportsWithGoals The list of arrays describing reports that have Goal metrics.
+         *                                 Each element of this array must be an array with the following
+         *                                 properties:
+         *
+         *                                 - **category**: The report category. This should be a translated string.
+         *                                 - **name**: The report's translated name.
+         *                                 - **module**: The plugin the report is in, eg, `'UserCountry'`.
+         *                                 - **action**: The API method of the report, eg, `'getCountry'`.
+         * @ignore
+         * @deprecated since 2.5.0
+         */
+        Piwik::postEvent('Goals.getReportsWithGoalMetrics', array(&$reportsWithGoals));
+
+        return $reportsWithGoals;
     }
 
     /**

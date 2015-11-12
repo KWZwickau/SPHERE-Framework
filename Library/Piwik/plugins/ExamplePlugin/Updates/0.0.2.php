@@ -20,21 +20,6 @@ class Updates_0_0_2 extends PiwikUpdates
 {
 
     /**
-     * Perform the incremental version update.
-     *
-     * This method should preform all updating logic. If you define queries in an overridden `getMigrationQueries()`
-     * method, you must call {@link Updater::executeMigrationQueries()} here.
-     *
-     * See {@link Updates} for an example.
-     *
-     * @param Updater $updater
-     */
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
-    /**
      * Return SQL to be executed in this update.
      *
      * SQL queries should be defined here, instead of in `doUpdate()`, since this method is used
@@ -59,5 +44,20 @@ class Updates_0_0_2 extends PiwikUpdates
         return array(
             // $updateSql => $errorCodesToIgnore
         );
+    }
+
+    /**
+     * Perform the incremental version update.
+     *
+     * This method should preform all updating logic. If you define queries in an overridden `getMigrationQueries()`
+     * method, you must call {@link Updater::executeMigrationQueries()} here.
+     *
+     * See {@link Updates} for an example.
+     *
+     * @param Updater $updater
+     */
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

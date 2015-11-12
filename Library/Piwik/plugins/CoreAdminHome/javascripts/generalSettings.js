@@ -5,16 +5,14 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-function sendGeneralSettingsAJAX()
-{
+function sendGeneralSettingsAJAX() {
     var enableBrowserTriggerArchiving = $('input[name=enableBrowserTriggerArchiving]:checked').val();
     var enablePluginUpdateCommunication = $('input[name=enablePluginUpdateCommunication]:checked').val();
     var releaseChannel = $('input[name=releaseChannel]:checked').val();
     var todayArchiveTimeToLive = $('#todayArchiveTimeToLive').val();
 
     var trustedHosts = [];
-    $('input[name=trusted_host]').each(function ()
-    {
+    $('input[name=trusted_host]').each(function () {
         trustedHosts.push($(this).val());
     });
 
@@ -43,25 +41,20 @@ function sendGeneralSettingsAJAX()
     ajaxHandler.redirectOnSuccess();
     ajaxHandler.send(true);
 }
-function showSmtpSettings(value)
-{
+function showSmtpSettings(value) {
     $('#smtpSettings').toggle(value == 1);
 }
-function isSmtpEnabled()
-{
+function isSmtpEnabled() {
     return $('input[name="mailUseSmtp"]:checked').val();
 }
-function showCustomLogoSettings(value)
-{
+function showCustomLogoSettings(value) {
     $('#logoSettings').toggle(value == 1);
 }
-function isCustomLogoEnabled()
-{
+function isCustomLogoEnabled() {
     return $('input[name="useCustomLogo"]:checked').val();
 }
 
-function refreshCustomLogo()
-{
+function refreshCustomLogo() {
     var selectors = ['#currentLogo', '#currentFavicon'];
     var index;
     for (index = 0; index < selectors.length; index++) {
@@ -73,16 +66,13 @@ function refreshCustomLogo()
     }
 }
 
-$(document).ready(function ()
-{
+$(document).ready(function () {
     var originalTrustedHostCount = $('input[name=trusted_host]').length;
 
     showSmtpSettings(isSmtpEnabled());
     showCustomLogoSettings(isCustomLogoEnabled());
-    $('.generalSettingsSubmit').click(function ()
-    {
-        var doSubmit = function ()
-        {
+    $('.generalSettingsSubmit').click(function () {
+        var doSubmit = function () {
             sendGeneralSettingsAJAX();
         };
 
@@ -92,8 +82,7 @@ $(document).ready(function ()
             hasTrustedHostsChanged = true;
         }
         else {
-            hosts.each(function ()
-            {
+            hosts.each(function () {
                 hasTrustedHostsChanged |= this.defaultValue != this.value;
             });
         }
@@ -107,17 +96,14 @@ $(document).ready(function ()
         }
     });
 
-    $('input[name=mailUseSmtp]').click(function ()
-    {
+    $('input[name=mailUseSmtp]').click(function () {
         showSmtpSettings($(this).val());
     });
-    $('input[name=useCustomLogo]').click(function ()
-    {
+    $('input[name=useCustomLogo]').click(function () {
         refreshCustomLogo();
         showCustomLogoSettings($(this).val());
     });
-    $('input').keypress(function (e)
-        {
+    $('input').keypress(function (e) {
             var key = e.keyCode || e.which;
             if (key == 13) {
                 $('.generalSettingsSubmit').click();
@@ -125,16 +111,13 @@ $(document).ready(function ()
         }
     );
 
-    $("#logoUploadForm").submit(function (data)
-    {
+    $("#logoUploadForm").submit(function (data) {
         var submittingForm = $(this);
         var frameName = "upload" + (new Date()).getTime();
         var uploadFrame = $("<iframe name=\"" + frameName + "\" />");
         uploadFrame.css("display", "none");
-        uploadFrame.load(function (data)
-        {
-            setTimeout(function ()
-            {
+        uploadFrame.load(function (data) {
+            setTimeout(function () {
                 refreshCustomLogo();
 
                 var frameContent = $(uploadFrame.contents()).find('body').html();
@@ -149,22 +132,19 @@ $(document).ready(function ()
         submittingForm.attr("target", frameName);
     });
 
-    $('#customLogo,#customFavicon').change(function ()
-    {
+    $('#customLogo,#customFavicon').change(function () {
         $("#logoUploadForm").submit();
         $(this).val('');
     });
 
     // trusted hosts event handling
     var trustedHostSettings = $('#trustedHostSettings');
-    trustedHostSettings.on('click', '.remove-trusted-host', function (e)
-    {
+    trustedHostSettings.on('click', '.remove-trusted-host', function (e) {
         e.preventDefault();
         $(this).parent('li').remove();
         return false;
     });
-    trustedHostSettings.find('.add-trusted-host').click(function (e)
-    {
+    trustedHostSettings.find('.add-trusted-host').click(function (e) {
         e.preventDefault();
 
         // append new row to the table

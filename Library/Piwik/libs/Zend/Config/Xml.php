@@ -58,7 +58,7 @@ class Zend_Config_Xml extends Zend_Config
      *
      * Note that the keys in $section will override any keys of the same
      * name in the sections that have been included via "extends".
-     *
+     * 
      * The $options parameter may be provided as either a boolean or an array.
      * If provided as a boolean, this sets the $allowModifications option of
      * Zend_Config. If provided as an array, there are two configuration
@@ -71,7 +71,7 @@ class Zend_Config_Xml extends Zend_Config
      *
      * @param  string        $xml     XML file or string to process
      * @param  mixed         $section Section to process
-     * @param  array|boolean $options
+     * @param  array|boolean $options 
      * @throws Zend_Config_Exception When xml is not set or cannot be loaded
      * @throws Zend_Config_Exception When section $sectionName cannot be found in $xml
      */
@@ -115,7 +115,7 @@ class Zend_Config_Xml extends Zend_Config
             }
 
             parent::__construct($dataArray, $allowModifications);
-        } else {if (is_array($section)) {
+        } else if (is_array($section)) {
             $dataArray = array();
             foreach ($section as $sectionName) {
                 if (!isset($config->$sectionName)) {
@@ -140,7 +140,7 @@ class Zend_Config_Xml extends Zend_Config
             }
 
             parent::__construct($dataArray, $allowModifications);
-        }}
+        }
 
         $this->_loadedSection = $section;
     }
@@ -264,7 +264,7 @@ class Zend_Config_Xml extends Zend_Config
             foreach ($xmlObject->children() as $key => $value) {
                 if (count($value->children()) > 0 || count($value->children(self::XML_NAMESPACE)) > 0) {
                     $value = $this->_toArray($value);
-                } else {if (count($value->attributes()) > 0) {
+                } else if (count($value->attributes()) > 0) {
                     $attributes = $value->attributes();
                     if (isset($attributes['value'])) {
                         $value = (string) $attributes['value'];
@@ -273,7 +273,7 @@ class Zend_Config_Xml extends Zend_Config
                     }
                 } else {
                     $value = (string) $value;
-                }}
+                }
 
                 if (array_key_exists($key, $config)) {
                     if (!is_array($config[$key]) || !array_key_exists(0, $config[$key])) {
@@ -285,11 +285,11 @@ class Zend_Config_Xml extends Zend_Config
                     $config[$key] = $value;
                 }
             }
-        } else {if (!isset($xmlObject['extends']) && !isset($nsAttributes['extends']) && (count($config) === 0)) {
+        } else if (!isset($xmlObject['extends']) && !isset($nsAttributes['extends']) && (count($config) === 0)) {
             // Object has no children nor attributes and doesn't use the extends
             // attribute: it's a string
             $config = (string) $xmlObject;
-        }}
+        }
 
         return $config;
     }

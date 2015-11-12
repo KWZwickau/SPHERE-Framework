@@ -9,8 +9,8 @@
 namespace Piwik\DataTable\Renderer;
 
 use Piwik\Common;
-use Piwik\DataTable;
 use Piwik\DataTable\Renderer;
+use Piwik\DataTable;
 
 /**
  * JSON export.
@@ -19,11 +19,6 @@ use Piwik\DataTable\Renderer;
  */
 class Json extends Renderer
 {
-    public static function sendHeaderJSON()
-    {
-        Common::sendHeader('Content-Type: application/json; charset=utf-8');
-    }
-
     /**
      * Computes the dataTable output and returns the string/binary
      *
@@ -79,6 +74,11 @@ class Json extends Renderer
         $str = @json_encode($array);
 
         return $str;
+    }
+
+    public static function sendHeaderJSON()
+    {
+        Common::sendHeader('Content-Type: application/json; charset=utf-8');
     }
 
     private function convertDataTableToArray($table)

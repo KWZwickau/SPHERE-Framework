@@ -10,8 +10,8 @@ namespace Piwik\Plugins\API\Renderer;
 
 use Piwik\API\ApiRenderer;
 use Piwik\Common;
-use Piwik\DataTable;
 use Piwik\DataTable\Renderer;
+use Piwik\DataTable;
 
 class Html extends ApiRenderer
 {
@@ -21,11 +21,6 @@ class Html extends ApiRenderer
         Common::sendHeader('Content-Type: text/plain; charset=utf-8', true);
 
         return nl2br($message);
-    }
-
-    public function renderArray($array)
-    {
-        return $this->renderDataTable($array);
     }
 
     public function renderDataTable($dataTable)
@@ -41,6 +36,11 @@ class Html extends ApiRenderer
         $tableRenderer->setTranslateColumnNames(Common::getRequestVar('translateColumnNames', false, 'int', $this->request));
 
         return $tableRenderer->render();
+    }
+
+    public function renderArray($array)
+    {
+        return $this->renderDataTable($array);
     }
 
     public function sendHeader()

@@ -9,8 +9,8 @@
 namespace Piwik;
 
 use Exception;
-use Piwik\DataAccess\ArchiveTableCreator;
 use Piwik\Db\Schema;
+use Piwik\DataAccess\ArchiveTableCreator;
 
 /**
  * Contains database related helper functions.

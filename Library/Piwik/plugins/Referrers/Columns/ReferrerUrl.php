@@ -9,14 +9,23 @@
 namespace Piwik\Plugins\Referrers\Columns;
 
 use Piwik\Plugins\Referrers\Segment;
-use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Action;
 
 class ReferrerUrl extends Base
 {
     protected $columnName = 'referer_url';
     protected $columnType = 'TEXT NOT NULL';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('referrerUrl');
+        $segment->setName('Live_Referrer_URL');
+        $segment->setAcceptedValues('http%3A%2F%2Fwww.example.org%2Freferer-page.htm');
+        $this->addSegment($segment);
+    }
 
     /**
      * @param Request $request
@@ -29,14 +38,5 @@ class ReferrerUrl extends Base
         $information = $this->getReferrerInformationFromRequest($request);
 
         return $information['referer_url'];
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('referrerUrl');
-        $segment->setName('Live_Referrer_URL');
-        $segment->setAcceptedValues('http%3A%2F%2Fwww.example.org%2Freferer-page.htm');
-        $this->addSegment($segment);
     }
 }

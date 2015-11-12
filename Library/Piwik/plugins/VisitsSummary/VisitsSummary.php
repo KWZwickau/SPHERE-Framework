@@ -31,6 +31,11 @@ class VisitsSummary extends \Piwik\Plugin
         );
     }
 
+    private function isRequestingVisitsSummaryGet($module, $method)
+    {
+        return ($module === 'VisitsSummary' && $method === 'get');
+    }
+
     public function enrichProcessedReportIfVisitsSummaryGet(&$response, $infos)
     {
         if (empty($infos['parameters'][4]) || empty($response['reportData'])) {
@@ -58,11 +63,6 @@ class VisitsSummary extends \Piwik\Plugin
             $report = new Get();
             $report->removeUsersFromProcessedReport($response);
         }
-    }
-
-    private function isRequestingVisitsSummaryGet($module, $method)
-    {
-        return ($module === 'VisitsSummary' && $method === 'get');
     }
 
     public function getStylesheetFiles(&$stylesheets)

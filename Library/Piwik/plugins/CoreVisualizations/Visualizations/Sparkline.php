@@ -61,6 +61,45 @@ class Sparkline extends ViewDataTable
         return $graph;
     }
 
+    /**
+     * @param DataTable\Map $dataTableMap
+     * @param string $columnToPlot
+     *
+     * @return array
+     * @throws \Exception
+     */
+    protected function getValuesFromDataTableMap($dataTableMap, $columnToPlot)
+    {
+        $dataTableMap->applyQueuedFilters();
+
+        $values = array();
+
+        foreach ($dataTableMap->getDataTables() as $table) {
+
+            if ($table->getRowsCount() > 1) {
+                throw new Exception("Expecting only one row per DataTable");
+            }
+
+            $value   = 0;
+            $onlyRow = $table->getFirstRow();
+
+            if (false !== $onlyRow) {
+                if (!empty($columnToPlot)) {
+                    $value = $onlyRow->getColumn($columnToPlot);
+                } // if not specified, we load by default the first column found
+                // eg. case of getLastDistinctCountriesGraph
+                else {
+                    $columns = $onlyRow->getColumns();
+                    $value = current($columns);
+                }
+            }
+
+            $values[] = $value;
+        }
+
+        return $values;
+    }
+
     protected function getValuesFromDataTable($dataTable)
     {
         $columns = $this->config->columns_to_display;
@@ -82,45 +121,6 @@ class Sparkline extends ViewDataTable
             $values = $this->dataTable->getColumn($columnToPlot);
         } else {
             $values = false;
-        }
-
-        return $values;
-    }
-
-    /**
-     * @param DataTable\Map $dataTableMap
-     * @param string $columnToPlot
-     *
-     * @return array
-     * @throws \Exception
-     */
-    protected function getValuesFromDataTableMap($dataTableMap, $columnToPlot)
-    {
-        $dataTableMap->applyQueuedFilters();
-
-        $values = array();
-
-        foreach ($dataTableMap->getDataTables() as $table) {
-
-            if ($table->getRowsCount() > 1) {
-                throw new Exception("Expecting only one row per DataTable");
-            }
-
-            $value = 0;
-            $onlyRow = $table->getFirstRow();
-
-            if (false !== $onlyRow) {
-                if (!empty($columnToPlot)) {
-                    $value = $onlyRow->getColumn($columnToPlot);
-                } // if not specified, we load by default the first column found
-                // eg. case of getLastDistinctCountriesGraph
-                else {
-                    $columns = $onlyRow->getColumns();
-                    $value = current($columns);
-                }
-            }
-
-            $values[] = $value;
         }
 
         return $values;

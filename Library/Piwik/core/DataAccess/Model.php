@@ -127,12 +127,12 @@ class Model
             ) {
                 // invalidate all periods if no period supplied or period is day
                 $periodConditions[] = "($dateConditionsSql)";
-            } else {if ($periodType == Period\Range::PERIOD_ID) {
+            } else if ($periodType == Period\Range::PERIOD_ID) {
                 $periodConditions[] = "(period = " . Period\Range::PERIOD_ID . " AND ($dateConditionsSql))";
             } else {
                 // for non-day periods, invalidate greater periods, but not range periods
                 $periodConditions[] = "(period >= " . (int)$periodType . " AND period < " . Period\Range::PERIOD_ID . " AND ($dateConditionsSql))";
-            }}
+            }
         }
 
         if ($segment) {
@@ -236,18 +236,6 @@ class Model
         return $results;
     }
 
-    /**
-     * Returns the SQL condition used to find successfully completed archives that
-     * this instance is querying for.
-     */
-    private static function getNameCondition($doneFlags, $possibleValues)
-    {
-        $allDoneFlags = "'" . implode("','", $doneFlags) . "'";
-
-        // create the SQL to find archives that are DONE
-        return "((name IN ($allDoneFlags)) AND (value IN (" . implode(',', $possibleValues) . ")))";
-    }
-
     public function createArchiveTable($tableName, $tableNamePrefix)
     {
         $db  = Db::get();
@@ -305,18 +293,6 @@ class Model
         $this->releaseArchiveTableLock($dbLockName);
     }
 
-    protected function acquireArchiveTableLock($dbLockName)
-    {
-        if (Db::getDbLock($dbLockName, $maxRetries = 30) === false) {
-            throw new Exception("Cannot get named lock $dbLockName.");
-        }
-    }
-
-    protected function releaseArchiveTableLock($dbLockName)
-    {
-        Db::releaseDbLock($dbLockName);
-    }
-
     public function insertRecord($tableName, $fields, $record, $name, $value)
     {
         // duplicate idarchives are Ignored, see https://github.com/piwik/piwik/issues/987
@@ -347,5 +323,29 @@ class Model
             $result[] = $row['idsite'];
         }
         return $result;
+    }
+
+    /**
+     * Returns the SQL condition used to find successfully completed archives that
+     * this instance is querying for.
+     */
+    private static function getNameCondition($doneFlags, $possibleValues)
+    {
+        $allDoneFlags = "'" . implode("','", $doneFlags) . "'";
+
+        // create the SQL to find archives that are DONE
+        return "((name IN ($allDoneFlags)) AND (value IN (" . implode(',', $possibleValues) . ")))";
+    }
+
+    protected function acquireArchiveTableLock($dbLockName)
+    {
+        if (Db::getDbLock($dbLockName, $maxRetries = 30) === false) {
+            throw new Exception("Cannot get named lock $dbLockName.");
+        }
+    }
+
+    protected function releaseArchiveTableLock($dbLockName)
+    {
+        Db::releaseDbLock($dbLockName);
     }
 }

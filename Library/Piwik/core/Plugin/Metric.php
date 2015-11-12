@@ -36,6 +36,67 @@ abstract class Metric
     const COMPONENT_SUBNAMESPACE = 'Metrics';
 
     /**
+     * Returns the column name of this metric, eg, `"nb_visits"` or `"avg_time_on_site"`.
+     *
+     * This string is what appears in API output.
+     *
+     * @return string
+     */
+    abstract public function getName();
+
+    /**
+     * Returns the human readable translated name of this metric, eg, `"Visits"` or `"Avg. time on site"`.
+     *
+     * This string is what appears in the UI.
+     *
+     * @return string
+     */
+    abstract public function getTranslatedName();
+
+    /**
+     * Returns a string describing what the metric represents. The result will be included in report metadata
+     * API output, including processed reports.
+     *
+     * Implementing this method is optional.
+     *
+     * @return string
+     */
+    public function getDocumentation()
+    {
+        return "";
+    }
+
+    /**
+     * Returns a formatted metric value. This value is what appears in API output. From within Piwik,
+     * (core & plugins) the computed value is used. Only when outputting to the API does a metric
+     * get formatted.
+     *
+     * By default, just returns the value.
+     *
+     * @param mixed $value The metric value.
+     * @param Formatter $formatter The formatter to use when formatting a value.
+     * @return mixed $value
+     */
+    public function format($value, Formatter $formatter)
+    {
+        return $value;
+    }
+
+    /**
+     * Executed before formatting all metrics for a report. Implementers can return `false`
+     * to skip formatting this metric and can use this method to access information needed for
+     * formatting (for example, the site ID).
+     *
+     * @param Report $report
+     * @param DataTable $table
+     * @return bool Return `true` to format the metric for the table, `false` to skip formatting.
+     */
+    public function beforeFormat($report, DataTable $table)
+    {
+        return true;
+    }
+
+    /**
      * Helper method that will access a metric in a {@link Piwik\DataTable\Row} or array either by
      * its name or by its special numerical index value.
      *
@@ -124,66 +185,5 @@ abstract class Metric
             $columnName = $mappingNameToId[$columnName];
         }
         return $columnName;
-    }
-
-    /**
-     * Returns the column name of this metric, eg, `"nb_visits"` or `"avg_time_on_site"`.
-     *
-     * This string is what appears in API output.
-     *
-     * @return string
-     */
-    abstract public function getName();
-
-    /**
-     * Returns the human readable translated name of this metric, eg, `"Visits"` or `"Avg. time on site"`.
-     *
-     * This string is what appears in the UI.
-     *
-     * @return string
-     */
-    abstract public function getTranslatedName();
-
-    /**
-     * Returns a string describing what the metric represents. The result will be included in report metadata
-     * API output, including processed reports.
-     *
-     * Implementing this method is optional.
-     *
-     * @return string
-     */
-    public function getDocumentation()
-    {
-        return "";
-    }
-
-    /**
-     * Returns a formatted metric value. This value is what appears in API output. From within Piwik,
-     * (core & plugins) the computed value is used. Only when outputting to the API does a metric
-     * get formatted.
-     *
-     * By default, just returns the value.
-     *
-     * @param mixed $value The metric value.
-     * @param Formatter $formatter The formatter to use when formatting a value.
-     * @return mixed $value
-     */
-    public function format($value, Formatter $formatter)
-    {
-        return $value;
-    }
-
-    /**
-     * Executed before formatting all metrics for a report. Implementers can return `false`
-     * to skip formatting this metric and can use this method to access information needed for
-     * formatting (for example, the site ID).
-     *
-     * @param Report $report
-     * @param DataTable $table
-     * @return bool Return `true` to format the metric for the table, `false` to skip formatting.
-     */
-    public function beforeFormat($report, DataTable $table)
-    {
-        return true;
     }
 }

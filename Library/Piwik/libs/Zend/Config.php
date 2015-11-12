@@ -119,6 +119,22 @@ class Zend_Config implements Countable, Iterator
     }
 
     /**
+     * Retrieve a value and return $default if there is no element set.
+     *
+     * @param string $name
+     * @param mixed $default
+     * @return mixed
+     */
+    public function get($name, $default = null)
+    {
+        $result = $default;
+        if (array_key_exists($name, $this->_data)) {
+            $result = $this->_data[$name];
+        }
+        return $result;
+    }
+
+    /**
      * Magic function so that $obj->value will work.
      *
      * @param string $name
@@ -155,22 +171,6 @@ class Zend_Config implements Countable, Iterator
     }
 
     /**
-     * Retrieve a value and return $default if there is no element set.
-     *
-     * @param string $name
-     * @param mixed $default
-     * @return mixed
-     */
-    public function get($name, $default = null)
-    {
-        $result = $default;
-        if (array_key_exists($name, $this->_data)) {
-            $result = $this->_data[$name];
-        }
-        return $result;
-    }
-
-    /**
      * Deep clone of this instance to ensure that nested Zend_Configs
      * are also cloned.
      *
@@ -187,6 +187,25 @@ class Zend_Config implements Countable, Iterator
           }
       }
       $this->_data = $array;
+    }
+
+    /**
+     * Return an associative array of the stored data.
+     *
+     * @return array
+     */
+    public function toArray()
+    {
+        $array = array();
+        $data = $this->_data;
+        foreach ($data as $key => $value) {
+            if ($value instanceof Zend_Config) {
+                $array[$key] = $value->toArray();
+            } else {
+                $array[$key] = $value;
+            }
+        }
+        return $array;
     }
 
     /**
@@ -310,6 +329,7 @@ class Zend_Config implements Countable, Iterator
         return $this->_loadedSection === null;
     }
 
+
     /**
      * Merge another Zend_Config with this one. The items
      * in $merge will override the same named items in
@@ -340,35 +360,6 @@ class Zend_Config implements Countable, Iterator
     }
 
     /**
-     * Return an associative array of the stored data.
-     *
-     * @return array
-     */
-    public function toArray()
-    {
-        $array = array();
-        $data = $this->_data;
-        foreach ($data as $key => $value) {
-            if ($value instanceof Zend_Config) {
-                $array[$key] = $value->toArray();
-            } else {
-                $array[$key] = $value;
-            }
-        }
-        return $array;
-    }
-
-    /**
-     * Returns if this Zend_Config object is read only or not.
-     *
-     * @return boolean
-     */
-    public function readOnly()
-    {
-        return !$this->_allowModifications;
-    }
-
-    /**
      * Prevent any more modifications being made to this instance. Useful
      * after merge() has been used to merge multiple Zend_Config objects
      * into one object which should then not be modified again.
@@ -382,6 +373,16 @@ class Zend_Config implements Countable, Iterator
                 $value->setReadOnly();
             }
         }
+    }
+
+    /**
+     * Returns if this Zend_Config object is read only or not.
+     *
+     * @return boolean
+     */
+    public function readOnly()
+    {
+        return !$this->_allowModifications;
     }
 
     /**
@@ -405,9 +406,9 @@ class Zend_Config implements Countable, Iterator
     {
         if ($extendedSection === null && isset($this->_extends[$extendingSection])) {
             unset($this->_extends[$extendingSection]);
-        } else {if ($extendedSection !== null) {
+        } else if ($extendedSection !== null) {
             $this->_extends[$extendingSection] = $extendedSection;
-        }}
+        }
     }
 
     /**

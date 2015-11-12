@@ -47,15 +47,6 @@ class UIAssetCatalog
     }
 
     /**
-     * @param UIAsset $uiAsset
-     * @return boolean
-     */
-    private function assetAlreadyInCatalog($location)
-    {
-        return in_array($location, $this->existingAssetLocations);
-    }
-
-    /**
      * @return UIAsset[]
      */
     public function getAssets()
@@ -69,5 +60,14 @@ class UIAssetCatalog
     public function getSortedCatalog()
     {
         return $this->catalogSorter->sortUIAssetCatalog($this);
+    }
+
+    /**
+     * @param UIAsset $uiAsset
+     * @return boolean
+     */
+    private function assetAlreadyInCatalog($location)
+    {
+        return in_array($location, $this->existingAssetLocations);
     }
 }

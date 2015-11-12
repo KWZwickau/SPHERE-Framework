@@ -51,6 +51,19 @@ class OptimizeArchiveTables extends ConsoleCommand
         }
     }
 
+    private function optimizeTable(OutputInterface $output, $dryRun, $table)
+    {
+        $output->write("Optimizing table '$table'...");
+
+        if ($dryRun) {
+            $output->write("[dry-run, not optimising table]");
+        } else {
+            Db::optimizeTables(Common::prefixTable($table), $force = true);
+        }
+
+        $output->writeln("Done.");
+    }
+
     private function getTableMonthsToOptimize(InputInterface $input)
     {
         $dateSpecifiers = $input->getArgument('dates');
@@ -59,10 +72,10 @@ class OptimizeArchiveTables extends ConsoleCommand
 
             if ($dateSpecifier == self::ALL_TABLES_STRING) {
                 return $this->getAllArchiveTableMonths();
-            } else {if ($dateSpecifier == self::CURRENT_MONTH_STRING) {
+            } else if ($dateSpecifier == self::CURRENT_MONTH_STRING) {
                 $now = Date::factory('now');
                 return array(ArchiveTableCreator::getTableMonthFromDate($now));
-            } else {if (strpos($dateSpecifier, 'last') === 0) {
+            } else if (strpos($dateSpecifier, 'last') === 0) {
                 $lastN = substr($dateSpecifier, 4);
                 if (!ctype_digit($lastN)) {
                     throw new \Exception("Invalid lastN specifier '$lastN'. The end must be an integer, eg, last1 or last2.");
@@ -73,7 +86,7 @@ class OptimizeArchiveTables extends ConsoleCommand
                 }
 
                 return $this->getLastNTableMonths((int)$lastN);
-            }}}
+            }
         }
 
         $tableMonths = array();
@@ -107,18 +120,5 @@ class OptimizeArchiveTables extends ConsoleCommand
             $result[] = ArchiveTableCreator::getTableMonthFromDate($date);
         }
         return $result;
-    }
-
-    private function optimizeTable(OutputInterface $output, $dryRun, $table)
-    {
-        $output->write("Optimizing table '$table'...");
-
-        if ($dryRun) {
-            $output->write("[dry-run, not optimising table]");
-        } else {
-            Db::optimizeTables(Common::prefixTable($table), $force = true);
-        }
-
-        $output->writeln("Done.");
     }
 }

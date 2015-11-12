@@ -50,14 +50,6 @@ class Twig_NodeVisitor_Optimizer extends Twig_BaseNodeVisitor
     /**
      * {@inheritdoc}
      */
-    public function getPriority()
-    {
-        return 255;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     protected function doEnterNode(Twig_Node $node, Twig_Environment $env)
     {
         if (self::OPTIMIZE_FOR === (self::OPTIMIZE_FOR & $this->optimizers)) {
@@ -76,6 +68,100 @@ class Twig_NodeVisitor_Optimizer extends Twig_BaseNodeVisitor
             } elseif ($node instanceof Twig_Node_Body) {
                 $this->inABody = true;
             }
+        }
+
+        return $node;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function doLeaveNode(Twig_Node $node, Twig_Environment $env)
+    {
+        $expression = $node instanceof Twig_Node_Expression;
+
+        if (self::OPTIMIZE_FOR === (self::OPTIMIZE_FOR & $this->optimizers)) {
+            $this->leaveOptimizeFor($node, $env);
+        }
+
+        if (self::OPTIMIZE_RAW_FILTER === (self::OPTIMIZE_RAW_FILTER & $this->optimizers)) {
+            $node = $this->optimizeRawFilter($node, $env);
+        }
+
+        $node = $this->optimizePrintNode($node, $env);
+
+        if (self::OPTIMIZE_VAR_ACCESS === (self::OPTIMIZE_VAR_ACCESS & $this->optimizers) && !$env->isStrictVariables() && !$env->hasExtension('sandbox')) {
+            if ($node instanceof Twig_Node_Body) {
+                $this->inABody = false;
+            } elseif ($this->inABody) {
+                if (!$expression && get_class($node) !== 'Twig_Node' && $prependedNodes = array_shift($this->prependedNodes)) {
+                    $nodes = array();
+                    foreach (array_unique($prependedNodes) as $name) {
+                        $nodes[] = new Twig_Node_SetTemp($name, $node->getLine());
+                    }
+
+                    $nodes[] = $node;
+                    $node = new Twig_Node($nodes);
+                }
+            }
+        }
+
+        return $node;
+    }
+
+    protected function optimizeVariables(Twig_NodeInterface $node, Twig_Environment $env)
+    {
+        if ('Twig_Node_Expression_Name' === get_class($node) && $node->isSimple()) {
+            $this->prependedNodes[0][] = $node->getAttribute('name');
+
+            return new Twig_Node_Expression_TempName($node->getAttribute('name'), $node->getLine());
+        }
+
+        return $node;
+    }
+
+    /**
+     * Optimizes print nodes.
+     *
+     * It replaces:
+     *
+     *   * "echo $this->render(Parent)Block()" with "$this->display(Parent)Block()"
+     *
+     * @param Twig_NodeInterface $node A Node
+     * @param Twig_Environment   $env  The current Twig environment
+     *
+     * @return Twig_NodeInterface
+     */
+    protected function optimizePrintNode(Twig_NodeInterface $node, Twig_Environment $env)
+    {
+        if (!$node instanceof Twig_Node_Print) {
+            return $node;
+        }
+
+        if (
+            $node->getNode('expr') instanceof Twig_Node_Expression_BlockReference ||
+            $node->getNode('expr') instanceof Twig_Node_Expression_Parent
+        ) {
+            $node->getNode('expr')->setAttribute('output', true);
+
+            return $node->getNode('expr');
+        }
+
+        return $node;
+    }
+
+    /**
+     * Removes "raw" filters.
+     *
+     * @param Twig_NodeInterface $node A Node
+     * @param Twig_Environment   $env  The current Twig environment
+     *
+     * @return Twig_NodeInterface
+     */
+    protected function optimizeRawFilter(Twig_NodeInterface $node, Twig_Environment $env)
+    {
+        if ($node instanceof Twig_Node_Expression_Filter && 'raw' == $node->getNode('filter')->getAttribute('value')) {
+            return $node->getNode('node');
         }
 
         return $node;
@@ -148,65 +234,6 @@ class Twig_NodeVisitor_Optimizer extends Twig_BaseNodeVisitor
         }
     }
 
-    protected function addLoopToCurrent()
-    {
-        $this->loops[0]->setAttribute('with_loop', true);
-    }
-
-    protected function addLoopToAll()
-    {
-        foreach ($this->loops as $loop) {
-            $loop->setAttribute('with_loop', true);
-        }
-    }
-
-    protected function optimizeVariables(Twig_NodeInterface $node, Twig_Environment $env)
-    {
-        if ('Twig_Node_Expression_Name' === get_class($node) && $node->isSimple()) {
-            $this->prependedNodes[0][] = $node->getAttribute('name');
-
-            return new Twig_Node_Expression_TempName($node->getAttribute('name'), $node->getLine());
-        }
-
-        return $node;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function doLeaveNode(Twig_Node $node, Twig_Environment $env)
-    {
-        $expression = $node instanceof Twig_Node_Expression;
-
-        if (self::OPTIMIZE_FOR === (self::OPTIMIZE_FOR & $this->optimizers)) {
-            $this->leaveOptimizeFor($node, $env);
-        }
-
-        if (self::OPTIMIZE_RAW_FILTER === (self::OPTIMIZE_RAW_FILTER & $this->optimizers)) {
-            $node = $this->optimizeRawFilter($node, $env);
-        }
-
-        $node = $this->optimizePrintNode($node, $env);
-
-        if (self::OPTIMIZE_VAR_ACCESS === (self::OPTIMIZE_VAR_ACCESS & $this->optimizers) && !$env->isStrictVariables() && !$env->hasExtension('sandbox')) {
-            if ($node instanceof Twig_Node_Body) {
-                $this->inABody = false;
-            } elseif ($this->inABody) {
-                if (!$expression && get_class($node) !== 'Twig_Node' && $prependedNodes = array_shift($this->prependedNodes)) {
-                    $nodes = array();
-                    foreach (array_unique($prependedNodes) as $name) {
-                        $nodes[] = new Twig_Node_SetTemp($name, $node->getLine());
-                    }
-
-                    $nodes[] = $node;
-                    $node = new Twig_Node($nodes);
-                }
-            }
-        }
-
-        return $node;
-    }
-
     /**
      * Optimizes "for" tag by removing the "loop" variable creation whenever possible.
      *
@@ -222,50 +249,23 @@ class Twig_NodeVisitor_Optimizer extends Twig_BaseNodeVisitor
         }
     }
 
-    /**
-     * Removes "raw" filters.
-     *
-     * @param Twig_NodeInterface $node A Node
-     * @param Twig_Environment   $env  The current Twig environment
-     *
-     * @return Twig_NodeInterface
-     */
-    protected function optimizeRawFilter(Twig_NodeInterface $node, Twig_Environment $env)
+    protected function addLoopToCurrent()
     {
-        if ($node instanceof Twig_Node_Expression_Filter && 'raw' == $node->getNode('filter')->getAttribute('value')) {
-            return $node->getNode('node');
-        }
+        $this->loops[0]->setAttribute('with_loop', true);
+    }
 
-        return $node;
+    protected function addLoopToAll()
+    {
+        foreach ($this->loops as $loop) {
+            $loop->setAttribute('with_loop', true);
+        }
     }
 
     /**
-     * Optimizes print nodes.
-     *
-     * It replaces:
-     *
-     *   * "echo $this->render(Parent)Block()" with "$this->display(Parent)Block()"
-     *
-     * @param Twig_NodeInterface $node A Node
-     * @param Twig_Environment   $env  The current Twig environment
-     *
-     * @return Twig_NodeInterface
+     * {@inheritdoc}
      */
-    protected function optimizePrintNode(Twig_NodeInterface $node, Twig_Environment $env)
+    public function getPriority()
     {
-        if (!$node instanceof Twig_Node_Print) {
-            return $node;
-        }
-
-        if (
-            $node->getNode('expr') instanceof Twig_Node_Expression_BlockReference ||
-            $node->getNode('expr') instanceof Twig_Node_Expression_Parent
-        ) {
-            $node->getNode('expr')->setAttribute('output', true);
-
-            return $node->getNode('expr');
-        }
-
-        return $node;
+        return 255;
     }
 }

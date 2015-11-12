@@ -12,6 +12,7 @@ namespace Piwik\Plugins\CoreConsole\Commands;
 use Piwik\Common;
 use Piwik\DbHelper;
 use Piwik\Plugin\Report;
+use Piwik\Translate;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -90,48 +91,15 @@ class GenerateDimension extends GeneratePluginBase
         ));
     }
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return array
-     * @throws \RuntimeException
-     */
-    protected function getPluginName(InputInterface $input, OutputInterface $output)
+    private function getDimensionClassName($dimensionName)
     {
-        $pluginNames = $this->getPluginNames();
-        $invalidName = 'You have to enter a name of an existing plugin.';
+        $dimensionName = trim($dimensionName);
+        $dimensionName = str_replace(' ', '', $dimensionName);
+        $dimensionName = preg_replace("/[^A-Za-z0-9]/", '', $dimensionName);
 
-        return $this->askPluginNameAndValidate($input, $output, $pluginNames, $invalidName);
-    }
+        $dimensionName = ucfirst($dimensionName);
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return array
-     * @throws \RuntimeException
-     */
-    protected function getDimensionType(InputInterface $input, OutputInterface $output)
-    {
-        $acceptedValues = array('visit', 'action', 'conversion', 'non-tracking-dimension');
-
-        $validate = function ($type) use ($acceptedValues) {
-            if (empty($type) || !in_array($type, $acceptedValues)) {
-                throw new \InvalidArgumentException('Please enter a valid dimension type (' . implode(', ', $acceptedValues) .  '). Choose "non-tracking-dimension" if you only need a blank dimension having a name: ');
-            }
-
-            return $type;
-        };
-
-        $type = $input->getOption('type');
-
-        if (empty($type)) {
-            $dialog = $this->getHelperSet()->get('dialog');
-            $type = $dialog->askAndValidate($output, 'Please choose the type of dimension you want to create (' . implode(', ', $acceptedValues) .  '). Choose "non-tracking-dimension" if you only need a blank dimension having a name: ', $validate, false, null, $acceptedValues);
-        } else {
-            $validate($type);
-        }
-
-        return $type;
+        return $dimensionName;
     }
 
     /**
@@ -245,15 +213,48 @@ class GenerateDimension extends GeneratePluginBase
         return $columnType;
     }
 
-    private function getDimensionClassName($dimensionName)
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return array
+     * @throws \RuntimeException
+     */
+    protected function getDimensionType(InputInterface $input, OutputInterface $output)
     {
-        $dimensionName = trim($dimensionName);
-        $dimensionName = str_replace(' ', '', $dimensionName);
-        $dimensionName = preg_replace("/[^A-Za-z0-9]/", '', $dimensionName);
+        $acceptedValues = array('visit', 'action', 'conversion', 'non-tracking-dimension');
 
-        $dimensionName = ucfirst($dimensionName);
+        $validate = function ($type) use ($acceptedValues) {
+            if (empty($type) || !in_array($type, $acceptedValues)) {
+                throw new \InvalidArgumentException('Please enter a valid dimension type (' . implode(', ', $acceptedValues) .  '). Choose "non-tracking-dimension" if you only need a blank dimension having a name: ');
+            }
 
-        return $dimensionName;
+            return $type;
+        };
+
+        $type = $input->getOption('type');
+
+        if (empty($type)) {
+            $dialog = $this->getHelperSet()->get('dialog');
+            $type = $dialog->askAndValidate($output, 'Please choose the type of dimension you want to create (' . implode(', ', $acceptedValues) .  '). Choose "non-tracking-dimension" if you only need a blank dimension having a name: ', $validate, false, null, $acceptedValues);
+        } else {
+            $validate($type);
+        }
+
+        return $type;
+    }
+
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return array
+     * @throws \RuntimeException
+     */
+    protected function getPluginName(InputInterface $input, OutputInterface $output)
+    {
+        $pluginNames = $this->getPluginNames();
+        $invalidName = 'You have to enter a name of an existing plugin.';
+
+        return $this->askPluginNameAndValidate($input, $output, $pluginNames, $invalidName);
     }
 
 }

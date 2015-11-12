@@ -45,6 +45,175 @@ class WidgetsList extends Singleton
     private static $listCacheToBeInvalidated = false;
 
     /**
+     * Returns all available widgets.
+     *
+     * @return array Array Mapping widget categories with an array of widget information, eg,
+     *               ```
+     *               array(
+     *                   'Visitors' => array(
+     *                       array(...), // info about first widget in this category
+     *                       array(...) // info about second widget in this category, etc.
+     *                   ),
+     *                   'Visits' => array(
+     *                       array(...),
+     *                       array(...)
+     *                   ),
+     *               )
+     *               ```
+     */
+    public static function get()
+    {
+        $cache   = self::getCacheForCompleteList();
+        $cacheId = self::getCacheId();
+
+        if (!self::$listCacheToBeInvalidated && $cache->contains($cacheId)) {
+            return $cache->fetch($cacheId);
+        }
+
+        self::addWidgets();
+
+        uksort(self::$widgets, array('Piwik\WidgetsList', '_sortWidgetCategories'));
+
+        $widgets = array();
+        foreach (self::$widgets as $key => $v) {
+            $category = Piwik::translate($key);
+
+            if (isset($widgets[$category])) {
+                $v = array_merge($widgets[$category], $v);
+            }
+
+            $widgets[$category] = $v;
+        }
+
+        $cache->save($cacheId, $widgets);
+        self::$listCacheToBeInvalidated = false;
+
+        return $widgets;
+    }
+
+    private static function addWidgets()
+    {
+        if (!self::$hookCalled) {
+            self::$hookCalled = true;
+
+            /**
+             * @ignore
+             * @deprecated
+             */
+            Piwik::postEvent('WidgetsList.addWidgets');
+
+            $widgetsList = self::getInstance();
+
+            foreach (Report::getAllReports() as $report) {
+                if ($report->isEnabled()) {
+                    $report->configureWidget($widgetsList);
+                }
+            }
+
+            $widgetContainers = Widgets::getAllWidgets();
+            foreach ($widgetContainers as $widgetContainer) {
+                $widgets = $widgetContainer->getWidgets();
+
+                foreach ($widgets as $widget) {
+                    $widgetsList->add($widget['category'], $widget['name'], $widget['module'], $widget['method'], $widget['params']);
+                }
+            }
+
+            foreach ($widgetContainers as $widgetContainer) {
+                $widgetContainer->configureWidgetsList($widgetsList);
+            }
+        }
+    }
+
+    /**
+     * Sorting method for widget categories
+     *
+     * @param string $a
+     * @param string $b
+     * @return bool
+     */
+    protected static function _sortWidgetCategories($a, $b)
+    {
+        $order = array(
+            'VisitsSummary_VisitsSummary',
+            'Live!',
+            'General_Visitors',
+            'General_VisitorSettings',
+            'DevicesDetection_DevicesDetection',
+            'General_Actions',
+            'Events_Events',
+            'Actions_SubmenuSitesearch',
+            'Referrers_Referrers',
+            'Goals_Goals',
+            'Goals_Ecommerce',
+            '_others_',
+            'Example Widgets',
+            'ExamplePlugin_exampleWidgets',
+        );
+
+        if (($oa = array_search($a, $order)) === false) {
+            $oa = array_search('_others_', $order);
+        }
+        if (($ob = array_search($b, $order)) === false) {
+            $ob = array_search('_others_', $order);
+        }
+        return $oa > $ob;
+    }
+
+    /**
+     * Returns the unique id of an widget with the given parameters
+     *
+     * @param $controllerName
+     * @param $controllerAction
+     * @param array $customParameters
+     * @return string
+     */
+    public static function getWidgetUniqueId($controllerName, $controllerAction, $customParameters = array())
+    {
+        $widgetUniqueId = 'widget' . $controllerName . $controllerAction;
+
+        foreach ($customParameters as $name => $value) {
+            if (is_array($value)) {
+                // use 'Array' for backward compatibility;
+                // could we switch to using $value[0]?
+                $value = 'Array';
+            }
+            $widgetUniqueId .= $name . $value;
+        }
+
+        return $widgetUniqueId;
+    }
+
+    /**
+     * Adds a report to the list of dashboard widgets.
+     *
+     * @param string $widgetCategory The widget category. This can be a translation token.
+     * @param string $widgetName The name of the widget. This can be a translation token.
+     * @param string $controllerName The report's controller name (same as the plugin name).
+     * @param string $controllerAction The report's controller action method name.
+     * @param array $customParameters Extra query parameters that should be sent while getting
+     *                                this report.
+     */
+    public static function add($widgetCategory, $widgetName, $controllerName, $controllerAction, $customParameters = array())
+    {
+        $widgetName     = Piwik::translate($widgetName);
+        $widgetUniqueId = self::getWidgetUniqueId($controllerName, $controllerAction, $customParameters);
+
+        if (!array_key_exists($widgetCategory, self::$widgets)) {
+            self::$widgets[$widgetCategory] = array();
+        }
+
+        self::$listCacheToBeInvalidated = true;
+        self::$widgets[$widgetCategory][] = array(
+            'name'       => $widgetName,
+            'uniqueId'   => $widgetUniqueId,
+            'parameters' => array('module' => $controllerName,
+                                  'action' => $controllerAction
+                ) + $customParameters
+        );
+    }
+
+    /**
      * Removes one or more widgets from the widget list.
      *
      * @param string $widgetCategory The widget category. Can be a translation token.
@@ -95,150 +264,6 @@ class WidgetsList extends Singleton
     }
 
     /**
-     * Returns all available widgets.
-     *
-     * @return array Array Mapping widget categories with an array of widget information, eg,
-     *               ```
-     *               array(
-     *                   'Visitors' => array(
-     *                       array(...), // info about first widget in this category
-     *                       array(...) // info about second widget in this category, etc.
-     *                   ),
-     *                   'Visits' => array(
-     *                       array(...),
-     *                       array(...)
-     *                   ),
-     *               )
-     *               ```
-     */
-    public static function get()
-    {
-        $cache   = self::getCacheForCompleteList();
-        $cacheId = self::getCacheId();
-
-        if (!self::$listCacheToBeInvalidated && $cache->contains($cacheId)) {
-            return $cache->fetch($cacheId);
-        }
-
-        self::addWidgets();
-
-        uksort(self::$widgets, array('Piwik\WidgetsList', '_sortWidgetCategories'));
-
-        $widgets = array();
-        foreach (self::$widgets as $key => $v) {
-            $category = Piwik::translate($key);
-
-            if (isset($widgets[$category])) {
-                $v = array_merge($widgets[$category], $v);
-            }
-
-            $widgets[$category] = $v;
-        }
-
-        $cache->save($cacheId, $widgets);
-        self::$listCacheToBeInvalidated = false;
-
-        return $widgets;
-    }
-
-    private static function getCacheForCompleteList()
-    {
-        return PiwikCache::getTransientCache();
-    }
-
-    private static function getCacheId()
-    {
-        return CacheId::pluginAware('WidgetsList');
-    }
-
-    private static function addWidgets()
-    {
-        if (!self::$hookCalled) {
-            self::$hookCalled = true;
-
-            /**
-             * @ignore
-             * @deprecated
-             */
-            Piwik::postEvent('WidgetsList.addWidgets');
-
-            $widgetsList = self::getInstance();
-
-            foreach (Report::getAllReports() as $report) {
-                if ($report->isEnabled()) {
-                    $report->configureWidget($widgetsList);
-                }
-            }
-
-            $widgetContainers = Widgets::getAllWidgets();
-            foreach ($widgetContainers as $widgetContainer) {
-                $widgets = $widgetContainer->getWidgets();
-
-                foreach ($widgets as $widget) {
-                    $widgetsList->add($widget['category'], $widget['name'], $widget['module'], $widget['method'], $widget['params']);
-                }
-            }
-
-            foreach ($widgetContainers as $widgetContainer) {
-                $widgetContainer->configureWidgetsList($widgetsList);
-            }
-        }
-    }
-
-    /**
-     * Adds a report to the list of dashboard widgets.
-     *
-     * @param string $widgetCategory The widget category. This can be a translation token.
-     * @param string $widgetName The name of the widget. This can be a translation token.
-     * @param string $controllerName The report's controller name (same as the plugin name).
-     * @param string $controllerAction The report's controller action method name.
-     * @param array $customParameters Extra query parameters that should be sent while getting
-     *                                this report.
-     */
-    public static function add($widgetCategory, $widgetName, $controllerName, $controllerAction, $customParameters = array())
-    {
-        $widgetName     = Piwik::translate($widgetName);
-        $widgetUniqueId = self::getWidgetUniqueId($controllerName, $controllerAction, $customParameters);
-
-        if (!array_key_exists($widgetCategory, self::$widgets)) {
-            self::$widgets[$widgetCategory] = array();
-        }
-
-        self::$listCacheToBeInvalidated = true;
-        self::$widgets[$widgetCategory][] = array(
-            'name'       => $widgetName,
-            'uniqueId'   => $widgetUniqueId,
-            'parameters' => array('module' => $controllerName,
-                                  'action' => $controllerAction
-                ) + $customParameters
-        );
-    }
-
-    /**
-     * Returns the unique id of an widget with the given parameters
-     *
-     * @param $controllerName
-     * @param $controllerAction
-     * @param array $customParameters
-     * @return string
-     */
-    public static function getWidgetUniqueId($controllerName, $controllerAction, $customParameters = array())
-    {
-        $widgetUniqueId = 'widget' . $controllerName . $controllerAction;
-
-        foreach ($customParameters as $name => $value) {
-            if (is_array($value)) {
-                // use 'Array' for backward compatibility;
-                // could we switch to using $value[0]?
-                $value = 'Array';
-            }
-            $widgetUniqueId .= $name . $value;
-        }
-
-        return $widgetUniqueId;
-    }
-
-    /**
      * Method to reset the widget list
      * For testing only
      * @ignore
@@ -250,38 +275,13 @@ class WidgetsList extends Singleton
         self::getCacheForCompleteList()->delete(self::getCacheId());
     }
 
-    /**
-     * Sorting method for widget categories
-     *
-     * @param string $a
-     * @param string $b
-     * @return bool
-     */
-    protected static function _sortWidgetCategories($a, $b)
+    private static function getCacheId()
     {
-        $order = array(
-            'VisitsSummary_VisitsSummary',
-            'Live!',
-            'General_Visitors',
-            'General_VisitorSettings',
-            'DevicesDetection_DevicesDetection',
-            'General_Actions',
-            'Events_Events',
-            'Actions_SubmenuSitesearch',
-            'Referrers_Referrers',
-            'Goals_Goals',
-            'Goals_Ecommerce',
-            '_others_',
-            'Example Widgets',
-            'ExamplePlugin_exampleWidgets',
-        );
+        return CacheId::pluginAware('WidgetsList');
+    }
 
-        if (($oa = array_search($a, $order)) === false) {
-            $oa = array_search('_others_', $order);
-        }
-        if (($ob = array_search($b, $order)) === false) {
-            $ob = array_search('_others_', $order);
-        }
-        return $oa > $ob;
+    private static function getCacheForCompleteList()
+    {
+        return PiwikCache::getTransientCache();
     }
 }

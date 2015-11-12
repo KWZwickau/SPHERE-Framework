@@ -81,6 +81,24 @@ class ExcludeLowPopulation extends BaseFilter
     }
 
     /**
+     * See {@link ExcludeLowPopulation}.
+     *
+     * @param DataTable $table
+     */
+    public function filter($table)
+    {
+        if(empty($this->columnToFilter)) {
+            return;
+        }
+        $minimumValue = $this->minimumValue;
+        $isValueLowPopulation = function ($value) use ($minimumValue) {
+            return $value < $minimumValue;
+        };
+
+        $table->filter('ColumnCallbackDeleteRow', array($this->columnToFilter, $isValueLowPopulation));
+    }
+
+    /**
      * Sets the column to be used for Excluding low population
      *
      * @param DataTable\Row $row
@@ -103,23 +121,5 @@ class ExcludeLowPopulation extends BaseFilter
         }
 
         return $columnToFilter;
-    }
-
-    /**
-     * See {@link ExcludeLowPopulation}.
-     *
-     * @param DataTable $table
-     */
-    public function filter($table)
-    {
-        if(empty($this->columnToFilter)) {
-            return;
-        }
-        $minimumValue = $this->minimumValue;
-        $isValueLowPopulation = function ($value) use ($minimumValue) {
-            return $value < $minimumValue;
-        };
-
-        $table->filter('ColumnCallbackDeleteRow', array($this->columnToFilter, $isValueLowPopulation));
     }
 }

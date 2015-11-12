@@ -11,8 +11,8 @@ namespace Piwik\Updates;
 
 use Piwik\Filesystem;
 use Piwik\Tracker\Cache;
-use Piwik\Updater;
 use Piwik\Updates;
+use Piwik\Updater;
 
 /**
  * Update for version 2.5.0-rc4.

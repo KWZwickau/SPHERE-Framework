@@ -17,6 +17,17 @@ use Piwik\Plugins\Referrers\Columns\SocialNetwork;
 
 class GetSocials extends Base
 {
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new SocialNetwork();
+        $this->name          = Piwik::translate('Referrers_Socials');
+        $this->documentation = Piwik::translate('Referrers_WebsitesReportDocumentation', '<br />');
+        $this->actionToLoadSubTables = 'getUrlsForSocial';
+        $this->order = 11;
+        $this->widgetTitle  = 'Referrers_WidgetSocials';
+    }
+
     public function getDefaultTypeViewDataTable()
     {
         return Pie::ID;
@@ -39,17 +50,6 @@ class GetSocials extends Base
         if (empty($widget)) {
             $view->config->show_footer_message = Piwik::translate('Referrers_SocialFooterMessage');
         }
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension     = new SocialNetwork();
-        $this->name          = Piwik::translate('Referrers_Socials');
-        $this->documentation = Piwik::translate('Referrers_WebsitesReportDocumentation', '<br />');
-        $this->actionToLoadSubTables = 'getUrlsForSocial';
-        $this->order = 11;
-        $this->widgetTitle  = 'Referrers_WidgetSocials';
     }
 
 }

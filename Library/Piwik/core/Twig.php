@@ -106,6 +106,91 @@ class Twig
         $this->addTest_false();
     }
 
+    private function addTest_false()
+    {
+        $test = new Twig_SimpleTest(
+            'false',
+            function ($value) {
+                return false === $value;
+            }
+        );
+        $this->twig->addTest($test);
+    }
+
+    protected function addFunction_getJavascriptTranslations()
+    {
+        $getJavascriptTranslations = new Twig_SimpleFunction(
+            'getJavascriptTranslations',
+            array('Piwik\\Translate', 'getJavascriptTranslations')
+        );
+        $this->twig->addFunction($getJavascriptTranslations);
+    }
+
+    protected function addFunction_isPluginLoaded()
+    {
+        $isPluginLoadedFunction = new Twig_SimpleFunction('isPluginLoaded', function ($pluginName) {
+            return \Piwik\Plugin\Manager::getInstance()->isPluginLoaded($pluginName);
+        });
+        $this->twig->addFunction($isPluginLoadedFunction);
+    }
+
+    protected function addFunction_includeAssets()
+    {
+        $includeAssetsFunction = new Twig_SimpleFunction('includeAssets', function ($params) {
+            if (!isset($params['type'])) {
+                throw new Exception("The function includeAssets needs a 'type' parameter.");
+            }
+
+            $assetType = strtolower($params['type']);
+            switch ($assetType) {
+                case 'css':
+                    return AssetManager::getInstance()->getCssInclusionDirective();
+                case 'js':
+                    return AssetManager::getInstance()->getJsInclusionDirective();
+                default:
+                    throw new Exception("The twig function includeAssets 'type' parameter needs to be either 'css' or 'js'.");
+            }
+        });
+        $this->twig->addFunction($includeAssetsFunction);
+    }
+
+    protected function addFunction_postEvent()
+    {
+        $postEventFunction = new Twig_SimpleFunction('postEvent', function ($eventName) {
+            // get parameters to twig function
+            $params = func_get_args();
+            // remove the first value (event name)
+            array_shift($params);
+
+            // make the first value the string that will get output in the template
+            // plugins can modify this string
+            $str = '';
+            $params = array_merge(array( &$str ), $params);
+
+            Piwik::postEvent($eventName, $params);
+            return $str;
+        }, array('is_safe' => array('html')));
+        $this->twig->addFunction($postEventFunction);
+    }
+
+    protected function addFunction_sparkline()
+    {
+        $sparklineFunction = new Twig_SimpleFunction('sparkline', function ($src) {
+            $width = Sparkline::DEFAULT_WIDTH;
+            $height = Sparkline::DEFAULT_HEIGHT;
+            return sprintf(Twig::SPARKLINE_TEMPLATE, $src, $width, $height);
+        }, array('is_safe' => array('html')));
+        $this->twig->addFunction($sparklineFunction);
+    }
+
+    protected function addFunction_linkTo()
+    {
+        $urlFunction = new Twig_SimpleFunction('linkTo', function ($params) {
+            return 'index.php' . Url::getCurrentQueryStringWithParametersModified($params);
+        });
+        $this->twig->addFunction($urlFunction);
+    }
+
     /**
      * @return Twig_Loader_Filesystem
      */
@@ -116,17 +201,6 @@ class Twig
                                                   ));
 
         return $themeLoader;
-    }
-
-    private function addPluginNamespaces(Twig_Loader_Filesystem $loader)
-    {
-        $plugins = \Piwik\Plugin\Manager::getInstance()->getAllPluginsNames();
-        foreach ($plugins as $name) {
-            $path = sprintf("%s/plugins/%s/templates/", PIWIK_INCLUDE_PATH, $name);
-            if (is_dir($path)) {
-                $loader->addPath(PIWIK_INCLUDE_PATH . '/plugins/' . $name . '/templates', $name);
-            }
-        }
     }
 
     /**
@@ -146,87 +220,9 @@ class Twig
         return $themeLoader;
     }
 
-    /**
-    *
-    * Plugin-Templates can be overwritten by putting identically named templates in plugins/[theme]/templates/plugins/[plugin]/
-    *
-    */
-    private function addCustomPluginNamespaces(Twig_Loader_Filesystem $loader, $pluginName)
+    public function getTwigEnvironment()
     {
-        $plugins = \Piwik\Plugin\Manager::getInstance()->getAllPluginsNames();
-        foreach ($plugins as $name) {
-            $path = sprintf("%s/plugins/%s/templates/plugins/%s/", PIWIK_INCLUDE_PATH, $pluginName, $name);
-            if (is_dir($path)) {
-                $loader->addPath(PIWIK_INCLUDE_PATH . '/plugins/' . $pluginName . '/templates/plugins/'. $name, $name);
-            }
-        }
-    }
-
-    protected function addFilter_translate()
-    {
-        $translateFilter = new Twig_SimpleFilter('translate', function ($stringToken) {
-            if (func_num_args() <= 1) {
-                $aValues = array();
-            } else {
-                $aValues = func_get_args();
-                array_shift($aValues);
-            }
-
-            try {
-                $stringTranslated = Piwik::translate($stringToken, $aValues);
-            } catch (Exception $e) {
-                $stringTranslated = $stringToken;
-            }
-            return $stringTranslated;
-        });
-        $this->twig->addFilter($translateFilter);
-    }
-
-    protected function addFilter_urlRewriteWithParameters()
-    {
-        $urlRewriteFilter = new Twig_SimpleFilter('urlRewriteWithParameters', function ($parameters) {
-            $parameters['updated'] = null;
-            $url = Url::getCurrentQueryStringWithParametersModified($parameters);
-            return $url;
-        });
-        $this->twig->addFilter($urlRewriteFilter);
-    }
-
-    protected function addFilter_sumTime()
-    {
-        $formatter = $this->formatter;
-        $sumtimeFilter = new Twig_SimpleFilter('sumtime', function ($numberOfSeconds) use ($formatter) {
-            return $formatter->getPrettyTimeFromSeconds($numberOfSeconds, true);
-        });
-        $this->twig->addFilter($sumtimeFilter);
-    }
-
-    protected function addFilter_money()
-    {
-        $formatter = $this->formatter;
-        $moneyFilter = new Twig_SimpleFilter('money', function ($amount) use ($formatter) {
-            if (func_num_args() != 2) {
-                throw new Exception('the money modifier expects one parameter: the idSite.');
-            }
-            $idSite = func_get_args();
-            $idSite = $idSite[1];
-            $currencySymbol = Site::getCurrencySymbolFor($idSite);
-            return NumberFormatter::getInstance()->formatCurrency($amount, $currencySymbol, GoalManager::REVENUE_PRECISION);
-        });
-        $this->twig->addFilter($moneyFilter);
-    }
-
-    protected function addFilter_truncate()
-    {
-        $truncateFilter = new Twig_SimpleFilter('truncate', function ($string, $size) {
-            if (strlen($string) < $size) {
-                return $string;
-            } else {
-                $array = str_split($string, $size);
-                return array_shift($array) . "...";
-            }
-        });
-        $this->twig->addFilter($truncateFilter);
+        return $this->twig;
     }
 
     protected function addFilter_notification()
@@ -258,9 +254,23 @@ class Twig
         $this->twig->addFilter($notificationFunction);
     }
 
-    public function getTwigEnvironment()
+    protected function addFilter_safeDecodeRaw()
     {
-        return $this->twig;
+        $rawSafeDecoded = new Twig_SimpleFilter('rawSafeDecoded', function ($string) {
+            $string = str_replace('+', '%2B', $string);
+
+            return SafeDecodeLabel::decodeLabelSafe($string);
+
+        }, array('is_safe' => array('all')));
+        $this->twig->addFilter($rawSafeDecoded);
+    }
+
+    protected function addFilter_prettyDate()
+    {
+        $prettyDate = new Twig_SimpleFilter('prettyDate', function ($dateString, $period) {
+            return Period\Factory::build($period, $dateString)->getLocalizedShortString();
+        });
+        $this->twig->addFilter($prettyDate);
     }
 
     protected function addFilter_percentage()
@@ -287,25 +297,6 @@ class Twig
         $this->twig->addFilter($percentage);
     }
 
-    protected function addFilter_prettyDate()
-    {
-        $prettyDate = new Twig_SimpleFilter('prettyDate', function ($dateString, $period) {
-            return Period\Factory::build($period, $dateString)->getLocalizedShortString();
-        });
-        $this->twig->addFilter($prettyDate);
-    }
-
-    protected function addFilter_safeDecodeRaw()
-    {
-        $rawSafeDecoded = new Twig_SimpleFilter('rawSafeDecoded', function ($string) {
-            $string = str_replace('+', '%2B', $string);
-
-            return SafeDecodeLabel::decodeLabelSafe($string);
-
-        }, array('is_safe' => array('all')));
-        $this->twig->addFilter($rawSafeDecoded);
-    }
-
     protected function addFilter_number()
     {
         $formatter = new Twig_SimpleFilter('number', function ($string, $minFractionDigits = 0, $maxFractionDigits = 0) {
@@ -314,89 +305,98 @@ class Twig
         $this->twig->addFilter($formatter);
     }
 
-    protected function addFunction_includeAssets()
+    protected function addFilter_truncate()
     {
-        $includeAssetsFunction = new Twig_SimpleFunction('includeAssets', function ($params) {
-            if (!isset($params['type'])) {
-                throw new Exception("The function includeAssets needs a 'type' parameter.");
-            }
-
-            $assetType = strtolower($params['type']);
-            switch ($assetType) {
-                case 'css':
-                    return AssetManager::getInstance()->getCssInclusionDirective();
-                case 'js':
-                    return AssetManager::getInstance()->getJsInclusionDirective();
-                default:
-                    throw new Exception("The twig function includeAssets 'type' parameter needs to be either 'css' or 'js'.");
+        $truncateFilter = new Twig_SimpleFilter('truncate', function ($string, $size) {
+            if (strlen($string) < $size) {
+                return $string;
+            } else {
+                $array = str_split($string, $size);
+                return array_shift($array) . "...";
             }
         });
-        $this->twig->addFunction($includeAssetsFunction);
+        $this->twig->addFilter($truncateFilter);
     }
 
-    protected function addFunction_linkTo()
+    protected function addFilter_money()
     {
-        $urlFunction = new Twig_SimpleFunction('linkTo', function ($params) {
-            return 'index.php' . Url::getCurrentQueryStringWithParametersModified($params);
-        });
-        $this->twig->addFunction($urlFunction);
-    }
-
-    protected function addFunction_sparkline()
-    {
-        $sparklineFunction = new Twig_SimpleFunction('sparkline', function ($src) {
-            $width = Sparkline::DEFAULT_WIDTH;
-            $height = Sparkline::DEFAULT_HEIGHT;
-            return sprintf(Twig::SPARKLINE_TEMPLATE, $src, $width, $height);
-        }, array('is_safe' => array('html')));
-        $this->twig->addFunction($sparklineFunction);
-    }
-
-    protected function addFunction_postEvent()
-    {
-        $postEventFunction = new Twig_SimpleFunction('postEvent', function ($eventName) {
-            // get parameters to twig function
-            $params = func_get_args();
-            // remove the first value (event name)
-            array_shift($params);
-
-            // make the first value the string that will get output in the template
-            // plugins can modify this string
-            $str = '';
-            $params = array_merge(array( &$str ), $params);
-
-            Piwik::postEvent($eventName, $params);
-            return $str;
-        }, array('is_safe' => array('html')));
-        $this->twig->addFunction($postEventFunction);
-    }
-
-    protected function addFunction_isPluginLoaded()
-    {
-        $isPluginLoadedFunction = new Twig_SimpleFunction('isPluginLoaded', function ($pluginName) {
-            return \Piwik\Plugin\Manager::getInstance()->isPluginLoaded($pluginName);
-        });
-        $this->twig->addFunction($isPluginLoadedFunction);
-    }
-
-    protected function addFunction_getJavascriptTranslations()
-    {
-        $getJavascriptTranslations = new Twig_SimpleFunction(
-            'getJavascriptTranslations',
-            array('Piwik\\Translate', 'getJavascriptTranslations')
-        );
-        $this->twig->addFunction($getJavascriptTranslations);
-    }
-
-    private function addTest_false()
-    {
-        $test = new Twig_SimpleTest(
-            'false',
-            function ($value) {
-                return false === $value;
+        $formatter = $this->formatter;
+        $moneyFilter = new Twig_SimpleFilter('money', function ($amount) use ($formatter) {
+            if (func_num_args() != 2) {
+                throw new Exception('the money modifier expects one parameter: the idSite.');
             }
-        );
-        $this->twig->addTest($test);
+            $idSite = func_get_args();
+            $idSite = $idSite[1];
+            $currencySymbol = Site::getCurrencySymbolFor($idSite);
+            return NumberFormatter::getInstance()->formatCurrency($amount, $currencySymbol, GoalManager::REVENUE_PRECISION);
+        });
+        $this->twig->addFilter($moneyFilter);
+    }
+
+    protected function addFilter_sumTime()
+    {
+        $formatter = $this->formatter;
+        $sumtimeFilter = new Twig_SimpleFilter('sumtime', function ($numberOfSeconds) use ($formatter) {
+            return $formatter->getPrettyTimeFromSeconds($numberOfSeconds, true);
+        });
+        $this->twig->addFilter($sumtimeFilter);
+    }
+
+    protected function addFilter_urlRewriteWithParameters()
+    {
+        $urlRewriteFilter = new Twig_SimpleFilter('urlRewriteWithParameters', function ($parameters) {
+            $parameters['updated'] = null;
+            $url = Url::getCurrentQueryStringWithParametersModified($parameters);
+            return $url;
+        });
+        $this->twig->addFilter($urlRewriteFilter);
+    }
+
+    protected function addFilter_translate()
+    {
+        $translateFilter = new Twig_SimpleFilter('translate', function ($stringToken) {
+            if (func_num_args() <= 1) {
+                $aValues = array();
+            } else {
+                $aValues = func_get_args();
+                array_shift($aValues);
+            }
+
+            try {
+                $stringTranslated = Piwik::translate($stringToken, $aValues);
+            } catch (Exception $e) {
+                $stringTranslated = $stringToken;
+            }
+            return $stringTranslated;
+        });
+        $this->twig->addFilter($translateFilter);
+    }
+
+    private function addPluginNamespaces(Twig_Loader_Filesystem $loader)
+    {
+        $plugins = \Piwik\Plugin\Manager::getInstance()->getAllPluginsNames();
+        foreach ($plugins as $name) {
+            $path = sprintf("%s/plugins/%s/templates/", PIWIK_INCLUDE_PATH, $name);
+            if (is_dir($path)) {
+                $loader->addPath(PIWIK_INCLUDE_PATH . '/plugins/' . $name . '/templates', $name);
+            }
+        }
+    }
+
+    /**
+    *
+    * Plugin-Templates can be overwritten by putting identically named templates in plugins/[theme]/templates/plugins/[plugin]/
+    *
+    */
+    private function addCustomPluginNamespaces(Twig_Loader_Filesystem $loader, $pluginName)
+    {
+        $plugins = \Piwik\Plugin\Manager::getInstance()->getAllPluginsNames();
+        foreach ($plugins as $name) {
+            $path = sprintf("%s/plugins/%s/templates/plugins/%s/", PIWIK_INCLUDE_PATH, $pluginName, $name);
+            if (is_dir($path)) {
+                $loader->addPath(PIWIK_INCLUDE_PATH . '/plugins/' . $pluginName . '/templates/plugins/'. $name, $name);
+            }
+        }
     }
 
     /**

@@ -148,11 +148,12 @@ abstract class Setting
 
     protected $key;
     protected $name;
-    protected $pluginName;
+
     /**
      * @var StorageInterface
      */
     private $storage;
+    protected $pluginName;
 
     /**
      * Constructor.
@@ -169,13 +170,34 @@ abstract class Setting
     }
 
     /**
-     * @internal
-     * @ignore
-     * @return StorageInterface
+     * Returns the setting's persisted name, eg, `'refreshInterval'`.
+     *
+     * @return string
      */
-    public function getStorage()
+    public function getName()
     {
-        return $this->storage;
+        return $this->name;
+    }
+
+    /**
+     * Returns `true` if this setting is writable for the current user, `false` if otherwise. In case it returns
+     * writable for the current user it will be visible in the Plugin settings UI.
+     *
+     * @return bool
+     */
+    public function isWritableByCurrentUser()
+    {
+        return false;
+    }
+
+    /**
+     * Returns `true` if this setting can be displayed for the current user, `false` if otherwise.
+     *
+     * @return bool
+     */
+    public function isReadableByCurrentUser()
+    {
+        return false;
     }
 
     /**
@@ -186,6 +208,16 @@ abstract class Setting
     public function setStorage(StorageInterface $storage)
     {
         $this->storage = $storage;
+    }
+
+    /**
+     * @internal
+     * @ignore
+     * @return StorageInterface
+     */
+    public function getStorage()
+    {
+        return $this->storage;
     }
 
     /**
@@ -213,42 +245,6 @@ abstract class Setting
     }
 
     /**
-     * @throws \Exception
-     */
-    private function checkHasEnoughReadPermission()
-    {
-        // When the request is a Tracker request, allow plugins to read settings
-        if (SettingsServer::isTrackerApiRequest()) {
-            return;
-        }
-
-        if (!$this->isReadableByCurrentUser()) {
-            $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingReadNotAllowed', array($this->getName(), $this->pluginName));
-            throw new \Exception($errorMsg);
-        }
-    }
-
-    /**
-     * Returns `true` if this setting can be displayed for the current user, `false` if otherwise.
-     *
-     * @return bool
-     */
-    public function isReadableByCurrentUser()
-    {
-        return false;
-    }
-
-    /**
-     * Returns the setting's persisted name, eg, `'refreshInterval'`.
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
      * Returns the previously persisted setting value. If no value was set, the default value
      * is returned.
      *
@@ -260,33 +256,6 @@ abstract class Setting
         $this->checkHasEnoughWritePermission();
 
         return $this->storage->deleteValue($this);
-    }
-
-    /**
-     * @throws \Exception
-     */
-    private function checkHasEnoughWritePermission()
-    {
-        // When the request is a Tracker request, allow plugins to write settings
-        if (SettingsServer::isTrackerApiRequest()) {
-            return;
-        }
-
-        if (!$this->isWritableByCurrentUser()) {
-            $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingChangeNotAllowed', array($this->getName(), $this->pluginName));
-            throw new \Exception($errorMsg);
-        }
-    }
-
-    /**
-     * Returns `true` if this setting is writable for the current user, `false` if otherwise. In case it returns
-     * writable for the current user it will be visible in the Plugin settings UI.
-     *
-     * @return bool
-     */
-    public function isWritableByCurrentUser()
-    {
-        return false;
     }
 
     /**
@@ -314,6 +283,38 @@ abstract class Setting
 
         if ($this->validate && $this->validate instanceof \Closure) {
             call_user_func($this->validate, $value, $this);
+        }
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function checkHasEnoughWritePermission()
+    {
+        // When the request is a Tracker request, allow plugins to write settings
+        if (SettingsServer::isTrackerApiRequest()) {
+            return;
+        }
+
+        if (!$this->isWritableByCurrentUser()) {
+            $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingChangeNotAllowed', array($this->getName(), $this->pluginName));
+            throw new \Exception($errorMsg);
+        }
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function checkHasEnoughReadPermission()
+    {
+        // When the request is a Tracker request, allow plugins to read settings
+        if (SettingsServer::isTrackerApiRequest()) {
+            return;
+        }
+
+        if (!$this->isReadableByCurrentUser()) {
+            $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingReadNotAllowed', array($this->getName(), $this->pluginName));
+            throw new \Exception($errorMsg);
         }
     }
 

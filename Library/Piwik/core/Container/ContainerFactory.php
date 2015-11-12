@@ -105,26 +105,6 @@ class ContainerFactory
         return $container;
     }
 
-    private function addPluginConfigs(ContainerBuilder $builder)
-    {
-        $plugins = $this->pluginList->getActivatedPlugins();
-
-        foreach ($plugins as $plugin) {
-            $baseDir = Manager::getPluginsDirectory() . $plugin;
-
-            $file = $baseDir . '/config/config.php';
-            if (file_exists($file)) {
-                $builder->addDefinitions($file);
-            }
-        }
-    }
-
-    private function isDevelopmentModeEnabled()
-    {
-        $section = $this->settings->getSection('Development');
-        return (bool) @$section['enabled']; // TODO: code redundancy w/ Development. hopefully ok for now.
-    }
-
     private function addEnvironmentConfig(ContainerBuilder $builder, $environment)
     {
         if (!$environment) {
@@ -147,5 +127,25 @@ class ContainerFactory
                 $builder->addDefinitions($environmentFile);
             }
         }
+    }
+
+    private function addPluginConfigs(ContainerBuilder $builder)
+    {
+        $plugins = $this->pluginList->getActivatedPlugins();
+
+        foreach ($plugins as $plugin) {
+            $baseDir = Manager::getPluginsDirectory() . $plugin;
+
+            $file = $baseDir . '/config/config.php';
+            if (file_exists($file)) {
+                $builder->addDefinitions($file);
+            }
+        }
+    }
+
+    private function isDevelopmentModeEnabled()
+    {
+        $section = $this->settings->getSection('Development');
+        return (bool) @$section['enabled']; // TODO: code redundancy w/ Development. hopefully ok for now.
     }
 }

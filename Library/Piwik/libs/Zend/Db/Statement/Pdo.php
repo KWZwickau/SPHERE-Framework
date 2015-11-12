@@ -46,6 +46,23 @@ class Zend_Db_Statement_Pdo extends Zend_Db_Statement implements IteratorAggrega
     protected $_fetchMode = PDO::FETCH_ASSOC;
 
     /**
+     * Prepare a string SQL statement and create a statement object.
+     *
+     * @param string $sql
+     * @return void
+     * @throws Zend_Db_Statement_Exception
+     */
+    protected function _prepare($sql)
+    {
+        try {
+            $this->_stmt = $this->_adapter->getConnection()->prepare($sql);
+        } catch (PDOException $e) {
+            // require_once 'Zend/Db/Statement/Exception.php';
+            throw new Zend_Db_Statement_Exception($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
      * Bind a column of the statement result set to a PHP variable.
      *
      * @param string $column Name the column in the result set, either by
@@ -63,6 +80,38 @@ class Zend_Db_Statement_Pdo extends Zend_Db_Statement implements IteratorAggrega
             } else {
                 return $this->_stmt->bindColumn($column, $param, $type);
             }
+        } catch (PDOException $e) {
+            // require_once 'Zend/Db/Statement/Exception.php';
+            throw new Zend_Db_Statement_Exception($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * Binds a parameter to the specified variable name.
+     *
+     * @param mixed $parameter Name the parameter, either integer or string.
+     * @param mixed $variable  Reference to PHP variable containing the value.
+     * @param mixed $type      OPTIONAL Datatype of SQL parameter.
+     * @param mixed $length    OPTIONAL Length of SQL parameter.
+     * @param mixed $options   OPTIONAL Other options.
+     * @return bool
+     * @throws Zend_Db_Statement_Exception
+     */
+    protected function _bindParam($parameter, &$variable, $type = null, $length = null, $options = null)
+    {
+        try {
+            if ($type === null) {
+                if (is_bool($variable)) {
+                    $type = PDO::PARAM_BOOL;
+                } elseif ($variable === null) {
+                    $type = PDO::PARAM_NULL;
+                } elseif (is_integer($variable)) {
+                    $type = PDO::PARAM_INT;
+                } else {
+                    $type = PDO::PARAM_STR;
+                }
+            }
+            return $this->_stmt->bindParam($parameter, $variable, $type, $length, $options);
         } catch (PDOException $e) {
             // require_once 'Zend/Db/Statement/Exception.php';
             throw new Zend_Db_Statement_Exception($e->getMessage(), $e->getCode(), $e);
@@ -381,55 +430,6 @@ class Zend_Db_Statement_Pdo extends Zend_Db_Statement implements IteratorAggrega
         $this->_fetchMode = $mode;
         try {
             return $this->_stmt->setFetchMode($mode);
-        } catch (PDOException $e) {
-            // require_once 'Zend/Db/Statement/Exception.php';
-            throw new Zend_Db_Statement_Exception($e->getMessage(), $e->getCode(), $e);
-        }
-    }
-
-    /**
-     * Prepare a string SQL statement and create a statement object.
-     *
-     * @param string $sql
-     * @return void
-     * @throws Zend_Db_Statement_Exception
-     */
-    protected function _prepare($sql)
-    {
-        try {
-            $this->_stmt = $this->_adapter->getConnection()->prepare($sql);
-        } catch (PDOException $e) {
-            // require_once 'Zend/Db/Statement/Exception.php';
-            throw new Zend_Db_Statement_Exception($e->getMessage(), $e->getCode(), $e);
-        }
-    }
-
-    /**
-     * Binds a parameter to the specified variable name.
-     *
-     * @param mixed $parameter Name the parameter, either integer or string.
-     * @param mixed $variable  Reference to PHP variable containing the value.
-     * @param mixed $type      OPTIONAL Datatype of SQL parameter.
-     * @param mixed $length    OPTIONAL Length of SQL parameter.
-     * @param mixed $options   OPTIONAL Other options.
-     * @return bool
-     * @throws Zend_Db_Statement_Exception
-     */
-    protected function _bindParam($parameter, &$variable, $type = null, $length = null, $options = null)
-    {
-        try {
-            if ($type === null) {
-                if (is_bool($variable)) {
-                    $type = PDO::PARAM_BOOL;
-                } elseif ($variable === null) {
-                    $type = PDO::PARAM_NULL;
-                } elseif (is_integer($variable)) {
-                    $type = PDO::PARAM_INT;
-                } else {
-                    $type = PDO::PARAM_STR;
-                }
-            }
-            return $this->_stmt->bindParam($parameter, $variable, $type, $length, $options);
         } catch (PDOException $e) {
             // require_once 'Zend/Db/Statement/Exception.php';
             throw new Zend_Db_Statement_Exception($e->getMessage(), $e->getCode(), $e);

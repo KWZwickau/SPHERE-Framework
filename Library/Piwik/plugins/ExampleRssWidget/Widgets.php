@@ -14,6 +14,12 @@ class Widgets extends \Piwik\Plugin\Widgets
 {
     protected $category = 'Example Widgets';
 
+    protected function init()
+    {
+        $this->addWidget('Piwik.org Blog', 'rssPiwik');
+        $this->addWidget('Piwik Changelog', 'rssChangelog');
+    }
+
     public function rssPiwik()
     {
         try {
@@ -26,17 +32,6 @@ class Widgets extends \Piwik\Plugin\Widgets
 
             return $this->error($e);
         }
-    }
-
-    /**
-     * @param \Exception $e
-     * @return string
-     */
-    private function error($e)
-    {
-        return '<div class="pk-emptyDataTable">'
-        . Piwik::translate('General_ErrorRequest', array('', ''))
-        . ' - ' . $e->getMessage() . '</div>';
     }
 
     public function rssChangelog()
@@ -55,9 +50,14 @@ class Widgets extends \Piwik\Plugin\Widgets
         }
     }
 
-    protected function init()
+    /**
+     * @param \Exception $e
+     * @return string
+     */
+    private function error($e)
     {
-        $this->addWidget('Piwik.org Blog', 'rssPiwik');
-        $this->addWidget('Piwik Changelog', 'rssChangelog');
+        return '<div class="pk-emptyDataTable">'
+             . Piwik::translate('General_ErrorRequest', array('', ''))
+             . ' - ' . $e->getMessage() . '</div>';
     }
 }

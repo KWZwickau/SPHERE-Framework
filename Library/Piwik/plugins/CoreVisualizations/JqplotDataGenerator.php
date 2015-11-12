@@ -35,20 +35,6 @@ class JqplotDataGenerator
     protected $graphType;
 
     /**
-     * Constructor.
-     *
-     * @param array $properties
-     * @param string $graphType
-     *
-     * @internal param \Piwik\Plugin\ViewDataTable $visualization
-     */
-    public function __construct($properties, $graphType)
-    {
-        $this->properties = $properties;
-        $this->graphType = $graphType;
-    }
-
-    /**
      * Creates a new JqplotDataGenerator instance for a graph type and view properties.
      *
      * @param string $type 'pie', 'bar', or 'evolution'
@@ -67,6 +53,20 @@ class JqplotDataGenerator
             default:
                 throw new Exception("Unknown JqplotDataGenerator type '$type'.");
         }
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param array $properties
+     * @param string $graphType
+     *
+     * @internal param \Piwik\Plugin\ViewDataTable $visualization
+     */
+    public function __construct($properties, $graphType)
+    {
+        $this->properties = $properties;
+        $this->graphType = $graphType;
     }
 
     /**

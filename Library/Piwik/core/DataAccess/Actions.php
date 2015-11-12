@@ -7,8 +7,8 @@
  */
 namespace Piwik\DataAccess;
 
-use Piwik\Common;
 use Piwik\Db;
+use Piwik\Common;
 
 /**
  * Data Access Object for operations dealing with the log_action table.

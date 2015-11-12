@@ -58,12 +58,6 @@ class Html extends ReportRenderer
         return ReportRenderer::writeFile($filename, self::HTML_FILE_EXTENSION, $this->rendering);
     }
 
-    private function epilogue()
-    {
-        $view = new View('@CoreHome/ReportRenderer/_htmlReportFooter');
-        $this->rendering .= $view->render();
-    }
-
     public function sendToBrowserDownload($filename)
     {
         $this->epilogue();
@@ -83,6 +77,12 @@ class Html extends ReportRenderer
         $this->epilogue();
 
         return $this->rendering;
+    }
+
+    private function epilogue()
+    {
+        $view = new View('@CoreHome/ReportRenderer/_htmlReportFooter');
+        $this->rendering .= $view->render();
     }
 
     public function renderFrontPage($reportTitle, $prettyDate, $description, $reportMetadata, $segment)

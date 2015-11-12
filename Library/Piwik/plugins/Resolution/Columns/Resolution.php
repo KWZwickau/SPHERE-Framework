@@ -20,6 +20,15 @@ class Resolution extends VisitDimension
     protected $columnName = 'config_resolution';
     protected $columnType = 'VARCHAR(9) NOT NULL';
 
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('resolution');
+        $segment->setName('Resolution_ColumnResolution');
+        $segment->setAcceptedValues('1280x1024, 800x600, etc.');
+        $this->addSegment($segment);
+    }
+
     /**
      * @param Request $request
      * @param Visitor $visitor
@@ -40,14 +49,5 @@ class Resolution extends VisitDimension
     public function getName()
     {
         return Piwik::translate('Resolution_ColumnResolution');
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('resolution');
-        $segment->setName('Resolution_ColumnResolution');
-        $segment->setAcceptedValues('1280x1024, 800x600, etc.');
-        $this->addSegment($segment);
     }
 }

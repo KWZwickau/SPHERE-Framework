@@ -8,8 +8,8 @@
  */
 namespace Piwik\Plugin;
 
-use Piwik\Config;
 use Piwik\Config as PiwikConfig;
+use Piwik\Config;
 use Piwik\Date;
 use Piwik\Development;
 use Piwik\Menu\MenuAdmin;
@@ -31,6 +31,62 @@ use Piwik\View;
  */
 abstract class ControllerAdmin extends Controller
 {
+    private static function notifyWhenTrackingStatisticsDisabled()
+    {
+        $statsEnabled = PiwikConfig::getInstance()->Tracker['record_statistics'];
+        if ($statsEnabled == "0") {
+            $notification = new Notification(Piwik::translate('General_StatisticsAreNotRecorded'));
+            $notification->context = Notification::CONTEXT_INFO;
+            Notification\Manager::notify('ControllerAdmin_StatsAreNotRecorded', $notification);
+        }
+    }
+
+    private static function notifyAnyInvalidPlugin()
+    {
+        $missingPlugins = \Piwik\Plugin\Manager::getInstance()->getMissingPlugins();
+
+        if (empty($missingPlugins)) {
+            return;
+        }
+
+        if (!Piwik::hasUserSuperUserAccess()) {
+            return;
+        }
+
+        $pluginsLink = Url::getCurrentQueryStringWithParametersModified(array(
+            'module' => 'CorePluginsAdmin', 'action' => 'plugins'
+        ));
+
+        $invalidPluginsWarning = Piwik::translate('CoreAdminHome_InvalidPluginsWarning', array(
+                self::getPiwikVersion(),
+                '<strong>' . implode('</strong>,&nbsp;<strong>', $missingPlugins) . '</strong>'))
+            . "<br/>"
+            . Piwik::translate('CoreAdminHome_InvalidPluginsYouCanUninstall', array(
+                '<a href="' . $pluginsLink . '"/>',
+                '</a>'
+        ));
+
+        $notification = new Notification($invalidPluginsWarning);
+        $notification->raw = true;
+        $notification->context = Notification::CONTEXT_WARNING;
+        $notification->title = Piwik::translate('General_Warning');
+        Notification\Manager::notify('ControllerAdmin_InvalidPluginsWarning', $notification);
+    }
+
+    /**
+     * Calls {@link setBasicVariablesView()} and {@link setBasicVariablesAdminView()}
+     * using the supplied view.
+     *
+     * @param View $view
+     * @api
+     */
+    protected function setBasicVariablesView($view)
+    {
+        parent::setBasicVariablesView($view);
+
+        self::setBasicVariablesAdminView($view);
+    }
+
     /**
      * @ignore
      */
@@ -49,18 +105,60 @@ abstract class ControllerAdmin extends Controller
         }
     }
 
-    /**
-     * Calls {@link setBasicVariablesView()} and {@link setBasicVariablesAdminView()}
-     * using the supplied view.
-     *
-     * @param View $view
-     * @api
-     */
-    protected function setBasicVariablesView($view)
+    private static function notifyIfEAcceleratorIsUsed()
     {
-        parent::setBasicVariablesView($view);
+        $isEacceleratorUsed = ini_get('eaccelerator.enable');
+        if (empty($isEacceleratorUsed)) {
+            return;
+        }
+        $message = sprintf("You are using the PHP accelerator & optimizer eAccelerator which is known to be not compatible with Piwik.
+            We have disabled eAccelerator, which might affect the performance of Piwik.
+            Read the %srelated ticket%s for more information and how to fix this problem.",
+            '<a rel="noreferrer" target="_blank" href="https://github.com/piwik/piwik/issues/4439">', '</a>');
 
-        self::setBasicVariablesAdminView($view);
+        $notification = new Notification($message);
+        $notification->context = Notification::CONTEXT_WARNING;
+        $notification->raw     = true;
+        Notification\Manager::notify('ControllerAdmin_EacceleratorIsUsed', $notification);
+    }
+
+    private static function notifyWhenPhpVersionIsEOL()
+    {
+        $notifyPhpIsEOL = Piwik::hasUserSuperUserAccess() && self::isPhpVersion53();
+        if (!$notifyPhpIsEOL) {
+            return;
+        }
+        $dateDropSupport = Date::factory('2015-05-01')->getLocalized('%longMonth% %longYear%');
+        $message = Piwik::translate('General_WarningPiwikWillStopSupportingPHPVersion', $dateDropSupport)
+            . "\n "
+            . Piwik::translate('General_WarningPhpVersionXIsTooOld', '5.3');
+
+        $notification = new Notification($message);
+        $notification->title = Piwik::translate('General_Warning');
+        $notification->priority = Notification::PRIORITY_LOW;
+        $notification->context = Notification::CONTEXT_WARNING;
+        $notification->type = Notification::TYPE_TRANSIENT;
+        $notification->flags = Notification::FLAG_NO_CLEAR;
+        NotificationManager::notify('PHP53VersionCheck', $notification);
+    }
+
+    private static function notifyWhenDebugOnDemandIsEnabled($trackerSetting)
+    {
+        if (!Development::isEnabled()
+            && Piwik::hasUserSuperUserAccess() &&
+            TrackerConfig::getConfigValue($trackerSetting)) {
+
+            $message = Piwik::translate('General_WarningDebugOnDemandEnabled');
+            $message = sprintf($message, '"' . $trackerSetting . '"', '"[Tracker] ' .  $trackerSetting . '"', '"0"',
+                                               '"config/config.ini.php"');
+            $notification = new Notification($message);
+            $notification->title = Piwik::translate('General_Warning');
+            $notification->priority = Notification::PRIORITY_LOW;
+            $notification->context = Notification::CONTEXT_WARNING;
+            $notification->type = Notification::TYPE_TRANSIENT;
+            $notification->flags = Notification::FLAG_NO_CLEAR;
+            NotificationManager::notify('Tracker' . $trackerSetting, $notification);
+        }
     }
 
     /**
@@ -122,68 +220,9 @@ abstract class ControllerAdmin extends Controller
         }
     }
 
-    private static function notifyWhenTrackingStatisticsDisabled()
-    {
-        $statsEnabled = PiwikConfig::getInstance()->Tracker['record_statistics'];
-        if ($statsEnabled == "0") {
-            $notification = new Notification(Piwik::translate('General_StatisticsAreNotRecorded'));
-            $notification->context = Notification::CONTEXT_INFO;
-            Notification\Manager::notify('ControllerAdmin_StatsAreNotRecorded', $notification);
-        }
-    }
-
-    private static function notifyIfEAcceleratorIsUsed()
-    {
-        $isEacceleratorUsed = ini_get('eaccelerator.enable');
-        if (empty($isEacceleratorUsed)) {
-            return;
-        }
-        $message = sprintf("You are using the PHP accelerator & optimizer eAccelerator which is known to be not compatible with Piwik.
-            We have disabled eAccelerator, which might affect the performance of Piwik.
-            Read the %srelated ticket%s for more information and how to fix this problem.",
-            '<a rel="noreferrer" target="_blank" href="https://github.com/piwik/piwik/issues/4439">', '</a>');
-
-        $notification = new Notification($message);
-        $notification->context = Notification::CONTEXT_WARNING;
-        $notification->raw     = true;
-        Notification\Manager::notify('ControllerAdmin_EacceleratorIsUsed', $notification);
-    }
-
     public static function isDataPurgeSettingsEnabled()
     {
         return (bool) Config::getInstance()->General['enable_delete_old_data_settings_admin'];
-    }
-
-    private static function notifyAnyInvalidPlugin()
-    {
-        $missingPlugins = \Piwik\Plugin\Manager::getInstance()->getMissingPlugins();
-
-        if (empty($missingPlugins)) {
-            return;
-        }
-
-        if (!Piwik::hasUserSuperUserAccess()) {
-            return;
-        }
-
-        $pluginsLink = Url::getCurrentQueryStringWithParametersModified(array(
-            'module' => 'CorePluginsAdmin', 'action' => 'plugins'
-        ));
-
-        $invalidPluginsWarning = Piwik::translate('CoreAdminHome_InvalidPluginsWarning', array(
-                self::getPiwikVersion(),
-                '<strong>' . implode('</strong>,&nbsp;<strong>', $missingPlugins) . '</strong>'))
-            . "<br/>"
-            . Piwik::translate('CoreAdminHome_InvalidPluginsYouCanUninstall', array(
-                '<a href="' . $pluginsLink . '"/>',
-                '</a>'
-        ));
-
-        $notification = new Notification($invalidPluginsWarning);
-        $notification->raw = true;
-        $notification->context = Notification::CONTEXT_WARNING;
-        $notification->title = Piwik::translate('General_Warning');
-        Notification\Manager::notify('ControllerAdmin_InvalidPluginsWarning', $notification);
     }
 
     protected static function getPiwikVersion()
@@ -201,47 +240,8 @@ abstract class ControllerAdmin extends Controller
         $view->phpIsNewEnough = version_compare($view->phpVersion, '5.3.0', '>=');
     }
 
-    private static function notifyWhenPhpVersionIsEOL()
-    {
-        $notifyPhpIsEOL = Piwik::hasUserSuperUserAccess() && self::isPhpVersion53();
-        if (!$notifyPhpIsEOL) {
-            return;
-        }
-        $dateDropSupport = Date::factory('2015-05-01')->getLocalized('%longMonth% %longYear%');
-        $message = Piwik::translate('General_WarningPiwikWillStopSupportingPHPVersion', $dateDropSupport)
-            . "\n "
-            . Piwik::translate('General_WarningPhpVersionXIsTooOld', '5.3');
-
-        $notification = new Notification($message);
-        $notification->title = Piwik::translate('General_Warning');
-        $notification->priority = Notification::PRIORITY_LOW;
-        $notification->context = Notification::CONTEXT_WARNING;
-        $notification->type = Notification::TYPE_TRANSIENT;
-        $notification->flags = Notification::FLAG_NO_CLEAR;
-        NotificationManager::notify('PHP53VersionCheck', $notification);
-    }
-
     private static function isPhpVersion53()
     {
         return strpos(PHP_VERSION, '5.3') === 0;
-    }
-
-    private static function notifyWhenDebugOnDemandIsEnabled($trackerSetting)
-    {
-        if (!Development::isEnabled()
-            && Piwik::hasUserSuperUserAccess() &&
-            TrackerConfig::getConfigValue($trackerSetting)) {
-
-            $message = Piwik::translate('General_WarningDebugOnDemandEnabled');
-            $message = sprintf($message, '"' . $trackerSetting . '"', '"[Tracker] ' .  $trackerSetting . '"', '"0"',
-                                               '"config/config.ini.php"');
-            $notification = new Notification($message);
-            $notification->title = Piwik::translate('General_Warning');
-            $notification->priority = Notification::PRIORITY_LOW;
-            $notification->context = Notification::CONTEXT_WARNING;
-            $notification->type = Notification::TYPE_TRANSIENT;
-            $notification->flags = Notification::FLAG_NO_CLEAR;
-            NotificationManager::notify('Tracker' . $trackerSetting, $notification);
-        }
     }
 }

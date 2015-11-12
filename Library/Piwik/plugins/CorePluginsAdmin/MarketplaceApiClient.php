@@ -28,6 +28,13 @@ class MarketplaceApiClient
         $cache->flushAll();
     }
 
+    public function getPluginInfo($name)
+    {
+        $action = sprintf('plugins/%s/info', $name);
+
+        return $this->fetch($action, array());
+    }
+
     public function download($pluginOrThemeName, $target)
     {
         $downloadUrl = $this->getDownloadUrl($pluginOrThemeName);
@@ -42,29 +49,78 @@ class MarketplaceApiClient
     }
 
     /**
-     * @param  $pluginOrThemeName
-     * @throws MarketplaceApiException
-     * @return string
+     * @param \Piwik\Plugin[] $plugins
+     * @return array|mixed
      */
-    public function getDownloadUrl($pluginOrThemeName)
+    public function checkUpdates($plugins)
     {
-        $plugin = $this->getPluginInfo($pluginOrThemeName);
+        $params = array();
 
-        if (empty($plugin['versions'])) {
-            throw new MarketplaceApiException('Plugin has no versions.');
+        foreach ($plugins as $plugin) {
+            $pluginName = $plugin->getPluginName();
+            if (!\Piwik\Plugin\Manager::getInstance()->isPluginBundledWithCore($pluginName)) {
+                $params[] = array('name' => $plugin->getPluginName(), 'version' => $plugin->getVersion());
+            }
         }
 
-        $latestVersion = array_pop($plugin['versions']);
-        $downloadUrl = $latestVersion['download'];
+        if (empty($params)) {
+            return array();
+        }
 
-        return $this->domain . $downloadUrl . '?coreVersion=' . Version::VERSION;
+        $params = array('plugins' => $params);
+
+        $hasUpdates = $this->fetch('plugins/checkUpdates', array('plugins' => json_encode($params)));
+
+        if (empty($hasUpdates)) {
+            return array();
+        }
+
+        return $hasUpdates;
     }
 
-    public function getPluginInfo($name)
+    /**
+     * @param  \Piwik\Plugin[] $plugins
+     * @param  bool $themesOnly
+     * @return array
+     */
+    public function getInfoOfPluginsHavingUpdate($plugins, $themesOnly)
     {
-        $action = sprintf('plugins/%s/info', $name);
+        $hasUpdates = $this->checkUpdates($plugins);
 
-        return $this->fetch($action, array());
+        $pluginDetails = array();
+
+        foreach ($hasUpdates as $pluginHavingUpdate) {
+            $plugin = $this->getPluginInfo($pluginHavingUpdate['name']);
+            $plugin['repositoryChangelogUrl'] = $pluginHavingUpdate['repositoryChangelogUrl'];
+
+            if (!empty($plugin['isTheme']) == $themesOnly) {
+                $pluginDetails[] = $plugin;
+            }
+        }
+
+        return $pluginDetails;
+    }
+
+    public function searchForPlugins($keywords, $query, $sort)
+    {
+        $response = $this->fetch('plugins', array('keywords' => $keywords, 'query' => $query, 'sort' => $sort));
+
+        if (!empty($response['plugins'])) {
+            return $response['plugins'];
+        }
+
+        return array();
+    }
+
+    public function searchForThemes($keywords, $query, $sort)
+    {
+        $response = $this->fetch('themes', array('keywords' => $keywords, 'query' => $query, 'sort' => $sort));
+
+        if (!empty($response['plugins'])) {
+            return $response['plugins'];
+        }
+
+        return array();
     }
 
     private function fetch($action, $params)
@@ -98,89 +154,33 @@ class MarketplaceApiClient
         return $result;
     }
 
-    private function getCacheKey($action, $query)
-    {
-        return sprintf('marketplace.api.1.0.%s.%s', str_replace('/', '.', $action), md5($query));
-    }
-
     private function buildCache()
     {
         return Cache::getLazyCache();
     }
 
-    /**
-     * @param  \Piwik\Plugin[] $plugins
-     * @param  bool $themesOnly
-     * @return array
-     */
-    public function getInfoOfPluginsHavingUpdate($plugins, $themesOnly)
+    private function getCacheKey($action, $query)
     {
-        $hasUpdates = $this->checkUpdates($plugins);
-
-        $pluginDetails = array();
-
-        foreach ($hasUpdates as $pluginHavingUpdate) {
-            $plugin = $this->getPluginInfo($pluginHavingUpdate['name']);
-            $plugin['repositoryChangelogUrl'] = $pluginHavingUpdate['repositoryChangelogUrl'];
-
-            if (!empty($plugin['isTheme']) == $themesOnly) {
-                $pluginDetails[] = $plugin;
-            }
-        }
-
-        return $pluginDetails;
+        return sprintf('marketplace.api.1.0.%s.%s', str_replace('/', '.', $action), md5($query));
     }
 
     /**
-     * @param \Piwik\Plugin[] $plugins
-     * @return array|mixed
+     * @param  $pluginOrThemeName
+     * @throws MarketplaceApiException
+     * @return string
      */
-    public function checkUpdates($plugins)
+    public function getDownloadUrl($pluginOrThemeName)
     {
-        $params = array();
+        $plugin = $this->getPluginInfo($pluginOrThemeName);
 
-        foreach ($plugins as $plugin) {
-            $pluginName = $plugin->getPluginName();
-            if (!\Piwik\Plugin\Manager::getInstance()->isPluginBundledWithCore($pluginName)) {
-                $params[] = array('name' => $plugin->getPluginName(), 'version' => $plugin->getVersion());
-            }
+        if (empty($plugin['versions'])) {
+            throw new MarketplaceApiException('Plugin has no versions.');
         }
 
-        if (empty($params)) {
-            return array();
-        }
+        $latestVersion = array_pop($plugin['versions']);
+        $downloadUrl = $latestVersion['download'];
 
-        $params = array('plugins' => $params);
-
-        $hasUpdates = $this->fetch('plugins/checkUpdates', array('plugins' => json_encode($params)));
-
-        if (empty($hasUpdates)) {
-            return array();
-        }
-
-        return $hasUpdates;
-    }
-
-    public function searchForPlugins($keywords, $query, $sort)
-    {
-        $response = $this->fetch('plugins', array('keywords' => $keywords, 'query' => $query, 'sort' => $sort));
-
-        if (!empty($response['plugins'])) {
-            return $response['plugins'];
-        }
-
-        return array();
-    }
-
-    public function searchForThemes($keywords, $query, $sort)
-    {
-        $response = $this->fetch('themes', array('keywords' => $keywords, 'query' => $query, 'sort' => $sort));
-
-        if (!empty($response['plugins'])) {
-            return $response['plugins'];
-        }
-
-        return array();
+        return $this->domain . $downloadUrl . '?coreVersion=' . Version::VERSION;
     }
 
 }

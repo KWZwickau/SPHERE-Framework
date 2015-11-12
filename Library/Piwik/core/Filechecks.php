@@ -31,6 +31,30 @@ class Filechecks
     }
 
     /**
+     * Checks if directories are writable and create them if they do not exist.
+     *
+     * @param array $directoriesToCheck array of directories to check - if not given default Piwik directories that needs write permission are checked
+     * @return array  directory name => true|false (is writable)
+     */
+    public static function checkDirectoriesWritable($directoriesToCheck)
+    {
+        $resultCheck = array();
+        foreach ($directoriesToCheck as $directoryToCheck) {
+            if (!preg_match('/^' . preg_quote(PIWIK_USER_PATH, '/') . '/', $directoryToCheck)) {
+                $directoryToCheck = PIWIK_USER_PATH . $directoryToCheck;
+            }
+
+            Filesystem::mkdir($directoryToCheck);
+
+            $directory = Filesystem::realpath($directoryToCheck);
+            if ($directory !== false) {
+                $resultCheck[$directory] = is_writable($directoryToCheck);
+            }
+        }
+        return $resultCheck;
+    }
+
+    /**
      * Checks that the directories Piwik needs write access are actually writable
      * Displays a nice error page if permissions are missing on some directories
      *
@@ -76,67 +100,6 @@ class Filechecks
         $ex->setIsHtmlMessage();
 
         throw $ex;
-    }
-
-    /**
-     * Checks if directories are writable and create them if they do not exist.
-     *
-     * @param array $directoriesToCheck array of directories to check - if not given default Piwik directories that needs write permission are checked
-     * @return array  directory name => true|false (is writable)
-     */
-    public static function checkDirectoriesWritable($directoriesToCheck)
-    {
-        $resultCheck = array();
-        foreach ($directoriesToCheck as $directoryToCheck) {
-            if (!preg_match('/^' . preg_quote(PIWIK_USER_PATH, '/') . '/', $directoryToCheck)) {
-                $directoryToCheck = PIWIK_USER_PATH . $directoryToCheck;
-            }
-
-            Filesystem::mkdir($directoryToCheck);
-
-            $directory = Filesystem::realpath($directoryToCheck);
-            if ($directory !== false) {
-                $resultCheck[$directory] = is_writable($directoryToCheck);
-            }
-        }
-        return $resultCheck;
-    }
-
-    /**
-     * Returns the help text displayed to suggest which command to run to give writable access to a file or directory
-     *
-     * @param string $realpath
-     * @return string
-     */
-    private static function getMakeWritableCommand($realpath)
-    {
-        if (SettingsServer::isWindows()) {
-            return "<code>cacls $realpath /t /g " . get_current_user() . ":f</code><br />\n";
-        }
-        return "<code>chmod -R 0755 $realpath</code><br />";
-    }
-
-    private static function getUserAndGroup()
-    {
-        $user = self::getUser();
-        if (!function_exists('shell_exec')) {
-            return $user . ':' . $user;
-        }
-
-        $group = trim(shell_exec('groups '. $user .' | cut -f3 -d" "'));
-
-        if (empty($group)) {
-            $group = 'www-data';
-        }
-        return $user . ':' . $group;
-    }
-
-    private static function getUser()
-    {
-        if (!function_exists('shell_exec')) {
-            return 'www-data';
-        }
-        return trim(shell_exec('whoami'));
     }
 
     /**
@@ -240,5 +203,42 @@ class Filechecks
         $message .= self::getMakeWritableCommand($path);
 
         return $message;
+    }
+
+    private static function getUserAndGroup()
+    {
+        $user = self::getUser();
+        if (!function_exists('shell_exec')) {
+            return $user . ':' . $user;
+        }
+
+        $group = trim(shell_exec('groups '. $user .' | cut -f3 -d" "'));
+
+        if (empty($group)) {
+            $group = 'www-data';
+        }
+        return $user . ':' . $group;
+    }
+
+    private static function getUser()
+    {
+        if (!function_exists('shell_exec')) {
+            return 'www-data';
+        }
+        return trim(shell_exec('whoami'));
+    }
+
+    /**
+     * Returns the help text displayed to suggest which command to run to give writable access to a file or directory
+     *
+     * @param string $realpath
+     * @return string
+     */
+    private static function getMakeWritableCommand($realpath)
+    {
+        if (SettingsServer::isWindows()) {
+            return "<code>cacls $realpath /t /g " . get_current_user() . ":f</code><br />\n";
+        }
+        return "<code>chmod -R 0755 $realpath</code><br />";
     }
 }

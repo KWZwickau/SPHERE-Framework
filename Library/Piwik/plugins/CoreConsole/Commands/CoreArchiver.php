@@ -21,6 +21,52 @@ class CoreArchiver extends ConsoleCommand
         $this->configureArchiveCommand($this);
     }
 
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $archiver = self::makeArchiver($input->getOption('url'), $input);
+        $archiver->main();
+    }
+
+    // also used by another console command
+    public static function makeArchiver($url, InputInterface $input)
+    {
+        $archiver = new CronArchive();
+
+        $archiver->disableScheduledTasks = $input->getOption('disable-scheduled-tasks');
+        $archiver->acceptInvalidSSLCertificate = $input->getOption("accept-invalid-ssl-certificate");
+        $archiver->shouldArchiveAllSites = (bool) $input->getOption("force-all-websites");
+        $archiver->shouldStartProfiler = (bool) $input->getOption("xhprof");
+        $archiver->shouldArchiveSpecifiedSites = self::getSitesListOption($input, "force-idsites");
+        $archiver->shouldSkipSpecifiedSites = self::getSitesListOption($input, "skip-idsites");
+        $archiver->forceTimeoutPeriod = $input->getOption("force-timeout-for-periods");
+        $archiver->shouldArchiveAllPeriodsSince = $input->getOption("force-all-periods");
+        $archiver->restrictToDateRange = $input->getOption("force-date-range");
+
+        $restrictToPeriods = $input->getOption("force-periods");
+        $restrictToPeriods = explode(',', $restrictToPeriods);
+        $archiver->restrictToPeriods = array_map('trim', $restrictToPeriods);
+
+        $archiver->dateLastForced = $input->getOption('force-date-last-n');
+        $archiver->concurrentRequestsPerWebsite = $input->getOption('concurrent-requests-per-website');
+
+        $archiver->disableSegmentsArchiving = $input->getOption('skip-all-segments');
+
+        $segmentIds = $input->getOption('force-idsegments');
+        $segmentIds = explode(',', $segmentIds);
+        $segmentIds = array_map('trim', $segmentIds);
+        $archiver->setSegmentsToForceFromSegmentIds($segmentIds);
+
+        $archiver->setUrlToPiwik($url);
+
+        return $archiver;
+    }
+
+    private static function getSitesListOption(InputInterface $input, $optionName)
+    {
+        return Site::getIdSitesFromIdSitesString($input->getOption($optionName));
+    }
+
+    // This is reused by another console command
     public static function configureArchiveCommand(ConsoleCommand $command)
     {
         $command->setName('core:archive');
@@ -64,60 +110,11 @@ class CoreArchiver extends ConsoleCommand
             . "\nSpecify stored segment IDs, not the segments themselves, eg, 1,2,3. "
             . "\nNote: if identical segments exist w/ different IDs, they will both be skipped, even if you only supply one ID.");
         $command->addOption('concurrent-requests-per-website', null, InputOption::VALUE_OPTIONAL,
-            "When processing a website and its segments, number of requests to process in parallel",
-            CronArchive::MAX_CONCURRENT_API_REQUESTS);
+            "When processing a website and its segments, number of requests to process in parallel", CronArchive::MAX_CONCURRENT_API_REQUESTS);
         $command->addOption('disable-scheduled-tasks', null, InputOption::VALUE_NONE,
             "Skips executing Scheduled tasks (sending scheduled reports, db optimization, etc.).");
         $command->addOption('accept-invalid-ssl-certificate', null, InputOption::VALUE_NONE,
             "It is _NOT_ recommended to use this argument. Instead, you should use a valid SSL certificate!\nIt can be "
             . "useful if you specified --url=https://... or if you are using Piwik with force_ssl=1");
-    }
-
-    // also used by another console command
-
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
-        $archiver = self::makeArchiver($input->getOption('url'), $input);
-        $archiver->main();
-    }
-
-    public static function makeArchiver($url, InputInterface $input)
-    {
-        $archiver = new CronArchive();
-
-        $archiver->disableScheduledTasks = $input->getOption('disable-scheduled-tasks');
-        $archiver->acceptInvalidSSLCertificate = $input->getOption("accept-invalid-ssl-certificate");
-        $archiver->shouldArchiveAllSites = (bool)$input->getOption("force-all-websites");
-        $archiver->shouldStartProfiler = (bool)$input->getOption("xhprof");
-        $archiver->shouldArchiveSpecifiedSites = self::getSitesListOption($input, "force-idsites");
-        $archiver->shouldSkipSpecifiedSites = self::getSitesListOption($input, "skip-idsites");
-        $archiver->forceTimeoutPeriod = $input->getOption("force-timeout-for-periods");
-        $archiver->shouldArchiveAllPeriodsSince = $input->getOption("force-all-periods");
-        $archiver->restrictToDateRange = $input->getOption("force-date-range");
-
-        $restrictToPeriods = $input->getOption("force-periods");
-        $restrictToPeriods = explode(',', $restrictToPeriods);
-        $archiver->restrictToPeriods = array_map('trim', $restrictToPeriods);
-
-        $archiver->dateLastForced = $input->getOption('force-date-last-n');
-        $archiver->concurrentRequestsPerWebsite = $input->getOption('concurrent-requests-per-website');
-
-        $archiver->disableSegmentsArchiving = $input->getOption('skip-all-segments');
-
-        $segmentIds = $input->getOption('force-idsegments');
-        $segmentIds = explode(',', $segmentIds);
-        $segmentIds = array_map('trim', $segmentIds);
-        $archiver->setSegmentsToForceFromSegmentIds($segmentIds);
-
-        $archiver->setUrlToPiwik($url);
-
-        return $archiver;
-    }
-
-    // This is reused by another console command
-
-    private static function getSitesListOption(InputInterface $input, $optionName)
-    {
-        return Site::getIdSitesFromIdSitesString($input->getOption($optionName));
     }
 }

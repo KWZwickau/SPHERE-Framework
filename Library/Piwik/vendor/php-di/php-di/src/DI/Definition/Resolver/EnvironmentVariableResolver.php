@@ -69,16 +69,6 @@ class EnvironmentVariableResolver implements DefinitionResolver
         return $value;
     }
 
-    private function assertIsEnvironmentVariableDefinition(Definition $definition)
-    {
-        if (!$definition instanceof EnvironmentVariableDefinition) {
-            throw new \InvalidArgumentException(sprintf(
-                'This definition resolver is only compatible with EnvironmentVariableDefinition objects, %s given',
-                get_class($definition)
-            ));
-        }
-    }
-
     /**
      * @param EnvironmentVariableDefinition $definition
      *
@@ -90,5 +80,15 @@ class EnvironmentVariableResolver implements DefinitionResolver
 
         return $definition->isOptional()
             || false !== call_user_func($this->variableReader, $definition->getVariableName());
+    }
+
+    private function assertIsEnvironmentVariableDefinition(Definition $definition)
+    {
+        if (!$definition instanceof EnvironmentVariableDefinition) {
+            throw new \InvalidArgumentException(sprintf(
+                'This definition resolver is only compatible with EnvironmentVariableDefinition objects, %s given',
+                get_class($definition)
+            ));
+        }
     }
 }

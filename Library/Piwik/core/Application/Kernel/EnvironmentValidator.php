@@ -11,6 +11,7 @@ namespace Piwik\Application\Kernel;
 use Piwik\Common;
 use Piwik\Piwik;
 use Piwik\SettingsServer;
+use Piwik\Translate;
 use Piwik\Translation\Translator;
 
 /**

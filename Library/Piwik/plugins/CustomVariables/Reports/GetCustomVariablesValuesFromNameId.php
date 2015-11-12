@@ -14,17 +14,6 @@ use Piwik\Plugins\CustomVariables\Columns\CustomVariableValue;
 
 class GetCustomVariablesValuesFromNameId extends Base
 {
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->columns_to_display = array('label', 'nb_actions', 'nb_visits');
-        $view->config->show_goals  = true;
-        $view->config->show_search = false;
-        $view->config->show_exclude_low_population = false;
-        $view->config->addTranslation('label', Piwik::translate('CustomVariables_ColumnCustomVariableValue'));
-        $view->requestConfig->filter_sort_column = 'nb_actions';
-        $view->requestConfig->filter_sort_order  = 'desc';
-    }
-
     protected function init()
     {
         parent::init();
@@ -34,6 +23,17 @@ class GetCustomVariablesValuesFromNameId extends Base
             array('<br />', '<a href="http://piwik.org/docs/custom-variables/" rel="noreferrer"  target="_blank">', '</a>'));
         $this->isSubtableReport = true;
         $this->order = 15;
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->columns_to_display = array('label', 'nb_actions', 'nb_visits');
+        $view->config->show_goals  = true;
+        $view->config->show_search = false;
+        $view->config->show_exclude_low_population = false;
+        $view->config->addTranslation('label', Piwik::translate('CustomVariables_ColumnCustomVariableValue'));
+        $view->requestConfig->filter_sort_column = 'nb_actions';
+        $view->requestConfig->filter_sort_order  = 'desc';
     }
 
 }

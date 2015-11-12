@@ -62,26 +62,30 @@ abstract class HTML_QuickForm2_Controller_Page
     * Button name template (needs form ID and action name substituted by sprintf())
     */
     const KEY_NAME = '_qf_%s_%s';
-   /**
-    * The form wrapped by this page
-    * @var  HTML_QuickForm2
-    */
-    protected $form = null;
-   /**
-    * Controller this page belongs to
-    * @var  HTML_QuickForm2_Controller
-    */
-    protected $controller = null;
-   /**
-    * Contains the mapping of action names to handlers (objects implementing HTML_QuickForm2_Controller_Action)
-    * @var  array
-    */
-    protected $handlers = array();
+
    /**
     * Whether populateForm() was already called
     * @var  boolean
     */
     private $_formPopulated = false;
+
+   /**
+    * The form wrapped by this page
+    * @var  HTML_QuickForm2
+    */
+    protected $form = null;
+
+   /**
+    * Controller this page belongs to
+    * @var  HTML_QuickForm2_Controller
+    */
+    protected $controller = null;
+
+   /**
+    * Contains the mapping of action names to handlers (objects implementing HTML_QuickForm2_Controller_Action)
+    * @var  array
+    */
+    protected $handlers = array();
 
    /**
     * Class constructor, accepts the form to wrap around
@@ -91,6 +95,36 @@ abstract class HTML_QuickForm2_Controller_Page
     public function __construct(HTML_QuickForm2 $form)
     {
         $this->form = $form;
+    }
+
+   /**
+    * Returns the form this page wraps around
+    *
+    * @return   HTML_QuickForm2
+    */
+    public function getForm()
+    {
+        return $this->form;
+    }
+
+   /**
+    * Sets the controller owning the page
+    *
+    * @param    HTML_QuickForm2_Controller  controller the page belongs to
+    */
+    public function setController(HTML_QuickForm2_Controller $controller)
+    {
+        $this->controller = $controller;
+    }
+
+   /**
+    * Returns the controller owning this page
+    *
+    * @return   HTML_QuickForm2_Controller
+    */
+    public function getController()
+    {
+        return $this->controller;
     }
 
    /**
@@ -123,23 +157,14 @@ abstract class HTML_QuickForm2_Controller_Page
     }
 
    /**
-    * Returns the controller owning this page
+    * Returns a name for a submit button that will invoke a specific action
     *
-    * @return   HTML_QuickForm2_Controller
+    * @param  string  Name of the action
+    * @return string  "name" attribute for a submit button
     */
-    public function getController()
+    public function getButtonName($actionName)
     {
-        return $this->controller;
-    }
-
-   /**
-    * Sets the controller owning the page
-    *
-    * @param    HTML_QuickForm2_Controller  controller the page belongs to
-    */
-    public function setController(HTML_QuickForm2_Controller $controller)
-    {
-        $this->controller = $controller;
+        return sprintf(self::KEY_NAME, $this->getForm()->getId(), $actionName);
     }
 
    /**
@@ -185,45 +210,6 @@ abstract class HTML_QuickForm2_Controller_Page
     }
 
    /**
-    * Returns a name for a submit button that will invoke a specific action
-    *
-    * @param  string  Name of the action
-    * @return string  "name" attribute for a submit button
-    */
-    public function getButtonName($actionName)
-    {
-        return sprintf(self::KEY_NAME, $this->getForm()->getId(), $actionName);
-    }
-
-   /**
-    * Returns the form this page wraps around
-    *
-    * @return   HTML_QuickForm2
-    */
-    public function getForm()
-    {
-        return $this->form;
-    }
-
-   /**
-    * Stores the form values (and validation status) is session container
-    *
-    * @param    bool    Whether to store validation status
-    */
-    public function storeValues($validate = true)
-    {
-        $this->populateFormOnce();
-        $container = $this->getController()->getSessionContainer();
-        $id        = $this->form->getId();
-
-        $container->storeValues($id, (array)$this->form->getValue());
-        if ($validate) {
-            $container->storeValidationStatus($id, $this->form->validate());
-        }
-        return $container->getValidationStatus($id);
-    }
-
-   /**
     * Wrapper around populateForm() ensuring that it is only called once
     */
     final public function populateFormOnce()
@@ -250,5 +236,23 @@ abstract class HTML_QuickForm2_Controller_Page
     * be seen by the user.
     */
     abstract protected function populateForm();
+
+   /**
+    * Stores the form values (and validation status) is session container
+    *
+    * @param    bool    Whether to store validation status
+    */
+    public function storeValues($validate = true)
+    {
+        $this->populateFormOnce();
+        $container = $this->getController()->getSessionContainer();
+        $id        = $this->form->getId();
+
+        $container->storeValues($id, (array)$this->form->getValue());
+        if ($validate) {
+            $container->storeValidationStatus($id, $this->form->validate());
+        }
+        return $container->getValidationStatus($id);
+    }
 }
 ?>

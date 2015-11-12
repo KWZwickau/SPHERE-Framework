@@ -18,28 +18,6 @@ use Piwik\Plugins\Actions\Columns\Metrics\ExitRate;
 
 class GetSiteSearchNoResultKeywords extends SiteSearchBase
 {
-    public function getMetrics()
-    {
-        return array(
-            'nb_visits' => Piwik::translate('Actions_ColumnSearches')
-        );
-    }
-
-    public function getProcessedMetrics()
-    {
-        return array(
-            'exit_rate' => Piwik::translate('Actions_ColumnSearchExits')
-        );
-    }
-
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->addTranslation('label', $this->dimension->getName());
-        $view->config->columns_to_display = array('label', 'nb_visits', 'exit_rate');
-
-        $this->addSiteSearchDisplayProperties($view);
-    }
-
     protected function init()
     {
         parent::init();
@@ -57,11 +35,33 @@ class GetSiteSearchNoResultKeywords extends SiteSearchBase
         $this->widgetTitle  = 'Actions_WidgetSearchNoResultKeywords';
     }
 
+    public function getMetrics()
+    {
+        return array(
+            'nb_visits' => Piwik::translate('Actions_ColumnSearches')
+        );
+    }
+
+    public function getProcessedMetrics()
+    {
+        return array(
+            'exit_rate' => Piwik::translate('Actions_ColumnSearchExits')
+        );
+    }
+
     protected function getMetricsDocumentation()
     {
         return array(
             'nb_visits' => Piwik::translate('Actions_ColumnSearchesDocumentation'),
             'exit_rate' => Piwik::translate('Actions_ColumnSearchExitsDocumentation'),
         );
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->addTranslation('label', $this->dimension->getName());
+        $view->config->columns_to_display = array('label', 'nb_visits', 'exit_rate');
+
+        $this->addSiteSearchDisplayProperties($view);
     }
 }

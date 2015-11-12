@@ -14,14 +14,6 @@ use Piwik\Plugins\CustomVariables\Columns\CustomVariableName;
 
 class GetCustomVariables extends Base
 {
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->columns_to_display = array('label', 'nb_actions', 'nb_visits');
-        $view->config->addTranslation('label', Piwik::translate('CustomVariables_ColumnCustomVariableName'));
-        $view->requestConfig->filter_sort_column = 'nb_actions';
-        $view->requestConfig->filter_sort_order  = 'desc';
-    }
-
     protected function init()
     {
         parent::init();
@@ -34,5 +26,13 @@ class GetCustomVariables extends Base
         $this->widgetTitle  = 'CustomVariables_CustomVariables';
         $this->menuTitle    = 'CustomVariables_CustomVariables';
         $this->hasGoalMetrics = true;
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->columns_to_display = array('label', 'nb_actions', 'nb_visits');
+        $view->config->addTranslation('label', Piwik::translate('CustomVariables_ColumnCustomVariableName'));
+        $view->requestConfig->filter_sort_column = 'nb_actions';
+        $view->requestConfig->filter_sort_order  = 'desc';
     }
 }

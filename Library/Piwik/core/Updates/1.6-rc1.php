@@ -9,8 +9,8 @@
 
 namespace Piwik\Updates;
 
-use Piwik\Updater;
 use Piwik\Updates;
+use Piwik\Updater;
 
 /**
  */

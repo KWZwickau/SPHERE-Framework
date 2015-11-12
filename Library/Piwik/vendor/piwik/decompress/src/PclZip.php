@@ -14,13 +14,13 @@ namespace Piwik\Decompress;
 class PclZip implements DecompressInterface
 {
     /**
-     * @var string
-     */
-    public $filename;
-    /**
      * @var \PclZip
      */
     private $pclzip;
+    /**
+     * @var string
+     */
+    public $filename;
 
     /**
      * Constructor

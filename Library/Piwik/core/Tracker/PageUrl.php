@@ -68,132 +68,6 @@ class PageUrl
         return $url;
     }
 
-    public static function cleanupUrl($url)
-    {
-        $url = Common::unsanitizeInputValue($url);
-        $url = PageUrl::cleanupString($url);
-        $url = PageUrl::convertMatrixUrl($url);
-
-        return $url;
-    }
-
-    /**
-     * Clean up string contents (filter, truncate, ...)
-     *
-     * @param string $string Dirty string
-     * @return string
-     */
-    public static function cleanupString($string)
-    {
-        $string = trim($string);
-        $string = str_replace(array("\n", "\r", "\0"), '', $string);
-
-        $limit = Config::getInstance()->Tracker['page_maximum_length'];
-        $clean = substr($string, 0, $limit);
-        return $clean;
-    }
-
-    /**
-     * Converts Matrix URL format
-     * from http://example.org/thing;paramA=1;paramB=6542
-     * to   http://example.org/thing?paramA=1&paramB=6542
-     *
-     * @param string $originalUrl
-     * @return string
-     */
-    public static function convertMatrixUrl($originalUrl)
-    {
-        $posFirstSemiColon = strpos($originalUrl, ";");
-
-        if (false === $posFirstSemiColon) {
-            return $originalUrl;
-        }
-
-        $posQuestionMark = strpos($originalUrl, "?");
-        $replace = (false === $posQuestionMark);
-
-        if ($posQuestionMark > $posFirstSemiColon) {
-            $originalUrl = substr_replace($originalUrl, ";", $posQuestionMark, 1);
-            $replace = true;
-        }
-
-        if ($replace) {
-            $originalUrl = substr_replace($originalUrl, "?", strpos($originalUrl, ";"), 1);
-            $originalUrl = str_replace(";", "&", $originalUrl);
-        }
-
-        return $originalUrl;
-    }
-
-    /**
-     * Will cleanup the hostname (some browser do not strolower the hostname),
-     * and deal ith the hash tag on incoming URLs based on website setting.
-     *
-     * @param $parsedUrl
-     * @param $idSite int|bool  The site ID of the current visit. This parameter is
-     *                          only used by the tracker to see if we should remove
-     *                          the URL fragment for this site.
-     * @return array
-     */
-    protected static function cleanupHostAndHashTag($parsedUrl, $idSite = false)
-    {
-        if (empty($parsedUrl)) {
-            return $parsedUrl;
-        }
-
-        if (!empty($parsedUrl['host'])) {
-            $parsedUrl['host'] = Common::mb_strtolower($parsedUrl['host'], 'UTF-8');
-        }
-
-        if (!empty($parsedUrl['fragment'])) {
-            $parsedUrl['fragment'] = PageUrl::processUrlFragment($parsedUrl['fragment'], $idSite);
-        }
-
-        return $parsedUrl;
-    }
-
-    /**
-     * Cleans and/or removes the URL fragment of a URL.
-     *
-     * @param $urlFragment      string The URL fragment to process.
-     * @param $idSite           int|bool  If not false, this function will check if URL fragments
-     *                          should be removed for the site w/ this ID and if so,
-     *                          the returned processed fragment will be empty.
-     *
-     * @return string The processed URL fragment.
-     */
-    public static function processUrlFragment($urlFragment, $idSite = false)
-    {
-        // if we should discard the url fragment for this site, return an empty string as
-        // the processed url fragment
-        if ($idSite !== false
-            && PageUrl::shouldRemoveURLFragmentFor($idSite)
-        ) {
-            return '';
-        } else {
-            // Remove trailing Hash tag in ?query#hash#
-            if (substr($urlFragment, -1) == '#') {
-                $urlFragment = substr($urlFragment, 0, strlen($urlFragment) - 1);
-            }
-            return $urlFragment;
-        }
-    }
-
-    /**
-     * Returns true if URL fragments should be removed for a specific site,
-     * false if otherwise.
-     *
-     * This function uses the Tracker cache and not the MySQL database.
-     *
-     * @param $idSite int The ID of the site to check for.
-     * @return bool
-     */
-    public static function shouldRemoveURLFragmentFor($idSite)
-    {
-        $websiteAttributes = Cache::getCacheWebsiteAttributes($idSite);
-        return empty($websiteAttributes['keep_url_fragment']);
-    }
-
     /**
      * Returns the array of parameters names that must be excluded from the Query String in all tracked URLs
      * @static
@@ -232,13 +106,147 @@ class PageUrl
         return $parametersToExclude;
     }
 
-    private static function getExcludedParametersFromWebsite($website)
+    /**
+     * Returns true if URL fragments should be removed for a specific site,
+     * false if otherwise.
+     *
+     * This function uses the Tracker cache and not the MySQL database.
+     *
+     * @param $idSite int The ID of the site to check for.
+     * @return bool
+     */
+    public static function shouldRemoveURLFragmentFor($idSite)
     {
-        if (isset($website['excluded_parameters'])) {
-            return $website['excluded_parameters'];
+        $websiteAttributes = Cache::getCacheWebsiteAttributes($idSite);
+        return empty($websiteAttributes['keep_url_fragment']);
+    }
+
+    /**
+     * Cleans and/or removes the URL fragment of a URL.
+     *
+     * @param $urlFragment      string The URL fragment to process.
+     * @param $idSite           int|bool  If not false, this function will check if URL fragments
+     *                          should be removed for the site w/ this ID and if so,
+     *                          the returned processed fragment will be empty.
+     *
+     * @return string The processed URL fragment.
+     */
+    public static function processUrlFragment($urlFragment, $idSite = false)
+    {
+        // if we should discard the url fragment for this site, return an empty string as
+        // the processed url fragment
+        if ($idSite !== false
+            && PageUrl::shouldRemoveURLFragmentFor($idSite)
+        ) {
+            return '';
+        } else {
+            // Remove trailing Hash tag in ?query#hash#
+            if (substr($urlFragment, -1) == '#') {
+                $urlFragment = substr($urlFragment, 0, strlen($urlFragment) - 1);
+            }
+            return $urlFragment;
+        }
+    }
+
+    /**
+     * Will cleanup the hostname (some browser do not strolower the hostname),
+     * and deal ith the hash tag on incoming URLs based on website setting.
+     *
+     * @param $parsedUrl
+     * @param $idSite int|bool  The site ID of the current visit. This parameter is
+     *                          only used by the tracker to see if we should remove
+     *                          the URL fragment for this site.
+     * @return array
+     */
+    protected static function cleanupHostAndHashTag($parsedUrl, $idSite = false)
+    {
+        if (empty($parsedUrl)) {
+            return $parsedUrl;
         }
 
-        return array();
+        if (!empty($parsedUrl['host'])) {
+            $parsedUrl['host'] = Common::mb_strtolower($parsedUrl['host'], 'UTF-8');
+        }
+
+        if (!empty($parsedUrl['fragment'])) {
+            $parsedUrl['fragment'] = PageUrl::processUrlFragment($parsedUrl['fragment'], $idSite);
+        }
+
+        return $parsedUrl;
+    }
+
+    /**
+     * Converts Matrix URL format
+     * from http://example.org/thing;paramA=1;paramB=6542
+     * to   http://example.org/thing?paramA=1&paramB=6542
+     *
+     * @param string $originalUrl
+     * @return string
+     */
+    public static function convertMatrixUrl($originalUrl)
+    {
+        $posFirstSemiColon = strpos($originalUrl, ";");
+
+        if (false === $posFirstSemiColon) {
+            return $originalUrl;
+        }
+
+        $posQuestionMark = strpos($originalUrl, "?");
+        $replace = (false === $posQuestionMark);
+
+        if ($posQuestionMark > $posFirstSemiColon) {
+            $originalUrl = substr_replace($originalUrl, ";", $posQuestionMark, 1);
+            $replace = true;
+        }
+
+        if ($replace) {
+            $originalUrl = substr_replace($originalUrl, "?", strpos($originalUrl, ";"), 1);
+            $originalUrl = str_replace(";", "&", $originalUrl);
+        }
+
+        return $originalUrl;
+    }
+
+    /**
+     * Clean up string contents (filter, truncate, ...)
+     *
+     * @param string $string Dirty string
+     * @return string
+     */
+    public static function cleanupString($string)
+    {
+        $string = trim($string);
+        $string = str_replace(array("\n", "\r", "\0"), '', $string);
+
+        $limit = Config::getInstance()->Tracker['page_maximum_length'];
+        $clean = substr($string, 0, $limit);
+        return $clean;
+    }
+
+    protected static function reencodeParameterValue($value, $encoding)
+    {
+        if (is_string($value)) {
+            $decoded = urldecode($value);
+            if (function_exists('mb_check_encoding')
+                && @mb_check_encoding($decoded, $encoding)) {
+                $value = urlencode(mb_convert_encoding($decoded, 'UTF-8', $encoding));
+            }
+        }
+
+        return $value;
+    }
+
+    protected static function reencodeParametersArray($queryParameters, $encoding)
+    {
+        foreach ($queryParameters as &$value) {
+            if (is_array($value)) {
+                $value = self::reencodeParametersArray($value, $encoding);
+            } else {
+                $value = PageUrl::reencodeParameterValue($value, $encoding);
+            }
+        }
+
+        return $queryParameters;
     }
 
     /**
@@ -274,30 +282,13 @@ class PageUrl
         return $queryParameters;
     }
 
-    protected static function reencodeParametersArray($queryParameters, $encoding)
+    public static function cleanupUrl($url)
     {
-        foreach ($queryParameters as &$value) {
-            if (is_array($value)) {
-                $value = self::reencodeParametersArray($value, $encoding);
-            } else {
-                $value = PageUrl::reencodeParameterValue($value, $encoding);
-            }
-        }
+        $url = Common::unsanitizeInputValue($url);
+        $url = PageUrl::cleanupString($url);
+        $url = PageUrl::convertMatrixUrl($url);
 
-        return $queryParameters;
-    }
-
-    protected static function reencodeParameterValue($value, $encoding)
-    {
-        if (is_string($value)) {
-            $decoded = urldecode($value);
-            if (function_exists('mb_check_encoding')
-                && @mb_check_encoding($decoded, $encoding)) {
-                $value = urlencode(mb_convert_encoding($decoded, 'UTF-8', $encoding));
-            }
-        }
-
-        return $value;
+        return $url;
     }
 
     /**
@@ -361,6 +352,15 @@ class PageUrl
         }
 
         return $url;
+    }
+
+    private static function getExcludedParametersFromWebsite($website)
+    {
+        if (isset($website['excluded_parameters'])) {
+            return $website['excluded_parameters'];
+        }
+
+        return array();
     }
 
     public static function urldecodeValidUtf8($value)

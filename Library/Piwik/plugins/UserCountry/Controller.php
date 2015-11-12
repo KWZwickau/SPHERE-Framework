@@ -14,11 +14,11 @@ use Piwik\DataTable\Renderer\Json;
 use Piwik\Http;
 use Piwik\IP;
 use Piwik\Piwik;
+use Piwik\Plugins\UserCountry\LocationProvider\GeoIp\ServerBased;
+use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
 use Piwik\Plugins\UserCountry\LocationProvider;
 use Piwik\Plugins\UserCountry\LocationProvider\DefaultProvider;
-use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
 use Piwik\Plugins\UserCountry\LocationProvider\GeoIp\Pecl;
-use Piwik\Plugins\UserCountry\LocationProvider\GeoIp\ServerBased;
 use Piwik\View;
 
 /**
@@ -39,11 +39,6 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         $view->dataTableCity = $this->renderReport('getCity');
 
         return $view->render();
-    }
-
-    public function getNumberOfDistinctCountries()
-    {
-        return $this->getNumericValue('UserCountry.getNumberOfDistinctCountries');
     }
 
     public function adminIndex()
@@ -88,37 +83,6 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         $this->setBasicVariablesAdminView($view);
 
         return $view->render();
-    }
-
-    private function dieIfGeolocationAdminIsDisabled()
-    {
-        if (!UserCountry::isGeoLocationAdminEnabled()) {
-            throw new \Exception('Geo location setting page has been disabled.');
-        }
-    }
-
-    /**
-     * Sets some variables needed by the _updaterManage.twig template.
-     *
-     * @param View $view
-     */
-    private function setUpdaterManageVars($view)
-    {
-        $urls = GeoIPAutoUpdater::getConfiguredUrls();
-
-        $view->geoIPLocUrl = $urls['loc'];
-        $view->geoIPIspUrl = $urls['isp'];
-        $view->geoIPOrgUrl = $urls['org'];
-        $view->geoIPUpdatePeriod = GeoIPAutoUpdater::getSchedulePeriod();
-
-        $view->geoLiteUrl = GeoIp::GEO_LITE_URL;
-
-        $lastRunTime = GeoIPAutoUpdater::getLastRunTime();
-        if ($lastRunTime !== false) {
-            $view->lastTimeUpdaterRun = '<strong><em>' . $lastRunTime->toString() . '</em></strong>';
-        }
-
-        $view->nextRunTime = GeoIPAutoUpdater::getNextRunTime();
     }
 
     /**
@@ -188,6 +152,30 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
     }
 
     /**
+     * Sets some variables needed by the _updaterManage.twig template.
+     *
+     * @param View $view
+     */
+    private function setUpdaterManageVars($view)
+    {
+        $urls = GeoIPAutoUpdater::getConfiguredUrls();
+
+        $view->geoIPLocUrl = $urls['loc'];
+        $view->geoIPIspUrl = $urls['isp'];
+        $view->geoIPOrgUrl = $urls['org'];
+        $view->geoIPUpdatePeriod = GeoIPAutoUpdater::getSchedulePeriod();
+
+        $view->geoLiteUrl = GeoIp::GEO_LITE_URL;
+
+        $lastRunTime = GeoIPAutoUpdater::getLastRunTime();
+        if ($lastRunTime !== false) {
+            $view->lastTimeUpdaterRun = '<strong><em>' . $lastRunTime->toString() . '</em></strong>';
+        }
+
+        $view->nextRunTime = GeoIPAutoUpdater::getNextRunTime();
+    }
+
+    /**
      * Sets the URLs used to download new versions of the installed GeoIP databases.
      *
      * Input (query params):
@@ -226,29 +214,6 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
                 return json_encode(array('error' => $ex->getMessage()));
             }
         }
-    }
-
-    /**
-     * Gets information for the first missing GeoIP database (if any).
-     *
-     * @return bool
-     */
-    private function getNextMissingDbUrlInfo()
-    {
-        $missingDbs = GeoIPAutoUpdater::getMissingDatabases();
-        if (!empty($missingDbs)) {
-            $missingDbKey = $missingDbs[0];
-            $missingDbName = GeoIp::$dbNames[$missingDbKey][0];
-            $url = GeoIPAutoUpdater::getConfiguredUrl($missingDbKey);
-
-            $link = '<a href="' . $url . '">' . $missingDbName . '</a>';
-
-            return array(
-                'to_download'       => $missingDbKey,
-                'to_download_label' => Piwik::translate('UserCountry_DownloadingDb', $link) . '...',
-            );
-        }
-        return false;
     }
 
     /**
@@ -363,10 +328,45 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         return $location;
     }
 
+    public function getNumberOfDistinctCountries()
+    {
+        return $this->getNumericValue('UserCountry.getNumberOfDistinctCountries');
+    }
+
     public function getLastDistinctCountriesGraph()
     {
         $view = $this->getLastUnitGraph('UserCountry', __FUNCTION__, "UserCountry.getNumberOfDistinctCountries");
         $view->config->columns_to_display = array('UserCountry_distinctCountries');
         return $this->renderView($view);
+    }
+
+    /**
+     * Gets information for the first missing GeoIP database (if any).
+     *
+     * @return bool
+     */
+    private function getNextMissingDbUrlInfo()
+    {
+        $missingDbs = GeoIPAutoUpdater::getMissingDatabases();
+        if (!empty($missingDbs)) {
+            $missingDbKey = $missingDbs[0];
+            $missingDbName = GeoIp::$dbNames[$missingDbKey][0];
+            $url = GeoIPAutoUpdater::getConfiguredUrl($missingDbKey);
+
+            $link = '<a href="' . $url . '">' . $missingDbName . '</a>';
+
+            return array(
+                'to_download'       => $missingDbKey,
+                'to_download_label' => Piwik::translate('UserCountry_DownloadingDb', $link) . '...',
+            );
+        }
+        return false;
+    }
+
+    private function dieIfGeolocationAdminIsDisabled()
+    {
+        if (!UserCountry::isGeoLocationAdminEnabled()) {
+            throw new \Exception('Geo location setting page has been disabled.');
+        }
     }
 }

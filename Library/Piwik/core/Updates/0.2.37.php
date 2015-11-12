@@ -17,11 +17,6 @@ use Piwik\Updates;
  */
 class Updates_0_2_37 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -29,5 +24,10 @@ class Updates_0_2_37 extends Updates
 				WHERE layout LIKE '%.getLastVisitsGraph%'
 				OR layout LIKE '%.getLastVisitsReturningGraph%'" => false,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

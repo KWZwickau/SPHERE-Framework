@@ -90,6 +90,14 @@ class FilterHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
+    public function isHandling(array $record)
+    {
+        return isset($this->acceptedLevels[$record['level']]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function handle(array $record)
     {
         if (!$this->isHandling($record)) {
@@ -113,14 +121,6 @@ class FilterHandler extends AbstractHandler
         $this->handler->handle($record);
 
         return false === $this->bubble;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isHandling(array $record)
-    {
-        return isset($this->acceptedLevels[$record['level']]);
     }
 
     /**

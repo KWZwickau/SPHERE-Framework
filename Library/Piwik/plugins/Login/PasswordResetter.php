@@ -15,8 +15,8 @@ use Piwik\IP;
 use Piwik\Mail;
 use Piwik\Option;
 use Piwik\Piwik;
-use Piwik\Plugins\UsersManager\API as UsersManagerAPI;
 use Piwik\Plugins\UsersManager\UsersManager;
+use Piwik\Plugins\UsersManager\API as UsersManagerAPI;
 use Piwik\SettingsPiwik;
 use Piwik\Url;
 
@@ -177,105 +177,67 @@ class PasswordResetter
     }
 
     /**
-     * Checks the reset password's complexity. Will use UsersManager's requirements for user passwords.
+     * Confirms a password reset. This should be called after {@link initiatePasswordResetProcess()}
+     * is called.
      *
-     * Derived classes can override this method to provide fewer or additional checks.
+     * This method will get the new password associated with a reset token and set it
+     * as the specified user's password.
      *
-     * @param string $newPassword The password to check.
-     * @throws Exception if $newPassword is inferior in some way.
+     * @param string $login The login of the user whose password is being reset.
+     * @param string $resetToken The generated string token contained in the reset password
+     *                           email.
+     * @throws Exception If there is no user with login '$login', if $resetToken is not a
+     *                   valid token or if the token has expired.
      */
-    protected function checkNewPassword($newPassword)
+    public function confirmNewPassword($login, $resetToken)
     {
-        UsersManager::checkPassword($newPassword);
-    }
+        // get password reset info & user info
+        $user = self::getUserInformation($login);
+        if ($user === null) {
+            throw new Exception(Piwik::translate('Login_InvalidUsernameEmail'));
+        }
 
-    /**
-     * Returns user information based on a login or email.
-     *
-     * Derived classes can override this method to provide custom user querying logic.
-     *
-     * @param string $loginMail user login or email address
-     * @return array `array("login" => '...', "email" => '...', "password" => '...')` or null, if user not found.
-     */
-    protected function getUserInformation($loginOrMail)
-    {
+        // check that the reset token is valid
+        $resetPassword = $this->getPasswordToResetTo($login);
+        if ($resetPassword === false
+            || !$this->isTokenValid($resetToken, $user)
+        ) {
+            throw new Exception(Piwik::translate('Login_InvalidOrExpiredToken'));
+        }
+
+        // check that the stored password hash is valid (sanity check)
+        $this->checkPasswordHash($resetPassword);
+
+        // reset password of user
         $usersManager = $this->usersManagerApi;
-        return Access::doAsSuperUser(function () use ($loginOrMail, $usersManager) {
-            $user = null;
-            if ($usersManager->userExists($loginOrMail)) {
-                $user = $usersManager->getUser($loginOrMail);
-            } else {if ($usersManager->userEmailExists($loginOrMail)) {
-                $user = $usersManager->getUserByEmail($loginOrMail);
-            }}
-            return $user;
+        Access::doAsSuperUser(function () use ($usersManager, $user, $resetPassword) {
+            $usersManager->updateUser(
+                $user['login'], $resetPassword, $email = false, $alias = false, $isPasswordHashed = true);
         });
     }
 
     /**
-     * Stores password reset info for a specific login.
+     * Returns true if a reset token is valid, false if otherwise. A reset token is valid if
+     * it exists and has not expired.
      *
-     * @param string $login The user login for whom a password change was requested.
-     * @param string $newPassword The new password to set.
+     * @param string $token The reset token to check.
+     * @param array $user The user information returned by the UsersManager API.
+     * @return bool true if valid, false otherwise.
      */
-    private function savePasswordResetInfo($login, $newPassword)
+    public function isTokenValid($token, $user)
     {
-        $optionName = $this->getPasswordResetInfoOptionName($login);
-        $optionData = UsersManager::getPasswordHash($newPassword);
+        $now = time();
 
-        Option::set($optionName, $optionData);
-    }
+        // token valid for 24 hrs (give or take, due to the coarse granularity in our strftime format string)
+        for ($i = 0; $i <= 24; $i++) {
+            $generatedToken = $this->generatePasswordResetToken($user, $now + $i * 60 * 60);
+            if ($generatedToken === $token) {
+                return true;
+            }
+        }
 
-    /**
-     * Gets the option name for the option that will store a user's password change
-     * request.
-     *
-     * @param string $login The user login for whom a password change was requested.
-     * @return string
-     */
-    public static function getPasswordResetInfoOptionName($login)
-    {
-        return $login . '_reset_password_info';
-    }
-
-    /**
-     * Sends email confirmation link for a password reset request.
-     *
-     * @param array $user User info for the requested password reset.
-     */
-    private function sendEmailConfirmationLink($user)
-    {
-        $login = $user['login'];
-        $email = $user['email'];
-
-        // construct a password reset token from user information
-        $resetToken = $this->generatePasswordResetToken($user);
-
-        $confirmPasswordModule = $this->confirmPasswordModule;
-        $confirmPasswordAction = $this->confirmPasswordAction;
-
-        $ip = IP::getIpFromHeader();
-        $url = Url::getCurrentUrlWithoutQueryString()
-            . "?module=$confirmPasswordModule&action=$confirmPasswordAction&login=" . urlencode($login)
-            . "&resetToken=" . urlencode($resetToken);
-
-        // send email with new password
-        $mail = new Mail();
-        $mail->addTo($email, $login);
-        $mail->setSubject(Piwik::translate('Login_MailTopicPasswordChange'));
-        $bodyText = str_replace(
-                '\n',
-                "\n",
-                sprintf(Piwik::translate('Login_MailPasswordChangeBody'), $login, $ip, $url)
-            ) . "\n";
-        $mail->setBodyText($bodyText);
-
-        $mail->setFrom($this->emailFromAddress, $this->emailFromName);
-
-        $replytoEmailName = Config::getInstance()->General['login_password_recovery_replyto_email_name'];
-        $replytoEmailAddress = Config::getInstance()->General['login_password_recovery_replyto_email_address'];
-        $mail->setReplyTo($replytoEmailAddress, $replytoEmailName);
-
-        @$mail->send();
+        // fails if token is invalid, expired, password already changed, other user information has changed, ...
+        return false;
     }
 
     /**
@@ -304,20 +266,6 @@ class PasswordResetter
             $user['password']
         );
         return $token;
-    }
-
-    /**
-     * Returns an expiration time from the current time. By default it will be one day (24 hrs) from
-     * now.
-     *
-     * Derived classes can override this to provide a different default expiration time
-     * generation implementation.
-     *
-     * @return int
-     */
-    protected function getDefaultExpiryTime()
-    {
-        return time() + 24 * 60 * 60; /* +24 hrs */
     }
 
     /**
@@ -375,90 +323,52 @@ class PasswordResetter
     }
 
     /**
-     * Removes stored password reset info if it exists.
+     * Returns an expiration time from the current time. By default it will be one day (24 hrs) from
+     * now.
      *
-     * @param string $login The user login to check for.
+     * Derived classes can override this to provide a different default expiration time
+     * generation implementation.
+     *
+     * @return int
      */
-    public function removePasswordResetInfo($login)
+    protected function getDefaultExpiryTime()
     {
-        $optionName = self::getPasswordResetInfoOptionName($login);
-        Option::delete($optionName);
+        return time() + 24 * 60 * 60; /* +24 hrs */
     }
 
     /**
-     * Confirms a password reset. This should be called after {@link initiatePasswordResetProcess()}
-     * is called.
+     * Checks the reset password's complexity. Will use UsersManager's requirements for user passwords.
      *
-     * This method will get the new password associated with a reset token and set it
-     * as the specified user's password.
+     * Derived classes can override this method to provide fewer or additional checks.
      *
-     * @param string $login The login of the user whose password is being reset.
-     * @param string $resetToken The generated string token contained in the reset password
-     *                           email.
-     * @throws Exception If there is no user with login '$login', if $resetToken is not a
-     *                   valid token or if the token has expired.
+     * @param string $newPassword The password to check.
+     * @throws Exception if $newPassword is inferior in some way.
      */
-    public function confirmNewPassword($login, $resetToken)
+    protected function checkNewPassword($newPassword)
     {
-        // get password reset info & user info
-        $user = self::getUserInformation($login);
-        if ($user === null) {
-            throw new Exception(Piwik::translate('Login_InvalidUsernameEmail'));
-        }
+        UsersManager::checkPassword($newPassword);
+    }
 
-        // check that the reset token is valid
-        $resetPassword = $this->getPasswordToResetTo($login);
-        if ($resetPassword === false
-            || !$this->isTokenValid($resetToken, $user)
-        ) {
-            throw new Exception(Piwik::translate('Login_InvalidOrExpiredToken'));
-        }
-
-        // check that the stored password hash is valid (sanity check)
-        $this->checkPasswordHash($resetPassword);
-
-        // reset password of user
+    /**
+     * Returns user information based on a login or email.
+     *
+     * Derived classes can override this method to provide custom user querying logic.
+     *
+     * @param string $loginMail user login or email address
+     * @return array `array("login" => '...', "email" => '...', "password" => '...')` or null, if user not found.
+     */
+    protected function getUserInformation($loginOrMail)
+    {
         $usersManager = $this->usersManagerApi;
-        Access::doAsSuperUser(function () use ($usersManager, $user, $resetPassword) {
-            $usersManager->updateUser(
-                $user['login'], $resetPassword, $email = false, $alias = false, $isPasswordHashed = true);
-        });
-    }
-
-    /**
-     * Gets password hash stored in password reset info.
-     *
-     * @param string $login The user login to check for.
-     * @return string|false The hashed password or false if no reset info exists.
-     */
-    private function getPasswordToResetTo($login)
-    {
-        $optionName = self::getPasswordResetInfoOptionName($login);
-        return Option::get($optionName);
-    }
-
-    /**
-     * Returns true if a reset token is valid, false if otherwise. A reset token is valid if
-     * it exists and has not expired.
-     *
-     * @param string $token The reset token to check.
-     * @param array $user The user information returned by the UsersManager API.
-     * @return bool true if valid, false otherwise.
-     */
-    public function isTokenValid($token, $user)
-    {
-        $now = time();
-
-        // token valid for 24 hrs (give or take, due to the coarse granularity in our strftime format string)
-        for ($i = 0; $i <= 24; $i++) {
-            $generatedToken = $this->generatePasswordResetToken($user, $now + $i * 60 * 60);
-            if ($generatedToken === $token) {
-                return true;
+        return Access::doAsSuperUser(function () use ($loginOrMail, $usersManager) {
+            $user = null;
+            if ($usersManager->userExists($loginOrMail)) {
+                $user = $usersManager->getUser($loginOrMail);
+            } else if ($usersManager->userEmailExists($loginOrMail)) {
+                $user = $usersManager->getUserByEmail($loginOrMail);
             }
-        }
-
-        // fails if token is invalid, expired, password already changed, other user information has changed, ...
-        return false;
+            return $user;
+        });
     }
 
     /**
@@ -476,5 +386,95 @@ class PasswordResetter
         if (strlen($password) != 32) {
             throw new Exception(Piwik::translate('Login_ExceptionPasswordMD5HashExpected'));
         }
+    }
+
+    /**
+     * Sends email confirmation link for a password reset request.
+     *
+     * @param array $user User info for the requested password reset.
+     */
+    private function sendEmailConfirmationLink($user)
+    {
+        $login = $user['login'];
+        $email = $user['email'];
+
+        // construct a password reset token from user information
+        $resetToken = $this->generatePasswordResetToken($user);
+
+        $confirmPasswordModule = $this->confirmPasswordModule;
+        $confirmPasswordAction = $this->confirmPasswordAction;
+
+        $ip = IP::getIpFromHeader();
+        $url = Url::getCurrentUrlWithoutQueryString()
+            . "?module=$confirmPasswordModule&action=$confirmPasswordAction&login=" . urlencode($login)
+            . "&resetToken=" . urlencode($resetToken);
+
+        // send email with new password
+        $mail = new Mail();
+        $mail->addTo($email, $login);
+        $mail->setSubject(Piwik::translate('Login_MailTopicPasswordChange'));
+        $bodyText = str_replace(
+                '\n',
+                "\n",
+                sprintf(Piwik::translate('Login_MailPasswordChangeBody'), $login, $ip, $url)
+            ) . "\n";
+        $mail->setBodyText($bodyText);
+
+        $mail->setFrom($this->emailFromAddress, $this->emailFromName);
+
+        $replytoEmailName = Config::getInstance()->General['login_password_recovery_replyto_email_name'];
+        $replytoEmailAddress = Config::getInstance()->General['login_password_recovery_replyto_email_address'];
+        $mail->setReplyTo($replytoEmailAddress, $replytoEmailName);
+
+        @$mail->send();
+    }
+
+    /**
+     * Stores password reset info for a specific login.
+     *
+     * @param string $login The user login for whom a password change was requested.
+     * @param string $newPassword The new password to set.
+     */
+    private function savePasswordResetInfo($login, $newPassword)
+    {
+        $optionName = $this->getPasswordResetInfoOptionName($login);
+        $optionData = UsersManager::getPasswordHash($newPassword);
+
+        Option::set($optionName, $optionData);
+    }
+
+    /**
+     * Gets password hash stored in password reset info.
+     *
+     * @param string $login The user login to check for.
+     * @return string|false The hashed password or false if no reset info exists.
+     */
+    private function getPasswordToResetTo($login)
+    {
+        $optionName = self::getPasswordResetInfoOptionName($login);
+        return Option::get($optionName);
+    }
+
+    /**
+     * Removes stored password reset info if it exists.
+     *
+     * @param string $login The user login to check for.
+     */
+    public function removePasswordResetInfo($login)
+    {
+        $optionName = self::getPasswordResetInfoOptionName($login);
+        Option::delete($optionName);
+    }
+
+    /**
+     * Gets the option name for the option that will store a user's password change
+     * request.
+     *
+     * @param string $login The user login for whom a password change was requested.
+     * @return string
+     */
+    public static function getPasswordResetInfoOptionName($login)
+    {
+        return $login . '_reset_password_info';
     }
 }

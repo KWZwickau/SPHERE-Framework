@@ -20,50 +20,58 @@ use Piwik\Plugins\LanguagesManager\TranslationWriter\Validate\ValidateAbstract;
  */
 class Writer
 {
-    const UNFILTERED = 'unfiltered';
-    const FILTERED   = 'filtered';
     /**
      * current language to write files for
      *
      * @var string
      */
     protected $language = '';
+
     /**
      * Name of a plugin (if set in constructor)
      *
      * @var string|null
      */
     protected $pluginName = null;
+
     /**
      * translations to write to file
      *
      * @var array
      */
     protected $translations = array();
+
     /**
      * Validators to check translations with
      *
      * @var ValidateAbstract[]
      */
     protected $validators = array();
+
     /**
      * Message why validation failed
      *
      * @var string|null
      */
     protected $validationMessage = null;
+
     /**
      * Filters to to apply to translations
      *
      * @var FilterAbstract[]
      */
     protected $filters = array();
+
     /**
      * Messages which filter changed the data
      *
      * @var array
      */
     protected $filterMessages = array();
+
+    const UNFILTERED = 'unfiltered';
+    const FILTERED   = 'filtered';
+
     protected $currentState = self::UNFILTERED;
 
     /**
@@ -91,6 +99,49 @@ class Writer
     }
 
     /**
+     * @param string $language ISO 639-1 alpha-2 language code
+     *
+     * @throws \Exception
+     */
+    public function setLanguage($language)
+    {
+        if (!preg_match('/^([a-z]{2,3}(-[a-z]{2,3})?)$/i', $language)) {
+            throw new Exception(Piwik::translate('General_ExceptionLanguageFileNotFound', array($language)));
+        }
+
+        $this->language = strtolower($language);
+    }
+
+    /**
+     * @return string ISO 639-1 alpha-2 language code
+     */
+    public function getLanguage()
+    {
+        return $this->language;
+    }
+
+    /**
+     * Returns if there are translations available or not
+     * @return bool
+     */
+    public function hasTranslations()
+    {
+        return !empty($this->translations);
+    }
+
+    /**
+     * Set the translations to write (and cleans them)
+     *
+     * @param $translations
+     */
+    public function setTranslations($translations)
+    {
+        $this->currentState = self::UNFILTERED;
+        $this->translations = $translations;
+        $this->applyFilters();
+    }
+
+    /**
      * Get translations from file
      *
      * @param  string $lang ISO 639-1 alpha-2 language code
@@ -112,15 +163,185 @@ class Writer
     }
 
     /**
-     * Set the translations to write (and cleans them)
+     * Returns the temporary path for translations
      *
-     * @param $translations
+     * @return string
      */
-    public function setTranslations($translations)
+    public function getTemporaryTranslationPath()
     {
-        $this->currentState = self::UNFILTERED;
-        $this->translations = $translations;
+        return $this->getTranslationPathBaseDirectory('tmp');
+    }
+
+    /**
+     * Returns the path to translation files
+     *
+     * @return string
+     */
+    public function getTranslationPath()
+    {
+        return $this->getTranslationPathBaseDirectory('lang');
+    }
+
+    /**
+     * Get translation file path based on given params
+     *
+     * @param string $base Optional base directory (either 'lang' or 'tmp')
+     * @param string|null $lang forced language
+     * @throws \Exception
+     * @return string path
+     */
+    protected function getTranslationPathBaseDirectory($base, $lang = null)
+    {
+        if (empty($lang)) {
+            $lang = $this->getLanguage();
+        }
+
+        if (!empty($this->pluginName)) {
+
+            if ($base == 'tmp') {
+                return sprintf('%s/plugins/%s/lang/%s.json', StaticContainer::get('path.tmp'), $this->pluginName, $lang);
+            } else {
+                return sprintf('%s/plugins/%s/lang/%s.json', PIWIK_INCLUDE_PATH, $this->pluginName, $lang);
+            }
+        }
+
+        if ($base == 'tmp') {
+            return sprintf('%s/%s.json', StaticContainer::get('path.tmp'), $lang);
+        }
+
+        return sprintf('%s/%s/%s.json', PIWIK_INCLUDE_PATH, $base, $lang);
+    }
+
+    /**
+     * Converts translations to a string that can be written to a file
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        /*
+         * Use JSON_UNESCAPED_UNICODE and JSON_PRETTY_PRINT for PHP >= 5.4
+         */
+        $options = 0;
+        if (defined('JSON_UNESCAPED_UNICODE')) {
+            $options |= JSON_UNESCAPED_UNICODE;
+        }
+        if (defined('JSON_PRETTY_PRINT')) {
+            $options |= JSON_PRETTY_PRINT;
+        }
+
+        return json_encode($this->translations, $options);
+    }
+
+    /**
+     * Save translations to file; translations should already be cleaned.
+     *
+     * @throws \Exception
+     * @return bool|int  False if failure, or number of bytes written
+     */
+    public function save()
+    {
         $this->applyFilters();
+
+        if (!$this->hasTranslations() || !$this->isValid()) {
+            throw new Exception('unable to save empty or invalid translations');
+        }
+
+        $path = $this->getTranslationPath();
+
+        Filesystem::mkdir(dirname($path));
+
+        return file_put_contents($path, $this->__toString());
+    }
+
+    /**
+     * Save translations to  temporary file; translations should already be cleansed.
+     *
+     * @throws \Exception
+     * @return bool|int False if failure, or number of bytes written
+     */
+    public function saveTemporary()
+    {
+        $this->applyFilters();
+
+        if (!$this->hasTranslations() || !$this->isValid()) {
+            throw new Exception('unable to save empty or invalid translations');
+        }
+
+        $path = $this->getTemporaryTranslationPath();
+
+        Filesystem::mkdir(dirname($path));
+
+        return file_put_contents($path, $this->__toString());
+    }
+
+    /**
+     * Adds an validator to check before saving
+     *
+     * @param ValidateAbstract $validator
+     */
+    public function addValidator(ValidateAbstract $validator)
+    {
+        $this->validators[] = $validator;
+    }
+
+    /**
+     * Returns if translations are valid to save or not
+     *
+     * @return bool
+     */
+    public function isValid()
+    {
+        $this->applyFilters();
+
+        $this->validationMessage = null;
+
+        foreach ($this->validators as $validator) {
+            if (!$validator->isValid($this->translations)) {
+                $this->validationMessage = $validator->getMessage();
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns last validation message
+     *
+     * @return null|string
+     */
+    public function getValidationMessage()
+    {
+        return $this->validationMessage;
+    }
+
+    /**
+     * Returns if the were translations removed while cleaning
+     *
+     * @return bool
+     */
+    public function wasFiltered()
+    {
+        return !empty($this->filterMessages);
+    }
+
+    /**
+     * Returns the cleaning errors
+     *
+     * @return array
+     */
+    public function getFilterMessages()
+    {
+        return $this->filterMessages;
+    }
+
+    /**
+     * @param FilterAbstract $filter
+     */
+    public function addFilter(FilterAbstract $filter)
+    {
+        $this->filters[] = $filter;
     }
 
     /**
@@ -162,218 +383,5 @@ class Writer
 
         $this->translations = $cleanedTranslations;
         return $this->wasFiltered();
-    }
-
-    /**
-     * Returns if the were translations removed while cleaning
-     *
-     * @return bool
-     */
-    public function wasFiltered()
-    {
-        return !empty($this->filterMessages);
-    }
-
-    /**
-     * Returns if there are translations available or not
-     * @return bool
-     */
-    public function hasTranslations()
-    {
-        return !empty($this->translations);
-    }
-
-    /**
-     * Get translation file path based on given params
-     *
-     * @param string $base Optional base directory (either 'lang' or 'tmp')
-     * @param string|null $lang forced language
-     * @throws \Exception
-     * @return string path
-     */
-    protected function getTranslationPathBaseDirectory($base, $lang = null)
-    {
-        if (empty($lang)) {
-            $lang = $this->getLanguage();
-        }
-
-        if (!empty($this->pluginName)) {
-
-            if ($base == 'tmp') {
-                return sprintf('%s/plugins/%s/lang/%s.json', StaticContainer::get('path.tmp'), $this->pluginName, $lang);
-            } else {
-                return sprintf('%s/plugins/%s/lang/%s.json', PIWIK_INCLUDE_PATH, $this->pluginName, $lang);
-            }
-        }
-
-        if ($base == 'tmp') {
-            return sprintf('%s/%s.json', StaticContainer::get('path.tmp'), $lang);
-        }
-
-        return sprintf('%s/%s/%s.json', PIWIK_INCLUDE_PATH, $base, $lang);
-    }
-
-    /**
-     * @return string ISO 639-1 alpha-2 language code
-     */
-    public function getLanguage()
-    {
-        return $this->language;
-    }
-
-    /**
-     * @param string $language ISO 639-1 alpha-2 language code
-     *
-     * @throws \Exception
-     */
-    public function setLanguage($language)
-    {
-        if (!preg_match('/^([a-z]{2,3}(-[a-z]{2,3})?)$/i', $language)) {
-            throw new Exception(Piwik::translate('General_ExceptionLanguageFileNotFound', array($language)));
-        }
-
-        $this->language = strtolower($language);
-    }
-
-    /**
-     * Save translations to file; translations should already be cleaned.
-     *
-     * @throws \Exception
-     * @return bool|int  False if failure, or number of bytes written
-     */
-    public function save()
-    {
-        $this->applyFilters();
-
-        if (!$this->hasTranslations() || !$this->isValid()) {
-            throw new Exception('unable to save empty or invalid translations');
-        }
-
-        $path = $this->getTranslationPath();
-
-        Filesystem::mkdir(dirname($path));
-
-        return file_put_contents($path, $this->__toString());
-    }
-
-    /**
-     * Returns if translations are valid to save or not
-     *
-     * @return bool
-     */
-    public function isValid()
-    {
-        $this->applyFilters();
-
-        $this->validationMessage = null;
-
-        foreach ($this->validators as $validator) {
-            if (!$validator->isValid($this->translations)) {
-                $this->validationMessage = $validator->getMessage();
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Returns the path to translation files
-     *
-     * @return string
-     */
-    public function getTranslationPath()
-    {
-        return $this->getTranslationPathBaseDirectory('lang');
-    }
-
-    /**
-     * Converts translations to a string that can be written to a file
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        /*
-         * Use JSON_UNESCAPED_UNICODE and JSON_PRETTY_PRINT for PHP >= 5.4
-         */
-        $options = 0;
-        if (defined('JSON_UNESCAPED_UNICODE')) {
-            $options |= JSON_UNESCAPED_UNICODE;
-        }
-        if (defined('JSON_PRETTY_PRINT')) {
-            $options |= JSON_PRETTY_PRINT;
-        }
-
-        return json_encode($this->translations, $options);
-    }
-
-    /**
-     * Save translations to  temporary file; translations should already be cleansed.
-     *
-     * @throws \Exception
-     * @return bool|int False if failure, or number of bytes written
-     */
-    public function saveTemporary()
-    {
-        $this->applyFilters();
-
-        if (!$this->hasTranslations() || !$this->isValid()) {
-            throw new Exception('unable to save empty or invalid translations');
-        }
-
-        $path = $this->getTemporaryTranslationPath();
-
-        Filesystem::mkdir(dirname($path));
-
-        return file_put_contents($path, $this->__toString());
-    }
-
-    /**
-     * Returns the temporary path for translations
-     *
-     * @return string
-     */
-    public function getTemporaryTranslationPath()
-    {
-        return $this->getTranslationPathBaseDirectory('tmp');
-    }
-
-    /**
-     * Adds an validator to check before saving
-     *
-     * @param ValidateAbstract $validator
-     */
-    public function addValidator(ValidateAbstract $validator)
-    {
-        $this->validators[] = $validator;
-    }
-
-    /**
-     * Returns last validation message
-     *
-     * @return null|string
-     */
-    public function getValidationMessage()
-    {
-        return $this->validationMessage;
-    }
-
-    /**
-     * Returns the cleaning errors
-     *
-     * @return array
-     */
-    public function getFilterMessages()
-    {
-        return $this->filterMessages;
-    }
-
-    /**
-     * @param FilterAbstract $filter
-     */
-    public function addFilter(FilterAbstract $filter)
-    {
-        $this->filters[] = $filter;
     }
 }

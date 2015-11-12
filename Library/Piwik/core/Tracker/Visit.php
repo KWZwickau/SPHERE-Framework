@@ -36,19 +36,24 @@ use Piwik\Tracker\Visit\VisitProperties;
 class Visit implements VisitInterface
 {
     const UNKNOWN_CODE = 'xx';
-    public static $dimensions;
+
     /**
      * @var GoalManager
      */
     protected $goalManager;
+
     /**
      * @var  Request
      */
     protected $request;
+
     /**
      * @var Settings
      */
     protected $userSettings;
+
+    public static $dimensions;
+
     /**
      * @var RequestProcessor[]
      */
@@ -76,31 +81,6 @@ class Visit implements VisitInterface
         $this->visitProperties = null;
         $this->userSettings = StaticContainer::get('Piwik\Tracker\Settings');
         $this->invalidator = StaticContainer::get('Piwik\Archive\ArchiveInvalidator');
-    }
-
-    public static function isHostKnownAliasHost($urlHost, $idSite)
-    {
-        $websiteData = Cache::getCacheWebsiteAttributes($idSite);
-
-        if (isset($websiteData['hosts'])) {
-            $canonicalHosts = array();
-            foreach ($websiteData['hosts'] as $host) {
-                $canonicalHosts[] = self::toCanonicalHost($host);
-            }
-
-            $canonicalHost = self::toCanonicalHost($urlHost);
-            if (in_array($canonicalHost, $canonicalHosts)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static function toCanonicalHost($host)
-    {
-        $hostLower = Common::mb_strtolower($host);
-        return str_replace('www.', '', $hostLower);
     }
 
     /**
@@ -204,43 +184,6 @@ class Visit implements VisitInterface
         $this->markArchivedReportsAsInvalidIfArchiveAlreadyFinished();
     }
 
-    private function triggerPredicateHookOnDimensions($dimensions, $hook)
-    {
-        $visitor = $this->makeVisitorFacade();
-
-        /** @var Action $action */
-        $action = $this->request->getMetadata('Actions', 'action');
-
-        foreach ($dimensions as $dimension) {
-            if ($dimension->$hook($this->request, $visitor, $action)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private function makeVisitorFacade()
-    {
-        return Visitor::makeFromVisitProperties($this->visitProperties, $this->request);
-    }
-
-    protected function getAllVisitDimensions()
-    {
-        if (is_null(self::$dimensions)) {
-            self::$dimensions = VisitDimension::getAllDimensions();
-
-            $dimensionNames = array();
-            foreach (self::$dimensions as $dimension) {
-                $dimensionNames[] = $dimension->getColumnName();
-            }
-
-            Common::printDebug("Following dimensions have been collected from plugins: " . implode(", ",
-                    $dimensionNames));
-        }
-
-        return self::$dimensions;
-    }
-
     /**
      * In the case of a known visit, we have to do the following actions:
      *
@@ -292,16 +235,6 @@ class Visit implements VisitInterface
     }
 
     /**
-     * Returns the visitor's IP address
-     *
-     * @return string
-     */
-    protected function getVisitorIp()
-    {
-        return $this->visitProperties->getProperty('location_ip');
-    }
-
-    /**
      * @return int Time in seconds
      */
     protected function getTimeSpentReferrerAction()
@@ -316,129 +249,6 @@ class Visit implements VisitInterface
             $timeSpent = $visitStandardLength;
         }
         return $timeSpent;
-    }
-
-    // is the referrer host any of the registered URLs for this website?
-
-    private function getVisitStandardLength()
-    {
-        return Config::getInstance()->Tracker['visit_standard_length'];
-    }
-
-    /**
-     * Gather fields=>values that needs to be updated for the existing visit in log_visit
-     *
-     * @param $visitIsConverted
-     * @return array
-     */
-    private function getExistingVisitFieldsToUpdate($visitIsConverted)
-    {
-        $valuesToUpdate = array();
-
-        $valuesToUpdate = $this->setIdVisitorForExistingVisit($valuesToUpdate);
-
-        $dimensions = $this->getAllVisitDimensions();
-        $valuesToUpdate = $this->triggerHookOnDimensions($dimensions, 'onExistingVisit', $valuesToUpdate);
-
-        if ($visitIsConverted) {
-            $valuesToUpdate = $this->triggerHookOnDimensions($dimensions, 'onConvertedVisit', $valuesToUpdate);
-        }
-
-        // Custom Variables overwrite previous values on each page view
-        return $valuesToUpdate;
-    }
-
-    /**
-     * @param $visitor
-     * @param $valuesToUpdate
-     * @return mixed
-     */
-    private function setIdVisitorForExistingVisit($valuesToUpdate)
-    {
-        // Might update the idvisitor when it was forced or overwritten for this visit
-        if (strlen($this->visitProperties->getProperty('idvisitor')) == Tracker::LENGTH_BINARY_ID) {
-            $binIdVisitor = $this->visitProperties->getProperty('idvisitor');
-            $valuesToUpdate['idvisitor'] = $binIdVisitor;
-        }
-
-        // User ID takes precedence and overwrites idvisitor value
-        $userId = $this->request->getForcedUserId();
-        if ($userId) {
-            $userIdHash = $this->request->getUserIdHashed($userId);
-            $binIdVisitor = Common::hex2bin($userIdHash);
-            $this->visitProperties->setProperty('idvisitor', $binIdVisitor);
-            $valuesToUpdate['idvisitor'] = $binIdVisitor;
-        }
-        return $valuesToUpdate;
-    }
-
-    /**
-     * @param VisitDimension[] $dimensions
-     * @param string $hook
-     * @param Visitor $visitor
-     * @param Action|null $action
-     * @param array|null $valuesToUpdate If null, $this->visitorInfo will be updated
-     *
-     * @return array|null The updated $valuesToUpdate or null if no $valuesToUpdate given
-     */
-    private function triggerHookOnDimensions($dimensions, $hook, $valuesToUpdate = null)
-    {
-        $visitor = $this->makeVisitorFacade();
-
-        /** @var Action $action */
-        $action = $this->request->getMetadata('Actions', 'action');
-
-        foreach ($dimensions as $dimension) {
-            $value = $dimension->$hook($this->request, $visitor, $action);
-
-            if ($value !== false) {
-                $fieldName = $dimension->getColumnName();
-                $visitor->setVisitorColumn($fieldName, $value);
-
-                if (is_float($value)) {
-                    $value = Common::forceDotAsSeparatorForDecimalPoint($value);
-                }
-
-                if ($valuesToUpdate !== null) {
-                    $valuesToUpdate[$fieldName] = $value;
-                } else {
-                    $this->visitProperties->setProperty($fieldName, $value);
-                }
-            }
-        }
-
-        return $valuesToUpdate;
-    }
-
-    /**
-     * @param $valuesToUpdate
-     * @throws VisitorNotFoundInDb
-     */
-    protected function updateExistingVisit($valuesToUpdate)
-    {
-        $idSite = $this->request->getIdSite();
-        $idVisit = (int)$this->visitProperties->getProperty('idvisit');
-
-        $wasInserted = $this->getModel()->updateVisit($idSite, $idVisit, $valuesToUpdate);
-
-        // Debug output
-        if (isset($valuesToUpdate['idvisitor'])) {
-            $valuesToUpdate['idvisitor'] = bin2hex($valuesToUpdate['idvisitor']);
-        }
-
-        if ($wasInserted) {
-            Common::printDebug('Updated existing visit: ' . var_export($valuesToUpdate, true));
-        } else {
-            throw new VisitorNotFoundInDb(
-                "The visitor with idvisitor=" . bin2hex($this->visitProperties->getProperty('idvisitor'))
-                . " and idvisit=" . @$this->visitProperties->getProperty('idvisit')
-                . " wasn't found in the DB, we fallback to a new visitor");
-        }
-    }
-
-    private function getModel()
-    {
-        return new Model();
     }
 
     /**
@@ -497,17 +307,9 @@ class Visit implements VisitInterface
         $this->visitProperties->setProperty('visit_last_action_time', $this->request->getCurrentTimestamp());
     }
 
-    private function setNewVisitorInformation()
+    private function getModel()
     {
-        $idVisitor = $this->getVisitorIdcookie();
-        $visitorIp = $this->getVisitorIp();
-        $configId = $this->request->getMetadata('CoreHome', 'visitorId');
-
-        $this->visitProperties->clearProperties();
-
-        $this->visitProperties->setProperty('idvisitor', $idVisitor);
-        $this->visitProperties->setProperty('config_id', $configId);
-        $this->visitProperties->setProperty('location_ip', $visitorIp);
+        return new Model();
     }
 
     /**
@@ -541,6 +343,78 @@ class Visit implements VisitInterface
         return substr(Common::generateUniqId(), 0, Tracker::LENGTH_HEX_ID_STRING);
     }
 
+    /**
+     * Returns the visitor's IP address
+     *
+     * @return string
+     */
+    protected function getVisitorIp()
+    {
+        return $this->visitProperties->getProperty('location_ip');
+    }
+
+    /**
+     * Gets the UserSettings object
+     *
+     * @return Settings
+     */
+    protected function getSettingsObject()
+    {
+        return $this->userSettings;
+    }
+
+    // is the referrer host any of the registered URLs for this website?
+    public static function isHostKnownAliasHost($urlHost, $idSite)
+    {
+        $websiteData = Cache::getCacheWebsiteAttributes($idSite);
+
+        if (isset($websiteData['hosts'])) {
+            $canonicalHosts = array();
+            foreach ($websiteData['hosts'] as $host) {
+                $canonicalHosts[] = self::toCanonicalHost($host);
+            }
+
+            $canonicalHost = self::toCanonicalHost($urlHost);
+            if (in_array($canonicalHost, $canonicalHosts)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function toCanonicalHost($host)
+    {
+        $hostLower = Common::mb_strtolower($host);
+        return str_replace('www.', '', $hostLower);
+    }
+
+    /**
+     * @param $valuesToUpdate
+     * @throws VisitorNotFoundInDb
+     */
+    protected function updateExistingVisit($valuesToUpdate)
+    {
+        $idSite = $this->request->getIdSite();
+        $idVisit = (int)$this->visitProperties->getProperty('idvisit');
+
+        $wasInserted = $this->getModel()->updateVisit($idSite, $idVisit, $valuesToUpdate);
+
+        // Debug output
+        if (isset($valuesToUpdate['idvisitor'])) {
+            $valuesToUpdate['idvisitor'] = bin2hex($valuesToUpdate['idvisitor']);
+        }
+
+        if ($wasInserted) {
+            Common::printDebug('Updated existing visit: ' . var_export($valuesToUpdate, true));
+        } else {
+            throw new VisitorNotFoundInDb(
+                "The visitor with idvisitor=" . bin2hex($this->visitProperties->getProperty('idvisitor'))
+                . " and idvisit=" . @$this->visitProperties->getProperty('idvisit')
+                . " wasn't found in the DB, we fallback to a new visitor");
+        }
+    }
+
     private function printVisitorInformation()
     {
         $debugVisitInfo = $this->visitProperties->getProperties();
@@ -548,6 +422,141 @@ class Visit implements VisitInterface
         $debugVisitInfo['config_id'] = bin2hex($debugVisitInfo['config_id']);
         $debugVisitInfo['location_ip'] = IPUtils::binaryToStringIP($debugVisitInfo['location_ip']);
         Common::printDebug($debugVisitInfo);
+    }
+
+    private function setNewVisitorInformation()
+    {
+        $idVisitor = $this->getVisitorIdcookie();
+        $visitorIp = $this->getVisitorIp();
+        $configId = $this->request->getMetadata('CoreHome', 'visitorId');
+
+        $this->visitProperties->clearProperties();
+
+        $this->visitProperties->setProperty('idvisitor', $idVisitor);
+        $this->visitProperties->setProperty('config_id', $configId);
+        $this->visitProperties->setProperty('location_ip', $visitorIp);
+    }
+
+    /**
+     * Gather fields=>values that needs to be updated for the existing visit in log_visit
+     *
+     * @param $visitIsConverted
+     * @return array
+     */
+    private function getExistingVisitFieldsToUpdate($visitIsConverted)
+    {
+        $valuesToUpdate = array();
+
+        $valuesToUpdate = $this->setIdVisitorForExistingVisit($valuesToUpdate);
+
+        $dimensions = $this->getAllVisitDimensions();
+        $valuesToUpdate = $this->triggerHookOnDimensions($dimensions, 'onExistingVisit', $valuesToUpdate);
+
+        if ($visitIsConverted) {
+            $valuesToUpdate = $this->triggerHookOnDimensions($dimensions, 'onConvertedVisit', $valuesToUpdate);
+        }
+
+        // Custom Variables overwrite previous values on each page view
+        return $valuesToUpdate;
+    }
+
+    /**
+     * @param VisitDimension[] $dimensions
+     * @param string $hook
+     * @param Visitor $visitor
+     * @param Action|null $action
+     * @param array|null $valuesToUpdate If null, $this->visitorInfo will be updated
+     *
+     * @return array|null The updated $valuesToUpdate or null if no $valuesToUpdate given
+     */
+    private function triggerHookOnDimensions($dimensions, $hook, $valuesToUpdate = null)
+    {
+        $visitor = $this->makeVisitorFacade();
+
+        /** @var Action $action */
+        $action = $this->request->getMetadata('Actions', 'action');
+
+        foreach ($dimensions as $dimension) {
+            $value = $dimension->$hook($this->request, $visitor, $action);
+
+            if ($value !== false) {
+                $fieldName = $dimension->getColumnName();
+                $visitor->setVisitorColumn($fieldName, $value);
+
+                if (is_float($value)) {
+                    $value = Common::forceDotAsSeparatorForDecimalPoint($value);
+                }
+
+                if ($valuesToUpdate !== null) {
+                    $valuesToUpdate[$fieldName] = $value;
+                } else {
+                    $this->visitProperties->setProperty($fieldName, $value);
+                }
+            }
+        }
+
+        return $valuesToUpdate;
+    }
+
+    private function triggerPredicateHookOnDimensions($dimensions, $hook)
+    {
+        $visitor = $this->makeVisitorFacade();
+
+        /** @var Action $action */
+        $action = $this->request->getMetadata('Actions', 'action');
+
+        foreach ($dimensions as $dimension) {
+            if ($dimension->$hook($this->request, $visitor, $action)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected function getAllVisitDimensions()
+    {
+        if (is_null(self::$dimensions)) {
+            self::$dimensions = VisitDimension::getAllDimensions();
+
+            $dimensionNames = array();
+            foreach (self::$dimensions as $dimension) {
+                $dimensionNames[] = $dimension->getColumnName();
+            }
+
+            Common::printDebug("Following dimensions have been collected from plugins: " . implode(", ",
+                    $dimensionNames));
+        }
+
+        return self::$dimensions;
+    }
+
+    private function getVisitStandardLength()
+    {
+        return Config::getInstance()->Tracker['visit_standard_length'];
+    }
+
+    /**
+     * @param $visitor
+     * @param $valuesToUpdate
+     * @return mixed
+     */
+    private function setIdVisitorForExistingVisit($valuesToUpdate)
+    {
+        // Might update the idvisitor when it was forced or overwritten for this visit
+        if (strlen($this->visitProperties->getProperty('idvisitor')) == Tracker::LENGTH_BINARY_ID) {
+            $binIdVisitor = $this->visitProperties->getProperty('idvisitor');
+            $valuesToUpdate['idvisitor'] = $binIdVisitor;
+        }
+
+        // User ID takes precedence and overwrites idvisitor value
+        $userId = $this->request->getForcedUserId();
+        if ($userId) {
+            $userIdHash = $this->request->getUserIdHashed($userId);
+            $binIdVisitor = Common::hex2bin($userIdHash);
+            $this->visitProperties->setProperty('idvisitor', $binIdVisitor);
+            $valuesToUpdate['idvisitor'] = $binIdVisitor;
+        }
+        return $valuesToUpdate;
     }
 
     protected function insertNewVisit($visit)
@@ -586,13 +595,8 @@ class Visit implements VisitInterface
         }
     }
 
-    /**
-     * Gets the UserSettings object
-     *
-     * @return Settings
-     */
-    protected function getSettingsObject()
+    private function makeVisitorFacade()
     {
-        return $this->userSettings;
+        return Visitor::makeFromVisitProperties($this->visitProperties, $this->request);
     }
 }

@@ -31,16 +31,9 @@ class SegmentQueryDecorator extends LogQueryBuilder
         $this->storedSegmentService = $storedSegmentService;
     }
 
-    public function getSelectQueryString(
-        SegmentExpression $segmentExpression,
-        $select,
-        $from,
-        $where,
-        $bind,
-        $groupBy,
-        $orderBy,
-        $limit
-    ) {
+    public function getSelectQueryString(SegmentExpression $segmentExpression, $select, $from, $where, $bind, $groupBy,
+                                         $orderBy, $limit)
+    {
         $result = parent::getSelectQueryString($segmentExpression, $select, $from, $where, $bind, $groupBy, $orderBy,
             $limit);
 

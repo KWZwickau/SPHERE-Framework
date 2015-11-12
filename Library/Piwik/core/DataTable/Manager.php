@@ -20,12 +20,13 @@ use Piwik\DataTable;
  */
 class Manager extends \ArrayObject
 {
-    private static $instance;
     /**
      * Id of the next inserted table id in the Manager
      * @var int
      */
     protected $nextTableId = 0;
+
+    private static $instance;
 
     public static function getInstance()
     {
@@ -68,6 +69,16 @@ class Manager extends \ArrayObject
     }
 
     /**
+     * Returns the latest used table ID
+     *
+     * @return int
+     */
+    public function getMostRecentTableId()
+    {
+        return $this->nextTableId;
+    }
+
+    /**
      * Delete all the registered DataTables from the manager
      */
     public function deleteAll($deleteWhenIdTableGreaterThan = 0)
@@ -99,16 +110,6 @@ class Manager extends \ArrayObject
     }
 
     /**
-     * Remove the table from the manager (table has already been unset)
-     *
-     * @param int $id
-     */
-    public function setTableDeleted($id)
-    {
-        $this[$id] = null;
-    }
-
-    /**
      * Deletes all tables starting from the $firstTableId to the most recent table id except the ones that are
      * supposed to be ignored.
      *
@@ -127,13 +128,13 @@ class Manager extends \ArrayObject
     }
 
     /**
-     * Returns the latest used table ID
+     * Remove the table from the manager (table has already been unset)
      *
-     * @return int
+     * @param int $id
      */
-    public function getMostRecentTableId()
+    public function setTableDeleted($id)
     {
-        return $this->nextTableId;
+        $this[$id] = null;
     }
 
     /**

@@ -17,6 +17,13 @@ class GetLastVisitsDetails extends Base
 {
     protected $defaultSortColumn = '';
 
+    protected function init()
+    {
+        parent::init();
+        $this->widgetTitle = 'Live_VisitorLog';
+        $this->order = 2;
+    }
+
     public function getDefaultTypeViewDataTable()
     {
         return VisitorLog::ID;
@@ -38,13 +45,6 @@ class GetLastVisitsDetails extends Base
     public function configureWidget(WidgetsList $widget)
     {
         $widget->add($this->category, $this->widgetTitle, $this->module, 'getVisitorLog', array('small' => 1));
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->widgetTitle = 'Live_VisitorLog';
-        $this->order = 2;
     }
 
 }

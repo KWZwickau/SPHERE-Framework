@@ -97,6 +97,40 @@ class Twig_Node_Module extends Twig_Node
         $this->compileClassFooter($compiler);
     }
 
+    protected function compileGetParent(Twig_Compiler $compiler)
+    {
+        if (null === $parent = $this->getNode('parent')) {
+            return;
+        }
+
+        $compiler
+            ->write("protected function doGetParent(array \$context)\n", "{\n")
+            ->indent()
+            ->addDebugInfo($parent)
+            ->write('return ')
+        ;
+
+        if ($parent instanceof Twig_Node_Expression_Constant) {
+            $compiler->subcompile($parent);
+        } else {
+            $compiler
+                ->raw('$this->loadTemplate(')
+                ->subcompile($parent)
+                ->raw(', ')
+                ->repr($compiler->getFilename())
+                ->raw(', ')
+                ->repr($this->getNode('parent')->getLine())
+                ->raw(')')
+            ;
+        }
+
+        $compiler
+            ->raw(";\n")
+            ->outdent()
+            ->write("}\n\n")
+        ;
+    }
+
     protected function compileClassHeader(Twig_Compiler $compiler)
     {
         $compiler
@@ -239,57 +273,6 @@ class Twig_Node_Module extends Twig_Node
         ;
     }
 
-    protected function compileLoadTemplate(Twig_Compiler $compiler, $node, $var)
-    {
-        if ($node instanceof Twig_Node_Expression_Constant) {
-            $compiler
-                ->write(sprintf('%s = $this->loadTemplate(', $var))
-                ->subcompile($node)
-                ->raw(', ')
-                ->repr($compiler->getFilename())
-                ->raw(', ')
-                ->repr($node->getLine())
-                ->raw(");\n")
-            ;
-        } else {
-            throw new LogicException('Trait templates can only be constant nodes');
-        }
-    }
-
-    protected function compileGetParent(Twig_Compiler $compiler)
-    {
-        if (null === $parent = $this->getNode('parent')) {
-            return;
-        }
-
-        $compiler
-            ->write("protected function doGetParent(array \$context)\n", "{\n")
-            ->indent()
-            ->addDebugInfo($parent)
-            ->write('return ')
-        ;
-
-        if ($parent instanceof Twig_Node_Expression_Constant) {
-            $compiler->subcompile($parent);
-        } else {
-            $compiler
-                ->raw('$this->loadTemplate(')
-                ->subcompile($parent)
-                ->raw(', ')
-                ->repr($compiler->getFilename())
-                ->raw(', ')
-                ->repr($this->getNode('parent')->getLine())
-                ->raw(')')
-            ;
-        }
-
-        $compiler
-            ->raw(";\n")
-            ->outdent()
-            ->write("}\n\n")
-        ;
-    }
-
     protected function compileDisplay(Twig_Compiler $compiler)
     {
         $compiler
@@ -313,6 +296,15 @@ class Twig_Node_Module extends Twig_Node
             ->subcompile($this->getNode('display_end'))
             ->outdent()
             ->write("}\n\n")
+        ;
+    }
+
+    protected function compileClassFooter(Twig_Compiler $compiler)
+    {
+        $compiler
+            ->subcompile($this->getNode('class_end'))
+            ->outdent()
+            ->write("}\n")
         ;
     }
 
@@ -397,12 +389,20 @@ class Twig_Node_Module extends Twig_Node
         ;
     }
 
-    protected function compileClassFooter(Twig_Compiler $compiler)
+    protected function compileLoadTemplate(Twig_Compiler $compiler, $node, $var)
     {
-        $compiler
-            ->subcompile($this->getNode('class_end'))
-            ->outdent()
-            ->write("}\n")
-        ;
+        if ($node instanceof Twig_Node_Expression_Constant) {
+            $compiler
+                ->write(sprintf('%s = $this->loadTemplate(', $var))
+                ->subcompile($node)
+                ->raw(', ')
+                ->repr($compiler->getFilename())
+                ->raw(', ')
+                ->repr($node->getLine())
+                ->raw(");\n")
+            ;
+        } else {
+            throw new LogicException('Trait templates can only be constant nodes');
+        }
     }
 }

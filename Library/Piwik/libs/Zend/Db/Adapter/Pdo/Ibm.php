@@ -84,22 +84,6 @@ class Zend_Db_Adapter_Pdo_Ibm extends Zend_Db_Adapter_Pdo_Abstract
                         );
 
     /**
-     * Prepares an SQL statement.
-     *
-     * @param string $sql The SQL statement with placeholders.
-     * @param array $bind An array of data to bind to the placeholders.
-     * @return PDOStatement
-     */
-    public function prepare($sql)
-    {
-        $this->_connect();
-        $stmtClass = $this->_defaultStmtClass;
-        $stmt = new $stmtClass($this, $sql);
-        $stmt->setFetchMode($this->_fetchMode);
-        return $stmt;
-    }
-
-    /**
      * Creates a PDO object and connects to the database.
      *
      * The IBM data server is set.
@@ -155,6 +139,64 @@ class Zend_Db_Adapter_Pdo_Ibm extends Zend_Db_Adapter_Pdo_Abstract
                 throw new Zend_Db_Adapter_Exception($e->getMessage(), $e->getCode(), $e);
             }
         }
+    }
+
+    /**
+     * Creates a PDO DSN for the adapter from $this->_config settings.
+     *
+     * @return string
+     */
+    protected function _dsn()
+    {
+        $this->_checkRequiredOptions($this->_config);
+
+        // check if using full connection string
+        if (array_key_exists('host', $this->_config)) {
+            $dsn = ';DATABASE=' . $this->_config['dbname']
+            . ';HOSTNAME=' . $this->_config['host']
+            . ';PORT='     . $this->_config['port']
+            // PDO_IBM supports only DB2 TCPIP protocol
+            . ';PROTOCOL=' . 'TCPIP;';
+        } else {
+            // catalogued connection
+            $dsn = $this->_config['dbname'];
+        }
+        return $this->_pdoType . ': ' . $dsn;
+    }
+
+    /**
+     * Checks required options
+     *
+     * @param  array $config
+     * @throws Zend_Db_Adapter_Exception
+     * @return void
+     */
+    protected function _checkRequiredOptions(array $config)
+    {
+        parent::_checkRequiredOptions($config);
+
+        if (array_key_exists('host', $this->_config) &&
+        !array_key_exists('port', $config)) {
+            /** @see Zend_Db_Adapter_Exception */
+            // require_once 'Zend/Db/Adapter/Exception.php';
+            throw new Zend_Db_Adapter_Exception("Configuration must have a key for 'port' when 'host' is specified");
+        }
+    }
+
+    /**
+     * Prepares an SQL statement.
+     *
+     * @param string $sql The SQL statement with placeholders.
+     * @param array $bind An array of data to bind to the placeholders.
+     * @return PDOStatement
+     */
+    public function prepare($sql)
+    {
+        $this->_connect();
+        $stmtClass = $this->_defaultStmtClass;
+        $stmt = new $stmtClass($this, $sql);
+        $stmt->setFetchMode($this->_fetchMode);
+        return $stmt;
     }
 
     /**
@@ -313,48 +355,6 @@ class Zend_Db_Adapter_Pdo_Ibm extends Zend_Db_Adapter_Pdo_Abstract
             return null;
         } catch (PDOException $e) {
             return null;
-        }
-    }
-
-    /**
-     * Creates a PDO DSN for the adapter from $this->_config settings.
-     *
-     * @return string
-     */
-    protected function _dsn()
-    {
-        $this->_checkRequiredOptions($this->_config);
-
-        // check if using full connection string
-        if (array_key_exists('host', $this->_config)) {
-            $dsn = ';DATABASE=' . $this->_config['dbname']
-            . ';HOSTNAME=' . $this->_config['host']
-            . ';PORT='     . $this->_config['port']
-            // PDO_IBM supports only DB2 TCPIP protocol
-            . ';PROTOCOL=' . 'TCPIP;';
-        } else {
-            // catalogued connection
-            $dsn = $this->_config['dbname'];
-        }
-        return $this->_pdoType . ': ' . $dsn;
-    }
-
-    /**
-     * Checks required options
-     *
-     * @param  array $config
-     * @throws Zend_Db_Adapter_Exception
-     * @return void
-     */
-    protected function _checkRequiredOptions(array $config)
-    {
-        parent::_checkRequiredOptions($config);
-
-        if (array_key_exists('host', $this->_config) &&
-        !array_key_exists('port', $config)) {
-            /** @see Zend_Db_Adapter_Exception */
-            // require_once 'Zend/Db/Adapter/Exception.php';
-            throw new Zend_Db_Adapter_Exception("Configuration must have a key for 'port' when 'host' is specified");
         }
     }
 }

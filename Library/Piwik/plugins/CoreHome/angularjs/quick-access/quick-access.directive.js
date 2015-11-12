@@ -38,7 +38,7 @@
 
                 var translate = $filter('translate');
                 var searchAreasTitle = '';
-                var searchAreas = [translate('CoreHome_MenuEntries')];
+                var searchAreas = [translate('CoreHome_MenuEntries')]
 
                 if (hasSegmentSelector) {
                     searchAreas.push(translate('CoreHome_Segments'))

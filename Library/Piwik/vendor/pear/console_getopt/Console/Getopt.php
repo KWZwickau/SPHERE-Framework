@@ -75,6 +75,23 @@ class Console_Getopt
     }
 
     /**
+     * This function expects $args to start with the script name (POSIX-style).
+     * Preserved for backwards compatibility.
+     *
+     * @param array  $args          an array of command-line arguments
+     * @param string $short_options specifies the list of allowed short options
+     * @param array  $long_options  specifies the list of allowed long options
+     *
+     * @see getopt2()
+     * @return array two-element array containing the list of parsed options and
+     * the non-option arguments
+     */
+    public static function getopt($args, $short_options, $long_options = null, $skip_unknown = false)
+    {
+        return Console_Getopt::doGetopt(1, $args, $short_options, $long_options, $skip_unknown);
+    }
+
+    /**
      * The actual implementation of the argument parsing code.
      *
      * @param int    $version       Version to use
@@ -156,6 +173,91 @@ class Console_Getopt
     }
 
     /**
+     * Parse short option
+     *
+     * @param string     $arg           Argument
+     * @param string[]   $short_options Available short options
+     * @param string[][] &$opts
+     * @param string[]   &$args
+     * @param boolean    $skip_unknown suppresses Console_Getopt: unrecognized option
+     *
+     * @return void
+     */
+    protected static function _parseShortOption($arg, $short_options, &$opts, &$args, $skip_unknown)
+    {
+        for ($i = 0; $i < strlen($arg); $i++) {
+            $opt     = $arg{$i};
+            $opt_arg = null;
+
+            /* Try to find the short option in the specifier string. */
+            if (($spec = strstr($short_options, $opt)) === false || $arg{$i} == ':') {
+                if ($skip_unknown === true) {
+                    break;
+                }
+
+                $msg = "Console_Getopt: unrecognized option -- $opt";
+                return PEAR::raiseError($msg);
+            }
+
+            if (strlen($spec) > 1 && $spec{1} == ':') {
+                if (strlen($spec) > 2 && $spec{2} == ':') {
+                    if ($i + 1 < strlen($arg)) {
+                        /* Option takes an optional argument. Use the remainder of
+                           the arg string if there is anything left. */
+                        $opts[] = array($opt, substr($arg, $i + 1));
+                        break;
+                    }
+                } else {
+                    /* Option requires an argument. Use the remainder of the arg
+                       string if there is anything left. */
+                    if ($i + 1 < strlen($arg)) {
+                        $opts[] = array($opt,  substr($arg, $i + 1));
+                        break;
+                    } else if (list(, $opt_arg) = each($args)) {
+                        /* Else use the next argument. */;
+                        if (Console_Getopt::_isShortOpt($opt_arg)
+                            || Console_Getopt::_isLongOpt($opt_arg)) {
+                            $msg = "option requires an argument --$opt";
+                            return PEAR::raiseError("Console_Getopt: " . $msg);
+                        }
+                    } else {
+                        $msg = "option requires an argument --$opt";
+                        return PEAR::raiseError("Console_Getopt: " . $msg);
+                    }
+                }
+            }
+
+            $opts[] = array($opt, $opt_arg);
+        }
+    }
+
+    /**
+     * Checks if an argument is a short option
+     *
+     * @param string $arg Argument to check
+     *
+     * @return bool
+     */
+    protected static function _isShortOpt($arg)
+    {
+        return strlen($arg) == 2 && $arg[0] == '-'
+               && preg_match('/[a-zA-Z]/', $arg[1]);
+    }
+
+    /**
+     * Checks if an argument is a long option
+     *
+     * @param string $arg Argument to check
+     *
+     * @return bool
+     */
+    protected static function _isLongOpt($arg)
+    {
+        return strlen($arg) > 2 && $arg[0] == '-' && $arg[1] == '-' &&
+               preg_match('/[a-zA-Z]+$/', substr($arg, 2));
+    }
+
+    /**
      * Parse long option
      *
      * @param string     $arg          Argument
@@ -217,10 +319,10 @@ class Console_Getopt
                         return PEAR::raiseError($msg);
                     }
                 }
-            } else {if ($opt_arg) {
+            } else if ($opt_arg) {
                 $msg = "Console_Getopt: option --$opt doesn't allow an argument";
                 return PEAR::raiseError($msg);
-            }}
+            }
 
             $opts[] = array('--' . $opt, $opt_arg);
             return;
@@ -231,108 +333,6 @@ class Console_Getopt
         }
 
         return PEAR::raiseError("Console_Getopt: unrecognized option --$opt");
-    }
-
-    /**
-     * Checks if an argument is a short option
-     *
-     * @param string $arg Argument to check
-     *
-     * @return bool
-     */
-    protected static function _isShortOpt($arg)
-    {
-        return strlen($arg) == 2 && $arg[0] == '-'
-               && preg_match('/[a-zA-Z]/', $arg[1]);
-    }
-
-    /**
-     * Checks if an argument is a long option
-     *
-     * @param string $arg Argument to check
-     *
-     * @return bool
-     */
-    protected static function _isLongOpt($arg)
-    {
-        return strlen($arg) > 2 && $arg[0] == '-' && $arg[1] == '-' &&
-               preg_match('/[a-zA-Z]+$/', substr($arg, 2));
-    }
-
-    /**
-     * Parse short option
-     *
-     * @param string     $arg           Argument
-     * @param string[]   $short_options Available short options
-     * @param string[][] &$opts
-     * @param string[]   &$args
-     * @param boolean    $skip_unknown suppresses Console_Getopt: unrecognized option
-     *
-     * @return void
-     */
-    protected static function _parseShortOption($arg, $short_options, &$opts, &$args, $skip_unknown)
-    {
-        for ($i = 0; $i < strlen($arg); $i++) {
-            $opt     = $arg{$i};
-            $opt_arg = null;
-
-            /* Try to find the short option in the specifier string. */
-            if (($spec = strstr($short_options, $opt)) === false || $arg{$i} == ':') {
-                if ($skip_unknown === true) {
-                    break;
-                }
-
-                $msg = "Console_Getopt: unrecognized option -- $opt";
-                return PEAR::raiseError($msg);
-            }
-
-            if (strlen($spec) > 1 && $spec{1} == ':') {
-                if (strlen($spec) > 2 && $spec{2} == ':') {
-                    if ($i + 1 < strlen($arg)) {
-                        /* Option takes an optional argument. Use the remainder of
-                           the arg string if there is anything left. */
-                        $opts[] = array($opt, substr($arg, $i + 1));
-                        break;
-                    }
-                } else {
-                    /* Option requires an argument. Use the remainder of the arg
-                       string if there is anything left. */
-                    if ($i + 1 < strlen($arg)) {
-                        $opts[] = array($opt,  substr($arg, $i + 1));
-                        break;
-                    } else {if (list(, $opt_arg) = each($args)) {
-                        /* Else use the next argument. */;
-                        if (Console_Getopt::_isShortOpt($opt_arg)
-                            || Console_Getopt::_isLongOpt($opt_arg)) {
-                            $msg = "option requires an argument --$opt";
-                            return PEAR::raiseError("Console_Getopt: " . $msg);
-                        }
-                    } else {
-                        $msg = "option requires an argument --$opt";
-                        return PEAR::raiseError("Console_Getopt: " . $msg);
-                    }}
-                }
-            }
-
-            $opts[] = array($opt, $opt_arg);
-        }
-    }
-
-    /**
-     * This function expects $args to start with the script name (POSIX-style).
-     * Preserved for backwards compatibility.
-     *
-     * @param array  $args          an array of command-line arguments
-     * @param string $short_options specifies the list of allowed short options
-     * @param array  $long_options  specifies the list of allowed long options
-     *
-     * @see getopt2()
-     * @return array two-element array containing the list of parsed options and
-     * the non-option arguments
-     */
-    public static function getopt($args, $short_options, $long_options = null, $skip_unknown = false)
-    {
-        return Console_Getopt::doGetopt(1, $args, $short_options, $long_options, $skip_unknown);
     }
 
     /**

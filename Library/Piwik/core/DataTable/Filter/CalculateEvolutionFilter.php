@@ -64,36 +64,6 @@ class CalculateEvolutionFilter extends ColumnCallbackAddColumnPercentage
     }
 
     /**
-     * Calculates the evolution percentage for two arbitrary values.
-     *
-     * @param float|int $currentValue The current metric value.
-     * @param float|int $pastValue The value of the metric in the past. We measure the % change
-     *                                      from this value to $currentValue.
-     * @param float|int $quotientPrecision The quotient precision to round to.
-     * @param bool $appendPercentSign Whether to append a '%' sign to the end of the number or not.
-     *
-     * @return string The evolution percent, eg `'15%'`.
-     */
-    public static function calculate($currentValue, $pastValue, $quotientPrecision = 0, $appendPercentSign = true)
-    {
-        $number = self::getPercentageValue($currentValue - $pastValue, $pastValue, $quotientPrecision);
-        if ($appendPercentSign) {
-            return NumberFormatter::getInstance()->formatPercent($number, $quotientPrecision);
-        }
-
-        return NumberFormatter::getInstance()->format($number, $quotientPrecision);
-    }
-
-    public static function prependPlusSignToNumber($number)
-    {
-        if ($number > 0) {
-            $number = '+' . $number;
-        }
-
-        return $number;
-    }
-
-    /**
      * Returns the difference between the column in the specific row and its
      * sister column in the past DataTable.
      *
@@ -121,17 +91,6 @@ class CalculateEvolutionFilter extends ColumnCallbackAddColumnPercentage
         }
 
         return $currentValue - $pastValue;
-    }
-
-    /**
-     * Utility function. Returns the current row in the past DataTable.
-     *
-     * @param Row $row The row in the 'current' DataTable.
-     * @return bool|Row
-     */
-    protected function getPastRowFromCurrent($row)
-    {
-        return $this->pastDataTable->getRowFromLabel($row->getColumn('label'));
     }
 
     /**
@@ -174,6 +133,52 @@ class CalculateEvolutionFilter extends ColumnCallbackAddColumnPercentage
     }
 
     /**
+     * Utility function. Returns the current row in the past DataTable.
+     *
+     * @param Row $row The row in the 'current' DataTable.
+     * @return bool|Row
+     */
+    protected function getPastRowFromCurrent($row)
+    {
+        return $this->pastDataTable->getRowFromLabel($row->getColumn('label'));
+    }
+
+    /**
+     * Calculates the evolution percentage for two arbitrary values.
+     *
+     * @param float|int $currentValue The current metric value.
+     * @param float|int $pastValue The value of the metric in the past. We measure the % change
+     *                                      from this value to $currentValue.
+     * @param float|int $quotientPrecision The quotient precision to round to.
+     * @param bool $appendPercentSign Whether to append a '%' sign to the end of the number or not.
+     *
+     * @return string The evolution percent, eg `'15%'`.
+     */
+    public static function calculate($currentValue, $pastValue, $quotientPrecision = 0, $appendPercentSign = true)
+    {
+        $number = self::getPercentageValue($currentValue - $pastValue, $pastValue, $quotientPrecision);
+        if ($appendPercentSign) {
+            return NumberFormatter::getInstance()->formatPercent($number, $quotientPrecision);
+        }
+
+        return NumberFormatter::getInstance()->format($number, $quotientPrecision);
+    }
+
+    public static function appendPercentSign($number)
+    {
+        return $number . '%';
+    }
+
+    public static function prependPlusSignToNumber($number)
+    {
+        if ($number > 0) {
+            $number = '+' . $number;
+        }
+
+        return $number;
+    }
+
+    /**
      * Returns an evolution percent based on a value & divisor.
      */
     private static function getPercentageValue($value, $divisor, $quotientPrecision)
@@ -188,10 +193,5 @@ class CalculateEvolutionFilter extends ColumnCallbackAddColumnPercentage
 
         $evolution = round($evolution, $quotientPrecision);
         return $evolution;
-    }
-
-    public static function appendPercentSign($number)
-    {
-        return $number . '%';
     }
 }

@@ -46,7 +46,7 @@ class ArgvInput extends Input
     /**
      * Constructor.
      *
-     * @param array $argv An array of parameters from the CLI (in the argv format)
+     * @param array           $argv       An array of parameters from the CLI (in the argv format)
      * @param InputDefinition $definition A InputDefinition instance
      *
      * @api
@@ -63,103 +63,6 @@ class ArgvInput extends Input
         $this->tokens = $argv;
 
         parent::__construct($definition);
-    }
-
-    /**
-     * Returns the first argument from the raw parameters (not parsed).
-     *
-     * @return string The value of the first argument or null otherwise
-     */
-    public function getFirstArgument()
-    {
-        foreach ($this->tokens as $token) {
-            if ($token && '-' === $token[0]) {
-                continue;
-            }
-
-            return $token;
-        }
-    }
-
-    /**
-     * Returns true if the raw parameters (not parsed) contain a value.
-     *
-     * This method is to be used to introspect the input parameters
-     * before they have been validated. It must be used carefully.
-     *
-     * @param string|array $values The value(s) to look for in the raw parameters (can be an array)
-     *
-     * @return bool true if the value is contained in the raw parameters
-     */
-    public function hasParameterOption($values)
-    {
-        $values = (array)$values;
-
-        foreach ($this->tokens as $token) {
-            foreach ($values as $value) {
-                if ($token === $value || 0 === strpos($token, $value . '=')) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Returns the value of a raw option (not parsed).
-     *
-     * This method is to be used to introspect the input parameters
-     * before they have been validated. It must be used carefully.
-     *
-     * @param string|array $values The value(s) to look for in the raw parameters (can be an array)
-     * @param mixed $default The default value to return if no result is found
-     *
-     * @return mixed The option value
-     */
-    public function getParameterOption($values, $default = false)
-    {
-        $values = (array)$values;
-        $tokens = $this->tokens;
-
-        while (0 < count($tokens)) {
-            $token = array_shift($tokens);
-
-            foreach ($values as $value) {
-                if ($token === $value || 0 === strpos($token, $value . '=')) {
-                    if (false !== $pos = strpos($token, '=')) {
-                        return substr($token, $pos + 1);
-                    }
-
-                    return array_shift($tokens);
-                }
-            }
-        }
-
-        return $default;
-    }
-
-    /**
-     * Returns a stringified representation of the args passed to the command.
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        $self = $this;
-        $tokens = array_map(function ($token) use ($self) {
-            if (preg_match('{^(-[^=]+=)(.+)}', $token, $match)) {
-                return $match[1] . $self->escapeToken($match[2]);
-            }
-
-            if ($token && $token[0] !== '-') {
-                return $self->escapeToken($token);
-            }
-
-            return $token;
-        }, $this->tokens);
-
-        return implode(' ', $tokens);
     }
 
     protected function setTokens(array $tokens)
@@ -190,29 +93,49 @@ class ArgvInput extends Input
     }
 
     /**
-     * Parses an argument.
+     * Parses a short option.
      *
-     * @param string $token The current token
-     *
-     * @throws \RuntimeException When too many arguments are given
+     * @param string $token The current token.
      */
-    private function parseArgument($token)
+    private function parseShortOption($token)
     {
-        $c = count($this->arguments);
+        $name = substr($token, 1);
 
-        // if input is expecting another argument, add it
-        if ($this->definition->hasArgument($c)) {
-            $arg = $this->definition->getArgument($c);
-            $this->arguments[$arg->getName()] = $arg->isArray() ? array($token) : $token;
-
-            // if last argument isArray(), append token to last argument
-        } elseif ($this->definition->hasArgument($c - 1) && $this->definition->getArgument($c - 1)->isArray()) {
-            $arg = $this->definition->getArgument($c - 1);
-            $this->arguments[$arg->getName()][] = $token;
-
-            // unexpected argument
+        if (strlen($name) > 1) {
+            if ($this->definition->hasShortcut($name[0]) && $this->definition->getOptionForShortcut($name[0])->acceptValue()) {
+                // an option with a value (with no space)
+                $this->addShortOption($name[0], substr($name, 1));
+            } else {
+                $this->parseShortOptionSet($name);
+            }
         } else {
-            throw new \RuntimeException('Too many arguments.');
+            $this->addShortOption($name, null);
+        }
+    }
+
+    /**
+     * Parses a short option set.
+     *
+     * @param string $name The current token
+     *
+     * @throws \RuntimeException When option given doesn't exist
+     */
+    private function parseShortOptionSet($name)
+    {
+        $len = strlen($name);
+        for ($i = 0; $i < $len; ++$i) {
+            if (!$this->definition->hasShortcut($name[$i])) {
+                throw new \RuntimeException(sprintf('The "-%s" option does not exist.', $name[$i]));
+            }
+
+            $option = $this->definition->getOptionForShortcut($name[$i]);
+            if ($option->acceptValue()) {
+                $this->addLongOption($option->getName(), $i === $len - 1 ? null : substr($name, $i + 1));
+
+                break;
+            } else {
+                $this->addLongOption($option->getName(), null);
+            }
         }
     }
 
@@ -233,10 +156,54 @@ class ArgvInput extends Input
     }
 
     /**
+     * Parses an argument.
+     *
+     * @param string $token The current token
+     *
+     * @throws \RuntimeException When too many arguments are given
+     */
+    private function parseArgument($token)
+    {
+        $c = count($this->arguments);
+
+        // if input is expecting another argument, add it
+        if ($this->definition->hasArgument($c)) {
+            $arg = $this->definition->getArgument($c);
+            $this->arguments[$arg->getName()] = $arg->isArray() ? array($token) : $token;
+
+        // if last argument isArray(), append token to last argument
+        } elseif ($this->definition->hasArgument($c - 1) && $this->definition->getArgument($c - 1)->isArray()) {
+            $arg = $this->definition->getArgument($c - 1);
+            $this->arguments[$arg->getName()][] = $token;
+
+        // unexpected argument
+        } else {
+            throw new \RuntimeException('Too many arguments.');
+        }
+    }
+
+    /**
+     * Adds a short option value.
+     *
+     * @param string $shortcut The short option key
+     * @param mixed  $value    The value for the option
+     *
+     * @throws \RuntimeException When option given doesn't exist
+     */
+    private function addShortOption($shortcut, $value)
+    {
+        if (!$this->definition->hasShortcut($shortcut)) {
+            throw new \RuntimeException(sprintf('The "-%s" option does not exist.', $shortcut));
+        }
+
+        $this->addLongOption($this->definition->getOptionForShortcut($shortcut)->getName(), $value);
+    }
+
+    /**
      * Adds a long option value.
      *
-     * @param string $name The long option key
-     * @param mixed $value The value for the option
+     * @param string $name  The long option key
+     * @param mixed  $value The value for the option
      *
      * @throws \RuntimeException When option given doesn't exist
      */
@@ -288,66 +255,99 @@ class ArgvInput extends Input
     }
 
     /**
-     * Parses a short option.
+     * Returns the first argument from the raw parameters (not parsed).
      *
-     * @param string $token The current token.
+     * @return string The value of the first argument or null otherwise
      */
-    private function parseShortOption($token)
+    public function getFirstArgument()
     {
-        $name = substr($token, 1);
-
-        if (strlen($name) > 1) {
-            if ($this->definition->hasShortcut($name[0]) && $this->definition->getOptionForShortcut($name[0])->acceptValue()) {
-                // an option with a value (with no space)
-                $this->addShortOption($name[0], substr($name, 1));
-            } else {
-                $this->parseShortOptionSet($name);
+        foreach ($this->tokens as $token) {
+            if ($token && '-' === $token[0]) {
+                continue;
             }
-        } else {
-            $this->addShortOption($name, null);
+
+            return $token;
         }
     }
 
     /**
-     * Adds a short option value.
+     * Returns true if the raw parameters (not parsed) contain a value.
      *
-     * @param string $shortcut The short option key
-     * @param mixed $value The value for the option
+     * This method is to be used to introspect the input parameters
+     * before they have been validated. It must be used carefully.
      *
-     * @throws \RuntimeException When option given doesn't exist
+     * @param string|array $values The value(s) to look for in the raw parameters (can be an array)
+     *
+     * @return bool true if the value is contained in the raw parameters
      */
-    private function addShortOption($shortcut, $value)
+    public function hasParameterOption($values)
     {
-        if (!$this->definition->hasShortcut($shortcut)) {
-            throw new \RuntimeException(sprintf('The "-%s" option does not exist.', $shortcut));
+        $values = (array) $values;
+
+        foreach ($this->tokens as $token) {
+            foreach ($values as $value) {
+                if ($token === $value || 0 === strpos($token, $value.'=')) {
+                    return true;
+                }
+            }
         }
 
-        $this->addLongOption($this->definition->getOptionForShortcut($shortcut)->getName(), $value);
+        return false;
     }
 
     /**
-     * Parses a short option set.
+     * Returns the value of a raw option (not parsed).
      *
-     * @param string $name The current token
+     * This method is to be used to introspect the input parameters
+     * before they have been validated. It must be used carefully.
      *
-     * @throws \RuntimeException When option given doesn't exist
+     * @param string|array $values  The value(s) to look for in the raw parameters (can be an array)
+     * @param mixed        $default The default value to return if no result is found
+     *
+     * @return mixed The option value
      */
-    private function parseShortOptionSet($name)
+    public function getParameterOption($values, $default = false)
     {
-        $len = strlen($name);
-        for ($i = 0; $i < $len; ++$i) {
-            if (!$this->definition->hasShortcut($name[$i])) {
-                throw new \RuntimeException(sprintf('The "-%s" option does not exist.', $name[$i]));
-            }
+        $values = (array) $values;
+        $tokens = $this->tokens;
 
-            $option = $this->definition->getOptionForShortcut($name[$i]);
-            if ($option->acceptValue()) {
-                $this->addLongOption($option->getName(), $i === $len - 1 ? null : substr($name, $i + 1));
+        while (0 < count($tokens)) {
+            $token = array_shift($tokens);
 
-                break;
-            } else {
-                $this->addLongOption($option->getName(), null);
+            foreach ($values as $value) {
+                if ($token === $value || 0 === strpos($token, $value.'=')) {
+                    if (false !== $pos = strpos($token, '=')) {
+                        return substr($token, $pos + 1);
+                    }
+
+                    return array_shift($tokens);
+                }
             }
         }
+
+        return $default;
+    }
+
+    /**
+     * Returns a stringified representation of the args passed to the command.
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        $self = $this;
+        $tokens = array_map(function ($token) use ($self) {
+            if (preg_match('{^(-[^=]+=)(.+)}', $token, $match)) {
+                return $match[1].$self->escapeToken($match[2]);
+            }
+
+            if ($token && $token[0] !== '-') {
+                return $self->escapeToken($token);
+            }
+
+            return $token;
+        }, $this->tokens);
+
+        return implode(' ', $tokens);
     }
 }

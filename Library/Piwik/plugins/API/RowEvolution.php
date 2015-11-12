@@ -12,6 +12,7 @@ use Exception;
 use Piwik\API\DataTableManipulator\LabelFilter;
 use Piwik\API\DataTablePostProcessor;
 use Piwik\API\Request;
+use Piwik\API\ResponseBuilder;
 use Piwik\Common;
 use Piwik\DataTable;
 use Piwik\DataTable\Filter\CalculateEvolutionFilter;
@@ -85,46 +86,154 @@ class RowEvolution
     }
 
     /**
-     * For a given API report, returns a simpler version
-     * of the metadata (will return only the metrics and the dimension name)
-     * @param $idSite
-     * @param $period
-     * @param $date
-     * @param $apiModule
-     * @param $apiAction
-     * @param $language
-     * @param $idGoal
-     * @throws Exception
+     * @param array $labels
+     * @param DataTable\Map $dataTable
+     * @return mixed
+     */
+    protected function enrichRowAddMetadataLabelIndex($labels, $dataTable)
+    {
+        // set label index metadata
+        $labelsToIndex = array_flip($labels);
+        foreach ($dataTable->getDataTables() as $table) {
+            foreach ($table->getRows() as $row) {
+                $label = $row->getColumn('label');
+                if (isset($labelsToIndex[$label])) {
+                    $row->setMetadata(LabelFilter::FLAG_IS_ROW_EVOLUTION, $labelsToIndex[$label]);
+                }
+            }
+        }
+        return $dataTable;
+    }
+
+    /**
+     * @param DataTable\Map $dataTable
+     * @param array $labels
      * @return array
      */
-    private function getRowEvolutionMetaData($idSite, $period, $date, $apiModule, $apiAction, $language, $idGoal = false)
+    protected function getLabelsFromDataTable($dataTable, $labels)
     {
-        $apiParameters = array();
-        if (!empty($idGoal) && $idGoal > 0) {
-            $apiParameters = array('idGoal' => $idGoal);
+        // if no labels specified, use all possible labels as list
+        foreach ($dataTable->getDataTables() as $table) {
+            $labels = array_merge($labels, $table->getColumn('label'));
         }
-        $reportMetadata = API::getInstance()->getMetadata($idSite, $apiModule, $apiAction, $apiParameters, $language,
-            $period, $date, $hideMetricsDoc = false, $showSubtableReports = true);
+        $labels = array_values(array_unique($labels));
 
-        if (empty($reportMetadata)) {
-            throw new Exception("Requested report $apiModule.$apiAction for Website id=$idSite "
-                . "not found in the list of available reports. \n");
+        // if the filter_limit query param is set, treat it as a request to limit
+        // the number of labels used
+        $limit = Common::getRequestVar('filter_limit', false);
+        if ($limit != false
+            && $limit >= 0
+        ) {
+            $labels = array_slice($labels, 0, $limit);
+        }
+        return $labels;
+    }
+
+    /**
+     * Get row evolution for a single label
+     * @param DataTable\Map $dataTable
+     * @param array $metadata
+     * @param string $apiModule
+     * @param string $apiAction
+     * @param string $label
+     * @param bool $labelUseAbsoluteUrl
+     * @return array containing  report data, metadata, label, logo
+     */
+    private function getSingleRowEvolution($idSite, $dataTable, $metadata, $apiModule, $apiAction, $label, $labelUseAbsoluteUrl = true)
+    {
+        $metricNames = array_keys($metadata['metrics']);
+
+        $logo = $actualLabel = false;
+        $urlFound = false;
+        foreach ($dataTable->getDataTables() as $subTable) {
+            /** @var $subTable DataTable */
+            $subTable->applyQueuedFilters();
+            if ($subTable->getRowsCount() > 0) {
+                /** @var $row Row */
+                $row = $subTable->getFirstRow();
+
+                if (!$actualLabel) {
+                    $logo = $row->getMetadata('logo');
+
+                    $actualLabel = $this->getRowUrlForEvolutionLabel($row, $apiModule, $apiAction, $labelUseAbsoluteUrl);
+                    $urlFound = $actualLabel !== false;
+                    if (empty($actualLabel)) {
+                        $actualLabel = $row->getColumn('label');
+                    }
+                }
+
+                // remove all columns that are not in the available metrics.
+                // this removes the label as well (which is desired for two reasons: (1) it was passed
+                // in the request, (2) it would cause the evolution graph to show the label in the legend).
+                foreach ($row->getColumns() as $column => $value) {
+                    if (!in_array($column, $metricNames) && $column != 'label_html') {
+                        $row->deleteColumn($column);
+                    }
+                }
+                $row->deleteMetadata();
+            }
         }
 
-        $reportMetadata = reset($reportMetadata);
+        $this->enhanceRowEvolutionMetaData($metadata, $dataTable);
 
-        $metrics = $reportMetadata['metrics'];
-        if (isset($reportMetadata['processedMetrics']) && is_array($reportMetadata['processedMetrics'])) {
-            $metrics = $metrics + $reportMetadata['processedMetrics'];
+        // if we have a recursive label and no url, use the path
+        if (!$urlFound) {
+            $actualLabel = $this->formatQueryLabelForDisplay($idSite, $apiModule, $apiAction, $label);
         }
 
-        if (empty($reportMetadata['dimension'])) {
-            throw new Exception(sprintf('Reports like %s.%s which do not have a dimension are not supported by row evolution', $apiModule, $apiAction));
+        $return = array(
+            'label'      => SafeDecodeLabel::decodeLabelSafe($actualLabel),
+            'reportData' => $dataTable,
+            'metadata'   => $metadata
+        );
+        if (!empty($logo)) {
+            $return['logo'] = $logo;
+        }
+        return $return;
+    }
+
+    private function formatQueryLabelForDisplay($idSite, $apiModule, $apiAction, $label)
+    {
+        // rows with subtables do not contain URL metadata. this hack makes sure the label titles in row
+        // evolution popovers look like URLs.
+        if ($apiModule == 'Actions'
+            && in_array($apiAction, self::$actionsUrlReports)
+        ) {
+            $mainUrl = Site::getMainUrlFor($idSite);
+            $mainUrlHost = @parse_url($mainUrl, PHP_URL_HOST);
+
+            $replaceRegex = "/\\s*" . preg_quote(LabelFilter::SEPARATOR_RECURSIVE_LABEL) . "\\s*/";
+            $cleanLabel = preg_replace($replaceRegex, '/', $label);
+
+            $result = $mainUrlHost . '/' . $cleanLabel . '/';
+        } else {
+            $result = str_replace(LabelFilter::SEPARATOR_RECURSIVE_LABEL, ' - ', $label);
         }
 
-        $dimension = $reportMetadata['dimension'];
+        // remove @ terminal operator occurances
+        return str_replace(LabelFilter::TERMINAL_OPERATOR, '', $result);
+    }
 
-        return compact('metrics', 'dimension');
+    /**
+     * @param Row $row
+     * @param string $apiModule
+     * @param string $apiAction
+     * @param bool $labelUseAbsoluteUrl
+     * @return bool|string
+     */
+    private function getRowUrlForEvolutionLabel($row, $apiModule, $apiAction, $labelUseAbsoluteUrl)
+    {
+        $url = $row->getMetadata('url');
+        if ($url
+            && ($apiModule == 'Actions'
+                || ($apiModule == 'Referrers'
+                    && $apiAction == 'getWebsites'))
+            && $labelUseAbsoluteUrl
+        ) {
+            $actualLabel = preg_replace(';^http(s)?://(www.)?;i', '', $url);
+            return $actualLabel;
+        }
+        return false;
     }
 
     /**
@@ -189,47 +298,121 @@ class RowEvolution
     }
 
     /**
-     * @param DataTable\Map $dataTable
-     * @param array $labels
+     * For a given API report, returns a simpler version
+     * of the metadata (will return only the metrics and the dimension name)
+     * @param $idSite
+     * @param $period
+     * @param $date
+     * @param $apiModule
+     * @param $apiAction
+     * @param $language
+     * @param $idGoal
+     * @throws Exception
      * @return array
      */
-    protected function getLabelsFromDataTable($dataTable, $labels)
+    private function getRowEvolutionMetaData($idSite, $period, $date, $apiModule, $apiAction, $language, $idGoal = false)
     {
-        // if no labels specified, use all possible labels as list
-        foreach ($dataTable->getDataTables() as $table) {
-            $labels = array_merge($labels, $table->getColumn('label'));
+        $apiParameters = array();
+        if (!empty($idGoal) && $idGoal > 0) {
+            $apiParameters = array('idGoal' => $idGoal);
         }
-        $labels = array_values(array_unique($labels));
+        $reportMetadata = API::getInstance()->getMetadata($idSite, $apiModule, $apiAction, $apiParameters, $language,
+            $period, $date, $hideMetricsDoc = false, $showSubtableReports = true);
 
-        // if the filter_limit query param is set, treat it as a request to limit
-        // the number of labels used
-        $limit = Common::getRequestVar('filter_limit', false);
-        if ($limit != false
-            && $limit >= 0
-        ) {
-            $labels = array_slice($labels, 0, $limit);
+        if (empty($reportMetadata)) {
+            throw new Exception("Requested report $apiModule.$apiAction for Website id=$idSite "
+                . "not found in the list of available reports. \n");
         }
-        return $labels;
+
+        $reportMetadata = reset($reportMetadata);
+
+        $metrics = $reportMetadata['metrics'];
+        if (isset($reportMetadata['processedMetrics']) && is_array($reportMetadata['processedMetrics'])) {
+            $metrics = $metrics + $reportMetadata['processedMetrics'];
+        }
+
+        if (empty($reportMetadata['dimension'])) {
+            throw new Exception(sprintf('Reports like %s.%s which do not have a dimension are not supported by row evolution', $apiModule, $apiAction));
+        }
+
+        $dimension = $reportMetadata['dimension'];
+
+        return compact('metrics', 'dimension');
     }
 
     /**
-     * @param array $labels
+     * Given the Row evolution dataTable, and the associated metadata,
+     * enriches the metadata with min/max values, and % change between the first period and the last one
+     * @param array $metadata
      * @param DataTable\Map $dataTable
-     * @return mixed
      */
-    protected function enrichRowAddMetadataLabelIndex($labels, $dataTable)
+    private function enhanceRowEvolutionMetaData(&$metadata, $dataTable)
     {
-        // set label index metadata
-        $labelsToIndex = array_flip($labels);
-        foreach ($dataTable->getDataTables() as $table) {
-            foreach ($table->getRows() as $row) {
-                $label = $row->getColumn('label');
-                if (isset($labelsToIndex[$label])) {
-                    $row->setMetadata(LabelFilter::FLAG_IS_ROW_EVOLUTION, $labelsToIndex[$label]);
+        // prepare result array for metrics
+        $metricsResult = array();
+        foreach ($metadata['metrics'] as $metric => $name) {
+            $metricsResult[$metric] = array('name' => $name);
+
+            if (!empty($metadata['logos'][$metric])) {
+                $metricsResult[$metric]['logo'] = $metadata['logos'][$metric];
+            }
+        }
+        unset($metadata['logos']);
+
+        $subDataTables = $dataTable->getDataTables();
+        if (empty($subDataTables)) {
+            throw new \Exception("Unexpected state: row evolution API call returned empty DataTable\\Map.");
+        }
+
+        $firstDataTable = reset($subDataTables);
+        $this->checkDataTableInstance($firstDataTable);
+        $firstDataTableRow = $firstDataTable->getFirstRow();
+
+        $lastDataTable = end($subDataTables);
+        $this->checkDataTableInstance($lastDataTable);
+        $lastDataTableRow = $lastDataTable->getFirstRow();
+
+        // Process min/max values
+        $firstNonZeroFound = array();
+        foreach ($subDataTables as $subDataTable) {
+            // $subDataTable is the report for one period, it has only one row
+            $firstRow = $subDataTable->getFirstRow();
+            foreach ($metadata['metrics'] as $metric => $label) {
+                $value = $firstRow ? floatval($firstRow->getColumn($metric)) : 0;
+                if ($value > 0) {
+                    $firstNonZeroFound[$metric] = true;
+                } else if (!isset($firstNonZeroFound[$metric])) {
+                    continue;
+                }
+                if (!isset($metricsResult[$metric]['min'])
+                    || $metricsResult[$metric]['min'] > $value
+                ) {
+                    $metricsResult[$metric]['min'] = $value;
+                }
+                if (!isset($metricsResult[$metric]['max'])
+                    || $metricsResult[$metric]['max'] < $value
+                ) {
+                    $metricsResult[$metric]['max'] = $value;
                 }
             }
         }
-        return $dataTable;
+
+        // Process % change between first/last values
+        foreach ($metadata['metrics'] as $metric => $label) {
+            $first = $firstDataTableRow ? floatval($firstDataTableRow->getColumn($metric)) : 0;
+            $last = $lastDataTableRow ? floatval($lastDataTableRow->getColumn($metric)) : 0;
+
+            // do not calculate evolution if the first value is 0 (to avoid divide-by-zero)
+            if ($first == 0) {
+                continue;
+            }
+
+            $change = CalculateEvolutionFilter::calculate($last, $first, $quotientPrecision = 0);
+            $change = CalculateEvolutionFilter::prependPlusSignToNumber($change);
+            $metricsResult[$metric]['change'] = $change;
+        }
+
+        $metadata['metrics'] = $metricsResult;
     }
 
     /** Get row evolution for a multiple labels */
@@ -349,28 +532,6 @@ class RowEvolution
     }
 
     /**
-     * @param Row $row
-     * @param string $apiModule
-     * @param string $apiAction
-     * @param bool $labelUseAbsoluteUrl
-     * @return bool|string
-     */
-    private function getRowUrlForEvolutionLabel($row, $apiModule, $apiAction, $labelUseAbsoluteUrl)
-    {
-        $url = $row->getMetadata('url');
-        if ($url
-            && ($apiModule == 'Actions'
-                || ($apiModule == 'Referrers'
-                    && $apiAction == 'getWebsites'))
-            && $labelUseAbsoluteUrl
-        ) {
-            $actualLabel = preg_replace(';^http(s)?://(www.)?;i', '', $url);
-            return $actualLabel;
-        }
-        return false;
-    }
-
-    /**
      * Returns a prettier, more comprehensible version of a row evolution label for display.
      */
     private function cleanOriginalLabel($label)
@@ -380,170 +541,10 @@ class RowEvolution
         return $label;
     }
 
-    /**
-     * Given the Row evolution dataTable, and the associated metadata,
-     * enriches the metadata with min/max values, and % change between the first period and the last one
-     * @param array $metadata
-     * @param DataTable\Map $dataTable
-     */
-    private function enhanceRowEvolutionMetaData(&$metadata, $dataTable)
-    {
-        // prepare result array for metrics
-        $metricsResult = array();
-        foreach ($metadata['metrics'] as $metric => $name) {
-            $metricsResult[$metric] = array('name' => $name);
-
-            if (!empty($metadata['logos'][$metric])) {
-                $metricsResult[$metric]['logo'] = $metadata['logos'][$metric];
-            }
-        }
-        unset($metadata['logos']);
-
-        $subDataTables = $dataTable->getDataTables();
-        if (empty($subDataTables)) {
-            throw new \Exception("Unexpected state: row evolution API call returned empty DataTable\\Map.");
-        }
-
-        $firstDataTable = reset($subDataTables);
-        $this->checkDataTableInstance($firstDataTable);
-        $firstDataTableRow = $firstDataTable->getFirstRow();
-
-        $lastDataTable = end($subDataTables);
-        $this->checkDataTableInstance($lastDataTable);
-        $lastDataTableRow = $lastDataTable->getFirstRow();
-
-        // Process min/max values
-        $firstNonZeroFound = array();
-        foreach ($subDataTables as $subDataTable) {
-            // $subDataTable is the report for one period, it has only one row
-            $firstRow = $subDataTable->getFirstRow();
-            foreach ($metadata['metrics'] as $metric => $label) {
-                $value = $firstRow ? floatval($firstRow->getColumn($metric)) : 0;
-                if ($value > 0) {
-                    $firstNonZeroFound[$metric] = true;
-                } else {if (!isset($firstNonZeroFound[$metric])) {
-                    continue;
-                }}
-                if (!isset($metricsResult[$metric]['min'])
-                    || $metricsResult[$metric]['min'] > $value
-                ) {
-                    $metricsResult[$metric]['min'] = $value;
-                }
-                if (!isset($metricsResult[$metric]['max'])
-                    || $metricsResult[$metric]['max'] < $value
-                ) {
-                    $metricsResult[$metric]['max'] = $value;
-                }
-            }
-        }
-
-        // Process % change between first/last values
-        foreach ($metadata['metrics'] as $metric => $label) {
-            $first = $firstDataTableRow ? floatval($firstDataTableRow->getColumn($metric)) : 0;
-            $last = $lastDataTableRow ? floatval($lastDataTableRow->getColumn($metric)) : 0;
-
-            // do not calculate evolution if the first value is 0 (to avoid divide-by-zero)
-            if ($first == 0) {
-                continue;
-            }
-
-            $change = CalculateEvolutionFilter::calculate($last, $first, $quotientPrecision = 0);
-            $change = CalculateEvolutionFilter::prependPlusSignToNumber($change);
-            $metricsResult[$metric]['change'] = $change;
-        }
-
-        $metadata['metrics'] = $metricsResult;
-    }
-
     private function checkDataTableInstance($lastDataTable)
     {
         if (!($lastDataTable instanceof DataTable)) {
             throw new \Exception("Unexpected state: row evolution returned DataTable\\Map w/ incorrect child table type: " . get_class($lastDataTable));
         }
-    }
-
-    /**
-     * Get row evolution for a single label
-     * @param DataTable\Map $dataTable
-     * @param array $metadata
-     * @param string $apiModule
-     * @param string $apiAction
-     * @param string $label
-     * @param bool $labelUseAbsoluteUrl
-     * @return array containing  report data, metadata, label, logo
-     */
-    private function getSingleRowEvolution($idSite, $dataTable, $metadata, $apiModule, $apiAction, $label, $labelUseAbsoluteUrl = true)
-    {
-        $metricNames = array_keys($metadata['metrics']);
-
-        $logo = $actualLabel = false;
-        $urlFound = false;
-        foreach ($dataTable->getDataTables() as $subTable) {
-            /** @var $subTable DataTable */
-            $subTable->applyQueuedFilters();
-            if ($subTable->getRowsCount() > 0) {
-                /** @var $row Row */
-                $row = $subTable->getFirstRow();
-
-                if (!$actualLabel) {
-                    $logo = $row->getMetadata('logo');
-
-                    $actualLabel = $this->getRowUrlForEvolutionLabel($row, $apiModule, $apiAction, $labelUseAbsoluteUrl);
-                    $urlFound = $actualLabel !== false;
-                    if (empty($actualLabel)) {
-                        $actualLabel = $row->getColumn('label');
-                    }
-                }
-
-                // remove all columns that are not in the available metrics.
-                // this removes the label as well (which is desired for two reasons: (1) it was passed
-                // in the request, (2) it would cause the evolution graph to show the label in the legend).
-                foreach ($row->getColumns() as $column => $value) {
-                    if (!in_array($column, $metricNames) && $column != 'label_html') {
-                        $row->deleteColumn($column);
-                    }
-                }
-                $row->deleteMetadata();
-            }
-        }
-
-        $this->enhanceRowEvolutionMetaData($metadata, $dataTable);
-
-        // if we have a recursive label and no url, use the path
-        if (!$urlFound) {
-            $actualLabel = $this->formatQueryLabelForDisplay($idSite, $apiModule, $apiAction, $label);
-        }
-
-        $return = array(
-            'label'      => SafeDecodeLabel::decodeLabelSafe($actualLabel),
-            'reportData' => $dataTable,
-            'metadata'   => $metadata
-        );
-        if (!empty($logo)) {
-            $return['logo'] = $logo;
-        }
-        return $return;
-    }
-
-    private function formatQueryLabelForDisplay($idSite, $apiModule, $apiAction, $label)
-    {
-        // rows with subtables do not contain URL metadata. this hack makes sure the label titles in row
-        // evolution popovers look like URLs.
-        if ($apiModule == 'Actions'
-            && in_array($apiAction, self::$actionsUrlReports)
-        ) {
-            $mainUrl = Site::getMainUrlFor($idSite);
-            $mainUrlHost = @parse_url($mainUrl, PHP_URL_HOST);
-
-            $replaceRegex = "/\\s*" . preg_quote(LabelFilter::SEPARATOR_RECURSIVE_LABEL) . "\\s*/";
-            $cleanLabel = preg_replace($replaceRegex, '/', $label);
-
-            $result = $mainUrlHost . '/' . $cleanLabel . '/';
-        } else {
-            $result = str_replace(LabelFilter::SEPARATOR_RECURSIVE_LABEL, ' - ', $label);
-        }
-
-        // remove @ terminal operator occurances
-        return str_replace(LabelFilter::TERMINAL_OPERATOR, '', $result);
     }
 }

@@ -171,132 +171,6 @@ class PivotByDimension extends BaseFilter
     }
 
     /**
-     * Returns the default maximum number of columns to allow in a pivot table from the INI config.
-     * Uses the **pivot_by_filter_default_column_limit** INI config option.
-     *
-     * @return int
-     */
-    public static function getDefaultColumnLimit()
-    {
-        return Config::getInstance()->General['pivot_by_filter_default_column_limit'];
-    }
-
-    private function setPivotByDimension($pivotByDimension)
-    {
-        $this->pivotByDimension = Dimension::factory($pivotByDimension);
-        if (empty($this->pivotByDimension)) {
-            throw new Exception("Invalid dimension '$pivotByDimension'.");
-        }
-
-        $this->pivotDimensionReport = Report::getForDimension($this->pivotByDimension);
-    }
-
-    private function setThisReportMetadata($report)
-    {
-        list($module, $method) = explode('.', $report);
-
-        $this->thisReport = Report::factory($module, $method);
-        if (empty($this->thisReport)) {
-            throw new Exception("Unable to find report '$report'.");
-        }
-
-        $this->subtableDimension = $this->thisReport->getSubtableDimension();
-
-        $thisReportDimension = $this->thisReport->getDimension();
-        if ($thisReportDimension !== null) {
-            $segments = $thisReportDimension->getSegments();
-            $this->thisReportDimensionSegment = reset($segments);
-        }
-    }
-
-    private function checkSupportedPivot()
-    {
-        $reportId = $this->thisReport->getModule() . '.' . $this->thisReport->getName();
-
-        if (!$this->isFetchingBySegmentEnabled) {
-            // if fetching by segment is disabled, then there must be a subtable for the current report and
-            // subtable's dimension must be the pivot dimension
-
-            if (empty($this->subtableDimension)) {
-                throw new Exception("Unsupported pivot: report '$reportId' has no subtable dimension.");
-            }
-
-            if (!$this->isPivotDimensionSubtable()) {
-                throw new Exception("Unsupported pivot: the subtable dimension for '$reportId' does not match the "
-                                  . "requested pivotBy dimension. [subtable dimension = {$this->subtableDimension->getId()}, "
-                                  . "pivot by dimension = {$this->pivotByDimension->getId()}]");
-            }
-        } else {
-            $canFetchBySubtable = !empty($this->subtableDimension)
-                && $this->subtableDimension->getId() === $this->pivotByDimension->getId();
-            if ($canFetchBySubtable) {
-                return;
-            }
-
-            // if fetching by segment is enabled, and we cannot fetch by subtable, then there has to be a report
-            // for the pivot dimension (so we can fetch the report), and there has to be a segment for this report's
-            // dimension (so we can use it when fetching)
-
-            if (empty($this->pivotDimensionReport)) {
-                throw new Exception("Unsupported pivot: No report for pivot dimension '{$this->pivotByDimension->getId()}'"
-                                  . " (report required for fetching intersected tables by segment).");
-            }
-
-            if (empty($this->thisReportDimensionSegment)) {
-                throw new Exception("Unsupported pivot: No segment for dimension of report '$reportId'."
-                                  . " (segment required for fetching intersected tables by segment).");
-            }
-        }
-    }
-
-    private function isPivotDimensionSubtable()
-    {
-        return self::areDimensionsEqualAndNotNull($this->subtableDimension, $this->pivotByDimension);
-    }
-
-    /**
-     * @param Dimension|null $lhs
-     * @param Dimension|null $rhs
-     * @return bool
-     */
-    private static function areDimensionsEqualAndNotNull($lhs, $rhs)
-    {
-        return !empty($lhs) && !empty($rhs) && $lhs->getId() == $rhs->getId();
-    }
-
-    /**
-     * Returns true if pivoting by subtable is supported for a report. Will return true if the report
-     * has a subtable dimension and if the subtable dimension is different than the report's dimension.
-     *
-     * @param Report $report
-     * @return bool
-     */
-    public static function isPivotingReportBySubtableSupported(Report $report)
-    {
-        return self::areDimensionsNotEqualAndNotNull($report->getSubtableDimension(), $report->getDimension());
-    }
-
-    /**
-     * @param Dimension|null $lhs
-     * @param Dimension|null $rhs
-     * @return bool
-     */
-    private static function areDimensionsNotEqualAndNotNull($lhs, $rhs)
-    {
-        return !empty($lhs) && !empty($rhs) && $lhs->getId() != $rhs->getId();
-    }
-
-    /**
-     * Returns true if fetching intersected tables by segment is enabled in the INI config, false if otherwise.
-     *
-     * @return bool
-     */
-    public static function isSegmentFetchingEnabledInConfig()
-    {
-        return Config::getInstance()->General['pivot_by_filter_enable_fetch_by_segment'];
-    }
-
-    /**
      * Pivots to table.
      *
      * @param DataTable $table The table to manipulate.
@@ -380,17 +254,6 @@ class PivotByDimension extends BaseFilter
         });
     }
 
-    private function getNameOfFirstNonLabelColumnInTable(DataTable $table)
-    {
-        foreach ($table->getRows() as $row) {
-            foreach ($row->getColumns() as $columnName => $ignore) {
-                if ($columnName != 'label') {
-                    return $columnName;
-                }
-            }
-        }
-    }
-
     /**
      * An intersected table is a table that describes visits by a certain dimension for the visits
      * represented by a row in another table. This method fetches intersected tables either via
@@ -411,6 +274,11 @@ class PivotByDimension extends BaseFilter
         throw new Exception("Unexpected error, cannot fetch intersected table.");
     }
 
+    private function isPivotDimensionSubtable()
+    {
+        return self::areDimensionsEqualAndNotNull($this->subtableDimension, $this->pivotByDimension);
+    }
+
     private function loadSubtable(DataTable $table, Row $row)
     {
         $idSubtable = $row->getIdSubDataTable();
@@ -428,6 +296,117 @@ class PivotByDimension extends BaseFilter
         }
 
         return $subtable;
+    }
+
+    private function fetchIntersectedWithThisBySegment(DataTable $table, $segmentValue)
+    {
+        $segmentStr = $this->thisReportDimensionSegment->getSegment() . "==" . urlencode($segmentValue);
+
+        // TODO: segment + report API method query params should be stored in DataTable metadata so we don't have to access it here
+        $originalSegment = Common::getRequestVar('segment', false);
+        if (!empty($originalSegment)) {
+            $segmentStr = $originalSegment . ';' . $segmentStr;
+        }
+
+        Log::debug("PivotByDimension: Fetching intersected with segment '%s'", $segmentStr);
+
+        $params = array('segment' => $segmentStr) + $this->getRequestParamOverride($table);
+        return $this->pivotDimensionReport->fetch($params);
+    }
+
+    private function setPivotByDimension($pivotByDimension)
+    {
+        $this->pivotByDimension = Dimension::factory($pivotByDimension);
+        if (empty($this->pivotByDimension)) {
+            throw new Exception("Invalid dimension '$pivotByDimension'.");
+        }
+
+        $this->pivotDimensionReport = Report::getForDimension($this->pivotByDimension);
+    }
+
+    private function setThisReportMetadata($report)
+    {
+        list($module, $method) = explode('.', $report);
+
+        $this->thisReport = Report::factory($module, $method);
+        if (empty($this->thisReport)) {
+            throw new Exception("Unable to find report '$report'.");
+        }
+
+        $this->subtableDimension = $this->thisReport->getSubtableDimension();
+
+        $thisReportDimension = $this->thisReport->getDimension();
+        if ($thisReportDimension !== null) {
+            $segments = $thisReportDimension->getSegments();
+            $this->thisReportDimensionSegment = reset($segments);
+        }
+    }
+
+    private function checkSupportedPivot()
+    {
+        $reportId = $this->thisReport->getModule() . '.' . $this->thisReport->getName();
+
+        if (!$this->isFetchingBySegmentEnabled) {
+            // if fetching by segment is disabled, then there must be a subtable for the current report and
+            // subtable's dimension must be the pivot dimension
+
+            if (empty($this->subtableDimension)) {
+                throw new Exception("Unsupported pivot: report '$reportId' has no subtable dimension.");
+            }
+
+            if (!$this->isPivotDimensionSubtable()) {
+                throw new Exception("Unsupported pivot: the subtable dimension for '$reportId' does not match the "
+                                  . "requested pivotBy dimension. [subtable dimension = {$this->subtableDimension->getId()}, "
+                                  . "pivot by dimension = {$this->pivotByDimension->getId()}]");
+            }
+        } else {
+            $canFetchBySubtable = !empty($this->subtableDimension)
+                && $this->subtableDimension->getId() === $this->pivotByDimension->getId();
+            if ($canFetchBySubtable) {
+                return;
+            }
+
+            // if fetching by segment is enabled, and we cannot fetch by subtable, then there has to be a report
+            // for the pivot dimension (so we can fetch the report), and there has to be a segment for this report's
+            // dimension (so we can use it when fetching)
+
+            if (empty($this->pivotDimensionReport)) {
+                throw new Exception("Unsupported pivot: No report for pivot dimension '{$this->pivotByDimension->getId()}'"
+                                  . " (report required for fetching intersected tables by segment).");
+            }
+
+            if (empty($this->thisReportDimensionSegment)) {
+                throw new Exception("Unsupported pivot: No segment for dimension of report '$reportId'."
+                                  . " (segment required for fetching intersected tables by segment).");
+            }
+        }
+    }
+
+    /**
+     * @param $columnRow
+     * @param $pivotColumn
+     * @return false|mixed
+     */
+    private function getColumnValue(Row $columnRow, $pivotColumn)
+    {
+        $value = $columnRow->getColumn($pivotColumn);
+        if (empty($value)
+            && !empty($this->metricIndexValue)
+        ) {
+            $value = $columnRow->getColumn($this->metricIndexValue);
+        }
+        return $value;
+    }
+
+    private function getNameOfFirstNonLabelColumnInTable(DataTable $table)
+    {
+        foreach ($table->getRows() as $row) {
+            foreach ($row->getColumns() as $columnName => $ignore) {
+                if ($columnName != 'label') {
+                    return $columnName;
+                }
+            }
+        }
     }
 
     private function getRequestParamOverride(DataTable $table)
@@ -462,38 +441,6 @@ class PivotByDimension extends BaseFilter
         }
 
         return $params;
-    }
-
-    private function fetchIntersectedWithThisBySegment(DataTable $table, $segmentValue)
-    {
-        $segmentStr = $this->thisReportDimensionSegment->getSegment() . "==" . urlencode($segmentValue);
-
-        // TODO: segment + report API method query params should be stored in DataTable metadata so we don't have to access it here
-        $originalSegment = Common::getRequestVar('segment', false);
-        if (!empty($originalSegment)) {
-            $segmentStr = $originalSegment . ';' . $segmentStr;
-        }
-
-        Log::debug("PivotByDimension: Fetching intersected with segment '%s'", $segmentStr);
-
-        $params = array('segment' => $segmentStr) + $this->getRequestParamOverride($table);
-        return $this->pivotDimensionReport->fetch($params);
-    }
-
-    /**
-     * @param $columnRow
-     * @param $pivotColumn
-     * @return false|mixed
-     */
-    private function getColumnValue(Row $columnRow, $pivotColumn)
-    {
-        $value = $columnRow->getColumn($pivotColumn);
-        if (empty($value)
-            && !empty($this->metricIndexValue)
-        ) {
-            $value = $columnRow->getColumn($this->metricIndexValue);
-        }
-        return $value;
     }
 
     private function getPivotTableDefaultRowFromColumnSummary($columnSet, $othersRowLabel)
@@ -546,5 +493,58 @@ class PivotByDimension extends BaseFilter
         }
 
         return $result;
+    }
+
+    /**
+     * Returns true if pivoting by subtable is supported for a report. Will return true if the report
+     * has a subtable dimension and if the subtable dimension is different than the report's dimension.
+     *
+     * @param Report $report
+     * @return bool
+     */
+    public static function isPivotingReportBySubtableSupported(Report $report)
+    {
+        return self::areDimensionsNotEqualAndNotNull($report->getSubtableDimension(), $report->getDimension());
+    }
+
+    /**
+     * Returns true if fetching intersected tables by segment is enabled in the INI config, false if otherwise.
+     *
+     * @return bool
+     */
+    public static function isSegmentFetchingEnabledInConfig()
+    {
+        return Config::getInstance()->General['pivot_by_filter_enable_fetch_by_segment'];
+    }
+
+    /**
+     * Returns the default maximum number of columns to allow in a pivot table from the INI config.
+     * Uses the **pivot_by_filter_default_column_limit** INI config option.
+     *
+     * @return int
+     */
+    public static function getDefaultColumnLimit()
+    {
+        return Config::getInstance()->General['pivot_by_filter_default_column_limit'];
+    }
+
+    /**
+     * @param Dimension|null $lhs
+     * @param Dimension|null $rhs
+     * @return bool
+     */
+    private static function areDimensionsEqualAndNotNull($lhs, $rhs)
+    {
+        return !empty($lhs) && !empty($rhs) && $lhs->getId() == $rhs->getId();
+    }
+
+    /**
+     * @param Dimension|null $lhs
+     * @param Dimension|null $rhs
+     * @return bool
+     */
+    private static function areDimensionsNotEqualAndNotNull($lhs, $rhs)
+    {
+        return !empty($lhs) && !empty($rhs) && $lhs->getId() != $rhs->getId();
     }
 }

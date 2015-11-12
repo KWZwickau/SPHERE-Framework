@@ -8,10 +8,10 @@
 
 namespace Piwik\Plugins\LanguagesManager\Test\Integration;
 
-use Exception;
 use Piwik\Container\StaticContainer;
 use Piwik\Intl\Data\Provider\LanguageDataProvider;
 use Piwik\Plugins\LanguagesManager\API;
+use \Exception;
 use Piwik\Plugins\LanguagesManager\TranslationWriter\Filter\ByParameterCount;
 use Piwik\Plugins\LanguagesManager\TranslationWriter\Filter\EmptyTranslations;
 use Piwik\Plugins\LanguagesManager\TranslationWriter\Filter\EncodedEntities;

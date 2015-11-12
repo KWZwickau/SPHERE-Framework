@@ -44,6 +44,31 @@ class API extends \Piwik\Plugin\API
         $this->model = $model;
     }
 
+    private function getOverviewReports()
+    {
+        $reports = array();
+
+        /**
+         * Triggered to gather all reports to be displayed in the "Insight" and "Movers And Shakers" overview reports.
+         * Plugins that want to add new reports to the overview should subscribe to this event and add reports to the
+         * incoming array. API parameters can be configured as an array optionally.
+         *
+         * **Example**
+         *
+         *     public function addReportToInsightsOverview(&$reports)
+         *     {
+         *         $reports['Actions_getPageUrls']  = array();
+         *         $reports['Actions_getDownloads'] = array('flat' => 1, 'minGrowthPercent' => 60);
+         *     }
+         *
+         * @param array &$reports An array containing a report unique id as key and an array of API parameters as
+         *                        values.
+         */
+        Piwik::postEvent('Insights.addReportToOverview', array(&$reports));
+
+        return $reports;
+    }
+
     /**
      * Detects whether insights can be generated for this date/period combination or not.
      * @param string $date     eg 'today', '2012-12-12'
@@ -97,6 +122,32 @@ class API extends \Piwik\Plugin\API
         return $map;
     }
 
+    /**
+     * Detects the movers and shakers for a set of reports. Plugins can add their own reports to be included in this
+     * overview by listening to the {@hook Insights.addReportToOverview} event.
+     *
+     * @param int $idSite
+     * @param string $period
+     * @param string $date
+     * @param bool|string $segment
+     *
+     * @return DataTable\Map   A map containing a dataTable for each movers and shakers report. See
+     *                         {@link getMoversAndShakers()} for more information
+     */
+    public function getMoversAndShakersOverview($idSite, $period, $date, $segment = false)
+    {
+        Piwik::checkUserHasViewAccess($idSite);
+
+        $defaultParams = array(
+            'limitIncreaser' => 4,
+            'limitDecreaser' => 4
+        );
+
+        $map = $this->generateOverviewReport('getMoversAndShakers', $idSite, $period, $date, $segment, $defaultParams);
+
+        return $map;
+    }
+
     private function generateOverviewReport($method, $idSite, $period, $date, $segment, array $defaultParams)
     {
         $tableManager = DataTable\Manager::getInstance();
@@ -125,82 +176,6 @@ class API extends \Piwik\Plugin\API
         foreach ($tables as $table) {
             $map->addTable($table, $table->getMetadata('reportName'));
         }
-
-        return $map;
-    }
-
-    private function getOverviewReports()
-    {
-        $reports = array();
-
-        /**
-         * Triggered to gather all reports to be displayed in the "Insight" and "Movers And Shakers" overview reports.
-         * Plugins that want to add new reports to the overview should subscribe to this event and add reports to the
-         * incoming array. API parameters can be configured as an array optionally.
-         *
-         * **Example**
-         *
-         *     public function addReportToInsightsOverview(&$reports)
-         *     {
-         *         $reports['Actions_getPageUrls']  = array();
-         *         $reports['Actions_getDownloads'] = array('flat' => 1, 'minGrowthPercent' => 60);
-         *     }
-         *
-         * @param array &$reports An array containing a report unique id as key and an array of API parameters as
-         *                        values.
-         */
-        Piwik::postEvent('Insights.addReportToOverview', array(&$reports));
-
-        return $reports;
-    }
-
-    private function requestApiMethod($method, $idSite, $period, $date, $reportId, $segment, $additionalParams)
-    {
-        $params = array(
-            'method' => 'Insights.' . $method,
-            'idSite' => $idSite,
-            'date'   => $date,
-            'period' => $period,
-            'format' => 'original',
-            'reportUniqueId' => $reportId,
-        );
-
-        if (!empty($segment)) {
-            $params['segment'] = $segment;
-        }
-
-        if (!empty($additionalParams)) {
-            foreach ($additionalParams as $key => $value) {
-                $params[$key] = $value;
-            }
-        }
-
-        $request = new ApiRequest($params);
-        return $request->process();
-    }
-
-    /**
-     * Detects the movers and shakers for a set of reports. Plugins can add their own reports to be included in this
-     * overview by listening to the {@hook Insights.addReportToOverview} event.
-     *
-     * @param int $idSite
-     * @param string $period
-     * @param string $date
-     * @param bool|string $segment
-     *
-     * @return DataTable\Map   A map containing a dataTable for each movers and shakers report. See
-     *                         {@link getMoversAndShakers()} for more information
-     */
-    public function getMoversAndShakersOverview($idSite, $period, $date, $segment = false)
-    {
-        Piwik::checkUserHasViewAccess($idSite);
-
-        $defaultParams = array(
-            'limitIncreaser' => 4,
-            'limitDecreaser' => 4
-        );
-
-        $map = $this->generateOverviewReport('getMoversAndShakers', $idSite, $period, $date, $segment, $defaultParams);
 
         return $map;
     }
@@ -249,13 +224,6 @@ class API extends \Piwik\Plugin\API
 
         $insight = new InsightReport();
         return $insight->generateMoverAndShaker($reportMetadata, $period, $date, $lastDate, $metric, $currentReport, $lastReport, $totalValue, $lastTotalValue, $orderBy, $limitIncreaser, $limitDecreaser);
-    }
-
-    private function checkReportIsValid($report)
-    {
-        if (!($report instanceof DataTable)) {
-            throw new \Exception('Insight can be only generated for reports returning a dataTable');
-        }
     }
 
     /**
@@ -338,6 +306,38 @@ class API extends \Piwik\Plugin\API
         $insight->markMoversAndShakers($table, $currentReport, $lastReport, $totalValue, $lastTotalValue);
 
         return $table;
+    }
+
+    private function checkReportIsValid($report)
+    {
+        if (!($report instanceof DataTable)) {
+            throw new \Exception('Insight can be only generated for reports returning a dataTable');
+        }
+    }
+
+    private function requestApiMethod($method, $idSite, $period, $date, $reportId, $segment, $additionalParams)
+    {
+        $params = array(
+            'method' => 'Insights.' . $method,
+            'idSite' => $idSite,
+            'date'   => $date,
+            'period' => $period,
+            'format' => 'original',
+            'reportUniqueId' => $reportId,
+        );
+
+        if (!empty($segment)) {
+            $params['segment'] = $segment;
+        }
+
+        if (!empty($additionalParams)) {
+            foreach ($additionalParams as $key => $value) {
+                $params[$key] = $value;
+            }
+        }
+
+        $request = new ApiRequest($params);
+        return $request->process();
     }
 
 }

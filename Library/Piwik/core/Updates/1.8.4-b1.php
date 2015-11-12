@@ -23,18 +23,6 @@ class Updates_1_8_4_b1 extends Updates
         return true;
     }
 
-    public function doUpdate(Updater $updater)
-    {
-        try {
-            self::enableMaintenanceMode();
-            $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-            self::disableMaintenanceMode();
-        } catch (\Exception $e) {
-            self::disableMaintenanceMode();
-            throw $e;
-        }
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         $action = Common::prefixTable('log_action');
@@ -48,7 +36,7 @@ class Updates_1_8_4_b1 extends Updates
             // add url_prefix column
             "   ALTER TABLE `$action`
 		    	ADD `url_prefix` TINYINT(2) NULL AFTER `type`;
-		    " => 1060, // ignore error 1060 Duplicate column name 'url_prefix'
+		    "                                                                                                     => 1060, // ignore error 1060 Duplicate column name 'url_prefix'
 
             // remove protocol and www and store information in url_prefix
             "   UPDATE `$action`
@@ -75,17 +63,17 @@ class Updates_1_8_4_b1 extends Updates
 				WHERE
 				  type = 1 AND
 				  url_prefix IS NULL;
-			" => false,
+			"                                                                      => false,
 
             // find duplicates
             "   DROP TABLE IF EXISTS `$duplicates`;
-			" => false,
+			"                                                    => false,
             "   CREATE TABLE `$duplicates` (
 				 `before` int(10) unsigned NOT NULL,
 				 `after` int(10) unsigned NOT NULL,
 				 KEY `mainkey` (`before`)
 				) ENGINE=InnoDB;
-			" => false,
+			"                                                            => false,
 
             // grouping by name only would be case-insensitive, so we GROUP BY name,hash
             // ON (action.type = 1 AND canonical.hash = action.hash) will use index (type, hash)
@@ -126,7 +114,7 @@ class Updates_1_8_4_b1 extends Updates
 				  link.idaction_url = duplicates_idaction_url.after
 				WHERE
 				  duplicates_idaction_url.after IS NOT NULL;
-			" => false,
+			"                           => false,
             "   UPDATE
 				  `$visitAction` AS link
 				LEFT JOIN
@@ -136,7 +124,7 @@ class Updates_1_8_4_b1 extends Updates
 				  link.idaction_url_ref = duplicates_idaction_url_ref.after
 				WHERE
 				  duplicates_idaction_url_ref.after IS NOT NULL;
-			" => false,
+			"                           => false,
 
             // replace idaction in log_conversion
             "   UPDATE
@@ -148,7 +136,7 @@ class Updates_1_8_4_b1 extends Updates
 				  conversion.idaction_url = duplicates.after
 				WHERE
 				  duplicates.after IS NOT NULL;
-			" => false,
+			"                            => false,
 
             // replace idaction in log_visit
             "   UPDATE
@@ -160,7 +148,7 @@ class Updates_1_8_4_b1 extends Updates
 				  visit.visit_entry_idaction_url = duplicates_entry.after
 				WHERE
 				  duplicates_entry.after IS NOT NULL;
-			" => false,
+			"                                 => false,
             "   UPDATE
 				  `$visit` AS visit
 				LEFT JOIN
@@ -170,7 +158,7 @@ class Updates_1_8_4_b1 extends Updates
 				  visit.visit_exit_idaction_url = duplicates_exit.after
 				WHERE
 				  duplicates_exit.after IS NOT NULL;
-			" => false,
+			"                                 => false,
 
             // remove duplicates from log_action
             "   DELETE action FROM
@@ -180,11 +168,23 @@ class Updates_1_8_4_b1 extends Updates
 				  ON action.idaction = duplicates.before
 				WHERE
 				  duplicates.after IS NOT NULL;
-			" => false,
+			"                                => false,
 
             // remove the duplicates table
             "   DROP TABLE `$duplicates`;
-			" => false
+			"                                                              => false
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        try {
+            self::enableMaintenanceMode();
+            $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
+            self::disableMaintenanceMode();
+        } catch (\Exception $e) {
+            self::disableMaintenanceMode();
+            throw $e;
+        }
     }
 }

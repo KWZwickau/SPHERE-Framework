@@ -24,6 +24,18 @@ class Session extends Zend_Session
     protected static $sessionStarted = false;
 
     /**
+     * Are we using file-based session store?
+     *
+     * @return bool  True if file-based; false otherwise
+     */
+    public static function isFileBasedSessions()
+    {
+        $config = Config::getInstance();
+        return !isset($config->General['session_save_handler'])
+        || $config->General['session_save_handler'] === 'files';
+    }
+
+    /**
      * Start the session
      *
      * @param array|bool $options An array of configuration options; the auto-start (bool) setting is ignored
@@ -125,18 +137,6 @@ class Session extends Zend_Session
 
             throw $ex;
         }
-    }
-
-    /**
-     * Are we using file-based session store?
-     *
-     * @return bool  True if file-based; false otherwise
-     */
-    public static function isFileBasedSessions()
-    {
-        $config = Config::getInstance();
-        return !isset($config->General['session_save_handler'])
-        || $config->General['session_save_handler'] === 'files';
     }
 
     /**

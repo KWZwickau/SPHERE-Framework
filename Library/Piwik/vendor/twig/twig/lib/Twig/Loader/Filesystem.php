@@ -48,6 +48,18 @@ class Twig_Loader_Filesystem implements Twig_LoaderInterface, Twig_ExistsLoaderI
     }
 
     /**
+     * Returns the path namespaces.
+     *
+     * The main namespace is always defined.
+     *
+     * @return array The array of defined namespaces
+     */
+    public function getNamespaces()
+    {
+        return array_keys($this->paths);
+    }
+
+    /**
      * Sets the paths where templates are stored.
      *
      * @param string|array $paths     A path or an array of paths where to look for templates
@@ -63,18 +75,6 @@ class Twig_Loader_Filesystem implements Twig_LoaderInterface, Twig_ExistsLoaderI
         foreach ($paths as $path) {
             $this->addPath($path, $namespace);
         }
-    }
-
-    /**
-     * Returns the path namespaces.
-     *
-     * The main namespace is always defined.
-     *
-     * @return array The array of defined namespaces
-     */
-    public function getNamespaces()
-    {
-        return array_keys($this->paths);
     }
 
     /**
@@ -131,6 +131,40 @@ class Twig_Loader_Filesystem implements Twig_LoaderInterface, Twig_ExistsLoaderI
         return file_get_contents($this->findTemplate($name));
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function getCacheKey($name)
+    {
+        return $this->findTemplate($name);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function exists($name)
+    {
+        $name = $this->normalizeName($name);
+
+        if (isset($this->cache[$name])) {
+            return true;
+        }
+
+        try {
+            return false !== $this->findTemplate($name, false);
+        } catch (Twig_Error_Loader $exception) {
+            return false;
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isFresh($name, $time)
+    {
+        return filemtime($this->findTemplate($name)) <= $time;
+    }
+
     protected function findTemplate($name)
     {
         $throw = func_num_args() > 1 ? func_get_arg(1) : true;
@@ -181,6 +215,22 @@ class Twig_Loader_Filesystem implements Twig_LoaderInterface, Twig_ExistsLoaderI
         throw new Twig_Error_Loader($this->errorCache[$name]);
     }
 
+    protected function parseName($name, $default = self::MAIN_NAMESPACE)
+    {
+        if (isset($name[0]) && '@' == $name[0]) {
+            if (false === $pos = strpos($name, '/')) {
+                throw new Twig_Error_Loader(sprintf('Malformed namespaced template name "%s" (expecting "@namespace/template_name").', $name));
+            }
+
+            $namespace = substr($name, 1, $pos - 1);
+            $shortname = substr($name, $pos + 1);
+
+            return array($namespace, $shortname);
+        }
+
+        return array($default, $name);
+    }
+
     protected function normalizeName($name)
     {
         return preg_replace('#/{2,}#', '/', strtr((string) $name, '\\', '/'));
@@ -206,55 +256,5 @@ class Twig_Loader_Filesystem implements Twig_LoaderInterface, Twig_ExistsLoaderI
                 throw new Twig_Error_Loader(sprintf('Looks like you try to load a template outside configured directories (%s).', $name));
             }
         }
-    }
-
-    protected function parseName($name, $default = self::MAIN_NAMESPACE)
-    {
-        if (isset($name[0]) && '@' == $name[0]) {
-            if (false === $pos = strpos($name, '/')) {
-                throw new Twig_Error_Loader(sprintf('Malformed namespaced template name "%s" (expecting "@namespace/template_name").', $name));
-            }
-
-            $namespace = substr($name, 1, $pos - 1);
-            $shortname = substr($name, $pos + 1);
-
-            return array($namespace, $shortname);
-        }
-
-        return array($default, $name);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getCacheKey($name)
-    {
-        return $this->findTemplate($name);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function exists($name)
-    {
-        $name = $this->normalizeName($name);
-
-        if (isset($this->cache[$name])) {
-            return true;
-        }
-
-        try {
-            return false !== $this->findTemplate($name, false);
-        } catch (Twig_Error_Loader $exception) {
-            return false;
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isFresh($name, $time)
-    {
-        return filemtime($this->findTemplate($name)) <= $time;
     }
 }

@@ -9,7 +9,7 @@
 
 namespace Piwik\Plugins\BulkTracking\Tracker;
 
-use Exception;
+use Piwik\Archiver\Request;
 use Piwik\AuthResult;
 use Piwik\Container\StaticContainer;
 use Piwik\Exception\InvalidRequestParameterException;
@@ -18,6 +18,7 @@ use Piwik\Piwik;
 use Piwik\Tracker;
 use Piwik\Tracker\RequestSet;
 use Piwik\Tracker\TrackerConfig;
+use Exception;
 
 class Handler extends Tracker\Handler
 {
@@ -35,39 +36,11 @@ class Handler extends Tracker\Handler
         }
     }
 
-    /**
-     * @return bool
-     */
-    private function isTransactionSupported()
-    {
-        return (bool)TrackerConfig::getConfigValue('bulk_requests_use_transaction');
-    }
-
-    private function beginTransaction()
-    {
-        if (empty($this->transactionId)) {
-            $this->transactionId = $this->getDb()->beginTransaction();
-        }
-    }
-
-    private function getDb()
-    {
-        return Tracker::getDatabase();
-    }
-
     public function onAllRequestsTracked(Tracker $tracker, RequestSet $requestSet)
     {
         $this->commitTransaction();
 
         // Do not run schedule task if we are importing logs or doing custom tracking (as it could slow down)
-    }
-
-    private function commitTransaction()
-    {
-        if (!empty($this->transactionId)) {
-            $this->getDb()->commit($this->transactionId);
-            $this->transactionId = null;
-        }
     }
 
     public function process(Tracker $tracker, RequestSet $requestSet)
@@ -92,6 +65,48 @@ class Handler extends Tracker\Handler
         $response->setInvalidRequests($invalidRequests);
     }
 
+    public function onException(Tracker $tracker, RequestSet $requestSet, Exception $e)
+    {
+        $this->rollbackTransaction();
+        parent::onException($tracker, $requestSet, $e);
+    }
+
+    private function beginTransaction()
+    {
+        if (empty($this->transactionId)) {
+            $this->transactionId = $this->getDb()->beginTransaction();
+        }
+    }
+
+    private function commitTransaction()
+    {
+        if (!empty($this->transactionId)) {
+            $this->getDb()->commit($this->transactionId);
+            $this->transactionId = null;
+        }
+    }
+
+    private function rollbackTransaction()
+    {
+        if (!empty($this->transactionId)) {
+            $this->getDb()->rollback($this->transactionId);
+            $this->transactionId = null;
+        }
+    }
+
+    private function getDb()
+    {
+        return Tracker::getDatabase();
+    }
+
+    /**
+     * @return bool
+     */
+    private function isTransactionSupported()
+    {
+        return (bool) TrackerConfig::getConfigValue('bulk_requests_use_transaction');
+    }
+
     private function isBulkTrackingRequestAuthenticated(RequestSet $requestSet)
     {
         $tokenAuth = $requestSet->getTokenAuth();
@@ -110,19 +125,5 @@ class Handler extends Tracker\Handler
         $access = $auth->authenticate();
 
         return $access->getCode() == AuthResult::SUCCESS_SUPERUSER_AUTH_CODE;
-    }
-
-    public function onException(Tracker $tracker, RequestSet $requestSet, Exception $e)
-    {
-        $this->rollbackTransaction();
-        parent::onException($tracker, $requestSet, $e);
-    }
-
-    private function rollbackTransaction()
-    {
-        if (!empty($this->transactionId)) {
-            $this->getDb()->rollback($this->transactionId);
-            $this->transactionId = null;
-        }
     }
 }

@@ -95,6 +95,65 @@ class Zend_Db_Adapter_Pdo_Sqlite extends Zend_Db_Adapter_Pdo_Abstract
     }
 
     /**
+     * Check for config options that are mandatory.
+     * Throw exceptions if any are missing.
+     *
+     * @param array $config
+     * @throws Zend_Db_Adapter_Exception
+     */
+    protected function _checkRequiredOptions(array $config)
+    {
+        // we need at least a dbname
+        if (! array_key_exists('dbname', $config)) {
+            /** @see Zend_Db_Adapter_Exception */
+            // require_once 'Zend/Db/Adapter/Exception.php';
+            throw new Zend_Db_Adapter_Exception("Configuration array must have a key for 'dbname' that names the database instance");
+        }
+    }
+
+    /**
+     * DSN builder
+     */
+    protected function _dsn()
+    {
+        return $this->_pdoType .':'. $this->_config['dbname'];
+    }
+
+    /**
+     * Special configuration for SQLite behavior: make sure that result sets
+     * contain keys like 'column' instead of 'table.column'.
+     *
+     * @throws Zend_Db_Adapter_Exception
+     */
+    protected function _connect()
+    {
+        /**
+         * if we already have a PDO object, no need to re-connect.
+         */
+        if ($this->_connection) {
+            return;
+        }
+
+        parent::_connect();
+
+        $retval = $this->_connection->exec('PRAGMA full_column_names=0');
+        if ($retval === false) {
+            $error = $this->_connection->errorInfo();
+            /** @see Zend_Db_Adapter_Exception */
+            // require_once 'Zend/Db/Adapter/Exception.php';
+            throw new Zend_Db_Adapter_Exception($error[2]);
+        }
+
+        $retval = $this->_connection->exec('PRAGMA short_column_names=1');
+        if ($retval === false) {
+            $error = $this->_connection->errorInfo();
+            /** @see Zend_Db_Adapter_Exception */
+            // require_once 'Zend/Db/Adapter/Exception.php';
+            throw new Zend_Db_Adapter_Exception($error[2]);
+        }
+    }
+
+    /**
      * Returns a list of the tables in the database.
      *
      * @return array
@@ -169,11 +228,11 @@ class Zend_Db_Adapter_Pdo_Sqlite extends Zend_Db_Adapter_Pdo_Abstract
             if (preg_match('/^((?:var)?char)\((\d+)\)/i', $row[$type], $matches)) {
                 $row[$type] = $matches[1];
                 $length = $matches[2];
-            } else {if (preg_match('/^decimal\((\d+),(\d+)\)/i', $row[$type], $matches)) {
+            } else if (preg_match('/^decimal\((\d+),(\d+)\)/i', $row[$type], $matches)) {
                 $row[$type] = 'DECIMAL';
                 $precision = $matches[1];
                 $scale = $matches[2];
-            }}
+            }
             if ((bool) $row[$pk]) {
                 $primary = true;
                 $primaryPosition = $p;
@@ -233,65 +292,6 @@ class Zend_Db_Adapter_Pdo_Sqlite extends Zend_Db_Adapter_Pdo_Abstract
         }
 
         return $sql;
-    }
-
-    /**
-     * Check for config options that are mandatory.
-     * Throw exceptions if any are missing.
-     *
-     * @param array $config
-     * @throws Zend_Db_Adapter_Exception
-     */
-    protected function _checkRequiredOptions(array $config)
-    {
-        // we need at least a dbname
-        if (! array_key_exists('dbname', $config)) {
-            /** @see Zend_Db_Adapter_Exception */
-            // require_once 'Zend/Db/Adapter/Exception.php';
-            throw new Zend_Db_Adapter_Exception("Configuration array must have a key for 'dbname' that names the database instance");
-        }
-    }
-
-    /**
-     * DSN builder
-     */
-    protected function _dsn()
-    {
-        return $this->_pdoType .':'. $this->_config['dbname'];
-    }
-
-    /**
-     * Special configuration for SQLite behavior: make sure that result sets
-     * contain keys like 'column' instead of 'table.column'.
-     *
-     * @throws Zend_Db_Adapter_Exception
-     */
-    protected function _connect()
-    {
-        /**
-         * if we already have a PDO object, no need to re-connect.
-         */
-        if ($this->_connection) {
-            return;
-        }
-
-        parent::_connect();
-
-        $retval = $this->_connection->exec('PRAGMA full_column_names=0');
-        if ($retval === false) {
-            $error = $this->_connection->errorInfo();
-            /** @see Zend_Db_Adapter_Exception */
-            // require_once 'Zend/Db/Adapter/Exception.php';
-            throw new Zend_Db_Adapter_Exception($error[2]);
-        }
-
-        $retval = $this->_connection->exec('PRAGMA short_column_names=1');
-        if ($retval === false) {
-            $error = $this->_connection->errorInfo();
-            /** @see Zend_Db_Adapter_Exception */
-            // require_once 'Zend/Db/Adapter/Exception.php';
-            throw new Zend_Db_Adapter_Exception($error[2]);
-        }
     }
 
 }

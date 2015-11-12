@@ -49,35 +49,13 @@ class GenerateUpdate extends GeneratePluginBase
         ));
     }
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return array
-     * @throws \RuntimeException
-     */
-    private function getComponent(InputInterface $input, OutputInterface $output)
+    private function getUpdateClassName($component, $version)
     {
-        $components   = $this->getPluginNames();
-        $components[] = 'core';
+        $updater   = new Updater();
+        $className = $updater->getUpdateClassName($component, $version);
+        $parts     = explode('\\', $className);
 
-        $validate = function ($component) use ($components) {
-            if (!in_array($component, $components)) {
-                throw new \InvalidArgumentException('You have to enter a name of an existing plugin or "core".');
-            }
-
-            return $component;
-        };
-
-        $component = $input->getOption('component');
-
-        if (empty($component)) {
-            $dialog    = $this->getHelperSet()->get('dialog');
-            $component = $dialog->askAndValidate($output, 'Enter the name of your plugin or "core": ', $validate, false, null, $components);
-        } else {
-            $validate($component);
-        }
-
-        return $component;
+        return end($parts);
     }
 
     private function getVersion($component)
@@ -111,12 +89,34 @@ class GenerateUpdate extends GeneratePluginBase
         return $className;
     }
 
-    private function getUpdateClassName($component, $version)
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return array
+     * @throws \RuntimeException
+     */
+    private function getComponent(InputInterface $input, OutputInterface $output)
     {
-        $updater   = new Updater();
-        $className = $updater->getUpdateClassName($component, $version);
-        $parts     = explode('\\', $className);
+        $components   = $this->getPluginNames();
+        $components[] = 'core';
 
-        return end($parts);
+        $validate = function ($component) use ($components) {
+            if (!in_array($component, $components)) {
+                throw new \InvalidArgumentException('You have to enter a name of an existing plugin or "core".');
+            }
+
+            return $component;
+        };
+
+        $component = $input->getOption('component');
+
+        if (empty($component)) {
+            $dialog    = $this->getHelperSet()->get('dialog');
+            $component = $dialog->askAndValidate($output, 'Enter the name of your plugin or "core": ', $validate, false, null, $components);
+        } else {
+            $validate($component);
+        }
+
+        return $component;
     }
 }

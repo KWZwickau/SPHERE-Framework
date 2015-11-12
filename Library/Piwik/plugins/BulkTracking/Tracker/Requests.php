@@ -64,6 +64,24 @@ class Requests
         return false;
     }
 
+    public function getRequestsArrayFromBulkRequest($rawData)
+    {
+        $rawData = trim($rawData);
+        $rawData = Common::sanitizeLineBreaks($rawData);
+
+        // POST data can be array of string URLs or array of arrays w/ visit info
+        $jsonData = json_decode($rawData, $assoc = true);
+
+        $tokenAuth = Common::getRequestVar('token_auth', false, 'string', $jsonData);
+
+        $requests = array();
+        if (isset($jsonData['requests'])) {
+            $requests = $jsonData['requests'];
+        }
+
+        return array($requests, $tokenAuth);
+    }
+
     public function initRequestsAndTokenAuth($rawData)
     {
         list($requests, $tokenAuth) = $this->getRequestsArrayFromBulkRequest($rawData);
@@ -89,23 +107,5 @@ class Requests
         }
 
         return array($validRequests, $tokenAuth);
-    }
-
-    public function getRequestsArrayFromBulkRequest($rawData)
-    {
-        $rawData = trim($rawData);
-        $rawData = Common::sanitizeLineBreaks($rawData);
-
-        // POST data can be array of string URLs or array of arrays w/ visit info
-        $jsonData = json_decode($rawData, $assoc = true);
-
-        $tokenAuth = Common::getRequestVar('token_auth', false, 'string', $jsonData);
-
-        $requests = array();
-        if (isset($jsonData['requests'])) {
-            $requests = $jsonData['requests'];
-        }
-
-        return array($requests, $tokenAuth);
     }
 }

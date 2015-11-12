@@ -8,12 +8,13 @@
  */
 namespace Piwik\Plugins\CustomVariables;
 
+use Piwik\Common;
 use Piwik\Config;
 use Piwik\DataAccess\LogAggregator;
 use Piwik\DataArray;
 use Piwik\Metrics;
-use Piwik\Tracker;
 use Piwik\Tracker\GoalManager;
+use Piwik\Tracker;
 
 require_once PIWIK_INCLUDE_PATH . '/libs/PiwikTracker/PiwikTracker.php';
 
@@ -105,6 +106,12 @@ class Archiver extends \Piwik\Plugin\Archiver
         $this->aggregateFromConversions($query, $keyField, $valueField);
     }
 
+    protected function getSelectAveragePrice()
+    {
+        $field = "custom_var_v" . \PiwikTracker::CVAR_INDEX_ECOMMERCE_ITEM_PRICE;
+        return LogAggregator::getSqlRevenue("AVG(log_link_visit_action." . $field . ")") . " as `" . Metrics::INDEX_ECOMMERCE_ITEM_PRICE_VIEWED . "`";
+    }
+
     protected function aggregateFromVisits($query, $keyField, $valueField)
     {
         while ($row = $query->fetch()) {
@@ -122,12 +129,6 @@ class Archiver extends \Piwik\Plugin\Archiver
             return $value;
         }
         return self::LABEL_CUSTOM_VALUE_NOT_DEFINED;
-    }
-
-    protected function getSelectAveragePrice()
-    {
-        $field = "custom_var_v" . \PiwikTracker::CVAR_INDEX_ECOMMERCE_ITEM_PRICE;
-        return LogAggregator::getSqlRevenue("AVG(log_link_visit_action." . $field . ")") . " as `" . Metrics::INDEX_ECOMMERCE_ITEM_PRICE_VIEWED . "`";
     }
 
     protected function aggregateFromActions($query, $keyField, $valueField)

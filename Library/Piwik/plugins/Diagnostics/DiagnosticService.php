@@ -38,13 +38,6 @@ class DiagnosticService
         $this->optionalDiagnostics = $this->removeDisabledDiagnostics($optionalDiagnostics, $disabledDiagnostics);
     }
 
-    private function removeDisabledDiagnostics(array $diagnostics, array $disabledDiagnostics)
-    {
-        return array_filter($diagnostics, function (Diagnostic $diagnostic) use ($disabledDiagnostics) {
-            return ! in_array($diagnostic, $disabledDiagnostics, true);
-        });
-    }
-
     /**
      * @return DiagnosticReport
      */
@@ -69,5 +62,12 @@ class DiagnosticService
         }
 
         return $results;
+    }
+
+    private function removeDisabledDiagnostics(array $diagnostics, array $disabledDiagnostics)
+    {
+        return array_filter($diagnostics, function (Diagnostic $diagnostic) use ($disabledDiagnostics) {
+            return ! in_array($diagnostic, $disabledDiagnostics, true);
+        });
     }
 }

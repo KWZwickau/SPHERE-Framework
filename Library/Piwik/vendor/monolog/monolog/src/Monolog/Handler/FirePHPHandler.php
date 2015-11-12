@@ -54,27 +54,34 @@ class FirePHPHandler extends AbstractProcessingHandler
     protected static $sendHeaders = true;
 
     /**
-     * BC getter for the sendHeaders property that has been made static
+     * Base header creation function used by init headers & record headers
+     *
+     * @param  array  $meta    Wildfire Plugin, Protocol & Structure Indexes
+     * @param  string $message Log message
+     * @return array  Complete header string ready for the client as key and message as value
      */
-    public function __get($property)
+    protected function createHeader(array $meta, $message)
     {
-        if ('sendHeaders' !== $property) {
-            throw new \InvalidArgumentException('Undefined property '.$property);
-        }
+        $header = sprintf('%s-%s', self::HEADER_PREFIX, join('-', $meta));
 
-        return static::$sendHeaders;
+        return array($header => $message);
     }
 
     /**
-     * BC setter for the sendHeaders property that has been made static
+     * Creates message header from record
+     *
+     * @see createHeader()
+     * @param  array  $record
+     * @return string
      */
-    public function __set($property, $value)
+    protected function createRecordHeader(array $record)
     {
-        if ('sendHeaders' !== $property) {
-            throw new \InvalidArgumentException('Undefined property '.$property);
-        }
-
-        static::$sendHeaders = $value;
+        // Wildfire is extensible to support multiple protocols & plugins in a single request,
+        // but we're not taking advantage of that (yet), so we're using "1" for simplicity's sake.
+        return $this->createHeader(
+            array(1, 1, 1, self::$messageIndex++),
+            $record['formatted']
+        );
     }
 
     /**
@@ -83,6 +90,36 @@ class FirePHPHandler extends AbstractProcessingHandler
     protected function getDefaultFormatter()
     {
         return new WildfireFormatter();
+    }
+
+    /**
+     * Wildfire initialization headers to enable message parsing
+     *
+     * @see createHeader()
+     * @see sendHeader()
+     * @return array
+     */
+    protected function getInitHeaders()
+    {
+        // Initial payload consists of required headers for Wildfire
+        return array_merge(
+            $this->createHeader(array('Protocol', 1), self::PROTOCOL_URI),
+            $this->createHeader(array(1, 'Structure', 1), self::STRUCTURE_URI),
+            $this->createHeader(array(1, 'Plugin', 1), self::PLUGIN_URI)
+        );
+    }
+
+    /**
+     * Send header string to the client
+     *
+     * @param string $header
+     * @param string $content
+     */
+    protected function sendHeader($header, $content)
+    {
+        if (!headers_sent() && self::$sendHeaders) {
+            header(sprintf('%s: %s', $header, $content));
+        }
     }
 
     /**
@@ -133,63 +170,26 @@ class FirePHPHandler extends AbstractProcessingHandler
     }
 
     /**
-     * Wildfire initialization headers to enable message parsing
-     *
-     * @see createHeader()
-     * @see sendHeader()
-     * @return array
+     * BC getter for the sendHeaders property that has been made static
      */
-    protected function getInitHeaders()
+    public function __get($property)
     {
-        // Initial payload consists of required headers for Wildfire
-        return array_merge(
-            $this->createHeader(array('Protocol', 1), self::PROTOCOL_URI),
-            $this->createHeader(array(1, 'Structure', 1), self::STRUCTURE_URI),
-            $this->createHeader(array(1, 'Plugin', 1), self::PLUGIN_URI)
-        );
-    }
-
-    /**
-     * Base header creation function used by init headers & record headers
-     *
-     * @param  array  $meta    Wildfire Plugin, Protocol & Structure Indexes
-     * @param  string $message Log message
-     * @return array  Complete header string ready for the client as key and message as value
-     */
-    protected function createHeader(array $meta, $message)
-    {
-        $header = sprintf('%s-%s', self::HEADER_PREFIX, join('-', $meta));
-
-        return array($header => $message);
-    }
-
-    /**
-     * Send header string to the client
-     *
-     * @param string $header
-     * @param string $content
-     */
-    protected function sendHeader($header, $content)
-    {
-        if (!headers_sent() && self::$sendHeaders) {
-            header(sprintf('%s: %s', $header, $content));
+        if ('sendHeaders' !== $property) {
+            throw new \InvalidArgumentException('Undefined property '.$property);
         }
+
+        return static::$sendHeaders;
     }
 
     /**
-     * Creates message header from record
-     *
-     * @see createHeader()
-     * @param  array  $record
-     * @return string
+     * BC setter for the sendHeaders property that has been made static
      */
-    protected function createRecordHeader(array $record)
+    public function __set($property, $value)
     {
-        // Wildfire is extensible to support multiple protocols & plugins in a single request,
-        // but we're not taking advantage of that (yet), so we're using "1" for simplicity's sake.
-        return $this->createHeader(
-            array(1, 1, 1, self::$messageIndex++),
-            $record['formatted']
-        );
+        if ('sendHeaders' !== $property) {
+            throw new \InvalidArgumentException('Undefined property '.$property);
+        }
+
+        static::$sendHeaders = $value;
     }
 }

@@ -22,6 +22,15 @@ class PeriodValidator
     }
 
     /**
+     * @param string $period
+     * @return bool
+     */
+    public function isPeriodAllowedForAPI($period)
+    {
+        return in_array($period, $this->getPeriodsAllowedForAPI());
+    }
+
+    /**
      * @return string[]
      */
     public function getPeriodsAllowedForUI()
@@ -29,15 +38,6 @@ class PeriodValidator
         $periodsAllowed = Config::getInstance()->General['enabled_periods_UI'];
 
         return array_map('trim', explode(',', $periodsAllowed));
-    }
-
-    /**
-     * @param string $period
-     * @return bool
-     */
-    public function isPeriodAllowedForAPI($period)
-    {
-        return in_array($period, $this->getPeriodsAllowedForAPI());
     }
 
     /**

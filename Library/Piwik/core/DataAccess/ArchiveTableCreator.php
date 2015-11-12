@@ -25,6 +25,11 @@ class ArchiveTableCreator
         return self::getTable($date, self::NUMERIC_TABLE);
     }
 
+    public static function getBlobTable(Date $date)
+    {
+        return self::getTable($date, self::BLOB_TABLE);
+    }
+
     protected static function getTable(Date $date, $type)
     {
         $tableNamePrefix = "archive_" . $type;
@@ -34,11 +39,6 @@ class ArchiveTableCreator
         self::createArchiveTablesIfAbsent($tableName, $tableNamePrefix);
 
         return $tableName;
-    }
-
-    public static function getTableMonthFromDate(Date $date)
-    {
-        return $date->toString('Y_m');
     }
 
     protected static function createArchiveTablesIfAbsent($tableName, $tableNamePrefix)
@@ -53,24 +53,19 @@ class ArchiveTableCreator
         }
     }
 
-    public static function refreshTableList($forceReload = false)
-    {
-        self::$tablesAlreadyInstalled = DbHelper::getTablesInstalled($forceReload);
-    }
-
     private static function getModel()
     {
         return new Model();
     }
 
-    public static function getBlobTable(Date $date)
-    {
-        return self::getTable($date, self::BLOB_TABLE);
-    }
-
     public static function clear()
     {
         self::$tablesAlreadyInstalled = null;
+    }
+
+    public static function refreshTableList($forceReload = false)
+    {
+        self::$tablesAlreadyInstalled = DbHelper::getTablesInstalled($forceReload);
     }
 
     /**
@@ -106,6 +101,11 @@ class ArchiveTableCreator
         $date      = str_replace(array('archive_numeric_', 'archive_blob_'), '', $tableName);
 
         return $date;
+    }
+
+    public static function getTableMonthFromDate(Date $date)
+    {
+        return $date->toString('Y_m');
     }
 
     public static function getTypeFromTableName($tableName)

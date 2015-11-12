@@ -19,6 +19,9 @@ namespace DeviceDetector\Parser;
  */
 class OperatingSystem extends ParserAbstract
 {
+    protected $fixtureFile = 'regexes/oss.yml';
+    protected $parserName = 'os';
+
     /**
      * Known operating systems mapped to their internal short codes
      *
@@ -101,6 +104,7 @@ class OperatingSystem extends ParserAbstract
         'POS' => 'palmOS',
         'WOS' => 'webOS'
     );
+
     /**
      * Operating system families mapped to the short codes of the associated operating systems
      *
@@ -131,8 +135,6 @@ class OperatingSystem extends ParserAbstract
         'Windows'               => array('WIN'),
         'Windows Mobile'        => array('WPH', 'WMO', 'WCE', 'WRT')
     );
-    protected $fixtureFile = 'regexes/oss.yml';
-    protected $parserName = 'os';
 
     /**
      * Returns all available operating systems
@@ -152,39 +154,6 @@ class OperatingSystem extends ParserAbstract
     public static function getAvailableOperatingSystemFamilies()
     {
         return self::$osFamilies;
-    }
-
-    /**
-     * Returns the operating system family for the given operating system
-     *
-     * @param $osLabel
-     * @return bool|string If false, "Unknown"
-     */
-    public static function getOsFamily($osLabel)
-    {
-        foreach (self::$osFamilies as $family => $labels) {
-            if (in_array($osLabel, $labels)) {
-                return $family;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Returns the full name for the given short name
-     *
-     * @param      $os
-     * @param bool $ver
-     *
-     * @return bool|string
-     */
-    public static function getNameFromId($os, $ver = false)
-    {
-        if (array_key_exists($os, self::$operatingSystems)) {
-            $osFullName = self::$operatingSystems[$os];
-            return trim($osFullName . " " . $ver);
-        }
-        return false;
     }
 
     public function parse()
@@ -237,5 +206,39 @@ class OperatingSystem extends ParserAbstract
         }
 
         return '';
+    }
+
+
+    /**
+     * Returns the operating system family for the given operating system
+     *
+     * @param $osLabel
+     * @return bool|string If false, "Unknown"
+     */
+    public static function getOsFamily($osLabel)
+    {
+        foreach (self::$osFamilies as $family => $labels) {
+            if (in_array($osLabel, $labels)) {
+                return $family;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns the full name for the given short name
+     *
+     * @param      $os
+     * @param bool $ver
+     *
+     * @return bool|string
+     */
+    public static function getNameFromId($os, $ver = false)
+    {
+        if (array_key_exists($os, self::$operatingSystems)) {
+            $osFullName = self::$operatingSystems[$os];
+            return trim($osFullName . " " . $ver);
+        }
+        return false;
     }
 }

@@ -74,18 +74,30 @@ class GenerateReport extends GeneratePluginBase
         ));
     }
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return array
-     * @throws \RuntimeException
-     */
-    protected function getPluginName(InputInterface $input, OutputInterface $output)
+    private function getOrder($category)
     {
-        $pluginNames = $this->getPluginNames();
-        $invalidName = 'You have to enter a name of an existing plugin.';
+        $order = 1;
 
-        return $this->askPluginNameAndValidate($input, $output, $pluginNames, $invalidName);
+        foreach (Report::getAllReports() as $report) {
+            if ($report->getCategory() === $category) {
+                if ($report->getOrder() > $order) {
+                    $order = $report->getOrder() + 1;
+                }
+            }
+        }
+
+        return $order;
+    }
+
+    private function getApiName($reportName)
+    {
+        $reportName = trim($reportName);
+        $reportName = str_replace(' ', '', $reportName);
+        $reportName = preg_replace("/[^A-Za-z0-9]/", '', $reportName);
+
+        $apiName = 'get' . ucfirst($reportName);
+
+        return $apiName;
     }
 
     /**
@@ -120,6 +132,36 @@ class GenerateReport extends GeneratePluginBase
         $reportName = ucfirst($reportName);
 
         return $reportName;
+    }
+
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return array
+     * @throws \RuntimeException
+     */
+    protected function getDocumentation(InputInterface $input, OutputInterface $output)
+    {
+        $validate = function ($documentation) {
+            if (empty($documentation)) {
+                return '';
+            }
+
+            return $documentation;
+        };
+
+        $documentation = $input->getOption('documentation');
+
+        if (empty($documentation)) {
+            $dialog = $this->getHelperSet()->get('dialog');
+            $documentation = $dialog->askAndValidate($output, 'Enter a documentation that describes the data of your report (you can leave it empty and define it later): ', $validate);
+        } else {
+            $validate($documentation);
+        }
+
+        $documentation = ucfirst($documentation);
+
+        return $documentation;
     }
 
     /**
@@ -170,36 +212,6 @@ class GenerateReport extends GeneratePluginBase
         $category = ucfirst($category);
 
         return $category;
-    }
-
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return array
-     * @throws \RuntimeException
-     */
-    protected function getDocumentation(InputInterface $input, OutputInterface $output)
-    {
-        $validate = function ($documentation) {
-            if (empty($documentation)) {
-                return '';
-            }
-
-            return $documentation;
-        };
-
-        $documentation = $input->getOption('documentation');
-
-        if (empty($documentation)) {
-            $dialog = $this->getHelperSet()->get('dialog');
-            $documentation = $dialog->askAndValidate($output, 'Enter a documentation that describes the data of your report (you can leave it empty and define it later): ', $validate);
-        } else {
-            $validate($documentation);
-        }
-
-        $documentation = ucfirst($documentation);
-
-        return $documentation;
     }
 
     /**
@@ -271,30 +283,18 @@ class GenerateReport extends GeneratePluginBase
         return array('new ' . $name . '()', 'use ' . $className . ';');
     }
 
-    private function getOrder($category)
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return array
+     * @throws \RuntimeException
+     */
+    protected function getPluginName(InputInterface $input, OutputInterface $output)
     {
-        $order = 1;
+        $pluginNames = $this->getPluginNames();
+        $invalidName = 'You have to enter a name of an existing plugin.';
 
-        foreach (Report::getAllReports() as $report) {
-            if ($report->getCategory() === $category) {
-                if ($report->getOrder() > $order) {
-                    $order = $report->getOrder() + 1;
-                }
-            }
-        }
-
-        return $order;
-    }
-
-    private function getApiName($reportName)
-    {
-        $reportName = trim($reportName);
-        $reportName = str_replace(' ', '', $reportName);
-        $reportName = preg_replace("/[^A-Za-z0-9]/", '', $reportName);
-
-        $apiName = 'get' . ucfirst($reportName);
-
-        return $apiName;
+        return $this->askPluginNameAndValidate($input, $output, $pluginNames, $invalidName);
     }
 
 }

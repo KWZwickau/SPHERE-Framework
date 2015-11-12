@@ -9,8 +9,8 @@
 namespace Piwik\Plugins\Ecommerce;
 
 use Piwik\Common;
-use Piwik\Piwik;
 use Piwik\Site;
+use Piwik\Piwik;
 
 class Widgets extends \Piwik\Plugin\Widgets
 {
@@ -22,8 +22,7 @@ class Widgets extends \Piwik\Plugin\Widgets
 
         $site = new Site($idSite);
         if ($site->isEcommerceEnabled()) {
-            $this->addWidget('General_Overview', 'widgetGoalReport',
-                array('idGoal' => Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER));
+            $this->addWidget('General_Overview', 'widgetGoalReport', array('idGoal' => Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER));
             $this->addWidget('Goals_EcommerceLog', 'getEcommerceLog');
         }
     }

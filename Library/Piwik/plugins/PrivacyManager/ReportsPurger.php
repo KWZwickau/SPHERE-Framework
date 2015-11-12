@@ -90,53 +90,6 @@ class ReportsPurger
     }
 
     /**
-     * Utility function. Creates a new instance of ReportsPurger with the supplied array
-     * of settings.
-     *
-     * $settings must contain the following keys:
-     * -'delete_reports_older_than': The number of months after which reports/metrics are
-     *                               considered old.
-     * -'delete_reports_keep_basic_metrics': 1 if basic metrics should be kept, 0 if otherwise.
-     * -'delete_reports_keep_day_reports': 1 if daily reports should be kept, 0 if otherwise.
-     * -'delete_reports_keep_week_reports': 1 if weekly reports should be kept, 0 if otherwise.
-     * -'delete_reports_keep_month_reports': 1 if monthly reports should be kept, 0 if otherwise.
-     * -'delete_reports_keep_year_reports': 1 if yearly reports should be kept, 0 if otherwise.
-     * -'delete_reports_keep_range_reports': 1 if range reports should be kept, 0 if otherwise.
-     * -'delete_reports_keep_segment_reports': 1 if reports for segments should be kept, 0 if otherwise.
-     * -'delete_logs_max_rows_per_query': Maximum number of rows to delete in one DELETE query.
-     */
-    public static function make($settings, $metricsToKeep)
-    {
-        return new ReportsPurger(
-            $settings['delete_reports_older_than'],
-            $settings['delete_reports_keep_basic_metrics'] == 1,
-            self::getReportPeriodsToKeep($settings),
-            $settings['delete_reports_keep_segment_reports'] == 1,
-            $metricsToKeep,
-            $settings['delete_logs_max_rows_per_query']
-        );
-    }
-
-    /**
-     * Utility function that returns an array period values based on the 'delete_reports_keep_*'
-     * settings. The period values returned are the integer values stored in the DB.
-     *
-     * @param array $settings The settings to use.
-     * @return array An array of period values that should be kept when purging old data.
-     */
-    private static function getReportPeriodsToKeep($settings)
-    {
-        $keepReportPeriods = array();
-        foreach (Piwik::$idPeriods as $strPeriod => $intPeriod) {
-            $optionName = "delete_reports_keep_{$strPeriod}_reports";
-            if ($settings[$optionName] == 1) {
-                $keepReportPeriods[] = $intPeriod;
-            }
-        }
-        return $keepReportPeriods;
-    }
-
-    /**
      * Purges old report/metric data.
      *
      * If $keepBasicMetrics is false, old numeric tables will be dropped, otherwise only
@@ -199,6 +152,57 @@ class ReportsPurger
     }
 
     /**
+     * Returns an array describing what data would be purged if purging were invoked.
+     *
+     * This function returns an array that maps table names with the number of rows
+     * that will be deleted. If a table name is mapped with self::DROP_TABLE, the table
+     * will be dropped.
+     *
+     * @return array
+     */
+    public function getPurgeEstimate()
+    {
+        $result = array();
+
+        // get archive tables that will be purged
+        list($oldNumericTables, $oldBlobTables) = $this->getArchiveTablesToPurge();
+
+        // process blob tables first, since archive status is stored in the numeric archives
+        if (empty($this->reportPeriodsToKeep) && !$this->keepSegmentReports) {
+            // not keeping any reports, so drop all tables
+            foreach ($oldBlobTables as $table) {
+                $result[$table] = self::DROP_TABLE;
+            }
+        } else {
+            // figure out which rows will be deleted
+            foreach ($oldBlobTables as $table) {
+                $rowCount = $this->getBlobTableDeleteCount($oldNumericTables, $table);
+                if ($rowCount > 0) {
+                    $result[$table] = $rowCount;
+                }
+            }
+        }
+
+        // deal w/ numeric tables
+        if ($this->keepBasicMetrics) {
+            // figure out which rows will be deleted
+            foreach ($oldNumericTables as $table) {
+                $rowCount = $this->getNumericTableDeleteCount($table);
+                if ($rowCount > 0) {
+                    $result[$table] = $rowCount;
+                }
+            }
+        } else {
+            // not keeping any metrics, so drop the entire table
+            foreach ($oldNumericTables as $table) {
+                $result[$table] = self::DROP_TABLE;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Utility function that finds every archive table whose reports are considered
      * old.
      *
@@ -250,6 +254,33 @@ class ReportsPurger
 
         return $reportDateYear < $toRemoveYear
         || ($reportDateYear == $toRemoveYear && $reportDateMonth <= $toRemoveMonth);
+    }
+
+    private function getNumericTableDeleteCount($table)
+    {
+        $maxIdArchive = Db::fetchOne("SELECT MAX(idarchive) FROM $table");
+
+        $sql = "SELECT COUNT(*) FROM $table
+                 WHERE name NOT IN ('" . implode("','", $this->metricsToKeep) . "')
+                   AND name NOT LIKE 'done%'
+                   AND idarchive >= ?
+                   AND idarchive < ?";
+
+        $segments = Db::segmentedFetchOne($sql, 0, $maxIdArchive, self::$selectSegmentSize);
+        return array_sum($segments);
+    }
+
+    private function getBlobTableDeleteCount($oldNumericTables, $table)
+    {
+        $maxIdArchive = Db::fetchOne("SELECT MAX(idarchive) FROM $table");
+
+        $sql = "SELECT COUNT(*) FROM $table
+                 WHERE " . $this->getBlobTableWhereExpr($oldNumericTables, $table) . "
+                   AND idarchive >= ?
+                   AND idarchive < ?";
+
+        $segments = Db::segmentedFetchOne($sql, 0, $maxIdArchive, self::$selectSegmentSize);
+        return array_sum($segments);
     }
 
     /** Returns SQL WHERE expression used to find reports that should be purged. */
@@ -310,81 +341,50 @@ class ReportsPurger
     }
 
     /**
-     * Returns an array describing what data would be purged if purging were invoked.
+     * Utility function. Creates a new instance of ReportsPurger with the supplied array
+     * of settings.
      *
-     * This function returns an array that maps table names with the number of rows
-     * that will be deleted. If a table name is mapped with self::DROP_TABLE, the table
-     * will be dropped.
-     *
-     * @return array
+     * $settings must contain the following keys:
+     * -'delete_reports_older_than': The number of months after which reports/metrics are
+     *                               considered old.
+     * -'delete_reports_keep_basic_metrics': 1 if basic metrics should be kept, 0 if otherwise.
+     * -'delete_reports_keep_day_reports': 1 if daily reports should be kept, 0 if otherwise.
+     * -'delete_reports_keep_week_reports': 1 if weekly reports should be kept, 0 if otherwise.
+     * -'delete_reports_keep_month_reports': 1 if monthly reports should be kept, 0 if otherwise.
+     * -'delete_reports_keep_year_reports': 1 if yearly reports should be kept, 0 if otherwise.
+     * -'delete_reports_keep_range_reports': 1 if range reports should be kept, 0 if otherwise.
+     * -'delete_reports_keep_segment_reports': 1 if reports for segments should be kept, 0 if otherwise.
+     * -'delete_logs_max_rows_per_query': Maximum number of rows to delete in one DELETE query.
      */
-    public function getPurgeEstimate()
+    public static function make($settings, $metricsToKeep)
     {
-        $result = array();
-
-        // get archive tables that will be purged
-        list($oldNumericTables, $oldBlobTables) = $this->getArchiveTablesToPurge();
-
-        // process blob tables first, since archive status is stored in the numeric archives
-        if (empty($this->reportPeriodsToKeep) && !$this->keepSegmentReports) {
-            // not keeping any reports, so drop all tables
-            foreach ($oldBlobTables as $table) {
-                $result[$table] = self::DROP_TABLE;
-            }
-        } else {
-            // figure out which rows will be deleted
-            foreach ($oldBlobTables as $table) {
-                $rowCount = $this->getBlobTableDeleteCount($oldNumericTables, $table);
-                if ($rowCount > 0) {
-                    $result[$table] = $rowCount;
-                }
-            }
-        }
-
-        // deal w/ numeric tables
-        if ($this->keepBasicMetrics) {
-            // figure out which rows will be deleted
-            foreach ($oldNumericTables as $table) {
-                $rowCount = $this->getNumericTableDeleteCount($table);
-                if ($rowCount > 0) {
-                    $result[$table] = $rowCount;
-                }
-            }
-        } else {
-            // not keeping any metrics, so drop the entire table
-            foreach ($oldNumericTables as $table) {
-                $result[$table] = self::DROP_TABLE;
-            }
-        }
-
-        return $result;
+        return new ReportsPurger(
+            $settings['delete_reports_older_than'],
+            $settings['delete_reports_keep_basic_metrics'] == 1,
+            self::getReportPeriodsToKeep($settings),
+            $settings['delete_reports_keep_segment_reports'] == 1,
+            $metricsToKeep,
+            $settings['delete_logs_max_rows_per_query']
+        );
     }
 
-    private function getBlobTableDeleteCount($oldNumericTables, $table)
+    /**
+     * Utility function that returns an array period values based on the 'delete_reports_keep_*'
+     * settings. The period values returned are the integer values stored in the DB.
+     *
+     * @param array $settings The settings to use.
+     * @return array An array of period values that should be kept when purging old data.
+     */
+    private static function getReportPeriodsToKeep($settings)
     {
-        $maxIdArchive = Db::fetchOne("SELECT MAX(idarchive) FROM $table");
-
-        $sql = "SELECT COUNT(*) FROM $table
-                 WHERE " . $this->getBlobTableWhereExpr($oldNumericTables, $table) . "
-                   AND idarchive >= ?
-                   AND idarchive < ?";
-
-        $segments = Db::segmentedFetchOne($sql, 0, $maxIdArchive, self::$selectSegmentSize);
-        return array_sum($segments);
-    }
-
-    private function getNumericTableDeleteCount($table)
-    {
-        $maxIdArchive = Db::fetchOne("SELECT MAX(idarchive) FROM $table");
-
-        $sql = "SELECT COUNT(*) FROM $table
-                 WHERE name NOT IN ('" . implode("','", $this->metricsToKeep) . "')
-                   AND name NOT LIKE 'done%'
-                   AND idarchive >= ?
-                   AND idarchive < ?";
-
-        $segments = Db::segmentedFetchOne($sql, 0, $maxIdArchive, self::$selectSegmentSize);
-        return array_sum($segments);
+        $keepReportPeriods = array();
+        foreach (Piwik::$idPeriods as $strPeriod => $intPeriod) {
+            $optionName = "delete_reports_keep_{$strPeriod}_reports";
+            if ($settings[$optionName] == 1) {
+                $keepReportPeriods[] = $intPeriod;
+            }
+        }
+        return $keepReportPeriods;
     }
 }
 

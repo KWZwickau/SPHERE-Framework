@@ -18,12 +18,12 @@ class Chart
 {
     // the data kept here conforms to the jqplot data layout
     // @see http://www.jqplot.com/docs/files/jqPlotOptions-txt.html
-    public $properties;
     protected $series = array();
     protected $data = array();
+    protected $axes = array();
 
     // temporary
-    protected $axes = array();
+    public $properties;
 
     public function setAxisXLabels($xLabels)
     {

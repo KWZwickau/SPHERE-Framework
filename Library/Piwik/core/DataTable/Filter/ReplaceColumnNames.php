@@ -8,9 +8,9 @@
  */
 namespace Piwik\DataTable\Filter;
 
-use Piwik\DataTable;
 use Piwik\DataTable\BaseFilter;
 use Piwik\DataTable\Simple;
+use Piwik\DataTable;
 use Piwik\Metrics;
 use Piwik\Piwik;
 use Piwik\Tracker\GoalManager;
@@ -77,6 +77,18 @@ class ReplaceColumnNames extends BaseFilter
     }
 
     /**
+     * @param DataTable $table
+     */
+    protected function filterTable($table)
+    {
+        foreach ($table->getRows() as $row) {
+            $newColumns = $this->getRenamedColumns($row->getColumns());
+            $row->setColumns($newColumns);
+            $this->filterSubTable($row);
+        }
+    }
+
+    /**
      * @param Simple $table
      */
     protected function filterSimple(Simple $table)
@@ -101,18 +113,6 @@ class ReplaceColumnNames extends BaseFilter
             $newName = $this->mappingToApply[$column];
         }
         return $newName;
-    }
-
-    /**
-     * @param DataTable $table
-     */
-    protected function filterTable($table)
-    {
-        foreach ($table->getRows() as $row) {
-            $newColumns = $this->getRenamedColumns($row->getColumns());
-            $row->setColumns($newColumns);
-            $this->filterSubTable($row);
-        }
     }
 
     /**

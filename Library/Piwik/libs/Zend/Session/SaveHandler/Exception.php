@@ -34,5 +34,4 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Zend_Session_SaveHandler_Exception extends Zend_Session_Exception
-{
-}
+{}

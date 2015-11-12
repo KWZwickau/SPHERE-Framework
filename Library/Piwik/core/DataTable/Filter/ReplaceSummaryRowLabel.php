@@ -8,8 +8,8 @@
  */
 namespace Piwik\DataTable\Filter;
 
-use Piwik\DataTable;
 use Piwik\DataTable\BaseFilter;
+use Piwik\DataTable;
 use Piwik\Piwik;
 
 /**

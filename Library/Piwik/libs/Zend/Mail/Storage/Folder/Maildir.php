@@ -162,10 +162,10 @@ class Zend_Mail_Storage_Folder_Maildir extends Zend_Mail_Storage_Maildir impleme
                     array_push($folderStack, $parentFolder);
                     $parentFolder = $folder;
                     break;
-                } else {if ($stack) {
+                } else if ($stack) {
                     $parent = array_pop($stack);
                     $parentFolder = array_pop($folderStack);
-                }}
+                }
             } while ($stack);
             if (!$stack) {
                 /**
@@ -174,44 +174,6 @@ class Zend_Mail_Storage_Folder_Maildir extends Zend_Mail_Storage_Maildir impleme
                 // require_once 'Zend/Mail/Storage/Exception.php';
                 throw new Zend_Mail_Storage_Exception('error while reading maildir');
             }
-        }
-    }
-
-    /**
-     * select given folder
-     *
-     * folder must be selectable!
-     *
-     * @param Zend_Mail_Storage_Folder|string $globalName global name of folder or instance for subfolder
-     * @return null
-     * @throws Zend_Mail_Storage_Exception
-     */
-    public function selectFolder($globalName)
-    {
-        $this->_currentFolder = (string)$globalName;
-
-        // getting folder from folder tree for validation
-        $folder = $this->getFolders($this->_currentFolder);
-
-        try {
-            $this->_openMaildir($this->_rootdir . '.' . $folder->getGlobalName());
-        } catch(Zend_Mail_Storage_Exception $e) {
-            // check what went wrong
-            if (!$folder->isSelectable()) {
-                /**
-                 * @see Zend_Mail_Storage_Exception
-                 */
-                // require_once 'Zend/Mail/Storage/Exception.php';
-                throw new Zend_Mail_Storage_Exception("{$this->_currentFolder} is not selectable", 0, $e);
-            }
-            // seems like file has vanished; rebuilding folder tree - but it's still an exception
-            $this->_buildFolderTree($this->_rootdir);
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception('seems like the maildir has vanished, I\'ve rebuild the ' .
-                                                         'folder tree, search for an other folder and try again', 0, $e);
         }
     }
 
@@ -250,6 +212,44 @@ class Zend_Mail_Storage_Folder_Maildir extends Zend_Mail_Storage_Maildir impleme
             throw new Zend_Mail_Storage_Exception("folder $rootFolder not found");
         }
         return $currentFolder;
+    }
+
+    /**
+     * select given folder
+     *
+     * folder must be selectable!
+     *
+     * @param Zend_Mail_Storage_Folder|string $globalName global name of folder or instance for subfolder
+     * @return null
+     * @throws Zend_Mail_Storage_Exception
+     */
+    public function selectFolder($globalName)
+    {
+        $this->_currentFolder = (string)$globalName;
+
+        // getting folder from folder tree for validation
+        $folder = $this->getFolders($this->_currentFolder);
+
+        try {
+            $this->_openMaildir($this->_rootdir . '.' . $folder->getGlobalName());
+        } catch(Zend_Mail_Storage_Exception $e) {
+            // check what went wrong
+            if (!$folder->isSelectable()) {
+                /**
+                 * @see Zend_Mail_Storage_Exception
+                 */
+                // require_once 'Zend/Mail/Storage/Exception.php';
+                throw new Zend_Mail_Storage_Exception("{$this->_currentFolder} is not selectable", 0, $e);
+            }
+            // seems like file has vanished; rebuilding folder tree - but it's still an exception
+            $this->_buildFolderTree($this->_rootdir);
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception('seems like the maildir has vanished, I\'ve rebuild the ' .
+                                                         'folder tree, search for an other folder and try again', 0, $e);
+        }
     }
 
     /**

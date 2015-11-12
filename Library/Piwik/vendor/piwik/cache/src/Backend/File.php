@@ -42,23 +42,6 @@ class File extends PhpFileCache implements Backend
         parent::__construct($directory, $extension);
     }
 
-    private function createDirectory($path)
-    {
-        if (!is_dir($path)) {
-            // the mode in mkdir is modified by the current umask
-            @mkdir($path, 0750, $recursive = true);
-        }
-
-        // try to overcome restrictive umask (mis-)configuration
-        if (!is_writable($path)) {
-            @chmod($path, 0755);
-            if (!is_writable($path)) {
-                @chmod($path, 0775);
-                // enough! we're not going to make the directory world-writeable
-            }
-        }
-    }
-
     public function doFetch($id)
     {
         if (self::$invalidateOpCacheBeforeRead) {
@@ -66,37 +49,6 @@ class File extends PhpFileCache implements Backend
         }
 
         return parent::doFetch($id);
-    }
-
-    private function invalidateCacheFile($id)
-    {
-        $filename = $this->getFilename($id);
-        $this->opCacheInvalidate($filename);
-    }
-
-    /**
-     * @param string $id
-     *
-     * @return string
-     */
-    protected function getFilename($id)
-    {
-        $path = $this->directory . DIRECTORY_SEPARATOR;
-        $id   = preg_replace('@[\\\/:"*?<>|]+@', '', $id);
-
-        return $path . $id . $this->extension;
-    }
-
-    private function opCacheInvalidate($filepath)
-    {
-        if (is_file($filepath)) {
-            if (function_exists('opcache_invalidate')) {
-                @opcache_invalidate($filepath, $force = true);
-            }
-            if (function_exists('apc_delete_file')) {
-                @apc_delete_file($filepath);
-            }
-        }
     }
 
     public function doContains($id)
@@ -144,6 +96,37 @@ class File extends PhpFileCache implements Backend
         parent::doFlush();
     }
 
+    private function invalidateCacheFile($id)
+    {
+        $filename = $this->getFilename($id);
+        $this->opCacheInvalidate($filename);
+    }
+
+    /**
+     * @param string $id
+     *
+     * @return string
+     */
+    protected function getFilename($id)
+    {
+        $path = $this->directory . DIRECTORY_SEPARATOR;
+        $id   = preg_replace('@[\\\/:"*?<>|]+@', '', $id);
+
+        return $path . $id . $this->extension;
+    }
+
+    private function opCacheInvalidate($filepath)
+    {
+        if (is_file($filepath)) {
+            if (function_exists('opcache_invalidate')) {
+                @opcache_invalidate($filepath, $force = true);
+            }
+            if (function_exists('apc_delete_file')) {
+                @apc_delete_file($filepath);
+            }
+        }
+    }
+
     /**
      * @return \Iterator
      */
@@ -153,5 +136,22 @@ class File extends PhpFileCache implements Backend
         $iterator = new \RecursiveDirectoryIterator($this->directory);
         $iterator = new \RecursiveIteratorIterator($iterator);
         return new \RegexIterator($iterator, $pattern);
+    }
+
+    private function createDirectory($path)
+    {
+        if (!is_dir($path)) {
+            // the mode in mkdir is modified by the current umask
+            @mkdir($path, 0750, $recursive = true);
+        }
+
+        // try to overcome restrictive umask (mis-)configuration
+        if (!is_writable($path)) {
+            @chmod($path, 0755);
+            if (!is_writable($path)) {
+                @chmod($path, 0775);
+                // enough! we're not going to make the directory world-writeable
+            }
+        }
     }
 }

@@ -20,6 +20,16 @@ class LocalTime extends VisitDimension
     protected $columnName = 'visitor_localtime';
     protected $columnType = 'TIME NOT NULL';
 
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('visitLocalHour');
+        $segment->setName('VisitTime_ColumnLocalTime');
+        $segment->setSqlSegment('HOUR(log_visit.visitor_localtime)');
+        $segment->setAcceptedValues('0, 1, 2, 3, ..., 20, 21, 22, 23');
+        $this->addSegment($segment);
+    }
+
     public function getName()
     {
         return Piwik::translate('VisitTime_ColumnLocalTime');
@@ -34,15 +44,5 @@ class LocalTime extends VisitDimension
     public function onNewVisit(Request $request, Visitor $visitor, $action)
     {
         return $request->getLocalTime();
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('visitLocalHour');
-        $segment->setName('VisitTime_ColumnLocalTime');
-        $segment->setSqlSegment('HOUR(log_visit.visitor_localtime)');
-        $segment->setAcceptedValues('0, 1, 2, 3, ..., 20, 21, 22, 23');
-        $this->addSegment($segment);
     }
 }

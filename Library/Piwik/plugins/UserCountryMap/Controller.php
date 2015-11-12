@@ -28,7 +28,7 @@ class Controller extends \Piwik\Plugin\Controller
 {
     // By default plot up to the last 30 days of visitors on the map, for low traffic sites
     const REAL_TIME_WINDOW = 'last30';
-
+    
     /**
      * @var Translator
      */
@@ -50,7 +50,7 @@ class Controller extends \Piwik\Plugin\Controller
 
         $period = Common::getRequestVar('period');
         $date = Common::getRequestVar('date');
-        $segment = $segmentOverride ?: Request::getRawSegmentFromRequest() ?: '';
+        $segment = $segmentOverride ? : Request::getRawSegmentFromRequest() ? : '';
         $token_auth = Piwik::getCurrentUserTokenAuth();
 
         $view = new View('@UserCountryMap/visitorMap');
@@ -79,27 +79,27 @@ class Controller extends \Piwik\Plugin\Controller
 
         // some translations
         $view->localeJSON = json_encode(array(
-            'nb_visits' => $this->translator->translate('General_NVisits'),
-            'one_visit' => $this->translator->translate('General_OneVisit'),
-            'no_visit' => $this->translator->translate('UserCountryMap_NoVisit'),
-            'nb_actions' => $this->translator->translate('VisitsSummary_NbActionsDescription'),
-            'nb_actions_per_visit' => $this->translator->translate('VisitsSummary_NbActionsPerVisit'),
-            'bounce_rate' => $this->translator->translate('VisitsSummary_NbVisitsBounced'),
-            'avg_time_on_site' => $this->translator->translate('VisitsSummary_AverageVisitDuration'),
-            'and_n_others' => $this->translator->translate('UserCountryMap_AndNOthers'),
-            'no_data' => $this->translator->translate('CoreHome_ThereIsNoDataForThisReport'),
-            'nb_uniq_visitors' => $this->translator->translate('VisitsSummary_NbUniqueVisitors'),
-            'nb_users' => $this->translator->translate('VisitsSummary_NbUsers'),
+             'nb_visits'            => $this->translator->translate('General_NVisits'),
+             'one_visit'            => $this->translator->translate('General_OneVisit'),
+             'no_visit'             => $this->translator->translate('UserCountryMap_NoVisit'),
+             'nb_actions'           => $this->translator->translate('VisitsSummary_NbActionsDescription'),
+             'nb_actions_per_visit' => $this->translator->translate('VisitsSummary_NbActionsPerVisit'),
+             'bounce_rate'          => $this->translator->translate('VisitsSummary_NbVisitsBounced'),
+             'avg_time_on_site'     => $this->translator->translate('VisitsSummary_AverageVisitDuration'),
+             'and_n_others'         => $this->translator->translate('UserCountryMap_AndNOthers'),
+             'no_data'              => $this->translator->translate('CoreHome_ThereIsNoDataForThisReport'),
+             'nb_uniq_visitors'     => $this->translator->translate('VisitsSummary_NbUniqueVisitors'),
+             'nb_users'             => $this->translator->translate('VisitsSummary_NbUsers'),
         ));
 
         $view->reqParamsJSON = $this->getEnrichedRequest($params = array(
-            'period' => $period,
-            'idSite' => $idSite,
-            'date' => $date,
-            'segment' => $segment,
-            'token_auth' => $token_auth,
+            'period'                      => $period,
+            'idSite'                      => $idSite,
+            'date'                        => $date,
+            'segment'                     => $segment,
+            'token_auth'                  => $token_auth,
             'enable_filter_excludelowpop' => 1,
-            'filter_excludelowpop_value' => -1
+            'filter_excludelowpop_value'  => -1
         ));
 
         $view->metrics = $config['metrics'] = $this->getMetrics($idSite, $period, $date, $token_auth);
@@ -113,7 +113,7 @@ class Controller extends \Piwik\Plugin\Controller
         $countries = array_keys($regionDataProvider->getCountryList());
 
         foreach ($countries AS $country) {
-            $countriesByIso[strtoupper($country)] = Piwik::translate('Intl_Country_' . strtoupper($country));
+            $countriesByIso[strtoupper($country)] = Piwik::translate('Intl_Country_'.strtoupper($country));
         }
 
         $view->countriesByIso = $countriesByIso;
@@ -128,106 +128,6 @@ class Controller extends \Piwik\Plugin\Controller
         );
 
         return $view->render();
-    }
-
-    private function checkUserCountryPluginEnabled()
-    {
-        if (!\Piwik\Plugin\Manager::getInstance()->isPluginActivated('UserCountry')) {
-            throw new Exception($this->translator->translate('General_Required', 'Plugin UserCountry'));
-        }
-    }
-
-    private function _report(
-        $module,
-        $action,
-        $idSite,
-        $period,
-        $date,
-        $token_auth,
-        $filter_by_country = false,
-        $segmentOverride = false
-    ) {
-        return $this->getApiRequestUrl('API', 'getProcessedReport&apiModule=' . $module . '&apiAction=' . $action,
-            $idSite, $period, $date, $token_auth, $filter_by_country, $segmentOverride);
-    }
-
-    private function getApiRequestUrl(
-        $module,
-        $action,
-        $idSite,
-        $period,
-        $date,
-        $token_auth,
-        $filter_by_country = false,
-        $segmentOverride = false
-    ) {
-        // use processed reports
-        $url = "?module=" . $module
-            . "&method=" . $module . "." . $action . "&format=JSON"
-            . "&idSite=" . $idSite
-            . "&period=" . $period
-            . "&date=" . $date
-            . "&token_auth=" . $token_auth
-            . "&segment=" . ($segmentOverride ?: Request::getRawSegmentFromRequest())
-            . "&enable_filter_excludelowpop=1"
-            . "&showRawMetrics=1";
-
-        if ($filter_by_country) {
-            $url .= "&filter_column=country"
-                . "&filter_sort_column=nb_visits"
-                . "&filter_limit=-1"
-                . "&filter_pattern=";
-        } else {
-            $url .= "&filter_limit=-1";
-        }
-        return $url;
-    }
-
-    private function getEnrichedRequest($params, $encode = true)
-    {
-        $params['format'] = 'json';
-        $params['showRawMetrics'] = 1;
-        if (empty($params['segment'])) {
-            $segment = \Piwik\API\Request::getRawSegmentFromRequest();
-            if (!empty($segment)) {
-                $params['segment'] = urldecode($segment);
-            }
-        }
-
-        if ($encode) {
-            $params = json_encode($params);
-        }
-        return $params;
-    }
-
-    private function getMetrics($idSite, $period, $date, $token_auth)
-    {
-        $request = new Request(
-            'method=API.getMetadata&format=PHP'
-            . '&apiModule=UserCountry&apiAction=getCountry'
-            . '&idSite=' . $idSite
-            . '&period=' . $period
-            . '&date=' . $date
-            . '&token_auth=' . $token_auth
-            . '&filter_limit=-1'
-        );
-        $metaData = unserialize($request->process());
-
-        $metrics = array();
-        if (!empty($metaData[0]['metrics']) && is_array($metaData[0]['metrics'])) {
-            foreach ($metaData[0]['metrics'] as $id => $val) {
-                // todo: should use SettingsPiwik::isUniqueVisitorsEnabled ?
-                if (Common::getRequestVar('period') == 'day' || $id != 'nb_uniq_visitors') {
-                    $metrics[] = array($id, $val);
-                }
-            }
-        }
-        if (!empty($metaData[0]['processedMetrics']) && is_array($metaData[0]['processedMetrics'])) {
-            foreach ($metaData[0]['processedMetrics'] as $id => $val) {
-                $metrics[] = array($id, $val);
-            }
-        }
-        return $metrics;
     }
 
     /**
@@ -270,26 +170,26 @@ class Controller extends \Piwik\Plugin\Controller
 
         // some translations
         $locale = array(
-            'nb_actions' => $this->translator->translate('VisitsSummary_NbActionsDescription'),
-            'local_time' => $this->translator->translate('VisitTime_ColumnLocalTime'),
-            'from' => $this->translator->translate('General_FromReferrer'),
-            'seconds' => $this->translator->translate('Intl_Seconds'),
-            'seconds_ago' => $this->translator->translate('UserCountryMap_SecondsAgo'),
-            'minutes' => $this->translator->translate('Intl_Minutes'),
-            'minutes_ago' => $this->translator->translate('UserCountryMap_MinutesAgo'),
-            'hours' => $this->translator->translate('Intl_Hours'),
-            'hours_ago' => $this->translator->translate('UserCountryMap_HoursAgo'),
-            'days_ago' => $this->translator->translate('UserCountryMap_DaysAgo'),
-            'actions' => $this->translator->translate('VisitsSummary_NbPageviewsDescription'),
-            'searches' => $this->translator->translate('UserCountryMap_Searches'),
+            'nb_actions'       => $this->translator->translate('VisitsSummary_NbActionsDescription'),
+            'local_time'       => $this->translator->translate('VisitTime_ColumnLocalTime'),
+            'from'             => $this->translator->translate('General_FromReferrer'),
+            'seconds'          => $this->translator->translate('Intl_Seconds'),
+            'seconds_ago'      => $this->translator->translate('UserCountryMap_SecondsAgo'),
+            'minutes'          => $this->translator->translate('Intl_Minutes'),
+            'minutes_ago'      => $this->translator->translate('UserCountryMap_MinutesAgo'),
+            'hours'            => $this->translator->translate('Intl_Hours'),
+            'hours_ago'        => $this->translator->translate('UserCountryMap_HoursAgo'),
+            'days_ago'         => $this->translator->translate('UserCountryMap_DaysAgo'),
+            'actions'          => $this->translator->translate('VisitsSummary_NbPageviewsDescription'),
+            'searches'         => $this->translator->translate('UserCountryMap_Searches'),
             'goal_conversions' => $this->translator->translate('UserCountryMap_GoalConversions'),
         );
 
-        $segment = $segmentOverride ?: Request::getRawSegmentFromRequest() ?: '';
+        $segment = $segmentOverride ? : Request::getRawSegmentFromRequest() ? : '';
         $params = array(
-            'period' => 'range',
-            'idSite' => $idSite,
-            'segment' => $segment,
+            'period'     => 'range',
+            'idSite'     => $idSite,
+            'segment'    => $segment,
             'token_auth' => $token_auth,
         );
 
@@ -301,22 +201,106 @@ class Controller extends \Piwik\Plugin\Controller
         $reqParams = $this->getEnrichedRequest($params, $encode = false);
 
         $view->config = array(
-            'metrics' => array(),
-            'svgBasePath' => $view->piwikUrl . 'plugins/UserCountryMap/svg/',
+            'metrics'            => array(),
+            'svgBasePath'        => $view->piwikUrl . 'plugins/UserCountryMap/svg/',
             'liveRefreshAfterMs' => $liveRefreshAfterMs,
-            '_' => $locale,
-            'reqParams' => $reqParams,
-            'siteHasGoals' => $hasGoals,
-            'maxVisits' => $maxVisits,
-            'changeVisitAlpha' => Common::getRequestVar('changeVisitAlpha', true, 'int'),
-            'removeOldVisits' => Common::getRequestVar('removeOldVisits', true, 'int'),
-            'showFooterMessage' => Common::getRequestVar('showFooterMessage', true, 'int'),
-            'showDateTime' => Common::getRequestVar('showDateTime', true, 'int'),
+            '_'                  => $locale,
+            'reqParams'          => $reqParams,
+            'siteHasGoals'       => $hasGoals,
+            'maxVisits'          => $maxVisits,
+            'changeVisitAlpha'   => Common::getRequestVar('changeVisitAlpha', true, 'int'),
+            'removeOldVisits'    => Common::getRequestVar('removeOldVisits', true, 'int'),
+            'showFooterMessage'  => Common::getRequestVar('showFooterMessage', true, 'int'),
+            'showDateTime'       => Common::getRequestVar('showDateTime', true, 'int'),
             'doNotRefreshVisits' => Common::getRequestVar('doNotRefreshVisits', false, 'int'),
-            'enableAnimation' => Common::getRequestVar('enableAnimation', true, 'int'),
-            'forceNowValue' => Common::getRequestVar('forceNowValue', false, 'int')
+            'enableAnimation'    => Common::getRequestVar('enableAnimation', true, 'int'),
+            'forceNowValue'      => Common::getRequestVar('forceNowValue', false, 'int')
         );
 
         return $view->render();
+    }
+
+    private function getEnrichedRequest($params, $encode = true)
+    {
+        $params['format'] = 'json';
+        $params['showRawMetrics'] = 1;
+        if (empty($params['segment'])) {
+            $segment = \Piwik\API\Request::getRawSegmentFromRequest();
+            if (!empty($segment)) {
+                $params['segment'] = urldecode($segment);
+            }
+        }
+
+        if ($encode) {
+            $params = json_encode($params);
+        }
+        return $params;
+    }
+
+    private function checkUserCountryPluginEnabled()
+    {
+        if (!\Piwik\Plugin\Manager::getInstance()->isPluginActivated('UserCountry')) {
+            throw new Exception($this->translator->translate('General_Required', 'Plugin UserCountry'));
+        }
+    }
+
+    private function getMetrics($idSite, $period, $date, $token_auth)
+    {
+        $request = new Request(
+            'method=API.getMetadata&format=PHP'
+            . '&apiModule=UserCountry&apiAction=getCountry'
+            . '&idSite=' . $idSite
+            . '&period=' . $period
+            . '&date=' . $date
+            . '&token_auth=' . $token_auth
+            . '&filter_limit=-1'
+        );
+        $metaData = unserialize($request->process());
+
+        $metrics = array();
+        if (!empty($metaData[0]['metrics']) && is_array($metaData[0]['metrics'])) {
+            foreach ($metaData[0]['metrics'] as $id => $val) {
+                // todo: should use SettingsPiwik::isUniqueVisitorsEnabled ?
+                if (Common::getRequestVar('period') == 'day' || $id != 'nb_uniq_visitors') {
+                    $metrics[] = array($id, $val);
+                }
+            }
+        }
+        if (!empty($metaData[0]['processedMetrics']) && is_array($metaData[0]['processedMetrics'])) {
+            foreach ($metaData[0]['processedMetrics'] as $id => $val) {
+                $metrics[] = array($id, $val);
+            }
+        }
+        return $metrics;
+    }
+
+    private function getApiRequestUrl($module, $action, $idSite, $period, $date, $token_auth, $filter_by_country = false, $segmentOverride = false)
+    {
+        // use processed reports
+        $url = "?module=" . $module
+            . "&method=" . $module . "." . $action . "&format=JSON"
+            . "&idSite=" . $idSite
+            . "&period=" . $period
+            . "&date=" . $date
+            . "&token_auth=" . $token_auth
+            . "&segment=" . ($segmentOverride ? : Request::getRawSegmentFromRequest())
+            . "&enable_filter_excludelowpop=1"
+            . "&showRawMetrics=1";
+
+        if ($filter_by_country) {
+            $url .= "&filter_column=country"
+                . "&filter_sort_column=nb_visits"
+                . "&filter_limit=-1"
+                . "&filter_pattern=";
+        } else {
+            $url .= "&filter_limit=-1";
+        }
+        return $url;
+    }
+
+    private function _report($module, $action, $idSite, $period, $date, $token_auth, $filter_by_country = false, $segmentOverride = false)
+    {
+        return $this->getApiRequestUrl('API', 'getProcessedReport&apiModule=' . $module . '&apiAction=' . $action,
+            $idSite, $period, $date, $token_auth, $filter_by_country, $segmentOverride);
     }
 }

@@ -71,13 +71,13 @@ class CoreTranslations extends ValidateAbstract
         if (!preg_match('/^([a-z]{2})_([A-Z]{2})\.UTF-8$/', $translations['General']['Locale'], $matches)) {
             $this->message = self::ERRORSTATE_LOCALEINVALID;
             return false;
-        } else {if (!array_key_exists($matches[1], $allLanguages)) {
+        } else if (!array_key_exists($matches[1], $allLanguages)) {
             $this->message = self::ERRORSTATE_LOCALEINVALIDLANGUAGE;
             return false;
-        } else {if (!array_key_exists(strtolower($matches[2]), $allCountries)) {
+        } else if (!array_key_exists(strtolower($matches[2]), $allCountries)) {
             $this->message = self::ERRORSTATE_LOCALEINVALIDCOUNTRY;
             return false;
-        }}}
+        }
 
         return true;
     }

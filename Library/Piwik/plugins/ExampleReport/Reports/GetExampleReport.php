@@ -21,36 +21,6 @@ use Piwik\View;
  */
 class GetExampleReport extends Base
 {
-    /**
-     * Here you can configure how your report should be displayed. For instance whether your report supports a search
-     * etc. You can also change the default request config. For instance change how many rows are displayed by default.
-     *
-     * @param ViewDataTable $view
-     */
-    public function configureView(ViewDataTable $view)
-    {
-        if (!empty($this->dimension)) {
-            $view->config->addTranslations(array('label' => $this->dimension->getName()));
-        }
-
-        // $view->config->show_search = false;
-        // $view->requestConfig->filter_sort_column = 'nb_visits';
-        // $view->requestConfig->filter_limit = 10';
-
-        $view->config->columns_to_display = array_merge(array('label'), $this->metrics);
-    }
-
-    /**
-     * Here you can define related reports that will be shown below the reports. Just return an array of related
-     * report instances if there are any.
-     *
-     * @return \Piwik\Plugin\Report[]
-     */
-    public function getRelatedReports()
-    {
-        return array(); // eg return array(new XyzReport());
-    }
-
     protected function init()
     {
         parent::init();
@@ -88,6 +58,36 @@ class GetExampleReport extends Base
     }
 
     /**
+     * Here you can configure how your report should be displayed. For instance whether your report supports a search
+     * etc. You can also change the default request config. For instance change how many rows are displayed by default.
+     *
+     * @param ViewDataTable $view
+     */
+    public function configureView(ViewDataTable $view)
+    {
+        if (!empty($this->dimension)) {
+            $view->config->addTranslations(array('label' => $this->dimension->getName()));
+        }
+
+        // $view->config->show_search = false;
+        // $view->requestConfig->filter_sort_column = 'nb_visits';
+        // $view->requestConfig->filter_limit = 10';
+
+        $view->config->columns_to_display = array_merge(array('label'), $this->metrics);
+    }
+
+    /**
+     * Here you can define related reports that will be shown below the reports. Just return an array of related
+     * report instances if there are any.
+     *
+     * @return \Piwik\Plugin\Report[]
+     */
+    public function getRelatedReports()
+    {
+        return array(); // eg return array(new XyzReport());
+    }
+
+    /**
      * A report is usually completely automatically rendered for you but you can render the report completely
      * customized if you wish. Just overwrite the method and make sure to return a string containing the content of the
      * report. Don't forget to create the defined twig template within the templates folder of your plugin in order to
@@ -95,12 +95,12 @@ class GetExampleReport extends Base
      *
      * @return string
     public function render()
-    * {
-        * $view = new View('@ExampleReport/getExampleReport');
-        * $view->myData = array();
- *
-* return $view->render();
-    * }
+    {
+        $view = new View('@ExampleReport/getExampleReport');
+        $view->myData = array();
+
+        return $view->render();
+    }
     */
 
     /**
@@ -109,8 +109,8 @@ class GetExampleReport extends Base
      *
      * @return bool
     public function isEnabled()
-    * {
-        * return Piwik::hasUserSuperUserAccess()
-    * }
+    {
+        return Piwik::hasUserSuperUserAccess()
+    }
      */
 }

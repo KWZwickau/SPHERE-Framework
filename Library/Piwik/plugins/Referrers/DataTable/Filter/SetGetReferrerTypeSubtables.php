@@ -9,8 +9,8 @@
 namespace Piwik\Plugins\Referrers\DataTable\Filter;
 
 use Piwik\Common;
-use Piwik\DataTable;
 use Piwik\DataTable\Row;
+use Piwik\DataTable;
 use Piwik\Period\Range;
 use Piwik\Plugins\Referrers\API;
 
@@ -69,7 +69,7 @@ class SetGetReferrerTypeSubtables extends DataTable\BaseFilter
                 if (!$this->expanded) // if we don't want the expanded datatable, then don't do any extra queries
                 {
                     $row->setNonLoadedSubtableId($typeReferrer);
-                } else {if (!Range::isMultiplePeriod($this->date, $this->period))
+                } else if (!Range::isMultiplePeriod($this->date, $this->period))
                 {
                     // otherwise, we have to get the other datatables
                     // NOTE: not yet possible to do this w/ DataTable\Map instances
@@ -83,7 +83,7 @@ class SetGetReferrerTypeSubtables extends DataTable\BaseFilter
                     }
 
                     $row->setSubtable($subtable);
-                }}
+                }
             }
         }
 

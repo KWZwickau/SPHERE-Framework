@@ -10,9 +10,9 @@ namespace Piwik\Plugins\Actions;
 
 use Piwik\DataTable;
 use Piwik\Metrics as PiwikMetrics;
-use Piwik\Plugins\Actions\Actions\ActionSiteSearch;
 use Piwik\RankingQuery;
 use Piwik\Tracker\Action;
+use Piwik\Plugins\Actions\Actions\ActionSiteSearch;
 
 /**
  * Class encapsulating logic to process Day/Period Archiving for the Actions reports
@@ -65,6 +65,60 @@ class Archiver extends \Piwik\Plugin\Archiver
         $this->insertDayReports();
 
         return true;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getMetricNames()
+    {
+        return array(
+            self::METRIC_PAGEVIEWS_RECORD_NAME,
+            self::METRIC_UNIQ_PAGEVIEWS_RECORD_NAME,
+            self::METRIC_DOWNLOADS_RECORD_NAME,
+            self::METRIC_UNIQ_DOWNLOADS_RECORD_NAME,
+            self::METRIC_OUTLINKS_RECORD_NAME,
+            self::METRIC_UNIQ_OUTLINKS_RECORD_NAME,
+            self::METRIC_SEARCHES_RECORD_NAME,
+            self::METRIC_SUM_TIME_RECORD_NAME,
+            self::METRIC_HITS_TIMED_RECORD_NAME,
+        );
+    }
+
+    /**
+     * @return string
+     */
+    public static function getWhereClauseActionIsNotEvent()
+    {
+        return " AND log_link_visit_action.idaction_event_category IS NULL";
+    }
+
+    /**
+     * @param $select
+     * @param $from
+     */
+    protected function updateQuerySelectFromForSiteSearch(&$select, &$from)
+    {
+        $selectFlagNoResultKeywords = ",
+                CASE WHEN (MAX(log_link_visit_action.custom_var_v" . ActionSiteSearch::CVAR_INDEX_SEARCH_COUNT . ") = 0
+                    AND log_link_visit_action.custom_var_k" . ActionSiteSearch::CVAR_INDEX_SEARCH_COUNT . " = '" . ActionSiteSearch::CVAR_KEY_SEARCH_COUNT . "')
+                THEN 1 ELSE 0 END
+                    AS `" . PiwikMetrics::INDEX_SITE_SEARCH_HAS_NO_RESULT . "`";
+
+        //we need an extra JOIN to know whether the referrer "idaction_name_ref" was a Site Search request
+        $from[] = array(
+            "table"      => "log_action",
+            "tableAlias" => "log_action_name_ref",
+            "joinOn"     => "log_link_visit_action.idaction_name_ref = log_action_name_ref.idaction"
+        );
+
+        $selectPageIsFollowingSiteSearch = ",
+                SUM( CASE WHEN log_action_name_ref.type = " . Action::TYPE_SITE_SEARCH . "
+                      THEN 1 ELSE 0 END)
+                    AS `" . PiwikMetrics::INDEX_PAGE_IS_FOLLOWING_SITE_SEARCH_NB_HITS . "`";
+
+        $select .= $selectFlagNoResultKeywords
+            . $selectPageIsFollowingSiteSearch;
     }
 
     /**
@@ -159,19 +213,6 @@ class Archiver extends \Piwik\Plugin\Archiver
         return $select;
     }
 
-    /**
-     * @return string
-     */
-    public static function getWhereClauseActionIsNotEvent()
-    {
-        return " AND log_link_visit_action.idaction_event_category IS NULL";
-    }
-
-    protected function isSiteSearchEnabled()
-    {
-        return $this->isSiteSearchEnabled;
-    }
-
     private function addMetricsToRankingQuery(RankingQuery $rankingQuery, $metricsConfig)
     {
         foreach ($metricsConfig as $metric => $config) {
@@ -183,32 +224,9 @@ class Archiver extends \Piwik\Plugin\Archiver
         }
     }
 
-    /**
-     * @param $select
-     * @param $from
-     */
-    protected function updateQuerySelectFromForSiteSearch(&$select, &$from)
+    protected function isSiteSearchEnabled()
     {
-        $selectFlagNoResultKeywords = ",
-                CASE WHEN (MAX(log_link_visit_action.custom_var_v" . ActionSiteSearch::CVAR_INDEX_SEARCH_COUNT . ") = 0
-                    AND log_link_visit_action.custom_var_k" . ActionSiteSearch::CVAR_INDEX_SEARCH_COUNT . " = '" . ActionSiteSearch::CVAR_KEY_SEARCH_COUNT . "')
-                THEN 1 ELSE 0 END
-                    AS `" . PiwikMetrics::INDEX_SITE_SEARCH_HAS_NO_RESULT . "`";
-
-        //we need an extra JOIN to know whether the referrer "idaction_name_ref" was a Site Search request
-        $from[] = array(
-            "table"      => "log_action",
-            "tableAlias" => "log_action_name_ref",
-            "joinOn"     => "log_link_visit_action.idaction_name_ref = log_action_name_ref.idaction"
-        );
-
-        $selectPageIsFollowingSiteSearch = ",
-                SUM( CASE WHEN log_action_name_ref.type = " . Action::TYPE_SITE_SEARCH . "
-                      THEN 1 ELSE 0 END)
-                    AS `" . PiwikMetrics::INDEX_PAGE_IS_FOLLOWING_SITE_SEARCH_NB_HITS . "`";
-
-        $select .= $selectFlagNoResultKeywords
-            . $selectPageIsFollowingSiteSearch;
+        return $this->isSiteSearchEnabled;
     }
 
     protected function archiveDayQueryProcess($select, $from, $where, $groupBy, $orderBy, $sprintfField, RankingQuery $rankingQuery = null, $metricsConfig = array())
@@ -502,23 +520,5 @@ class Archiver extends \Piwik\Plugin\Archiver
 
         // Unique Keywords can't be summed, instead we take the RowsCount() of the keyword table
         $this->getProcessor()->insertNumericRecord(self::METRIC_KEYWORDS_RECORD_NAME, $nameToCount[self::SITE_SEARCH_RECORD_NAME]['level0']);
-    }
-
-    /**
-     * @return array
-     */
-    protected function getMetricNames()
-    {
-        return array(
-            self::METRIC_PAGEVIEWS_RECORD_NAME,
-            self::METRIC_UNIQ_PAGEVIEWS_RECORD_NAME,
-            self::METRIC_DOWNLOADS_RECORD_NAME,
-            self::METRIC_UNIQ_DOWNLOADS_RECORD_NAME,
-            self::METRIC_OUTLINKS_RECORD_NAME,
-            self::METRIC_UNIQ_OUTLINKS_RECORD_NAME,
-            self::METRIC_SEARCHES_RECORD_NAME,
-            self::METRIC_SUM_TIME_RECORD_NAME,
-            self::METRIC_HITS_TIMED_RECORD_NAME,
-        );
     }
 }

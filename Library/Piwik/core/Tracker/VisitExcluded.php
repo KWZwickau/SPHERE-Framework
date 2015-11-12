@@ -42,8 +42,8 @@ class VisitExcluded
             $userAgent = $request->getUserAgent();
         }
 
-        $this->request = $request;
-        $this->idSite = $request->getIdSite();
+        $this->request   = $request;
+        $this->idSite    = $request->getIdSite();
         $this->userAgent = $userAgent;
         $this->ip = $ip;
     }
@@ -151,6 +151,14 @@ class VisitExcluded
         return false;
     }
 
+    protected function isPrefetchDetected()
+    {
+        return (isset($_SERVER["HTTP_X_PURPOSE"])
+            && in_array($_SERVER["HTTP_X_PURPOSE"], array("preview", "instant")))
+        || (isset($_SERVER['HTTP_X_MOZ'])
+            && $_SERVER['HTTP_X_MOZ'] == "prefetch");
+    }
+
     /**
      * Live/Bing/MSN bot and Googlebot are evolving to detect cloaked websites.
      * As a result, these sophisticated bots exhibit characteristics of
@@ -167,14 +175,14 @@ class VisitExcluded
         $deviceDetector = DeviceDetectorFactory::getInstance($this->userAgent);
 
         return !$allowBots
-        && ($deviceDetector->isBot() || $this->isIpInRange());
+            && ($deviceDetector->isBot() || $this->isIpInRange());
     }
 
     private function isIpInRange()
     {
         $cache = PiwikCache::getTransientCache();
 
-        $ip = IP::fromBinaryIP($this->ip);
+        $ip  = IP::fromBinaryIP($this->ip);
         $key = 'VisitExcludedIsIpInRange' . $ip->toString();
 
         if ($cache->contains($key)) {
@@ -196,24 +204,8 @@ class VisitExcluded
     {
         // see https://github.com/piwik/piwik/issues/7733
         return !empty($_SERVER['HTTP_VIA'])
-        && false !== strpos(strtolower($_SERVER['HTTP_VIA']), 'chrome-compression-proxy')
-        && $ip->isInRanges($this->getGoogleBotIpRanges());
-    }
-
-    private function getGoogleBotIpRanges()
-    {
-        return array(
-            '216.239.32.0/19',
-            '64.233.160.0/19',
-            '66.249.80.0/20',
-            '72.14.192.0/18',
-            '209.85.128.0/17',
-            '66.102.0.0/20',
-            '74.125.0.0/16',
-            '64.18.0.0/20',
-            '207.126.144.0/20',
-            '173.194.0.0/16'
-        );
+            && false !== strpos(strtolower($_SERVER['HTTP_VIA']), 'chrome-compression-proxy')
+            && $ip->isInRanges($this->getGoogleBotIpRanges());
     }
 
     protected function getBotIpRanges()
@@ -238,6 +230,22 @@ class VisitExcluded
             // Chinese bot hammering websites
             '1.202.218.8'
         ));
+    }
+
+    private function getGoogleBotIpRanges()
+    {
+        return array(
+            '216.239.32.0/19',
+            '64.233.160.0/19',
+            '66.249.80.0/20',
+            '72.14.192.0/18',
+            '209.85.128.0/17',
+            '66.102.0.0/20',
+            '74.125.0.0/16',
+            '64.18.0.0/20',
+            '207.126.144.0/20',
+            '173.194.0.0/16'
+        );
     }
 
     /**
@@ -269,6 +277,27 @@ class VisitExcluded
                 Common::printDebug('Visitor IP ' . $ip->toString() . ' is excluded from being tracked');
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if request URL is excluded
+     * @return bool
+     */
+    protected function isUrlExcluded()
+    {
+        $site = Cache::getCacheWebsiteAttributes($this->idSite);
+
+        if (!empty($site['exclude_unknown_urls']) && !empty($site['hosts'])) {
+            $trackingHost = parse_url($this->request->getParam('url'), PHP_URL_HOST);
+            foreach ($site['hosts'] as $siteHost) {
+                if ($trackingHost == $siteHost || (substr($trackingHost, -strlen($siteHost) - 1) === ('.' . $siteHost))) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         return false;
@@ -307,36 +336,5 @@ class VisitExcluded
     protected function isReferrerSpamExcluded()
     {
         return $this->spamFilter->isSpam($this->request);
-    }
-
-    /**
-     * Checks if request URL is excluded
-     * @return bool
-     */
-    protected function isUrlExcluded()
-    {
-        $site = Cache::getCacheWebsiteAttributes($this->idSite);
-
-        if (!empty($site['exclude_unknown_urls']) && !empty($site['hosts'])) {
-            $trackingHost = parse_url($this->request->getParam('url'), PHP_URL_HOST);
-            foreach ($site['hosts'] as $siteHost) {
-                if ($trackingHost == $siteHost || (substr($trackingHost,
-                            -strlen($siteHost) - 1) === ('.' . $siteHost))
-                ) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        return false;
-    }
-
-    protected function isPrefetchDetected()
-    {
-        return (isset($_SERVER["HTTP_X_PURPOSE"])
-            && in_array($_SERVER["HTTP_X_PURPOSE"], array("preview", "instant")))
-        || (isset($_SERVER['HTTP_X_MOZ'])
-            && $_SERVER['HTTP_X_MOZ'] == "prefetch");
     }
 }

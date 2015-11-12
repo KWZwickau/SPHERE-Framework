@@ -10,14 +10,24 @@ namespace Piwik\Plugins\Referrers\Columns;
 
 use Piwik\Piwik;
 use Piwik\Plugins\Referrers\Segment;
-use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Action;
 
 class ReferrerType extends Base
 {
     protected $columnName = 'referer_type';
     protected $columnType = 'TINYINT(1) UNSIGNED NULL';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('referrerType');
+        $segment->setName('Referrers_Type');
+        $segment->setSqlFilterValue('Piwik\Plugins\Referrers\getReferrerTypeFromShortName');
+        $segment->setAcceptedValues('direct, search, website, campaign');
+        $this->addSegment($segment);
+    }
 
     public function getName()
     {
@@ -46,15 +56,5 @@ class ReferrerType extends Base
     public function onAnyGoalConversion(Request $request, Visitor $visitor, $action)
     {
         return $this->getValueForRecordGoal($request, $visitor);
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('referrerType');
-        $segment->setName('Referrers_Type');
-        $segment->setSqlFilterValue('Piwik\Plugins\Referrers\getReferrerTypeFromShortName');
-        $segment->setAcceptedValues('direct, search, website, campaign');
-        $this->addSegment($segment);
     }
 }

@@ -13,6 +13,7 @@ use Piwik\Common;
 use Piwik\DataTable;
 use Piwik\DataTable\Row;
 use Piwik\Piwik;
+use Piwik\Plugins\Actions\API as APIActions;
 use Piwik\Site;
 use Piwik\Translation\Translator;
 use Piwik\View;
@@ -34,24 +35,27 @@ class Controller extends \Piwik\Plugin\Controller
         parent::__construct();
     }
 
-    public static function getVisits()
-    {
-        $requestString = "method=VisitsSummary.getVisits" .
-            "&format=original" .
-            "&disable_generic_filters=1";
-        $request = new Request($requestString);
-        return $request->process();
-    }
-
-    // sparkline.js:81 dataTable.trigger('reload', …); does not remove the old headline,
-    // so when updating this graph (such as when selecting a different metric)
-    // ONLY the graph should be returned
-
     public function index()
     {
         $view = new View('@VisitsSummary/index');
         $this->setPeriodVariablesView($view);
         $view->graphEvolutionVisitsSummary = $this->getEvolutionGraph(array(), array('nb_visits'), 'getIndexGraph');
+        $this->setSparklinesAndNumbers($view);
+        return $view->render();
+    }
+
+    // sparkline.js:81 dataTable.trigger('reload', …); does not remove the old headline,
+    // so when updating this graph (such as when selecting a different metric)
+    // ONLY the graph should be returned
+    public function getIndexGraph()
+    {
+        return $this->getEvolutionGraph(array(), array(), __FUNCTION__);
+    }
+
+    public function getSparklines()
+    {
+        $view = new View('@VisitsSummary/getSparklines');
+        $this->setPeriodVariablesView($view);
         $this->setSparklinesAndNumbers($view);
         return $view->render();
     }
@@ -120,6 +124,27 @@ class Controller extends \Piwik\Plugin\Controller
         }
 
         return $this->renderView($view);
+    }
+
+    public static function getVisitsSummary()
+    {
+        $result = Request::processRequest("VisitsSummary.get", array(
+            // we disable filters for example "search for pattern", in the case this method is called
+            // by a method that already calls the API with some generic filters applied
+            'disable_generic_filters' => 1,
+            'columns' => false
+        ));
+
+        return empty($result) ? new DataTable() : $result;
+    }
+
+    public static function getVisits()
+    {
+        $requestString = "method=VisitsSummary.getVisits" .
+            "&format=original" .
+            "&disable_generic_filters=1";
+        $request = new Request($requestString);
+        return $request->process();
     }
 
     protected function setSparklinesAndNumbers($view)
@@ -194,30 +219,5 @@ class Controller extends \Piwik\Plugin\Controller
             }
         }
 
-    }
-
-    public static function getVisitsSummary()
-    {
-        $result = Request::processRequest("VisitsSummary.get", array(
-            // we disable filters for example "search for pattern", in the case this method is called
-            // by a method that already calls the API with some generic filters applied
-            'disable_generic_filters' => 1,
-            'columns' => false
-        ));
-
-        return empty($result) ? new DataTable() : $result;
-    }
-
-    public function getIndexGraph()
-    {
-        return $this->getEvolutionGraph(array(), array(), __FUNCTION__);
-    }
-
-    public function getSparklines()
-    {
-        $view = new View('@VisitsSummary/getSparklines');
-        $this->setPeriodVariablesView($view);
-        $this->setSparklinesAndNumbers($view);
-        return $view->render();
     }
 }

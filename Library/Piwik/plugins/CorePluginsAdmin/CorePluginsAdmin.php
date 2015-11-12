@@ -13,16 +13,6 @@ use Piwik\Plugin;
 
 class CorePluginsAdmin extends \Piwik\Plugin
 {
-    public static function isMarketplaceEnabled()
-    {
-        return (bool) Config::getInstance()->General['enable_marketplace'];
-    }
-
-    public static function isPluginsAdminEnabled()
-    {
-        return (bool) Config::getInstance()->General['enable_plugins_admin'];
-    }
-
     /**
      * @see Piwik\Plugin::registerEvents
      */
@@ -40,6 +30,16 @@ class CorePluginsAdmin extends \Piwik\Plugin
         $stylesheets[] = "plugins/CorePluginsAdmin/stylesheets/marketplace.less";
         $stylesheets[] = "plugins/CorePluginsAdmin/stylesheets/plugins_admin.less";
         $stylesheets[] = "plugins/CorePluginsAdmin/stylesheets/plugin-details.less";
+    }
+
+    public static function isMarketplaceEnabled()
+    {
+        return (bool) Config::getInstance()->General['enable_marketplace'];
+    }
+
+    public static function isPluginsAdminEnabled()
+    {
+        return (bool) Config::getInstance()->General['enable_plugins_admin'];
     }
 
     public function getJsFiles(&$jsFiles)

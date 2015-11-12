@@ -8,11 +8,11 @@
  */
 namespace Piwik\Plugins\API;
 
-use DeviceDetector\Parser\OperatingSystem;
 use Piwik\DeviceDetectorCache;
 use Piwik\Menu\MenuTop;
 use Piwik\Menu\MenuUser;
 use Piwik\Piwik;
+use DeviceDetector\Parser\OperatingSystem;
 
 class Menu extends \Piwik\Plugin\Menu
 {
@@ -22,6 +22,22 @@ class Menu extends \Piwik\Plugin\Menu
     public function configureTopMenu(MenuTop $menu)
     {
         $this->addTopMenuMobileApp($menu);
+    }
+
+    public function configureUserMenu(MenuUser $menu)
+    {
+        $menu->addPlatformItem('General_API',
+            $this->urlForAction('listAllAPI', array('segment' => false)),
+            6,
+            Piwik::translate('API_TopLinkTooltip')
+        );
+
+        if(Piwik::isUserIsAnonymous()) {
+            $menu->addPlatformItem('API_Glossary',
+                $this->urlForAction('glossary', array('segment' => false)),
+                50
+            );
+        }
     }
 
     private function addTopMenuMobileApp(MenuTop $menu)
@@ -45,22 +61,6 @@ class Menu extends \Piwik\Plugin\Menu
             if ($url) {
                 $menu->addItem('Piwik Mobile App', null, $url, 4);
             }
-        }
-    }
-
-    public function configureUserMenu(MenuUser $menu)
-    {
-        $menu->addPlatformItem('General_API',
-            $this->urlForAction('listAllAPI', array('segment' => false)),
-            6,
-            Piwik::translate('API_TopLinkTooltip')
-        );
-
-        if(Piwik::isUserIsAnonymous()) {
-            $menu->addPlatformItem('API_Glossary',
-                $this->urlForAction('glossary', array('segment' => false)),
-                50
-            );
         }
     }
 

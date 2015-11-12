@@ -72,7 +72,7 @@ class Zend_Validate_InArray extends Zend_Validate_Abstract
     {
         if ($options instanceof Zend_Config) {
             $options = $options->toArray();
-        } else {if (!is_array($options)) {
+        } else if (!is_array($options)) {
             // require_once 'Zend/Validate/Exception.php';
             throw new Zend_Validate_Exception('Array expected as parameter');
         } else {
@@ -91,7 +91,7 @@ class Zend_Validate_InArray extends Zend_Validate_Abstract
                     $options = $temp;
                 }
             }
-        }}
+        }
 
         $this->setHaystack($options['haystack']);
         if (array_key_exists('strict', $options)) {
@@ -148,39 +148,6 @@ class Zend_Validate_InArray extends Zend_Validate_Abstract
     }
 
     /**
-     * Defined by Zend_Validate_Interface
-     *
-     * Returns true if and only if $value is contained in the haystack option. If the strict
-     * option is true, then the type of $value is also checked.
-     *
-     * @param  mixed $value
-     * @return boolean
-     */
-    public function isValid($value)
-    {
-        $this->_setValue($value);
-        if ($this->getRecursive()) {
-            $iterator = new RecursiveIteratorIterator(new RecursiveArrayIterator($this->_haystack));
-            foreach($iterator as $element) {
-                if ($this->_strict) {
-                    if ($element === $value) {
-                        return true;
-                    }
-                } else {if ($element == $value) {
-                    return true;
-                }}
-            }
-        } else {
-            if (in_array($value, $this->_haystack, $this->_strict)) {
-                return true;
-            }
-        }
-
-        $this->_error(self::NOT_IN_ARRAY);
-        return false;
-    }
-
-    /**
      * Returns the recursive option
      *
      * @return boolean
@@ -200,5 +167,38 @@ class Zend_Validate_InArray extends Zend_Validate_Abstract
     {
         $this->_recursive = (boolean) $recursive;
         return $this;
+    }
+
+    /**
+     * Defined by Zend_Validate_Interface
+     *
+     * Returns true if and only if $value is contained in the haystack option. If the strict
+     * option is true, then the type of $value is also checked.
+     *
+     * @param  mixed $value
+     * @return boolean
+     */
+    public function isValid($value)
+    {
+        $this->_setValue($value);
+        if ($this->getRecursive()) {
+            $iterator = new RecursiveIteratorIterator(new RecursiveArrayIterator($this->_haystack));
+            foreach($iterator as $element) {
+                if ($this->_strict) {
+                    if ($element === $value) {
+                        return true;
+                    }
+                } else if ($element == $value) {
+                    return true;
+                }
+            }
+        } else {
+            if (in_array($value, $this->_haystack, $this->_strict)) {
+                return true;
+            }
+        }
+
+        $this->_error(self::NOT_IN_ARRAY);
+        return false;
     }
 }

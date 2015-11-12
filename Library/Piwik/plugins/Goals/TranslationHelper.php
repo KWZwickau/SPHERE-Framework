@@ -50,6 +50,14 @@ class TranslationHelper
         return $description;
     }
 
+    protected function isPatternUsedForMatchAttribute($match)
+    {
+        return in_array(
+            $match,
+            array('url', 'title', 'event_category', 'event_action', 'event_name', 'file', 'external_website')
+        );
+    }
+
     protected function getTranslationForMatchAttribute($match)
     {
         switch ($match) {
@@ -76,14 +84,6 @@ class TranslationHelper
             default:
                 return '';
         }
-    }
-
-    protected function isPatternUsedForMatchAttribute($match)
-    {
-        return in_array(
-            $match,
-            array('url', 'title', 'event_category', 'event_action', 'event_name', 'file', 'external_website')
-        );
     }
 
     protected function getTranslationForPattern($patternType, $pattern)

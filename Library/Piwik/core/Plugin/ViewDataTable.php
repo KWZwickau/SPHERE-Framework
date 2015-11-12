@@ -143,24 +143,28 @@ use Piwik\ViewDataTable\RequestConfig as VizRequest;
 abstract class ViewDataTable implements ViewInterface
 {
     const ID = '';
-    /**
-     * Contains display properties for this visualization.
-     *
-     * @var \Piwik\ViewDataTable\Config
-     */
-    public $config;
-    /**
-     * Contains request properties for this visualization.
-     *
-     * @var \Piwik\ViewDataTable\RequestConfig
-     */
-    public $requestConfig;
+
     /**
      * DataTable loaded from the API for this ViewDataTable.
      *
      * @var DataTable
      */
     protected $dataTable = null;
+
+    /**
+     * Contains display properties for this visualization.
+     *
+     * @var \Piwik\ViewDataTable\Config
+     */
+    public $config;
+
+    /**
+     * Contains request properties for this visualization.
+     *
+     * @var \Piwik\ViewDataTable\RequestConfig
+     */
+    public $requestConfig;
+
     /**
      * @var ViewDataTableRequest
      */
@@ -176,19 +180,18 @@ abstract class ViewDataTable implements ViewInterface
         list($controllerName, $controllerAction) = explode('.', $controllerAction);
 
         $this->requestConfig = static::getDefaultRequestConfig();
-        $this->config = static::getDefaultConfig();
+        $this->config        = static::getDefaultConfig();
         $this->config->subtable_controller_action = $controllerAction;
         $this->config->setController($controllerName, $controllerAction);
 
         $this->request = new ViewDataTableRequest($this->requestConfig);
 
         $this->requestConfig->idSubtable = Common::getRequestVar('idSubtable', false, 'int');
-        $this->config->self_url = Request::getBaseReportUrl($controllerName, $controllerAction);
+        $this->config->self_url          = Request::getBaseReportUrl($controllerName, $controllerAction);
 
         $this->requestConfig->apiMethodToRequestDataTable = $apiMethodToRequestDataTable;
 
-        $report = Report::factory($this->requestConfig->getApiModuleToRequest(),
-            $this->requestConfig->getApiMethodToRequest());
+        $report = Report::factory($this->requestConfig->getApiModuleToRequest(), $this->requestConfig->getApiMethodToRequest());
 
         if (!empty($report)) {
             /** @var Report $report */
@@ -211,7 +214,7 @@ abstract class ViewDataTable implements ViewInterface
                     }
 
                     $this->config->addRelatedReport($relatedReport->getModule() . '.' . $relatedReport->getAction(),
-                        $relatedReportName);
+                                                    $relatedReportName);
                 }
             }
 
@@ -270,19 +273,17 @@ abstract class ViewDataTable implements ViewInterface
         $this->overrideViewPropertiesWithQueryParams();
     }
 
-    /**
-     * Returns the default request config instance.
-     *
-     * Visualizations that define their own request properties should override this method and
-     * return an instance of their new {@link Piwik\ViewDataTable\RequestConfig} descendant.
-     *
-     * See the last example {@link ViewDataTable here} for more information.
-     *
-     * @return \Piwik\ViewDataTable\RequestConfig
-     */
-    public static function getDefaultRequestConfig()
+    protected function assignRelatedReportsTitle()
     {
-        return new VizRequest();
+        if (!empty($this->config->related_reports_title)) {
+            // title already assigned by a plugin
+            return;
+        }
+        if (count($this->config->related_reports) == 1) {
+            $this->config->related_reports_title = Piwik::translate('General_RelatedReport') . ':';
+        } else {
+            $this->config->related_reports_title = Piwik::translate('General_RelatedReports') . ':';
+        }
     }
 
     /**
@@ -300,71 +301,32 @@ abstract class ViewDataTable implements ViewInterface
         return new VizConfig();
     }
 
-    protected function assignRelatedReportsTitle()
-    {
-        if (!empty($this->config->related_reports_title)) {
-            // title already assigned by a plugin
-            return;
-        }
-        if (count($this->config->related_reports) == 1) {
-            $this->config->related_reports_title = Piwik::translate('General_RelatedReport') . ':';
-        } else {
-            $this->config->related_reports_title = Piwik::translate('General_RelatedReports') . ':';
-        }
-    }
-
-    private function overrideViewPropertiesWithParams($overrideParams)
-    {
-        if (empty($overrideParams)) {
-            return;
-        }
-
-        foreach ($overrideParams as $key => $value) {
-            if (property_exists($this->requestConfig, $key)) {
-                $this->requestConfig->$key = $value;
-            } elseif (property_exists($this->config, $key)) {
-                $this->config->$key = $value;
-            } elseif ($key != 'enable_filter_excludelowpop') {
-                $this->config->custom_parameters[$key] = $value;
-            }
-        }
-    }
-
-    private function overrideViewPropertiesWithQueryParams()
-    {
-        $properties = $this->getOverridableProperties();
-
-        foreach ($properties as $name) {
-            if (property_exists($this->requestConfig, $name)) {
-                $this->requestConfig->$name = $this->getPropertyFromQueryParam($name, $this->requestConfig->$name);
-            } elseif (property_exists($this->config, $name)) {
-                $this->config->$name = $this->getPropertyFromQueryParam($name, $this->config->$name);
-            }
-        }
-
-        // handle special 'columns' query parameter
-        $columns = Common::getRequestVar('columns', false);
-
-        if (false !== $columns) {
-            $this->config->columns_to_display = Piwik::getArrayFromApiParameter($columns);
-            array_unshift($this->config->columns_to_display, 'label');
-        }
-    }
-
     /**
-     * Returns the list of view properties that can be overriden by query parameters.
+     * Returns the default request config instance.
      *
-     * @return array
+     * Visualizations that define their own request properties should override this method and
+     * return an instance of their new {@link Piwik\ViewDataTable\RequestConfig} descendant.
+     *
+     * See the last example {@link ViewDataTable here} for more information.
+     *
+     * @return \Piwik\ViewDataTable\RequestConfig
      */
-    protected function getOverridableProperties()
+    public static function getDefaultRequestConfig()
     {
-        return array_merge($this->config->overridableProperties, $this->requestConfig->overridableProperties);
+        return new VizRequest();
     }
 
-    protected function getPropertyFromQueryParam($name, $defaultValue)
+    protected function loadDataTableFromAPI()
     {
-        $type = is_numeric($defaultValue) ? 'int' : null;
-        return Common::getRequestVar($name, $defaultValue, $type);
+        if (!is_null($this->dataTable)) {
+            // data table is already there
+            // this happens when setDataTable has been used
+            return $this->dataTable;
+        }
+
+        $this->dataTable = $this->request->loadDataTableFromAPI();
+
+        return $this->dataTable;
     }
 
     /**
@@ -381,28 +343,11 @@ abstract class ViewDataTable implements ViewInterface
         $id = static::ID;
 
         if (empty($id)) {
-            $message = sprintf('ViewDataTable %s does not define an ID. Set the ID constant to fix this issue',
-                get_called_class());
+            $message = sprintf('ViewDataTable %s does not define an ID. Set the ID constant to fix this issue', get_called_class());
             throw new \Exception($message);
         }
 
         return $id;
-    }
-
-    /**
-     * Returns `true` if this visualization can display some type of data or not.
-     *
-     * New visualization classes should override this method if they can only visualize certain
-     * types of data. The evolution graph visualization, for example, can only visualize
-     * sets of DataTables. If the API method used results in a single DataTable, the evolution
-     * graph footer icon should not be displayed.
-     *
-     * @param  ViewDataTable $view Contains the API request being checked.
-     * @return bool
-     */
-    public static function canDisplayViewDataTable(ViewDataTable $view)
-    {
-        return $view->config->show_all_views_icons;
     }
 
     /**
@@ -450,6 +395,16 @@ abstract class ViewDataTable implements ViewInterface
     }
 
     /**
+     * Checks that the API returned a normal DataTable (as opposed to DataTable\Map)
+     * @throws \Exception
+     * @return void
+     */
+    protected function checkStandardDataTable()
+    {
+        Piwik::checkObjectTypeIs($this->dataTable, array('\Piwik\DataTable'));
+    }
+
+    /**
      * Requests all needed data and renders the view.
      *
      * @return string The result of rendering.
@@ -462,6 +417,48 @@ abstract class ViewDataTable implements ViewInterface
 
     abstract protected function buildView();
 
+    protected function getDefaultDataTableCssClass()
+    {
+        return 'dataTableViz' . Piwik::getUnnamespacedClassName(get_class($this));
+    }
+
+    /**
+     * Returns the list of view properties that can be overriden by query parameters.
+     *
+     * @return array
+     */
+    protected function getOverridableProperties()
+    {
+        return array_merge($this->config->overridableProperties, $this->requestConfig->overridableProperties);
+    }
+
+    private function overrideViewPropertiesWithQueryParams()
+    {
+        $properties = $this->getOverridableProperties();
+
+        foreach ($properties as $name) {
+            if (property_exists($this->requestConfig, $name)) {
+                $this->requestConfig->$name = $this->getPropertyFromQueryParam($name, $this->requestConfig->$name);
+            } elseif (property_exists($this->config, $name)) {
+                $this->config->$name = $this->getPropertyFromQueryParam($name, $this->config->$name);
+            }
+        }
+
+        // handle special 'columns' query parameter
+        $columns = Common::getRequestVar('columns', false);
+
+        if (false !== $columns) {
+            $this->config->columns_to_display = Piwik::getArrayFromApiParameter($columns);
+            array_unshift($this->config->columns_to_display, 'label');
+        }
+    }
+
+    protected function getPropertyFromQueryParam($name, $defaultValue)
+    {
+        $type = is_numeric($defaultValue) ? 'int' : null;
+        return Common::getRequestVar($name, $defaultValue, $type);
+    }
+
     /**
      * Returns `true` if this instance will request a single DataTable, `false` if requesting
      * more than one.
@@ -471,7 +468,7 @@ abstract class ViewDataTable implements ViewInterface
     public function isRequestingSingleDataTable()
     {
         $requestArray = $this->request->getRequestArray() + $_GET + $_POST;
-        $date = Common::getRequestVar('date', null, 'string', $requestArray);
+        $date   = Common::getRequestVar('date', null, 'string', $requestArray);
         $period = Common::getRequestVar('period', null, 'string', $requestArray);
         $idSite = Common::getRequestVar('idSite', null, 'string', $requestArray);
 
@@ -486,6 +483,39 @@ abstract class ViewDataTable implements ViewInterface
     }
 
     /**
+     * Returns `true` if this visualization can display some type of data or not.
+     *
+     * New visualization classes should override this method if they can only visualize certain
+     * types of data. The evolution graph visualization, for example, can only visualize
+     * sets of DataTables. If the API method used results in a single DataTable, the evolution
+     * graph footer icon should not be displayed.
+     *
+     * @param  ViewDataTable $view Contains the API request being checked.
+     * @return bool
+     */
+    public static function canDisplayViewDataTable(ViewDataTable $view)
+    {
+        return $view->config->show_all_views_icons;
+    }
+
+    private function overrideViewPropertiesWithParams($overrideParams)
+    {
+        if (empty($overrideParams)) {
+            return;
+        }
+
+        foreach ($overrideParams as $key => $value) {
+            if (property_exists($this->requestConfig, $key)) {
+                $this->requestConfig->$key = $value;
+            } elseif (property_exists($this->config, $key)) {
+                $this->config->$key = $value;
+            } elseif ($key != 'enable_filter_excludelowpop') {
+                $this->config->custom_parameters[$key] = $value;
+            }
+        }
+    }
+
+    /**
      * Display a meaningful error message when any invalid parameter is being set.
      *
      * @param $overrideParams
@@ -494,7 +524,7 @@ abstract class ViewDataTable implements ViewInterface
     public function throwWhenSettingNonOverridableParameter($overrideParams)
     {
         $nonOverridableParams = $this->getNonOverridableParams($overrideParams);
-        if (count($nonOverridableParams) > 0) {
+        if(count($nonOverridableParams) > 0) {
             throw new \Exception(sprintf(
                 "Setting parameters %s is not allowed. Please report this bug to the Piwik team.",
                 implode(" and ", $nonOverridableParams)
@@ -524,34 +554,6 @@ abstract class ViewDataTable implements ViewInterface
             }
         }
         return $paramsCannotBeOverridden;
-    }
-
-    protected function loadDataTableFromAPI()
-    {
-        if (!is_null($this->dataTable)) {
-            // data table is already there
-            // this happens when setDataTable has been used
-            return $this->dataTable;
-        }
-
-        $this->dataTable = $this->request->loadDataTableFromAPI();
-
-        return $this->dataTable;
-    }
-
-    /**
-     * Checks that the API returned a normal DataTable (as opposed to DataTable\Map)
-     * @throws \Exception
-     * @return void
-     */
-    protected function checkStandardDataTable()
-    {
-        Piwik::checkObjectTypeIs($this->dataTable, array('\Piwik\DataTable'));
-    }
-
-    protected function getDefaultDataTableCssClass()
-    {
-        return 'dataTableViz' . Piwik::getUnnamespacedClassName(get_class($this));
     }
 
 }

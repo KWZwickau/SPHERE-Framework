@@ -18,29 +18,6 @@ use Piwik\Plugins\Actions\Columns\Metrics\ExitRate;
 
 class GetSiteSearchKeywords extends SiteSearchBase
 {
-    public function getMetrics()
-    {
-        return array(
-            'nb_visits'           => Piwik::translate('Actions_ColumnSearches'),
-            'nb_pages_per_search' => Piwik::translate('Actions_ColumnPagesPerSearch'),
-        );
-    }
-
-    public function getProcessedMetrics()
-    {
-        return array(
-            'exit_rate'           => Piwik::translate('Actions_ColumnSearchExits'),
-        );
-    }
-
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->addTranslation('label', $this->dimension->getName());
-        $view->config->columns_to_display = array('label', 'nb_visits', 'nb_pages_per_search', 'exit_rate');
-
-        $this->addSiteSearchDisplayProperties($view);
-    }
-
     protected function init()
     {
         parent::init();
@@ -59,6 +36,21 @@ class GetSiteSearchKeywords extends SiteSearchBase
         $this->widgetTitle  = 'Actions_WidgetSearchKeywords';
     }
 
+    public function getMetrics()
+    {
+        return array(
+            'nb_visits'           => Piwik::translate('Actions_ColumnSearches'),
+            'nb_pages_per_search' => Piwik::translate('Actions_ColumnPagesPerSearch'),
+        );
+    }
+
+    public function getProcessedMetrics()
+    {
+        return array(
+            'exit_rate'           => Piwik::translate('Actions_ColumnSearchExits'),
+        );
+    }
+
     protected function getMetricsDocumentation()
     {
         return array(
@@ -66,5 +58,13 @@ class GetSiteSearchKeywords extends SiteSearchBase
             'nb_pages_per_search' => Piwik::translate('Actions_ColumnPagesPerSearchDocumentation'),
             'exit_rate'           => Piwik::translate('Actions_ColumnSearchExitsDocumentation'),
         );
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->addTranslation('label', $this->dimension->getName());
+        $view->config->columns_to_display = array('label', 'nb_visits', 'nb_pages_per_search', 'exit_rate');
+
+        $this->addSiteSearchDisplayProperties($view);
     }
 }

@@ -12,6 +12,11 @@ use Piwik\Plugin\Manager;
 
 class CacheId
 {
+    public static function languageAware($cacheId)
+    {
+        return $cacheId . '-' . Translate::getLanguageLoaded();
+    }
+
     public static function pluginAware($cacheId)
     {
         $pluginManager = Manager::getInstance();
@@ -20,10 +25,5 @@ class CacheId
         $cacheId       = self::languageAware($cacheId);
 
         return $cacheId;
-    }
-
-    public static function languageAware($cacheId)
-    {
-        return $cacheId . '-' . Translate::getLanguageLoaded();
     }
 }

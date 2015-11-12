@@ -9,8 +9,8 @@
 namespace Piwik\Plugins\Actions\Columns;
 
 use Piwik\Piwik;
-use Piwik\Plugin\Dimension\VisitDimension;
 use Piwik\Plugins\Actions\Segment;
+use Piwik\Plugin\Dimension\VisitDimension;
 use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
@@ -19,6 +19,14 @@ class EntryPageTitle extends VisitDimension
 {
     protected $columnName = 'visit_entry_idaction_name';
     protected $columnType = 'INTEGER(11) UNSIGNED NOT NULL';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('entryPageTitle');
+        $segment->setName('Actions_ColumnEntryPageTitle');
+        $this->addSegment($segment);
+    }
 
     /**
      * @param Request $request
@@ -40,13 +48,5 @@ class EntryPageTitle extends VisitDimension
     public function getName()
     {
         return Piwik::translate('Actions_ColumnEntryPageTitle');
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('entryPageTitle');
-        $segment->setName('Actions_ColumnEntryPageTitle');
-        $this->addSegment($segment);
     }
 }

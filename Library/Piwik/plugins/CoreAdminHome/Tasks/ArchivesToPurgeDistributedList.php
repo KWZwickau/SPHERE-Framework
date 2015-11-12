@@ -41,6 +41,13 @@ class ArchivesToPurgeDistributedList extends DistributedList
         parent::setAll($yearMonths);
     }
 
+    protected function getListOptionValue()
+    {
+        $result = parent::getListOptionValue();
+        $this->convertOldDistributedList($result);
+        return $result;
+    }
+
     public function getAllAsDates()
     {
         $dates = array();
@@ -60,13 +67,6 @@ class ArchivesToPurgeDistributedList extends DistributedList
     {
         $yearMonth = $date->toString('Y_m');
         $this->remove($yearMonth);
-    }
-
-    protected function getListOptionValue()
-    {
-        $result = parent::getListOptionValue();
-        $this->convertOldDistributedList($result);
-        return $result;
     }
 
     /**

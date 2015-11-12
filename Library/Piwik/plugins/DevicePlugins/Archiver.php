@@ -32,6 +32,26 @@ class Archiver extends \Piwik\Plugin\Archiver
         $this->aggregateByPlugin();
     }
 
+    /**
+     * Period archiving: simply sums up daily archives
+     */
+    public function aggregateMultipleReports()
+    {
+        $dataTableRecords = array(
+            self::PLUGIN_RECORD_NAME,
+        );
+        $columnsAggregationOperation = null;
+        $this->getProcessor()->aggregateDataTableRecords(
+            $dataTableRecords,
+            $this->maximumRows,
+            $maximumRowsInSubDataTable = null,
+            $columnToSortByBeforeTruncation = null,
+            $columnsAggregationOperation,
+            $columnsToRenameAfterAggregation = null,
+            $countRowsRecursive = array()
+        );
+    }
+
     protected function aggregateByPlugin()
     {
         $selects = array(
@@ -58,26 +78,6 @@ class Archiver extends \Piwik\Plugin\Archiver
     {
         $report = $table->getSerialized($this->maximumRows, null, Metrics::INDEX_NB_VISITS);
         return $this->getProcessor()->insertBlobRecord($recordName, $report);
-    }
-
-    /**
-     * Period archiving: simply sums up daily archives
-     */
-    public function aggregateMultipleReports()
-    {
-        $dataTableRecords = array(
-            self::PLUGIN_RECORD_NAME,
-        );
-        $columnsAggregationOperation = null;
-        $this->getProcessor()->aggregateDataTableRecords(
-            $dataTableRecords,
-            $this->maximumRows,
-            $maximumRowsInSubDataTable = null,
-            $columnToSortByBeforeTruncation = null,
-            $columnsAggregationOperation,
-            $columnsToRenameAfterAggregation = null,
-            $countRowsRecursive = array()
-        );
     }
 
 }

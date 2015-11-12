@@ -25,14 +25,6 @@ use Piwik\Updates;
 class Updates_2_14_2 extends Updates
 {
     /**
-     * @param Updater $updater
-     */
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
-    /**
      * Removes option entries for columns that are marked as installed but are actually no longer installed due to
      * a bug in previous versions where the option entries were not correctly removed.
      *
@@ -76,6 +68,13 @@ class Updates_2_14_2 extends Updates
         return $sqls;
     }
 
+    private static function buildRemoveOptionEntrySql($optionName)
+    {
+        $tableName = Common::prefixTable('option');
+
+        return sprintf("DELETE FROM `%s` WHERE `option_name` = '%s'", $tableName, $optionName);
+    }
+
     /**
      * @param string $componentPrefix
      * @param string $tableName
@@ -115,10 +114,11 @@ class Updates_2_14_2 extends Updates
         return array_keys(DbHelper::getTableColumns($tableName));
     }
 
-    private static function buildRemoveOptionEntrySql($optionName)
+    /**
+     * @param Updater $updater
+     */
+    public function doUpdate(Updater $updater)
     {
-        $tableName = Common::prefixTable('option');
-
-        return sprintf("DELETE FROM `%s` WHERE `option_name` = '%s'", $tableName, $optionName);
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

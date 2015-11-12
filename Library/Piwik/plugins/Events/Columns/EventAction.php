@@ -10,8 +10,8 @@ namespace Piwik\Plugins\Events\Columns;
 
 use Piwik\Piwik;
 use Piwik\Plugin\Dimension\ActionDimension;
-use Piwik\Plugins\Events\Actions\ActionEvent;
 use Piwik\Plugins\Events\Segment;
+use Piwik\Plugins\Events\Actions\ActionEvent;
 use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 
@@ -19,6 +19,14 @@ class EventAction extends ActionDimension
 {
     protected $columnName = 'idaction_event_action';
     protected $columnType = 'INTEGER(10) UNSIGNED DEFAULT NULL';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('eventAction');
+        $segment->setName('Events_EventAction');
+        $this->addSegment($segment);
+    }
 
     public function getName()
     {
@@ -44,13 +52,5 @@ class EventAction extends ActionDimension
         }
 
         return false;
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('eventAction');
-        $segment->setName('Events_EventAction');
-        $this->addSegment($segment);
     }
 }

@@ -27,25 +27,6 @@ use Piwik\View;
 class LanguagesManager extends \Piwik\Plugin
 {
     /**
-     * Set the language for the session
-     *
-     * @param string $languageCode ISO language code
-     * @return bool
-     */
-    public static function setLanguageForSession($languageCode)
-    {
-        if (!API::getInstance()->isLanguageAvailable($languageCode)) {
-            return false;
-        }
-
-        $cookieName = Config::getInstance()->General['language_cookie_name'];
-        $cookie = new Cookie($cookieName, 0);
-        $cookie->set('language', $languageCode);
-        $cookie->save();
-        return true;
-    }
-
-    /**
      * @see Piwik\Plugin::registerEvents
      */
     public function registerEvents()
@@ -90,6 +71,17 @@ class LanguagesManager extends \Piwik\Plugin
     }
 
     /**
+     * Adds the languages drop-down list to topbars other than the main one rendered
+     * in CoreHome/templates/top_bar.twig. The 'other' topbars are on the Installation
+     * and CoreUpdater screens.
+     */
+    public function jsGlobalVariables(&$str)
+    {
+        // piwik object & scripts aren't loaded in 'other' topbars
+        $str .= "piwik.languageName = '" .  self::getLanguageNameForCurrentUser() . "';";
+    }
+
+    /**
      * Renders and returns the language selector HTML.
      *
      * @return string
@@ -101,79 +93,6 @@ class LanguagesManager extends \Piwik\Plugin
         $view->currentLanguageCode = self::getLanguageCodeForCurrentUser();
         $view->currentLanguageName = self::getLanguageNameForCurrentUser();
         return $view->render();
-    }
-
-    /**
-     * @return string Two letters language code, eg. "fr"
-     */
-    public static function getLanguageCodeForCurrentUser()
-    {
-        $languageCode = self::getLanguageFromPreferences();
-        if (!API::getInstance()->isLanguageAvailable($languageCode)) {
-            $languageCode = Common::extractLanguageCodeFromBrowserLanguage(Common::getBrowserLanguage(), API::getInstance()->getAvailableLanguages());
-        }
-        if (!API::getInstance()->isLanguageAvailable($languageCode)) {
-            $languageCode = Translate::getLanguageDefault();
-        }
-        return $languageCode;
-    }
-
-    /**
-     * @return string|false if language preference could not be loaded
-     */
-    protected static function getLanguageFromPreferences()
-    {
-        if (($language = self::getLanguageForSession()) != null) {
-            return $language;
-        }
-
-        try {
-            $currentUser = Piwik::getCurrentUserLogin();
-            return API::getInstance()->getLanguageForUser($currentUser);
-        } catch (Exception $e) {
-            return false;
-        }
-    }
-
-    /**
-     * Returns the language for the session
-     *
-     * @return string|null
-     */
-    public static function getLanguageForSession()
-    {
-        $cookieName = Config::getInstance()->General['language_cookie_name'];
-        $cookie = new Cookie($cookieName);
-        if ($cookie->isCookieFound()) {
-            return $cookie->get('language');
-        }
-        return null;
-    }
-
-    /**
-     * @return string Full english language string, eg. "French"
-     */
-    public static function getLanguageNameForCurrentUser()
-    {
-        $languageCode = self::getLanguageCodeForCurrentUser();
-        $languages = API::getInstance()->getAvailableLanguageNames();
-        foreach ($languages as $language) {
-            if ($language['code'] === $languageCode) {
-                return $language['name'];
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Adds the languages drop-down list to topbars other than the main one rendered
-     * in CoreHome/templates/top_bar.twig. The 'other' topbars are on the Installation
-     * and CoreUpdater screens.
-     */
-    public function jsGlobalVariables(&$str)
-    {
-        // piwik object & scripts aren't loaded in 'other' topbars
-        $str .= "piwik.languageName = '" .  self::getLanguageNameForCurrentUser() . "';";
     }
 
     public function initLanguage()
@@ -216,5 +135,86 @@ class LanguagesManager extends \Piwik\Plugin
     public function uninstall()
     {
         Model::uninstall();
+    }
+
+    /**
+     * @return string Two letters language code, eg. "fr"
+     */
+    public static function getLanguageCodeForCurrentUser()
+    {
+        $languageCode = self::getLanguageFromPreferences();
+        if (!API::getInstance()->isLanguageAvailable($languageCode)) {
+            $languageCode = Common::extractLanguageCodeFromBrowserLanguage(Common::getBrowserLanguage(), API::getInstance()->getAvailableLanguages());
+        }
+        if (!API::getInstance()->isLanguageAvailable($languageCode)) {
+            $languageCode = Translate::getLanguageDefault();
+        }
+        return $languageCode;
+    }
+
+    /**
+     * @return string Full english language string, eg. "French"
+     */
+    public static function getLanguageNameForCurrentUser()
+    {
+        $languageCode = self::getLanguageCodeForCurrentUser();
+        $languages = API::getInstance()->getAvailableLanguageNames();
+        foreach ($languages as $language) {
+            if ($language['code'] === $languageCode) {
+                return $language['name'];
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return string|false if language preference could not be loaded
+     */
+    protected static function getLanguageFromPreferences()
+    {
+        if (($language = self::getLanguageForSession()) != null) {
+            return $language;
+        }
+
+        try {
+            $currentUser = Piwik::getCurrentUserLogin();
+            return API::getInstance()->getLanguageForUser($currentUser);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Returns the language for the session
+     *
+     * @return string|null
+     */
+    public static function getLanguageForSession()
+    {
+        $cookieName = Config::getInstance()->General['language_cookie_name'];
+        $cookie = new Cookie($cookieName);
+        if ($cookie->isCookieFound()) {
+            return $cookie->get('language');
+        }
+        return null;
+    }
+
+    /**
+     * Set the language for the session
+     *
+     * @param string $languageCode ISO language code
+     * @return bool
+     */
+    public static function setLanguageForSession($languageCode)
+    {
+        if (!API::getInstance()->isLanguageAvailable($languageCode)) {
+            return false;
+        }
+
+        $cookieName = Config::getInstance()->General['language_cookie_name'];
+        $cookie = new Cookie($cookieName, 0);
+        $cookie->set('language', $languageCode);
+        $cookie->save();
+        return true;
     }
 }

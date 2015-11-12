@@ -21,6 +21,11 @@ class UpdateCheck
     const LATEST_VERSION = 'UpdateCheck_LatestVersion';
     const SOCKET_TIMEOUT = 2;
 
+    private static function isAutoUpdateEnabled()
+    {
+        return (bool) Config::getInstance()->General['enable_auto_update'];
+    }
+
     /**
      * Check for a newer version
      *
@@ -55,11 +60,6 @@ class UpdateCheck
         }
     }
 
-    private static function isAutoUpdateEnabled()
-    {
-        return (bool) Config::getInstance()->General['enable_auto_update'];
-    }
-
     /**
      * Get the latest available version number for the currently active release channel. Eg '2.15.0-b4' or '2.15.0'.
      * Should return a semantic version number in format MAJOR.MINOR.PATCH (http://semver.org/).
@@ -82,6 +82,16 @@ class UpdateCheck
     }
 
     /**
+     * Returns the latest available version number. Does not perform a check whether a later version is available.
+     *
+     * @return false|string
+     */
+    public static function getLatestVersion()
+    {
+        return Option::get(self::LATEST_VERSION);
+    }
+
+    /**
      * Returns version number of a newer Piwik release.
      *
      * @return string|bool  false if current version is the latest available,
@@ -96,15 +106,5 @@ class UpdateCheck
             return $latestVersion;
         }
         return false;
-    }
-
-    /**
-     * Returns the latest available version number. Does not perform a check whether a later version is available.
-     *
-     * @return false|string
-     */
-    public static function getLatestVersion()
-    {
-        return Option::get(self::LATEST_VERSION);
     }
 }

@@ -20,6 +20,16 @@ class ProxyHttp
     const GZIP_ENCODING_REGEX = '/(?:^|, ?)((x-)?gzip)(?:,|$)/';
 
     /**
+     * Returns true if the current request appears to be a secure HTTPS connection
+     *
+     * @return bool
+     */
+    public static function isHttps()
+    {
+        return Url::getCurrentScheme() === 'https';
+    }
+
+    /**
      * Serve static files through php proxy.
      *
      * It performs the following actions:
@@ -153,51 +163,6 @@ class ProxyHttp
     }
 
     /**
-     * Workaround IE bug when downloading certain document types over SSL and
-     * cache control headers are present, e.g.,
-     *
-     *    Cache-Control: no-cache
-     *    Cache-Control: no-store,max-age=0,must-revalidate
-     *    Pragma: no-cache
-     *
-     * @see http://support.microsoft.com/kb/316431/
-     * @see RFC2616
-     *
-     * @param string $override One of "public", "private", "no-cache", or "no-store". (optional)
-     */
-    public static function overrideCacheControlHeaders($override = null)
-    {
-        if ($override || self::isHttps()) {
-            Common::sendHeader('Pragma: ');
-            Common::sendHeader('Expires: ');
-            if (in_array($override, array('public', 'private', 'no-cache', 'no-store'))) {
-                Common::sendHeader("Cache-Control: $override, must-revalidate");
-            } else {
-                Common::sendHeader('Cache-Control: must-revalidate');
-            }
-        }
-    }
-
-    /**
-     * Returns true if the current request appears to be a secure HTTPS connection
-     *
-     * @return bool
-     */
-    public static function isHttps()
-    {
-        return Url::getCurrentScheme() === 'https';
-    }
-
-    /**
-     * Returns a formatted Expires HTTP header for a certain number of days in the future. The result
-     * can be used in a call to `header()`.
-     */
-    private static function getExpiresHeaderForFutureDay($expireFarFutureDays)
-    {
-        return "Expires: " . gmdate('D, d M Y H:i:s', time() + 86400 * (int)$expireFarFutureDays) . ' GMT';
-    }
-
-    /**
      * Test if php output is compressed
      *
      * @return bool  True if php output is (or suspected/likely) to be compressed
@@ -226,6 +191,41 @@ class ProxyHttp
         !empty($obHandlers) ||
         !empty($autoPrependFile) ||
         !empty($autoAppendFile);
+    }
+
+    /**
+     * Workaround IE bug when downloading certain document types over SSL and
+     * cache control headers are present, e.g.,
+     *
+     *    Cache-Control: no-cache
+     *    Cache-Control: no-store,max-age=0,must-revalidate
+     *    Pragma: no-cache
+     *
+     * @see http://support.microsoft.com/kb/316431/
+     * @see RFC2616
+     *
+     * @param string $override One of "public", "private", "no-cache", or "no-store". (optional)
+     */
+    public static function overrideCacheControlHeaders($override = null)
+    {
+        if ($override || self::isHttps()) {
+            Common::sendHeader('Pragma: ');
+            Common::sendHeader('Expires: ');
+            if (in_array($override, array('public', 'private', 'no-cache', 'no-store'))) {
+                Common::sendHeader("Cache-Control: $override, must-revalidate");
+            } else {
+                Common::sendHeader('Cache-Control: must-revalidate');
+            }
+        }
+    }
+
+    /**
+     * Returns a formatted Expires HTTP header for a certain number of days in the future. The result
+     * can be used in a call to `header()`.
+     */
+    private static function getExpiresHeaderForFutureDay($expireFarFutureDays)
+    {
+        return "Expires: " . gmdate('D, d M Y H:i:s', time() + 86400 * (int)$expireFarFutureDays) . ' GMT';
     }
 
     private static function getCompressionEncodingAcceptedByClient()

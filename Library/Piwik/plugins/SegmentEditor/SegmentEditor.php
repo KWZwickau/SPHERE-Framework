@@ -10,21 +10,13 @@ namespace Piwik\Plugins\SegmentEditor;
 
 use Piwik\Config;
 use Piwik\Db;
+use Piwik\DbHelper;
+use Piwik\Version;
 
 /**
  */
 class SegmentEditor extends \Piwik\Plugin
 {
-    /**
-     * Returns whether adding segments for all websites is enabled or not.
-     *
-     * @return bool
-     */
-    public static function isAddingSegmentsForAllWebsitesEnabled()
-    {
-        return Config::getInstance()->General['allow_adding_segments_for_all_websites'] == 1;
-    }
-
     /**
      * @see Piwik\Plugin::registerEvents
      */
@@ -82,5 +74,15 @@ class SegmentEditor extends \Piwik\Plugin
     public function getStylesheetFiles(&$stylesheets)
     {
         $stylesheets[] = "plugins/SegmentEditor/stylesheets/segmentation.less";
+    }
+
+    /**
+     * Returns whether adding segments for all websites is enabled or not.
+     *
+     * @return bool
+     */
+    public static function isAddingSegmentsForAllWebsitesEnabled()
+    {
+        return Config::getInstance()->General['allow_adding_segments_for_all_websites'] == 1;
     }
 }

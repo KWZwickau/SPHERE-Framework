@@ -45,7 +45,7 @@ class Zend_Cache_Backend_Xcache extends Zend_Cache_Backend implements Zend_Cache
      * Log message
      */
     const TAGS_UNSUPPORTED_BY_CLEAN_OF_XCACHE_BACKEND = 'Zend_Cache_Backend_Xcache::clean() : tags are unsupported by the Xcache backend';
-    const TAGS_UNSUPPORTED_BY_SAVE_OF_XCACHE_BACKEND = 'Zend_Cache_Backend_Xcache::save() : tags are unsupported by the Xcache backend';
+    const TAGS_UNSUPPORTED_BY_SAVE_OF_XCACHE_BACKEND =  'Zend_Cache_Backend_Xcache::save() : tags are unsupported by the Xcache backend';
 
     /**
      * Available options
@@ -83,7 +83,7 @@ class Zend_Cache_Backend_Xcache extends Zend_Cache_Backend implements Zend_Cache
      *
      * WARNING $doNotTestCacheValidity=true is unsupported by the Xcache backend
      *
-     * @param  string $id cache id
+     * @param  string  $id                     cache id
      * @param  boolean $doNotTestCacheValidity if set to true, the cache validity won't be tested
      * @return string cached datas (or false)
      */
@@ -160,7 +160,7 @@ class Zend_Cache_Backend_Xcache extends Zend_Cache_Backend implements Zend_Cache
      * 'matchingAnyTag' => unsupported
      *
      * @param  string $mode clean mode
-     * @param  array $tags array of tags
+     * @param  array  $tags array of tags
      * @throws Zend_Cache_Exception
      * @return boolean true if no problem
      */
@@ -184,7 +184,7 @@ class Zend_Cache_Backend_Xcache extends Zend_Cache_Backend implements Zend_Cache
                 }
 
                 $cnt = xcache_count(XC_TYPE_VAR);
-                for ($i = 0; $i < $cnt; $i++) {
+                for ($i=0; $i < $cnt; $i++) {
                     xcache_clear_cache(XC_TYPE_VAR, $i);
                 }
 

@@ -22,6 +22,24 @@ use Piwik\Piwik;
 class API extends \Piwik\Plugin\API
 {
     /**
+     * @param string $name
+     * @param int $idSite
+     * @param string $period
+     * @param string $date
+     * @param string $segment
+     * @return DataTable
+     */
+    protected function getDataTable($name, $idSite, $period, $date, $segment)
+    {
+        Piwik::checkUserHasViewAccess($idSite);
+        $archive = Archive::build($idSite, $period, $date, $segment);
+        $dataTable = $archive->getDataTable($name);
+        $dataTable->queueFilter('ReplaceColumnNames');
+        $dataTable->queueFilter('ReplaceSummaryRowLabel');
+        return $dataTable;
+    }
+
+    /**
      * Gets datatable displaying number of visits by device type (eg. desktop, smartphone, tablet)
      * @param int $idSite
      * @param string $period
@@ -39,24 +57,6 @@ class API extends \Piwik\Plugin\API
         $dataTable->filter('AddSegmentByLabelMapping', array('deviceType', $mapping));
         $dataTable->filter('ColumnCallbackAddMetadata', array('label', 'logo', __NAMESPACE__ . '\getDeviceTypeLogo'));
         $dataTable->filter('ColumnCallbackReplace', array('label', __NAMESPACE__ . '\getDeviceTypeLabel'));
-        return $dataTable;
-    }
-
-    /**
-     * @param string $name
-     * @param int $idSite
-     * @param string $period
-     * @param string $date
-     * @param string $segment
-     * @return DataTable
-     */
-    protected function getDataTable($name, $idSite, $period, $date, $segment)
-    {
-        Piwik::checkUserHasViewAccess($idSite);
-        $archive = Archive::build($idSite, $period, $date, $segment);
-        $dataTable = $archive->getDataTable($name);
-        $dataTable->queueFilter('ReplaceColumnNames');
-        $dataTable->queueFilter('ReplaceSummaryRowLabel');
         return $dataTable;
     }
 
@@ -125,7 +125,7 @@ class API extends \Piwik\Plugin\API
     public function getOsFamilies($idSite, $period, $date, $segment = false)
     {
         $dataTable = $this->getDataTable('DevicesDetection_os', $idSite, $period, $date, $segment);
-
+        
         // handle legacy archives
         if ($dataTable instanceof DataTable\Map || !$dataTable->getRowsCount()) {
             $versionDataTable = $this->getDataTable('DevicesDetection_osVersions', $idSite, $period, $date, $segment);
@@ -168,7 +168,7 @@ class API extends \Piwik\Plugin\API
                 $dataTable->addTable($newDataTable, $label);
             }
 
-        } else {if (!$dataTable->getRowsCount() && $dataTable2->getRowsCount()) {
+        } else if (!$dataTable->getRowsCount() && $dataTable2->getRowsCount()) {
             $dataTable2->filter('GroupBy', array('label', function ($label) {
                 if (preg_match("/(.+) [0-9]+(?:\.[0-9]+)?$/", $label, $matches)) {
                     return $matches[1]; // should match for browsers
@@ -179,7 +179,7 @@ class API extends \Piwik\Plugin\API
                 return $label;
             }));
             return $dataTable2;
-        }}
+        }
 
         return $dataTable;
     }

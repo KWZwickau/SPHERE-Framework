@@ -13,10 +13,10 @@ use Piwik\AssetManager\UIAsset;
 use Piwik\AssetManager\UIAsset\InMemoryUIAsset;
 use Piwik\AssetManager\UIAsset\OnDiskUIAsset;
 use Piwik\AssetManager\UIAssetCacheBuster;
-use Piwik\AssetManager\UIAssetFetcher;
 use Piwik\AssetManager\UIAssetFetcher\JScriptUIAssetFetcher;
 use Piwik\AssetManager\UIAssetFetcher\StaticUIAssetFetcher;
 use Piwik\AssetManager\UIAssetFetcher\StylesheetUIAssetFetcher;
+use Piwik\AssetManager\UIAssetFetcher;
 use Piwik\AssetManager\UIAssetMerger\JScriptUIAssetMerger;
 use Piwik\AssetManager\UIAssetMerger\StylesheetUIAssetMerger;
 use Piwik\Container\StaticContainer;
@@ -133,128 +133,6 @@ class AssetManager extends Singleton
     }
 
     /**
-     * Return the global option disable_merged_assets
-     *
-     * @return boolean
-     */
-    public function isMergedAssetsDisabled()
-    {
-        if (Config::getInstance()->Development['disable_merged_assets'] == 1) {
-            return true;
-        }
-
-        if (isset($_GET['disable_merged_assets']) && $_GET['disable_merged_assets'] == 1) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @return UIAsset
-     */
-    private function getMergedCoreJSAsset()
-    {
-        return $this->getMergedUIAsset(self::MERGED_CORE_JS_FILE);
-    }
-
-    /**
-     * @param string $fileName
-     * @return UIAsset
-     */
-    private function getMergedUIAsset($fileName)
-    {
-        return new OnDiskUIAsset($this->getAssetDirectory(), $fileName);
-    }
-
-    /**
-     * Check if the merged file directory exists and is writable.
-     *
-     * @return string The directory location
-     * @throws Exception if directory is not writable.
-     */
-    public function getAssetDirectory()
-    {
-        $mergedFileDirectory = StaticContainer::get('path.tmp') . '/assets';
-
-        if (!is_dir($mergedFileDirectory)) {
-            Filesystem::mkdir($mergedFileDirectory);
-        }
-
-        if (!is_writable($mergedFileDirectory)) {
-            throw new Exception("Directory " . $mergedFileDirectory . " has to be writable.");
-        }
-
-        return $mergedFileDirectory;
-    }
-
-    /**
-     * @return UIAsset
-     */
-    private function getMergedNonCoreJSAsset()
-    {
-        return $this->getMergedUIAsset(self::MERGED_NON_CORE_JS_FILE);
-    }
-
-    /**
-     * Return individual JS file inclusion directive(s) using the markup <script>
-     *
-     * @return string
-     */
-    private function getIndividualJsIncludes()
-    {
-        return
-            $this->getIndividualJsIncludesFromAssetFetcher($this->getCoreJScriptFetcher()) .
-            $this->getIndividualJsIncludesFromAssetFetcher($this->getNonCoreJScriptFetcher());
-    }
-
-    /**
-     * @param UIAssetFetcher $assetFetcher
-     * @return string
-     */
-    private function getIndividualJsIncludesFromAssetFetcher($assetFetcher)
-    {
-        $jsIncludeString = '';
-
-        foreach ($assetFetcher->getCatalog()->getAssets() as $jsFile) {
-            $jsFile->validateFile();
-            $jsIncludeString = $jsIncludeString . sprintf(self::JS_IMPORT_DIRECTIVE, $jsFile->getRelativeLocation());
-        }
-
-        return $jsIncludeString;
-    }
-
-    private function getCoreJScriptFetcher()
-    {
-        return new JScriptUIAssetFetcher($this->getLoadedPlugins(true), $this->theme);
-    }
-
-    /**
-     * @param boolean $core
-     * @return string[]
-     */
-    public function getLoadedPlugins($core)
-    {
-        $loadedPlugins = array();
-
-        foreach (Manager::getInstance()->getPluginsLoadedAndActivated() as $plugin) {
-            $pluginName = $plugin->getPluginName();
-            $pluginIsCore = Manager::getInstance()->isPluginBundledWithCore($pluginName);
-
-            if (($pluginIsCore && $core) || (!$pluginIsCore && !$core)) {
-                $loadedPlugins[] = $pluginName;
-            }
-        }
-
-        return $loadedPlugins;
-    }
-
-    private function getNonCoreJScriptFetcher()
-    {
-        return new JScriptUIAssetFetcher($this->getLoadedPlugins(false), $this->theme);
-    }
-
-    /**
      * Return the base.less compiled to css
      *
      * @return UIAsset
@@ -290,14 +168,6 @@ class AssetManager extends Singleton
     }
 
     /**
-     * @return UIAsset
-     */
-    public function getMergedStylesheetAsset()
-    {
-        return $this->getMergedUIAsset(self::MERGED_CSS_FILE);
-    }
-
-    /**
      * Return the core js merged file absolute location.
      * If there is none, the generation process will be triggered.
      *
@@ -309,20 +179,6 @@ class AssetManager extends Singleton
     }
 
     /**
-     * @param UIAssetFetcher $assetFetcher
-     * @param UIAsset $mergedAsset
-     * @return UIAsset
-     */
-    private function getMergedJavascript($assetFetcher, $mergedAsset)
-    {
-        $assetMerger = new JScriptUIAssetMerger($mergedAsset, $assetFetcher, $this->cacheBuster);
-
-        $assetMerger->generateFile();
-
-        return $mergedAsset;
-    }
-
-    /**
      * Return the non core js merged file absolute location.
      * If there is none, the generation process will be triggered.
      *
@@ -331,6 +187,26 @@ class AssetManager extends Singleton
     public function getMergedNonCoreJavaScript()
     {
         return $this->getMergedJavascript($this->getNonCoreJScriptFetcher(), $this->getMergedNonCoreJSAsset());
+    }
+
+    /**
+     * @param boolean $core
+     * @return string[]
+     */
+    public function getLoadedPlugins($core)
+    {
+        $loadedPlugins = array();
+
+        foreach (Manager::getInstance()->getPluginsLoadedAndActivated() as $plugin) {
+            $pluginName = $plugin->getPluginName();
+            $pluginIsCore = Manager::getInstance()->isPluginBundledWithCore($pluginName);
+
+            if (($pluginIsCore && $core) || (!$pluginIsCore && !$core)) {
+                $loadedPlugins[] = $pluginName;
+            }
+        }
+
+        return $loadedPlugins;
     }
 
     /**
@@ -354,6 +230,97 @@ class AssetManager extends Singleton
         }
 
         $this->removeAssets($assetsToRemove);
+    }
+
+    /**
+     * Check if the merged file directory exists and is writable.
+     *
+     * @return string The directory location
+     * @throws Exception if directory is not writable.
+     */
+    public function getAssetDirectory()
+    {
+        $mergedFileDirectory = StaticContainer::get('path.tmp') . '/assets';
+
+        if (!is_dir($mergedFileDirectory)) {
+            Filesystem::mkdir($mergedFileDirectory);
+        }
+
+        if (!is_writable($mergedFileDirectory)) {
+            throw new Exception("Directory " . $mergedFileDirectory . " has to be writable.");
+        }
+
+        return $mergedFileDirectory;
+    }
+
+    /**
+     * Return the global option disable_merged_assets
+     *
+     * @return boolean
+     */
+    public function isMergedAssetsDisabled()
+    {
+        if (Config::getInstance()->Development['disable_merged_assets'] == 1) {
+            return true;
+        }
+        
+        if (isset($_GET['disable_merged_assets']) && $_GET['disable_merged_assets'] == 1) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * @param UIAssetFetcher $assetFetcher
+     * @param UIAsset $mergedAsset
+     * @return UIAsset
+     */
+    private function getMergedJavascript($assetFetcher, $mergedAsset)
+    {
+        $assetMerger = new JScriptUIAssetMerger($mergedAsset, $assetFetcher, $this->cacheBuster);
+
+        $assetMerger->generateFile();
+
+        return $mergedAsset;
+    }
+
+    /**
+     * Return individual JS file inclusion directive(s) using the markup <script>
+     *
+     * @return string
+     */
+    private function getIndividualJsIncludes()
+    {
+        return
+            $this->getIndividualJsIncludesFromAssetFetcher($this->getCoreJScriptFetcher()) .
+            $this->getIndividualJsIncludesFromAssetFetcher($this->getNonCoreJScriptFetcher());
+    }
+
+    /**
+     * @param UIAssetFetcher $assetFetcher
+     * @return string
+     */
+    private function getIndividualJsIncludesFromAssetFetcher($assetFetcher)
+    {
+        $jsIncludeString = '';
+
+        foreach ($assetFetcher->getCatalog()->getAssets() as $jsFile) {
+            $jsFile->validateFile();
+            $jsIncludeString = $jsIncludeString . sprintf(self::JS_IMPORT_DIRECTIVE, $jsFile->getRelativeLocation());
+        }
+
+        return $jsIncludeString;
+    }
+
+    private function getCoreJScriptFetcher()
+    {
+        return new JScriptUIAssetFetcher($this->getLoadedPlugins(true), $this->theme);
+    }
+
+    private function getNonCoreJScriptFetcher()
+    {
+        return new JScriptUIAssetFetcher($this->getLoadedPlugins(false), $this->theme);
     }
 
     /**
@@ -395,5 +362,38 @@ class AssetManager extends Singleton
         foreach ($uiAssets as $uiAsset) {
             $uiAsset->delete();
         }
+    }
+
+    /**
+     * @return UIAsset
+     */
+    public function getMergedStylesheetAsset()
+    {
+        return $this->getMergedUIAsset(self::MERGED_CSS_FILE);
+    }
+
+    /**
+     * @return UIAsset
+     */
+    private function getMergedCoreJSAsset()
+    {
+        return $this->getMergedUIAsset(self::MERGED_CORE_JS_FILE);
+    }
+
+    /**
+     * @return UIAsset
+     */
+    private function getMergedNonCoreJSAsset()
+    {
+        return $this->getMergedUIAsset(self::MERGED_NON_CORE_JS_FILE);
+    }
+
+    /**
+     * @param string $fileName
+     * @return UIAsset
+     */
+    private function getMergedUIAsset($fileName)
+    {
+        return new OnDiskUIAsset($this->getAssetDirectory(), $fileName);
     }
 }

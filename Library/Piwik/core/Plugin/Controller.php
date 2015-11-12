@@ -13,8 +13,8 @@ use Piwik\Access;
 use Piwik\API\Proxy;
 use Piwik\API\Request;
 use Piwik\Common;
-use Piwik\Config;
 use Piwik\Config as PiwikConfig;
+use Piwik\Config;
 use Piwik\DataTable\Filter\CalculateEvolutionFilter;
 use Piwik\Date;
 use Piwik\Exception\NoPrivilegesException;
@@ -25,8 +25,8 @@ use Piwik\Menu\MenuUser;
 use Piwik\NoAccessException;
 use Piwik\Notification\Manager as NotificationManager;
 use Piwik\NumberFormatter;
-use Piwik\Period;
 use Piwik\Period\Month;
+use Piwik\Period;
 use Piwik\Period\PeriodValidator;
 use Piwik\Period\Range;
 use Piwik\Piwik;
@@ -182,15 +182,47 @@ abstract class Controller
     }
 
     /**
-     * Returns the pretty date representation
-     *
-     * @param $date string
-     * @param $period string
-     * @return string Pretty date
+     * Returns values that are enabled for the parameter &period=
+     * @return array eg. array('day', 'week', 'month', 'year', 'range')
      */
-    public static function getPrettyDate($date, $period)
+    protected static function getEnabledPeriodsInUI()
     {
-        return self::getCalendarPrettyDate(Period\Factory::build($period, Date::factory($date)));
+        $periodValidator = new PeriodValidator();
+        return $periodValidator->getPeriodsAllowedForUI();
+    }
+
+    /**
+     * @return array
+     */
+    private static function getEnabledPeriodsNames()
+    {
+        $availablePeriods = self::getEnabledPeriodsInUI();
+        $periodNames = array(
+            'day'   => array(
+                'singular' => Piwik::translate('Intl_PeriodDay'),
+                'plural' => Piwik::translate('Intl_PeriodDays')
+            ),
+            'week'  => array(
+                'singular' => Piwik::translate('Intl_PeriodWeek'),
+                'plural' => Piwik::translate('Intl_PeriodWeeks')
+            ),
+            'month' => array(
+                'singular' => Piwik::translate('Intl_PeriodMonth'),
+                'plural' => Piwik::translate('Intl_PeriodMonths')
+            ),
+            'year'  => array(
+                'singular' => Piwik::translate('Intl_PeriodYear'),
+                'plural' => Piwik::translate('Intl_PeriodYears')
+            ),
+            // Note: plural is not used for date range
+            'range' => array(
+                'singular' => Piwik::translate('General_DateRangeInPeriodList'),
+                'plural' => Piwik::translate('General_DateRangeInPeriodList')
+            ),
+        );
+
+        $periodNames = array_intersect_key($periodNames, array_fill_keys($availablePeriods, true));
+        return $periodNames;
     }
 
     /**
@@ -203,79 +235,6 @@ abstract class Controller
     public function getDefaultAction()
     {
         return 'index';
-    }
-
-    /**
-     * Helper method used to redirect the current HTTP request to another module/action.
-     *
-     * This function will exit immediately after executing.
-     *
-     * @param string $moduleToRedirect The plugin to redirect to, eg. `"MultiSites"`.
-     * @param string $actionToRedirect Action, eg. `"index"`.
-     * @param int|null $websiteId The new idSite query parameter, eg, `1`.
-     * @param string|null $defaultPeriod The new period query parameter, eg, `'day'`.
-     * @param string|null $defaultDate The new date query parameter, eg, `'today'`.
-     * @param array $parameters Other query parameters to append to the URL.
-     * @api
-     */
-    public function redirectToIndex($moduleToRedirect, $actionToRedirect, $websiteId = null, $defaultPeriod = null,
-                                    $defaultDate = null, $parameters = array())
-    {
-        try {
-            $this->doRedirectToUrl($moduleToRedirect, $actionToRedirect, $websiteId, $defaultPeriod, $defaultDate, $parameters);
-        } catch (Exception $e) {
-            // no website ID to default to, so could not redirect
-        }
-
-        if (Piwik::hasUserSuperUserAccess()) {
-            $siteTableName = Common::prefixTable('site');
-            $message = "Error: no website was found in this Piwik installation.
-			<br />Check the table '$siteTableName' in your database, it should contain your Piwik websites.";
-
-            $ex = new NoWebsiteFoundException($message);
-            $ex->setIsHtmlMessage();
-
-            throw $ex;
-        }
-
-        if (!Piwik::isUserIsAnonymous()) {
-            $currentLogin = Piwik::getCurrentUserLogin();
-            $emails = implode(',', Piwik::getAllSuperUserAccessEmailAddresses());
-            $errorMessage  = sprintf(Piwik::translate('CoreHome_NoPrivilegesAskPiwikAdmin'), $currentLogin, "<br/><a href='mailto:" . $emails . "?subject=Access to Piwik for user $currentLogin'>", "</a>");
-            $errorMessage .= "<br /><br />&nbsp;&nbsp;&nbsp;<b><a href='index.php?module=" . Piwik::getLoginPluginName() . "&amp;action=logout'>&rsaquo; " . Piwik::translate('General_Logout') . "</a></b><br />";
-
-            $ex = new NoPrivilegesException($errorMessage);
-            $ex->setIsHtmlMessage();
-
-            throw $ex;
-        }
-
-        echo FrontController::getInstance()->dispatch(Piwik::getLoginPluginName(), false);
-        exit;
-    }
-
-    /**
-     * @param $moduleToRedirect
-     * @param $actionToRedirect
-     * @param $websiteId
-     * @param $defaultPeriod
-     * @param $defaultDate
-     * @param $parameters
-     * @throws Exception
-     */
-    private function doRedirectToUrl($moduleToRedirect, $actionToRedirect, $websiteId, $defaultPeriod, $defaultDate, $parameters)
-    {
-        $menu = new Menu();
-
-        $parameters = array_merge(
-            $menu->urlForDefaultUserParams($websiteId, $defaultPeriod, $defaultDate),
-            $parameters
-        );
-        $queryParams = !empty($parameters) ? '&' . Url::getQueryStringFromParameters($parameters) : '';
-        $url = "index.php?module=%s&action=%s";
-        $url = sprintf($url, $moduleToRedirect, $actionToRedirect);
-        $url = $url . $queryParams;
-        Url::redirectToUrl($url);
     }
 
     /**
@@ -336,6 +295,370 @@ abstract class Controller
         }
 
         return $view->render();
+    }
+
+    /**
+     * Convenience method that creates and renders a ViewDataTable for a API method.
+     *
+     * @param string|\Piwik\Plugin\Report $apiAction The name of the API action (eg, `'getResolution'`) or
+     *                                      an instance of an report.
+     * @param bool $controllerAction The name of the Controller action name  that is rendering the report. Defaults
+     *                               to the `$apiAction`.
+     * @param bool $fetch If `true`, the rendered string is returned, if `false` it is `echo`'d.
+     * @throws \Exception if `$pluginName` is not an existing plugin or if `$apiAction` is not an
+     *                    existing method of the plugin's API.
+     * @return string|void See `$fetch`.
+     * @api
+     */
+    protected function renderReport($apiAction, $controllerAction = false)
+    {
+        if (empty($controllerAction) && is_string($apiAction)) {
+            $report = Report::factory($this->pluginName, $apiAction);
+
+            if (!empty($report)) {
+                $apiAction = $report;
+            }
+        }
+
+        if ($apiAction instanceof Report) {
+            $this->checkSitePermission();
+            $apiAction->checkIsEnabled();
+
+            return $apiAction->render();
+        }
+
+        $pluginName = $this->pluginName;
+
+        /** @var Proxy $apiProxy */
+        $apiProxy = Proxy::getInstance();
+
+        if (!$apiProxy->isExistingApiAction($pluginName, $apiAction)) {
+            throw new \Exception("Invalid action name '$apiAction' for '$pluginName' plugin.");
+        }
+
+        $apiAction = $apiProxy->buildApiActionName($pluginName, $apiAction);
+
+        if ($controllerAction !== false) {
+            $controllerAction = $pluginName . '.' . $controllerAction;
+        }
+
+        $view      = ViewDataTableFactory::build(null, $apiAction, $controllerAction);
+        $rendered  = $view->render();
+
+        return $rendered;
+    }
+
+    /**
+     * Returns a ViewDataTable object that will render a jqPlot evolution graph
+     * for the last30 days/weeks/etc. of the current period, relative to the current date.
+     *
+     * @param string $currentModuleName The name of the current plugin.
+     * @param string $currentControllerAction The name of the action that renders the desired
+     *                                        report.
+     * @param string $apiMethod The API method that the ViewDataTable will use to get
+     *                          graph data.
+     * @return ViewDataTable
+     * @api
+     */
+    protected function getLastUnitGraph($currentModuleName, $currentControllerAction, $apiMethod)
+    {
+        $view = ViewDataTableFactory::build(
+            Evolution::ID, $apiMethod, $currentModuleName . '.' . $currentControllerAction, $forceDefault = true);
+        $view->config->show_goals = false;
+        return $view;
+    }
+
+    /**
+     * Same as {@link getLastUnitGraph()}, but will set some properties of the ViewDataTable
+     * object based on the arguments supplied.
+     *
+     * @param string $currentModuleName The name of the current plugin.
+     * @param string $currentControllerAction The name of the action that renders the desired
+     *                                        report.
+     * @param array $columnsToDisplay The value to use for the ViewDataTable's columns_to_display config
+     *                                property.
+     * @param array $selectableColumns The value to use for the ViewDataTable's selectable_columns config
+     *                                 property.
+     * @param bool|string $reportDocumentation The value to use for the ViewDataTable's documentation config
+     *                                         property.
+     * @param string $apiMethod The API method that the ViewDataTable will use to get graph data.
+     * @return ViewDataTable
+     * @api
+     */
+    protected function getLastUnitGraphAcrossPlugins($currentModuleName, $currentControllerAction, $columnsToDisplay = false,
+                                                     $selectableColumns = array(), $reportDocumentation = false,
+                                                     $apiMethod = 'API.get')
+    {
+        // load translations from meta data
+        $idSite = Common::getRequestVar('idSite');
+        $period = Common::getRequestVar('period');
+        $date = Common::getRequestVar('date');
+        $meta = \Piwik\Plugins\API\API::getInstance()->getReportMetadata($idSite, $period, $date);
+
+        $columns = array_merge($columnsToDisplay ? $columnsToDisplay : array(), $selectableColumns);
+        $translations = array_combine($columns, $columns);
+        foreach ($meta as $reportMeta) {
+            if ($reportMeta['action'] == 'get' && !isset($reportMeta['parameters'])) {
+                foreach ($columns as $column) {
+                    if (isset($reportMeta['metrics'][$column])) {
+                        $translations[$column] = $reportMeta['metrics'][$column];
+                    }
+                }
+            }
+        }
+
+        // initialize the graph and load the data
+        $view = $this->getLastUnitGraph($currentModuleName, $currentControllerAction, $apiMethod);
+
+        if ($columnsToDisplay !== false) {
+            $view->config->columns_to_display = $columnsToDisplay;
+        }
+
+        if (property_exists($view->config, 'selectable_columns')) {
+            $view->config->selectable_columns = array_merge($view->config->selectable_columns ? : array(), $selectableColumns);
+        }
+
+        $view->config->translations += $translations;
+
+        if ($reportDocumentation) {
+            $view->config->documentation = $reportDocumentation;
+        }
+
+        return $view;
+    }
+
+    /**
+     * Returns the array of new processed parameters once the parameters are applied.
+     * For example: if you set range=last30 and date=2008-03-10,
+     *  the date element of the returned array will be "2008-02-10,2008-03-10"
+     *
+     * Parameters you can set:
+     * - range: last30, previous10, etc.
+     * - date: YYYY-MM-DD, today, yesterday
+     * - period: day, week, month, year
+     *
+     * @param array $paramsToSet array( 'date' => 'last50', 'viewDataTable' =>'sparkline' )
+     * @throws \Piwik\NoAccessException
+     * @return array
+     */
+    protected function getGraphParamsModified($paramsToSet = array())
+    {
+        if (!isset($paramsToSet['period'])) {
+            $period = Common::getRequestVar('period');
+        } else {
+            $period = $paramsToSet['period'];
+        }
+        if ($period == 'range') {
+            return $paramsToSet;
+        }
+        if (!isset($paramsToSet['range'])) {
+            $range = 'last30';
+        } else {
+            $range = $paramsToSet['range'];
+        }
+
+        if (!isset($paramsToSet['date'])) {
+            $endDate = $this->strDate;
+        } else {
+            $endDate = $paramsToSet['date'];
+        }
+
+        if (is_null($this->site)) {
+            throw new NoAccessException("Website not initialized, check that you are logged in and/or using the correct token_auth.");
+        }
+        $paramDate = Range::getRelativeToEndDate($period, $range, $endDate, $this->site);
+
+        $params = array_merge($paramsToSet, array('date' => $paramDate));
+        return $params;
+    }
+
+    /**
+     * Returns a numeric value from the API.
+     * Works only for API methods that originally returns numeric values (there is no cast here)
+     *
+     * @param string $methodToCall Name of method to call, eg. Referrers.getNumberOfDistinctSearchEngines
+     * @param bool|string $date A custom date to use when getting the value. If false, the 'date' query
+     *                                          parameter is used.
+     *
+     * @return int|float
+     */
+    protected function getNumericValue($methodToCall, $date = false)
+    {
+        $params = $date === false ? array() : array('date' => $date);
+
+        $return = Request::processRequest($methodToCall, $params);
+        $columns = $return->getFirstRow()->getColumns();
+        return reset($columns);
+    }
+
+    /**
+     * Returns a URL to a sparkline image for a report served by the current plugin.
+     *
+     * The result of this URL should be used with the [sparkline()](/api-reference/Piwik/View#twig) twig function.
+     *
+     * The current site ID and period will be used.
+     *
+     * @param string $action Method name of the controller that serves the report.
+     * @param array $customParameters The array of query parameter name/value pairs that
+     *                                should be set in result URL.
+     * @return string The generated URL.
+     * @api
+     */
+    protected function getUrlSparkline($action, $customParameters = array())
+    {
+        $params = $this->getGraphParamsModified(
+            array('viewDataTable' => 'sparkline',
+                  'action'        => $action,
+                  'module'        => $this->pluginName)
+            + $customParameters
+        );
+        // convert array values to comma separated
+        foreach ($params as &$value) {
+            if (is_array($value)) {
+                $value = rawurlencode(implode(',', $value));
+            }
+        }
+        $url = Url::getCurrentQueryStringWithParametersModified($params);
+        return $url;
+    }
+
+    /**
+     * Sets the first date available in the period selector's calendar.
+     *
+     * @param Date $minDate The min date.
+     * @param View $view The view that contains the period selector.
+     * @api
+     */
+    protected function setMinDateView(Date $minDate, $view)
+    {
+        $view->minDateYear = $minDate->toString('Y');
+        $view->minDateMonth = $minDate->toString('m');
+        $view->minDateDay = $minDate->toString('d');
+    }
+
+    /**
+     * Sets the last date available in the period selector's calendar. Usually this is just the "today" date
+     * for a site (which varies based on the timezone of a site).
+     *
+     * @param Date $maxDate The max date.
+     * @param View $view The view that contains the period selector.
+     * @api
+     */
+    protected function setMaxDateView(Date $maxDate, $view)
+    {
+        $view->maxDateYear = $maxDate->toString('Y');
+        $view->maxDateMonth = $maxDate->toString('m');
+        $view->maxDateDay = $maxDate->toString('d');
+    }
+
+    /**
+     * Assigns variables to {@link Piwik\View} instances that display an entire page.
+     *
+     * The following variables assigned:
+     *
+     * **date** - The value of the **date** query parameter.
+     * **idSite** - The value of the **idSite** query parameter.
+     * **rawDate** - The value of the **date** query parameter.
+     * **prettyDate** - A pretty string description of the current period.
+     * **siteName** - The current site's name.
+     * **siteMainUrl** - The URL of the current site.
+     * **startDate** - The start date of the current period. A {@link Piwik\Date} instance.
+     * **endDate** - The end date of the current period. A {@link Piwik\Date} instance.
+     * **language** - The current language's language code.
+     * **config_action_url_category_delimiter** - The value of the `[General] action_url_category_delimiter`
+     *                                            INI config option.
+     * **topMenu** - The result of `MenuTop::getInstance()->getMenu()`.
+     *
+     * As well as the variables set by {@link setPeriodVariablesView()}.
+     *
+     * Will exit on error.
+     *
+     * @param View $view
+     * @return void
+     * @api
+     */
+    protected function setGeneralVariablesView($view)
+    {
+        $view->idSite = $this->idSite;
+        $this->checkSitePermission();
+        $this->setPeriodVariablesView($view);
+
+        $view->siteName = $this->site->getName();
+        $view->siteMainUrl = $this->site->getMainUrl();
+
+        $siteTimezone = $this->site->getTimezone();
+
+        $datetimeMinDate = $this->site->getCreationDate()->getDatetime();
+        $minDate = Date::factory($datetimeMinDate, $siteTimezone);
+        $this->setMinDateView($minDate, $view);
+
+        $maxDate = Date::factory('now', $siteTimezone);
+        $this->setMaxDateView($maxDate, $view);
+
+        $rawDate = Common::getRequestVar('date');
+        Period::checkDateFormat($rawDate);
+
+        $periodStr = Common::getRequestVar('period');
+
+        if ($periodStr != 'range') {
+            $date      = Date::factory($this->strDate);
+            $validDate = $this->getValidDate($date, $minDate, $maxDate);
+            $period    = Period\Factory::build($periodStr, $validDate);
+
+            if ($date->toString() !== $validDate->toString()) {
+                // we to not always change date since it could convert a strDate "today" to "YYYY-MM-DD"
+                // only change $this->strDate if it was not valid before
+                $this->setDate($validDate);
+            }
+        } else {
+            $period = new Range($periodStr, $rawDate, $siteTimezone);
+        }
+
+        // Setting current period start & end dates, for pre-setting the calendar when "Date Range" is selected
+        $dateStart = $period->getDateStart();
+        $dateStart = $this->getValidDate($dateStart, $minDate, $maxDate);
+
+        $dateEnd   = $period->getDateEnd();
+        $dateEnd   = $this->getValidDate($dateEnd, $minDate, $maxDate);
+
+        if ($periodStr == 'range') {
+            // make sure we actually display the correct calendar pretty date
+            $newRawDate = $dateStart->toString() . ',' . $dateEnd->toString();
+            $period = new Range($periodStr, $newRawDate, $siteTimezone);
+        }
+
+        $view->date = $this->strDate;
+        $view->prettyDate = self::getCalendarPrettyDate($period);
+        $view->rawDate = $rawDate;
+        $view->startDate = $dateStart;
+        $view->endDate = $dateEnd;
+
+        $language = LanguagesManager::getLanguageForSession();
+        $view->language = !empty($language) ? $language : LanguagesManager::getLanguageCodeForCurrentUser();
+
+        $this->setBasicVariablesView($view);
+
+        $view->topMenu  = MenuTop::getInstance()->getMenu();
+        $view->userMenu = MenuUser::getInstance()->getMenu();
+
+        $notifications = $view->notifications;
+        if (empty($notifications)) {
+            $view->notifications = NotificationManager::getAllNotificationsToDisplay();
+            NotificationManager::cancelAllNonPersistent();
+        }
+    }
+
+    private function getValidDate(Date $date, Date $minDate, Date $maxDate)
+    {
+        if ($date->isEarlier($minDate)) {
+            $date = $minDate;
+        }
+
+        if ($date->isLater($maxDate)) {
+            $date = $maxDate;
+        }
+
+        return $date;
     }
 
     /**
@@ -482,113 +805,6 @@ abstract class Controller
     }
 
     /**
-     * Assigns variables to {@link Piwik\View} instances that display an entire page.
-     *
-     * The following variables assigned:
-     *
-     * **date** - The value of the **date** query parameter.
-     * **idSite** - The value of the **idSite** query parameter.
-     * **rawDate** - The value of the **date** query parameter.
-     * **prettyDate** - A pretty string description of the current period.
-     * **siteName** - The current site's name.
-     * **siteMainUrl** - The URL of the current site.
-     * **startDate** - The start date of the current period. A {@link Piwik\Date} instance.
-     * **endDate** - The end date of the current period. A {@link Piwik\Date} instance.
-     * **language** - The current language's language code.
-     * **config_action_url_category_delimiter** - The value of the `[General] action_url_category_delimiter`
-     *                                            INI config option.
-     * **topMenu** - The result of `MenuTop::getInstance()->getMenu()`.
-     *
-     * As well as the variables set by {@link setPeriodVariablesView()}.
-     *
-     * Will exit on error.
-     *
-     * @param View $view
-     * @return void
-     * @api
-     */
-    protected function setGeneralVariablesView($view)
-    {
-        $view->idSite = $this->idSite;
-        $this->checkSitePermission();
-        $this->setPeriodVariablesView($view);
-
-        $view->siteName = $this->site->getName();
-        $view->siteMainUrl = $this->site->getMainUrl();
-
-        $siteTimezone = $this->site->getTimezone();
-
-        $datetimeMinDate = $this->site->getCreationDate()->getDatetime();
-        $minDate = Date::factory($datetimeMinDate, $siteTimezone);
-        $this->setMinDateView($minDate, $view);
-
-        $maxDate = Date::factory('now', $siteTimezone);
-        $this->setMaxDateView($maxDate, $view);
-
-        $rawDate = Common::getRequestVar('date');
-        Period::checkDateFormat($rawDate);
-
-        $periodStr = Common::getRequestVar('period');
-
-        if ($periodStr != 'range') {
-            $date      = Date::factory($this->strDate);
-            $validDate = $this->getValidDate($date, $minDate, $maxDate);
-            $period    = Period\Factory::build($periodStr, $validDate);
-
-            if ($date->toString() !== $validDate->toString()) {
-                // we to not always change date since it could convert a strDate "today" to "YYYY-MM-DD"
-                // only change $this->strDate if it was not valid before
-                $this->setDate($validDate);
-            }
-        } else {
-            $period = new Range($periodStr, $rawDate, $siteTimezone);
-        }
-
-        // Setting current period start & end dates, for pre-setting the calendar when "Date Range" is selected
-        $dateStart = $period->getDateStart();
-        $dateStart = $this->getValidDate($dateStart, $minDate, $maxDate);
-
-        $dateEnd   = $period->getDateEnd();
-        $dateEnd   = $this->getValidDate($dateEnd, $minDate, $maxDate);
-
-        if ($periodStr == 'range') {
-            // make sure we actually display the correct calendar pretty date
-            $newRawDate = $dateStart->toString() . ',' . $dateEnd->toString();
-            $period = new Range($periodStr, $newRawDate, $siteTimezone);
-        }
-
-        $view->date = $this->strDate;
-        $view->prettyDate = self::getCalendarPrettyDate($period);
-        $view->rawDate = $rawDate;
-        $view->startDate = $dateStart;
-        $view->endDate = $dateEnd;
-
-        $language = LanguagesManager::getLanguageForSession();
-        $view->language = !empty($language) ? $language : LanguagesManager::getLanguageCodeForCurrentUser();
-
-        $this->setBasicVariablesView($view);
-
-        $view->topMenu  = MenuTop::getInstance()->getMenu();
-        $view->userMenu = MenuUser::getInstance()->getMenu();
-
-        $notifications = $view->notifications;
-        if (empty($notifications)) {
-            $view->notifications = NotificationManager::getAllNotificationsToDisplay();
-            NotificationManager::cancelAllNonPersistent();
-        }
-    }
-
-    protected function checkSitePermission()
-    {
-        if (!empty($this->idSite) && empty($this->site)) {
-            throw new NoAccessException(Piwik::translate('General_ExceptionPrivilegeAccessWebsite', array("'view'", $this->idSite)));
-        } elseif (empty($this->site) || empty($this->idSite)) {
-            throw new Exception("The requested website idSite is not found in the request, or is invalid.
-				Please check that you are logged in Piwik and have permission to access the specified website.");
-        }
-    }
-
-    /**
      * Sets general period variables on a view, including:
      *
      * - **displayUniqueVisitors** - Whether unique visitors should be displayed for the current
@@ -626,333 +842,54 @@ abstract class Controller
     }
 
     /**
-     * @return array
-     */
-    private static function getEnabledPeriodsNames()
-    {
-        $availablePeriods = self::getEnabledPeriodsInUI();
-        $periodNames = array(
-            'day'   => array(
-                'singular' => Piwik::translate('Intl_PeriodDay'),
-                'plural' => Piwik::translate('Intl_PeriodDays')
-            ),
-            'week'  => array(
-                'singular' => Piwik::translate('Intl_PeriodWeek'),
-                'plural' => Piwik::translate('Intl_PeriodWeeks')
-            ),
-            'month' => array(
-                'singular' => Piwik::translate('Intl_PeriodMonth'),
-                'plural' => Piwik::translate('Intl_PeriodMonths')
-            ),
-            'year'  => array(
-                'singular' => Piwik::translate('Intl_PeriodYear'),
-                'plural' => Piwik::translate('Intl_PeriodYears')
-            ),
-            // Note: plural is not used for date range
-            'range' => array(
-                'singular' => Piwik::translate('General_DateRangeInPeriodList'),
-                'plural' => Piwik::translate('General_DateRangeInPeriodList')
-            ),
-        );
-
-        $periodNames = array_intersect_key($periodNames, array_fill_keys($availablePeriods, true));
-        return $periodNames;
-    }
-
-    /**
-     * Returns values that are enabled for the parameter &period=
-     * @return array eg. array('day', 'week', 'month', 'year', 'range')
-     */
-    protected static function getEnabledPeriodsInUI()
-    {
-        $periodValidator = new PeriodValidator();
-        return $periodValidator->getPeriodsAllowedForUI();
-    }
-
-    /**
-     * Sets the first date available in the period selector's calendar.
+     * Helper method used to redirect the current HTTP request to another module/action.
      *
-     * @param Date $minDate The min date.
-     * @param View $view The view that contains the period selector.
+     * This function will exit immediately after executing.
+     *
+     * @param string $moduleToRedirect The plugin to redirect to, eg. `"MultiSites"`.
+     * @param string $actionToRedirect Action, eg. `"index"`.
+     * @param int|null $websiteId The new idSite query parameter, eg, `1`.
+     * @param string|null $defaultPeriod The new period query parameter, eg, `'day'`.
+     * @param string|null $defaultDate The new date query parameter, eg, `'today'`.
+     * @param array $parameters Other query parameters to append to the URL.
      * @api
      */
-    protected function setMinDateView(Date $minDate, $view)
+    public function redirectToIndex($moduleToRedirect, $actionToRedirect, $websiteId = null, $defaultPeriod = null,
+                                    $defaultDate = null, $parameters = array())
     {
-        $view->minDateYear = $minDate->toString('Y');
-        $view->minDateMonth = $minDate->toString('m');
-        $view->minDateDay = $minDate->toString('d');
+        try {
+            $this->doRedirectToUrl($moduleToRedirect, $actionToRedirect, $websiteId, $defaultPeriod, $defaultDate, $parameters);
+        } catch (Exception $e) {
+            // no website ID to default to, so could not redirect
+        }
+
+        if (Piwik::hasUserSuperUserAccess()) {
+            $siteTableName = Common::prefixTable('site');
+            $message = "Error: no website was found in this Piwik installation.
+			<br />Check the table '$siteTableName' in your database, it should contain your Piwik websites.";
+
+            $ex = new NoWebsiteFoundException($message);
+            $ex->setIsHtmlMessage();
+
+            throw $ex;
+        }
+
+        if (!Piwik::isUserIsAnonymous()) {
+            $currentLogin = Piwik::getCurrentUserLogin();
+            $emails = implode(',', Piwik::getAllSuperUserAccessEmailAddresses());
+            $errorMessage  = sprintf(Piwik::translate('CoreHome_NoPrivilegesAskPiwikAdmin'), $currentLogin, "<br/><a href='mailto:" . $emails . "?subject=Access to Piwik for user $currentLogin'>", "</a>");
+            $errorMessage .= "<br /><br />&nbsp;&nbsp;&nbsp;<b><a href='index.php?module=" . Piwik::getLoginPluginName() . "&amp;action=logout'>&rsaquo; " . Piwik::translate('General_Logout') . "</a></b><br />";
+
+            $ex = new NoPrivilegesException($errorMessage);
+            $ex->setIsHtmlMessage();
+
+            throw $ex;
+        }
+
+        echo FrontController::getInstance()->dispatch(Piwik::getLoginPluginName(), false);
+        exit;
     }
 
-    /**
-     * Sets the last date available in the period selector's calendar. Usually this is just the "today" date
-     * for a site (which varies based on the timezone of a site).
-     *
-     * @param Date $maxDate The max date.
-     * @param View $view The view that contains the period selector.
-     * @api
-     */
-    protected function setMaxDateView(Date $maxDate, $view)
-    {
-        $view->maxDateYear = $maxDate->toString('Y');
-        $view->maxDateMonth = $maxDate->toString('m');
-        $view->maxDateDay = $maxDate->toString('d');
-    }
-
-    private function getValidDate(Date $date, Date $minDate, Date $maxDate)
-    {
-        if ($date->isEarlier($minDate)) {
-            $date = $minDate;
-        }
-
-        if ($date->isLater($maxDate)) {
-            $date = $maxDate;
-        }
-
-        return $date;
-    }
-
-    /**
-     * Returns a prettified date string for use in period selector widget.
-     *
-     * @param Period $period The period to return a pretty string for.
-     * @return string
-     * @api
-     */
-    public static function getCalendarPrettyDate($period)
-    {
-        if ($period instanceof Month) {
-            // show month name when period is for a month
-
-            return $period->getLocalizedLongString();
-        } else {
-            return $period->getPrettyString();
-        }
-    }
-
-    /**
-     * Convenience method that creates and renders a ViewDataTable for a API method.
-     *
-     * @param string|\Piwik\Plugin\Report $apiAction The name of the API action (eg, `'getResolution'`) or
-     *                                      an instance of an report.
-     * @param bool $controllerAction The name of the Controller action name  that is rendering the report. Defaults
-     *                               to the `$apiAction`.
-     * @param bool $fetch If `true`, the rendered string is returned, if `false` it is `echo`'d.
-     * @throws \Exception if `$pluginName` is not an existing plugin or if `$apiAction` is not an
-     *                    existing method of the plugin's API.
-     * @return string|void See `$fetch`.
-     * @api
-     */
-    protected function renderReport($apiAction, $controllerAction = false)
-    {
-        if (empty($controllerAction) && is_string($apiAction)) {
-            $report = Report::factory($this->pluginName, $apiAction);
-
-            if (!empty($report)) {
-                $apiAction = $report;
-            }
-        }
-
-        if ($apiAction instanceof Report) {
-            $this->checkSitePermission();
-            $apiAction->checkIsEnabled();
-
-            return $apiAction->render();
-        }
-
-        $pluginName = $this->pluginName;
-
-        /** @var Proxy $apiProxy */
-        $apiProxy = Proxy::getInstance();
-
-        if (!$apiProxy->isExistingApiAction($pluginName, $apiAction)) {
-            throw new \Exception("Invalid action name '$apiAction' for '$pluginName' plugin.");
-        }
-
-        $apiAction = $apiProxy->buildApiActionName($pluginName, $apiAction);
-
-        if ($controllerAction !== false) {
-            $controllerAction = $pluginName . '.' . $controllerAction;
-        }
-
-        $view      = ViewDataTableFactory::build(null, $apiAction, $controllerAction);
-        $rendered  = $view->render();
-
-        return $rendered;
-    }
-
-    /**
-     * Same as {@link getLastUnitGraph()}, but will set some properties of the ViewDataTable
-     * object based on the arguments supplied.
-     *
-     * @param string $currentModuleName The name of the current plugin.
-     * @param string $currentControllerAction The name of the action that renders the desired
-     *                                        report.
-     * @param array $columnsToDisplay The value to use for the ViewDataTable's columns_to_display config
-     *                                property.
-     * @param array $selectableColumns The value to use for the ViewDataTable's selectable_columns config
-     *                                 property.
-     * @param bool|string $reportDocumentation The value to use for the ViewDataTable's documentation config
-     *                                         property.
-     * @param string $apiMethod The API method that the ViewDataTable will use to get graph data.
-     * @return ViewDataTable
-     * @api
-     */
-    protected function getLastUnitGraphAcrossPlugins($currentModuleName, $currentControllerAction, $columnsToDisplay = false,
-                                                     $selectableColumns = array(), $reportDocumentation = false,
-                                                     $apiMethod = 'API.get')
-    {
-        // load translations from meta data
-        $idSite = Common::getRequestVar('idSite');
-        $period = Common::getRequestVar('period');
-        $date = Common::getRequestVar('date');
-        $meta = \Piwik\Plugins\API\API::getInstance()->getReportMetadata($idSite, $period, $date);
-
-        $columns = array_merge($columnsToDisplay ? $columnsToDisplay : array(), $selectableColumns);
-        $translations = array_combine($columns, $columns);
-        foreach ($meta as $reportMeta) {
-            if ($reportMeta['action'] == 'get' && !isset($reportMeta['parameters'])) {
-                foreach ($columns as $column) {
-                    if (isset($reportMeta['metrics'][$column])) {
-                        $translations[$column] = $reportMeta['metrics'][$column];
-                    }
-                }
-            }
-        }
-
-        // initialize the graph and load the data
-        $view = $this->getLastUnitGraph($currentModuleName, $currentControllerAction, $apiMethod);
-
-        if ($columnsToDisplay !== false) {
-            $view->config->columns_to_display = $columnsToDisplay;
-        }
-
-        if (property_exists($view->config, 'selectable_columns')) {
-            $view->config->selectable_columns = array_merge($view->config->selectable_columns ? : array(), $selectableColumns);
-        }
-
-        $view->config->translations += $translations;
-
-        if ($reportDocumentation) {
-            $view->config->documentation = $reportDocumentation;
-        }
-
-        return $view;
-    }
-
-    /**
-     * Returns a ViewDataTable object that will render a jqPlot evolution graph
-     * for the last30 days/weeks/etc. of the current period, relative to the current date.
-     *
-     * @param string $currentModuleName The name of the current plugin.
-     * @param string $currentControllerAction The name of the action that renders the desired
-     *                                        report.
-     * @param string $apiMethod The API method that the ViewDataTable will use to get
-     *                          graph data.
-     * @return ViewDataTable
-     * @api
-     */
-    protected function getLastUnitGraph($currentModuleName, $currentControllerAction, $apiMethod)
-    {
-        $view = ViewDataTableFactory::build(
-            Evolution::ID, $apiMethod, $currentModuleName . '.' . $currentControllerAction, $forceDefault = true);
-        $view->config->show_goals = false;
-        return $view;
-    }
-
-    /**
-     * Returns a numeric value from the API.
-     * Works only for API methods that originally returns numeric values (there is no cast here)
-     *
-     * @param string $methodToCall Name of method to call, eg. Referrers.getNumberOfDistinctSearchEngines
-     * @param bool|string $date A custom date to use when getting the value. If false, the 'date' query
-     *                                          parameter is used.
-     *
-     * @return int|float
-     */
-    protected function getNumericValue($methodToCall, $date = false)
-    {
-        $params = $date === false ? array() : array('date' => $date);
-
-        $return = Request::processRequest($methodToCall, $params);
-        $columns = $return->getFirstRow()->getColumns();
-        return reset($columns);
-    }
-
-    /**
-     * Returns a URL to a sparkline image for a report served by the current plugin.
-     *
-     * The result of this URL should be used with the [sparkline()](/api-reference/Piwik/View#twig) twig function.
-     *
-     * The current site ID and period will be used.
-     *
-     * @param string $action Method name of the controller that serves the report.
-     * @param array $customParameters The array of query parameter name/value pairs that
-     *                                should be set in result URL.
-     * @return string The generated URL.
-     * @api
-     */
-    protected function getUrlSparkline($action, $customParameters = array())
-    {
-        $params = $this->getGraphParamsModified(
-            array('viewDataTable' => 'sparkline',
-                  'action'        => $action,
-                  'module'        => $this->pluginName)
-            + $customParameters
-        );
-        // convert array values to comma separated
-        foreach ($params as &$value) {
-            if (is_array($value)) {
-                $value = rawurlencode(implode(',', $value));
-            }
-        }
-        $url = Url::getCurrentQueryStringWithParametersModified($params);
-        return $url;
-    }
-
-    /**
-     * Returns the array of new processed parameters once the parameters are applied.
-     * For example: if you set range=last30 and date=2008-03-10,
-     *  the date element of the returned array will be "2008-02-10,2008-03-10"
-     *
-     * Parameters you can set:
-     * - range: last30, previous10, etc.
-     * - date: YYYY-MM-DD, today, yesterday
-     * - period: day, week, month, year
-     *
-     * @param array $paramsToSet array( 'date' => 'last50', 'viewDataTable' =>'sparkline' )
-     * @throws \Piwik\NoAccessException
-     * @return array
-     */
-    protected function getGraphParamsModified($paramsToSet = array())
-    {
-        if (!isset($paramsToSet['period'])) {
-            $period = Common::getRequestVar('period');
-        } else {
-            $period = $paramsToSet['period'];
-        }
-        if ($period == 'range') {
-            return $paramsToSet;
-        }
-        if (!isset($paramsToSet['range'])) {
-            $range = 'last30';
-        } else {
-            $range = $paramsToSet['range'];
-        }
-
-        if (!isset($paramsToSet['date'])) {
-            $endDate = $this->strDate;
-        } else {
-            $endDate = $paramsToSet['date'];
-        }
-
-        if (is_null($this->site)) {
-            throw new NoAccessException("Website not initialized, check that you are logged in and/or using the correct token_auth.");
-        }
-        $paramDate = Range::getRelativeToEndDate($period, $range, $endDate, $this->site);
-
-        $params = array_merge($paramsToSet, array('date' => $paramDate));
-        return $params;
-    }
 
     /**
      * Checks that the token_auth in the URL matches the currently logged-in user's token_auth.
@@ -977,6 +914,36 @@ abstract class Controller
         if ($tokenRequest !== $tokenUser) {
             throw new NoAccessException(Piwik::translate('General_ExceptionInvalidToken'));
         }
+    }
+
+    /**
+     * Returns a prettified date string for use in period selector widget.
+     *
+     * @param Period $period The period to return a pretty string for.
+     * @return string
+     * @api
+     */
+    public static function getCalendarPrettyDate($period)
+    {
+        if ($period instanceof Month) {
+            // show month name when period is for a month
+
+            return $period->getLocalizedLongString();
+        } else {
+            return $period->getPrettyString();
+        }
+    }
+
+    /**
+     * Returns the pretty date representation
+     *
+     * @param $date string
+     * @param $period string
+     * @return string Pretty date
+     */
+    public static function getPrettyDate($date, $period)
+    {
+        return self::getCalendarPrettyDate(Period\Factory::build($period, Date::factory($date)));
     }
 
     /**
@@ -1038,5 +1005,39 @@ abstract class Controller
         $result .= '>' . $evolutionPercent . '</strong></span>';
 
         return $result;
+    }
+
+    protected function checkSitePermission()
+    {
+        if (!empty($this->idSite) && empty($this->site)) {
+            throw new NoAccessException(Piwik::translate('General_ExceptionPrivilegeAccessWebsite', array("'view'", $this->idSite)));
+        } elseif (empty($this->site) || empty($this->idSite)) {
+            throw new Exception("The requested website idSite is not found in the request, or is invalid.
+				Please check that you are logged in Piwik and have permission to access the specified website.");
+        }
+    }
+
+    /**
+     * @param $moduleToRedirect
+     * @param $actionToRedirect
+     * @param $websiteId
+     * @param $defaultPeriod
+     * @param $defaultDate
+     * @param $parameters
+     * @throws Exception
+     */
+    private function doRedirectToUrl($moduleToRedirect, $actionToRedirect, $websiteId, $defaultPeriod, $defaultDate, $parameters)
+    {
+        $menu = new Menu();
+
+        $parameters = array_merge(
+            $menu->urlForDefaultUserParams($websiteId, $defaultPeriod, $defaultDate),
+            $parameters
+        );
+        $queryParams = !empty($parameters) ? '&' . Url::getQueryStringFromParameters($parameters) : '';
+        $url = "index.php?module=%s&action=%s";
+        $url = sprintf($url, $moduleToRedirect, $actionToRedirect);
+        $url = $url . $queryParams;
+        Url::redirectToUrl($url);
     }
 }

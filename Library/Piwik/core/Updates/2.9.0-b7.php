@@ -16,11 +16,6 @@ use Piwik\Updates;
 
 class Updates_2_9_0_b7 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         $sql = array();
@@ -30,29 +25,9 @@ class Updates_2_9_0_b7 extends Updates
         return $sql;
     }
 
-    /**
-     * @return string
-     */
-    private static function addCreateSequenceTableQuery($sql)
+    public function doUpdate(Updater $updater)
     {
-        $dbSettings = new Db\Settings();
-        $engine = $dbSettings->getEngine();
-        $table  = self::getSequenceTableName();
-
-        $query = "CREATE TABLE `$table` (
-                `name` VARCHAR(120) NOT NULL,
-                `value` BIGINT(20) UNSIGNED NOT NULL,
-                PRIMARY KEY(`name`)
-        ) ENGINE=$engine DEFAULT CHARSET=utf8";
-
-        $sql[$query] = 1050;
-
-        return $sql;
-    }
-
-    private static function getSequenceTableName()
-    {
-        return Common::prefixTable('sequence');
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 
     private static function addArchivingIdMigrationQueries($sql)
@@ -86,5 +61,30 @@ class Updates_2_9_0_b7 extends Updates
         $query = sprintf("INSERT INTO %s (name, value) VALUES ('%s', %d)", $table, $name, $initialValue);
 
         return $query;
+    }
+
+    /**
+     * @return string
+     */
+    private static function addCreateSequenceTableQuery($sql)
+    {
+        $dbSettings = new Db\Settings();
+        $engine = $dbSettings->getEngine();
+        $table  = self::getSequenceTableName();
+
+        $query = "CREATE TABLE `$table` (
+                `name` VARCHAR(120) NOT NULL,
+                `value` BIGINT(20) UNSIGNED NOT NULL,
+                PRIMARY KEY(`name`)
+        ) ENGINE=$engine DEFAULT CHARSET=utf8";
+
+        $sql[$query] = 1050;
+
+        return $sql;
+    }
+
+    private static function getSequenceTableName()
+    {
+        return Common::prefixTable('sequence');
     }
 }

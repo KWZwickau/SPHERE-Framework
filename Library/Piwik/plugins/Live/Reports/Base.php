@@ -10,12 +10,12 @@ namespace Piwik\Plugins\Live\Reports;
 
 abstract class Base extends \Piwik\Plugin\Report
 {
-    public function configureReportMetadata(&$availableReports, $infos)
-    {
-    }
-
     protected function init()
     {
         $this->category = 'Live!';
+    }
+
+    public function configureReportMetadata(&$availableReports, $infos)
+    {
     }
 }

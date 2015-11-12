@@ -35,20 +35,6 @@ class ReportsByDimension extends View
     }
 
     /**
-     * Adds a set of reports to the list of reports to display.
-     *
-     * @param array $reports An array containing report information. The array requires
-     *                       the 'category', 'title', 'action' and 'params' elements.
-     *                       For information on what they should contain, @see addReport.
-     */
-    public function addReports($reports)
-    {
-        foreach ($reports as $report) {
-            $this->addReport($report['category'], $report['title'], $report['action'], $report['params']);
-        }
-    }
-
-    /**
      * Adds a report to the list of reports to display.
      *
      * @param string $category The report's category. Can be a i18n token.
@@ -71,6 +57,20 @@ class ReportsByDimension extends View
             'url'    => Url::getCurrentQueryStringWithParametersModified($params)
         );
         $this->dimensionCategories = $categories;
+    }
+
+    /**
+     * Adds a set of reports to the list of reports to display.
+     *
+     * @param array $reports An array containing report information. The array requires
+     *                       the 'category', 'title', 'action' and 'params' elements.
+     *                       For information on what they should contain, @see addReport.
+     */
+    public function addReports($reports)
+    {
+        foreach ($reports as $report) {
+            $this->addReport($report['category'], $report['title'], $report['action'], $report['params']);
+        }
     }
 
     /**

@@ -101,24 +101,10 @@ class GitCommit extends ConsoleCommand
         }
     }
 
-    /**
-     * @return array
-     */
-    private function getSubmodulePaths()
+    private function passthru($cmd, OutputInterface $output)
     {
-        $cmd        = sprintf("grep path .gitmodules | sed 's/.*= //'");
-        $submodules = shell_exec($cmd);
-        $submodules = explode("\n", $submodules);
-
-        return $submodules;
-    }
-
-    protected function getStatusOfSubmodule($submodule)
-    {
-        $cmd    = sprintf('cd %s/%s && git status --porcelain', PIWIK_DOCUMENT_ROOT, $submodule);
-        $status = trim(shell_exec($cmd));
-
-        return $status;
+        $output->writeln('Executing command: ' . $cmd);
+        passthru($cmd);
     }
 
     private function hasChangesToBeCommitted()
@@ -140,9 +126,23 @@ class GitCommit extends ConsoleCommand
         return false;
     }
 
-    private function passthru($cmd, OutputInterface $output)
+    /**
+     * @return array
+     */
+    private function getSubmodulePaths()
     {
-        $output->writeln('Executing command: ' . $cmd);
-        passthru($cmd);
+        $cmd        = sprintf("grep path .gitmodules | sed 's/.*= //'");
+        $submodules = shell_exec($cmd);
+        $submodules = explode("\n", $submodules);
+
+        return $submodules;
+    }
+
+    protected function getStatusOfSubmodule($submodule)
+    {
+        $cmd    = sprintf('cd %s/%s && git status --porcelain', PIWIK_DOCUMENT_ROOT, $submodule);
+        $status = trim(shell_exec($cmd));
+
+        return $status;
     }
 }

@@ -103,11 +103,6 @@ class ReportTotalsCalculator extends DataTableManipulator
         return $dataTable;
     }
 
-    private function isAllMetricsReport()
-    {
-        return $this->report->getModule() == 'API' && $this->report->getAction() == 'get';
-    }
-
     private function makeSureToWorkOnFirstLevelDataTable($table)
     {
         if (!array_key_exists('idSubtable', $this->request)) {
@@ -148,19 +143,6 @@ class ReportTotalsCalculator extends DataTableManipulator
         }
 
         return $table;
-    }
-
-    private function findFirstLevelReport()
-    {
-        foreach (Report::getAllReports() as $report) {
-            $actionToLoadSubtables = $report->getActionToLoadSubTables();
-            if ($actionToLoadSubtables == $this->apiMethod
-                && $this->apiModule == $report->getModule()
-            ) {
-                return $report;
-            }
-        }
-        return null;
     }
 
     private function sumColumnValueToTotal($columns, $metricId, $metricName)
@@ -225,5 +207,23 @@ class ReportTotalsCalculator extends DataTableManipulator
             }
         }
         return $request;
+    }
+
+    private function findFirstLevelReport()
+    {
+        foreach (Report::getAllReports() as $report) {
+            $actionToLoadSubtables = $report->getActionToLoadSubTables();
+            if ($actionToLoadSubtables == $this->apiMethod
+                && $this->apiModule == $report->getModule()
+            ) {
+                return $report;
+            }
+        }
+        return null;
+    }
+
+    private function isAllMetricsReport()
+    {
+        return $this->report->getModule() == 'API' && $this->report->getAction() == 'get';
     }
 }

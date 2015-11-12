@@ -27,6 +27,17 @@ class Aggregator implements MetricsProvider
         $this->providers = $this->getProviders();
     }
 
+    public function getMetrics($domain)
+    {
+        $metrics = array();
+
+        foreach ($this->providers as $provider) {
+            $metrics = array_merge($metrics, $provider->getMetrics($domain));
+        }
+
+        return $metrics;
+    }
+
     /**
      * @return MetricsProvider[]
      */
@@ -50,16 +61,5 @@ class Aggregator implements MetricsProvider
         Piwik::postEvent('SEO.getMetricsProviders', array(&$providers));
 
         return $providers;
-    }
-
-    public function getMetrics($domain)
-    {
-        $metrics = array();
-
-        foreach ($this->providers as $provider) {
-            $metrics = array_merge($metrics, $provider->getMetrics($domain));
-        }
-
-        return $metrics;
     }
 }

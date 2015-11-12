@@ -20,15 +20,16 @@ use Piwik\Scheduler\Task;
  */
 class Tasks
 {
+    /**
+     * @var Task[]
+     */
+    private $tasks = array();
+
     const LOWEST_PRIORITY  = Task::LOWEST_PRIORITY;
     const LOW_PRIORITY     = Task::LOW_PRIORITY;
     const NORMAL_PRIORITY  = Task::NORMAL_PRIORITY;
     const HIGH_PRIORITY    = Task::HIGH_PRIORITY;
     const HIGHEST_PRIORITY = Task::HIGHEST_PRIORITY;
-    /**
-     * @var Task[]
-     */
-    private $tasks = array();
 
     /**
      * This method is called to collect all schedule tasks. Register all your tasks here that should be executed
@@ -68,6 +69,39 @@ class Tasks
     }
 
     /**
+     * Schedule the given tasks/method to run once every day.
+     *
+     * See {@link hourly()}
+     * @api
+     */
+    protected function daily($methodName, $methodParameter = null, $priority = self::NORMAL_PRIORITY)
+    {
+        return $this->custom($this, $methodName, $methodParameter, 'daily', $priority);
+    }
+
+    /**
+     * Schedule the given tasks/method to run once every week.
+     *
+     * See {@link hourly()}
+     * @api
+     */
+    protected function weekly($methodName, $methodParameter = null, $priority = self::NORMAL_PRIORITY)
+    {
+        return $this->custom($this, $methodName, $methodParameter, 'weekly', $priority);
+    }
+
+    /**
+     * Schedule the given tasks/method to run once every month.
+     *
+     * See {@link hourly()}
+     * @api
+     */
+    protected function monthly($methodName, $methodParameter = null, $priority = self::NORMAL_PRIORITY)
+    {
+        return $this->custom($this, $methodName, $methodParameter, 'monthly', $priority);
+    }
+
+    /**
      * Schedules the given tasks/method to run depending at the given scheduled time. Unlike the convenient methods
      * such as {@link hourly()} you need to specify the object on which the given method should be called. This can be
      * either an instance of a class or a class name. For more information about these parameters see {@link hourly()}
@@ -102,11 +136,6 @@ class Tasks
         return $time;
     }
 
-    private function checkIsValidTask($objectOrClassName, $methodName)
-    {
-        Development::checkMethodIsCallable($objectOrClassName, $methodName, 'The registered task is not valid as the method');
-    }
-
     /**
      * In case you need very high flexibility and none of the other convenient methods such as {@link hourly()} or
      * {@link custom()} suit you, you can use this method to add a custom scheduled task.
@@ -118,36 +147,8 @@ class Tasks
         $this->tasks[] = $task;
     }
 
-    /**
-     * Schedule the given tasks/method to run once every day.
-     *
-     * See {@link hourly()}
-     * @api
-     */
-    protected function daily($methodName, $methodParameter = null, $priority = self::NORMAL_PRIORITY)
+    private function checkIsValidTask($objectOrClassName, $methodName)
     {
-        return $this->custom($this, $methodName, $methodParameter, 'daily', $priority);
-    }
-
-    /**
-     * Schedule the given tasks/method to run once every week.
-     *
-     * See {@link hourly()}
-     * @api
-     */
-    protected function weekly($methodName, $methodParameter = null, $priority = self::NORMAL_PRIORITY)
-    {
-        return $this->custom($this, $methodName, $methodParameter, 'weekly', $priority);
-    }
-
-    /**
-     * Schedule the given tasks/method to run once every month.
-     *
-     * See {@link hourly()}
-     * @api
-     */
-    protected function monthly($methodName, $methodParameter = null, $priority = self::NORMAL_PRIORITY)
-    {
-        return $this->custom($this, $methodName, $methodParameter, 'monthly', $priority);
+        Development::checkMethodIsCallable($objectOrClassName, $methodName, 'The registered task is not valid as the method');
     }
 }

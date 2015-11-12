@@ -9,11 +9,13 @@
 namespace Piwik\Plugins\Installation;
 
 use Piwik\API\Request;
+use Piwik\API\ResponseBuilder;
 use Piwik\Common;
 use Piwik\Config;
 use Piwik\FrontController;
 use Piwik\Piwik;
 use Piwik\Plugins\Installation\Exception\DatabaseConnectionFailedException;
+use Piwik\Translate;
 use Piwik\View as PiwikView;
 
 /**
@@ -79,23 +81,14 @@ class Installation extends \Piwik\Plugin
         $parameters = array();
     }
 
-    private function isAllowedAction($action)
+    public function setControllerToLoad($newControllerName)
     {
-        $controller = $this->getInstallationController();
-        $isActionWhiteListed = in_array($action, array('saveLanguage', 'getBaseCss', 'reuseTables'));
-
-        return in_array($action, array_keys($controller->getInstallationSteps()))
-                || $isActionWhiteListed;
+        $this->installationControllerName = $newControllerName;
     }
 
     protected function getInstallationController()
     {
         return new $this->installationControllerName();
-    }
-
-    public function setControllerToLoad($newControllerName)
-    {
-        $this->installationControllerName = $newControllerName;
     }
 
     /**
@@ -126,5 +119,14 @@ class Installation extends \Piwik\Plugin
     public function getStylesheetFiles(&$stylesheets)
     {
         $stylesheets[] = "plugins/Installation/stylesheets/systemCheckPage.less";
+    }
+
+    private function isAllowedAction($action)
+    {
+        $controller = $this->getInstallationController();
+        $isActionWhiteListed = in_array($action, array('saveLanguage', 'getBaseCss', 'reuseTables'));
+
+        return in_array($action, array_keys($controller->getInstallationSteps()))
+                || $isActionWhiteListed;
     }
 }

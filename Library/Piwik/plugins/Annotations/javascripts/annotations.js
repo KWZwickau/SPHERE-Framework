@@ -162,7 +162,7 @@
      */
     var toggleAnnotationMode = function (inAnnotationElement) {
         var annotation = $(inAnnotationElement).closest('.annotation');
-        annotation.toggleClass('edit');
+        annotation.toggleClass('edit')
         $('.annotation-period,.annotation-period-edit,.delete-annotation,' +
             '.annotation-edit-mode,.annotation-view-mode', annotation).toggle();
 

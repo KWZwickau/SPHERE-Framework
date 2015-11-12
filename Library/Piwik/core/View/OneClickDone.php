@@ -25,21 +25,24 @@ class OneClickDone
     /**
      * @var string
      */
+    private $tokenAuth;
+
+    /**
+     * @var string
+     */
     public $error;
+
     /**
      * @var array
      */
     public $feedbackMessages;
+
     /**
      * Did the download over HTTPS fail?
      *
      * @var bool
      */
     public $httpsFail = false;
-    /**
-     * @var string
-     */
-    private $tokenAuth;
 
     public function __construct($tokenAuth)
     {

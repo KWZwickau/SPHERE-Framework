@@ -8,19 +8,19 @@
  */
 namespace Piwik\Plugin\Dimension;
 
-use Exception;
-use Piwik\Cache as PiwikCache;
 use Piwik\CacheId;
+use Piwik\Cache as PiwikCache;
 use Piwik\Columns\Dimension;
+use Piwik\Plugin\Manager as PluginManager;
 use Piwik\Common;
 use Piwik\Db;
-use Piwik\Plugin;
-use Piwik\Plugin\Manager as PluginManager;
-use Piwik\Plugin\Segment;
 use Piwik\Tracker\Action;
 use Piwik\Tracker\GoalManager;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Plugin\Segment;
+use Piwik\Plugin;
+use Exception;
 
 /**
  * Defines a new conversion dimension that records any visit related information during tracking.
@@ -43,49 +43,6 @@ abstract class ConversionDimension extends Dimension
     private $tableName = 'log_conversion';
 
     /**
-     * Get all conversion dimensions that are defined by all activated plugins.
-     * @ignore
-     */
-    public static function getAllDimensions()
-    {
-        $cacheId = CacheId::pluginAware('ConversionDimensions');
-        $cache   = PiwikCache::getTransientCache();
-
-        if (!$cache->contains($cacheId)) {
-            $plugins   = PluginManager::getInstance()->getPluginsLoadedAndActivated();
-            $instances = array();
-
-            foreach ($plugins as $plugin) {
-                foreach (self::getDimensions($plugin) as $instance) {
-                    $instances[] = $instance;
-                }
-            }
-
-            $cache->save($cacheId, $instances);
-        }
-
-        return $cache->fetch($cacheId);
-    }
-
-    /**
-     * Get all conversion dimensions that are defined by the given plugin.
-     * @param Plugin $plugin
-     * @return ConversionDimension[]
-     * @ignore
-     */
-    public static function getDimensions(Plugin $plugin)
-    {
-        $dimensions = $plugin->findMultipleComponents('Columns', '\\Piwik\\Plugin\\Dimension\\ConversionDimension');
-        $instances  = array();
-
-        foreach ($dimensions as $dimension) {
-            $instances[] = new $dimension();
-        }
-
-        return $instances;
-    }
-
-    /**
      * Installs the conversion dimension in case it is not installed yet. The installation is already implemented based
      * on the {@link $columnName} and {@link $columnType}. If you want to perform additional actions beside adding the
      * column to the database - for instance adding an index - you can overwrite this method. We recommend to call
@@ -97,22 +54,22 @@ abstract class ConversionDimension extends Dimension
      *
      * Example:
      * ```
-    * public function install()
-    * {
-    * $changes = parent::install();
-    * $changes['log_conversion'][] = "ADD INDEX index_idsite_servertime ( idsite, server_time )";
- *
-* return $changes;
-    * }
-    * ```
+    public function install()
+    {
+    $changes = parent::install();
+    $changes['log_conversion'][] = "ADD INDEX index_idsite_servertime ( idsite, server_time )";
+
+    return $changes;
+    }
+    ```
      *
      * @return array An array containing the table name as key and an array of MySQL alter table statements that should
      *               be executed on the given table. Example:
      * ```
-    * array(
-    * 'log_conversion' => array("ADD COLUMN `$this->columnName` $this->columnType", "ADD INDEX ...")
-    * );
-    * ```
+    array(
+    'log_conversion' => array("ADD COLUMN `$this->columnName` $this->columnType", "ADD INDEX ...")
+    );
+    ```
      * @api
      */
     public function install()
@@ -177,6 +134,67 @@ abstract class ConversionDimension extends Dimension
     }
 
     /**
+     * Adds a new segment. It automatically sets the SQL segment depending on the column name in case none is set
+     * already.
+     *
+     * @see \Piwik\Columns\Dimension::addSegment()
+     * @param Segment $segment
+     * @api
+     */
+    protected function addSegment(Segment $segment)
+    {
+        $sqlSegment = $segment->getSqlSegment();
+        if (!empty($this->columnName) && empty($sqlSegment)) {
+            $segment->setSqlSegment($this->tableName . '.' . $this->columnName);
+        }
+
+        parent::addSegment($segment);
+    }
+
+    /**
+     * Get all conversion dimensions that are defined by all activated plugins.
+     * @ignore
+     */
+    public static function getAllDimensions()
+    {
+        $cacheId = CacheId::pluginAware('ConversionDimensions');
+        $cache   = PiwikCache::getTransientCache();
+
+        if (!$cache->contains($cacheId)) {
+            $plugins   = PluginManager::getInstance()->getPluginsLoadedAndActivated();
+            $instances = array();
+
+            foreach ($plugins as $plugin) {
+                foreach (self::getDimensions($plugin) as $instance) {
+                    $instances[] = $instance;
+                }
+            }
+
+            $cache->save($cacheId, $instances);
+        }
+
+        return $cache->fetch($cacheId);
+    }
+
+    /**
+     * Get all conversion dimensions that are defined by the given plugin.
+     * @param Plugin $plugin
+     * @return ConversionDimension[]
+     * @ignore
+     */
+    public static function getDimensions(Plugin $plugin)
+    {
+        $dimensions = $plugin->findMultipleComponents('Columns', '\\Piwik\\Plugin\\Dimension\\ConversionDimension');
+        $instances  = array();
+
+        foreach ($dimensions as $dimension) {
+            $instances[] = new $dimension();
+        }
+
+        return $instances;
+    }
+
+    /**
      * This event is triggered when an ecommerce order is converted. Any returned value will be persist in the database.
      * Return boolean `false` if you do not want to change the value in some cases.
      *
@@ -225,23 +243,5 @@ abstract class ConversionDimension extends Dimension
     public function onGoalConversion(Request $request, Visitor $visitor, $action, GoalManager $goalManager)
     {
         return false;
-    }
-
-    /**
-     * Adds a new segment. It automatically sets the SQL segment depending on the column name in case none is set
-     * already.
-     *
-     * @see \Piwik\Columns\Dimension::addSegment()
-     * @param Segment $segment
-     * @api
-     */
-    protected function addSegment(Segment $segment)
-    {
-        $sqlSegment = $segment->getSqlSegment();
-        if (!empty($this->columnName) && empty($sqlSegment)) {
-            $segment->setSqlSegment($this->tableName . '.' . $this->columnName);
-        }
-
-        parent::addSegment($segment);
     }
 }

@@ -61,7 +61,7 @@ class Zend_Validate_Hex extends Zend_Validate_Abstract
         }
 
         $this->_setValue($value);
-        if (!ctype_xdigit((string)$value)) {
+        if (!ctype_xdigit((string) $value)) {
             $this->_error(self::NOT_HEX);
             return false;
         }

@@ -74,6 +74,56 @@ class Zend_Db_Adapter_Pdo_Oci extends Zend_Db_Adapter_Pdo_Abstract
     );
 
     /**
+     * Creates a PDO DSN for the adapter from $this->_config settings.
+     *
+     * @return string
+     */
+    protected function _dsn()
+    {
+        // baseline of DSN parts
+        $dsn = $this->_config;
+
+        if (isset($dsn['host'])) {
+            $tns = 'dbname=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)' .
+                   '(HOST=' . $dsn['host'] . ')';
+
+            if (isset($dsn['port'])) {
+                $tns .= '(PORT=' . $dsn['port'] . ')';
+            } else {
+                $tns .= '(PORT=1521)';
+            }
+
+            $tns .= '))(CONNECT_DATA=(SID=' . $dsn['dbname'] . ')))';
+        } else {
+            $tns = 'dbname=' . $dsn['dbname'];
+        }
+
+        if (isset($dsn['charset'])) {
+            $tns .= ';charset=' . $dsn['charset'];
+        }
+
+        return $this->_pdoType . ':' . $tns;
+    }
+
+    /**
+     * Quote a raw string.
+     * Most PDO drivers have an implementation for the quote() method,
+     * but the Oracle OCI driver must use the same implementation as the
+     * Zend_Db_Adapter_Abstract class.
+     *
+     * @param string $value     Raw string
+     * @return string           Quoted string
+     */
+    protected function _quote($value)
+    {
+        if (is_int($value) || is_float($value)) {
+            return $value;
+        }
+        $value = str_replace("'", "''", $value);
+        return "'" . addcslashes($value, "\000\n\r\\\032") . "'";
+    }
+
+    /**
      * Quote a table identifier and alias.
      *
      * @param string|array|Zend_Db_Expr $ident The identifier or expression.
@@ -222,6 +272,21 @@ class Zend_Db_Adapter_Pdo_Oci extends Zend_Db_Adapter_Pdo_Abstract
     }
 
     /**
+     * Return the most recent value from the specified sequence in the database.
+     * This is supported only on RDBMS brands that support sequences
+     * (e.g. Oracle, PostgreSQL, DB2).  Other RDBMS brands return null.
+     *
+     * @param string $sequenceName
+     * @return integer
+     */
+    public function lastSequenceId($sequenceName)
+    {
+        $this->_connect();
+        $value = $this->fetchOne('SELECT '.$this->quoteIdentifier($sequenceName, true).'.CURRVAL FROM dual');
+        return $value;
+    }
+
+    /**
      * Generate a new value from the specified sequence in the database, and return it.
      * This is supported only on RDBMS brands that support sequences
      * (e.g. Oracle, PostgreSQL, DB2).  Other RDBMS brands return null.
@@ -269,21 +334,6 @@ class Zend_Db_Adapter_Pdo_Oci extends Zend_Db_Adapter_Pdo_Abstract
     }
 
     /**
-     * Return the most recent value from the specified sequence in the database.
-     * This is supported only on RDBMS brands that support sequences
-     * (e.g. Oracle, PostgreSQL, DB2).  Other RDBMS brands return null.
-     *
-     * @param string $sequenceName
-     * @return integer
-     */
-    public function lastSequenceId($sequenceName)
-    {
-        $this->_connect();
-        $value = $this->fetchOne('SELECT '.$this->quoteIdentifier($sequenceName, true).'.CURRVAL FROM dual');
-        return $value;
-    }
-
-    /**
      * Adds an adapter-specific LIMIT clause to the SELECT statement.
      *
      * @param string $sql
@@ -323,56 +373,6 @@ class Zend_Db_Adapter_Pdo_Oci extends Zend_Db_Adapter_Pdo_Abstract
             ) z2
             WHERE z2.\"zend_db_rownum\" BETWEEN " . ($offset+1) . " AND " . ($offset+$count);
         return $limit_sql;
-    }
-
-    /**
-     * Creates a PDO DSN for the adapter from $this->_config settings.
-     *
-     * @return string
-     */
-    protected function _dsn()
-    {
-        // baseline of DSN parts
-        $dsn = $this->_config;
-
-        if (isset($dsn['host'])) {
-            $tns = 'dbname=(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)' .
-                   '(HOST=' . $dsn['host'] . ')';
-
-            if (isset($dsn['port'])) {
-                $tns .= '(PORT=' . $dsn['port'] . ')';
-            } else {
-                $tns .= '(PORT=1521)';
-            }
-
-            $tns .= '))(CONNECT_DATA=(SID=' . $dsn['dbname'] . ')))';
-        } else {
-            $tns = 'dbname=' . $dsn['dbname'];
-        }
-
-        if (isset($dsn['charset'])) {
-            $tns .= ';charset=' . $dsn['charset'];
-        }
-
-        return $this->_pdoType . ':' . $tns;
-    }
-
-    /**
-     * Quote a raw string.
-     * Most PDO drivers have an implementation for the quote() method,
-     * but the Oracle OCI driver must use the same implementation as the
-     * Zend_Db_Adapter_Abstract class.
-     *
-     * @param string $value     Raw string
-     * @return string           Quoted string
-     */
-    protected function _quote($value)
-    {
-        if (is_int($value) || is_float($value)) {
-            return $value;
-        }
-        $value = str_replace("'", "''", $value);
-        return "'" . addcslashes($value, "\000\n\r\\\032") . "'";
     }
 
 }

@@ -19,6 +19,15 @@ class VisitGoalConverted extends VisitDimension
     protected $columnName = 'visit_goal_converted';
     protected $columnType = 'TINYINT(1) NOT NULL';
 
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('visitConverted');
+        $segment->setName('General_VisitConvertedGoal');
+        $segment->setAcceptedValues('0, 1');
+        $this->addSegment($segment);
+    }
+
     /**
      * @param Request $request
      * @param Visitor $visitor
@@ -39,14 +48,5 @@ class VisitGoalConverted extends VisitDimension
     public function onConvertedVisit(Request $request, Visitor $visitor, $action)
     {
         return 1;
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('visitConverted');
-        $segment->setName('General_VisitConvertedGoal');
-        $segment->setAcceptedValues('0, 1');
-        $this->addSegment($segment);
     }
 }

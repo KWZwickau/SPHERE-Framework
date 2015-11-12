@@ -56,6 +56,16 @@ class ArrayResolver implements DefinitionResolver
         return $values;
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function isResolvable(Definition $definition, array $parameters = array())
+    {
+        $this->assertIsArrayDefinition($definition);
+
+        return true;
+    }
+
     private function assertIsArrayDefinition(Definition $definition)
     {
         if (!$definition instanceof ArrayDefinition) {
@@ -91,15 +101,5 @@ class ArrayResolver implements DefinitionResolver
                 $e->getMessage()
             ), 0, $e);
         }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isResolvable(Definition $definition, array $parameters = array())
-    {
-        $this->assertIsArrayDefinition($definition);
-
-        return true;
     }
 }

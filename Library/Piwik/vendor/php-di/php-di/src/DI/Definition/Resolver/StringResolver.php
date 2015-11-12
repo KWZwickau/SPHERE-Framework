@@ -76,16 +76,6 @@ class StringResolver implements DefinitionResolver
         return $result;
     }
 
-    private function assertIsStringDefinition(Definition $definition)
-    {
-        if (!$definition instanceof StringDefinition) {
-            throw new \InvalidArgumentException(sprintf(
-                'This definition resolver is only compatible with StringDefinition objects, %s given',
-                get_class($definition)
-            ));
-        }
-    }
-
     /**
      * {@inheritdoc}
      */
@@ -94,5 +84,15 @@ class StringResolver implements DefinitionResolver
         $this->assertIsStringDefinition($definition);
 
         return true;
+    }
+
+    private function assertIsStringDefinition(Definition $definition)
+    {
+        if (!$definition instanceof StringDefinition) {
+            throw new \InvalidArgumentException(sprintf(
+                'This definition resolver is only compatible with StringDefinition objects, %s given',
+                get_class($definition)
+            ));
+        }
     }
 }

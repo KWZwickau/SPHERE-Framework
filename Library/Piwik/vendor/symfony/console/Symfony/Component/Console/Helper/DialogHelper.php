@@ -11,8 +11,8 @@
 
 namespace Symfony\Component\Console\Helper;
 
-use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 
 /**
  * The Dialog class provides helpers to interact with the user.
@@ -24,9 +24,9 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class DialogHelper extends InputAwareHelper
 {
+    private $inputStream;
     private static $shell;
     private static $stty;
-    private $inputStream;
 
     /**
      * Asks the user to select a value.
@@ -85,35 +85,6 @@ class DialogHelper extends InputAwareHelper
         }, $attempts, $default);
 
         return $result;
-    }
-
-    /**
-     * Asks for a value and validates the response.
-     *
-     * The validator receives the data to validate. It must return the
-     * validated data when the data is valid and throw an exception
-     * otherwise.
-     *
-     * @param OutputInterface $output       An Output instance
-     * @param string|array    $question     The question to ask
-     * @param callable        $validator    A PHP callback
-     * @param int|false       $attempts     Max number of times to ask before giving up (false by default, which means infinite)
-     * @param string          $default      The default answer if none is given by the user
-     * @param array           $autocomplete List of values to autocomplete
-     *
-     * @return mixed
-     *
-     * @throws \Exception When any of the validators return an error
-     */
-    public function askAndValidate(OutputInterface $output, $question, $validator, $attempts = false, $default = null, array $autocomplete = null)
-    {
-        $that = $this;
-
-        $interviewer = function () use ($output, $question, $default, $autocomplete, $that) {
-            return $that->ask($output, $question, $default, $autocomplete);
-        };
-
-        return $this->validateAttempts($interviewer, $output, $validator, $attempts);
     }
 
     /**
@@ -253,46 +224,6 @@ class DialogHelper extends InputAwareHelper
         return strlen($ret) > 0 ? $ret : $default;
     }
 
-    private function hasSttyAvailable()
-    {
-        if (null !== self::$stty) {
-            return self::$stty;
-        }
-
-        exec('stty 2>&1', $output, $exitcode);
-
-        return self::$stty = $exitcode === 0;
-    }
-
-    /**
-     * Validate an attempt.
-     *
-     * @param callable        $interviewer A callable that will ask for a question and return the result
-     * @param OutputInterface $output      An Output instance
-     * @param callable        $validator   A PHP callback
-     * @param int|false       $attempts    Max number of times to ask before giving up ; false will ask infinitely
-     *
-     * @return string The validated response
-     *
-     * @throws \Exception In case the max number of attempts has been reached and no valid response has been given
-     */
-    private function validateAttempts($interviewer, OutputInterface $output, $validator, $attempts)
-    {
-        $e = null;
-        while (false === $attempts || $attempts--) {
-            if (null !== $e) {
-                $output->writeln($this->getHelperSet()->get('formatter')->formatBlock($e->getMessage(), 'error'));
-            }
-
-            try {
-                return call_user_func($validator, $interviewer());
-            } catch (\Exception $e) {
-            }
-        }
-
-        throw $e;
-    }
-
     /**
      * Asks a confirmation to the user.
      *
@@ -316,35 +247,6 @@ class DialogHelper extends InputAwareHelper
         }
 
         return !$answer || 'y' == strtolower($answer[0]);
-    }
-
-    /**
-     * Asks for a value, hide and validates the response.
-     *
-     * The validator receives the data to validate. It must return the
-     * validated data when the data is valid and throw an exception
-     * otherwise.
-     *
-     * @param OutputInterface $output    An Output instance
-     * @param string|array    $question  The question to ask
-     * @param callable        $validator A PHP callback
-     * @param int|false       $attempts  Max number of times to ask before giving up (false by default, which means infinite)
-     * @param bool            $fallback  In case the response can not be hidden, whether to fallback on non-hidden question or not
-     *
-     * @return string The response
-     *
-     * @throws \Exception        When any of the validators return an error
-     * @throws \RuntimeException In case the fallback is deactivated and the response can not be hidden
-     */
-    public function askHiddenResponseAndValidate(OutputInterface $output, $question, $validator, $attempts = false, $fallback = true)
-    {
-        $that = $this;
-
-        $interviewer = function () use ($output, $question, $fallback, $that) {
-            return $that->askHiddenResponse($output, $question, $fallback);
-        };
-
-        return $this->validateAttempts($interviewer, $output, $validator, $attempts);
     }
 
     /**
@@ -418,6 +320,94 @@ class DialogHelper extends InputAwareHelper
     }
 
     /**
+     * Asks for a value and validates the response.
+     *
+     * The validator receives the data to validate. It must return the
+     * validated data when the data is valid and throw an exception
+     * otherwise.
+     *
+     * @param OutputInterface $output       An Output instance
+     * @param string|array    $question     The question to ask
+     * @param callable        $validator    A PHP callback
+     * @param int|false       $attempts     Max number of times to ask before giving up (false by default, which means infinite)
+     * @param string          $default      The default answer if none is given by the user
+     * @param array           $autocomplete List of values to autocomplete
+     *
+     * @return mixed
+     *
+     * @throws \Exception When any of the validators return an error
+     */
+    public function askAndValidate(OutputInterface $output, $question, $validator, $attempts = false, $default = null, array $autocomplete = null)
+    {
+        $that = $this;
+
+        $interviewer = function () use ($output, $question, $default, $autocomplete, $that) {
+            return $that->ask($output, $question, $default, $autocomplete);
+        };
+
+        return $this->validateAttempts($interviewer, $output, $validator, $attempts);
+    }
+
+    /**
+     * Asks for a value, hide and validates the response.
+     *
+     * The validator receives the data to validate. It must return the
+     * validated data when the data is valid and throw an exception
+     * otherwise.
+     *
+     * @param OutputInterface $output    An Output instance
+     * @param string|array    $question  The question to ask
+     * @param callable        $validator A PHP callback
+     * @param int|false       $attempts  Max number of times to ask before giving up (false by default, which means infinite)
+     * @param bool            $fallback  In case the response can not be hidden, whether to fallback on non-hidden question or not
+     *
+     * @return string The response
+     *
+     * @throws \Exception        When any of the validators return an error
+     * @throws \RuntimeException In case the fallback is deactivated and the response can not be hidden
+     */
+    public function askHiddenResponseAndValidate(OutputInterface $output, $question, $validator, $attempts = false, $fallback = true)
+    {
+        $that = $this;
+
+        $interviewer = function () use ($output, $question, $fallback, $that) {
+            return $that->askHiddenResponse($output, $question, $fallback);
+        };
+
+        return $this->validateAttempts($interviewer, $output, $validator, $attempts);
+    }
+
+    /**
+     * Sets the input stream to read from when interacting with the user.
+     *
+     * This is mainly useful for testing purpose.
+     *
+     * @param resource $stream The input stream
+     */
+    public function setInputStream($stream)
+    {
+        $this->inputStream = $stream;
+    }
+
+    /**
+     * Returns the helper's input stream.
+     *
+     * @return string
+     */
+    public function getInputStream()
+    {
+        return $this->inputStream;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getName()
+    {
+        return 'dialog';
+    }
+
+    /**
      * Return a valid Unix shell.
      *
      * @return string|bool The valid shell name, false in case no valid shell is found
@@ -444,33 +434,43 @@ class DialogHelper extends InputAwareHelper
         return self::$shell;
     }
 
-    /**
-     * Returns the helper's input stream.
-     *
-     * @return string
-     */
-    public function getInputStream()
+    private function hasSttyAvailable()
     {
-        return $this->inputStream;
+        if (null !== self::$stty) {
+            return self::$stty;
+        }
+
+        exec('stty 2>&1', $output, $exitcode);
+
+        return self::$stty = $exitcode === 0;
     }
 
     /**
-     * Sets the input stream to read from when interacting with the user.
+     * Validate an attempt.
      *
-     * This is mainly useful for testing purpose.
+     * @param callable        $interviewer A callable that will ask for a question and return the result
+     * @param OutputInterface $output      An Output instance
+     * @param callable        $validator   A PHP callback
+     * @param int|false       $attempts    Max number of times to ask before giving up ; false will ask infinitely
      *
-     * @param resource $stream The input stream
+     * @return string The validated response
+     *
+     * @throws \Exception In case the max number of attempts has been reached and no valid response has been given
      */
-    public function setInputStream($stream)
+    private function validateAttempts($interviewer, OutputInterface $output, $validator, $attempts)
     {
-        $this->inputStream = $stream;
-    }
+        $e = null;
+        while (false === $attempts || $attempts--) {
+            if (null !== $e) {
+                $output->writeln($this->getHelperSet()->get('formatter')->formatBlock($e->getMessage(), 'error'));
+            }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
-    {
-        return 'dialog';
+            try {
+                return call_user_func($validator, $interviewer());
+            } catch (\Exception $e) {
+            }
+        }
+
+        throw $e;
     }
 }

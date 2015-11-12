@@ -9,16 +9,27 @@
 namespace Piwik\Plugins\VisitTime\Reports;
 
 use Piwik\Common;
-use Piwik\Period;
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
 use Piwik\Plugins\CoreVisualizations\Visualizations\Graph;
 use Piwik\Plugins\VisitTime\Columns\DayOfTheWeek;
+use Piwik\Period;
 use Piwik\Site;
 
 class GetByDayOfWeek extends Base
 {
     protected $defaultSortColumn = '';
+
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new DayOfTheWeek();
+        $this->name          = Piwik::translate('VisitTime_VisitsByDayOfWeek');
+        $this->documentation = Piwik::translate('VisitTime_WidgetByDayOfWeekDocumentation');
+        $this->constantRowsCount = true;
+        $this->order = 25;
+        $this->widgetTitle  = 'VisitTime_VisitsByDayOfWeek';
+    }
 
     public function configureView(ViewDataTable $view)
     {
@@ -61,16 +72,5 @@ class GetByDayOfWeek extends Base
             $dateRange = $start . " &ndash; " . $end;
         }
         return $dateRange;
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension     = new DayOfTheWeek();
-        $this->name          = Piwik::translate('VisitTime_VisitsByDayOfWeek');
-        $this->documentation = Piwik::translate('VisitTime_WidgetByDayOfWeekDocumentation');
-        $this->constantRowsCount = true;
-        $this->order = 25;
-        $this->widgetTitle  = 'VisitTime_VisitsByDayOfWeek';
     }
 }

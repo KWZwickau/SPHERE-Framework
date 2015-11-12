@@ -8,9 +8,9 @@
  */
 namespace Piwik\Menu;
 
-use Piwik\Plugin\Manager as PluginManager;
 use Piwik\Plugins\SitesManager\API;
 use Piwik\Singleton;
+use Piwik\Plugin\Manager as PluginManager;
 
 /**
  * Base class for classes that manage one of Piwik's menus.
@@ -24,7 +24,6 @@ use Piwik\Singleton;
 abstract class MenuAbstract extends Singleton
 {
 
-    protected static $menus = array();
     protected $menu = null;
     protected $menuEntries = array();
     protected $menuEntriesToRemove = array();
@@ -32,16 +31,7 @@ abstract class MenuAbstract extends Singleton
     protected $renames = array();
     protected $orderingApplied = false;
     protected $menuIcons = array();
-
-    /**
-     * To use only for tests.
-     *
-     * @deprecated The whole $menus cache should be replaced by a real transient cache
-     */
-    public static function clearMenus()
-    {
-        self::$menus = array();
-    }
+    protected static $menus = array();
 
     /**
      * Builds the menu, applies edits, renames
@@ -60,159 +50,6 @@ abstract class MenuAbstract extends Singleton
     }
 
     /**
-     * Builds the menu from the $this->menuEntries variable.
-     */
-    private function buildMenu()
-    {
-        foreach ($this->menuEntries as $menuEntry) {
-            $this->buildMenuItem($menuEntry[0], $menuEntry[1], $menuEntry[2], $menuEntry[3], $menuEntry[4]);
-        }
-    }
-
-    /**
-     * Builds a single menu item
-     *
-     * @param string $menuName
-     * @param string $subMenuName
-     * @param string $url
-     * @param int $order
-     * @param bool|string $tooltip Tooltip to display.
-     */
-    private function buildMenuItem($menuName, $subMenuName, $url, $order = 50, $tooltip = false)
-    {
-        if (!isset($this->menu[$menuName])) {
-            $this->menu[$menuName] = array(
-                '_hasSubmenu' => false,
-                '_order' => $order
-            );
-        }
-
-        if (empty($subMenuName)) {
-            $this->menu[$menuName]['_url']   = $url;
-            $this->menu[$menuName]['_order'] = $order;
-            $this->menu[$menuName]['_name']  = $menuName;
-            $this->menu[$menuName]['_tooltip'] = $tooltip;
-            if (!empty($this->menuIcons[$menuName])) {
-                $this->menu[$menuName]['_icon'] = $this->menuIcons[$menuName];
-            } else {
-                $this->menu[$menuName]['_icon'] = '';
-            }
-        }
-        if (!empty($subMenuName)) {
-            $this->menu[$menuName][$subMenuName]['_url'] = $url;
-            $this->menu[$menuName][$subMenuName]['_order'] = $order;
-            $this->menu[$menuName][$subMenuName]['_name'] = $subMenuName;
-            $this->menu[$menuName][$subMenuName]['_tooltip'] = $tooltip;
-            $this->menu[$menuName]['_hasSubmenu'] = true;
-
-            if (!array_key_exists('_tooltip', $this->menu[$menuName])) {
-                $this->menu[$menuName]['_tooltip'] = $tooltip;
-            }
-        }
-    }
-
-    /**
-     * Applies all edits to the menu.
-     */
-    private function applyEdits()
-    {
-        foreach ($this->edits as $edit) {
-            $mainMenuToEdit = $edit[0];
-            $subMenuToEdit  = $edit[1];
-            $newUrl         = $edit[2];
-
-            if ($subMenuToEdit === null) {
-                if (isset($this->menu[$mainMenuToEdit])) {
-                    $menuDataToEdit = &$this->menu[$mainMenuToEdit];
-                } else {
-                    $menuDataToEdit = null;
-                }
-            } else {
-                if (isset($this->menu[$mainMenuToEdit][$subMenuToEdit])) {
-                    $menuDataToEdit = &$this->menu[$mainMenuToEdit][$subMenuToEdit];
-                } else {
-                    $menuDataToEdit = null;
-                }
-            }
-
-            if (empty($menuDataToEdit)) {
-                $this->buildMenuItem($mainMenuToEdit, $subMenuToEdit, $newUrl);
-            } else {
-                $menuDataToEdit['_url'] = $newUrl;
-            }
-        }
-    }
-
-    /**
-     * Applies renames to the menu.
-     */
-    private function applyRenames()
-    {
-        foreach ($this->renames as $rename) {
-            $mainMenuOriginal = $rename[0];
-            $subMenuOriginal  = $rename[1];
-            $mainMenuRenamed  = $rename[2];
-            $subMenuRenamed   = $rename[3];
-
-            // Are we changing a submenu?
-            if (!empty($subMenuOriginal)) {
-                if (isset($this->menu[$mainMenuOriginal][$subMenuOriginal])) {
-                    $save = $this->menu[$mainMenuOriginal][$subMenuOriginal];
-                    $save['_name'] = $subMenuRenamed;
-                    unset($this->menu[$mainMenuOriginal][$subMenuOriginal]);
-                    $this->menu[$mainMenuRenamed][$subMenuRenamed] = $save;
-                }
-            } // Changing a first-level element
-            elseif (isset($this->menu[$mainMenuOriginal])) {
-                $save = $this->menu[$mainMenuOriginal];
-                $save['_name'] = $mainMenuRenamed;
-                unset($this->menu[$mainMenuOriginal]);
-                $this->menu[$mainMenuRenamed] = $save;
-            }
-        }
-    }
-
-    private function applyRemoves()
-    {
-        foreach ($this->menuEntriesToRemove as $menuToDelete) {
-            if (empty($menuToDelete[1])) {
-                // Delete Main Menu
-                if (isset($this->menu[$menuToDelete[0]])) {
-                    unset($this->menu[$menuToDelete[0]]);
-                }
-            } else {
-                // Delete Sub Menu
-                if (isset($this->menu[$menuToDelete[0]][$menuToDelete[1]])) {
-                    unset($this->menu[$menuToDelete[0]][$menuToDelete[1]]);
-                }
-            }
-        }
-    }
-
-    /**
-     * Orders the menu according to their order.
-     */
-    private function applyOrdering()
-    {
-        if (empty($this->menu)
-            || $this->orderingApplied
-        ) {
-            return;
-        }
-
-        uasort($this->menu, array($this, 'menuCompare'));
-        foreach ($this->menu as $key => &$element) {
-            if (is_null($element)) {
-                unset($this->menu[$key]);
-            } elseif ($element['_hasSubmenu']) {
-                uasort($element, array($this, 'menuCompare'));
-            }
-        }
-
-        $this->orderingApplied = true;
-    }
-
-    /**
      * Let's you register a menu icon for a certain menu category to replace the default arrow icon.
      *
      * @param string $menuName The translation key of a main menu category, eg 'Dashboard_Dashboard'
@@ -221,6 +58,32 @@ abstract class MenuAbstract extends Singleton
     public function registerMenuIcon($menuName, $iconCssClass)
     {
         $this->menuIcons[$menuName] = $iconCssClass;
+    }
+
+    /**
+     * Returns a list of available plugin menu instances.
+     *
+     * @return \Piwik\Plugin\Menu[]
+     */
+    protected function getAllMenus()
+    {
+        if (!empty(self::$menus)) {
+            return self::$menus;
+        }
+
+        self::$menus = PluginManager::getInstance()->findComponents('Menu', 'Piwik\\Plugin\\Menu');
+
+        return self::$menus;
+    }
+
+    /**
+     * To use only for tests.
+     *
+     * @deprecated The whole $menus cache should be replaced by a real transient cache
+     */
+    public static function clearMenus()
+    {
+        self::$menus = array();
     }
 
     /**
@@ -291,6 +154,58 @@ abstract class MenuAbstract extends Singleton
     }
 
     /**
+     * Builds a single menu item
+     *
+     * @param string $menuName
+     * @param string $subMenuName
+     * @param string $url
+     * @param int $order
+     * @param bool|string $tooltip Tooltip to display.
+     */
+    private function buildMenuItem($menuName, $subMenuName, $url, $order = 50, $tooltip = false)
+    {
+        if (!isset($this->menu[$menuName])) {
+            $this->menu[$menuName] = array(
+                '_hasSubmenu' => false,
+                '_order' => $order
+            );
+        }
+
+        if (empty($subMenuName)) {
+            $this->menu[$menuName]['_url']   = $url;
+            $this->menu[$menuName]['_order'] = $order;
+            $this->menu[$menuName]['_name']  = $menuName;
+            $this->menu[$menuName]['_tooltip'] = $tooltip;
+            if (!empty($this->menuIcons[$menuName])) {
+                $this->menu[$menuName]['_icon'] = $this->menuIcons[$menuName];
+            } else {
+                $this->menu[$menuName]['_icon'] = '';
+            }
+        }
+        if (!empty($subMenuName)) {
+            $this->menu[$menuName][$subMenuName]['_url'] = $url;
+            $this->menu[$menuName][$subMenuName]['_order'] = $order;
+            $this->menu[$menuName][$subMenuName]['_name'] = $subMenuName;
+            $this->menu[$menuName][$subMenuName]['_tooltip'] = $tooltip;
+            $this->menu[$menuName]['_hasSubmenu'] = true;
+
+            if (!array_key_exists('_tooltip', $this->menu[$menuName])) {
+                $this->menu[$menuName]['_tooltip'] = $tooltip;
+            }
+        }
+    }
+
+    /**
+     * Builds the menu from the $this->menuEntries variable.
+     */
+    private function buildMenu()
+    {
+        foreach ($this->menuEntries as $menuEntry) {
+            $this->buildMenuItem($menuEntry[0], $menuEntry[1], $menuEntry[2], $menuEntry[3], $menuEntry[4]);
+        }
+    }
+
+    /**
      * Renames a single menu entry.
      *
      * @param $mainMenuOriginal
@@ -319,19 +234,103 @@ abstract class MenuAbstract extends Singleton
     }
 
     /**
-     * Returns a list of available plugin menu instances.
-     *
-     * @return \Piwik\Plugin\Menu[]
+     * Applies all edits to the menu.
      */
-    protected function getAllMenus()
+    private function applyEdits()
     {
-        if (!empty(self::$menus)) {
-            return self::$menus;
+        foreach ($this->edits as $edit) {
+            $mainMenuToEdit = $edit[0];
+            $subMenuToEdit  = $edit[1];
+            $newUrl         = $edit[2];
+
+            if ($subMenuToEdit === null) {
+                if (isset($this->menu[$mainMenuToEdit])) {
+                    $menuDataToEdit = &$this->menu[$mainMenuToEdit];
+                } else {
+                    $menuDataToEdit = null;
+                }
+            } else {
+                if (isset($this->menu[$mainMenuToEdit][$subMenuToEdit])) {
+                    $menuDataToEdit = &$this->menu[$mainMenuToEdit][$subMenuToEdit];
+                } else {
+                    $menuDataToEdit = null;
+                }
+            }
+
+            if (empty($menuDataToEdit)) {
+                $this->buildMenuItem($mainMenuToEdit, $subMenuToEdit, $newUrl);
+            } else {
+                $menuDataToEdit['_url'] = $newUrl;
+            }
+        }
+    }
+
+    private function applyRemoves()
+    {
+        foreach ($this->menuEntriesToRemove as $menuToDelete) {
+            if (empty($menuToDelete[1])) {
+                // Delete Main Menu
+                if (isset($this->menu[$menuToDelete[0]])) {
+                    unset($this->menu[$menuToDelete[0]]);
+                }
+            } else {
+                // Delete Sub Menu
+                if (isset($this->menu[$menuToDelete[0]][$menuToDelete[1]])) {
+                    unset($this->menu[$menuToDelete[0]][$menuToDelete[1]]);
+                }
+            }
+        }
+    }
+    /**
+     * Applies renames to the menu.
+     */
+    private function applyRenames()
+    {
+        foreach ($this->renames as $rename) {
+            $mainMenuOriginal = $rename[0];
+            $subMenuOriginal  = $rename[1];
+            $mainMenuRenamed  = $rename[2];
+            $subMenuRenamed   = $rename[3];
+
+            // Are we changing a submenu?
+            if (!empty($subMenuOriginal)) {
+                if (isset($this->menu[$mainMenuOriginal][$subMenuOriginal])) {
+                    $save = $this->menu[$mainMenuOriginal][$subMenuOriginal];
+                    $save['_name'] = $subMenuRenamed;
+                    unset($this->menu[$mainMenuOriginal][$subMenuOriginal]);
+                    $this->menu[$mainMenuRenamed][$subMenuRenamed] = $save;
+                }
+            } // Changing a first-level element
+            elseif (isset($this->menu[$mainMenuOriginal])) {
+                $save = $this->menu[$mainMenuOriginal];
+                $save['_name'] = $mainMenuRenamed;
+                unset($this->menu[$mainMenuOriginal]);
+                $this->menu[$mainMenuRenamed] = $save;
+            }
+        }
+    }
+
+    /**
+     * Orders the menu according to their order.
+     */
+    private function applyOrdering()
+    {
+        if (empty($this->menu)
+            || $this->orderingApplied
+        ) {
+            return;
         }
 
-        self::$menus = PluginManager::getInstance()->findComponents('Menu', 'Piwik\\Plugin\\Menu');
+        uasort($this->menu, array($this, 'menuCompare'));
+        foreach ($this->menu as $key => &$element) {
+            if (is_null($element)) {
+                unset($this->menu[$key]);
+            } elseif ($element['_hasSubmenu']) {
+                uasort($element, array($this, 'menuCompare'));
+            }
+        }
 
-        return self::$menus;
+        $this->orderingApplied = true;
     }
 
     /**

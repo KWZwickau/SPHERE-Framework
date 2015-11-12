@@ -8,11 +8,19 @@
  */
 namespace Piwik\Measurable\Type;
 
-use Piwik\Measurable\Type;
 use Piwik\Plugin\Manager as PluginManager;
+use Piwik\Measurable\Type;
 
 class TypeManager
 {
+    /**
+     * @return Type[]
+     */
+    public function getAllTypes()
+    {
+        return PluginManager::getInstance()->findComponents('Type', '\\Piwik\\Measurable\\Type');
+    }
+
     /**
      * @param string $typeId
      * @return Type|null
@@ -26,14 +34,6 @@ class TypeManager
         }
 
         return new Type();
-    }
-
-    /**
-     * @return Type[]
-     */
-    public function getAllTypes()
-    {
-        return PluginManager::getInstance()->findComponents('Type', '\\Piwik\\Measurable\\Type');
     }
 }
 

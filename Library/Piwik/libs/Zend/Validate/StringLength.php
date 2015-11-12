@@ -86,7 +86,7 @@ class Zend_Validate_StringLength extends Zend_Validate_Abstract
     {
         if ($options instanceof Zend_Config) {
             $options = $options->toArray();
-        } else {if (!is_array($options)) {
+        } else if (!is_array($options)) {
             $options     = func_get_args();
             $temp['min'] = array_shift($options);
             if (!empty($options)) {
@@ -98,7 +98,7 @@ class Zend_Validate_StringLength extends Zend_Validate_Abstract
             }
 
             $options = $temp;
-        }}
+        }
 
         if (!array_key_exists('min', $options)) {
             $options['min'] = 0;
@@ -166,7 +166,7 @@ class Zend_Validate_StringLength extends Zend_Validate_Abstract
     {
         if (null === $max) {
             $this->_max = null;
-        } else {if ($max < $this->_min) {
+        } else if ($max < $this->_min) {
             /**
              * @see Zend_Validate_Exception
              */
@@ -175,7 +175,7 @@ class Zend_Validate_StringLength extends Zend_Validate_Abstract
                                             . "$max < $this->_min");
         } else {
             $this->_max = (integer) $max;
-        }}
+        }
 
         return $this;
     }

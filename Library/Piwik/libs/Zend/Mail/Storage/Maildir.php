@@ -47,6 +47,18 @@
 class Zend_Mail_Storage_Maildir extends Zend_Mail_Storage_Abstract
 {
     /**
+     * used message class, change it in an extened class to extend the returned message class
+     * @var string
+     */
+    protected $_messageClass = 'Zend_Mail_Message_File';
+
+    /**
+     * data of found message files in maildir dir
+     * @var array
+     */
+    protected $_files = array();
+
+    /**
      * known flag chars in filenames
      *
      * This list has to be in alphabetical order for setFlags()
@@ -59,18 +71,186 @@ class Zend_Mail_Storage_Maildir extends Zend_Mail_Storage_Abstract
                                           'R' => Zend_Mail_Storage::FLAG_ANSWERED,
                                           'S' => Zend_Mail_Storage::FLAG_SEEN,
                                           'T' => Zend_Mail_Storage::FLAG_DELETED);
-    /**
-     * used message class, change it in an extened class to extend the returned message class
-     * @var string
-     */
-    protected $_messageClass = 'Zend_Mail_Message_File';
-    /**
-     * data of found message files in maildir dir
-     * @var array
-     */
-    protected $_files = array();
 
     // TODO: getFlags($id) for fast access if headers are not needed (i.e. just setting flags)?
+
+    /**
+     * Count messages all messages in current box
+     *
+     * @return int number of messages
+     * @throws Zend_Mail_Storage_Exception
+     */
+    public function countMessages($flags = null)
+    {
+        if ($flags === null) {
+            return count($this->_files);
+        }
+
+        $count = 0;
+        if (!is_array($flags)) {
+            foreach ($this->_files as $file) {
+                if (isset($file['flaglookup'][$flags])) {
+                    ++$count;
+                }
+            }
+            return $count;
+        }
+
+        $flags = array_flip($flags);
+           foreach ($this->_files as $file) {
+               foreach ($flags as $flag => $v) {
+                   if (!isset($file['flaglookup'][$flag])) {
+                       continue 2;
+                   }
+               }
+               ++$count;
+           }
+           return $count;
+    }
+
+    /**
+     * Get one or all fields from file structure. Also checks if message is valid
+     *
+     * @param  int         $id    message number
+     * @param  string|null $field wanted field
+     * @return string|array wanted field or all fields as array
+     * @throws Zend_Mail_Storage_Exception
+     */
+    protected function _getFileData($id, $field = null)
+    {
+        if (!isset($this->_files[$id - 1])) {
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception('id does not exist');
+        }
+
+        if (!$field) {
+            return $this->_files[$id - 1];
+        }
+
+        if (!isset($this->_files[$id - 1][$field])) {
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception('field does not exist');
+        }
+
+        return $this->_files[$id - 1][$field];
+    }
+
+    /**
+     * Get a list of messages with number and size
+     *
+     * @param  int|null $id number of message or null for all messages
+     * @return int|array size of given message of list with all messages as array(num => size)
+     * @throws Zend_Mail_Storage_Exception
+     */
+    public function getSize($id = null)
+    {
+        if ($id !== null) {
+            $filedata = $this->_getFileData($id);
+            return isset($filedata['size']) ? $filedata['size'] : filesize($filedata['filename']);
+        }
+
+        $result = array();
+        foreach ($this->_files as $num => $data) {
+            $result[$num + 1] = isset($data['size']) ? $data['size'] : filesize($data['filename']);
+        }
+
+        return $result;
+    }
+
+
+
+    /**
+     * Fetch a message
+     *
+     * @param  int $id number of message
+     * @return Zend_Mail_Message_File
+     * @throws Zend_Mail_Storage_Exception
+     */
+    public function getMessage($id)
+    {
+        // TODO that's ugly, would be better to let the message class decide
+        if (strtolower($this->_messageClass) == 'zend_mail_message_file' || is_subclass_of($this->_messageClass, 'zend_mail_message_file')) {
+            return new $this->_messageClass(array('file'  => $this->_getFileData($id, 'filename'),
+                                                  'flags' => $this->_getFileData($id, 'flags')));
+        }
+
+        return new $this->_messageClass(array('handler' => $this, 'id' => $id, 'headers' => $this->getRawHeader($id),
+                                              'flags'   => $this->_getFileData($id, 'flags')));
+    }
+
+    /*
+     * Get raw header of message or part
+     *
+     * @param  int               $id       number of message
+     * @param  null|array|string $part     path to part or null for messsage header
+     * @param  int               $topLines include this many lines with header (after an empty line)
+     * @return string raw header
+     * @throws Zend_Mail_Storage_Exception
+     */
+    public function getRawHeader($id, $part = null, $topLines = 0)
+    {
+        if ($part !== null) {
+            // TODO: implement
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception('not implemented');
+        }
+
+        $fh = fopen($this->_getFileData($id, 'filename'), 'r');
+
+        $content = '';
+        while (!feof($fh)) {
+            $line = fgets($fh);
+            if (!trim($line)) {
+                break;
+            }
+            $content .= $line;
+        }
+
+        fclose($fh);
+        return $content;
+    }
+
+    /*
+     * Get raw content of message or part
+     *
+     * @param  int               $id   number of message
+     * @param  null|array|string $part path to part or null for messsage content
+     * @return string raw content
+     * @throws Zend_Mail_Storage_Exception
+     */
+    public function getRawContent($id, $part = null)
+    {
+        if ($part !== null) {
+            // TODO: implement
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception('not implemented');
+        }
+
+        $fh = fopen($this->_getFileData($id, 'filename'), 'r');
+
+        while (!feof($fh)) {
+            $line = fgets($fh);
+            if (!trim($line)) {
+                break;
+            }
+        }
+
+        $content = stream_get_contents($fh);
+        fclose($fh);
+        return $content;
+    }
 
     /**
      * Create instance with parameters
@@ -152,35 +332,14 @@ class Zend_Mail_Storage_Maildir extends Zend_Mail_Storage_Abstract
         if ($dh) {
             $this->_getMaildirFiles($dh, $dirname . '/new/', array(Zend_Mail_Storage::FLAG_RECENT));
             closedir($dh);
-        } else {if (file_exists($dirname . '/new/')) {
+        } else if (file_exists($dirname . '/new/')) {
             /**
              * @see Zend_Mail_Storage_Exception
              */
             // require_once 'Zend/Mail/Storage/Exception.php';
             throw new Zend_Mail_Storage_Exception('cannot read recent mails in maildir');
-        }}
+        }
     }
-
-    /**
-     * Close resource for mail lib. If you need to control, when the resource
-     * is closed. Otherwise the destructor would call this.
-     *
-     * @return void
-     */
-    public function close()
-    {
-        $this->_files = array();
-    }
-
-    /*
-     * Get raw header of message or part
-     *
-     * @param  int               $id       number of message
-     * @param  null|array|string $part     path to part or null for messsage header
-     * @param  int               $topLines include this many lines with header (after an empty line)
-     * @return string raw header
-     * @throws Zend_Mail_Storage_Exception
-     */
 
     /**
      * find all files in opened dir handle and add to maildir files
@@ -228,173 +387,18 @@ class Zend_Mail_Storage_Maildir extends Zend_Mail_Storage_Abstract
         }
     }
 
-    /*
-     * Get raw content of message or part
-     *
-     * @param  int               $id   number of message
-     * @param  null|array|string $part path to part or null for messsage content
-     * @return string raw content
-     * @throws Zend_Mail_Storage_Exception
-     */
 
     /**
-     * Count messages all messages in current box
+     * Close resource for mail lib. If you need to control, when the resource
+     * is closed. Otherwise the destructor would call this.
      *
-     * @return int number of messages
-     * @throws Zend_Mail_Storage_Exception
+     * @return void
      */
-    public function countMessages($flags = null)
+    public function close()
     {
-        if ($flags === null) {
-            return count($this->_files);
-        }
-
-        $count = 0;
-        if (!is_array($flags)) {
-            foreach ($this->_files as $file) {
-                if (isset($file['flaglookup'][$flags])) {
-                    ++$count;
-                }
-            }
-            return $count;
-        }
-
-        $flags = array_flip($flags);
-           foreach ($this->_files as $file) {
-               foreach ($flags as $flag => $v) {
-                   if (!isset($file['flaglookup'][$flag])) {
-                       continue 2;
-                   }
-               }
-               ++$count;
-           }
-           return $count;
+        $this->_files = array();
     }
 
-    /**
-     * Get a list of messages with number and size
-     *
-     * @param  int|null $id number of message or null for all messages
-     * @return int|array size of given message of list with all messages as array(num => size)
-     * @throws Zend_Mail_Storage_Exception
-     */
-    public function getSize($id = null)
-    {
-        if ($id !== null) {
-            $filedata = $this->_getFileData($id);
-            return isset($filedata['size']) ? $filedata['size'] : filesize($filedata['filename']);
-        }
-
-        $result = array();
-        foreach ($this->_files as $num => $data) {
-            $result[$num + 1] = isset($data['size']) ? $data['size'] : filesize($data['filename']);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get one or all fields from file structure. Also checks if message is valid
-     *
-     * @param  int         $id    message number
-     * @param  string|null $field wanted field
-     * @return string|array wanted field or all fields as array
-     * @throws Zend_Mail_Storage_Exception
-     */
-    protected function _getFileData($id, $field = null)
-    {
-        if (!isset($this->_files[$id - 1])) {
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception('id does not exist');
-        }
-
-        if (!$field) {
-            return $this->_files[$id - 1];
-        }
-
-        if (!isset($this->_files[$id - 1][$field])) {
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception('field does not exist');
-        }
-
-        return $this->_files[$id - 1][$field];
-    }
-
-    /**
-     * Fetch a message
-     *
-     * @param  int $id number of message
-     * @return Zend_Mail_Message_File
-     * @throws Zend_Mail_Storage_Exception
-     */
-    public function getMessage($id)
-    {
-        // TODO that's ugly, would be better to let the message class decide
-        if (strtolower($this->_messageClass) == 'zend_mail_message_file' || is_subclass_of($this->_messageClass, 'zend_mail_message_file')) {
-            return new $this->_messageClass(array('file'  => $this->_getFileData($id, 'filename'),
-                                                  'flags' => $this->_getFileData($id, 'flags')));
-        }
-
-        return new $this->_messageClass(array('handler' => $this, 'id' => $id, 'headers' => $this->getRawHeader($id),
-                                              'flags'   => $this->_getFileData($id, 'flags')));
-    }
-
-    public function getRawHeader($id, $part = null, $topLines = 0)
-    {
-        if ($part !== null) {
-            // TODO: implement
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception('not implemented');
-        }
-
-        $fh = fopen($this->_getFileData($id, 'filename'), 'r');
-
-        $content = '';
-        while (!feof($fh)) {
-            $line = fgets($fh);
-            if (!trim($line)) {
-                break;
-            }
-            $content .= $line;
-        }
-
-        fclose($fh);
-        return $content;
-    }
-
-    public function getRawContent($id, $part = null)
-    {
-        if ($part !== null) {
-            // TODO: implement
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception('not implemented');
-        }
-
-        $fh = fopen($this->_getFileData($id, 'filename'), 'r');
-
-        while (!feof($fh)) {
-            $line = fgets($fh);
-            if (!trim($line)) {
-                break;
-            }
-        }
-
-        $content = stream_get_contents($fh);
-        fclose($fh);
-        return $content;
-    }
 
     /**
      * Waste some CPU cycles doing nothing.

@@ -8,8 +8,8 @@
  */
 namespace Piwik\Plugins\Referrers\DataTable\Filter;
 
-use Piwik\DataTable;
 use Piwik\DataTable\Row;
+use Piwik\DataTable;
 
 class KeywordNotDefined extends DataTable\Filter\ColumnCallbackReplace
 {

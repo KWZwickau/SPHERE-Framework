@@ -66,12 +66,6 @@ class UpdateTest extends ConsoleCommandTestCase
         $this->assertEquals(Version::VERSION, Option::get('version_core'));
     }
 
-    private function assertDryRunExecuted($output)
-    {
-        $this->assertContains("Note: this is a Dry Run", $output);
-        $this->assertContains(self::EXPECTED_SQL_FROM_2_10, $output);
-    }
-
     public function test_UpdateCommand_DoesntExecuteSql_WhenUserSaysNo()
     {
         /** @var QuestionHelper $dialog */
@@ -118,7 +112,12 @@ class UpdateTest extends ConsoleCommandTestCase
         ));
 
         $this->assertEquals(1, $result, $this->getCommandDisplayOutputErrorMessage());
-        $this->assertContains("Piwik could not be updated! See above for more information.",
-            $this->applicationTester->getDisplay());
+        $this->assertContains("Piwik could not be updated! See above for more information.", $this->applicationTester->getDisplay());
+    }
+
+    private function assertDryRunExecuted($output)
+    {
+        $this->assertContains("Note: this is a Dry Run", $output);
+        $this->assertContains(self::EXPECTED_SQL_FROM_2_10, $output);
     }
 }

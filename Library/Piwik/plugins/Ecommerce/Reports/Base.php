@@ -8,24 +8,20 @@
  */
 namespace Piwik\Plugins\Ecommerce\Reports;
 
+use Piwik\API\Proxy;
 use Piwik\Common;
 use Piwik\Piwik;
 use Piwik\Plugin\Report;
 use Piwik\Site;
+use Piwik\ViewDataTable\Factory as ViewDataTableFactory;
+use Piwik\WidgetsList;
 
 abstract class Base extends Report
 {
-    public function checkIsEnabled()
+    protected function init()
     {
-        if (!$this->isEnabled()) {
-            $message = Piwik::translate('General_ExceptionReportNotEnabled');
-
-            if (Piwik::hasUserSuperUserAccess()) {
-                $message .= ' Most likely Ecommerce is not enabled for the requested site.';
-            }
-
-            throw new \Exception($message);
-        }
+        $this->module   = 'Goals';
+        $this->category = 'Goals_Ecommerce';
     }
 
     public function isEnabled()
@@ -39,11 +35,17 @@ abstract class Base extends Report
         return $this->isEcommerceEnabled($idSite);
     }
 
-    private function isEcommerceEnabled($idSite)
+    public function checkIsEnabled()
     {
-        $site = new Site($idSite);
+        if (!$this->isEnabled()) {
+            $message = Piwik::translate('General_ExceptionReportNotEnabled');
 
-        return $site->isEcommerceEnabled();
+            if (Piwik::hasUserSuperUserAccess()) {
+                $message .= ' Most likely Ecommerce is not enabled for the requested site.';
+            }
+
+            throw new \Exception($message);
+        }
     }
 
     public function configureReportMetadata(&$availableReports, $infos)
@@ -66,10 +68,11 @@ abstract class Base extends Report
         return $this->isEcommerceEnabled($idSite);
     }
 
-    protected function init()
+    private function isEcommerceEnabled($idSite)
     {
-        $this->module   = 'Goals';
-        $this->category = 'Goals_Ecommerce';
+        $site = new Site($idSite);
+
+        return $site->isEcommerceEnabled();
     }
 
 }

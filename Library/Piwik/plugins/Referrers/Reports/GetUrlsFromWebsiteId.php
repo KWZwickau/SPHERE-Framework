@@ -14,14 +14,6 @@ use Piwik\Plugins\Referrers\Columns\WebsitePage;
 
 class GetUrlsFromWebsiteId extends Base
 {
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->show_search = false;
-        $view->config->show_exclude_low_population = false;
-        $view->config->tooltip_metadata_name       = 'url';
-        $view->config->addTranslation('label', $this->dimension->getName());
-    }
-
     protected function init()
     {
         parent::init();
@@ -30,6 +22,14 @@ class GetUrlsFromWebsiteId extends Base
         $this->documentation = Piwik::translate('Referrers_WebsitesReportDocumentation', '<br />');
         $this->isSubtableReport = true;
         $this->order = 6;
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->show_search = false;
+        $view->config->show_exclude_low_population = false;
+        $view->config->tooltip_metadata_name       = 'url';
+        $view->config->addTranslation('label', $this->dimension->getName());
     }
 
 }

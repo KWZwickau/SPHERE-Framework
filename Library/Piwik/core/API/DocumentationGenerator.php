@@ -72,31 +72,6 @@ class DocumentationGenerator
         return $str;
     }
 
-    /**
-     * Check if Class contains @hide
-     *
-     * @param ReflectionClass $rClass instance of ReflectionMethod
-     * @return bool
-     */
-    public function checkIfClassCommentContainsHideAnnotation(ReflectionClass $rClass)
-    {
-        return false !== strstr($rClass->getDocComment(), '@hide');
-    }
-
-    public function prepareModulesAndMethods($info, $moduleName)
-    {
-        $toDisplay = array();
-
-        foreach ($info as $methodName => $infoMethod) {
-            if ($methodName == '__documentation') {
-                continue;
-            }
-            $toDisplay[$moduleName][] = $methodName;
-        }
-
-        return $toDisplay;
-    }
-
     public function prepareModuleToDisplay($moduleName)
     {
         return "<a href='#$moduleName'>$moduleName</a><br/>";
@@ -127,49 +102,18 @@ class DocumentationGenerator
         return $str;
     }
 
-    /**
-     * Check if documentation contains @hide annotation and deletes it
-     *
-     * @param $moduleToCheck
-     * @return mixed
-     */
-    public function checkDocumentation($moduleToCheck)
+    public function prepareModulesAndMethods($info, $moduleName)
     {
-        if (strpos($moduleToCheck, '@hide') == true) {
-            $moduleToCheck = str_replace(strtok(strstr($moduleToCheck, '@hide'), "\n"), "", $moduleToCheck);
-        }
-        return $moduleToCheck;
-    }
+        $toDisplay = array();
 
-    /**
-     * Returns the methods $class.$name parameters (and default value if provided) as a string.
-     *
-     * @param string $class The class name
-     * @param string $name The method name
-     * @return string  For example "(idSite, period, date = 'today')"
-     */
-    public function getParametersString($class, $name)
-    {
-        $aParameters = Proxy::getInstance()->getParametersList($class, $name);
-        $asParameters = array();
-        foreach ($aParameters as $nameVariable => $defaultValue) {
-            // Do not show API parameters starting with _
-            // They are supposed to be used only in internal API calls
-            if (strpos($nameVariable, '_') === 0) {
+        foreach ($info as $methodName => $infoMethod) {
+            if ($methodName == '__documentation') {
                 continue;
             }
-            $str = $nameVariable;
-            if (!($defaultValue instanceof NoDefaultValue)) {
-                if (is_array($defaultValue)) {
-                    $str .= " = 'Array'";
-                } else {
-                    $str .= " = '$defaultValue'";
-                }
-            }
-            $asParameters[] = $str;
+            $toDisplay[$moduleName][] = $methodName;
         }
-        $sParameters = implode(", ", $asParameters);
-        return "($sParameters)";
+
+        return $toDisplay;
     }
 
     public function addExamples($class, $methodName, $prefixUrls)
@@ -201,6 +145,54 @@ class DocumentationGenerator
             $str .= " [ No example available ]";
         }
         $str .= "</span>";
+        return $str;
+    }
+
+    /**
+     * Check if Class contains @hide
+     *
+     * @param ReflectionClass $rClass instance of ReflectionMethod
+     * @return bool
+     */
+    public function checkIfClassCommentContainsHideAnnotation(ReflectionClass $rClass)
+    {
+        return false !== strstr($rClass->getDocComment(), '@hide');
+    }
+
+    /**
+     * Check if documentation contains @hide annotation and deletes it
+     *
+     * @param $moduleToCheck
+     * @return mixed
+     */
+    public function checkDocumentation($moduleToCheck)
+    {
+        if (strpos($moduleToCheck, '@hide') == true) {
+            $moduleToCheck = str_replace(strtok(strstr($moduleToCheck, '@hide'), "\n"), "", $moduleToCheck);
+        }
+        return $moduleToCheck;
+    }
+
+    private function getInterfaceString($moduleName, $class, $info, $parametersToSet, $outputExampleUrls, $prefixUrls)
+    {
+        $str = '';
+
+        $str .= "\n<a  name='$moduleName' id='$moduleName'></a><h2>Module " . $moduleName . "</h2>";
+        $str .= "<div class='apiDescription'> " . $info['__documentation'] . " </div>";
+        foreach ($info as $methodName => $infoMethod) {
+            if ($methodName == '__documentation') {
+                continue;
+            }
+
+            if (Proxy::getInstance()->isDeprecatedMethod($class, $methodName)) {
+                continue;
+            }
+
+            $str .= $this->getMethodString($moduleName, $class, $parametersToSet, $outputExampleUrls, $prefixUrls, $methodName, $str);
+        }
+
+        $str .= '<div style="margin:15px;"><a href="#topApiRef">↑ Back to top</a></div>';
+
         return $str;
     }
 
@@ -315,27 +307,35 @@ class DocumentationGenerator
         return '?' . Url::getQueryStringFromParameters($aParameters);
     }
 
-    private function getInterfaceString($moduleName, $class, $info, $parametersToSet, $outputExampleUrls, $prefixUrls)
+    /**
+     * Returns the methods $class.$name parameters (and default value if provided) as a string.
+     *
+     * @param string $class The class name
+     * @param string $name The method name
+     * @return string  For example "(idSite, period, date = 'today')"
+     */
+    public function getParametersString($class, $name)
     {
-        $str = '';
-
-        $str .= "\n<a  name='$moduleName' id='$moduleName'></a><h2>Module " . $moduleName . "</h2>";
-        $str .= "<div class='apiDescription'> " . $info['__documentation'] . " </div>";
-        foreach ($info as $methodName => $infoMethod) {
-            if ($methodName == '__documentation') {
+        $aParameters = Proxy::getInstance()->getParametersList($class, $name);
+        $asParameters = array();
+        foreach ($aParameters as $nameVariable => $defaultValue) {
+            // Do not show API parameters starting with _
+            // They are supposed to be used only in internal API calls
+            if (strpos($nameVariable, '_') === 0) {
                 continue;
             }
-
-            if (Proxy::getInstance()->isDeprecatedMethod($class, $methodName)) {
-                continue;
+            $str = $nameVariable;
+            if (!($defaultValue instanceof NoDefaultValue)) {
+                if (is_array($defaultValue)) {
+                    $str .= " = 'Array'";
+                } else {
+                    $str .= " = '$defaultValue'";
+                }
             }
-
-            $str .= $this->getMethodString($moduleName, $class, $parametersToSet, $outputExampleUrls, $prefixUrls, $methodName, $str);
+            $asParameters[] = $str;
         }
-
-        $str .= '<div style="margin:15px;"><a href="#topApiRef">↑ Back to top</a></div>';
-
-        return $str;
+        $sParameters = implode(", ", $asParameters);
+        return "($sParameters)";
     }
 
     private function getMethodString($moduleName, $class, $parametersToSet, $outputExampleUrls, $prefixUrls, $methodName)

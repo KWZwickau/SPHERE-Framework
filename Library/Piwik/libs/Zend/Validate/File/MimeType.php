@@ -142,6 +142,84 @@ class Zend_Validate_File_MimeType extends Zend_Validate_Abstract
     }
 
     /**
+     * Returns the actual set magicfile
+     *
+     * @return string
+     */
+    public function getMagicFile()
+    {
+        if (null === $this->_magicfile) {
+            if (!empty($_ENV['MAGIC'])) {
+                $this->setMagicFile($_ENV['MAGIC']);
+            } elseif (!(@ini_get("safe_mode") == 'On' || @ini_get("safe_mode") === 1)) {
+                // require_once 'Zend/Validate/Exception.php';
+                foreach ($this->_magicFiles as $file) {
+                    // supressing errors which are thrown due to openbase_dir restrictions
+                    try {
+                        $this->setMagicFile($file);
+                        if ($this->_magicfile !== null) {
+                            break;
+                        }
+                    } catch (Zend_Validate_Exception $e) {
+                        // Intentionally, catch and fall through
+                    }
+                }
+            }
+
+            if ($this->_magicfile === null) {
+                $this->_magicfile = false;
+            }
+        }
+
+        return $this->_magicfile;
+    }
+
+    /**
+     * Sets the magicfile to use
+     * if null, the MAGIC constant from php is used
+     * if the MAGIC file is errorous, no file will be set
+     *
+     * @param  string $file
+     * @throws Zend_Validate_Exception When finfo can not read the magicfile
+     * @return Zend_Validate_File_MimeType Provides fluid interface
+     */
+    public function setMagicFile($file)
+    {
+        if (empty($file)) {
+            $this->_magicfile = null;
+        } else if (!(class_exists('finfo', false))) {
+            $this->_magicfile = null;
+            // require_once 'Zend/Validate/Exception.php';
+            throw new Zend_Validate_Exception('Magicfile can not be set. There is no finfo extension installed');
+        } else if (!is_file($file) || !is_readable($file)) {
+            // require_once 'Zend/Validate/Exception.php';
+            throw new Zend_Validate_Exception('The given magicfile can not be read');
+        } else {
+            $const = defined('FILEINFO_MIME_TYPE') ? FILEINFO_MIME_TYPE : FILEINFO_MIME;
+            $this->_finfo = @finfo_open($const, $file);
+            if (empty($this->_finfo)) {
+                $this->_finfo = null;
+                // require_once 'Zend/Validate/Exception.php';
+                throw new Zend_Validate_Exception('The given magicfile is not accepted by finfo');
+            } else {
+                $this->_magicfile = $file;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Returns the Header Check option
+     *
+     * @return boolean
+     */
+    public function getHeaderCheck()
+    {
+        return $this->_headerCheck;
+    }
+
+    /**
      * Defines if the http header should be used
      * Note that this is unsave and therefor the default value is false
      *
@@ -155,13 +233,33 @@ class Zend_Validate_File_MimeType extends Zend_Validate_Abstract
     }
 
     /**
-     * Returns the Header Check option
+     * Returns the set mimetypes
      *
-     * @return boolean
+     * @param  boolean $asArray Returns the values as array, when false an concated string is returned
+     * @return string|array
      */
-    public function getHeaderCheck()
+    public function getMimeType($asArray = false)
     {
-        return $this->_headerCheck;
+        $asArray   = (bool) $asArray;
+        $mimetype = (string) $this->_mimetype;
+        if ($asArray) {
+            $mimetype = explode(',', $mimetype);
+        }
+
+        return $mimetype;
+    }
+
+    /**
+     * Sets the mimetypes
+     *
+     * @param  string|array $mimetype The mimetypes to validate
+     * @return Zend_Validate_File_Extension Provides a fluent interface
+     */
+    public function setMimeType($mimetype)
+    {
+        $this->_mimetype = null;
+        $this->addMimeType($mimetype);
+        return $this;
     }
 
     /**
@@ -290,103 +388,5 @@ class Zend_Validate_File_MimeType extends Zend_Validate_Abstract
         $this->_value = $file['name'];
         $this->_error($errorType);
         return false;
-    }
-
-    /**
-     * Returns the actual set magicfile
-     *
-     * @return string
-     */
-    public function getMagicFile()
-    {
-        if (null === $this->_magicfile) {
-            if (!empty($_ENV['MAGIC'])) {
-                $this->setMagicFile($_ENV['MAGIC']);
-            } elseif (!(@ini_get("safe_mode") == 'On' || @ini_get("safe_mode") === 1)) {
-                // require_once 'Zend/Validate/Exception.php';
-                foreach ($this->_magicFiles as $file) {
-                    // supressing errors which are thrown due to openbase_dir restrictions
-                    try {
-                        $this->setMagicFile($file);
-                        if ($this->_magicfile !== null) {
-                            break;
-                        }
-                    } catch (Zend_Validate_Exception $e) {
-                        // Intentionally, catch and fall through
-                    }
-                }
-            }
-
-            if ($this->_magicfile === null) {
-                $this->_magicfile = false;
-            }
-        }
-
-        return $this->_magicfile;
-    }
-
-    /**
-     * Sets the magicfile to use
-     * if null, the MAGIC constant from php is used
-     * if the MAGIC file is errorous, no file will be set
-     *
-     * @param  string $file
-     * @throws Zend_Validate_Exception When finfo can not read the magicfile
-     * @return Zend_Validate_File_MimeType Provides fluid interface
-     */
-    public function setMagicFile($file)
-    {
-        if (empty($file)) {
-            $this->_magicfile = null;
-        } else {if (!(class_exists('finfo', false))) {
-            $this->_magicfile = null;
-            // require_once 'Zend/Validate/Exception.php';
-            throw new Zend_Validate_Exception('Magicfile can not be set. There is no finfo extension installed');
-        } else {if (!is_file($file) || !is_readable($file)) {
-            // require_once 'Zend/Validate/Exception.php';
-            throw new Zend_Validate_Exception('The given magicfile can not be read');
-        } else {
-            $const = defined('FILEINFO_MIME_TYPE') ? FILEINFO_MIME_TYPE : FILEINFO_MIME;
-            $this->_finfo = @finfo_open($const, $file);
-            if (empty($this->_finfo)) {
-                $this->_finfo = null;
-                // require_once 'Zend/Validate/Exception.php';
-                throw new Zend_Validate_Exception('The given magicfile is not accepted by finfo');
-            } else {
-                $this->_magicfile = $file;
-            }
-        }}}
-
-        return $this;
-    }
-
-    /**
-     * Returns the set mimetypes
-     *
-     * @param  boolean $asArray Returns the values as array, when false an concated string is returned
-     * @return string|array
-     */
-    public function getMimeType($asArray = false)
-    {
-        $asArray   = (bool) $asArray;
-        $mimetype = (string) $this->_mimetype;
-        if ($asArray) {
-            $mimetype = explode(',', $mimetype);
-        }
-
-        return $mimetype;
-    }
-
-    /**
-     * Sets the mimetypes
-     *
-     * @param  string|array $mimetype The mimetypes to validate
-     * @return Zend_Validate_File_Extension Provides a fluent interface
-     */
-    public function setMimeType($mimetype)
-    {
-        $this->_mimetype = null;
-        $this->addMimeType($mimetype);
-        return $this;
     }
 }

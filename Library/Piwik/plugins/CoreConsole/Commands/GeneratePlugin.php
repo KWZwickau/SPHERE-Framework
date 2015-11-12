@@ -12,6 +12,7 @@ namespace Piwik\Plugins\CoreConsole\Commands;
 use Piwik\Filesystem;
 use Piwik\Plugins\ExamplePlugin\ExamplePlugin;
 use Piwik\Version;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -98,6 +99,12 @@ class GeneratePlugin extends GeneratePluginBase
         $commandName = $input->getFirstArgument();
 
         return false !== strpos($commandName, 'theme');
+    }
+
+    protected function generatePluginFolder($pluginName)
+    {
+        $pluginPath = $this->getPluginPath($pluginName);
+        Filesystem::mkdir($pluginPath);
     }
 
     /**
@@ -188,12 +195,6 @@ class GeneratePlugin extends GeneratePluginBase
         }
 
         return $version;
-    }
-
-    protected function generatePluginFolder($pluginName)
-    {
-        $pluginPath = $this->getPluginPath($pluginName);
-        Filesystem::mkdir($pluginPath);
     }
 
 }

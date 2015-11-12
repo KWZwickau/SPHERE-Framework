@@ -16,28 +16,6 @@ use Piwik\Plugins\CoreVisualizations\Visualizations\HtmlTable;
 
 class GetSiteSearchCategories extends SiteSearchBase
 {
-    public function getMetrics()
-    {
-        return array(
-            'nb_visits'           => Piwik::translate('Actions_ColumnSearches'),
-            'nb_pages_per_search' => Piwik::translate('Actions_ColumnPagesPerSearch'),
-            'exit_rate'           => Piwik::translate('Actions_ColumnSearchExits'),
-        );
-    }
-
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->addTranslations(array('label' => $this->dimension->getName()));
-
-        $view->config->columns_to_display     = array('label', 'nb_visits', 'nb_pages_per_search');
-        $view->config->show_table_all_columns = false;
-        $view->config->show_bar_chart         = false;
-
-        if ($view->isViewDataTableId(HtmlTable::ID)) {
-            $view->config->disable_row_evolution = false;
-        }
-    }
-
     protected function init()
     {
         parent::init();
@@ -54,6 +32,15 @@ class GetSiteSearchCategories extends SiteSearchBase
         return parent::isEnabledForIdSites($idSites, $idSite) && Actions::isCustomVariablesPluginsEnabled();
     }
 
+    public function getMetrics()
+    {
+        return array(
+            'nb_visits'           => Piwik::translate('Actions_ColumnSearches'),
+            'nb_pages_per_search' => Piwik::translate('Actions_ColumnPagesPerSearch'),
+            'exit_rate'           => Piwik::translate('Actions_ColumnSearchExits'),
+        );
+    }
+
     protected function getMetricsDocumentation()
     {
         return array(
@@ -61,5 +48,18 @@ class GetSiteSearchCategories extends SiteSearchBase
             'nb_pages_per_search' => Piwik::translate('Actions_ColumnPagesPerSearchDocumentation'),
             'exit_rate'           => Piwik::translate('Actions_ColumnSearchExitsDocumentation'),
         );
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->addTranslations(array('label' => $this->dimension->getName()));
+
+        $view->config->columns_to_display     = array('label', 'nb_visits', 'nb_pages_per_search');
+        $view->config->show_table_all_columns = false;
+        $view->config->show_bar_chart         = false;
+
+        if ($view->isViewDataTableId(HtmlTable::ID)) {
+            $view->config->disable_row_evolution = false;
+        }
     }
 }

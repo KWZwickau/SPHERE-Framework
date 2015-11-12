@@ -71,6 +71,116 @@ abstract class LocationProvider
     public static $providers = null;
 
     /**
+     * Returns location information based on visitor information.
+     *
+     * The result of this function will be an array. The array can store some or all of
+     * the following information:
+     *
+     * - Continent Code: The code of the visitor's continent.
+     *       (array key is self::CONTINENT_CODE_KEY)
+     * - Continent Name: The name of the visitor's continent.
+     *       (array key is self::CONTINENT_NAME_KEY)
+     * - Country Code: The code of the visitor's country.
+     *       (array key is self::COUNTRY_CODE_KEY)
+     * - Country Name: The name of the visitor's country.
+     *       (array key is self::COUNTRY_NAME_KEY)
+     * - Region Code: The code of the visitor's region.
+     *       (array key is self::REGION_CODE_KEY)
+     * - Region Name: The name of the visitor's region.
+     *       (array key is self::REGION_NAME_KEY)
+     * - City Name: The name of the visitor's city.
+     *       (array key is self::CITY_NAME_KEY)
+     * - Area Code: The visitor's area code.
+     *       (array key is self::AREA_CODE_KEY)
+     * - Latitude: The visitor's latitude.
+     *       (array key is self::LATITUDE_KEY)
+     * - Longitude: The visitor's longitude.
+     *       (array key is self::LONGITUDE_KEY)
+     * - Postal Code: The visitor's postal code.
+     *       (array key is self::POSTAL_CODE_KEY)
+     * - ISP: The visitor's ISP.
+     *       (array key is self::ISP_KEY)
+     * - Org: The company/organization of the visitor's IP.
+     *       (array key is self::ORG_KEY)
+     *
+     * All LocationProviders will attempt to return the country of the visitor.
+     *
+     * @param array $info What this must contain depends on the specific provider
+     *                    implementation. All providers require an 'ip' key mapped
+     *                    to the visitor's IP address.
+     * @return array|false
+     */
+    abstract public function getLocation($info);
+
+    /**
+     * Returns true if this provider is available for use, false if otherwise.
+     *
+     * @return bool
+     */
+    abstract public function isAvailable();
+
+    /**
+     * Returns true if this provider is working, false if otherwise.
+     *
+     * @return bool
+     */
+    abstract public function isWorking();
+
+    /**
+     * Returns an array mapping location result keys w/ bool values indicating whether
+     * that information is supported by this provider. If it is not supported, that means
+     * this provider either cannot get this information, or is not configured to get it.
+     *
+     * @return array eg. array(self::CONTINENT_CODE_KEY => true,
+     *                         self::CONTINENT_NAME_KEY => true,
+     *                         self::ORG_KEY => false)
+     *               The result is not guaranteed to have keys for every type of location
+     *               info.
+     */
+    abstract public function getSupportedLocationInfo();
+
+    /**
+     * Returns every available provider instance.
+     *
+     * @return LocationProvider[]
+     */
+    public static function getAllProviders()
+    {
+        if (is_null(self::$providers)) {
+            self::$providers = array();
+            foreach (get_declared_classes() as $klass) {
+                if (is_subclass_of($klass, 'Piwik\Plugins\UserCountry\LocationProvider')) {
+                    $klassInfo = new ReflectionClass($klass);
+                    if ($klassInfo->isAbstract()) {
+                        continue;
+                    }
+
+                    self::$providers[] = new $klass;
+                }
+            }
+        }
+
+        return self::$providers;
+    }
+
+    /**
+     * Returns all provider instances that are 'available'. An 'available' provider
+     * is one that is available for use. They may not necessarily be working.
+     *
+     * @return array
+     */
+    public static function getAvailableProviders()
+    {
+        $result = array();
+        foreach (self::getAllProviders() as $provider) {
+            if ($provider->isAvailable()) {
+                $result[] = $provider;
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Returns an array mapping provider IDs w/ information about the provider,
      * for each location provider.
      *
@@ -148,198 +258,6 @@ abstract class LocationProvider
     }
 
     /**
-     * Returns true if this provider is working, false if otherwise.
-     *
-     * @return bool
-     */
-    abstract public function isWorking();
-
-    /**
-     * Returns location information based on visitor information.
-     *
-     * The result of this function will be an array. The array can store some or all of
-     * the following information:
-     *
-     * - Continent Code: The code of the visitor's continent.
-     *       (array key is self::CONTINENT_CODE_KEY)
-     * - Continent Name: The name of the visitor's continent.
-     *       (array key is self::CONTINENT_NAME_KEY)
-     * - Country Code: The code of the visitor's country.
-     *       (array key is self::COUNTRY_CODE_KEY)
-     * - Country Name: The name of the visitor's country.
-     *       (array key is self::COUNTRY_NAME_KEY)
-     * - Region Code: The code of the visitor's region.
-     *       (array key is self::REGION_CODE_KEY)
-     * - Region Name: The name of the visitor's region.
-     *       (array key is self::REGION_NAME_KEY)
-     * - City Name: The name of the visitor's city.
-     *       (array key is self::CITY_NAME_KEY)
-     * - Area Code: The visitor's area code.
-     *       (array key is self::AREA_CODE_KEY)
-     * - Latitude: The visitor's latitude.
-     *       (array key is self::LATITUDE_KEY)
-     * - Longitude: The visitor's longitude.
-     *       (array key is self::LONGITUDE_KEY)
-     * - Postal Code: The visitor's postal code.
-     *       (array key is self::POSTAL_CODE_KEY)
-     * - ISP: The visitor's ISP.
-     *       (array key is self::ISP_KEY)
-     * - Org: The company/organization of the visitor's IP.
-     *       (array key is self::ORG_KEY)
-     *
-     * All LocationProviders will attempt to return the country of the visitor.
-     *
-     * @param array $info What this must contain depends on the specific provider
-     *                    implementation. All providers require an 'ip' key mapped
-     *                    to the visitor's IP address.
-     * @return array|false
-     */
-    abstract public function getLocation($info);
-
-    /**
-     * Returns a prettified location result.
-     *
-     * @param array|false $locationInfo
-     * @param string $newline The line separator (ie, \n or <br/>).
-     * @param bool $includeExtra Whether to include ISP/Organization info.
-     * @return string
-     */
-    public static function prettyFormatLocation($locationInfo, $newline = "\n", $includeExtra = false)
-    {
-        if ($locationInfo === false) {
-            return Piwik::translate('General_Unknown');
-        }
-
-        // add latitude/longitude line
-        $lines = array();
-        if (!empty($locationInfo[self::LATITUDE_KEY])
-            && !empty($locationInfo[self::LONGITUDE_KEY])
-        ) {
-            $lines[] = '(' . $locationInfo[self::LATITUDE_KEY] . ', ' . $locationInfo[self::LONGITUDE_KEY] . ')';
-        }
-
-        // add city/state line
-        $cityState = array();
-        if (!empty($locationInfo[self::CITY_NAME_KEY])) {
-            $cityState[] = $locationInfo[self::CITY_NAME_KEY];
-        }
-
-        if (!empty($locationInfo[self::REGION_CODE_KEY])) {
-            $cityState[] = $locationInfo[self::REGION_CODE_KEY];
-        } else {if (!empty($locationInfo[self::REGION_NAME_KEY])) {
-            $cityState[] = $locationInfo[self::REGION_NAME_KEY];
-        }}
-
-        if (!empty($cityState)) {
-            $lines[] = implode(', ', $cityState);
-        }
-
-        // add postal code line
-        if (!empty($locationInfo[self::POSTAL_CODE_KEY])) {
-            $lines[] = $locationInfo[self::POSTAL_CODE_KEY];
-        }
-
-        // add country line
-        if (!empty($locationInfo[self::COUNTRY_NAME_KEY])) {
-            $lines[] = $locationInfo[self::COUNTRY_NAME_KEY];
-        } else {if (!empty($locationInfo[self::COUNTRY_CODE_KEY])) {
-            $lines[] = $locationInfo[self::COUNTRY_CODE_KEY];
-        }}
-
-        // add extra information (ISP/Organization)
-        if ($includeExtra) {
-            $lines[] = '';
-
-            $unknown = Piwik::translate('General_Unknown');
-
-            $org = !empty($locationInfo[self::ORG_KEY]) ? $locationInfo[self::ORG_KEY] : $unknown;
-            $lines[] = "Org: $org";
-
-            $isp = !empty($locationInfo[self::ISP_KEY]) ? $locationInfo[self::ISP_KEY] : $unknown;
-            $lines[] = "ISP: $isp";
-        }
-
-        return implode($newline, $lines);
-    }
-
-    /**
-     * Returns the provider instance of the current location provider.
-     *
-     * This function should not be called by the Tracker.
-     *
-     * @return \Piwik\Plugins\UserCountry\LocationProvider|null
-     */
-    public static function getCurrentProvider()
-    {
-        return self::getProviderById(self::getCurrentProviderId());
-    }
-
-    /**
-     * Returns a provider instance by ID or false if the ID is invalid or unavailable.
-     *
-     * @param string $providerId
-     * @return \Piwik\Plugins\UserCountry\LocationProvider|null
-     */
-    public static function getProviderById($providerId)
-    {
-        foreach (self::getAvailableProviders() as $provider) {
-            if ($provider->getId() == $providerId) {
-                return $provider;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns all provider instances that are 'available'. An 'available' provider
-     * is one that is available for use. They may not necessarily be working.
-     *
-     * @return array
-     */
-    public static function getAvailableProviders()
-    {
-        $result = array();
-        foreach (self::getAllProviders() as $provider) {
-            if ($provider->isAvailable()) {
-                $result[] = $provider;
-            }
-        }
-        return $result;
-    }
-
-    /**
-     * Returns every available provider instance.
-     *
-     * @return LocationProvider[]
-     */
-    public static function getAllProviders()
-    {
-        if (is_null(self::$providers)) {
-            self::$providers = array();
-            foreach (get_declared_classes() as $klass) {
-                if (is_subclass_of($klass, 'Piwik\Plugins\UserCountry\LocationProvider')) {
-                    $klassInfo = new ReflectionClass($klass);
-                    if ($klassInfo->isAbstract()) {
-                        continue;
-                    }
-
-                    self::$providers[] = new $klass;
-                }
-            }
-        }
-
-        return self::$providers;
-    }
-
-    /**
-     * Returns true if this provider is available for use, false if otherwise.
-     *
-     * @return bool
-     */
-    abstract public function isAvailable();
-
-    /**
      * Returns the ID of the currently used location provider.
      *
      * The used provider is stored in the 'usercountry.location_provider' option.
@@ -352,6 +270,18 @@ abstract class LocationProvider
     {
         $optionValue = Option::get(self::CURRENT_PROVIDER_OPTION_NAME);
         return $optionValue === false ? DefaultProvider::ID : $optionValue;
+    }
+
+    /**
+     * Returns the provider instance of the current location provider.
+     *
+     * This function should not be called by the Tracker.
+     *
+     * @return \Piwik\Plugins\UserCountry\LocationProvider|null
+     */
+    public static function getCurrentProvider()
+    {
+        return self::getProviderById(self::getCurrentProviderId());
     }
 
     /**
@@ -374,17 +304,21 @@ abstract class LocationProvider
     }
 
     /**
-     * Returns an array mapping location result keys w/ bool values indicating whether
-     * that information is supported by this provider. If it is not supported, that means
-     * this provider either cannot get this information, or is not configured to get it.
+     * Returns a provider instance by ID or false if the ID is invalid or unavailable.
      *
-     * @return array eg. array(self::CONTINENT_CODE_KEY => true,
-     *                         self::CONTINENT_NAME_KEY => true,
-     *                         self::ORG_KEY => false)
-     *               The result is not guaranteed to have keys for every type of location
-     *               info.
+     * @param string $providerId
+     * @return \Piwik\Plugins\UserCountry\LocationProvider|null
      */
-    abstract public function getSupportedLocationInfo();
+    public static function getProviderById($providerId)
+    {
+        foreach (self::getAvailableProviders() as $provider) {
+            if ($provider->getId() == $providerId) {
+                return $provider;
+            }
+        }
+
+        return null;
+    }
 
     public function getId()
     {
@@ -445,6 +379,72 @@ abstract class LocationProvider
                 unset($location[self::LONGITUDE_KEY]);
             }
         }
+    }
+
+    /**
+     * Returns a prettified location result.
+     *
+     * @param array|false $locationInfo
+     * @param string $newline The line separator (ie, \n or <br/>).
+     * @param bool $includeExtra Whether to include ISP/Organization info.
+     * @return string
+     */
+    public static function prettyFormatLocation($locationInfo, $newline = "\n", $includeExtra = false)
+    {
+        if ($locationInfo === false) {
+            return Piwik::translate('General_Unknown');
+        }
+
+        // add latitude/longitude line
+        $lines = array();
+        if (!empty($locationInfo[self::LATITUDE_KEY])
+            && !empty($locationInfo[self::LONGITUDE_KEY])
+        ) {
+            $lines[] = '(' . $locationInfo[self::LATITUDE_KEY] . ', ' . $locationInfo[self::LONGITUDE_KEY] . ')';
+        }
+
+        // add city/state line
+        $cityState = array();
+        if (!empty($locationInfo[self::CITY_NAME_KEY])) {
+            $cityState[] = $locationInfo[self::CITY_NAME_KEY];
+        }
+
+        if (!empty($locationInfo[self::REGION_CODE_KEY])) {
+            $cityState[] = $locationInfo[self::REGION_CODE_KEY];
+        } else if (!empty($locationInfo[self::REGION_NAME_KEY])) {
+            $cityState[] = $locationInfo[self::REGION_NAME_KEY];
+        }
+
+        if (!empty($cityState)) {
+            $lines[] = implode(', ', $cityState);
+        }
+
+        // add postal code line
+        if (!empty($locationInfo[self::POSTAL_CODE_KEY])) {
+            $lines[] = $locationInfo[self::POSTAL_CODE_KEY];
+        }
+
+        // add country line
+        if (!empty($locationInfo[self::COUNTRY_NAME_KEY])) {
+            $lines[] = $locationInfo[self::COUNTRY_NAME_KEY];
+        } else if (!empty($locationInfo[self::COUNTRY_CODE_KEY])) {
+            $lines[] = $locationInfo[self::COUNTRY_CODE_KEY];
+        }
+
+        // add extra information (ISP/Organization)
+        if ($includeExtra) {
+            $lines[] = '';
+
+            $unknown = Piwik::translate('General_Unknown');
+
+            $org = !empty($locationInfo[self::ORG_KEY]) ? $locationInfo[self::ORG_KEY] : $unknown;
+            $lines[] = "Org: $org";
+
+            $isp = !empty($locationInfo[self::ISP_KEY]) ? $locationInfo[self::ISP_KEY] : $unknown;
+            $lines[] = "ISP: $isp";
+        }
+
+        return implode($newline, $lines);
     }
 
     /**

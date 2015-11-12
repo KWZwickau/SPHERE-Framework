@@ -77,40 +77,9 @@ class ConsoleHandler extends AbstractProcessingHandler implements EventSubscribe
     /**
      * {@inheritdoc}
      */
-    public static function getSubscribedEvents()
-    {
-        return array(
-            ConsoleEvents::COMMAND => array('onCommand', 255),
-            ConsoleEvents::TERMINATE => array('onTerminate', -255),
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function isHandling(array $record)
     {
         return $this->updateLevel() && parent::isHandling($record);
-    }
-
-    /**
-     * Updates the logging level based on the verbosity setting of the console output.
-     *
-     * @return bool Whether the handler is enabled and verbosity is not set to quiet.
-     */
-    private function updateLevel()
-    {
-        if (null === $this->output || OutputInterface::VERBOSITY_QUIET === $verbosity = $this->output->getVerbosity()) {
-            return false;
-        }
-
-        if (isset($this->verbosityLevelMap[$verbosity])) {
-            $this->setLevel($this->verbosityLevelMap[$verbosity]);
-        } else {
-            $this->setLevel(Logger::DEBUG);
-        }
-
-        return true;
     }
 
     /**
@@ -121,6 +90,26 @@ class ConsoleHandler extends AbstractProcessingHandler implements EventSubscribe
         // we have to update the logging level each time because the verbosity of the
         // console output might have changed in the meantime (it is not immutable)
         return $this->updateLevel() && parent::handle($record);
+    }
+
+    /**
+     * Sets the console output to use for printing logs.
+     *
+     * @param OutputInterface $output The console output to use
+     */
+    public function setOutput(OutputInterface $output)
+    {
+        $this->output = $output;
+    }
+
+    /**
+     * Disables the output.
+     */
+    public function close()
+    {
+        $this->output = null;
+
+        parent::close();
     }
 
     /**
@@ -135,16 +124,6 @@ class ConsoleHandler extends AbstractProcessingHandler implements EventSubscribe
     }
 
     /**
-     * Sets the console output to use for printing logs.
-     *
-     * @param OutputInterface $output The console output to use
-     */
-    public function setOutput(OutputInterface $output)
-    {
-        $this->output = $output;
-    }
-
-    /**
      * After a command has been executed, it disables the output.
      *
      * @param ConsoleTerminateEvent $event
@@ -155,13 +134,14 @@ class ConsoleHandler extends AbstractProcessingHandler implements EventSubscribe
     }
 
     /**
-     * Disables the output.
+     * {@inheritdoc}
      */
-    public function close()
+    public static function getSubscribedEvents()
     {
-        $this->output = null;
-
-        parent::close();
+        return array(
+            ConsoleEvents::COMMAND => array('onCommand', 255),
+            ConsoleEvents::TERMINATE => array('onTerminate', -255),
+        );
     }
 
     /**
@@ -182,5 +162,25 @@ class ConsoleHandler extends AbstractProcessingHandler implements EventSubscribe
     protected function getDefaultFormatter()
     {
         return new ConsoleFormatter();
+    }
+
+    /**
+     * Updates the logging level based on the verbosity setting of the console output.
+     *
+     * @return bool Whether the handler is enabled and verbosity is not set to quiet.
+     */
+    private function updateLevel()
+    {
+        if (null === $this->output || OutputInterface::VERBOSITY_QUIET === $verbosity = $this->output->getVerbosity()) {
+            return false;
+        }
+
+        if (isset($this->verbosityLevelMap[$verbosity])) {
+            $this->setLevel($this->verbosityLevelMap[$verbosity]);
+        } else {
+            $this->setLevel(Logger::DEBUG);
+        }
+
+        return true;
     }
 }

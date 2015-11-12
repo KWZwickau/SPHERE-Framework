@@ -13,6 +13,7 @@ use Piwik\DataTable;
 use Piwik\DataTable\Row;
 use Piwik\Metrics;
 use Piwik\Piwik;
+use Piwik\Plugins\Contents\Archiver;
 
 /**
  * API for plugin Contents
@@ -22,6 +23,11 @@ use Piwik\Piwik;
 class API extends \Piwik\Plugin\API
 {
     public function getContentNames($idSite, $period, $date, $segment = false, $idSubtable = false)
+    {
+        return $this->getDataTable(__FUNCTION__, $idSite, $period, $date, $segment, false, $idSubtable);
+    }
+
+    public function getContentPieces($idSite, $period, $date, $segment = false, $idSubtable = false)
     {
         return $this->getDataTable(__FUNCTION__, $idSite, $period, $date, $segment, false, $idSubtable);
     }
@@ -64,10 +70,5 @@ class API extends \Piwik\Plugin\API
                 }
             }
         });
-    }
-
-    public function getContentPieces($idSite, $period, $date, $segment = false, $idSubtable = false)
-    {
-        return $this->getDataTable(__FUNCTION__, $idSite, $period, $date, $segment, false, $idSubtable);
     }
 }

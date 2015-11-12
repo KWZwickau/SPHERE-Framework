@@ -15,9 +15,9 @@ use Piwik\DataAccess\ArchiveTableCreator;
 use Piwik\DataAccess\Model;
 use Piwik\Date;
 use Piwik\Option;
-use Piwik\Period;
 use Piwik\Plugins\CoreAdminHome\Tasks\ArchivesToPurgeDistributedList;
 use Piwik\Plugins\PrivacyManager\PrivacyManager;
+use Piwik\Period;
 use Piwik\Segment;
 
 /**
@@ -71,19 +71,6 @@ class ArchiveInvalidator
         }
     }
 
-    private function buildRememberArchivedReportId($idSite, $date)
-    {
-        $id  = $this->buildRememberArchivedReportIdForSite($idSite);
-        $id .= '_' . trim($date);
-
-        return $id;
-    }
-
-    private function buildRememberArchivedReportIdForSite($idSite)
-    {
-        return $this->rememberArchivedReportIdStart . (int) $idSite;
-    }
-
     public function getRememberedArchivedReportsThatShouldBeInvalidated()
     {
         $reports = Option::getLike($this->rememberArchivedReportIdStart . '%_%');
@@ -106,10 +93,33 @@ class ArchiveInvalidator
         return $sitesPerDay;
     }
 
+    private function buildRememberArchivedReportId($idSite, $date)
+    {
+        $id  = $this->buildRememberArchivedReportIdForSite($idSite);
+        $id .= '_' . trim($date);
+
+        return $id;
+    }
+
+    private function buildRememberArchivedReportIdForSite($idSite)
+    {
+        return $this->rememberArchivedReportIdStart . (int) $idSite;
+    }
+
     public function forgetRememberedArchivedReportsToInvalidateForSite($idSite)
     {
         $id = $this->buildRememberArchivedReportIdForSite($idSite) . '_%';
         Option::deleteLike($id);
+    }
+
+    /**
+     * @internal
+     */
+    public function forgetRememberedArchivedReportsToInvalidate($idSite, Date $date)
+    {
+        $id = $this->buildRememberArchivedReportId($idSite, $date->toString());
+
+        Option::delete($id);
     }
 
     /**
@@ -151,61 +161,16 @@ class ArchiveInvalidator
     }
 
     /**
-     * @param Date[] $dates
-     * @param InvalidationResult $invalidationInfo
-     * @return \Piwik\Date[]
-     */
-    private function removeDatesThatHaveBeenPurged($dates, InvalidationResult $invalidationInfo)
-    {
-        $this->findOlderDateWithLogs($invalidationInfo);
-
-        $result = array();
-        foreach ($dates as $date) {
-            // we should only delete reports for dates that are more recent than N days
-            if ($invalidationInfo->minimumDateWithLogs
-                && $date->isEarlier($invalidationInfo->minimumDateWithLogs)
-            ) {
-                $invalidationInfo->warningDates[] = $date->toString();
-                continue;
-            }
-
-            $result[] = $date;
-            $invalidationInfo->processedDates[] = $date->toString();
-        }
-        return $result;
-    }
-
-    private function findOlderDateWithLogs(InvalidationResult $info)
-    {
-        // If using the feature "Delete logs older than N days"...
-        $purgeDataSettings = PrivacyManager::getPurgeDataSettings();
-        $logsDeletedWhenOlderThanDays = (int)$purgeDataSettings['delete_logs_older_than'];
-        $logsDeleteEnabled = $purgeDataSettings['delete_logs_enable'];
-
-        if ($logsDeleteEnabled
-            && $logsDeletedWhenOlderThanDays
-        ) {
-            $info->minimumDateWithLogs = Date::factory('today')->subDay($logsDeletedWhenOlderThanDays);
-        }
-    }
-
-    /**
-     * Called when deleting all periods.
-     *
-     * @param Date[] $dates
+     * @param string[][][] $periodDates
      * @return string[][][]
      */
-    private function getDatesByYearMonthAndPeriodType($dates)
+    private function getUniqueDates($periodDates)
     {
         $result = array();
-        foreach ($dates as $date) {
-            $yearMonth = ArchiveTableCreator::getTableMonthFromDate($date);
-            $result[$yearMonth][null][] = $date->toString();
-
-            // since we're removing all periods, we must make sure to remove year periods as well.
-            // this means we have to make sure the january table is processed.
-            $janYearMonth = $date->toString('Y') . '_01';
-            $result[$janYearMonth][null][] = $date->toString();
+        foreach ($periodDates as $yearMonth => $periodsByYearMonth) {
+            foreach ($periodsByYearMonth as $periodType => $periods) {
+                $result[$yearMonth][$periodType] = array_unique($periods);
+            }
         }
         return $result;
     }
@@ -260,16 +225,22 @@ class ArchiveInvalidator
     }
 
     /**
-     * @param string[][][] $periodDates
+     * Called when deleting all periods.
+     *
+     * @param Date[] $dates
      * @return string[][][]
      */
-    private function getUniqueDates($periodDates)
+    private function getDatesByYearMonthAndPeriodType($dates)
     {
         $result = array();
-        foreach ($periodDates as $yearMonth => $periodsByYearMonth) {
-            foreach ($periodsByYearMonth as $periodType => $periods) {
-                $result[$yearMonth][$periodType] = array_unique($periods);
-            }
+        foreach ($dates as $date) {
+            $yearMonth = ArchiveTableCreator::getTableMonthFromDate($date);
+            $result[$yearMonth][null][] = $date->toString();
+
+            // since we're removing all periods, we must make sure to remove year periods as well.
+            // this means we have to make sure the january table is processed.
+            $janYearMonth = $date->toString('Y') . '_01';
+            $result[$janYearMonth][null][] = $date->toString();
         }
         return $result;
     }
@@ -293,6 +264,45 @@ class ArchiveInvalidator
     }
 
     /**
+     * @param Date[] $dates
+     * @param InvalidationResult $invalidationInfo
+     * @return \Piwik\Date[]
+     */
+    private function removeDatesThatHaveBeenPurged($dates, InvalidationResult $invalidationInfo)
+    {
+        $this->findOlderDateWithLogs($invalidationInfo);
+
+        $result = array();
+        foreach ($dates as $date) {
+            // we should only delete reports for dates that are more recent than N days
+            if ($invalidationInfo->minimumDateWithLogs
+                && $date->isEarlier($invalidationInfo->minimumDateWithLogs)
+            ) {
+                $invalidationInfo->warningDates[] = $date->toString();
+                continue;
+            }
+
+            $result[] = $date;
+            $invalidationInfo->processedDates[] = $date->toString();
+        }
+        return $result;
+    }
+
+    private function findOlderDateWithLogs(InvalidationResult $info)
+    {
+        // If using the feature "Delete logs older than N days"...
+        $purgeDataSettings = PrivacyManager::getPurgeDataSettings();
+        $logsDeletedWhenOlderThanDays = (int)$purgeDataSettings['delete_logs_older_than'];
+        $logsDeleteEnabled = $purgeDataSettings['delete_logs_enable'];
+
+        if ($logsDeleteEnabled
+            && $logsDeletedWhenOlderThanDays
+        ) {
+            $info->minimumDateWithLogs = Date::factory('today')->subDay($logsDeletedWhenOlderThanDays);
+        }
+    }
+
+    /**
      * @param array $idSites
      * @param array $yearMonths
      */
@@ -303,15 +313,5 @@ class ArchiveInvalidator
 
         $archivesToPurge = new ArchivesToPurgeDistributedList();
         $archivesToPurge->add($yearMonths);
-    }
-
-    /**
-     * @internal
-     */
-    public function forgetRememberedArchivedReportsToInvalidate($idSite, Date $date)
-    {
-        $id = $this->buildRememberArchivedReportId($idSite, $date->toString());
-
-        Option::delete($id);
     }
 }

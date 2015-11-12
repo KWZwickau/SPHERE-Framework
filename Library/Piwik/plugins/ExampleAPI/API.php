@@ -8,8 +8,8 @@
  */
 namespace Piwik\Plugins\ExampleAPI;
 
-use Piwik\DataTable;
 use Piwik\DataTable\Row;
+use Piwik\DataTable;
 use Piwik\Piwik;
 use Piwik\Version;
 
@@ -133,7 +133,7 @@ class API extends \Piwik\Plugin\API
     public function getMultiArray()
     {
         $return = array(
-            'Limitation' => array(
+            'Limitation'       => array(
                 "Multi dimensional arrays is only supported by format=JSON",
                 "Known limitation"
             ),
@@ -149,11 +149,11 @@ class API extends \Piwik\Plugin\API
  */
 class MagicObject
 {
-    public $great = 'formidable';
-    protected $wonderful = 'magnifique';
-
     function Incredible()
     {
         return 'Incroyable';
     }
+
+    protected $wonderful = 'magnifique';
+    public $great = 'formidable';
 }

@@ -64,6 +64,11 @@ class Twig_TokenParser_Block extends Twig_TokenParser
         return new Twig_Node_BlockReference($name, $lineno, $this->getTag());
     }
 
+    public function decideBlockEnd(Twig_Token $token)
+    {
+        return $token->test('endblock');
+    }
+
     /**
      * Gets the tag name associated with this token parser.
      *
@@ -72,10 +77,5 @@ class Twig_TokenParser_Block extends Twig_TokenParser
     public function getTag()
     {
         return 'block';
-    }
-
-    public function decideBlockEnd(Twig_Token $token)
-    {
-        return $token->test('endblock');
     }
 }

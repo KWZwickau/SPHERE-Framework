@@ -9,10 +9,10 @@
 
 namespace Piwik\Plugins\DevicesDetection;
 
-use DeviceDetector\Parser\Client\Browser as BrowserParser;
-use DeviceDetector\Parser\Device\DeviceParserAbstract as DeviceParser;
-use DeviceDetector\Parser\OperatingSystem as OperatingSystemParser;
 use Piwik\Piwik;
+use DeviceDetector\Parser\OperatingSystem AS OperatingSystemParser;
+use DeviceDetector\Parser\Device\DeviceParserAbstract AS DeviceParser;
+use DeviceDetector\Parser\Client\Browser AS BrowserParser;
 
 function getBrandLogo($label)
 {
@@ -144,11 +144,11 @@ function getDeviceTypeLabel($label)
         isset($translations[array_search($label, $deviceTypes)])) {
 
         return Piwik::translate($translations[array_search($label, $deviceTypes)]);
-    } else {if (isset($translations[$label])) {
+    } else if (isset($translations[$label])) {
         return Piwik::translate($translations[$label]);
     } else {
         return Piwik::translate('General_Unknown');
-    }}
+    }
 }
 
 function getDeviceTypeLogo($label)
@@ -204,9 +204,9 @@ function getOSFamilyFullName($label)
 
     if ($label == 'unknown') {
         $label = Piwik::translate('General_Unknown');
-    } else {if ($label == 'Gaming Console') {
+    } else if ($label == 'Gaming Console') {
         $label = Piwik::translate('DevicesDetection_Console');
-    }}
+    }
 
     if ($label !== false) {
         return $label;

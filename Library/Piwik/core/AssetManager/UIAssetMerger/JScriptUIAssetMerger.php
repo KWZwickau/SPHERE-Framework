@@ -8,11 +8,11 @@
  */
 namespace Piwik\AssetManager\UIAssetMerger;
 
-use Piwik\AssetManager;
 use Piwik\AssetManager\UIAsset;
 use Piwik\AssetManager\UIAssetCacheBuster;
 use Piwik\AssetManager\UIAssetFetcher\JScriptUIAssetFetcher;
 use Piwik\AssetManager\UIAssetMerger;
+use Piwik\AssetManager;
 use Piwik\AssetManager\UIAssetMinifier;
 use Piwik\Piwik;
 
@@ -33,11 +33,6 @@ class JScriptUIAssetMerger extends UIAssetMerger
         parent::__construct($mergedAsset, $assetFetcher, $cacheBuster);
 
         $this->assetMinifier = UIAssetMinifier::getInstance();
-    }
-
-    public function getFileSeparator()
-    {
-        return "\n";
     }
 
     protected function getMergedAssets()
@@ -73,6 +68,11 @@ class JScriptUIAssetMerger extends UIAssetMerger
              */
             Piwik::postEvent('AssetManager.filterMergedJavaScripts', array(&$mergedContent), null, $plugins);
         }
+    }
+
+    public function getFileSeparator()
+    {
+        return "\n";
     }
 
     protected function processFileContent($uiAsset)

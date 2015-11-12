@@ -44,6 +44,11 @@ class Twig_TokenParser_Filter extends Twig_TokenParser
         return new Twig_Node_Print($filter, $token->getLine(), $this->getTag());
     }
 
+    public function decideBlockEnd(Twig_Token $token)
+    {
+        return $token->test('endfilter');
+    }
+
     /**
      * Gets the tag name associated with this token parser.
      *
@@ -52,10 +57,5 @@ class Twig_TokenParser_Filter extends Twig_TokenParser
     public function getTag()
     {
         return 'filter';
-    }
-
-    public function decideBlockEnd(Twig_Token $token)
-    {
-        return $token->test('endfilter');
     }
 }

@@ -17,25 +17,6 @@ use Piwik\Updates;
  */
 class Updates_2_0_a13 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        // delete schema version_
-        Option::delete('version_Referers');
-
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-
-        // old plugins deleted in 2.0-a17 update file
-
-        try {
-            \Piwik\Plugin\Manager::getInstance()->activatePlugin('Referrers');
-        } catch (\Exception $e) {
-        }
-        try {
-            \Piwik\Plugin\Manager::getInstance()->activatePlugin('ScheduledReports');
-        } catch (\Exception $e) {
-        }
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         // Renaming old archived records now that the plugin is called Referrers
@@ -60,5 +41,24 @@ class Updates_2_0_a13 extends Updates
         $sql['UPDATE `' . Common::prefixTable('option') . '` SET `option_name` = \'version_ScheduledReports\' WHERE `option_name` = \'version_PDFReports\' '] = '1062'; // http://forum.piwik.org/read.php?2,106895
 
         return $sql;
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        // delete schema version_
+        Option::delete('version_Referers');
+
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
+
+        // old plugins deleted in 2.0-a17 update file
+
+        try {
+            \Piwik\Plugin\Manager::getInstance()->activatePlugin('Referrers');
+        } catch (\Exception $e) {
+        }
+        try {
+            \Piwik\Plugin\Manager::getInstance()->activatePlugin('ScheduledReports');
+        } catch (\Exception $e) {
+        }
     }
 }

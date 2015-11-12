@@ -98,23 +98,6 @@ abstract class FileCache extends CacheProvider
     }
 
     /**
-     * Create path if needed.
-     *
-     * @param string $path
-     * @return bool TRUE on success or if path already exists, FALSE if path cannot be created.
-     */
-    private function createPathIfNeeded($path)
-    {
-        if ( ! is_dir($path)) {
-            if (false === @mkdir($path, 0777 & (~$this->umask), true) && !is_dir($path)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
      * Gets the cache directory.
      *
      * @return string
@@ -135,14 +118,6 @@ abstract class FileCache extends CacheProvider
     }
 
     /**
-     * {@inheritdoc}
-     */
-    protected function doDelete($id)
-    {
-        return @unlink($this->getFilename($id));
-    }
-
-    /**
      * @param string $id
      *
      * @return string
@@ -160,6 +135,14 @@ abstract class FileCache extends CacheProvider
     /**
      * {@inheritdoc}
      */
+    protected function doDelete($id)
+    {
+        return @unlink($this->getFilename($id));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     protected function doFlush()
     {
         foreach ($this->getIterator() as $name => $file) {
@@ -167,17 +150,6 @@ abstract class FileCache extends CacheProvider
         }
 
         return true;
-    }
-
-    /**
-     * @return \Iterator
-     */
-    private function getIterator()
-    {
-        return new \RegexIterator(
-            new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->directory)),
-            '/^.+' . preg_quote($this->extension, '/') . '$/i'
-        );
     }
 
     /**
@@ -199,6 +171,23 @@ abstract class FileCache extends CacheProvider
             Cache::STATS_MEMORY_USAGE       => $usage,
             Cache::STATS_MEMORY_AVAILABLE   => $free,
         );
+    }
+
+    /**
+     * Create path if needed.
+     *
+     * @param string $path
+     * @return bool TRUE on success or if path already exists, FALSE if path cannot be created.
+     */
+    private function createPathIfNeeded($path)
+    {
+        if ( ! is_dir($path)) {
+            if (false === @mkdir($path, 0777 & (~$this->umask), true) && !is_dir($path)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -233,5 +222,16 @@ abstract class FileCache extends CacheProvider
         }
 
         return false;
+    }
+
+    /**
+     * @return \Iterator
+     */
+    private function getIterator()
+    {
+        return new \RegexIterator(
+            new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->directory)),
+            '/^.+' . preg_quote($this->extension, '/') . '$/i'
+        );
     }
 }

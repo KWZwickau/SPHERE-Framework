@@ -74,6 +74,23 @@
 class HTML_QuickForm2_Rule_Each extends HTML_QuickForm2_Rule
 {
    /**
+    * Validates the owner's children using the template Rule
+    *
+    * @return   bool    Whether all children are valid according to a template Rule
+    */
+    protected function validateOwner()
+    {
+        $rule = clone $this->getConfig();
+        foreach ($this->owner->getRecursiveIterator(RecursiveIteratorIterator::LEAVES_ONLY) as $child) {
+            $rule->setOwner($child);
+            if (!$rule->validateOwner()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+   /**
     * Sets the template Rule to use for actual validation
     *
     * We do not allow using Required rules here, they are able to validate
@@ -115,23 +132,6 @@ class HTML_QuickForm2_Rule_Each extends HTML_QuickForm2_Rule
             );
         }
         parent::setOwner($owner);
-    }
-
-   /**
-    * Validates the owner's children using the template Rule
-    *
-    * @return   bool    Whether all children are valid according to a template Rule
-    */
-    protected function validateOwner()
-    {
-        $rule = clone $this->getConfig();
-        foreach ($this->owner->getRecursiveIterator(RecursiveIteratorIterator::LEAVES_ONLY) as $child) {
-            $rule->setOwner($child);
-            if (!$rule->validateOwner()) {
-                return false;
-            }
-        }
-        return true;
     }
 }
 ?>

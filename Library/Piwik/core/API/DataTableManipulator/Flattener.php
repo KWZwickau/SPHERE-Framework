@@ -22,11 +22,6 @@ use Piwik\DataTable\Row;
 class Flattener extends DataTableManipulator
 {
 
-    /**
-     * Separator for building recursive labels (or paths)
-     * @var string
-     */
-    public $recursiveLabelSeparator = '';
     private $includeAggregateRows = false;
 
     /**
@@ -38,6 +33,12 @@ class Flattener extends DataTableManipulator
     {
         $this->includeAggregateRows = true;
     }
+
+    /**
+     * Separator for building recursive labels (or paths)
+     * @var string
+     */
+    public $recursiveLabelSeparator = '';
 
     /**
      * @param  DataTable $dataTable

@@ -12,7 +12,6 @@ use Piwik\Common;
 use Piwik\Date;
 use Piwik\EventDispatcher;
 use Piwik\Exception\UnexpectedWebsiteFoundException;
-use Piwik\Plugins\PrivacyManager\Config as PrivacyManagerConfig;
 use Piwik\Tracker\Cache;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\RequestProcessor;
@@ -20,6 +19,7 @@ use Piwik\Tracker\Settings;
 use Piwik\Tracker\Visit\VisitProperties;
 use Piwik\Tracker\VisitExcluded;
 use Piwik\Tracker\VisitorRecognizer;
+use Piwik\Plugins\PrivacyManager\Config as PrivacyManagerConfig;
 
 /**
  * Encapsulates core tracking logic related to visits.
@@ -112,6 +112,23 @@ class VisitRequestProcessor extends RequestProcessor
         return false;
     }
 
+    public function afterRequestProcessed(VisitProperties $visitProperties, Request $request)
+    {
+        $ip = $visitProperties->getProperty('location_ip');
+
+        /**
+         * Triggered after visits are tested for exclusion so plugins can modify the IP address
+         * persisted with a visit.
+         *
+         * This event is primarily used by the **PrivacyManager** plugin to anonymize IP addresses.
+         *
+         * @param string &$ip The visitor's IP address.
+         */
+        $this->eventDispatcher->postEvent('Tracker.setVisitorIp', array(&$ip));
+
+        $visitProperties->setProperty('location_ip', $ip);
+    }
+
     /**
      * Determines if the tracker if the current action should be treated as the start of a new visit or
      * an action in an existing visit.
@@ -199,22 +216,5 @@ class VisitRequestProcessor extends RequestProcessor
         }
 
         return null;
-    }
-
-    public function afterRequestProcessed(VisitProperties $visitProperties, Request $request)
-    {
-        $ip = $visitProperties->getProperty('location_ip');
-
-        /**
-         * Triggered after visits are tested for exclusion so plugins can modify the IP address
-         * persisted with a visit.
-         *
-         * This event is primarily used by the **PrivacyManager** plugin to anonymize IP addresses.
-         *
-         * @param string &$ip The visitor's IP address.
-         */
-        $this->eventDispatcher->postEvent('Tracker.setVisitorIp', array(&$ip));
-
-        $visitProperties->setProperty('location_ip', $ip);
     }
 }

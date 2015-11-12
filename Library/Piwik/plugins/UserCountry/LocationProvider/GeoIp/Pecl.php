@@ -69,7 +69,7 @@ class Pecl extends GeoIp
                 $result[self::LONGITUDE_KEY] = $location['longitude'];
                 $result[self::POSTAL_CODE_KEY] = $location['postal_code'];
             }
-        } else {if (self::isRegionDatabaseAvailable()) {
+        } else if (self::isRegionDatabaseAvailable()) {
             $location = @geoip_region_by_name($ip);
             if (!empty($location)) {
                 $result[self::REGION_CODE_KEY] = $location['region'];
@@ -77,7 +77,7 @@ class Pecl extends GeoIp
             }
         } else {
             $result[self::COUNTRY_CODE_KEY] = @geoip_country_code_by_name($ip);
-        }}
+        }
 
         // get organization data if the org database is available
         if (self::isOrgDatabaseAvailable()) {
@@ -104,45 +104,13 @@ class Pecl extends GeoIp
     }
 
     /**
-     * Returns true if the PECL module can detect a city database.
+     * Returns true if the PECL module is installed and loaded, false if otherwise.
      *
      * @return bool
      */
-    public static function isCityDatabaseAvailable()
+    public function isAvailable()
     {
-        return geoip_db_avail(GEOIP_CITY_EDITION_REV0)
-        || geoip_db_avail(GEOIP_CITY_EDITION_REV1);
-    }
-
-    /**
-     * Returns true if the PECL module can detect a region database.
-     *
-     * @return bool
-     */
-    public static function isRegionDatabaseAvailable()
-    {
-        return geoip_db_avail(GEOIP_REGION_EDITION_REV0)
-        || geoip_db_avail(GEOIP_REGION_EDITION_REV1);
-    }
-
-    /**
-     * Returns true if the PECL module can detect an organization database.
-     *
-     * @return bool
-     */
-    public static function isOrgDatabaseAvailable()
-    {
-        return geoip_db_avail(GEOIP_ORG_EDITION);
-    }
-
-    /**
-     * Returns true if the PECL module can detect an ISP database.
-     *
-     * @return bool
-     */
-    public static function isISPDatabaseAvailable()
-    {
-        return geoip_db_avail(GEOIP_ISP_EDITION);
+        return !self::$forceDisable && function_exists('geoip_db_avail');
     }
 
     /**
@@ -174,29 +142,6 @@ class Pecl extends GeoIp
         }
 
         return parent::isWorking();
-    }
-
-    /**
-     * Returns true if the PECL module can detect a location database (either a country,
-     * region or city will do).
-     *
-     * @return bool
-     */
-    public static function isLocationDatabaseAvailable()
-    {
-        return self::isCityDatabaseAvailable()
-        || self::isRegionDatabaseAvailable()
-        || self::isCountryDatabaseAvailable();
-    }
-
-    /**
-     * Returns true if the PECL module can detect a country database.
-     *
-     * @return bool
-     */
-    public static function isCountryDatabaseAvailable()
-    {
-        return geoip_db_avail(GEOIP_COUNTRY_EDITION);
     }
 
     /**
@@ -239,10 +184,10 @@ class Pecl extends GeoIp
             $result[self::LATITUDE_KEY] = true;
             $result[self::LONGITUDE_KEY] = true;
             $result[self::POSTAL_CODE_KEY] = true;
-        } else {if (self::isRegionDatabaseAvailable()) {
+        } else if (self::isRegionDatabaseAvailable()) {
             $result[self::REGION_CODE_KEY] = true;
             $result[self::REGION_NAME_KEY] = true;
-        }}
+        }
 
         // check if organization info is available
         if (self::isOrgDatabaseAvailable()) {
@@ -319,12 +264,67 @@ class Pecl extends GeoIp
     }
 
     /**
-     * Returns true if the PECL module is installed and loaded, false if otherwise.
+     * Returns true if the PECL module can detect a location database (either a country,
+     * region or city will do).
      *
      * @return bool
      */
-    public function isAvailable()
+    public static function isLocationDatabaseAvailable()
     {
-        return !self::$forceDisable && function_exists('geoip_db_avail');
+        return self::isCityDatabaseAvailable()
+        || self::isRegionDatabaseAvailable()
+        || self::isCountryDatabaseAvailable();
+    }
+
+    /**
+     * Returns true if the PECL module can detect a city database.
+     *
+     * @return bool
+     */
+    public static function isCityDatabaseAvailable()
+    {
+        return geoip_db_avail(GEOIP_CITY_EDITION_REV0)
+        || geoip_db_avail(GEOIP_CITY_EDITION_REV1);
+    }
+
+    /**
+     * Returns true if the PECL module can detect a region database.
+     *
+     * @return bool
+     */
+    public static function isRegionDatabaseAvailable()
+    {
+        return geoip_db_avail(GEOIP_REGION_EDITION_REV0)
+        || geoip_db_avail(GEOIP_REGION_EDITION_REV1);
+    }
+
+    /**
+     * Returns true if the PECL module can detect a country database.
+     *
+     * @return bool
+     */
+    public static function isCountryDatabaseAvailable()
+    {
+        return geoip_db_avail(GEOIP_COUNTRY_EDITION);
+    }
+
+    /**
+     * Returns true if the PECL module can detect an organization database.
+     *
+     * @return bool
+     */
+    public static function isOrgDatabaseAvailable()
+    {
+        return geoip_db_avail(GEOIP_ORG_EDITION);
+    }
+
+    /**
+     * Returns true if the PECL module can detect an ISP database.
+     *
+     * @return bool
+     */
+    public static function isISPDatabaseAvailable()
+    {
+        return geoip_db_avail(GEOIP_ISP_EDITION);
     }
 }

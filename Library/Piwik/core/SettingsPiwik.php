@@ -199,11 +199,34 @@ class SettingsPiwik
     }
 
     /**
-     * @param $currentUrl
+     * Return true if Piwik is installed (installation is done).
+     * @return bool
      */
-    public static function overwritePiwikUrl($currentUrl)
+    public static function isPiwikInstalled()
     {
-        Option::set(self::OPTION_PIWIK_URL, $currentUrl, $autoLoad = true);
+        $config = Config::getInstance()->getLocalPath();
+        $exists = file_exists($config);
+
+        // Piwik is installed if the config file is found
+        if (!$exists) {
+            return false;
+        }
+
+        $general = Config::getInstance()->General;
+
+        $isInstallationInProgress = false;
+        if (array_key_exists('installation_in_progress', $general)) {
+            $isInstallationInProgress = (bool) $general['installation_in_progress'];
+        }
+        if ($isInstallationInProgress) {
+            return false;
+        }
+
+        // Check that the database section is really set, ie. file is not empty
+        if (empty(Config::getInstance()->database['username'])) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -255,89 +278,6 @@ class SettingsPiwik
         $tmp = 'misc/user/';
         $path = self::rewritePathAppendPiwikInstanceId($path, $tmp);
         return $path;
-    }
-
-    /**
-     * @param $pathToRewrite
-     * @param $leadingPathToAppendHostnameTo
-     * @param $hostname
-     * @return mixed
-     * @throws \Exception
-     */
-    protected static function rewritePathAppendPiwikInstanceId($pathToRewrite, $leadingPathToAppendHostnameTo)
-    {
-        $instanceId = self::getPiwikInstanceId();
-        if (empty($instanceId)) {
-            return $pathToRewrite;
-        }
-
-        if (($posTmp = strrpos($pathToRewrite, $leadingPathToAppendHostnameTo)) === false) {
-            throw new Exception("The path $pathToRewrite was expected to contain the string  $leadingPathToAppendHostnameTo");
-        }
-
-        $tmpToReplace = $leadingPathToAppendHostnameTo . $instanceId . '/';
-
-        // replace only the latest occurrence (in case path contains twice /tmp)
-        $pathToRewrite = substr_replace($pathToRewrite, $tmpToReplace, $posTmp, strlen($leadingPathToAppendHostnameTo));
-        return $pathToRewrite;
-    }
-
-    /**
-     * @throws \Exception
-     * @return string or False if not set
-     */
-    protected static function getPiwikInstanceId()
-    {
-        // until Piwik is installed, we use hostname as instance_id
-        if (!self::isPiwikInstalled()
-            && Common::isPhpCliMode()) {
-            // enterprise:install use case
-            return Config::getHostname();
-        }
-
-        // config.ini.php not ready yet, instance_id will not be set
-        if (!Config::getInstance()->existsLocalConfig()) {
-            return false;
-        }
-
-        $instanceId = @Config::getInstance()->General['instance_id'];
-        if (!empty($instanceId)) {
-            return $instanceId;
-        }
-
-        // do not rewrite the path as Piwik uses the standard config.ini.php file
-        return false;
-    }
-
-    /**
-     * Return true if Piwik is installed (installation is done).
-     * @return bool
-     */
-    public static function isPiwikInstalled()
-    {
-        $config = Config::getInstance()->getLocalPath();
-        $exists = file_exists($config);
-
-        // Piwik is installed if the config file is found
-        if (!$exists) {
-            return false;
-        }
-
-        $general = Config::getInstance()->General;
-
-        $isInstallationInProgress = false;
-        if (array_key_exists('installation_in_progress', $general)) {
-            $isInstallationInProgress = (bool) $general['installation_in_progress'];
-        }
-        if ($isInstallationInProgress) {
-            return false;
-        }
-
-        // Check that the database section is really set, ie. file is not empty
-        if (empty(Config::getInstance()->database['username'])) {
-            return false;
-        }
-        return true;
     }
 
     /**
@@ -420,6 +360,66 @@ class SettingsPiwik
         }
         $currentGitBranch = trim($parts[2]);
         return $currentGitBranch;
+    }
+
+    /**
+     * @param $pathToRewrite
+     * @param $leadingPathToAppendHostnameTo
+     * @param $hostname
+     * @return mixed
+     * @throws \Exception
+     */
+    protected static function rewritePathAppendPiwikInstanceId($pathToRewrite, $leadingPathToAppendHostnameTo)
+    {
+        $instanceId = self::getPiwikInstanceId();
+        if (empty($instanceId)) {
+            return $pathToRewrite;
+        }
+
+        if (($posTmp = strrpos($pathToRewrite, $leadingPathToAppendHostnameTo)) === false) {
+            throw new Exception("The path $pathToRewrite was expected to contain the string  $leadingPathToAppendHostnameTo");
+        }
+
+        $tmpToReplace = $leadingPathToAppendHostnameTo . $instanceId . '/';
+
+        // replace only the latest occurrence (in case path contains twice /tmp)
+        $pathToRewrite = substr_replace($pathToRewrite, $tmpToReplace, $posTmp, strlen($leadingPathToAppendHostnameTo));
+        return $pathToRewrite;
+    }
+
+    /**
+     * @throws \Exception
+     * @return string or False if not set
+     */
+    protected static function getPiwikInstanceId()
+    {
+        // until Piwik is installed, we use hostname as instance_id
+        if (!self::isPiwikInstalled()
+            && Common::isPhpCliMode()) {
+            // enterprise:install use case
+            return Config::getHostname();
+        }
+
+        // config.ini.php not ready yet, instance_id will not be set
+        if (!Config::getInstance()->existsLocalConfig()) {
+            return false;
+        }
+
+        $instanceId = @Config::getInstance()->General['instance_id'];
+        if (!empty($instanceId)) {
+            return $instanceId;
+        }
+
+        // do not rewrite the path as Piwik uses the standard config.ini.php file
+        return false;
+    }
+
+    /**
+     * @param $currentUrl
+     */
+    public static function overwritePiwikUrl($currentUrl)
+    {
+        Option::set(self::OPTION_PIWIK_URL, $currentUrl, $autoLoad = true);
     }
 
     /**

@@ -8,7 +8,7 @@
  */
 namespace Piwik\Cache\Backend\Factory;
 
-use Exception;
+use \Exception;
 
 class BackendNotFoundException extends Exception {
 

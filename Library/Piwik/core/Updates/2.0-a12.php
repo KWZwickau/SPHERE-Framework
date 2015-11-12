@@ -17,12 +17,6 @@ use Piwik\Updates;
  */
 class Updates_2_0_a12 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        // change level column in logger_message table to string & remove other logging tables if empty
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         $result = array(
@@ -44,5 +38,11 @@ class Updates_2_0_a12 extends Updates
         }
 
         return $result;
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        // change level column in logger_message table to string & remove other logging tables if empty
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

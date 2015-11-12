@@ -17,33 +17,6 @@ use Piwik\Updates;
  */
 class Updates_1_2_rc1 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        // first we disable the plugins and keep an array of warnings messages
-        $pluginsToDisableMessage = array(
-            'GeoIP'     => "GeoIP plugin was disabled, because it is not compatible with the new Piwik 1.2. \nYou can download the latest version of the plugin, compatible with Piwik 1.2.\n<a target='_blank' href='?module=Proxy&action=redirect&url=https://github.com/piwik/piwik/issues/45'>Click here.</a>",
-            'EntryPage' => "EntryPage plugin is not compatible with this version of Piwik, it was disabled.",
-        );
-        $disabledPlugins = array();
-        foreach ($pluginsToDisableMessage as $pluginToDisable => $warningMessage) {
-            if (\Piwik\Plugin\Manager::getInstance()->isPluginActivated($pluginToDisable)) {
-                \Piwik\Plugin\Manager::getInstance()->deactivatePlugin($pluginToDisable);
-                $disabledPlugins[] = $warningMessage;
-            }
-        }
-
-        // Run the SQL
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-
-        // Outputs warning message, pointing users to the plugin download page
-        if (!empty($disabledPlugins)) {
-            throw new \Exception("The following plugins were disabled during the upgrade:"
-                . "<ul><li>" .
-                implode('</li><li>', $disabledPlugins) .
-                "</li></ul>");
-        }
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -150,5 +123,32 @@ class Updates_1_2_rc1 extends Updates
             // new field for websites
             'ALTER TABLE `' . Common::prefixTable('site') . '` ADD `group` VARCHAR( 250 ) NOT NULL' => 1060,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        // first we disable the plugins and keep an array of warnings messages
+        $pluginsToDisableMessage = array(
+            'GeoIP'     => "GeoIP plugin was disabled, because it is not compatible with the new Piwik 1.2. \nYou can download the latest version of the plugin, compatible with Piwik 1.2.\n<a target='_blank' href='?module=Proxy&action=redirect&url=https://github.com/piwik/piwik/issues/45'>Click here.</a>",
+            'EntryPage' => "EntryPage plugin is not compatible with this version of Piwik, it was disabled.",
+        );
+        $disabledPlugins = array();
+        foreach ($pluginsToDisableMessage as $pluginToDisable => $warningMessage) {
+            if (\Piwik\Plugin\Manager::getInstance()->isPluginActivated($pluginToDisable)) {
+                \Piwik\Plugin\Manager::getInstance()->deactivatePlugin($pluginToDisable);
+                $disabledPlugins[] = $warningMessage;
+            }
+        }
+
+        // Run the SQL
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
+
+        // Outputs warning message, pointing users to the plugin download page
+        if (!empty($disabledPlugins)) {
+            throw new \Exception("The following plugins were disabled during the upgrade:"
+                . "<ul><li>" .
+                implode('</li><li>', $disabledPlugins) .
+                "</li></ul>");
+        }
     }
 }

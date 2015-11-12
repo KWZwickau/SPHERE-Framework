@@ -11,13 +11,13 @@ namespace Piwik\Plugins\CoreAdminHome\Commands;
 use Piwik\Container\StaticContainer;
 use Piwik\Date;
 use Piwik\Period;
-use Piwik\Period\Factory as PeriodFactory;
 use Piwik\Period\Range;
 use Piwik\Piwik;
+use Piwik\Segment;
 use Piwik\Plugin\ConsoleCommand;
 use Piwik\Plugins\SitesManager\API as SitesManagerAPI;
-use Piwik\Segment;
 use Piwik\Site;
+use Piwik\Period\Factory as PeriodFactory;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -158,23 +158,6 @@ class InvalidateReportData extends ConsoleCommand
         return $dateRanges;
     }
 
-    private function getSegmentsToInvalidateFor(InputInterface $input, $idSites)
-    {
-        $segments = $input->getOption('segment');
-        $segments = array_map('trim', $segments);
-        $segments = array_unique($segments);
-
-        if (empty($segments)) {
-            return array(null);
-        }
-
-        $result = array();
-        foreach ($segments as $segmentString) {
-            $result[] = new Segment($segmentString, $idSites);
-        }
-        return $result;
-    }
-
     private function getPeriodDates($periodType, $dateRange)
     {
         if (!isset(Piwik::$idPeriods[$periodType])) {
@@ -194,6 +177,23 @@ class InvalidateReportData extends ConsoleCommand
             }
         } else {
             $result[] = $period->getDateStart();
+        }
+        return $result;
+    }
+
+    private function getSegmentsToInvalidateFor(InputInterface $input, $idSites)
+    {
+        $segments = $input->getOption('segment');
+        $segments = array_map('trim', $segments);
+        $segments = array_unique($segments);
+
+        if (empty($segments)) {
+            return array(null);
+        }
+
+        $result = array();
+        foreach ($segments as $segmentString) {
+            $result[] = new Segment($segmentString, $idSites);
         }
         return $result;
     }

@@ -73,6 +73,26 @@ class Zend_Db_Adapter_Pdo_Pgsql extends Zend_Db_Adapter_Pdo_Abstract
     );
 
     /**
+     * Creates a PDO object and connects to the database.
+     *
+     * @return void
+     * @throws Zend_Db_Adapter_Exception
+     */
+    protected function _connect()
+    {
+        if ($this->_connection) {
+            return;
+        }
+
+        parent::_connect();
+
+        if (!empty($this->_config['charset'])) {
+            $sql = "SET NAMES '" . $this->_config['charset'] . "'";
+            $this->_connection->exec($sql);
+        }
+    }
+
+    /**
      * Returns a list of the tables in the database.
      *
      * @return array
@@ -213,6 +233,7 @@ class Zend_Db_Adapter_Pdo_Pgsql extends Zend_Db_Adapter_Pdo_Abstract
         return $desc;
     }
 
+
     /**
      * Adds an adapter-specific LIMIT clause to the SELECT statement.
      *
@@ -250,6 +271,24 @@ class Zend_Db_Adapter_Pdo_Pgsql extends Zend_Db_Adapter_Pdo_Abstract
     }
 
     /**
+     * Return the most recent value from the specified sequence in the database.
+     * This is supported only on RDBMS brands that support sequences
+     * (e.g. Oracle, PostgreSQL, DB2).  Other RDBMS brands return null.
+     *
+     * @param string $sequenceName
+     * @return string
+     */
+    public function lastSequenceId($sequenceName)
+    {
+        $this->_connect();
+        $sequenceName = str_replace($this->getQuoteIdentifierSymbol(), '', (string) $sequenceName);
+        $value = $this->fetchOne("SELECT CURRVAL("
+               . $this->quote($this->quoteIdentifier($sequenceName, true))
+               . ")");
+        return $value;
+    }
+
+    /**
      * Generate a new value from the specified sequence in the database, and return it.
      * This is supported only on RDBMS brands that support sequences
      * (e.g. Oracle, PostgreSQL, DB2).  Other RDBMS brands return null.
@@ -265,26 +304,6 @@ class Zend_Db_Adapter_Pdo_Pgsql extends Zend_Db_Adapter_Pdo_Abstract
                . $this->quote($this->quoteIdentifier($sequenceName, true))
                . ")");
         return $value;
-    }
-
-    /**
-     * Creates a PDO object and connects to the database.
-     *
-     * @return void
-     * @throws Zend_Db_Adapter_Exception
-     */
-    protected function _connect()
-    {
-        if ($this->_connection) {
-            return;
-        }
-
-        parent::_connect();
-
-        if (!empty($this->_config['charset'])) {
-            $sql = "SET NAMES '" . $this->_config['charset'] . "'";
-            $this->_connection->exec($sql);
-        }
     }
 
     /**
@@ -312,24 +331,6 @@ class Zend_Db_Adapter_Pdo_Pgsql extends Zend_Db_Adapter_Pdo_Abstract
             return $this->lastSequenceId($sequenceName);
         }
         return $this->_connection->lastInsertId($tableName);
-    }
-
-    /**
-     * Return the most recent value from the specified sequence in the database.
-     * This is supported only on RDBMS brands that support sequences
-     * (e.g. Oracle, PostgreSQL, DB2).  Other RDBMS brands return null.
-     *
-     * @param string $sequenceName
-     * @return string
-     */
-    public function lastSequenceId($sequenceName)
-    {
-        $this->_connect();
-        $sequenceName = str_replace($this->getQuoteIdentifierSymbol(), '', (string) $sequenceName);
-        $value = $this->fetchOne("SELECT CURRVAL("
-               . $this->quote($this->quoteIdentifier($sequenceName, true))
-               . ")");
-        return $value;
     }
 
 }

@@ -41,6 +41,28 @@ class Map implements DataTableInterface
     protected $keyName = 'defaultKeyName';
 
     /**
+     * Returns a string description of the data used to index the DataTables.
+     *
+     * This label is used by DataTable Renderers (it becomes a column name or the XML description tag).
+     *
+     * @return string eg, `'idSite'`, `'period'`
+     */
+    public function getKeyName()
+    {
+        return $this->keyName;
+    }
+
+    /**
+     * Set the name of they metadata used to index {@link DataTable}s. See {@link getKeyName()}.
+     *
+     * @param string $name
+     */
+    public function setKeyName($name)
+    {
+        $this->keyName = $name;
+    }
+
+    /**
      * Returns the number of {@link DataTable}s in this DataTable\Map.
      *
      * @return int
@@ -48,16 +70,6 @@ class Map implements DataTableInterface
     public function getRowsCount()
     {
         return count($this->getDataTables());
-    }
-
-    /**
-     * Returns the array of DataTables contained by this class.
-     *
-     * @return DataTable[]|Map[]
-     */
-    public function getDataTables()
-    {
-        return $this->array;
     }
 
     /**
@@ -125,6 +137,16 @@ class Map implements DataTableInterface
     }
 
     /**
+     * Returns the array of DataTables contained by this class.
+     *
+     * @return DataTable[]|Map[]
+     */
+    public function getDataTables()
+    {
+        return $this->array;
+    }
+
+    /**
      * Returns the table with the specific label.
      *
      * @param string $label
@@ -153,6 +175,17 @@ class Map implements DataTableInterface
     public function getLastRow()
     {
         return end($this->array);
+    }
+
+    /**
+     * Adds a new {@link DataTable} or Map instance to this DataTable\Map.
+     *
+     * @param DataTable|Map $table
+     * @param string $label Label used to index this table in the array.
+     */
+    public function addTable($table, $label)
+    {
+        $this->array[$label] = $table;
     }
 
     public function getRowFromIdSubDataTable($idSubtable)
@@ -373,52 +406,6 @@ class Map implements DataTableInterface
     }
 
     /**
-     * Returns a new DataTable\Map w/o any child DataTables, but with
-     * the same key name as this instance.
-     *
-     * @return Map
-     */
-    public function getEmptyClone()
-    {
-        $dataTableMap = new Map;
-        $dataTableMap->setKeyName($this->getKeyName());
-        return $dataTableMap;
-    }
-
-    /**
-     * Returns a string description of the data used to index the DataTables.
-     *
-     * This label is used by DataTable Renderers (it becomes a column name or the XML description tag).
-     *
-     * @return string eg, `'idSite'`, `'period'`
-     */
-    public function getKeyName()
-    {
-        return $this->keyName;
-    }
-
-    /**
-     * Set the name of they metadata used to index {@link DataTable}s. See {@link getKeyName()}.
-     *
-     * @param string $name
-     */
-    public function setKeyName($name)
-    {
-        $this->keyName = $name;
-    }
-
-    /**
-     * Adds a new {@link DataTable} or Map instance to this DataTable\Map.
-     *
-     * @param DataTable|Map $table
-     * @param string $label Label used to index this table in the array.
-     */
-    public function addTable($table, $label)
-    {
-        $this->array[$label] = $table;
-    }
-
-    /**
      * Utility function used by mergeChildren. Copies the rows from one table,
      * sets their 'label' columns to a value and adds them to another table.
      *
@@ -473,6 +460,19 @@ class Map implements DataTableInterface
             $result->addTable($childTable->mergeSubtables(), $label);
         }
         return $result;
+    }
+
+    /**
+     * Returns a new DataTable\Map w/o any child DataTables, but with
+     * the same key name as this instance.
+     *
+     * @return Map
+     */
+    public function getEmptyClone()
+    {
+        $dataTableMap = new Map;
+        $dataTableMap->setKeyName($this->getKeyName());
+        return $dataTableMap;
     }
 
     /**

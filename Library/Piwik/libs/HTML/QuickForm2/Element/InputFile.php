@@ -212,13 +212,6 @@ class HTML_QuickForm2_Element_InputFile extends HTML_QuickForm2_Element_Input
         $this->value = null;
     }
 
-    public function addFilter($callback, array $options = null, $recursive = true)
-    {
-        throw new HTML_QuickForm2_Exception(
-            'InputFile elements do not support filters'
-        );
-    }
-
    /**
     * Performs the server-side validation
     *
@@ -263,6 +256,13 @@ class HTML_QuickForm2_Element_InputFile extends HTML_QuickForm2_Element_Input
             return false;
         }
         return parent::validate();
+    }
+
+    public function addFilter($callback, array $options = null, $recursive = true)
+    {
+        throw new HTML_QuickForm2_Exception(
+            'InputFile elements do not support filters'
+        );
     }
 }
 ?>

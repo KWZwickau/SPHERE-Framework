@@ -58,26 +58,29 @@ use Piwik\Segment\SegmentExpression;
 class Segment
 {
     /**
-     * Truncate the Segments to 8k
-     */
-    const SEGMENT_TRUNCATE_LIMIT = 8192;
-    /**
      * @var SegmentExpression
      */
     protected $segmentExpression = null;
+
     /**
      * @var string
      */
     protected $string = null;
+
     /**
      * @var array
      */
     protected $idSites = null;
-    protected $availableSegments = array();
+
     /**
      * @var LogQueryBuilder
      */
     private $segmentQueryBuilder;
+
+    /**
+     * Truncate the Segments to 8k
+     */
+    const SEGMENT_TRUNCATE_LIMIT = 8192;
 
     /**
      * Constructor.
@@ -138,6 +141,16 @@ class Segment
 
         $segment->setSubExpressionsAfterCleanup($cleanedExpressions);
     }
+
+    /**
+     * Returns `true` if the segment is empty, `false` if otherwise.
+     */
+    public function isEmpty()
+    {
+        return $this->segmentExpression->isEmpty();
+    }
+
+    protected $availableSegments = array();
 
     protected function getCleanedExpression($expression)
     {
@@ -200,11 +213,13 @@ class Segment
     }
 
     /**
-     * Returns `true` if the segment is empty, `false` if otherwise.
+     * Returns the segment condition.
+     *
+     * @return string
      */
-    public function isEmpty()
+    public function getString()
     {
-        return $this->segmentExpression->isEmpty();
+        return $this->string;
     }
 
     /**
@@ -259,15 +274,5 @@ class Segment
     public function __toString()
     {
         return (string) $this->getString();
-    }
-
-    /**
-     * Returns the segment condition.
-     *
-     * @return string
-     */
-    public function getString()
-    {
-        return $this->string;
     }
 }

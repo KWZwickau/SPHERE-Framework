@@ -57,26 +57,7 @@ class Zend_Validate_Hostname extends Zend_Validate_Abstract
     const LOCAL_NAME_NOT_ALLOWED  = 'hostnameLocalNameNotAllowed';
     const UNDECIPHERABLE_TLD      = 'hostnameUndecipherableTld';
     const UNKNOWN_TLD             = 'hostnameUnknownTld';
-    /**
-     * Allows Internet domain names (e.g., example.com)
-     */
-    const ALLOW_DNS   = 1;
-    /**
-     * Allows IP addresses
-     */
-    const ALLOW_IP    = 2;
-    /**
-     * Allows local network names (e.g., localhost, www.localdomain)
-     */
-    const ALLOW_LOCAL = 4;
-    /**
-     * Allows all types of hostnames
-     */
-    const ALLOW_URI = 8;
-    /**
-     * Allows all types of hostnames
-     */
-    const ALLOW_ALL = 15;
+
     /**
      * @var array
      */
@@ -93,12 +74,39 @@ class Zend_Validate_Hostname extends Zend_Validate_Abstract
         self::UNDECIPHERABLE_TLD      => "'%value%' appears to be a DNS hostname but cannot extract TLD part",
         self::UNKNOWN_TLD             => "'%value%' appears to be a DNS hostname but cannot match TLD against known list",
     );
+
     /**
      * @var array
      */
     protected $_messageVariables = array(
         'tld' => '_tld'
     );
+
+    /**
+     * Allows Internet domain names (e.g., example.com)
+     */
+    const ALLOW_DNS   = 1;
+
+    /**
+     * Allows IP addresses
+     */
+    const ALLOW_IP    = 2;
+
+    /**
+     * Allows local network names (e.g., localhost, www.localdomain)
+     */
+    const ALLOW_LOCAL = 4;
+
+    /**
+     * Allows all types of hostnames
+     */
+    const ALLOW_URI = 8;
+
+    /**
+     * Allows all types of hostnames
+     */
+    const ALLOW_ALL = 15;
+
     /**
      * Array of valid top-level-domains
      *
@@ -325,7 +333,7 @@ class Zend_Validate_Hostname extends Zend_Validate_Abstract
     {
         if ($options instanceof Zend_Config) {
             $options = $options->toArray();
-        } else {if (!is_array($options)) {
+        } else if (!is_array($options)) {
             $options = func_get_args();
             $temp['allow'] = array_shift($options);
             if (!empty($options)) {
@@ -341,7 +349,7 @@ class Zend_Validate_Hostname extends Zend_Validate_Abstract
             }
 
             $options = $temp;
-        }}
+        }
 
         $options += $this->_options;
         $this->setOptions($options);
@@ -505,14 +513,14 @@ class Zend_Validate_Hostname extends Zend_Validate_Abstract
         }
 
         // RFC3986 3.2.2 states:
-        //
+        // 
         //     The rightmost domain label of a fully qualified domain name
-        //     in DNS may be followed by a single "." and should be if it is
+        //     in DNS may be followed by a single "." and should be if it is 
         //     necessary to distinguish between the complete domain name and
         //     some local domain.
-        //
+        //     
         // (see ZF-6363)
-
+        
         // Local hostnames are allowed to be partitial (ending '.')
         if ($this->_options['allow'] & self::ALLOW_LOCAL) {
             if (substr($value, -1) === '.') {
@@ -652,9 +660,9 @@ class Zend_Validate_Hostname extends Zend_Validate_Abstract
             if ($status && ($this->_options['allow'] & self::ALLOW_DNS)) {
                 return true;
             }
-        } else {if ($this->_options['allow'] & self::ALLOW_DNS) {
+        } else if ($this->_options['allow'] & self::ALLOW_DNS) {
             $this->_error(self::INVALID_HOSTNAME);
-        }}
+        }
 
         // Check for URI Syntax (RFC3986)
         if ($this->_options['allow'] & self::ALLOW_URI) {

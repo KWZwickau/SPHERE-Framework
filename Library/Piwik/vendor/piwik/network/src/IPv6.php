@@ -51,17 +51,6 @@ class IPv6 extends IP
     }
 
     /**
-     * Returns true if this is a IPv4 mapped address, false otherwise.
-     *
-     * @return bool
-     */
-    public function isMappedIPv4()
-    {
-        return substr_compare($this->ip, "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff", 0, 12) === 0
-                || substr_compare($this->ip, "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 0, 12) === 0;
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function toIPv4String()
@@ -73,5 +62,16 @@ class IPv6 extends IP
         }
 
         return null;
+    }
+
+    /**
+     * Returns true if this is a IPv4 mapped address, false otherwise.
+     *
+     * @return bool
+     */
+    public function isMappedIPv4()
+    {
+        return substr_compare($this->ip, "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff", 0, 12) === 0
+                || substr_compare($this->ip, "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 0, 12) === 0;
     }
 }

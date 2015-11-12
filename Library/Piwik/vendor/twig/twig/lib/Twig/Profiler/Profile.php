@@ -34,18 +34,6 @@ class Twig_Profiler_Profile implements IteratorAggregate, Serializable
         $this->enter();
     }
 
-    /**
-     * Starts the profiling.
-     */
-    public function enter()
-    {
-        $this->starts = array(
-            'wt' => microtime(true),
-            'mu' => memory_get_usage(),
-            'pmu' => memory_get_peak_usage(),
-        );
-    }
-
     public function getTemplate()
     {
         return $this->template;
@@ -119,6 +107,18 @@ class Twig_Profiler_Profile implements IteratorAggregate, Serializable
     public function getPeakMemoryUsage()
     {
         return isset($this->ends['pmu']) && isset($this->starts['pmu']) ? $this->ends['pmu'] - $this->starts['pmu'] : 0;
+    }
+
+    /**
+     * Starts the profiling.
+     */
+    public function enter()
+    {
+        $this->starts = array(
+            'wt' => microtime(true),
+            'mu' => memory_get_usage(),
+            'pmu' => memory_get_peak_usage(),
+        );
     }
 
     /**

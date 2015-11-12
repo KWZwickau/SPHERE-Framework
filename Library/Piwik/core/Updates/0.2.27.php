@@ -18,11 +18,6 @@ use Piwik\Updates;
  */
 class Updates_0_2_27 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         $sqlarray = array(
@@ -76,5 +71,10 @@ class Updates_0_2_27 extends Updates
         }
 
         return $sqlarray;
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

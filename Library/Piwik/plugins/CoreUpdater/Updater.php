@@ -52,6 +52,36 @@ class Updater
     }
 
     /**
+     * Returns the latest available version number. Does not perform a check whether a later version is available.
+     *
+     * @return false|string
+     */
+    public function getLatestVersion()
+    {
+        return Option::get(self::OPTION_LATEST_VERSION);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isNewVersionAvailable()
+    {
+        $latestVersion = self::getLatestVersion();
+        return $latestVersion && version_compare(Version::VERSION, $latestVersion) === -1;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isUpdatingOverHttps()
+    {
+        $openSslEnabled = extension_loaded('openssl');
+        $usingMethodSupportingHttps = (Http::getTransportMethod() !== 'socket');
+
+        return $openSslEnabled && $usingMethodSupportingHttps;
+    }
+
+    /**
      * Update Piwik codebase by downloading and installing the latest version.
      *
      * @param bool $https Whether to use HTTPS if supported of not. If false, will use HTTP.
@@ -96,55 +126,6 @@ class Updater
         }
 
         return $messages;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isNewVersionAvailable()
-    {
-        $latestVersion = self::getLatestVersion();
-        return $latestVersion && version_compare(Version::VERSION, $latestVersion) === -1;
-    }
-
-    /**
-     * Returns the latest available version number. Does not perform a check whether a later version is available.
-     *
-     * @return false|string
-     */
-    public function getLatestVersion()
-    {
-        return Option::get(self::OPTION_LATEST_VERSION);
-    }
-
-    /**
-     * @param string $version
-     * @param bool $https Whether to use HTTPS if supported of not. If false, will use HTTP.
-     * @return string
-     */
-    public function getArchiveUrl($version, $https = true)
-    {
-        $channel = $this->releaseChannels->getActiveReleaseChannel();
-        $url = $channel->getDownloadUrlWithoutScheme($version);
-
-        if ($this->isUpdatingOverHttps() && $https) {
-            $url = 'https' . $url;
-        } else {
-            $url = 'http' . $url;
-        }
-
-        return $url;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isUpdatingOverHttps()
-    {
-        $openSslEnabled = extension_loaded('openssl');
-        $usingMethodSupportingHttps = (Http::getTransportMethod() !== 'socket');
-
-        return $openSslEnabled && $usingMethodSupportingHttps;
     }
 
     private function downloadArchive($version, $url)
@@ -223,11 +204,6 @@ class Updater
         return $disabledPluginNames;
     }
 
-    private function getIncompatiblePlugins($piwikVersion)
-    {
-        return PluginManager::getInstance()->getIncompatiblePlugins($piwikVersion);
-    }
-
     private function installNewFiles($extractedArchiveDirectory)
     {
         // Make sure the execute bit is set for this shell script
@@ -273,5 +249,29 @@ class Updater
         Filesystem::unlinkRecursive($extractedArchiveDirectory, true);
 
         Filesystem::clearPhpCaches();
+    }
+
+    /**
+     * @param string $version
+     * @param bool $https Whether to use HTTPS if supported of not. If false, will use HTTP.
+     * @return string
+     */
+    public function getArchiveUrl($version, $https = true)
+    {
+        $channel = $this->releaseChannels->getActiveReleaseChannel();
+        $url = $channel->getDownloadUrlWithoutScheme($version);
+
+        if ($this->isUpdatingOverHttps() && $https) {
+            $url = 'https' . $url;
+        } else {
+            $url = 'http' . $url;
+        }
+
+        return $url;
+    }
+
+    private function getIncompatiblePlugins($piwikVersion)
+    {
+        return PluginManager::getInstance()->getIncompatiblePlugins($piwikVersion);
     }
 }

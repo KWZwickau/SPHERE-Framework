@@ -36,16 +36,6 @@ class ValueResolver implements DefinitionResolver
         return $definition->getValue();
     }
 
-    private function assertIsValueDefinition(Definition $definition)
-    {
-        if (!$definition instanceof ValueDefinition) {
-            throw new \InvalidArgumentException(sprintf(
-                'This definition resolver is only compatible with ValueDefinition objects, %s given',
-                get_class($definition)
-            ));
-        }
-    }
-
     /**
      * {@inheritdoc}
      */
@@ -54,5 +44,15 @@ class ValueResolver implements DefinitionResolver
         $this->assertIsValueDefinition($definition);
 
         return true;
+    }
+
+    private function assertIsValueDefinition(Definition $definition)
+    {
+        if (!$definition instanceof ValueDefinition) {
+            throw new \InvalidArgumentException(sprintf(
+                'This definition resolver is only compatible with ValueDefinition objects, %s given',
+                get_class($definition)
+            ));
+        }
     }
 }

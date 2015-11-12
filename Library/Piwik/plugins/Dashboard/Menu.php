@@ -28,7 +28,7 @@ class Menu extends \Piwik\Plugin\Menu
         } else {
             $login = Piwik::getCurrentUserLogin();
 
-            $dashboard = new Dashboard();
+            $dashboard  = new Dashboard();
             $dashboards = $dashboard->getAllDashboards($login);
 
             if (empty($dashboards)) {
@@ -36,8 +36,7 @@ class Menu extends \Piwik\Plugin\Menu
             } else {
                 $pos = 0;
                 foreach ($dashboards as $dashboard) {
-                    $menu->addItem('Dashboard_Dashboard', $dashboard['name'],
-                        $this->urlForAction('embeddedIndex', array('idDashboard' => $dashboard['iddashboard'])), $pos);
+                    $menu->addItem('Dashboard_Dashboard', $dashboard['name'], $this->urlForAction('embeddedIndex', array('idDashboard' => $dashboard['iddashboard'])), $pos);
                     $pos++;
                 }
             }
@@ -46,8 +45,7 @@ class Menu extends \Piwik\Plugin\Menu
 
     private function addDefaultDashboard(MenuReporting $menu)
     {
-        $menu->addItem('Dashboard_Dashboard', 'Dashboard_Dashboard',
-            $this->urlForAction('embeddedIndex', array('idDashboard' => 1)));
+        $menu->addItem('Dashboard_Dashboard', 'Dashboard_Dashboard', $this->urlForAction('embeddedIndex', array('idDashboard' => 1)));
     }
 
     public function configureTopMenu(MenuTop $menu)
@@ -56,7 +54,7 @@ class Menu extends \Piwik\Plugin\Menu
         $idSite = $userPreferences->getDefaultWebsiteId();
         $tooltip = Piwik::translate('Dashboard_TopLinkTooltip', Site::getNameFor($idSite));
 
-        $urlParams = $this->urlForModuleActionWithDefaultUserParams('CoreHome', 'index');
+        $urlParams = $this->urlForModuleActionWithDefaultUserParams('CoreHome', 'index') ;
         $menu->addItem('Dashboard_Dashboard', null, $urlParams, 1, $tooltip);
     }
 }

@@ -53,6 +53,44 @@ class Zend_Db_Statement_Sqlsrv extends Zend_Db_Statement
     protected $_executed = false;
 
     /**
+     * Prepares statement handle
+     *
+     * @param string $sql
+     * @return void
+     * @throws Zend_Db_Statement_Sqlsrv_Exception
+     */
+    protected function _prepare($sql)
+    {
+        $connection = $this->_adapter->getConnection();
+
+        $this->_stmt = sqlsrv_prepare($connection, $sql);
+
+        if (!$this->_stmt) {
+            // require_once 'Zend/Db/Statement/Sqlsrv/Exception.php';
+            throw new Zend_Db_Statement_Sqlsrv_Exception(sqlsrv_errors());
+        }
+
+        $this->_originalSQL = $sql;
+    }
+
+    /**
+     * Binds a parameter to the specified variable name.
+     *
+     * @param mixed $parameter Name the parameter, either integer or string.
+     * @param mixed $variable  Reference to PHP variable containing the value.
+     * @param mixed $type      OPTIONAL Datatype of SQL parameter.
+     * @param mixed $length    OPTIONAL Length of SQL parameter.
+     * @param mixed $options   OPTIONAL Other options.
+     * @return bool
+     * @throws Zend_Db_Statement_Exception
+     */
+    protected function _bindParam($parameter, &$variable, $type = null, $length = null, $options = null)
+    {
+        //Db server doesn't support bind by name
+        return true;
+    }
+
+    /**
      * Closes the cursor, allowing the statement to be executed again.
      *
      * @return bool
@@ -83,6 +121,7 @@ class Zend_Db_Statement_Sqlsrv extends Zend_Db_Statement
         return 0;
     }
 
+
     /**
      * Retrieves the error code, if any, associated with the last operation on
      * the statement handle.
@@ -102,6 +141,7 @@ class Zend_Db_Statement_Sqlsrv extends Zend_Db_Statement
 
         return $error[0]['code'];
     }
+
 
     /**
      * Retrieves an array of error information, if any, associated with the
@@ -125,6 +165,7 @@ class Zend_Db_Statement_Sqlsrv extends Zend_Db_Statement
             $error[0]['message'],
         );
     }
+
 
     /**
      * Executes a prepared statement.
@@ -335,7 +376,7 @@ class Zend_Db_Statement_Sqlsrv extends Zend_Db_Statement
             // require_once 'Zend/Db/Statement/Sqlsrv/Exception.php';
             throw new Zend_Db_Statement_Sqlsrv_Exception(sqlsrv_errors());
         }
-
+        
         // reset column keys
         $this->_keys = null;
 
@@ -370,7 +411,7 @@ class Zend_Db_Statement_Sqlsrv extends Zend_Db_Statement
 
         return $num_rows;
     }
-
+    
     /**
      * Returns an array containing all of the result set rows.
      *
@@ -395,43 +436,5 @@ class Zend_Db_Statement_Sqlsrv extends Zend_Db_Statement
             $results[] = $row;
         }
         return $results;
-    }
-
-    /**
-     * Prepares statement handle
-     *
-     * @param string $sql
-     * @return void
-     * @throws Zend_Db_Statement_Sqlsrv_Exception
-     */
-    protected function _prepare($sql)
-    {
-        $connection = $this->_adapter->getConnection();
-
-        $this->_stmt = sqlsrv_prepare($connection, $sql);
-
-        if (!$this->_stmt) {
-            // require_once 'Zend/Db/Statement/Sqlsrv/Exception.php';
-            throw new Zend_Db_Statement_Sqlsrv_Exception(sqlsrv_errors());
-        }
-
-        $this->_originalSQL = $sql;
-    }
-
-    /**
-     * Binds a parameter to the specified variable name.
-     *
-     * @param mixed $parameter Name the parameter, either integer or string.
-     * @param mixed $variable  Reference to PHP variable containing the value.
-     * @param mixed $type      OPTIONAL Datatype of SQL parameter.
-     * @param mixed $length    OPTIONAL Length of SQL parameter.
-     * @param mixed $options   OPTIONAL Other options.
-     * @return bool
-     * @throws Zend_Db_Statement_Exception
-     */
-    protected function _bindParam($parameter, &$variable, $type = null, $length = null, $options = null)
-    {
-        //Db server doesn't support bind by name
-        return true;
     }
 }

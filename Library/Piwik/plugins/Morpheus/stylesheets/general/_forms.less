@@ -17,13 +17,11 @@ input:not([type="checkbox"]):not([type="submit"]):not([type="button"]), select, 
     .box-sizing(border-box);
     background: @theme-color-background-base;
 }
-
 input:not([type="checkbox"]):not([type="submit"]):not([type="button"]), textarea {
-    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-    -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+    -moz-box-shadow:    inset 0 1px 1px rgba(0,0,0,.075);
+    box-shadow:         inset 0 1px 1px rgba(0,0,0,.075);
 }
-
 input[disabled] {
     background: #F5F5F5 none !important;
 }
@@ -38,7 +36,6 @@ select {
     background-position: right center;
     padding-right: 30px;
 }
-
 // This class/mixin allows to restore the native style of selects when needed
 .native-select {
     -webkit-appearance: menulist;
@@ -221,7 +218,6 @@ select {
     padding: 0;
     margin: 0;
 }
-
 .form-radio, .form-checkbox {
     height: 15px;
     width: 15px;
@@ -301,62 +297,48 @@ label {
 .prettycheckbox a:focus, .prettyradio a:focus {
     outline: 0 none;
 }
-
 .prettycheckbox label, .prettyradio label {
     display: block;
     float: left;
     margin: 2px;
     cursor: pointer;
 }
-
 .prettycheckbox a.disabled, .prettycheckbox label.disabled, .prettyradio a.disabled, .prettyradio label.disabled {
     cursor: not-allowed;
 }
-
 .prettycheckbox a {
     background-position: 0 0;
 }
-
 .prettycheckbox a:focus {
     background-position: -15px 0;
 }
-
 .prettycheckbox a.checked {
     background-position: -38px 0;
 }
-
 .prettycheckbox a.checked:focus {
     background-position: -53px 0;
 }
-
 .prettycheckbox a.checked.disabled {
     background-position: -99px 0;
 }
-
 .prettycheckbox a.disabled {
     background-position: -76px 0;
 }
-
 .prettyradio a {
     background-position: -129px 0;
 }
-
 .prettyradio a:focus {
     background-position: -144px 0;
 }
-
 .prettyradio a.checked {
     background-position: -167px 0;
 }
-
 .prettyradio a.checked:focus {
     background-position: -182px 0;
 }
-
 .prettyradio a.checked.disabled {
     background-position: -228px 0;
 }
-
 .prettyradio a.disabled {
     background-position: -205px 0;
 }
@@ -407,7 +389,6 @@ label {
         margin-bottom: 0;
     }
 }
-
 // Display as table-cell
 .input-group-addon,
 .input-group-btn,
@@ -418,7 +399,6 @@ label {
         border-radius: 0;
     }
 }
-
 // Addon and addon wrapper for buttons
 .input-group-addon,
 .input-group-btn {
@@ -426,7 +406,6 @@ label {
     white-space: nowrap;
     vertical-align: middle; // Match the inputs
 }
-
 // Text input groups
 .input-group-addon {
     padding: 6px 12px;
@@ -456,11 +435,9 @@ label {
     border-bottom-right-radius: 0;
     border-top-right-radius: 0;
 }
-
 .input-group-addon:first-child {
     border-right: 0;
 }
-
 .input-group input:last-child,
 .input-group-addon:last-child,
 .input-group-btn:last-child > .btn,
@@ -471,11 +448,9 @@ label {
     border-bottom-left-radius: 0;
     border-top-left-radius: 0;
 }
-
 .input-group-addon:last-child {
     border-left: 0;
 }
-
 // Button input groups
 .input-group-btn {
     position: relative;

@@ -10,17 +10,12 @@
 namespace Piwik\Updates;
 
 use Piwik\Common;
-use Piwik\Db;
 use Piwik\Updater;
 use Piwik\Updates;
+use Piwik\Db;
 
 class Updates_2_14_0_b2 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         $dbSettings = new Db\Settings();
@@ -39,5 +34,10 @@ class Updates_2_14_0_b2 extends Updates
         );
 
         return $sqlarray;
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

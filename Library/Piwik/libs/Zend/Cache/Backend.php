@@ -69,6 +69,30 @@ class Zend_Cache_Backend
     }
 
     /**
+     * Set the frontend directives
+     *
+     * @param  array $directives Assoc of directives
+     * @throws Zend_Cache_Exception
+     * @return void
+     */
+    public function setDirectives($directives)
+    {
+        if (!is_array($directives)) Zend_Cache::throwException('Directives parameter must be an array');
+        while (list($name, $value) = each($directives)) {
+            if (!is_string($name)) {
+                Zend_Cache::throwException("Incorrect option name : $name");
+            }
+            $name = strtolower($name);
+            if (array_key_exists($name, $this->_directives)) {
+                $this->_directives[$name] = $value;
+            }
+
+        }
+
+        $this->_loggerSanity();
+    }
+
+    /**
      * Set an option
      *
      * @param  string $name
@@ -85,60 +109,6 @@ class Zend_Cache_Backend
         if (array_key_exists($name, $this->_options)) {
             $this->_options[$name] = $value;
         }
-    }
-
-    /**
-     * Set the frontend directives
-     *
-     * @param  array $directives Assoc of directives
-     * @throws Zend_Cache_Exception
-     * @return void
-     */
-    public function setDirectives($directives)
-    {
-        if (!is_array($directives)) {Zend_Cache::throwException('Directives parameter must be an array');}
-        while (list($name, $value) = each($directives)) {
-            if (!is_string($name)) {
-                Zend_Cache::throwException("Incorrect option name : $name");
-            }
-            $name = strtolower($name);
-            if (array_key_exists($name, $this->_directives)) {
-                $this->_directives[$name] = $value;
-            }
-
-        }
-
-        $this->_loggerSanity();
-    }
-
-    /**
-     * Make sure if we enable logging that the Zend_Log class
-     * is available.
-     * Create a default log object if none is set.
-     *
-     * @throws Zend_Cache_Exception
-     * @return void
-     */
-    protected function _loggerSanity()
-    {
-        if (!isset($this->_directives['logging']) || !$this->_directives['logging']) {
-            return;
-        }
-
-        if (isset($this->_directives['logger'])) {
-            if ($this->_directives['logger'] instanceof Zend_Log) {
-                return;
-            }
-            Zend_Cache::throwException('Logger object is not an instance of Zend_Log class.');
-        }
-
-        // Create a default logger to the standard output stream
-        // require_once 'Zend/Log.php';
-        // require_once 'Zend/Log/Writer/Stream.php';
-        // require_once 'Zend/Log/Filter/Priority.php';
-        $logger = new Zend_Log(new Zend_Log_Writer_Stream('php://output'));
-        $logger->addFilter(new Zend_Log_Filter_Priority(Zend_Log::WARN, '<='));
-        $this->_directives['logger'] = $logger;
     }
 
     /**
@@ -210,7 +180,7 @@ class Zend_Cache_Backend
             }
         }
         // Attemp to detect by creating a temporary file
-        $tempFile = tempnam(md5(uniqid(rand(), true)), '');
+        $tempFile = tempnam(md5(uniqid(rand(), TRUE)), '');
         if ($tempFile) {
             $dir = realpath(dirname($tempFile));
             unlink($tempFile);
@@ -241,6 +211,36 @@ class Zend_Cache_Backend
             }
         }
         return false;
+    }
+
+    /**
+     * Make sure if we enable logging that the Zend_Log class
+     * is available.
+     * Create a default log object if none is set.
+     *
+     * @throws Zend_Cache_Exception
+     * @return void
+     */
+    protected function _loggerSanity()
+    {
+        if (!isset($this->_directives['logging']) || !$this->_directives['logging']) {
+            return;
+        }
+
+        if (isset($this->_directives['logger'])) {
+            if ($this->_directives['logger'] instanceof Zend_Log) {
+                return;
+            }
+            Zend_Cache::throwException('Logger object is not an instance of Zend_Log class.');
+        }
+
+        // Create a default logger to the standard output stream
+        // require_once 'Zend/Log.php';
+        // require_once 'Zend/Log/Writer/Stream.php';
+        // require_once 'Zend/Log/Filter/Priority.php';
+        $logger = new Zend_Log(new Zend_Log_Writer_Stream('php://output'));
+        $logger->addFilter(new Zend_Log_Filter_Priority(Zend_Log::WARN, '<='));
+        $this->_directives['logger'] = $logger;
     }
 
     /**

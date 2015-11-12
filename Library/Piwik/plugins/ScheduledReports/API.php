@@ -27,6 +27,7 @@ use Piwik\Tracker;
 use Piwik\Translate;
 use Piwik\Translation\Translator;
 use Piwik\Url;
+use Piwik\UrlHelper;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -70,34 +71,6 @@ class API extends \Piwik\Plugin\API
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-    }
-
-    /**
-     * @ignore
-     */
-    public static function getReportRecipients($report)
-    {
-        $recipients = array();
-
-        /**
-         * Triggered when getting the list of recipients of a scheduled report.
-         *
-         * Plugins that provide their own scheduled report transport medium should use this event
-         * to extract the list of recipients their backend's specific scheduled report
-         * format.
-         *
-         * @param array &$recipients An array of strings describing each of the scheduled
-         *                           reports recipients. Can be, for example, a list of email
-         *                           addresses or phone numbers or whatever else your plugin
-         *                           uses.
-         * @param string $reportType A string ID describing how the report is sent, eg,
-         *                           `'sms'` or `'email'`.
-         * @param array $report An array describing the scheduled report that is being
-         *                      generated.
-         */
-        Piwik::postEvent(self::GET_REPORT_RECIPIENTS_EVENT, array(&$recipients, $report['type'], $report));
-
-        return $recipients;
     }
 
     /**
@@ -157,282 +130,6 @@ class API extends \Piwik\Plugin\API
         }
     }
 
-    private static function validateCommonReportAttributes($period, $hour, &$description, &$idSegment, $reportType, $reportFormat)
-    {
-        self::validateReportPeriod($period);
-        self::validateReportHour($hour);
-        self::validateAndTruncateDescription($description);
-        self::validateIdSegment($idSegment);
-        self::validateReportType($reportType);
-        self::validateReportFormat($reportType, $reportFormat);
-    }
-
-    private static function validateReportPeriod($period)
-    {
-        $availablePeriods = array('day', 'week', 'month', 'never');
-        if (!in_array($period, $availablePeriods)) {
-            throw new Exception('Period schedule must be one of the following: ' . implode(', ', $availablePeriods));
-        }
-    }
-
-    private static function validateReportHour($hour)
-    {
-        if (!is_numeric($hour) || $hour < 0 || $hour > 23) {
-            throw new Exception('Invalid hour schedule. Should be anything from 0 to 23 inclusive.');
-        }
-    }
-
-    private static function validateAndTruncateDescription(&$description)
-    {
-        $description = substr($description, 0, 250);
-    }
-
-    private static function validateIdSegment(&$idSegment)
-    {
-        if (empty($idSegment) || (is_numeric($idSegment) && $idSegment == 0)) {
-
-            $idSegment = null;
-        } elseif (!is_numeric($idSegment)) {
-
-            throw new Exception('Invalid segment identifier. Should be an integer.');
-        } elseif (self::getSegment($idSegment) == null) {
-
-            throw new Exception('Segment with id ' . $idSegment . ' does not exist or SegmentEditor is not activated.');
-        }
-    }
-
-    /**
-     * @ignore
-     */
-    public static function getSegment($idSegment)
-    {
-        if (self::isSegmentEditorActivated() && !empty($idSegment)) {
-
-            $segment = APISegmentEditor::getInstance()->get($idSegment);
-
-            if ($segment) {
-                return $segment;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @ignore
-     */
-    public static function isSegmentEditorActivated()
-    {
-        return \Piwik\Plugin\Manager::getInstance()->isPluginActivated('SegmentEditor');
-    }
-
-    private static function validateReportType($reportType)
-    {
-        $reportTypes = array_keys(self::getReportTypes());
-
-        if (!in_array($reportType, $reportTypes)) {
-            throw new Exception(
-                'Report type \'' . $reportType . '\' not valid. Try one of the following ' . implode(', ', $reportTypes)
-            );
-        }
-    }
-
-    /**
-     * @ignore
-     */
-    public static function getReportTypes()
-    {
-        $reportTypes = array();
-
-        /**
-         * Triggered when gathering all available transport mediums.
-         *
-         * Plugins that provide their own transport mediums should use this
-         * event to make their medium available.
-         *
-         * @param array &$reportTypes An array mapping transport medium IDs with the paths to those
-         *                            mediums' icons. Add your new backend's ID to this array.
-         */
-        Piwik::postEvent(self::GET_REPORT_TYPES_EVENT, array(&$reportTypes));
-
-        return $reportTypes;
-    }
-
-    private static function validateReportFormat($reportType, $reportFormat)
-    {
-        $reportFormats = array_keys(self::getReportFormats($reportType));
-
-        if (!in_array($reportFormat, $reportFormats)) {
-            throw new Exception(
-                Piwik::translate(
-                    'General_ExceptionInvalidReportRendererFormat',
-                    array($reportFormat, implode(', ', $reportFormats))
-                )
-            );
-        }
-    }
-
-    /**
-     * @ignore
-     */
-    public static function getReportFormats($reportType)
-    {
-        $reportFormats = array();
-
-        /**
-         * Triggered when gathering all available scheduled report formats.
-         *
-         * Plugins that provide their own scheduled report format should use
-         * this event to make their format available.
-         *
-         * @param array &$reportFormats An array mapping string IDs for each available
-         *                              scheduled report format with icon paths for those
-         *                              formats. Add your new format's ID to this array.
-         * @param string $reportType A string ID describing how the report is sent, eg,
-         *                           `'sms'` or `'email'`.
-         */
-        Piwik::postEvent(
-            self::GET_REPORT_FORMATS_EVENT,
-            array(&$reportFormats, $reportType)
-        );
-
-        return $reportFormats;
-    }
-
-    private static function validateReportParameters($reportType, $parameters)
-    {
-        // get list of valid parameters
-        $availableParameters = array();
-
-        /**
-         * Triggered when gathering the available parameters for a scheduled report type.
-         *
-         * Plugins that provide their own scheduled report transport mediums should use this
-         * event to list the available report parameters for their transport medium.
-         *
-         * @param array $availableParameters The list of available parameters for this report type.
-         *                                   This is an array that maps paramater IDs with a boolean
-         *                                   that indicates whether the parameter is mandatory or not.
-         * @param string $reportType A string ID describing how the report is sent, eg,
-         *                           `'sms'` or `'email'`.
-         */
-        Piwik::postEvent(self::GET_REPORT_PARAMETERS_EVENT, array(&$availableParameters, $reportType));
-
-        // unset invalid parameters
-        $availableParameterKeys = array_keys($availableParameters);
-        foreach ($parameters as $key => $value) {
-            if (!in_array($key, $availableParameterKeys)) {
-                unset($parameters[$key]);
-            }
-        }
-
-        // test that all required parameters are provided
-        foreach ($availableParameters as $parameter => $mandatory) {
-            if ($mandatory && !isset($parameters[$parameter])) {
-                throw new Exception('Missing parameter : ' . $parameter);
-            }
-        }
-
-        /**
-         * Triggered when validating the parameters for a scheduled report.
-         *
-         * Plugins that provide their own scheduled reports backend should use this
-         * event to validate the custom parameters defined with {@link ScheduledReports::getReportParameters()}.
-         *
-         * @param array $parameters The list of parameters for the scheduled report.
-         * @param string $reportType A string ID describing how the report is sent, eg,
-         *                           `'sms'` or `'email'`.
-         */
-        Piwik::postEvent(self::VALIDATE_PARAMETERS_EVENT, array(&$parameters, $reportType));
-
-        return json_encode($parameters);
-    }
-
-    private static function validateRequestedReports($idSite, $reportType, $requestedReports)
-    {
-        if (!self::allowMultipleReports($reportType)) {
-            //sms can only contain one report, we silently discard all but the first
-            $requestedReports = array_slice($requestedReports, 0, 1);
-        }
-
-        // retrieve available reports
-        $availableReportMetadata = self::getReportMetadata($idSite, $reportType);
-
-        $availableReportIds = array();
-        foreach ($availableReportMetadata as $reportMetadata) {
-            $availableReportIds[] = $reportMetadata['uniqueId'];
-        }
-
-        foreach ($requestedReports as $report) {
-            if (!in_array($report, $availableReportIds)) {
-                throw new Exception("Report $report is unknown or not available for report type '$reportType'.");
-            }
-        }
-
-        return json_encode($requestedReports);
-    }
-
-    /**
-     * @ignore
-     */
-    public static function allowMultipleReports($reportType)
-    {
-        $allowMultipleReports = null;
-
-        /**
-         * Triggered when we're determining if a scheduled report transport medium can
-         * handle sending multiple Piwik reports in one scheduled report or not.
-         *
-         * Plugins that provide their own transport mediums should use this
-         * event to specify whether their backend can send more than one Piwik report
-         * at a time.
-         *
-         * @param bool &$allowMultipleReports Whether the backend type can handle multiple
-         *                                    Piwik reports or not.
-         * @param string $reportType A string ID describing how the report is sent, eg,
-         *                           `'sms'` or `'email'`.
-         */
-        Piwik::postEvent(
-            self::ALLOW_MULTIPLE_REPORTS_EVENT,
-            array(&$allowMultipleReports, $reportType)
-        );
-        return $allowMultipleReports;
-    }
-
-    /**
-     * @ignore
-     */
-    public static function getReportMetadata($idSite, $reportType)
-    {
-        $availableReportMetadata = array();
-
-        /**
-         * TODO: change this event so it returns a list of API methods instead of report metadata arrays.
-         * Triggered when gathering the list of Piwik reports that can be used with a certain
-         * transport medium.
-         *
-         * Plugins that provide their own transport mediums should use this
-         * event to list the Piwik reports that their backend supports.
-         *
-         * @param array &$availableReportMetadata An array containg report metadata for each supported
-         *                                        report.
-         * @param string $reportType A string ID describing how the report is sent, eg,
-         *                           `'sms'` or `'email'`.
-         * @param int $idSite The ID of the site we're getting available reports for.
-         */
-        Piwik::postEvent(
-            self::GET_REPORT_METADATA_EVENT,
-            array(&$availableReportMetadata, $reportType, $idSite)
-        );
-
-        return $availableReportMetadata;
-    }
-
-    private function getModel()
-    {
-        return new Model();
-    }
-
     /**
      * Updates an existing report.
      *
@@ -467,6 +164,24 @@ class API extends \Piwik\Plugin\API
             'format'      => $reportFormat,
             'parameters'  => $parameters,
             'reports'     => $reports,
+        ));
+
+        self::$cache = array();
+    }
+
+    /**
+     * Deletes a specific report
+     *
+     * @param int $idReport
+     */
+    public function deleteReport($idReport)
+    {
+        $APIScheduledReports = $this->getReports($idSite = false, $periodSearch = false, $idReport);
+        $report = reset($APIScheduledReports);
+        Piwik::checkUserHasSuperUserAccessOrIsTheUser($report['login']);
+
+        $this->getModel()->updateReport($idReport, array(
+            'deleted' => 1,
         ));
 
         self::$cache = array();
@@ -552,117 +267,6 @@ class API extends \Piwik\Plugin\API
         self::$cache[$cacheKey] = $reports;
 
         return $reports;
-    }
-
-    /**
-     * Deletes a specific report
-     *
-     * @param int $idReport
-     */
-    public function deleteReport($idReport)
-    {
-        $APIScheduledReports = $this->getReports($idSite = false, $periodSearch = false, $idReport);
-        $report = reset($APIScheduledReports);
-        Piwik::checkUserHasSuperUserAccessOrIsTheUser($report['login']);
-
-        $this->getModel()->updateReport($idReport, array(
-            'deleted' => 1,
-        ));
-
-        self::$cache = array();
-    }
-
-    public function sendReport($idReport, $period = false, $date = false, $force = false)
-    {
-        Piwik::checkUserIsNotAnonymous();
-
-        $reports = $this->getReports($idSite = false, false, $idReport);
-        $report = reset($reports);
-
-        if ($report['period'] == 'never') {
-            $report['period'] = 'day';
-        }
-
-        if (!empty($period)) {
-            $report['period'] = $period;
-        }
-
-        if (empty($date)) {
-            $date = Date::now()->subPeriod(1, $report['period'])->toString();
-        }
-
-        $language = \Piwik\Plugins\LanguagesManager\API::getInstance()->getLanguageForUser($report['login']);
-
-        // generate report
-        list($outputFilename, $prettyDate, $reportSubject, $reportTitle, $additionalFiles) =
-            $this->generateReport(
-                $idReport,
-                $date,
-                $language,
-                self::OUTPUT_SAVE_ON_DISK,
-                $report['period']
-            );
-
-        if (!file_exists($outputFilename)) {
-            throw new Exception("The report file wasn't found in $outputFilename");
-        }
-
-        $contents = file_get_contents($outputFilename);
-
-        if (empty($contents)) {
-            Log::warning("Scheduled report file '%s' exists but is empty!", $outputFilename);
-        }
-
-        /**
-         * Triggered when sending scheduled reports.
-         *
-         * Plugins that provide new scheduled report transport mediums should use this event to
-         * send the scheduled report.
-         *
-         * @param string $reportType A string ID describing how the report is sent, eg,
-         *                           `'sms'` or `'email'`.
-         * @param array $report An array describing the scheduled report that is being
-         *                      generated.
-         * @param string $contents The contents of the scheduled report that was generated
-         *                         and now should be sent.
-         * @param string $filename The path to the file where the scheduled report has
-         *                         been saved.
-         * @param string $prettyDate A prettified date string for the data within the
-         *                           scheduled report.
-         * @param string $reportSubject A string describing what's in the scheduled
-         *                              report.
-         * @param string $reportTitle The scheduled report's given title (given by a Piwik user).
-         * @param array $additionalFiles The list of additional files that should be
-         *                               sent with this report.
-         * @param \Piwik\Period $period The period for which the report has been generated.
-         * @param boolean $force A report can only be sent once per period. Setting this to true
-         *                       will force to send the report even if it has already been sent.
-         */
-        Piwik::postEvent(
-            self::SEND_REPORT_EVENT,
-            array(
-                $report['type'],
-                $report,
-                $contents,
-                $filename = basename($outputFilename),
-                $prettyDate,
-                $reportSubject,
-                $reportTitle,
-                $additionalFiles,
-                \Piwik\Period\Factory::build($report['period'], $date),
-                $force
-            )
-        );
-
-        // Update flag in DB
-        $now = Date::now()->getDatetime();
-        $this->getModel()->updateReport($report['idreport'], array('ts_last_sent' => $now));
-
-        // If running from piwik.php with debug, do not delete the PDF after sending the email
-        $tracker = new Tracker();
-        if (!$tracker->isDebugModeEnabled()) {
-            @chmod($outputFilename, 0600);
-        }
     }
 
     /**
@@ -918,19 +522,102 @@ class API extends \Piwik\Plugin\API
         }
     }
 
-    private function checkUserHasViewPermission($login, $idSite)
+    public function sendReport($idReport, $period = false, $date = false, $force = false)
     {
-        if (empty($idSite)) {
-            return;
+        Piwik::checkUserIsNotAnonymous();
+
+        $reports = $this->getReports($idSite = false, false, $idReport);
+        $report = reset($reports);
+
+        if ($report['period'] == 'never') {
+            $report['period'] = 'day';
         }
 
-        $idSitesUserHasAccess = SitesManagerApi::getInstance()->getSitesIdWithAtLeastViewAccess($login);
-
-        if (empty($idSitesUserHasAccess)
-            || !in_array($idSite, $idSitesUserHasAccess)
-        ) {
-            throw new NoAccessException(Piwik::translate('General_ExceptionPrivilege', array("'view'")));
+        if (!empty($period)) {
+            $report['period'] = $period;
         }
+
+        if (empty($date)) {
+            $date = Date::now()->subPeriod(1, $report['period'])->toString();
+        }
+
+        $language = \Piwik\Plugins\LanguagesManager\API::getInstance()->getLanguageForUser($report['login']);
+
+        // generate report
+        list($outputFilename, $prettyDate, $reportSubject, $reportTitle, $additionalFiles) =
+            $this->generateReport(
+                $idReport,
+                $date,
+                $language,
+                self::OUTPUT_SAVE_ON_DISK,
+                $report['period']
+            );
+
+        if (!file_exists($outputFilename)) {
+            throw new Exception("The report file wasn't found in $outputFilename");
+        }
+
+        $contents = file_get_contents($outputFilename);
+
+        if (empty($contents)) {
+            Log::warning("Scheduled report file '%s' exists but is empty!", $outputFilename);
+        }
+
+        /**
+         * Triggered when sending scheduled reports.
+         *
+         * Plugins that provide new scheduled report transport mediums should use this event to
+         * send the scheduled report.
+         *
+         * @param string $reportType A string ID describing how the report is sent, eg,
+         *                           `'sms'` or `'email'`.
+         * @param array $report An array describing the scheduled report that is being
+         *                      generated.
+         * @param string $contents The contents of the scheduled report that was generated
+         *                         and now should be sent.
+         * @param string $filename The path to the file where the scheduled report has
+         *                         been saved.
+         * @param string $prettyDate A prettified date string for the data within the
+         *                           scheduled report.
+         * @param string $reportSubject A string describing what's in the scheduled
+         *                              report.
+         * @param string $reportTitle The scheduled report's given title (given by a Piwik user).
+         * @param array $additionalFiles The list of additional files that should be
+         *                               sent with this report.
+         * @param \Piwik\Period $period The period for which the report has been generated.
+         * @param boolean $force A report can only be sent once per period. Setting this to true
+         *                       will force to send the report even if it has already been sent.
+         */
+        Piwik::postEvent(
+            self::SEND_REPORT_EVENT,
+            array(
+                $report['type'],
+                $report,
+                $contents,
+                $filename = basename($outputFilename),
+                $prettyDate,
+                $reportSubject,
+                $reportTitle,
+                $additionalFiles,
+                \Piwik\Period\Factory::build($report['period'], $date),
+                $force
+            )
+        );
+
+        // Update flag in DB
+        $now = Date::now()->getDatetime();
+        $this->getModel()->updateReport($report['idreport'], array('ts_last_sent' => $now));
+
+        // If running from piwik.php with debug, do not delete the PDF after sending the email
+        $tracker = new Tracker();
+        if (!$tracker->isDebugModeEnabled()) {
+            @chmod($outputFilename, 0600);
+        }
+    }
+
+    private function getModel()
+    {
+        return new Model();
     }
 
     private static function getReportSubjectAndReportTitle($websiteName, $reports)
@@ -948,8 +635,322 @@ class API extends \Piwik\Plugin\API
         return array($reportSubject, $reportTitle);
     }
 
+    private static function validateReportParameters($reportType, $parameters)
+    {
+        // get list of valid parameters
+        $availableParameters = array();
+
+        /**
+         * Triggered when gathering the available parameters for a scheduled report type.
+         *
+         * Plugins that provide their own scheduled report transport mediums should use this
+         * event to list the available report parameters for their transport medium.
+         *
+         * @param array $availableParameters The list of available parameters for this report type.
+         *                                   This is an array that maps paramater IDs with a boolean
+         *                                   that indicates whether the parameter is mandatory or not.
+         * @param string $reportType A string ID describing how the report is sent, eg,
+         *                           `'sms'` or `'email'`.
+         */
+        Piwik::postEvent(self::GET_REPORT_PARAMETERS_EVENT, array(&$availableParameters, $reportType));
+
+        // unset invalid parameters
+        $availableParameterKeys = array_keys($availableParameters);
+        foreach ($parameters as $key => $value) {
+            if (!in_array($key, $availableParameterKeys)) {
+                unset($parameters[$key]);
+            }
+        }
+
+        // test that all required parameters are provided
+        foreach ($availableParameters as $parameter => $mandatory) {
+            if ($mandatory && !isset($parameters[$parameter])) {
+                throw new Exception('Missing parameter : ' . $parameter);
+            }
+        }
+
+        /**
+         * Triggered when validating the parameters for a scheduled report.
+         *
+         * Plugins that provide their own scheduled reports backend should use this
+         * event to validate the custom parameters defined with {@link ScheduledReports::getReportParameters()}.
+         *
+         * @param array $parameters The list of parameters for the scheduled report.
+         * @param string $reportType A string ID describing how the report is sent, eg,
+         *                           `'sms'` or `'email'`.
+         */
+        Piwik::postEvent(self::VALIDATE_PARAMETERS_EVENT, array(&$parameters, $reportType));
+
+        return json_encode($parameters);
+    }
+
+    private static function validateAndTruncateDescription(&$description)
+    {
+        $description = substr($description, 0, 250);
+    }
+
+    private static function validateRequestedReports($idSite, $reportType, $requestedReports)
+    {
+        if (!self::allowMultipleReports($reportType)) {
+            //sms can only contain one report, we silently discard all but the first
+            $requestedReports = array_slice($requestedReports, 0, 1);
+        }
+
+        // retrieve available reports
+        $availableReportMetadata = self::getReportMetadata($idSite, $reportType);
+
+        $availableReportIds = array();
+        foreach ($availableReportMetadata as $reportMetadata) {
+            $availableReportIds[] = $reportMetadata['uniqueId'];
+        }
+
+        foreach ($requestedReports as $report) {
+            if (!in_array($report, $availableReportIds)) {
+                throw new Exception("Report $report is unknown or not available for report type '$reportType'.");
+            }
+        }
+
+        return json_encode($requestedReports);
+    }
+
+    private static function validateCommonReportAttributes($period, $hour, &$description, &$idSegment, $reportType, $reportFormat)
+    {
+        self::validateReportPeriod($period);
+        self::validateReportHour($hour);
+        self::validateAndTruncateDescription($description);
+        self::validateIdSegment($idSegment);
+        self::validateReportType($reportType);
+        self::validateReportFormat($reportType, $reportFormat);
+    }
+
+    private static function validateReportPeriod($period)
+    {
+        $availablePeriods = array('day', 'week', 'month', 'never');
+        if (!in_array($period, $availablePeriods)) {
+            throw new Exception('Period schedule must be one of the following: ' . implode(', ', $availablePeriods));
+        }
+    }
+
+    private static function validateReportHour($hour)
+    {
+        if (!is_numeric($hour) || $hour < 0 || $hour > 23) {
+            throw new Exception('Invalid hour schedule. Should be anything from 0 to 23 inclusive.');
+        }
+    }
+
+    private static function validateIdSegment(&$idSegment)
+    {
+        if (empty($idSegment) || (is_numeric($idSegment) && $idSegment == 0)) {
+
+            $idSegment = null;
+        } elseif (!is_numeric($idSegment)) {
+
+            throw new Exception('Invalid segment identifier. Should be an integer.');
+        } elseif (self::getSegment($idSegment) == null) {
+
+            throw new Exception('Segment with id ' . $idSegment . ' does not exist or SegmentEditor is not activated.');
+        }
+    }
+
+    private static function validateReportType($reportType)
+    {
+        $reportTypes = array_keys(self::getReportTypes());
+
+        if (!in_array($reportType, $reportTypes)) {
+            throw new Exception(
+                'Report type \'' . $reportType . '\' not valid. Try one of the following ' . implode(', ', $reportTypes)
+            );
+        }
+    }
+
+    private static function validateReportFormat($reportType, $reportFormat)
+    {
+        $reportFormats = array_keys(self::getReportFormats($reportType));
+
+        if (!in_array($reportFormat, $reportFormats)) {
+            throw new Exception(
+                Piwik::translate(
+                    'General_ExceptionInvalidReportRendererFormat',
+                    array($reportFormat, implode(', ', $reportFormats))
+                )
+            );
+        }
+    }
+
+    /**
+     * @ignore
+     */
+    public static function getReportMetadata($idSite, $reportType)
+    {
+        $availableReportMetadata = array();
+
+        /**
+         * TODO: change this event so it returns a list of API methods instead of report metadata arrays.
+         * Triggered when gathering the list of Piwik reports that can be used with a certain
+         * transport medium.
+         *
+         * Plugins that provide their own transport mediums should use this
+         * event to list the Piwik reports that their backend supports.
+         *
+         * @param array &$availableReportMetadata An array containg report metadata for each supported
+         *                                        report.
+         * @param string $reportType A string ID describing how the report is sent, eg,
+         *                           `'sms'` or `'email'`.
+         * @param int $idSite The ID of the site we're getting available reports for.
+         */
+        Piwik::postEvent(
+            self::GET_REPORT_METADATA_EVENT,
+            array(&$availableReportMetadata, $reportType, $idSite)
+        );
+
+        return $availableReportMetadata;
+    }
+
+    /**
+     * @ignore
+     */
+    public static function allowMultipleReports($reportType)
+    {
+        $allowMultipleReports = null;
+
+        /**
+         * Triggered when we're determining if a scheduled report transport medium can
+         * handle sending multiple Piwik reports in one scheduled report or not.
+         *
+         * Plugins that provide their own transport mediums should use this
+         * event to specify whether their backend can send more than one Piwik report
+         * at a time.
+         *
+         * @param bool &$allowMultipleReports Whether the backend type can handle multiple
+         *                                    Piwik reports or not.
+         * @param string $reportType A string ID describing how the report is sent, eg,
+         *                           `'sms'` or `'email'`.
+         */
+        Piwik::postEvent(
+            self::ALLOW_MULTIPLE_REPORTS_EVENT,
+            array(&$allowMultipleReports, $reportType)
+        );
+        return $allowMultipleReports;
+    }
+
+    /**
+     * @ignore
+     */
+    public static function getReportTypes()
+    {
+        $reportTypes = array();
+
+        /**
+         * Triggered when gathering all available transport mediums.
+         *
+         * Plugins that provide their own transport mediums should use this
+         * event to make their medium available.
+         *
+         * @param array &$reportTypes An array mapping transport medium IDs with the paths to those
+         *                            mediums' icons. Add your new backend's ID to this array.
+         */
+        Piwik::postEvent(self::GET_REPORT_TYPES_EVENT, array(&$reportTypes));
+
+        return $reportTypes;
+    }
+
+    /**
+     * @ignore
+     */
+    public static function getReportFormats($reportType)
+    {
+        $reportFormats = array();
+
+        /**
+         * Triggered when gathering all available scheduled report formats.
+         *
+         * Plugins that provide their own scheduled report format should use
+         * this event to make their format available.
+         *
+         * @param array &$reportFormats An array mapping string IDs for each available
+         *                              scheduled report format with icon paths for those
+         *                              formats. Add your new format's ID to this array.
+         * @param string $reportType A string ID describing how the report is sent, eg,
+         *                           `'sms'` or `'email'`.
+         */
+        Piwik::postEvent(
+            self::GET_REPORT_FORMATS_EVENT,
+            array(&$reportFormats, $reportType)
+        );
+
+        return $reportFormats;
+    }
+
+    /**
+     * @ignore
+     */
+    public static function getReportRecipients($report)
+    {
+        $recipients = array();
+
+        /**
+         * Triggered when getting the list of recipients of a scheduled report.
+         *
+         * Plugins that provide their own scheduled report transport medium should use this event
+         * to extract the list of recipients their backend's specific scheduled report
+         * format.
+         *
+         * @param array &$recipients An array of strings describing each of the scheduled
+         *                           reports recipients. Can be, for example, a list of email
+         *                           addresses or phone numbers or whatever else your plugin
+         *                           uses.
+         * @param string $reportType A string ID describing how the report is sent, eg,
+         *                           `'sms'` or `'email'`.
+         * @param array $report An array describing the scheduled report that is being
+         *                      generated.
+         */
+        Piwik::postEvent(self::GET_REPORT_RECIPIENTS_EVENT, array(&$recipients, $report['type'], $report));
+
+        return $recipients;
+    }
+
+    /**
+     * @ignore
+     */
+    public static function getSegment($idSegment)
+    {
+        if (self::isSegmentEditorActivated() && !empty($idSegment)) {
+
+            $segment = APISegmentEditor::getInstance()->get($idSegment);
+
+            if ($segment) {
+                return $segment;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @ignore
+     */
+    public static function isSegmentEditorActivated()
+    {
+        return \Piwik\Plugin\Manager::getInstance()->isPluginActivated('SegmentEditor');
+    }
+
     private function getAttachments($reportRenderer, $report, $processedReports, $prettyDate)
     {
         return $reportRenderer->getAttachments($report, $processedReports, $prettyDate);
+    }
+
+    private function checkUserHasViewPermission($login, $idSite)
+    {
+        if (empty($idSite)) {
+            return;
+        }
+
+        $idSitesUserHasAccess = SitesManagerApi::getInstance()->getSitesIdWithAtLeastViewAccess($login);
+
+        if (empty($idSitesUserHasAccess)
+            || !in_array($idSite, $idSitesUserHasAccess)
+        ) {
+            throw new NoAccessException(Piwik::translate('General_ExceptionPrivilege', array("'view'")));
+        }
     }
 }

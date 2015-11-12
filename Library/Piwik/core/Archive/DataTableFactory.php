@@ -21,16 +21,16 @@ use Piwik\Site;
  */
 class DataTableFactory
 {
-    const TABLE_METADATA_SITE_INDEX = 'site';
-    const TABLE_METADATA_PERIOD_INDEX = 'period';
     /**
      * @see DataCollection::$dataNames.
      */
     private $dataNames;
+
     /**
      * @see DataCollection::$dataType.
      */
     private $dataType;
+
     /**
      * Whether to expand the DataTables that're created or not. Expanding a DataTable
      * means creating DataTables using subtable blobs and correctly setting the subtable
@@ -39,6 +39,7 @@ class DataTableFactory
      * @var bool
      */
     private $expandDataTable = false;
+
     /**
      * Whether to add the subtable ID used in the database to the in-memory DataTables
      * as metadata or not.
@@ -46,6 +47,7 @@ class DataTableFactory
      * @var bool
      */
     private $addMetadataSubtableId = false;
+
     /**
      * The maximum number of subtable levels to create when creating an expanded
      * DataTable.
@@ -53,24 +55,31 @@ class DataTableFactory
      * @var int
      */
     private $maxSubtableDepth = null;
+
     /**
      * @see DataCollection::$sitesId.
      */
     private $sitesId;
+
     /**
      * @see DataCollection::$periods.
      */
     private $periods;
+
     /**
      * The ID of the subtable to create a DataTable for. Only relevant for blob data.
      *
      * @var int|null
      */
     private $idSubtable = null;
+
     /**
      * @see DataCollection::$defaultRow.
      */
     private $defaultRow;
+
+    const TABLE_METADATA_SITE_INDEX = 'site';
+    const TABLE_METADATA_PERIOD_INDEX = 'period';
 
     /**
      * Constructor.
@@ -136,6 +145,11 @@ class DataTableFactory
         $this->idSubtable = $idSubtable;
     }
 
+    private function isNumericDataType()
+    {
+        return $this->dataType == 'numeric';
+    }
+
     /**
      * Creates a DataTable|Set instance using an index of
      * archive data.
@@ -166,35 +180,45 @@ class DataTableFactory
         return $dataTable;
     }
 
-    private function getDefaultMetadata()
-    {
-        return array(
-            DataTableFactory::TABLE_METADATA_SITE_INDEX => new Site(reset($this->sitesId)),
-            DataTableFactory::TABLE_METADATA_PERIOD_INDEX => reset($this->periods),
-        );
-    }
-
-    private function isNumericDataType()
-    {
-        return $this->dataType == 'numeric';
-    }
-
     /**
-     * Creates a DataTable instance from an index row.
+     * Creates a merged DataTable|Map instance using an index of archive data similar to {@link make()}.
      *
-     * @param array $data An archive data row.
-     * @param array $keyMetadata The metadata to add to the table(s) when created.
+     * Whereas {@link make()} creates a Map for each result index (period and|or site), this will only create a Map
+     * for a period result index and move all site related indices into one dataTable. This is the same as doing
+     * `$dataTableFactory->make()->mergeChildren()` just much faster. It is mainly useful for reports across many sites
+     * eg `MultiSites.getAll`. Was done as part of https://github.com/piwik/piwik/issues/6809
+     *
+     * @param array $index @see DataCollection
+     * @param array $resultIndices an array mapping metadata names with pretty metadata labels.
+     *
      * @return DataTable|DataTable\Map
+     * @throws \Exception
      */
-    private function createDataTable($data, $keyMetadata)
+    public function makeMerged($index, $resultIndices)
     {
-        if ($this->dataType == 'blob') {
-            $result = $this->makeFromBlobRow($data, $keyMetadata);
-        } else {
-            $result = $this->makeFromMetricsArray($data, $keyMetadata);
+        if (!$this->isNumericDataType()) {
+            throw new \Exception('This method is supposed to work with non-numeric data types but it is not tested. To use it, remove this exception and write tests to be sure it works.');
         }
 
-        return $result;
+        $hasSiteIndex   = isset($resultIndices[self::TABLE_METADATA_SITE_INDEX]);
+        $hasPeriodIndex = isset($resultIndices[self::TABLE_METADATA_PERIOD_INDEX]);
+
+        $isNumeric = $this->isNumericDataType();
+        // to be backwards compatible use a Simple table if needed as it will be formatted differently
+        $useSimpleDataTable = !$hasSiteIndex && $isNumeric;
+
+        if (!$hasSiteIndex) {
+            $firstIdSite = reset($this->sitesId);
+            $index = array($firstIdSite => $index);
+        }
+
+        if ($hasPeriodIndex) {
+            $dataTable = $this->makeMergedTableWithPeriodAndSiteIndex($index, $resultIndices, $useSimpleDataTable, $isNumeric);
+        } else {
+            $dataTable = $this->makeMergedWithSiteIndex($index, $useSimpleDataTable, $isNumeric);
+        }
+
+        return $dataTable;
     }
 
     /**
@@ -257,6 +281,90 @@ class DataTableFactory
     }
 
     /**
+     * Creates a DataTable for every record in an archive data row and puts them
+     * in a DataTable\Map instance.
+     *
+     * @param array $blobRow
+     * @return DataTable\Map
+     */
+    private function makeIndexedByRecordNameDataTable($blobRow, $keyMetadata)
+    {
+        $table = new DataTable\Map();
+        $table->setKeyName('recordName');
+
+        $tableMetadata = array_merge(DataCollection::getDataRowMetadata($blobRow), $keyMetadata);
+
+        foreach ($blobRow as $name => $blob) {
+            $newTable = DataTable::fromSerializedArray($blob);
+            $newTable->setAllTableMetadata($tableMetadata);
+
+            $table->addTable($newTable, $name);
+        }
+
+        return $table;
+    }
+
+    /**
+     * Creates a Set from an array index.
+     *
+     * @param array $index @see DataCollection
+     * @param array $resultIndices @see make
+     * @param array $keyMetadata The metadata to add to the table when it's created.
+     * @return DataTable\Map
+     */
+    private function createDataTableMapFromIndex($index, $resultIndices, $keyMetadata)
+    {
+        $result = new DataTable\Map();
+        $result->setKeyName(reset($resultIndices));
+        $resultIndex = key($resultIndices);
+
+        array_shift($resultIndices);
+
+        $hasIndices = !empty($resultIndices);
+
+        foreach ($index as $label => $value) {
+            $keyMetadata[$resultIndex] = $this->createTableIndexMetadata($resultIndex, $label);
+
+            if ($hasIndices) {
+                $newTable = $this->createDataTableMapFromIndex($value, $resultIndices, $keyMetadata);
+            } else {
+                $newTable = $this->createDataTable($value, $keyMetadata);
+            }
+
+            $result->addTable($newTable, $this->prettifyIndexLabel($resultIndex, $label));
+        }
+
+        return $result;
+    }
+
+    private function createTableIndexMetadata($resultIndex, $label)
+    {
+        if ($resultIndex === DataTableFactory::TABLE_METADATA_SITE_INDEX) {
+            return new Site($label);
+        } elseif ($resultIndex === DataTableFactory::TABLE_METADATA_PERIOD_INDEX) {
+            return $this->periods[$label];
+        }
+    }
+
+    /**
+     * Creates a DataTable instance from an index row.
+     *
+     * @param array $data An archive data row.
+     * @param array $keyMetadata The metadata to add to the table(s) when created.
+     * @return DataTable|DataTable\Map
+     */
+    private function createDataTable($data, $keyMetadata)
+    {
+        if ($this->dataType == 'blob') {
+            $result = $this->makeFromBlobRow($data, $keyMetadata);
+        } else {
+            $result = $this->makeFromMetricsArray($data, $keyMetadata);
+        }
+
+        return $result;
+    }
+
+    /**
      * Creates DataTables from $dataTable's subtable blobs (stored in $blobRow) and sets
      * the subtable IDs of each DataTable row.
      *
@@ -305,28 +413,27 @@ class DataTableFactory
         }
     }
 
-    /**
-     * Creates a DataTable for every record in an archive data row and puts them
-     * in a DataTable\Map instance.
-     *
-     * @param array $blobRow
-     * @return DataTable\Map
-     */
-    private function makeIndexedByRecordNameDataTable($blobRow, $keyMetadata)
+    private function getDefaultMetadata()
     {
-        $table = new DataTable\Map();
-        $table->setKeyName('recordName');
+        return array(
+            DataTableFactory::TABLE_METADATA_SITE_INDEX => new Site(reset($this->sitesId)),
+            DataTableFactory::TABLE_METADATA_PERIOD_INDEX => reset($this->periods),
+        );
+    }
 
-        $tableMetadata = array_merge(DataCollection::getDataRowMetadata($blobRow), $keyMetadata);
-
-        foreach ($blobRow as $name => $blob) {
-            $newTable = DataTable::fromSerializedArray($blob);
-            $newTable->setAllTableMetadata($tableMetadata);
-
-            $table->addTable($newTable, $name);
+    /**
+     * Returns the pretty version of an index label.
+     *
+     * @param string $labelType eg, 'site', 'period', etc.
+     * @param string $label eg, '0', '1', '2012-01-01,2012-01-31', etc.
+     * @return string
+     */
+    private function prettifyIndexLabel($labelType, $label)
+    {
+        if ($labelType == self::TABLE_METADATA_PERIOD_INDEX) { // prettify period labels
+            return $this->periods[$label]->getPrettyString();
         }
-
-        return $table;
+        return $label;
     }
 
     /**
@@ -361,104 +468,6 @@ class DataTableFactory
 
         $result = $table;
         return $result;
-    }
-
-    /**
-     * Creates a Set from an array index.
-     *
-     * @param array $index @see DataCollection
-     * @param array $resultIndices @see make
-     * @param array $keyMetadata The metadata to add to the table when it's created.
-     * @return DataTable\Map
-     */
-    private function createDataTableMapFromIndex($index, $resultIndices, $keyMetadata)
-    {
-        $result = new DataTable\Map();
-        $result->setKeyName(reset($resultIndices));
-        $resultIndex = key($resultIndices);
-
-        array_shift($resultIndices);
-
-        $hasIndices = !empty($resultIndices);
-
-        foreach ($index as $label => $value) {
-            $keyMetadata[$resultIndex] = $this->createTableIndexMetadata($resultIndex, $label);
-
-            if ($hasIndices) {
-                $newTable = $this->createDataTableMapFromIndex($value, $resultIndices, $keyMetadata);
-            } else {
-                $newTable = $this->createDataTable($value, $keyMetadata);
-            }
-
-            $result->addTable($newTable, $this->prettifyIndexLabel($resultIndex, $label));
-        }
-
-        return $result;
-    }
-
-    private function createTableIndexMetadata($resultIndex, $label)
-    {
-        if ($resultIndex === DataTableFactory::TABLE_METADATA_SITE_INDEX) {
-            return new Site($label);
-        } elseif ($resultIndex === DataTableFactory::TABLE_METADATA_PERIOD_INDEX) {
-            return $this->periods[$label];
-        }
-    }
-
-    /**
-     * Returns the pretty version of an index label.
-     *
-     * @param string $labelType eg, 'site', 'period', etc.
-     * @param string $label eg, '0', '1', '2012-01-01,2012-01-31', etc.
-     * @return string
-     */
-    private function prettifyIndexLabel($labelType, $label)
-    {
-        if ($labelType == self::TABLE_METADATA_PERIOD_INDEX) { // prettify period labels
-            return $this->periods[$label]->getPrettyString();
-        }
-        return $label;
-    }
-
-    /**
-     * Creates a merged DataTable|Map instance using an index of archive data similar to {@link make()}.
-     *
-     * Whereas {@link make()} creates a Map for each result index (period and|or site), this will only create a Map
-     * for a period result index and move all site related indices into one dataTable. This is the same as doing
-     * `$dataTableFactory->make()->mergeChildren()` just much faster. It is mainly useful for reports across many sites
-     * eg `MultiSites.getAll`. Was done as part of https://github.com/piwik/piwik/issues/6809
-     *
-     * @param array $index @see DataCollection
-     * @param array $resultIndices an array mapping metadata names with pretty metadata labels.
-     *
-     * @return DataTable|DataTable\Map
-     * @throws \Exception
-     */
-    public function makeMerged($index, $resultIndices)
-    {
-        if (!$this->isNumericDataType()) {
-            throw new \Exception('This method is supposed to work with non-numeric data types but it is not tested. To use it, remove this exception and write tests to be sure it works.');
-        }
-
-        $hasSiteIndex   = isset($resultIndices[self::TABLE_METADATA_SITE_INDEX]);
-        $hasPeriodIndex = isset($resultIndices[self::TABLE_METADATA_PERIOD_INDEX]);
-
-        $isNumeric = $this->isNumericDataType();
-        // to be backwards compatible use a Simple table if needed as it will be formatted differently
-        $useSimpleDataTable = !$hasSiteIndex && $isNumeric;
-
-        if (!$hasSiteIndex) {
-            $firstIdSite = reset($this->sitesId);
-            $index = array($firstIdSite => $index);
-        }
-
-        if ($hasPeriodIndex) {
-            $dataTable = $this->makeMergedTableWithPeriodAndSiteIndex($index, $resultIndices, $useSimpleDataTable, $isNumeric);
-        } else {
-            $dataTable = $this->makeMergedWithSiteIndex($index, $useSimpleDataTable, $isNumeric);
-        }
-
-        return $dataTable;
     }
 
     private function makeMergedTableWithPeriodAndSiteIndex($index, $resultIndices, $useSimpleDataTable, $isNumeric)

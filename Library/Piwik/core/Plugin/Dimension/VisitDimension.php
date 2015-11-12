@@ -8,19 +8,19 @@
  */
 namespace Piwik\Plugin\Dimension;
 
-use Exception;
-use Piwik\Cache as PiwikCache;
 use Piwik\CacheId;
+use Piwik\Cache as PiwikCache;
 use Piwik\Columns\Dimension;
 use Piwik\Common;
 use Piwik\Db;
-use Piwik\Plugin;
 use Piwik\Plugin\Manager as PluginManager;
 use Piwik\Plugin\Segment;
-use Piwik\Tracker;
-use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Action;
+use Piwik\Tracker;
+use Piwik\Plugin;
+use Exception;
 
 /**
  * Defines a new visit dimension that records any visit related information during tracking.
@@ -42,123 +42,6 @@ abstract class VisitDimension extends Dimension
     private $tableName = 'log_visit';
 
     /**
-     * Get all visit dimensions that are defined by all activated plugins.
-     * @return VisitDimension[]
-     */
-    public static function getAllDimensions()
-    {
-        $cacheId = CacheId::pluginAware('VisitDimensions');
-        $cache   = PiwikCache::getTransientCache();
-
-        if (!$cache->contains($cacheId)) {
-            $plugins   = PluginManager::getInstance()->getPluginsLoadedAndActivated();
-            $instances = array();
-
-            foreach ($plugins as $plugin) {
-                foreach (self::getDimensions($plugin) as $instance) {
-                    $instances[] = $instance;
-                }
-            }
-
-            $instances = self::sortDimensions($instances);
-
-            $cache->save($cacheId, $instances);
-        }
-
-        return $cache->fetch($cacheId);
-    }
-
-    /**
-     * Get all visit dimensions that are defined by the given plugin.
-     * @param Plugin $plugin
-     * @return VisitDimension[]
-     * @ignore
-     */
-    public static function getDimensions(Plugin $plugin)
-    {
-        $dimensions = $plugin->findMultipleComponents('Columns', '\\Piwik\\Plugin\\Dimension\\VisitDimension');
-        $instances  = array();
-
-        foreach ($dimensions as $dimension) {
-            $instances[] = new $dimension();
-        }
-
-        return $instances;
-    }
-
-    /**
-     * @ignore
-     * @param VisitDimension[] $dimensions
-     */
-    public static function sortDimensions($dimensions)
-    {
-        $sorted = array();
-        $exists = array();
-
-        // we first handle all the once without dependency
-        foreach ($dimensions as $index => $dimension) {
-            $fields = $dimension->getRequiredVisitFields();
-            if (empty($fields)) {
-                $sorted[] = $dimension;
-                $exists[] = $dimension->getColumnName();
-                unset($dimensions[$index]);
-            }
-        }
-
-        // find circular references
-        // and remove dependencies whose column cannot be resolved because it is not installed / does not exist / is defined by core
-        $depenencies = array();
-        foreach ($dimensions as $dimension) {
-            $depenencies[$dimension->getColumnName()] = $dimension->getRequiredVisitFields();
-        }
-
-        foreach ($depenencies as $column => $fields) {
-            foreach ($fields as $key => $field) {
-                if (empty($depenencies[$field]) && !in_array($field, $exists)) {
-                    // we cannot resolve that dependency as it does not exist
-                    unset($depenencies[$column][$key]);
-                } elseif (!empty($depenencies[$field]) && in_array($column, $depenencies[$field])) {
-                    throw new Exception("Circular reference detected for required field $field in dimension $column");
-                }
-            }
-        }
-
-        $count = 0;
-        while (count($dimensions) > 0) {
-            $count++;
-            if ($count > 1000) {
-                foreach ($dimensions as $dimension) {
-                    $sorted[] = $dimension;
-                }
-                break; // to prevent an endless loop
-            }
-            foreach ($dimensions as $key => $dimension) {
-                $fields = $depenencies[$dimension->getColumnName()];
-                if (count(array_intersect($fields, $exists)) === count($fields)) {
-                    $sorted[] = $dimension;
-                    $exists[] = $dimension->getColumnName();
-                    unset($dimensions[$key]);
-                }
-            }
-        }
-
-        return $sorted;
-    }
-
-    /**
-     * Sometimes you may want to make sure another dimension is executed before your dimension so you can persist
-     * this dimensions' value depending on the value of other dimensions. You can do this by defining an array of
-     * dimension names. If you access any value of any other column within your events, you should require them here.
-     * Otherwise those values may not be available.
-     * @return array
-     * @api
-     */
-    public function getRequiredVisitFields()
-    {
-        return array();
-    }
-
-    /**
      * Installs the visit dimension in case it is not installed yet. The installation is already implemented based on
      * the {@link $columnName} and {@link $columnType}. If you want to perform additional actions beside adding the
      * column to the database - for instance adding an index - you can overwrite this method. We recommend to call
@@ -170,22 +53,22 @@ abstract class VisitDimension extends Dimension
      *
      * Example:
      * ```
-    * public function install()
-    * {
-        * $changes = parent::install();
-        * $changes['log_visit'][] = "ADD INDEX index_idsite_servertime ( idsite, server_time )";
- *
-* return $changes;
-    * }
-    * ```
+    public function install()
+    {
+        $changes = parent::install();
+        $changes['log_visit'][] = "ADD INDEX index_idsite_servertime ( idsite, server_time )";
+
+        return $changes;
+    }
+    ```
      *
      * @return array An array containing the table name as key and an array of MySQL alter table statements that should
      *               be executed on the given table. Example:
      * ```
-    * array(
-        * 'log_visit' => array("ADD COLUMN `$this->columnName` $this->columnType", "ADD INDEX ...")
-    * );
-    * ```
+    array(
+        'log_visit' => array("ADD COLUMN `$this->columnName` $this->columnType", "ADD INDEX ...")
+    );
+    ```
      * @api
      */
     public function install()
@@ -203,15 +86,6 @@ abstract class VisitDimension extends Dimension
         }
 
         return $changes;
-    }
-
-    private function isHandlingLogConversion()
-    {
-        if (empty($this->columnName) || empty($this->columnType)) {
-            return false;
-        }
-
-        return $this->hasImplementedEvent('onAnyGoalConversion');
     }
 
     /**
@@ -254,6 +128,15 @@ abstract class VisitDimension extends Dimension
         return $this->columnType . $this->isHandlingLogConversion();
     }
 
+    private function isHandlingLogConversion()
+    {
+        if (empty($this->columnName) || empty($this->columnType)) {
+            return false;
+        }
+
+        return $this->hasImplementedEvent('onAnyGoalConversion');
+    }
+
     /**
      * Uninstalls the dimension if a {@link $columnName} and {@link columnType} is set. In case you perform any custom
      * actions during {@link install()} - for instance adding an index - you should make sure to undo those actions by
@@ -289,6 +172,36 @@ abstract class VisitDimension extends Dimension
                 throw $e;
             }
         }
+    }
+
+    /**
+     * Adds a new segment. It automatically sets the SQL segment depending on the column name in case none is set
+     * already.
+     * @see \Piwik\Columns\Dimension::addSegment()
+     * @param Segment $segment
+     * @api
+     */
+    protected function addSegment(Segment $segment)
+    {
+        $sqlSegment = $segment->getSqlSegment();
+        if (!empty($this->columnName) && empty($sqlSegment)) {
+            $segment->setSqlSegment('log_visit.' . $this->columnName);
+        }
+
+        parent::addSegment($segment);
+    }
+
+    /**
+     * Sometimes you may want to make sure another dimension is executed before your dimension so you can persist
+     * this dimensions' value depending on the value of other dimensions. You can do this by defining an array of
+     * dimension names. If you access any value of any other column within your events, you should require them here.
+     * Otherwise those values may not be available.
+     * @return array
+     * @api
+     */
+    public function getRequiredVisitFields()
+    {
+        return array();
     }
 
     /**
@@ -378,19 +291,106 @@ abstract class VisitDimension extends Dimension
     }
 
     /**
-     * Adds a new segment. It automatically sets the SQL segment depending on the column name in case none is set
-     * already.
-     * @see \Piwik\Columns\Dimension::addSegment()
-     * @param Segment $segment
-     * @api
+     * Get all visit dimensions that are defined by all activated plugins.
+     * @return VisitDimension[]
      */
-    protected function addSegment(Segment $segment)
+    public static function getAllDimensions()
     {
-        $sqlSegment = $segment->getSqlSegment();
-        if (!empty($this->columnName) && empty($sqlSegment)) {
-            $segment->setSqlSegment('log_visit.' . $this->columnName);
+        $cacheId = CacheId::pluginAware('VisitDimensions');
+        $cache   = PiwikCache::getTransientCache();
+
+        if (!$cache->contains($cacheId)) {
+            $plugins   = PluginManager::getInstance()->getPluginsLoadedAndActivated();
+            $instances = array();
+
+            foreach ($plugins as $plugin) {
+                foreach (self::getDimensions($plugin) as $instance) {
+                    $instances[] = $instance;
+                }
+            }
+
+            $instances = self::sortDimensions($instances);
+
+            $cache->save($cacheId, $instances);
         }
 
-        parent::addSegment($segment);
+        return $cache->fetch($cacheId);
+    }
+
+    /**
+     * @ignore
+     * @param VisitDimension[] $dimensions
+     */
+    public static function sortDimensions($dimensions)
+    {
+        $sorted = array();
+        $exists = array();
+
+        // we first handle all the once without dependency
+        foreach ($dimensions as $index => $dimension) {
+            $fields = $dimension->getRequiredVisitFields();
+            if (empty($fields)) {
+                $sorted[] = $dimension;
+                $exists[] = $dimension->getColumnName();
+                unset($dimensions[$index]);
+            }
+        }
+
+        // find circular references
+        // and remove dependencies whose column cannot be resolved because it is not installed / does not exist / is defined by core
+        $depenencies = array();
+        foreach ($dimensions as $dimension) {
+            $depenencies[$dimension->getColumnName()] = $dimension->getRequiredVisitFields();
+        }
+
+        foreach ($depenencies as $column => $fields) {
+            foreach ($fields as $key => $field) {
+                if (empty($depenencies[$field]) && !in_array($field, $exists)) {
+                    // we cannot resolve that dependency as it does not exist
+                    unset($depenencies[$column][$key]);
+                } elseif (!empty($depenencies[$field]) && in_array($column, $depenencies[$field])) {
+                    throw new Exception("Circular reference detected for required field $field in dimension $column");
+                }
+            }
+        }
+
+        $count = 0;
+        while (count($dimensions) > 0) {
+            $count++;
+            if ($count > 1000) {
+                foreach ($dimensions as $dimension) {
+                    $sorted[] = $dimension;
+                }
+                break; // to prevent an endless loop
+            }
+            foreach ($dimensions as $key => $dimension) {
+                $fields = $depenencies[$dimension->getColumnName()];
+                if (count(array_intersect($fields, $exists)) === count($fields)) {
+                    $sorted[] = $dimension;
+                    $exists[] = $dimension->getColumnName();
+                    unset($dimensions[$key]);
+                }
+            }
+        }
+
+        return $sorted;
+    }
+
+    /**
+     * Get all visit dimensions that are defined by the given plugin.
+     * @param Plugin $plugin
+     * @return VisitDimension[]
+     * @ignore
+     */
+    public static function getDimensions(Plugin $plugin)
+    {
+        $dimensions = $plugin->findMultipleComponents('Columns', '\\Piwik\\Plugin\\Dimension\\VisitDimension');
+        $instances  = array();
+
+        foreach ($dimensions as $dimension) {
+            $instances[] = new $dimension();
+        }
+
+        return $instances;
     }
 }

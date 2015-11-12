@@ -98,13 +98,15 @@ abstract class Archiver
     abstract public function aggregateMultipleReports();
 
     /**
-     * Whether this Archiver should be used or not.
+     * Returns a {@link Piwik\ArchiveProcessor} instance that can be used to insert archive data for
+     * the period, segment and site we are archiving data for.
      *
-     * @return bool
+     * @return \Piwik\ArchiveProcessor
+     * @api
      */
-    public function isEnabled()
+    protected function getProcessor()
     {
-        return true;
+        return $this->processor;
     }
 
     /**
@@ -120,14 +122,12 @@ abstract class Archiver
     }
 
     /**
-     * Returns a {@link Piwik\ArchiveProcessor} instance that can be used to insert archive data for
-     * the period, segment and site we are archiving data for.
+     * Whether this Archiver should be used or not.
      *
-     * @return \Piwik\ArchiveProcessor
-     * @api
+     * @return bool
      */
-    protected function getProcessor()
+    public function isEnabled()
     {
-        return $this->processor;
+        return true;
     }
 }

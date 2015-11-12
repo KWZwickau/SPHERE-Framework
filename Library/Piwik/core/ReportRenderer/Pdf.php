@@ -215,42 +215,6 @@ class Pdf extends ReportRenderer
         $this->TCPDF->Ln();
     }
 
-    private function formatText($text)
-    {
-        return Common::unsanitizeInputValue($text);
-    }
-
-    public function renderReport($processedReport)
-    {
-        $this->reportMetadata = $processedReport['metadata'];
-        $this->reportRowsMetadata = $processedReport['reportMetadata'];
-        $this->displayGraph = $processedReport['displayGraph'];
-        $this->evolutionGraph = $processedReport['evolutionGraph'];
-        $this->displayTable = $processedReport['displayTable'];
-        $this->segment = $processedReport['segment'];
-        list($this->report, $this->reportColumns) = self::processTableFormat($this->reportMetadata, $processedReport['reportData'], $processedReport['columns']);
-
-        $this->paintReportHeader();
-
-        if (!$this->reportHasData()) {
-            $this->paintMessage(Piwik::translate('CoreHome_ThereIsNoDataForThisReport'));
-            return;
-        }
-
-        if ($this->displayGraph) {
-            $this->paintGraph();
-        }
-
-        if ($this->displayGraph && $this->displayTable) {
-            $this->TCPDF->Ln(5);
-        }
-
-        if ($this->displayTable) {
-            $this->paintReportTableHeader();
-            $this->paintReportTable();
-        }
-    }
-
     /**
      * Generate a header of page.
      */
@@ -333,19 +297,129 @@ class Pdf extends ReportRenderer
         return $this->report->getRowsCount() > 0;
     }
 
-    /**
-     * Prints a message
-     *
-     * @param string $message
-     * @return void
-     */
-    private function paintMessage($message)
+    private function setBorderColor()
     {
-        $this->TCPDF->SetFont($this->reportFont, $this->reportFontStyle, $this->reportSimpleFontSize);
+        $this->TCPDF->SetDrawColor($this->tableCellBorderColor[0], $this->tableCellBorderColor[1], $this->tableCellBorderColor[2]);
+    }
+
+    public function renderReport($processedReport)
+    {
+        $this->reportMetadata = $processedReport['metadata'];
+        $this->reportRowsMetadata = $processedReport['reportMetadata'];
+        $this->displayGraph = $processedReport['displayGraph'];
+        $this->evolutionGraph = $processedReport['evolutionGraph'];
+        $this->displayTable = $processedReport['displayTable'];
+        $this->segment = $processedReport['segment'];
+        list($this->report, $this->reportColumns) = self::processTableFormat($this->reportMetadata, $processedReport['reportData'], $processedReport['columns']);
+
+        $this->paintReportHeader();
+
+        if (!$this->reportHasData()) {
+            $this->paintMessage(Piwik::translate('CoreHome_ThereIsNoDataForThisReport'));
+            return;
+        }
+
+        if ($this->displayGraph) {
+            $this->paintGraph();
+        }
+
+        if ($this->displayGraph && $this->displayTable) {
+            $this->TCPDF->Ln(5);
+        }
+
+        if ($this->displayTable) {
+            $this->paintReportTableHeader();
+            $this->paintReportTable();
+        }
+    }
+
+    private function formatText($text)
+    {
+        return Common::unsanitizeInputValue($text);
+    }
+
+    private function paintReportTable()
+    {
+        //Color and font restoration
+        $this->TCPDF->SetFillColor($this->tableBackgroundColor[0], $this->tableBackgroundColor[1], $this->tableBackgroundColor[2]);
         $this->TCPDF->SetTextColor($this->reportTextColor[0], $this->reportTextColor[1], $this->reportTextColor[2]);
-        $message = $this->formatText($message);
-        $this->TCPDF->Write("1em", $message);
-        $this->TCPDF->Ln();
+        $this->TCPDF->SetFont('');
+
+        $fill = true;
+        $url = false;
+        $leftSpacesBeforeLogo = str_repeat(' ', $this->leftSpacesBeforeLogo);
+
+        $logoWidth = $this->logoWidth;
+        $logoHeight = $this->logoHeight;
+
+        $rowsMetadata = $this->reportRowsMetadata->getRows();
+
+        // Draw a body of report table
+        foreach ($this->report->getRows() as $rowId => $row) {
+            $rowMetrics = $row->getColumns();
+            $rowMetadata = isset($rowsMetadata[$rowId]) ? $rowsMetadata[$rowId]->getColumns() : array();
+            if (isset($rowMetadata['url'])) {
+                $url = $rowMetadata['url'];
+            }
+            foreach ($this->reportColumns as $columnId => $columnName) {
+                // Label column
+                if ($columnId == 'label') {
+                    $isLogoDisplayable = isset($rowMetadata['logo']);
+                    $text = '';
+                    $posX = $this->TCPDF->GetX();
+                    $posY = $this->TCPDF->GetY();
+                    if (isset($rowMetrics[$columnId])) {
+                        $text = substr($rowMetrics[$columnId], 0, $this->truncateAfter);
+                        if ($isLogoDisplayable) {
+                            $text = $leftSpacesBeforeLogo . $text;
+                        }
+                    }
+                    $text = $this->formatText($text);
+
+                    $this->TCPDF->Cell($this->labelCellWidth, $this->cellHeight, $text, 'LR', 0, 'L', $fill, $url);
+
+                    if ($isLogoDisplayable) {
+                        if (isset($rowMetadata['logoWidth'])) {
+                            $logoWidth = $rowMetadata['logoWidth'];
+                        }
+                        if (isset($rowMetadata['logoHeight'])) {
+                            $logoHeight = $rowMetadata['logoHeight'];
+                        }
+                        $restoreY = $this->TCPDF->getY();
+                        $restoreX = $this->TCPDF->getX();
+                        $this->TCPDF->SetY($posY);
+                        $this->TCPDF->SetX($posX);
+                        $topMargin = 1.3;
+                        // Country flags are not very high, force a bigger top margin
+                        if ($logoHeight < 16) {
+                            $topMargin = 2;
+                        }
+                        $path = Filesystem::getPathToPiwikRoot() . "/" . $rowMetadata['logo'];
+                        if (file_exists($path)) {
+                            $this->TCPDF->Image($path, $posX + ($leftMargin = 2), $posY + $topMargin, $logoWidth / 4);
+                        }
+                        $this->TCPDF->SetXY($restoreX, $restoreY);
+                    }
+                } // metrics column
+                else {
+                    // No value means 0
+                    if (empty($rowMetrics[$columnId])) {
+                        $rowMetrics[$columnId] = 0;
+                    }
+                    $this->TCPDF->Cell($this->cellWidth, $this->cellHeight, NumberFormatter::getInstance()->format($rowMetrics[$columnId]), 'LR', 0, 'L', $fill);
+                }
+            }
+
+            $this->TCPDF->Ln();
+
+            // Top/Bottom grey border for all cells
+            $this->TCPDF->SetDrawColor($this->rowTopBottomBorder[0], $this->rowTopBottomBorder[1], $this->rowTopBottomBorder[2]);
+            $this->TCPDF->Cell($this->totalWidth, 0, '', 'T');
+            $this->setBorderColor();
+            $this->TCPDF->Ln(0.2);
+
+            $fill = !$fill;
+        }
     }
 
     private function paintGraph()
@@ -453,93 +527,19 @@ class Pdf extends ReportRenderer
         $this->TCPDF->SetXY($initPosX, $posY + $maxCellHeight);
     }
 
-    private function setBorderColor()
+    /**
+     * Prints a message
+     *
+     * @param string $message
+     * @return void
+     */
+    private function paintMessage($message)
     {
-        $this->TCPDF->SetDrawColor($this->tableCellBorderColor[0], $this->tableCellBorderColor[1], $this->tableCellBorderColor[2]);
-    }
-
-    private function paintReportTable()
-    {
-        //Color and font restoration
-        $this->TCPDF->SetFillColor($this->tableBackgroundColor[0], $this->tableBackgroundColor[1], $this->tableBackgroundColor[2]);
+        $this->TCPDF->SetFont($this->reportFont, $this->reportFontStyle, $this->reportSimpleFontSize);
         $this->TCPDF->SetTextColor($this->reportTextColor[0], $this->reportTextColor[1], $this->reportTextColor[2]);
-        $this->TCPDF->SetFont('');
-
-        $fill = true;
-        $url = false;
-        $leftSpacesBeforeLogo = str_repeat(' ', $this->leftSpacesBeforeLogo);
-
-        $logoWidth = $this->logoWidth;
-        $logoHeight = $this->logoHeight;
-
-        $rowsMetadata = $this->reportRowsMetadata->getRows();
-
-        // Draw a body of report table
-        foreach ($this->report->getRows() as $rowId => $row) {
-            $rowMetrics = $row->getColumns();
-            $rowMetadata = isset($rowsMetadata[$rowId]) ? $rowsMetadata[$rowId]->getColumns() : array();
-            if (isset($rowMetadata['url'])) {
-                $url = $rowMetadata['url'];
-            }
-            foreach ($this->reportColumns as $columnId => $columnName) {
-                // Label column
-                if ($columnId == 'label') {
-                    $isLogoDisplayable = isset($rowMetadata['logo']);
-                    $text = '';
-                    $posX = $this->TCPDF->GetX();
-                    $posY = $this->TCPDF->GetY();
-                    if (isset($rowMetrics[$columnId])) {
-                        $text = substr($rowMetrics[$columnId], 0, $this->truncateAfter);
-                        if ($isLogoDisplayable) {
-                            $text = $leftSpacesBeforeLogo . $text;
-                        }
-                    }
-                    $text = $this->formatText($text);
-
-                    $this->TCPDF->Cell($this->labelCellWidth, $this->cellHeight, $text, 'LR', 0, 'L', $fill, $url);
-
-                    if ($isLogoDisplayable) {
-                        if (isset($rowMetadata['logoWidth'])) {
-                            $logoWidth = $rowMetadata['logoWidth'];
-                        }
-                        if (isset($rowMetadata['logoHeight'])) {
-                            $logoHeight = $rowMetadata['logoHeight'];
-                        }
-                        $restoreY = $this->TCPDF->getY();
-                        $restoreX = $this->TCPDF->getX();
-                        $this->TCPDF->SetY($posY);
-                        $this->TCPDF->SetX($posX);
-                        $topMargin = 1.3;
-                        // Country flags are not very high, force a bigger top margin
-                        if ($logoHeight < 16) {
-                            $topMargin = 2;
-                        }
-                        $path = Filesystem::getPathToPiwikRoot() . "/" . $rowMetadata['logo'];
-                        if (file_exists($path)) {
-                            $this->TCPDF->Image($path, $posX + ($leftMargin = 2), $posY + $topMargin, $logoWidth / 4);
-                        }
-                        $this->TCPDF->SetXY($restoreX, $restoreY);
-                    }
-                } // metrics column
-                else {
-                    // No value means 0
-                    if (empty($rowMetrics[$columnId])) {
-                        $rowMetrics[$columnId] = 0;
-                    }
-                    $this->TCPDF->Cell($this->cellWidth, $this->cellHeight, NumberFormatter::getInstance()->format($rowMetrics[$columnId]), 'LR', 0, 'L', $fill);
-                }
-            }
-
-            $this->TCPDF->Ln();
-
-            // Top/Bottom grey border for all cells
-            $this->TCPDF->SetDrawColor($this->rowTopBottomBorder[0], $this->rowTopBottomBorder[1], $this->rowTopBottomBorder[2]);
-            $this->TCPDF->Cell($this->totalWidth, 0, '', 'T');
-            $this->setBorderColor();
-            $this->TCPDF->Ln(0.2);
-
-            $fill = !$fill;
-        }
+        $message = $this->formatText($message);
+        $this->TCPDF->Write("1em", $message);
+        $this->TCPDF->Ln();
     }
 
     /**

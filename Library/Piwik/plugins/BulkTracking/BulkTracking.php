@@ -54,6 +54,17 @@ class BulkTracking extends \Piwik\Plugin
         }
     }
 
+    public function setHandlerIfBulkRequest(&$handler)
+    {
+        if (!is_null($handler)) {
+            return;
+        }
+
+        if ($this->isUsingBulkRequest()) {
+            $handler = new Handler();
+        }
+    }
+
     private function isUsingBulkRequest()
     {
         $requests = $this->buildBulkRequests();
@@ -69,16 +80,5 @@ class BulkTracking extends \Piwik\Plugin
         }
 
         return new Requests();
-    }
-
-    public function setHandlerIfBulkRequest(&$handler)
-    {
-        if (!is_null($handler)) {
-            return;
-        }
-
-        if ($this->isUsingBulkRequest()) {
-            $handler = new Handler();
-        }
     }
 }

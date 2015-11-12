@@ -24,27 +24,9 @@ class Registry extends Singleton
         return self::getInstance()->hasKey($key);
     }
 
-    public function hasKey($key)
-    {
-        if ($key === 'auth') {
-            $key = 'Piwik\Auth';
-        }
-
-        return StaticContainer::getContainer()->has($key);
-    }
-
     public static function get($key)
     {
         return self::getInstance()->getKey($key);
-    }
-
-    public function getKey($key)
-    {
-        if ($key === 'auth') {
-            $key = 'Piwik\Auth';
-        }
-
-        return StaticContainer::get($key);
     }
 
     public static function set($key, $value)
@@ -59,5 +41,23 @@ class Registry extends Singleton
         }
 
         StaticContainer::getContainer()->set($key, $value);
+    }
+
+    public function getKey($key)
+    {
+        if ($key === 'auth') {
+            $key = 'Piwik\Auth';
+        }
+
+        return StaticContainer::get($key);
+    }
+
+    public function hasKey($key)
+    {
+        if ($key === 'auth') {
+            $key = 'Piwik\Auth';
+        }
+
+        return StaticContainer::getContainer()->has($key);
     }
 }

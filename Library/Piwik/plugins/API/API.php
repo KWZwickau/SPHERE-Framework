@@ -18,14 +18,15 @@ use Piwik\DataTable\Filter\ColumnDelete;
 use Piwik\DataTable\Row;
 use Piwik\Date;
 use Piwik\IP;
-use Piwik\Measurable\Type\TypeManager;
 use Piwik\Metrics;
 use Piwik\Period;
 use Piwik\Period\Range;
 use Piwik\Piwik;
+use Piwik\Plugin\Dimension\VisitDimension;
 use Piwik\Plugins\API\DataTable\MergeDataTables;
 use Piwik\Plugins\CoreAdminHome\CustomLogo;
 use Piwik\Translation\Translator;
+use Piwik\Measurable\Type\TypeManager;
 use Piwik\Version;
 
 require_once PIWIK_INCLUDE_PATH . '/core/Config.php';
@@ -50,18 +51,6 @@ require_once PIWIK_INCLUDE_PATH . '/core/Config.php';
  */
 class API extends \Piwik\Plugin\API
 {
-    /**
-     * Default translations for many core metrics.
-     * This is used for exports with translated labels. The exports contain columns that
-     * are not visible in the UI and not present in the API meta data. These columns are
-     * translated here.
-     * @return array
-     */
-    public static function getDefaultMetricTranslations()
-    {
-        return Metrics::getDefaultMetricTranslations();
-    }
-
     /**
      * Get Piwik version
      * @return string
@@ -94,6 +83,18 @@ class API extends \Piwik\Plugin\API
     }
 
     /**
+     * Default translations for many core metrics.
+     * This is used for exports with translated labels. The exports contain columns that
+     * are not visible in the UI and not present in the API meta data. These columns are
+     * translated here.
+     * @return array
+     */
+    public static function getDefaultMetricTranslations()
+    {
+        return Metrics::getDefaultMetricTranslations();
+    }
+
+    /**
      * Returns all available measurable types.
      * Marked as deprecated so it won't appear in API page. It won't be a public API for now.
      * @deprecated
@@ -115,6 +116,133 @@ class API extends \Piwik\Plugin\API
         }
 
         return $available;
+    }
+
+    public function getSegmentsMetadata($idSites = array(), $_hideImplementationData = true)
+    {
+        $isAuthenticatedWithViewAccess = Piwik::isUserHasViewAccess($idSites) && !Piwik::isUserIsAnonymous();
+
+        $segments = array();
+        foreach (Dimension::getAllDimensions() as $dimension) {
+            foreach ($dimension->getSegments() as $segment) {
+                if ($segment->isRequiresAtLeastViewAccess()) {
+                    $segment->setPermission($isAuthenticatedWithViewAccess);
+                }
+
+                $segments[] = $segment->toArray();
+            }
+        }
+
+        /**
+         * Triggered when gathering all available segment dimensions.
+         *
+         * This event can be used to make new segment dimensions available.
+         *
+         * **Example**
+         *
+         *     public function getSegmentsMetadata(&$segments, $idSites)
+         *     {
+         *         $segments[] = array(
+         *             'type'           => 'dimension',
+         *             'category'       => Piwik::translate('General_Visit'),
+         *             'name'           => 'General_VisitorIP',
+         *             'segment'        => 'visitIp',
+         *             'acceptedValues' => '13.54.122.1, etc.',
+         *             'sqlSegment'     => 'log_visit.location_ip',
+         *             'sqlFilter'      => array('Piwik\IP', 'P2N'),
+         *             'permission'     => $isAuthenticatedWithViewAccess,
+         *         );
+         *     }
+         *
+         * @param array &$dimensions The list of available segment dimensions. Append to this list to add
+         *                           new segments. Each element in this list must contain the
+         *                           following information:
+         *
+         *                           - **type**: Either `'metric'` or `'dimension'`. `'metric'` means
+         *                                       the value is a numeric and `'dimension'` means it is
+         *                                       a string. Also, `'metric'` values will be displayed
+         *                                       under **Visit (metrics)** in the Segment Editor.
+         *                           - **category**: The segment category name. This can be an existing
+         *                                           segment category visible in the segment editor.
+         *                           - **name**: The pretty name of the segment. Can be a translation token.
+         *                           - **segment**: The segment name, eg, `'visitIp'` or `'searches'`.
+         *                           - **acceptedValues**: A string describing one or two exacmple values, eg
+         *                                                 `'13.54.122.1, etc.'`.
+         *                           - **sqlSegment**: The table column this segment will segment by.
+         *                                             For example, `'log_visit.location_ip'` for the
+         *                                             **visitIp** segment.
+         *                           - **sqlFilter**: A PHP callback to apply to segment values before
+         *                                            they are used in SQL.
+         *                           - **permission**: True if the current user has view access to this
+         *                                             segment, false if otherwise.
+         * @param array $idSites The list of site IDs we're getting the available segments
+         *                       for. Some segments (such as Goal segments) depend on the
+         *                       site.
+         */
+        Piwik::postEvent('API.getSegmentDimensionMetadata', array(&$segments, $idSites));
+
+        foreach ($segments as &$segment) {
+            $segment['name'] = Piwik::translate($segment['name']);
+            $segment['category'] = Piwik::translate($segment['category']);
+
+            if ($_hideImplementationData) {
+                unset($segment['sqlFilter']);
+                unset($segment['sqlFilterValue']);
+                unset($segment['sqlSegment']);
+
+                if (isset($segment['suggestedValuesCallback'])
+                    && !is_string($segment['suggestedValuesCallback'])
+                ) {
+                    unset($segment['suggestedValuesCallback']);
+                }
+            }
+        }
+
+        usort($segments, array($this, 'sortSegments'));
+        return $segments;
+    }
+
+    /**
+     * @param $segmentName
+     * @param $table
+     * @return array
+     */
+    protected function getSegmentValuesFromVisitorLog($segmentName, $table)
+    {
+        // Cleanup data to return the top suggested (non empty) labels for this segment
+        $values = $table->getColumn($segmentName);
+
+
+        // Select also flattened keys (custom variables "page" scope, page URLs for one visit, page titles for one visit)
+        $valuesBis = $table->getColumnsStartingWith($segmentName . ColumnDelete::APPEND_TO_COLUMN_NAME_TO_KEEP);
+        $values = array_merge($values, $valuesBis);
+        return $values;
+    }
+
+    private function sortSegments($row1, $row2)
+    {
+        $customVarCategory = Piwik::translate('CustomVariables_CustomVariables');
+
+        $columns = array('type', 'category', 'name', 'segment');
+        foreach ($columns as $column) {
+            // Keep segments ordered alphabetically inside categories..
+            $type = -1;
+            if ($column == 'name') $type = 1;
+
+            $compare = $type * strcmp($row1[$column], $row2[$column]);
+
+            // hack so that custom variables "page" are grouped together in the doc
+            if ($row1['category'] == $customVarCategory
+                && $row1['category'] == $row2['category']
+            ) {
+                $compare = strcmp($row1['segment'], $row2['segment']);
+                return $compare;
+            }
+            if ($compare != 0) {
+                return $compare;
+            }
+        }
+        return $compare;
     }
 
     /**
@@ -180,6 +308,25 @@ class API extends \Piwik\Plugin\API
 
         $reporter = new ProcessedReport();
         $metadata = $reporter->getMetadata($idSite, $apiModule, $apiAction, $apiParameters, $language, $period, $date, $hideMetricsDoc, $showSubtableReports);
+        return $metadata;
+    }
+
+    /**
+     * Triggers a hook to ask plugins for available Reports.
+     * Returns metadata information about each report (category, name, dimension, metrics, etc.)
+     *
+     * @param string $idSites Comma separated list of website Ids
+     * @param bool|string $period
+     * @param bool|Date $date
+     * @param bool $hideMetricsDoc
+     * @param bool $showSubtableReports
+     * @return array
+     */
+    public function getReportMetadata($idSites = '', $period = false, $date = false, $hideMetricsDoc = false,
+                                      $showSubtableReports = false)
+    {
+        $reporter = new ProcessedReport();
+        $metadata = $reporter->getReportMetadata($idSites, $period, $date, $hideMetricsDoc, $showSubtableReports);
         return $metadata;
     }
 
@@ -261,25 +408,6 @@ class API extends \Piwik\Plugin\API
         }
 
         return $mergedDataTable;
-    }
-
-    /**
-     * Triggers a hook to ask plugins for available Reports.
-     * Returns metadata information about each report (category, name, dimension, metrics, etc.)
-     *
-     * @param string $idSites Comma separated list of website Ids
-     * @param bool|string $period
-     * @param bool|Date $date
-     * @param bool $hideMetricsDoc
-     * @param bool $showSubtableReports
-     * @return array
-     */
-    public function getReportMetadata($idSites = '', $period = false, $date = false, $hideMetricsDoc = false,
-                                      $showSubtableReports = false)
-    {
-        $reporter = new ProcessedReport();
-        $metadata = $reporter->getReportMetadata($idSites, $period, $date, $hideMetricsDoc, $showSubtableReports);
-        return $metadata;
     }
 
     /**
@@ -439,105 +567,28 @@ class API extends \Piwik\Plugin\API
         return $values;
     }
 
-    public function getSegmentsMetadata($idSites = array(), $_hideImplementationData = true)
+    /**
+     * A glossary of all reports and their definition
+     *
+     * @param $idSite
+     * @return array
+     */
+    public function getGlossaryReports($idSite)
     {
-        $isAuthenticatedWithViewAccess = Piwik::isUserHasViewAccess($idSites) && !Piwik::isUserIsAnonymous();
-
-        $segments = array();
-        foreach (Dimension::getAllDimensions() as $dimension) {
-            foreach ($dimension->getSegments() as $segment) {
-                if ($segment->isRequiresAtLeastViewAccess()) {
-                    $segment->setPermission($isAuthenticatedWithViewAccess);
-                }
-
-                $segments[] = $segment->toArray();
-            }
-        }
-
-        /**
-         * Triggered when gathering all available segment dimensions.
-         *
-         * This event can be used to make new segment dimensions available.
-         *
-         * **Example**
-         *
-         *     public function getSegmentsMetadata(&$segments, $idSites)
-         *     {
-         *         $segments[] = array(
-         *             'type'           => 'dimension',
-         *             'category'       => Piwik::translate('General_Visit'),
-         *             'name'           => 'General_VisitorIP',
-         *             'segment'        => 'visitIp',
-         *             'acceptedValues' => '13.54.122.1, etc.',
-         *             'sqlSegment'     => 'log_visit.location_ip',
-         *             'sqlFilter'      => array('Piwik\IP', 'P2N'),
-         *             'permission'     => $isAuthenticatedWithViewAccess,
-         *         );
-         *     }
-         *
-         * @param array &$dimensions The list of available segment dimensions. Append to this list to add
-         *                           new segments. Each element in this list must contain the
-         *                           following information:
-         *
-         *                           - **type**: Either `'metric'` or `'dimension'`. `'metric'` means
-         *                                       the value is a numeric and `'dimension'` means it is
-         *                                       a string. Also, `'metric'` values will be displayed
-         *                                       under **Visit (metrics)** in the Segment Editor.
-         *                           - **category**: The segment category name. This can be an existing
-         *                                           segment category visible in the segment editor.
-         *                           - **name**: The pretty name of the segment. Can be a translation token.
-         *                           - **segment**: The segment name, eg, `'visitIp'` or `'searches'`.
-         *                           - **acceptedValues**: A string describing one or two exacmple values, eg
-         *                                                 `'13.54.122.1, etc.'`.
-         *                           - **sqlSegment**: The table column this segment will segment by.
-         *                                             For example, `'log_visit.location_ip'` for the
-         *                                             **visitIp** segment.
-         *                           - **sqlFilter**: A PHP callback to apply to segment values before
-         *                                            they are used in SQL.
-         *                           - **permission**: True if the current user has view access to this
-         *                                             segment, false if otherwise.
-         * @param array $idSites The list of site IDs we're getting the available segments
-         *                       for. Some segments (such as Goal segments) depend on the
-         *                       site.
-         */
-        Piwik::postEvent('API.getSegmentDimensionMetadata', array(&$segments, $idSites));
-
-        foreach ($segments as &$segment) {
-            $segment['name'] = Piwik::translate($segment['name']);
-            $segment['category'] = Piwik::translate($segment['category']);
-
-            if ($_hideImplementationData) {
-                unset($segment['sqlFilter']);
-                unset($segment['sqlFilterValue']);
-                unset($segment['sqlSegment']);
-
-                if (isset($segment['suggestedValuesCallback'])
-                    && !is_string($segment['suggestedValuesCallback'])
-                ) {
-                    unset($segment['suggestedValuesCallback']);
-                }
-            }
-        }
-
-        usort($segments, array($this, 'sortSegments'));
-        return $segments;
+        $glossary = StaticContainer::get('Piwik\Plugins\API\Glossary');
+        return $glossary->reportsGlossary($idSite);
     }
 
-    private function doesSuggestedValuesCallbackNeedData($suggestedValuesCallback)
+    /**
+     * A glossary of all metrics and their definition
+     *
+     * @param $idSite
+     * @return array
+     */
+    public function getGlossaryMetrics($idSite)
     {
-        if (is_string($suggestedValuesCallback)
-            && strpos($suggestedValuesCallback, '::') !== false
-        ) {
-            $suggestedValuesCallback = explode('::', $suggestedValuesCallback);
-        }
-
-        if (is_array($suggestedValuesCallback)) {
-            $methodMetadata = new \ReflectionMethod($suggestedValuesCallback[0], $suggestedValuesCallback[1]);
-        } else {
-            $methodMetadata = new \ReflectionFunction($suggestedValuesCallback);
-        }
-
-        return $methodMetadata->getNumberOfParameters() >= 3;
+        $glossary = StaticContainer::get('Piwik\Plugins\API\Glossary');
+        return $glossary->metricsGlossary($idSite);
     }
 
     /**
@@ -557,23 +608,6 @@ class API extends \Piwik\Plugin\API
         $isContentSegment = stripos($segmentName, 'content') !== false;
         $doesSegmentNeedActionsInfo = in_array($segmentName, $segmentsNeedActionsInfo) || $isCustomVariablePage || $isEventSegment || $isContentSegment;
         return $doesSegmentNeedActionsInfo;
-    }
-
-    /**
-     * @param $segmentName
-     * @param $table
-     * @return array
-     */
-    protected function getSegmentValuesFromVisitorLog($segmentName, $table)
-    {
-        // Cleanup data to return the top suggested (non empty) labels for this segment
-        $values = $table->getColumn($segmentName);
-
-
-        // Select also flattened keys (custom variables "page" scope, page URLs for one visit, page titles for one visit)
-        $valuesBis = $table->getColumnsStartingWith($segmentName . ColumnDelete::APPEND_TO_COLUMN_NAME_TO_KEEP);
-        $values = array_merge($values, $valuesBis);
-        return $values;
     }
 
     /**
@@ -600,54 +634,21 @@ class API extends \Piwik\Plugin\API
         return $values;
     }
 
-    /**
-     * A glossary of all reports and their definition
-     *
-     * @param $idSite
-     * @return array
-     */
-    public function getGlossaryReports($idSite)
+    private function doesSuggestedValuesCallbackNeedData($suggestedValuesCallback)
     {
-        $glossary = StaticContainer::get('Piwik\Plugins\API\Glossary');
-        return $glossary->reportsGlossary($idSite);
-    }
-
-    /**
-     * A glossary of all metrics and their definition
-     *
-     * @param $idSite
-     * @return array
-     */
-    public function getGlossaryMetrics($idSite)
-    {
-        $glossary = StaticContainer::get('Piwik\Plugins\API\Glossary');
-        return $glossary->metricsGlossary($idSite);
-    }
-
-    private function sortSegments($row1, $row2)
-    {
-        $customVarCategory = Piwik::translate('CustomVariables_CustomVariables');
-
-        $columns = array('type', 'category', 'name', 'segment');
-        foreach ($columns as $column) {
-            // Keep segments ordered alphabetically inside categories..
-            $type = -1;
-            if ($column == 'name') {$type = 1;}
-
-            $compare = $type * strcmp($row1[$column], $row2[$column]);
-
-            // hack so that custom variables "page" are grouped together in the doc
-            if ($row1['category'] == $customVarCategory
-                && $row1['category'] == $row2['category']
-            ) {
-                $compare = strcmp($row1['segment'], $row2['segment']);
-                return $compare;
-            }
-            if ($compare != 0) {
-                return $compare;
-            }
+        if (is_string($suggestedValuesCallback)
+            && strpos($suggestedValuesCallback, '::') !== false
+        ) {
+            $suggestedValuesCallback = explode('::', $suggestedValuesCallback);
         }
-        return $compare;
+
+        if (is_array($suggestedValuesCallback)) {
+            $methodMetadata = new \ReflectionMethod($suggestedValuesCallback[0], $suggestedValuesCallback[1]);
+        } else {
+            $methodMetadata = new \ReflectionFunction($suggestedValuesCallback);
+        }
+
+        return $methodMetadata->getNumberOfParameters() >= 3;
     }
 }
 

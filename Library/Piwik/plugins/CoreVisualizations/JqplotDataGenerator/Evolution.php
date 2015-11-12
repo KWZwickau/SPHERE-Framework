@@ -101,28 +101,6 @@ class Evolution extends JqplotDataGenerator
         }
     }
 
-    /**
-     * Derive the series label from the row label and the column name.
-     * If the row label is set, both the label and the column name are displayed.
-     * @param string $rowLabel
-     * @param string $columnName
-     * @return string
-     */
-    private function getSeriesLabel($rowLabel, $columnName)
-    {
-        $metricLabel = @$this->properties['translations'][$columnName];
-
-        if ($rowLabel !== false) {
-            // eg. "Yahoo! (Visits)"
-            $label = "$rowLabel ($metricLabel)";
-        } else {
-            // eg. "Visits"
-            $label = $metricLabel;
-        }
-
-        return $label;
-    }
-
     private function getSeriesData($rowLabel, $columnName, DataTable\Map $dataTable)
     {
         $seriesData = array();
@@ -144,17 +122,26 @@ class Evolution extends JqplotDataGenerator
         return $seriesData;
     }
 
-    private function isLinkEnabled()
+    /**
+     * Derive the series label from the row label and the column name.
+     * If the row label is set, both the label and the column name are displayed.
+     * @param string $rowLabel
+     * @param string $columnName
+     * @return string
+     */
+    private function getSeriesLabel($rowLabel, $columnName)
     {
-        static $linkEnabled;
-        if (!isset($linkEnabled)) {
-            // 1) Custom Date Range always have link disabled, otherwise
-            // the graph data set is way too big and fails to display
-            // 2) disableLink parameter is set in the Widgetize "embed" code
-            $linkEnabled = !Common::getRequestVar('disableLink', 0, 'int')
-                && Common::getRequestVar('period', 'day') != 'range';
+        $metricLabel = @$this->properties['translations'][$columnName];
+
+        if ($rowLabel !== false) {
+            // eg. "Yahoo! (Visits)"
+            $label = "$rowLabel ($metricLabel)";
+        } else {
+            // eg. "Visits"
+            $label = $metricLabel;
         }
-        return $linkEnabled;
+
+        return $label;
     }
 
     /**
@@ -183,5 +170,18 @@ class Evolution extends JqplotDataGenerator
             return $queryString;
         }
         return false;
+    }
+
+    private function isLinkEnabled()
+    {
+        static $linkEnabled;
+        if (!isset($linkEnabled)) {
+            // 1) Custom Date Range always have link disabled, otherwise
+            // the graph data set is way too big and fails to display
+            // 2) disableLink parameter is set in the Widgetize "embed" code
+            $linkEnabled = !Common::getRequestVar('disableLink', 0, 'int')
+                && Common::getRequestVar('period', 'day') != 'range';
+        }
+        return $linkEnabled;
     }
 }

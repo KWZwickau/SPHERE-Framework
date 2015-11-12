@@ -78,15 +78,13 @@ class Zend_Validate_File_Crc32 extends Zend_Validate_File_Hash
     }
 
     /**
-     * Sets the crc32 hash for one or multiple files
+     * Returns all set crc32 hashes
      *
-     * @param  string|array $options
-     * @return Zend_Validate_File_Hash Provides a fluent interface
+     * @return array
      */
-    public function setCrc32($options)
+    public function getCrc32()
     {
-        $this->setHash($options);
-        return $this;
+        return $this->getHash();
     }
 
     /**
@@ -107,24 +105,14 @@ class Zend_Validate_File_Crc32 extends Zend_Validate_File_Hash
     }
 
     /**
-     * Returns all set crc32 hashes
-     *
-     * @return array
-     */
-    public function getCrc32()
-    {
-        return $this->getHash();
-    }
-
-    /**
-     * Adds the crc32 hash for one or multiple files
+     * Sets the crc32 hash for one or multiple files
      *
      * @param  string|array $options
      * @return Zend_Validate_File_Hash Provides a fluent interface
      */
-    public function addCrc32($options)
+    public function setCrc32($options)
     {
-        $this->addHash($options);
+        $this->setHash($options);
         return $this;
     }
 
@@ -142,6 +130,18 @@ class Zend_Validate_File_Crc32 extends Zend_Validate_File_Hash
 
         $options['algorithm'] = 'crc32';
         parent::addHash($options);
+        return $this;
+    }
+
+    /**
+     * Adds the crc32 hash for one or multiple files
+     *
+     * @param  string|array $options
+     * @return Zend_Validate_File_Hash Provides a fluent interface
+     */
+    public function addCrc32($options)
+    {
+        $this->addHash($options);
         return $this;
     }
 

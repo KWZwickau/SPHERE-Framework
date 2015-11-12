@@ -9,11 +9,11 @@
 
 namespace Piwik\Tracker;
 
-use Exception;
 use Piwik\Common;
 use Piwik\Exception\InvalidRequestParameterException;
 use Piwik\Exception\UnexpectedWebsiteFoundException;
 use Piwik\Tracker;
+use Exception;
 use Piwik\Url;
 
 class Handler
@@ -31,6 +31,11 @@ class Handler
     public function __construct()
     {
         $this->setResponse(new Response());
+    }
+
+    public function setResponse($response)
+    {
+        $this->response = $response;
     }
 
     public function init(Tracker $tracker, RequestSet $requestSet)
@@ -89,15 +94,6 @@ class Handler
         $this->redirectIfNeeded($requestSet);
     }
 
-    protected function redirectIfNeeded(RequestSet $requestSet)
-    {
-        $redirectUrl = $requestSet->shouldPerformRedirectToUrl();
-
-        if (!empty($redirectUrl)) {
-            Url::redirectToUrl($redirectUrl);
-        }
-    }
-
     public function finish(Tracker $tracker, RequestSet $requestSet)
     {
         $this->response->outputResponse($tracker);
@@ -110,8 +106,12 @@ class Handler
         return $this->response;
     }
 
-    public function setResponse($response)
+    protected function redirectIfNeeded(RequestSet $requestSet)
     {
-        $this->response = $response;
+        $redirectUrl = $requestSet->shouldPerformRedirectToUrl();
+
+        if (!empty($redirectUrl)) {
+            Url::redirectToUrl($redirectUrl);
+        }
     }
 }

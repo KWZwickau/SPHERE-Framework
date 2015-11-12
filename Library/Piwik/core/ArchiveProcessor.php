@@ -17,7 +17,6 @@ use Piwik\DataAccess\LogAggregator;
 use Piwik\DataTable\Manager;
 use Piwik\DataTable\Map;
 use Piwik\DataTable\Row;
-
 /**
  * Used by {@link Piwik\Plugin\Archiver} instances to insert and aggregate archive data.
  *
@@ -76,35 +75,32 @@ use Piwik\DataTable\Row;
 class ArchiveProcessor
 {
     /**
-     * Array of (column name before => column name renamed) of the columns for which sum operation is invalid.
-     * These columns will be renamed as per this mapping.
-     * @var array
-     */
-    protected static $columnsToRenameAfterAggregation = array(
-        Metrics::INDEX_NB_UNIQ_VISITORS => Metrics::INDEX_SUM_DAILY_NB_UNIQ_VISITORS,
-        Metrics::INDEX_NB_USERS         => Metrics::INDEX_SUM_DAILY_NB_USERS,
-    );
-    /**
-     * @var Archive
-     */
-    public $archive = null;
-    /**
      * @var \Piwik\DataAccess\ArchiveWriter
      */
     private $archiveWriter;
+
     /**
      * @var \Piwik\DataAccess\LogAggregator
      */
     private $logAggregator;
+
+    /**
+     * @var Archive
+     */
+    public $archive = null;
+
     /**
      * @var Parameters
      */
     private $params;
+
     /**
      * @var int
      */
     private $numberOfVisits = false;
+
     private $numberOfVisitsConverted = false;
+
     /**
      * If true, unique visitors are not calculated when we are aggregating data for multiple sites.
      * The `[General] enable_processing_unique_visitors_multiple_sites` INI config option controls
@@ -122,6 +118,57 @@ class ArchiveProcessor
 
         $this->skipUniqueVisitorsCalculationForMultipleSites = Rules::shouldSkipUniqueVisitorsCalculationForMultipleSites();
     }
+
+    protected function getArchive()
+    {
+        if (empty($this->archive)) {
+            $subPeriods = $this->params->getSubPeriods();
+            $idSites    = $this->params->getIdSites();
+            $this->archive = Archive::factory($this->params->getSegment(), $subPeriods, $idSites);
+        }
+
+        return $this->archive;
+    }
+
+    public function setNumberOfVisits($visits, $visitsConverted)
+    {
+        $this->numberOfVisits = $visits;
+        $this->numberOfVisitsConverted = $visitsConverted;
+    }
+
+    /**
+     * Returns the {@link Parameters} object containing the site, period and segment we're archiving
+     * data for.
+     *
+     * @return Parameters
+     * @api
+     */
+    public function getParams()
+    {
+        return $this->params;
+    }
+
+    /**
+     * Returns a `{@link Piwik\DataAccess\LogAggregator}` instance for the site, period and segment this
+     * ArchiveProcessor will insert archive data for.
+     *
+     * @return LogAggregator
+     * @api
+     */
+    public function getLogAggregator()
+    {
+        return $this->logAggregator;
+    }
+
+    /**
+     * Array of (column name before => column name renamed) of the columns for which sum operation is invalid.
+     * These columns will be renamed as per this mapping.
+     * @var array
+     */
+    protected static $columnsToRenameAfterAggregation = array(
+        Metrics::INDEX_NB_UNIQ_VISITORS => Metrics::INDEX_SUM_DAILY_NB_UNIQ_VISITORS,
+        Metrics::INDEX_NB_USERS         => Metrics::INDEX_SUM_DAILY_NB_USERS,
+    );
 
     /**
      * Sums records for every subperiod of the current period and inserts the result as the record
@@ -186,6 +233,107 @@ class ArchiveProcessor
     }
 
     /**
+     * Aggregates one or more metrics for every subperiod of the current period and inserts the results
+     * as metrics for the current period.
+     *
+     * @param array|string $columns Array of metric names to aggregate.
+     * @param bool|string $operationToApply The operation to apply to the metric. Either `'sum'`, `'max'` or `'min'`.
+     * @return array|int Returns the array of aggregate values. If only one metric was aggregated,
+     *                   the aggregate value will be returned as is, not in an array.
+     *                   For example, if `array('nb_visits', 'nb_hits')` is supplied for `$columns`,
+     *
+     *                       array(
+     *                           'nb_visits' => 3040,
+     *                           'nb_hits' => 405
+     *                       )
+     *
+     *                   could be returned. If `array('nb_visits')` or `'nb_visits'` is used for `$columns`,
+     *                   then `3040` would be returned.
+     * @api
+     */
+    public function aggregateNumericMetrics($columns, $operationToApply = false)
+    {
+        $metrics = $this->getAggregatedNumericMetrics($columns, $operationToApply);
+
+        foreach ($metrics as $column => $value) {
+            $value = Common::forceDotAsSeparatorForDecimalPoint($value);
+            $this->archiveWriter->insertRecord($column, $value);
+        }
+        // if asked for only one field to sum
+        if (count($metrics) == 1) {
+            return reset($metrics);
+        }
+
+        // returns the array of records once summed
+        return $metrics;
+    }
+
+    public function getNumberOfVisits()
+    {
+        if ($this->numberOfVisits === false) {
+            throw new Exception("visits should have been set here");
+        }
+        return $this->numberOfVisits;
+    }
+
+    public function getNumberOfVisitsConverted()
+    {
+        return $this->numberOfVisitsConverted;
+    }
+
+    /**
+     * Caches multiple numeric records in the archive for this processor's site, period
+     * and segment.
+     *
+     * @param array $numericRecords A name-value mapping of numeric values that should be
+     *                              archived, eg,
+     *
+     *                                  array('Referrers_distinctKeywords' => 23, 'Referrers_distinctCampaigns' => 234)
+     * @api
+     */
+    public function insertNumericRecords($numericRecords)
+    {
+        foreach ($numericRecords as $name => $value) {
+            $this->insertNumericRecord($name, $value);
+        }
+    }
+
+    /**
+     * Caches a single numeric record in the archive for this processor's site, period and
+     * segment.
+     *
+     * Numeric values are not inserted if they equal `0`.
+     *
+     * @param string $name The name of the numeric value, eg, `'Referrers_distinctKeywords'`.
+     * @param float $value The numeric value.
+     * @api
+     */
+    public function insertNumericRecord($name, $value)
+    {
+        $value = round($value, 2);
+        $value = Common::forceDotAsSeparatorForDecimalPoint($value);
+
+        $this->archiveWriter->insertRecord($name, $value);
+    }
+
+    /**
+     * Caches one or more blob records in the archive for this processor's site, period
+     * and segment.
+     *
+     * @param string $name The name of the record, eg, 'Referrers_type'.
+     * @param string|array $values A blob string or an array of blob strings. If an array
+     *                             is used, the first element in the array will be inserted
+     *                             with the `$name` name. The others will be inserted with
+     *                             `$name . '_' . $index` as the record name (where $index is
+     *                             the index of the blob record in `$values`).
+     * @api
+     */
+    public function insertBlobRecord($name, $values)
+    {
+        $this->archiveWriter->insertBlobRecord($name, $values);
+    }
+
+    /**
      * This method selects all DataTables that have the name $name over the period.
      * All these DataTables are then added together, and the resulting DataTable is returned.
      *
@@ -230,17 +378,6 @@ class ArchiveProcessor
         return $dataTable;
     }
 
-    protected function getArchive()
-    {
-        if (empty($this->archive)) {
-            $subPeriods = $this->params->getSubPeriods();
-            $idSites    = $this->params->getIdSites();
-            $this->archive = Archive::factory($this->params->getSegment(), $subPeriods, $idSites);
-        }
-
-        return $this->archive;
-    }
-
     /**
      * Note: public only for use in closure in PHP 5.3.
      *
@@ -254,26 +391,87 @@ class ArchiveProcessor
         return !$period || $period->getLabel() === 'day';
     }
 
-    /**
-     * Note: public only for use in closure in PHP 5.3.
-     */
-    public function renameColumnsAfterAggregation(DataTable $table, $columnsToRenameAfterAggregation = null)
+    protected function getOperationForColumns($columns, $defaultOperation)
     {
-        // Rename columns after aggregation
-        if (is_null($columnsToRenameAfterAggregation)) {
-            $columnsToRenameAfterAggregation = self::$columnsToRenameAfterAggregation;
+        $operationForColumn = array();
+        foreach ($columns as $name) {
+            $operation = $defaultOperation;
+            if (empty($operation)) {
+                $operation = $this->guessOperationForColumn($name);
+            }
+            $operationForColumn[$name] = $operation;
+        }
+        return $operationForColumn;
+    }
+
+    protected function enrichWithUniqueVisitorsMetric(Row $row)
+    {
+        // skip unique visitors metrics calculation if calculating for multiple sites is disabled
+        if (!$this->getParams()->isSingleSite()
+            && $this->skipUniqueVisitorsCalculationForMultipleSites
+        ) {
+            return;
         }
 
-        foreach ($table->getRows() as $row) {
-            foreach ($columnsToRenameAfterAggregation as $oldName => $newName) {
-                $row->renameColumn($oldName, $newName);
-            }
-
-            $subTable = $row->getSubtable();
-            if ($subTable) {
-                $this->renameColumnsAfterAggregation($subTable, $columnsToRenameAfterAggregation);
-            }
+        if ($row->getColumn('nb_uniq_visitors') === false
+            && $row->getColumn('nb_users') === false
+        ) {
+            return;
         }
+
+        if (!SettingsPiwik::isUniqueVisitorsEnabled($this->getParams()->getPeriod()->getLabel())) {
+            $row->deleteColumn('nb_uniq_visitors');
+            $row->deleteColumn('nb_users');
+            return;
+        }
+
+        $metrics = array(
+            Metrics::INDEX_NB_USERS
+        );
+
+        if ($this->getParams()->isSingleSite()) {
+            $uniqueVisitorsMetric = Metrics::INDEX_NB_UNIQ_VISITORS;
+        } else {
+            if (!SettingsPiwik::isSameFingerprintAcrossWebsites()) {
+                throw new Exception("Processing unique visitors across websites is enabled for this instance,
+                            but to process this metric you must first set enable_fingerprinting_across_websites=1
+                            in the config file, under the [Tracker] section.");
+            }
+            $uniqueVisitorsMetric = Metrics::INDEX_NB_UNIQ_FINGERPRINTS;
+        }
+        $metrics[] = $uniqueVisitorsMetric;
+
+        $uniques = $this->computeNbUniques($metrics);
+        $row->setColumn('nb_uniq_visitors', $uniques[$uniqueVisitorsMetric]);
+        $row->setColumn('nb_users', $uniques[Metrics::INDEX_NB_USERS]);
+    }
+
+    protected function guessOperationForColumn($column)
+    {
+        if (strpos($column, 'max_') === 0) {
+            return 'max';
+        }
+        if (strpos($column, 'min_') === 0) {
+            return 'min';
+        }
+        return 'sum';
+    }
+
+    /**
+     * Processes number of unique visitors for the given period
+     *
+     * This is the only Period metric (ie. week/month/year/range) that we process from the logs directly,
+     * since unique visitors cannot be summed like other metrics.
+     *
+     * @param array Metrics Ids for which to aggregates count of values
+     * @return array of metrics, where the key is metricid and the value is the metric value
+     */
+    protected function computeNbUniques($metrics)
+    {
+        $logAggregator = $this->getLogAggregator();
+        $query = $logAggregator->queryVisitsByDimension(array(), false, array(), $metrics);
+        $data = $query->fetch();
+        return $data;
     }
 
     /**
@@ -319,56 +517,25 @@ class ArchiveProcessor
     }
 
     /**
-     * Caches one or more blob records in the archive for this processor's site, period
-     * and segment.
-     *
-     * @param string $name The name of the record, eg, 'Referrers_type'.
-     * @param string|array $values A blob string or an array of blob strings. If an array
-     *                             is used, the first element in the array will be inserted
-     *                             with the `$name` name. The others will be inserted with
-     *                             `$name . '_' . $index` as the record name (where $index is
-     *                             the index of the blob record in `$values`).
-     * @api
+     * Note: public only for use in closure in PHP 5.3.
      */
-    public function insertBlobRecord($name, $values)
+    public function renameColumnsAfterAggregation(DataTable $table, $columnsToRenameAfterAggregation = null)
     {
-        $this->archiveWriter->insertBlobRecord($name, $values);
-    }
-
-    /**
-     * Aggregates one or more metrics for every subperiod of the current period and inserts the results
-     * as metrics for the current period.
-     *
-     * @param array|string $columns Array of metric names to aggregate.
-     * @param bool|string $operationToApply The operation to apply to the metric. Either `'sum'`, `'max'` or `'min'`.
-     * @return array|int Returns the array of aggregate values. If only one metric was aggregated,
-     *                   the aggregate value will be returned as is, not in an array.
-     *                   For example, if `array('nb_visits', 'nb_hits')` is supplied for `$columns`,
-     *
-     *                       array(
-     *                           'nb_visits' => 3040,
-     *                           'nb_hits' => 405
-     *                       )
-     *
-     *                   could be returned. If `array('nb_visits')` or `'nb_visits'` is used for `$columns`,
-     *                   then `3040` would be returned.
-     * @api
-     */
-    public function aggregateNumericMetrics($columns, $operationToApply = false)
-    {
-        $metrics = $this->getAggregatedNumericMetrics($columns, $operationToApply);
-
-        foreach ($metrics as $column => $value) {
-            $value = Common::forceDotAsSeparatorForDecimalPoint($value);
-            $this->archiveWriter->insertRecord($column, $value);
-        }
-        // if asked for only one field to sum
-        if (count($metrics) == 1) {
-            return reset($metrics);
+        // Rename columns after aggregation
+        if (is_null($columnsToRenameAfterAggregation)) {
+            $columnsToRenameAfterAggregation = self::$columnsToRenameAfterAggregation;
         }
 
-        // returns the array of records once summed
-        return $metrics;
+        foreach ($table->getRows() as $row) {
+            foreach ($columnsToRenameAfterAggregation as $oldName => $newName) {
+                $row->renameColumn($oldName, $newName);
+            }
+
+            $subTable = $row->getSubtable();
+            if ($subTable) {
+                $this->renameColumnsAfterAggregation($subTable, $columnsToRenameAfterAggregation);
+            }
+        }
     }
 
     protected function getAggregatedNumericMetrics($columns, $operationToApply)
@@ -402,166 +569,5 @@ class ArchiveProcessor
         }
 
         return $metrics;
-    }
-
-    protected function getOperationForColumns($columns, $defaultOperation)
-    {
-        $operationForColumn = array();
-        foreach ($columns as $name) {
-            $operation = $defaultOperation;
-            if (empty($operation)) {
-                $operation = $this->guessOperationForColumn($name);
-            }
-            $operationForColumn[$name] = $operation;
-        }
-        return $operationForColumn;
-    }
-
-    protected function guessOperationForColumn($column)
-    {
-        if (strpos($column, 'max_') === 0) {
-            return 'max';
-        }
-        if (strpos($column, 'min_') === 0) {
-            return 'min';
-        }
-        return 'sum';
-    }
-
-    protected function enrichWithUniqueVisitorsMetric(Row $row)
-    {
-        // skip unique visitors metrics calculation if calculating for multiple sites is disabled
-        if (!$this->getParams()->isSingleSite()
-            && $this->skipUniqueVisitorsCalculationForMultipleSites
-        ) {
-            return;
-        }
-
-        if ($row->getColumn('nb_uniq_visitors') === false
-            && $row->getColumn('nb_users') === false
-        ) {
-            return;
-        }
-
-        if (!SettingsPiwik::isUniqueVisitorsEnabled($this->getParams()->getPeriod()->getLabel())) {
-            $row->deleteColumn('nb_uniq_visitors');
-            $row->deleteColumn('nb_users');
-            return;
-        }
-
-        $metrics = array(
-            Metrics::INDEX_NB_USERS
-        );
-
-        if ($this->getParams()->isSingleSite()) {
-            $uniqueVisitorsMetric = Metrics::INDEX_NB_UNIQ_VISITORS;
-        } else {
-            if (!SettingsPiwik::isSameFingerprintAcrossWebsites()) {
-                throw new Exception("Processing unique visitors across websites is enabled for this instance,
-                            but to process this metric you must first set enable_fingerprinting_across_websites=1
-                            in the config file, under the [Tracker] section.");
-            }
-            $uniqueVisitorsMetric = Metrics::INDEX_NB_UNIQ_FINGERPRINTS;
-        }
-        $metrics[] = $uniqueVisitorsMetric;
-
-        $uniques = $this->computeNbUniques($metrics);
-        $row->setColumn('nb_uniq_visitors', $uniques[$uniqueVisitorsMetric]);
-        $row->setColumn('nb_users', $uniques[Metrics::INDEX_NB_USERS]);
-    }
-
-    /**
-     * Returns the {@link Parameters} object containing the site, period and segment we're archiving
-     * data for.
-     *
-     * @return Parameters
-     * @api
-     */
-    public function getParams()
-    {
-        return $this->params;
-    }
-
-    /**
-     * Processes number of unique visitors for the given period
-     *
-     * This is the only Period metric (ie. week/month/year/range) that we process from the logs directly,
-     * since unique visitors cannot be summed like other metrics.
-     *
-     * @param array Metrics Ids for which to aggregates count of values
-     * @return array of metrics, where the key is metricid and the value is the metric value
-     */
-    protected function computeNbUniques($metrics)
-    {
-        $logAggregator = $this->getLogAggregator();
-        $query = $logAggregator->queryVisitsByDimension(array(), false, array(), $metrics);
-        $data = $query->fetch();
-        return $data;
-    }
-
-    /**
-     * Returns a `{@link Piwik\DataAccess\LogAggregator}` instance for the site, period and segment this
-     * ArchiveProcessor will insert archive data for.
-     *
-     * @return LogAggregator
-     * @api
-     */
-    public function getLogAggregator()
-    {
-        return $this->logAggregator;
-    }
-
-    public function getNumberOfVisits()
-    {
-        if ($this->numberOfVisits === false) {
-            throw new Exception("visits should have been set here");
-        }
-        return $this->numberOfVisits;
-    }
-
-    public function setNumberOfVisits($visits, $visitsConverted)
-    {
-        $this->numberOfVisits = $visits;
-        $this->numberOfVisitsConverted = $visitsConverted;
-    }
-
-    public function getNumberOfVisitsConverted()
-    {
-        return $this->numberOfVisitsConverted;
-    }
-
-    /**
-     * Caches multiple numeric records in the archive for this processor's site, period
-     * and segment.
-     *
-     * @param array $numericRecords A name-value mapping of numeric values that should be
-     *                              archived, eg,
-     *
-     *                                  array('Referrers_distinctKeywords' => 23, 'Referrers_distinctCampaigns' => 234)
-     * @api
-     */
-    public function insertNumericRecords($numericRecords)
-    {
-        foreach ($numericRecords as $name => $value) {
-            $this->insertNumericRecord($name, $value);
-        }
-    }
-
-    /**
-     * Caches a single numeric record in the archive for this processor's site, period and
-     * segment.
-     *
-     * Numeric values are not inserted if they equal `0`.
-     *
-     * @param string $name The name of the numeric value, eg, `'Referrers_distinctKeywords'`.
-     * @param float $value The numeric value.
-     * @api
-     */
-    public function insertNumericRecord($name, $value)
-    {
-        $value = round($value, 2);
-        $value = Common::forceDotAsSeparatorForDecimalPoint($value);
-
-        $this->archiveWriter->insertRecord($name, $value);
     }
 }

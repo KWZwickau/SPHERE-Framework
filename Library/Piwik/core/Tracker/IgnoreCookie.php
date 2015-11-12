@@ -18,20 +18,16 @@ use Piwik\Cookie;
 class IgnoreCookie
 {
     /**
-     * Set ignore (visit) cookie or deletes it if already present
+     * Get tracking cookie
+     *
+     * @return Cookie
      */
-    public static function setIgnoreCookie()
+    public static function getTrackingCookie()
     {
-        $ignoreCookie = self::getIgnoreCookie();
-        if ($ignoreCookie->isCookieFound()) {
-            $ignoreCookie->delete();
-        } else {
-            $ignoreCookie->set('ignore', '*');
-            $ignoreCookie->save();
+        $cookie_name = @Config::getInstance()->Tracker['cookie_name'];
+        $cookie_path = @Config::getInstance()->Tracker['cookie_path'];
 
-            $trackingCookie = self::getTrackingCookie();
-            $trackingCookie->delete();
-        }
+        return new Cookie($cookie_name, null, $cookie_path);
     }
 
     /**
@@ -48,16 +44,20 @@ class IgnoreCookie
     }
 
     /**
-     * Get tracking cookie
-     *
-     * @return Cookie
+     * Set ignore (visit) cookie or deletes it if already present
      */
-    public static function getTrackingCookie()
+    public static function setIgnoreCookie()
     {
-        $cookie_name = @Config::getInstance()->Tracker['cookie_name'];
-        $cookie_path = @Config::getInstance()->Tracker['cookie_path'];
+        $ignoreCookie = self::getIgnoreCookie();
+        if ($ignoreCookie->isCookieFound()) {
+            $ignoreCookie->delete();
+        } else {
+            $ignoreCookie->set('ignore', '*');
+            $ignoreCookie->save();
 
-        return new Cookie($cookie_name, null, $cookie_path);
+            $trackingCookie = self::getTrackingCookie();
+            $trackingCookie->delete();
+        }
     }
 
     /**

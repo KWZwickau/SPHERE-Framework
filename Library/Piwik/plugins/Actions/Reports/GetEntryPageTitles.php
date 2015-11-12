@@ -18,39 +18,6 @@ use Piwik\Plugins\Actions\Columns\Metrics\ExitRate;
 
 class GetEntryPageTitles extends Base
 {
-    public function getProcessedMetrics()
-    {
-        $result = parent::getProcessedMetrics();
-
-        // these metrics are not displayed in the API.getProcessedReport version of this report,
-        // so they are removed here.
-        unset($result['avg_time_on_page']);
-        unset($result['exit_rate']);
-
-        return $result;
-    }
-
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->addTranslations(array('label' => $this->dimension->getName()));
-
-        $view->config->columns_to_display = array('label', 'entry_nb_visits', 'entry_bounce_count', 'bounce_rate');
-        $view->config->title = $this->name;
-
-        $view->requestConfig->filter_sort_column = 'entry_nb_visits';
-
-        $this->addPageDisplayProperties($view);
-        $this->addBaseDisplayProperties($view);
-    }
-
-    public function getRelatedReports()
-    {
-        return array(
-            self::factory('Actions', 'getPageTitles'),
-            self::factory('Actions', 'getEntryPageUrls')
-        );
-    }
-
     protected function init()
     {
         parent::init();
@@ -72,6 +39,18 @@ class GetEntryPageTitles extends Base
         $this->widgetTitle = 'Actions_WidgetEntryPageTitles';
     }
 
+    public function getProcessedMetrics()
+    {
+        $result = parent::getProcessedMetrics();
+
+        // these metrics are not displayed in the API.getProcessedReport version of this report,
+        // so they are removed here.
+        unset($result['avg_time_on_page']);
+        unset($result['exit_rate']);
+
+        return $result;
+    }
+
     protected function getMetricsDocumentation()
     {
         $metrics = parent::getMetricsDocumentation();
@@ -82,5 +61,26 @@ class GetEntryPageTitles extends Base
         unset($metrics['exit_rate']);
 
         return $metrics;
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->addTranslations(array('label' => $this->dimension->getName()));
+
+        $view->config->columns_to_display = array('label', 'entry_nb_visits', 'entry_bounce_count', 'bounce_rate');
+        $view->config->title = $this->name;
+
+        $view->requestConfig->filter_sort_column = 'entry_nb_visits';
+
+        $this->addPageDisplayProperties($view);
+        $this->addBaseDisplayProperties($view);
+    }
+
+    public function getRelatedReports()
+    {
+        return array(
+            self::factory('Actions', 'getPageTitles'),
+            self::factory('Actions', 'getEntryPageUrls')
+        );
     }
 }

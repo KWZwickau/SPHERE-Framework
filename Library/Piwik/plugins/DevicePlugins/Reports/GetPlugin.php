@@ -14,6 +14,19 @@ use Piwik\Plugins\DevicePlugins\Columns\Plugin;
 
 class GetPlugin extends Base
 {
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new Plugin();
+        $this->name          = Piwik::translate('DevicePlugins_WidgetPlugins');
+        $this->documentation = Piwik::translate('DevicePlugins_WidgetPluginsDocumentation', '<br />');
+        $this->metrics       = array('nb_visits');
+        $this->constantRowsCount = true;
+        $this->processedMetrics = array('nb_visits_percentage');
+        $this->order = 4;
+        $this->widgetTitle  = 'DevicePlugins_WidgetPlugins';
+    }
+
     public function configureView(ViewDataTable $view)
     {
         $this->getBasicDevicePluginsDisplayProperties($view);
@@ -35,19 +48,6 @@ class GetPlugin extends Base
         $view->requestConfig->filter_sort_column = 'nb_visits_percentage';
         $view->requestConfig->filter_sort_order  = 'desc';
         $view->requestConfig->filter_limit       = 10;
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension     = new Plugin();
-        $this->name          = Piwik::translate('DevicePlugins_WidgetPlugins');
-        $this->documentation = Piwik::translate('DevicePlugins_WidgetPluginsDocumentation', '<br />');
-        $this->metrics       = array('nb_visits');
-        $this->constantRowsCount = true;
-        $this->processedMetrics = array('nb_visits_percentage');
-        $this->order = 4;
-        $this->widgetTitle  = 'DevicePlugins_WidgetPlugins';
     }
 
 }

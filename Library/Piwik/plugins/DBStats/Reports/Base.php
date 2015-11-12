@@ -97,7 +97,7 @@ abstract class Base extends \Piwik\Plugin\Report
                 $view->requestConfig->filter_sort_column = 'percent_total';
             }
 
-        } else {if ($view->isViewDataTableId(Graph::ID)) {
+        } else if ($view->isViewDataTableId(Graph::ID)) {
             if ($addTotalSizeColumn) {
                 $view->config->columns_to_display = array('label', 'total_size');
 
@@ -117,7 +117,7 @@ abstract class Base extends \Piwik\Plugin\Report
                 $view->requestConfig->filter_sort_order  = 'desc';
             }
             $view->config->selectable_rows = array();
-        }}
+        }
 
         $formatter = new Formatter();
 

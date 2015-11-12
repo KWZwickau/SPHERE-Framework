@@ -1,15 +1,7 @@
 <?php
 namespace SPHERE\Common\Window;
 
-use MOC\V\Component\Template\Component\IBridgeInterface;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Accordion;
-use SPHERE\Common\Script;
-use SPHERE\Common\Style;
-use SPHERE\Common\Window\Navigation\Link;
-use SPHERE\System\Extension\Extension;
+use MOC\V\Component\Template\Component\IBridgeInterface;use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;use SPHERE\Common\Frontend\ITemplateInterface;use SPHERE\Common\Frontend\Layout\Repository\Accordion;use SPHERE\Common\Script;use SPHERE\Common\Style;use SPHERE\Common\Window\Navigation\Link;use SPHERE\System\Extension\Extension;
 
 /**
  * Class Display
@@ -302,7 +294,11 @@ class Display extends Extension implements ITemplateInterface
         }
 
         $this->Template->setVariable('SeoTitle',
-            str_replace('/', ' - ', trim($this->getRequest()->getPathInfo(), '/')));
+            ( !trim(trim($this->getRequest()->getPathInfo(), '/'))
+                ? ''
+                : ': '.str_replace('/', ' - ', trim($this->getRequest()->getPathInfo(), '/'))
+            )
+        );
 
         return $this->Template->getContent();
     }

@@ -68,16 +68,6 @@ class Zend_Exception extends Exception
     }
 
     /**
-     * Returns previous Exception
-     *
-     * @return Exception|null
-     */
-    protected function _getPrevious()
-    {
-        return $this->_previous;
-    }
-
-    /**
      * String representation of the exception
      *
      * @return string
@@ -92,5 +82,15 @@ class Zend_Exception extends Exception
             }
         }
         return parent::__toString();
+    }
+
+    /**
+     * Returns previous Exception
+     *
+     * @return Exception|null
+     */
+    protected function _getPrevious()
+    {
+        return $this->_previous;
     }
 }

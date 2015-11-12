@@ -62,7 +62,7 @@ class Cache
 
         $ids = self::getIdsFromCache($valueToMatch, $sql);
 
-        if (is_null($ids)) {
+        if(is_null($ids)) {
             // Too Big To Cache, issue SQL as subquery instead
             return array(
                 'SQL' => $sql,
@@ -70,7 +70,7 @@ class Cache
             );
         }
 
-        if (count($ids) == 0) {
+        if(count($ids) == 0) {
             return null;
         }
 
@@ -80,7 +80,7 @@ class Cache
 
         return array(
             // mark that the returned value is an sql-expression instead of a literal value
-            'SQL' => $sql,
+            'SQL'  => $sql,
             'bind' => $bind,
         );
     }
@@ -102,9 +102,8 @@ class Cache
 
         $ids = $this->fetchActionIdsFromDb($valueToMatch, $sql);
 
-        if ($this->isTooBigToCache($ids)) {
-            $this->logger->debug("Segment subquery cache SKIPPED SAVE (too many IDs returned by subquery: %s ids)'",
-                array(count($ids)));
+        if($this->isTooBigToCache($ids)) {
+            $this->logger->debug("Segment subquery cache SKIPPED SAVE (too many IDs returned by subquery: %s ids)'", array(count($ids)));
             $this->cache->save($cacheKey, $ids = null, $this->lifetime);
             return null;
         }
@@ -123,7 +122,7 @@ class Cache
      */
     private function getCacheKey($valueToMatch, $sql)
     {
-        if (is_array($valueToMatch)) {
+        if(is_array($valueToMatch)) {
             throw new \Exception("value to match is an array: this is not expected");
         }
 

@@ -58,83 +58,6 @@
 class HTML_QuickForm2_Controller_Action_Jump
     implements HTML_QuickForm2_Controller_Action
 {
-    public function perform(HTML_QuickForm2_Controller_Page $page, $name)
-    {
-        // we check whether *all* pages up to current are valid
-        // if there is an invalid page we go to it, instead of the
-        // requested one
-        if ($page->getController()->isWizard()
-            && !$page->getController()->isValid($page)
-        ) {
-            $page = $page->getController()->getFirstInvalidPage();
-        }
-
-        // generate the URL for the page 'display' event and redirect to it
-        $action = $page->getForm()->getAttribute('action');
-        // Bug #13087: RFC 2616 requires an absolute URI in Location header
-        if (!preg_match('@^([a-z][a-z0-9.+-]*):@i', $action)) {
-            $action = self::resolveRelativeURL($action);
-        }
-
-        if (!$page->getController()->propagateId()) {
-            $controllerId = '';
-        } else {
-            $controllerId = '&' . HTML_QuickForm2_Controller::KEY_ID . '=' .
-                            $page->getController()->getId();
-        }
-        if (!defined('SID') || '' == SID || ini_get('session.use_only_cookies')) {
-            $sessionId = '';
-        } else {
-            $sessionId = '&' . SID;
-        }
-
-        return $this->doRedirect(
-            $action . (false === strpos($action, '?')? '?': '&') .
-            $page->getButtonName('display') . '=true' . $controllerId . $sessionId
-        );
-    }
-
-   /**
-    * Resolves relative URL using current page's URL as base
-    *
-    * The method follows procedure described in section 4 of RFC 1808 and
-    * passes the examples provided in section 5 of said RFC. Values from
-    * $_SERVER array are used for calculation of "current URL"
-    *
-    * @param    string  Relative URL, probably from form's action attribute
-    * @return   string  Absolute URL
-    */
-    protected static function resolveRelativeURL($url)
-    {
-        $https  = !empty($_SERVER['HTTPS']) && ('off' != strtolower($_SERVER['HTTPS']));
-        $scheme = ($https? 'https:': 'http:');
-        if ('//' == substr($url, 0, 2)) {
-            return $scheme . $url;
-
-        } else {
-            $host   = $scheme . '//' . $_SERVER['SERVER_NAME'] .
-                      (($https && 443 == $_SERVER['SERVER_PORT'] ||
-                        !$https && 80 == $_SERVER['SERVER_PORT'])? '': ':' . $_SERVER['SERVER_PORT']);
-            if ('' == $url) {
-                return $host . $_SERVER['REQUEST_URI'];
-
-            } elseif ('/' == $url[0]) {
-                list($actPath, $actQuery) = self::splitUri($url);
-                return $host . self::normalizePath($actPath) . $actQuery;
-
-            } else {
-                list($basePath, $baseQuery) = self::splitUri($_SERVER['REQUEST_URI']);
-                list($actPath, $actQuery)   = self::splitUri($url);
-                if ('' == $actPath) {
-                    return $host . $basePath . $actQuery;
-                } else {
-                    $path = substr($basePath, 0, strrpos($basePath, '/') + 1) . $actPath;
-                    return $host . self::normalizePath($path) . $actQuery;
-                }
-            }
-        }
-    }
-
    /**
     * Splits (part of) the URI into path and query components
     *
@@ -190,6 +113,84 @@ class HTML_QuickForm2_Controller_Action_Jump
 
         return implode('/', $pathAry);
     }
+
+   /**
+    * Resolves relative URL using current page's URL as base
+    *
+    * The method follows procedure described in section 4 of RFC 1808 and
+    * passes the examples provided in section 5 of said RFC. Values from
+    * $_SERVER array are used for calculation of "current URL"
+    *
+    * @param    string  Relative URL, probably from form's action attribute
+    * @return   string  Absolute URL
+    */
+    protected static function resolveRelativeURL($url)
+    {
+        $https  = !empty($_SERVER['HTTPS']) && ('off' != strtolower($_SERVER['HTTPS']));
+        $scheme = ($https? 'https:': 'http:');
+        if ('//' == substr($url, 0, 2)) {
+            return $scheme . $url;
+
+        } else {
+            $host   = $scheme . '//' . $_SERVER['SERVER_NAME'] .
+                      (($https && 443 == $_SERVER['SERVER_PORT'] ||
+                        !$https && 80 == $_SERVER['SERVER_PORT'])? '': ':' . $_SERVER['SERVER_PORT']);
+            if ('' == $url) {
+                return $host . $_SERVER['REQUEST_URI'];
+
+            } elseif ('/' == $url[0]) {
+                list($actPath, $actQuery) = self::splitUri($url);
+                return $host . self::normalizePath($actPath) . $actQuery;
+
+            } else {
+                list($basePath, $baseQuery) = self::splitUri($_SERVER['REQUEST_URI']);
+                list($actPath, $actQuery)   = self::splitUri($url);
+                if ('' == $actPath) {
+                    return $host . $basePath . $actQuery;
+                } else {
+                    $path = substr($basePath, 0, strrpos($basePath, '/') + 1) . $actPath;
+                    return $host . self::normalizePath($path) . $actQuery;
+                }
+            }
+        }
+    }
+
+    public function perform(HTML_QuickForm2_Controller_Page $page, $name)
+    {
+        // we check whether *all* pages up to current are valid
+        // if there is an invalid page we go to it, instead of the
+        // requested one
+        if ($page->getController()->isWizard()
+            && !$page->getController()->isValid($page)
+        ) {
+            $page = $page->getController()->getFirstInvalidPage();
+        }
+
+        // generate the URL for the page 'display' event and redirect to it
+        $action = $page->getForm()->getAttribute('action');
+        // Bug #13087: RFC 2616 requires an absolute URI in Location header
+        if (!preg_match('@^([a-z][a-z0-9.+-]*):@i', $action)) {
+            $action = self::resolveRelativeURL($action);
+        }
+
+        if (!$page->getController()->propagateId()) {
+            $controllerId = '';
+        } else {
+            $controllerId = '&' . HTML_QuickForm2_Controller::KEY_ID . '=' .
+                            $page->getController()->getId();
+        }
+        if (!defined('SID') || '' == SID || ini_get('session.use_only_cookies')) {
+            $sessionId = '';
+        } else {
+            $sessionId = '&' . SID;
+        }
+
+        return $this->doRedirect(
+            $action . (false === strpos($action, '?')? '?': '&') .
+            $page->getButtonName('display') . '=true' . $controllerId . $sessionId
+        );
+    }
+
 
    /**
     * Redirects to a given URL via Location: header and exits the script

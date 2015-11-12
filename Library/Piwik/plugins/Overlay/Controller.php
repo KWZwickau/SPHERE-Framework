@@ -45,12 +45,6 @@ class Controller extends \Piwik\Plugin\Controller
         return $view->render();
     }
 
-    protected function outputCORSHeaders()
-    {
-        $corsHandler = new CORSHandler();
-        $corsHandler->handle();
-    }
-
     /** Render the area left of the iframe */
     public function renderSidebar()
     {
@@ -103,9 +97,9 @@ class Controller extends \Piwik\Plugin\Controller
                     || $metric == 'exit_rate'
                 ) {
                     $value = $formatter->getPrettyPercentFromQuotient($value);
-                } else {if ($metric == 'avg_time_on_page') {
+                } else if ($metric == 'avg_time_on_page') {
                     $value = $formatter->getPrettyTimeFromSeconds($value, $displayAsSentence = true);
-                }}
+                }
 
                 $data[] = array(
                     'name'  => $translations[$metric],
@@ -202,7 +196,7 @@ class Controller extends \Piwik\Plugin\Controller
 				}
 				else {
 					window.location.href = handleProtocol("' . $site['main_url'] . '");
-				}
+				};
 			</script>
 			</body></html>
 		';
@@ -255,5 +249,11 @@ class Controller extends \Piwik\Plugin\Controller
         $view = new View('@Overlay/notifyParentIframe');
         $this->outputCORSHeaders();
         return $view->render();
+    }
+
+    protected function outputCORSHeaders()
+    {
+        $corsHandler = new CORSHandler();
+        $corsHandler->handle();
     }
 }

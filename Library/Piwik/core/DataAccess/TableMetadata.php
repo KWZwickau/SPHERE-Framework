@@ -16,25 +16,6 @@ use Piwik\Db;
 class TableMetadata
 {
     /**
-     * Returns the list of idaction columns in a table. A column is
-     * assumed to be an idaction reference if it has `"idaction"` in its
-     * name (eg, `"idaction_url"` or `"idaction_content_name"`.
-     *
-     * @param string $table Prefixed table name.
-     * @return string[]
-     */
-    public function getIdActionColumnNames($table)
-    {
-        $columns = $this->getColumns($table);
-
-        $columns = array_filter($columns, function ($columnName) {
-            return strpos($columnName, 'idaction') !== false;
-        });
-
-        return array_values($columns);
-    }
-
-    /**
      * Returns the list of column names for a table.
      *
      * @param string $table Prefixed table name.
@@ -52,5 +33,24 @@ class TableMetadata
         }
 
         return $columnNames;
+    }
+
+    /**
+     * Returns the list of idaction columns in a table. A column is
+     * assumed to be an idaction reference if it has `"idaction"` in its
+     * name (eg, `"idaction_url"` or `"idaction_content_name"`.
+     *
+     * @param string $table Prefixed table name.
+     * @return string[]
+     */
+    public function getIdActionColumnNames($table)
+    {
+        $columns = $this->getColumns($table);
+
+        $columns = array_filter($columns, function ($columnName) {
+            return strpos($columnName, 'idaction') !== false;
+        });
+
+        return array_values($columns);
     }
 }

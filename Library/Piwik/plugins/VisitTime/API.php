@@ -14,6 +14,7 @@ use Piwik\DataTable;
 use Piwik\Date;
 use Piwik\Metrics;
 use Piwik\Period;
+use Piwik\Period\Range;
 use Piwik\Piwik;
 use Piwik\Site;
 
@@ -26,14 +27,6 @@ require_once PIWIK_INCLUDE_PATH . '/plugins/VisitTime/functions.php';
  */
 class API extends \Piwik\Plugin\API
 {
-    public function getVisitInformationPerLocalTime($idSite, $period, $date, $segment = false)
-    {
-        $table = $this->getDataTable(Archiver::LOCAL_TIME_RECORD_NAME, $idSite, $period, $date, $segment);
-        $table->filter('AddSegmentValue');
-
-        return $table;
-    }
-
     protected function getDataTable($name, $idSite, $period, $date, $segment)
     {
         Piwik::checkUserHasViewAccess($idSite);
@@ -44,6 +37,14 @@ class API extends \Piwik\Plugin\API
         $dataTable->queueFilter('ColumnCallbackReplace', array('label', __NAMESPACE__ . '\getTimeLabel'));
         $dataTable->queueFilter('ReplaceColumnNames');
         return $dataTable;
+    }
+
+    public function getVisitInformationPerLocalTime($idSite, $period, $date, $segment = false)
+    {
+        $table = $this->getDataTable(Archiver::LOCAL_TIME_RECORD_NAME, $idSite, $period, $date, $segment);
+        $table->filter('AddSegmentValue');
+
+        return $table;
     }
 
     public function getVisitInformationPerServerTime($idSite, $period, $date, $segment = false, $hideFutureHoursWhenToday = false)
@@ -57,43 +58,6 @@ class API extends \Piwik\Plugin\API
             $table = $this->removeHoursInFuture($table, $idSite, $period, $date);
         }
 
-        return $table;
-    }
-
-    /**
-     * @param DataTable $table
-     * @param int $idSite
-     * @param string $period
-     * @param string $date
-     * @return mixed
-     */
-    protected function removeHoursInFuture($table, $idSite, $period, $date)
-    {
-        $site = new Site($idSite);
-
-        if ($period == 'day'
-            && ($date == 'today'
-                || $date == Date::factory('now', $site->getTimezone())->toString())
-        ) {
-            $currentHour = Date::factory('now', $site->getTimezone())->toString('G');
-            // If no data for today, this is an exception to the API output rule, as we normally return nothing:
-            // we shall return all hours of the day, with nb_visits = 0
-            if ($table->getRowsCount() == 0) {
-                for ($hour = 0; $hour <= $currentHour; $hour++) {
-                    $table->addRowFromSimpleArray(array('label' => $hour, 'nb_visits' => 0));
-                }
-                return $table;
-            }
-
-            $idsToDelete = array();
-            foreach ($table->getRows() as $id => $row) {
-                $hour = $row->getColumn('label');
-                if ($hour > $currentHour) {
-                    $idsToDelete[] = $id;
-                }
-            }
-            $table->deleteRows($idsToDelete);
-        }
         return $table;
     }
 
@@ -161,5 +125,42 @@ class API extends \Piwik\Plugin\API
         $result->setMetadata('date_end', $oPeriod->getDateEnd());
 
         return $result;
+    }
+
+    /**
+     * @param DataTable $table
+     * @param int $idSite
+     * @param string $period
+     * @param string $date
+     * @return mixed
+     */
+    protected function removeHoursInFuture($table, $idSite, $period, $date)
+    {
+        $site = new Site($idSite);
+
+        if ($period == 'day'
+            && ($date == 'today'
+                || $date == Date::factory('now', $site->getTimezone())->toString())
+        ) {
+            $currentHour = Date::factory('now', $site->getTimezone())->toString('G');
+            // If no data for today, this is an exception to the API output rule, as we normally return nothing:
+            // we shall return all hours of the day, with nb_visits = 0
+            if ($table->getRowsCount() == 0) {
+                for ($hour = 0; $hour <= $currentHour; $hour++) {
+                    $table->addRowFromSimpleArray(array('label' => $hour, 'nb_visits' => 0));
+                }
+                return $table;
+            }
+
+            $idsToDelete = array();
+            foreach ($table->getRows() as $id => $row) {
+                $hour = $row->getColumn('label');
+                if ($hour > $currentHour) {
+                    $idsToDelete[] = $id;
+                }
+            }
+            $table->deleteRows($idsToDelete);
+        }
+        return $table;
     }
 }

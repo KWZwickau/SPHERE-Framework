@@ -72,37 +72,6 @@ class Zend_Cache_Backend_Static
     protected $_tagged = null;
 
     /**
-     * Validate a cache id or a tag (security, reliable filenames, reserved prefixes...)
-     *
-     * Throw an exception if a problem is found
-     *
-     * @param  string $string Cache id or tag
-     * @throws Zend_Cache_Exception
-     * @return void
-     * @deprecated Not usable until perhaps ZF 2.0
-     */
-    protected static function _validateIdOrTag($string)
-    {
-        if (!is_string($string)) {
-            Zend_Cache::throwException('Invalid id or tag : must be a string');
-        }
-
-        // Internal only checked in Frontend - not here!
-        if (substr($string, 0, 9) == 'internal-') {
-            return;
-        }
-
-        // Validation assumes no query string, fragments or scheme included - only the path
-        if (!preg_match(
-                '/^(?:\/(?:(?:%[[:xdigit:]]{2}|[A-Za-z0-9-_.!~*\'()\[\]:@&=+$,;])*)?)+$/',
-                $string
-            )
-        ) {
-            Zend_Cache::throwException("Invalid id or tag '$string' : must be a valid URL path");
-        }
-    }
-
-    /**
      * Interceptor child method to handle the case where an Inner
      * Cache object is being set since it's not supported by the
      * standard backend interface
@@ -119,21 +88,6 @@ class Zend_Cache_Backend_Static
             parent::setOption($name, $value);
         }
         return $this;
-    }
-
-    /**
-     * Set an Inner Cache, used here primarily to store Tags associated
-     * with caches created by this backend. Note: If Tags are lost, the cache
-     * should be completely cleaned as the mapping of tags to caches will
-     * have been irrevocably lost.
-     *
-     * @param  Zend_Cache_Core
-     * @return void
-     */
-    public function setInnerCache(Zend_Cache_Core $cache)
-    {
-        $this->_tagCache = $cache;
-        $this->_options['tag_cache'] = $cache;
     }
 
     /**
@@ -156,19 +110,6 @@ class Zend_Cache_Backend_Static
             }
             return null;
         }
-    }
-
-    /**
-     * Get the Inner Cache if set
-     *
-     * @return Zend_Cache_Core
-     */
-    public function getInnerCache()
-    {
-        if ($this->_tagCache === null) {
-            Zend_Cache::throwException('An Inner Cache has not been set; use setInnerCache()');
-        }
-        return $this->_tagCache;
     }
 
     /**
@@ -206,40 +147,6 @@ class Zend_Cache_Backend_Static
         }
 
         return false;
-    }
-
-    /**
-     * Determine the page to save from the request
-     *
-     * @return string
-     */
-    protected function _detectId()
-    {
-        return $_SERVER['REQUEST_URI'];
-    }
-
-    /**
-     * Decode a request URI from the provided ID
-     *
-     * @param string $id
-     * @return string
-     */
-    protected function _decodeId($id)
-    {
-        return pack('H*', $id);
-    }
-
-    /**
-     * Verify path exists and is non-empty
-     *
-     * @param  string $path
-     * @return bool
-     */
-    protected function _verifyPath($path)
-    {
-        $path = realpath($path);
-        $base = realpath($this->_options['public_dir']);
-        return strncmp($path, $base, strlen($base)) !== 0;
     }
 
     /**
@@ -323,7 +230,7 @@ class Zend_Cache_Backend_Static
             $data = $dataUnserialized['data'];
         }
         $ext = $this->_options['file_extension'];
-        if ($extension) {$ext = $extension;}
+        if ($extension) $ext = $extension;
         $file = rtrim($pathName, '/') . '/' . $fileName . $ext;
         if ($this->_options['file_locking']) {
             $result = file_put_contents($file, $data, LOCK_EX);
@@ -350,20 +257,6 @@ class Zend_Cache_Backend_Static
     }
 
     /**
-     * Detect serialization of data (cannot predict since this is the only way
-     * to obey the interface yet pass in another parameter).
-     *
-     * In future, ZF 2.0, check if we can just avoid the interface restraints.
-     *
-     * This format is the only valid one possible for the class, so it's simple
-     * to just run a regular expression for the starting serialized format.
-     */
-    protected function _isSerialized($data)
-    {
-        return preg_match("/a:2:\{i:0;s:\d+:\"/", $data);
-    }
-
-    /**
      * Recursively create the directories needed to write the static file
      */
     protected function _createDirectoriesFor($path)
@@ -380,18 +273,50 @@ class Zend_Cache_Backend_Static
     }
 
     /**
-     * Detect an octal string and return its octal value for file permission ops
-     * otherwise return the non-string (assumed octal or decimal int already)
+     * Detect serialization of data (cannot predict since this is the only way
+     * to obey the interface yet pass in another parameter).
      *
-     * @param string $val The potential octal in need of conversion
-     * @return int
+     * In future, ZF 2.0, check if we can just avoid the interface restraints.
+     *
+     * This format is the only valid one possible for the class, so it's simple
+     * to just run a regular expression for the starting serialized format.
      */
-    protected function _octdec($val)
+    protected function _isSerialized($data)
     {
-        if (is_string($val) && decoct(octdec($val)) == $val) {
-            return octdec($val);
+        return preg_match("/a:2:\{i:0;s:\d+:\"/", $data);
+    }
+
+    /**
+     * Remove a cache record
+     *
+     * @param  string $id Cache id
+     * @return boolean True if no problem
+     */
+    public function remove($id)
+    {
+        if (!$this->_verifyPath($id)) {
+            Zend_Cache::throwException('Invalid cache id: does not match expected public_dir path');
         }
-        return $val;
+        $fileName = basename($id);
+        if ($this->_tagged === null && $tagged = $this->getInnerCache()->load(self::INNER_CACHE_NAME)) {
+            $this->_tagged = $tagged;
+        } elseif (!$this->_tagged) {
+            return false;
+        }
+        if (isset($this->_tagged[$id])) {
+            $extension = $this->_tagged[$id]['extension'];
+        } else {
+            $extension = $this->_options['file_extension'];
+        }
+        if ($fileName === '') {
+            $fileName = $this->_options['index_filename'];
+        }
+        $pathName = $this->_options['public_dir'] . dirname($id);
+        $file     = realpath($pathName) . '/' . $fileName . $extension;
+        if (!file_exists($file)) {
+            return false;
+        }
+        return unlink($file);
     }
 
     /**
@@ -530,35 +455,110 @@ class Zend_Cache_Backend_Static
     }
 
     /**
-     * Remove a cache record
+     * Set an Inner Cache, used here primarily to store Tags associated
+     * with caches created by this backend. Note: If Tags are lost, the cache
+     * should be completely cleaned as the mapping of tags to caches will
+     * have been irrevocably lost.
      *
-     * @param  string $id Cache id
-     * @return boolean True if no problem
+     * @param  Zend_Cache_Core
+     * @return void
      */
-    public function remove($id)
+    public function setInnerCache(Zend_Cache_Core $cache)
     {
-        if (!$this->_verifyPath($id)) {
-            Zend_Cache::throwException('Invalid cache id: does not match expected public_dir path');
+        $this->_tagCache = $cache;
+        $this->_options['tag_cache'] = $cache;
+    }
+
+    /**
+     * Get the Inner Cache if set
+     *
+     * @return Zend_Cache_Core
+     */
+    public function getInnerCache()
+    {
+        if ($this->_tagCache === null) {
+            Zend_Cache::throwException('An Inner Cache has not been set; use setInnerCache()');
         }
-        $fileName = basename($id);
-        if ($this->_tagged === null && $tagged = $this->getInnerCache()->load(self::INNER_CACHE_NAME)) {
-            $this->_tagged = $tagged;
-        } elseif (!$this->_tagged) {
-            return false;
+        return $this->_tagCache;
+    }
+
+    /**
+     * Verify path exists and is non-empty
+     *
+     * @param  string $path
+     * @return bool
+     */
+    protected function _verifyPath($path)
+    {
+        $path = realpath($path);
+        $base = realpath($this->_options['public_dir']);
+        return strncmp($path, $base, strlen($base)) !== 0;
+    }
+
+    /**
+     * Determine the page to save from the request
+     *
+     * @return string
+     */
+    protected function _detectId()
+    {
+        return $_SERVER['REQUEST_URI'];
+    }
+
+    /**
+     * Validate a cache id or a tag (security, reliable filenames, reserved prefixes...)
+     *
+     * Throw an exception if a problem is found
+     *
+     * @param  string $string Cache id or tag
+     * @throws Zend_Cache_Exception
+     * @return void
+     * @deprecated Not usable until perhaps ZF 2.0
+     */
+    protected static function _validateIdOrTag($string)
+    {
+        if (!is_string($string)) {
+            Zend_Cache::throwException('Invalid id or tag : must be a string');
         }
-        if (isset($this->_tagged[$id])) {
-            $extension = $this->_tagged[$id]['extension'];
-        } else {
-            $extension = $this->_options['file_extension'];
+
+        // Internal only checked in Frontend - not here!
+        if (substr($string, 0, 9) == 'internal-') {
+            return;
         }
-        if ($fileName === '') {
-            $fileName = $this->_options['index_filename'];
+
+        // Validation assumes no query string, fragments or scheme included - only the path
+        if (!preg_match(
+                '/^(?:\/(?:(?:%[[:xdigit:]]{2}|[A-Za-z0-9-_.!~*\'()\[\]:@&=+$,;])*)?)+$/',
+                $string
+            )
+        ) {
+            Zend_Cache::throwException("Invalid id or tag '$string' : must be a valid URL path");
         }
-        $pathName = $this->_options['public_dir'] . dirname($id);
-        $file     = realpath($pathName) . '/' . $fileName . $extension;
-        if (!file_exists($file)) {
-            return false;
+    }
+
+    /**
+     * Detect an octal string and return its octal value for file permission ops
+     * otherwise return the non-string (assumed octal or decimal int already)
+     *
+     * @param string $val The potential octal in need of conversion
+     * @return int
+     */
+    protected function _octdec($val)
+    {
+        if (is_string($val) && decoct(octdec($val)) == $val) {
+            return octdec($val);
         }
-        return unlink($file);
+        return $val;
+    }
+
+    /**
+     * Decode a request URI from the provided ID
+     *
+     * @param string $id
+     * @return string
+     */
+    protected function _decodeId($id)
+    {
+        return pack('H*', $id);
     }
 }

@@ -130,42 +130,6 @@ class DuplicateActionRemover
         Db::query($sql);
     }
 
-    private function getIdActionTableColumnsFromMetadata()
-    {
-        if ($this->idactionColumns === null) {
-            $this->idactionColumns = array();
-            foreach (self::$tablesWithIdActionColumns as $table) {
-                $columns = $this->tableMetadataAccess->getIdActionColumnNames(Common::prefixTable($table));
-
-                $this->logger->debug("Found following idactions in {table}: {columns}", array(
-                    'table' => $table,
-                    'columns' => implode(',', $columns)
-                ));
-
-                $this->idactionColumns[$table] = $columns;
-            }
-        }
-        return $this->idactionColumns;
-    }
-
-    private function getInFromIdsExpression($fromIdActions)
-    {
-        return "%1\$s IN (" . implode(',', $fromIdActions) . ")";
-    }
-
-    private function getWhereToGetRowsUsingDuplicateActions($idactionColumns, $fromIdActions)
-    {
-        $sql = "WHERE ";
-        foreach ($idactionColumns as $index => $column) {
-            if ($index != 0) {
-                $sql .= "OR ";
-            }
-
-            $sql .= sprintf($this->getInFromIdsExpression($fromIdActions), $column) . " ";
-        }
-        return $sql;
-    }
-
     /**
      * Returns the server time and idsite of rows in a log table that reference at least one action
      * in a set.
@@ -184,5 +148,41 @@ class DuplicateActionRemover
         $sql = "SELECT idsite, DATE(server_time) as server_time FROM $table ";
         $sql .= $this->getWhereToGetRowsUsingDuplicateActions($idactionColumns, $duplicateIdActions);
         return Db::fetchAll($sql);
+    }
+
+    private function getIdActionTableColumnsFromMetadata()
+    {
+        if ($this->idactionColumns === null) {
+            $this->idactionColumns = array();
+            foreach (self::$tablesWithIdActionColumns as $table) {
+                $columns = $this->tableMetadataAccess->getIdActionColumnNames(Common::prefixTable($table));
+
+                $this->logger->debug("Found following idactions in {table}: {columns}", array(
+                    'table' => $table,
+                    'columns' => implode(',', $columns)
+                ));
+
+                $this->idactionColumns[$table] = $columns;
+            }
+        }
+        return $this->idactionColumns;
+    }
+
+    private function getWhereToGetRowsUsingDuplicateActions($idactionColumns, $fromIdActions)
+    {
+        $sql = "WHERE ";
+        foreach ($idactionColumns as $index => $column) {
+            if ($index != 0) {
+                $sql .= "OR ";
+            }
+
+            $sql .= sprintf($this->getInFromIdsExpression($fromIdActions), $column) . " ";
+        }
+        return $sql;
+    }
+
+    private function getInFromIdsExpression($fromIdActions)
+    {
+        return "%1\$s IN (" . implode(',', $fromIdActions) . ")";
     }
 }

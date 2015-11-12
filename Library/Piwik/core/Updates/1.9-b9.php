@@ -22,18 +22,6 @@ class Updates_1_9_b9 extends Updates
         return true;
     }
 
-    public function doUpdate(Updater $updater)
-    {
-        try {
-            self::enableMaintenanceMode();
-            $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-            self::disableMaintenanceMode();
-        } catch (\Exception $e) {
-            self::disableMaintenanceMode();
-            throw $e;
-        }
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         $logVisit = Common::prefixTable('log_visit');
@@ -47,13 +35,25 @@ class Updates_1_9_b9 extends Updates
 
         return array(
 
-            "ALTER TABLE `$logVisit` $dropColumns" => 1091,
+            "ALTER TABLE `$logVisit` $dropColumns"      => 1091,
             "ALTER TABLE `$logConversion` $dropColumns" => 1091,
 
             // add geoip columns to log_visit
-            "ALTER TABLE `$logVisit` $addColumns" => 1060,
+            "ALTER TABLE `$logVisit` $addColumns"      => 1060,
             // add geoip columns to log_conversion
             "ALTER TABLE `$logConversion` $addColumns" => 1060,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        try {
+            self::enableMaintenanceMode();
+            $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
+            self::disableMaintenanceMode();
+        } catch (\Exception $e) {
+            self::disableMaintenanceMode();
+            throw $e;
+        }
     }
 }

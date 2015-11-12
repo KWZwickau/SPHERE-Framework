@@ -68,19 +68,14 @@ class EvolutionMetric extends ProcessedMetric
         $this->quotientPrecision = $quotientPrecision;
     }
 
-    protected function getWrappedName()
+    public function getName()
     {
-        return $this->wrapped instanceof Metric ? $this->wrapped->getName() : $this->wrapped;
+        return $this->evolutionMetricName;
     }
 
     public function getTranslatedName()
     {
         return $this->wrapped instanceof Metric ? $this->wrapped->getTranslatedName() : $this->getName();
-    }
-
-    public function getName()
-    {
-        return $this->evolutionMetricName;
     }
 
     public function compute(Row $row)
@@ -96,19 +91,11 @@ class EvolutionMetric extends ProcessedMetric
 
         if ($dividend == 0) {
             return 0;
-        } else {if ($divisor == 0) {
+        } else if ($divisor == 0) {
             return 1;
         } else {
             return Piwik::getQuotientSafe($dividend, $divisor, $this->quotientPrecision + 2);
-        }}
-    }
-
-    /**
-     * public for Insights use.
-     */
-    public function getPastRowFromCurrent(Row $row)
-    {
-        return $this->pastData->getRowFromLabel($row->getColumn('label'));
+        }
     }
 
     public function format($value, Formatter $formatter)
@@ -119,5 +106,18 @@ class EvolutionMetric extends ProcessedMetric
     public function getDependentMetrics()
     {
         return array($this->getWrappedName());
+    }
+
+    protected function getWrappedName()
+    {
+        return $this->wrapped instanceof Metric ? $this->wrapped->getName() : $this->wrapped;
+    }
+
+    /**
+     * public for Insights use.
+     */
+    public function getPastRowFromCurrent(Row $row)
+    {
+        return $this->pastData->getRowFromLabel($row->getColumn('label'));
     }
 }

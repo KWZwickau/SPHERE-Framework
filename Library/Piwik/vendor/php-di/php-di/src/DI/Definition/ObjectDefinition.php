@@ -9,9 +9,9 @@
 
 namespace DI\Definition;
 
-use DI\Definition\Exception\DefinitionException;
 use DI\Definition\ObjectDefinition\MethodInjection;
 use DI\Definition\ObjectDefinition\PropertyInjection;
+use DI\Definition\Exception\DefinitionException;
 use DI\Scope;
 
 /**
@@ -72,6 +72,57 @@ class ObjectDefinition implements Definition, CacheableDefinition, HasSubDefinit
     }
 
     /**
+     * @return string Entry name
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param string $className
+     */
+    public function setClassName($className)
+    {
+        $this->className = $className;
+    }
+
+    /**
+     * @return string Class name
+     */
+    public function getClassName()
+    {
+        if ($this->className !== null) {
+            return $this->className;
+        }
+        return $this->name;
+    }
+
+    /**
+     * @return MethodInjection|null
+     */
+    public function getConstructorInjection()
+    {
+        return $this->constructorInjection;
+    }
+
+    /**
+     * @param MethodInjection $constructorInjection
+     */
+    public function setConstructorInjection(MethodInjection $constructorInjection)
+    {
+        $this->constructorInjection = $constructorInjection;
+    }
+
+    /**
+     * @return PropertyInjection[] Property injections
+     */
+    public function getPropertyInjections()
+    {
+        return $this->propertyInjections;
+    }
+
+    /**
      * @param string $propertyName
      * @return PropertyInjection
      */
@@ -114,19 +165,19 @@ class ObjectDefinition implements Definition, CacheableDefinition, HasSubDefinit
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function getScope()
-    {
-        return $this->scope ?: Scope::SINGLETON;
-    }
-
-    /**
      * @param string $scope
      */
     public function setScope($scope)
     {
         $this->scope = $scope;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getScope()
+    {
+        return $this->scope ?: Scope::SINGLETON;
     }
 
     /**
@@ -156,25 +207,6 @@ class ObjectDefinition implements Definition, CacheableDefinition, HasSubDefinit
     public function getSubDefinitionName()
     {
         return $this->getClassName();
-    }
-
-    /**
-     * @return string Class name
-     */
-    public function getClassName()
-    {
-        if ($this->className !== null) {
-            return $this->className;
-        }
-        return $this->name;
-    }
-
-    /**
-     * @param string $className
-     */
-    public function setClassName($className)
-    {
-        $this->className = $className;
     }
 
     /**
@@ -211,14 +243,6 @@ class ObjectDefinition implements Definition, CacheableDefinition, HasSubDefinit
         $this->mergeMethodInjections($definition);
     }
 
-    /**
-     * @return string Entry name
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
     private function mergeConstructorInjection(ObjectDefinition $definition)
     {
         if ($definition->getConstructorInjection() !== null) {
@@ -232,22 +256,6 @@ class ObjectDefinition implements Definition, CacheableDefinition, HasSubDefinit
         }
     }
 
-    /**
-     * @return MethodInjection|null
-     */
-    public function getConstructorInjection()
-    {
-        return $this->constructorInjection;
-    }
-
-    /**
-     * @param MethodInjection $constructorInjection
-     */
-    public function setConstructorInjection(MethodInjection $constructorInjection)
-    {
-        $this->constructorInjection = $constructorInjection;
-    }
-
     private function mergePropertyInjections(ObjectDefinition $definition)
     {
         foreach ($definition->getPropertyInjections() as $propertyName => $propertyInjection) {
@@ -256,14 +264,6 @@ class ObjectDefinition implements Definition, CacheableDefinition, HasSubDefinit
                 $this->propertyInjections[$propertyName] = $propertyInjection;
             }
         }
-    }
-
-    /**
-     * @return PropertyInjection[] Property injections
-     */
-    public function getPropertyInjections()
-    {
-        return $this->propertyInjections;
     }
 
     private function mergeMethodInjections(ObjectDefinition $definition)

@@ -24,6 +24,42 @@ abstract class GeneratePluginBase extends ConsoleCommand
         return Development::isEnabled();
     }
 
+    public function getPluginPath($pluginName)
+    {
+        return PIWIK_INCLUDE_PATH . $this->getRelativePluginPath($pluginName);
+    }
+
+    private function getRelativePluginPath($pluginName)
+    {
+        return '/plugins/' . ucfirst($pluginName);
+    }
+
+    private function createFolderWithinPluginIfNotExists($pluginNameOrCore, $folder)
+    {
+        if ($pluginNameOrCore === 'core') {
+            $pluginPath = $this->getPathToCore();
+        } else {
+            $pluginPath = $this->getPluginPath($pluginNameOrCore);
+        }
+
+        if (!file_exists($pluginPath . $folder)) {
+            Filesystem::mkdir($pluginPath . $folder);
+        }
+    }
+
+    protected function createFileWithinPluginIfNotExists($pluginNameOrCore, $fileName, $content)
+    {
+        if ($pluginNameOrCore === 'core') {
+            $pluginPath = $this->getPathToCore();
+        } else {
+            $pluginPath = $this->getPluginPath($pluginNameOrCore);
+        }
+
+        if (!file_exists($pluginPath . $fileName)) {
+            file_put_contents($pluginPath . $fileName, $content);
+        }
+    }
+
     /**
      * Creates a lang/en.json within the plugin in case it does not exist yet and adds a translation for the given
      * text.
@@ -64,72 +100,6 @@ abstract class GeneratePluginBase extends ConsoleCommand
         file_put_contents($langJsonPath, $this->toJson($translations));
 
         return $pluginName . '_' . $key;
-    }
-
-    private function createFolderWithinPluginIfNotExists($pluginNameOrCore, $folder)
-    {
-        if ($pluginNameOrCore === 'core') {
-            $pluginPath = $this->getPathToCore();
-        } else {
-            $pluginPath = $this->getPluginPath($pluginNameOrCore);
-        }
-
-        if (!file_exists($pluginPath . $folder)) {
-            Filesystem::mkdir($pluginPath . $folder);
-        }
-    }
-
-    private function getPathToCore()
-    {
-        $path = PIWIK_INCLUDE_PATH . '/core';
-        return $path;
-    }
-
-    public function getPluginPath($pluginName)
-    {
-        return PIWIK_INCLUDE_PATH . $this->getRelativePluginPath($pluginName);
-    }
-
-    private function getRelativePluginPath($pluginName)
-    {
-        return '/plugins/' . ucfirst($pluginName);
-    }
-
-    protected function createFileWithinPluginIfNotExists($pluginNameOrCore, $fileName, $content)
-    {
-        if ($pluginNameOrCore === 'core') {
-            $pluginPath = $this->getPathToCore();
-        } else {
-            $pluginPath = $this->getPluginPath($pluginNameOrCore);
-        }
-
-        if (!file_exists($pluginPath . $fileName)) {
-            file_put_contents($pluginPath . $fileName, $content);
-        }
-    }
-
-    private function toJson($value)
-    {
-        if (defined('JSON_PRETTY_PRINT')) {
-
-            return json_encode($value, JSON_PRETTY_PRINT);
-        }
-
-        return json_encode($value);
-    }
-
-    private function buildTranslationKey($translatedText)
-    {
-        $translatedText = preg_replace('/(\s+)/', '', $translatedText);
-        $translatedText = preg_replace("/[^A-Za-z0-9]/", '', $translatedText);
-        $translatedText = trim($translatedText);
-
-        return $this->removeNonJsonCompatibleCharacters($translatedText);
-    }
-
-    private function removeNonJsonCompatibleCharacters($text)
-    {
-        return preg_replace('/[^(\x00-\x7F)]*/', '', $text);
     }
 
     protected function checkAndUpdateRequiredPiwikVersion($pluginName, OutputInterface $output)
@@ -180,6 +150,30 @@ abstract class GeneratePluginBase extends ConsoleCommand
 
         $pluginJson['require']['piwik'] = $newRequiredVersion;
         file_put_contents($pluginJsonPath, $this->toJson($pluginJson));
+    }
+
+    private function toJson($value)
+    {
+        if (defined('JSON_PRETTY_PRINT')) {
+
+            return json_encode($value, JSON_PRETTY_PRINT);
+        }
+
+        return json_encode($value);
+    }
+
+    private function buildTranslationKey($translatedText)
+    {
+        $translatedText = preg_replace('/(\s+)/', '', $translatedText);
+        $translatedText = preg_replace("/[^A-Za-z0-9]/", '', $translatedText);
+        $translatedText = trim($translatedText);
+
+        return $this->removeNonJsonCompatibleCharacters($translatedText);
+    }
+
+    private function removeNonJsonCompatibleCharacters($text)
+    {
+        return preg_replace('/[^(\x00-\x7F)]*/', '', $text);
     }
 
     /**
@@ -239,15 +233,6 @@ abstract class GeneratePluginBase extends ConsoleCommand
         }
 
         file_put_contents($targetClass->getFileName(), $newClassCode);
-    }
-
-    private function replaceContent($replace, $contentToReplace)
-    {
-        foreach ((array) $replace as $key => $value) {
-            $contentToReplace = str_replace($key, $value, $contentToReplace);
-        }
-
-        return $contentToReplace;
     }
 
     /**
@@ -343,6 +328,21 @@ abstract class GeneratePluginBase extends ConsoleCommand
         $pluginName = ucfirst($pluginName);
 
         return $pluginName;
+    }
+
+    private function getPathToCore()
+    {
+        $path = PIWIK_INCLUDE_PATH . '/core';
+        return $path;
+    }
+
+    private function replaceContent($replace, $contentToReplace)
+    {
+        foreach ((array) $replace as $key => $value) {
+            $contentToReplace = str_replace($key, $value, $contentToReplace);
+        }
+
+        return $contentToReplace;
     }
 
 }

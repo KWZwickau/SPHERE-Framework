@@ -9,23 +9,19 @@
 namespace Piwik\Tracker;
 
 use Piwik\Config;
+use Piwik\Plugin\Dimension\VisitDimension;
 use Piwik\Tracker;
 use Piwik\Tracker\Visit\VisitProperties;
 
 class Visitor
 {
-    public $visitProperties;
     private $visitorKnown = false;
+    public $visitProperties;
 
     public function __construct(VisitProperties $visitProperties, $isVisitorKnown = false)
     {
         $this->visitProperties = $visitProperties;
         $this->setIsVisitorKnown($isVisitorKnown);
-    }
-
-    private function setIsVisitorKnown($isVisitorKnown)
-    {
-        return $this->visitorKnown = $isVisitorKnown;
     }
 
     public static function makeFromVisitProperties(VisitProperties $visitProperties, Request $request)
@@ -51,5 +47,10 @@ class Visitor
     public function isVisitorKnown()
     {
         return $this->visitorKnown === true;
+    }
+
+    private function setIsVisitorKnown($isVisitorKnown)
+    {
+        return $this->visitorKnown = $isVisitorKnown;
     }
 }

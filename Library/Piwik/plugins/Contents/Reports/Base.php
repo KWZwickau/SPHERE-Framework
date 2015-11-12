@@ -8,6 +8,7 @@
  */
 namespace Piwik\Plugins\Contents\Reports;
 
+use Piwik\Columns\Dimension;
 use Piwik\Common;
 use Piwik\Piwik;
 use Piwik\Plugin\Report;
@@ -16,6 +17,11 @@ use Piwik\Plugins\Contents\Dimensions;
 
 abstract class Base extends Report
 {
+    protected function init()
+    {
+        $this->category = 'General_Actions';
+    }
+
     /**
      * Here you can configure how your report should be displayed. For instance whether your report supports a search
      * etc. You can also change the default request config. For instance change how many rows are displayed by default.
@@ -51,10 +57,5 @@ abstract class Base extends Report
         $subtable = Common::getRequestVar('idSubtable', false, 'integer');
 
         return !empty($subtable);
-    }
-
-    protected function init()
-    {
-        $this->category = 'General_Actions';
     }
 }

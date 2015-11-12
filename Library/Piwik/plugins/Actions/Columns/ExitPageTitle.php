@@ -9,8 +9,8 @@
 namespace Piwik\Plugins\Actions\Columns;
 
 use Piwik\Piwik;
-use Piwik\Plugin\Dimension\VisitDimension;
 use Piwik\Plugins\Actions\Segment;
+use Piwik\Plugin\Dimension\VisitDimension;
 use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
@@ -19,6 +19,14 @@ class ExitPageTitle extends VisitDimension
 {
     protected $columnName = 'visit_exit_idaction_name';
     protected $columnType = 'INTEGER(11) UNSIGNED NOT NULL';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('exitPageTitle');
+        $segment->setName('Actions_ColumnExitPageTitle');
+        $this->addSegment($segment);
+    }
 
     /**
      * @param Request $request
@@ -34,7 +42,7 @@ class ExitPageTitle extends VisitDimension
             $idActionName = $action->getIdActionNameForEntryAndExitIds();
         }
 
-        return (int)$idActionName;
+        return (int) $idActionName;
     }
 
     /**
@@ -55,13 +63,5 @@ class ExitPageTitle extends VisitDimension
     public function getName()
     {
         return Piwik::translate('Actions_ColumnExitPageTitle');
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('exitPageTitle');
-        $segment->setName('Actions_ColumnExitPageTitle');
-        $this->addSegment($segment);
     }
 }

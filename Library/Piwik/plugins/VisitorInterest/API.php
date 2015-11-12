@@ -21,18 +21,6 @@ use Piwik\Piwik;
  */
 class API extends \Piwik\Plugin\API
 {
-    public function getNumberOfVisitsPerVisitDuration($idSite, $period, $date, $segment = false)
-    {
-        $dataTable = $this->getDataTable(Archiver::TIME_SPENT_RECORD_NAME, $idSite, $period, $date, $segment);
-        $dataTable->queueFilter('Sort', array('label', 'asc', true, false));
-        $dataTable->queueFilter('BeautifyTimeRangeLabels', array(
-            Piwik::translate('VisitorInterest_BetweenXYSeconds'),
-            Piwik::translate('Intl_OneMinuteShort'),
-            Piwik::translate('Intl_NMinutesShort')
-        ));
-        return $dataTable;
-    }
-
     protected function getDataTable($name, $idSite, $period, $date, $segment, $column = Metrics::INDEX_NB_VISITS)
     {
         Piwik::checkUserHasViewAccess($idSite);
@@ -42,14 +30,24 @@ class API extends \Piwik\Plugin\API
         return $dataTable;
     }
 
+    public function getNumberOfVisitsPerVisitDuration($idSite, $period, $date, $segment = false)
+    {
+        $dataTable = $this->getDataTable(Archiver::TIME_SPENT_RECORD_NAME, $idSite, $period, $date, $segment);
+        $dataTable->queueFilter('Sort', array('label', 'asc', true, false));
+        $dataTable->queueFilter('BeautifyTimeRangeLabels', array(
+                                                                Piwik::translate('VisitorInterest_BetweenXYSeconds'),
+                                                                Piwik::translate('Intl_OneMinuteShort'),
+                                                                Piwik::translate('Intl_NMinutesShort')));
+        return $dataTable;
+    }
+
     public function getNumberOfVisitsPerPage($idSite, $period, $date, $segment = false)
     {
         $dataTable = $this->getDataTable(Archiver::PAGES_VIEWED_RECORD_NAME, $idSite, $period, $date, $segment);
         $dataTable->queueFilter('Sort', array('label', 'asc', true, false));
         $dataTable->queueFilter('BeautifyRangeLabels', array(
-            Piwik::translate('VisitorInterest_OnePage'),
-            Piwik::translate('VisitorInterest_NPages')
-        ));
+                                                            Piwik::translate('VisitorInterest_OnePage'),
+                                                            Piwik::translate('VisitorInterest_NPages')));
         return $dataTable;
     }
 
@@ -67,8 +65,7 @@ class API extends \Piwik\Plugin\API
     {
         $dataTable = $this->getDataTable(
             Archiver::DAYS_SINCE_LAST_RECORD_NAME, $idSite, $period, $date, $segment, Metrics::INDEX_NB_VISITS);
-        $dataTable->queueFilter('BeautifyRangeLabels',
-            array(Piwik::translate('Intl_OneDay'), Piwik::translate('Intl_NDays')));
+        $dataTable->queueFilter('BeautifyRangeLabels', array(Piwik::translate('Intl_OneDay'), Piwik::translate('Intl_NDays')));
         return $dataTable;
     }
 
@@ -88,9 +85,7 @@ class API extends \Piwik\Plugin\API
             Archiver::VISITS_COUNT_RECORD_NAME, $idSite, $period, $date, $segment, Metrics::INDEX_NB_VISITS);
 
         $dataTable->queueFilter('BeautifyRangeLabels', array(
-            Piwik::translate('General_OneVisit'),
-            Piwik::translate('General_NVisits')
-        ));
+                                                            Piwik::translate('General_OneVisit'), Piwik::translate('General_NVisits')));
 
         return $dataTable;
     }

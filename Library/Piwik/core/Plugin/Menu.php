@@ -36,36 +36,12 @@ class Menu
         // Constructor kept for BC (because called in implementations)
     }
 
-    /**
-     * Configures the reporting menu which should only contain links to reports of a specific site such as
-     * "Search Engines", "Page Titles" or "Locations & Provider".
-     */
-    public function configureReportingMenu(MenuReporting $menu)
+    private function getModule()
     {
-    }
+        $className = get_class($this);
+        $className = explode('\\', $className);
 
-    /**
-     * Configures the top menu which is supposed to contain analytics related items such as the
-     * "All Websites Dashboard".
-     */
-    public function configureTopMenu(MenuTop $menu)
-    {
-    }
-
-    /**
-     * Configures the user menu which is supposed to contain user and help related items such as
-     * "User settings", "Alerts" or "Email Reports".
-     */
-    public function configureUserMenu(MenuUser $menu)
-    {
-    }
-
-    /**
-     * Configures the admin menu which is supposed to contain only administration related items such as
-     * "Websites", "Users" or "Plugin settings".
-     */
-    public function configureAdminMenu(MenuAdmin $menu)
-    {
+        return $className[2];
     }
 
     /**
@@ -94,14 +70,6 @@ class Menu
         return $params;
     }
 
-    private function getModule()
-    {
-        $className = get_class($this);
-        $className = explode('\\', $className);
-
-        return $className[2];
-    }
-
     /**
      * Generates a URL for the given action. In your plugin controller you have to create a method with the same name
      * as this method will be executed when a user clicks on the menu item. If you want to generate a URL for the
@@ -126,32 +94,37 @@ class Menu
         return $params;
     }
 
-    private function checkisValidCallable($module, $action)
+    /**
+     * Generates a URL for the given action of the given module. We usually do not recommend to use this method as you
+     * should make sure the method of that module actually exists. If the plugin owner of that module changes the method
+     * in a future version your link might no longer work. If you want to link to an action of your controller use the
+     * method {@link urlForAction()}. Note: We will generate a link only if the given module is installed and activated.
+     *
+     * @param  string $module            The name of the module/plugin the action belongs to. The module name is case sensitive.
+     * @param  string $controllerAction  The name of the action that should be executed within your controller
+     * @param  array  $additionalParams  Optional URL parameters that will be appended to the URL
+     * @return array|null   Returns null if the given module is either not installed or not activated. Returns the array
+     *                      of query parameter names and values to the given module action otherwise.
+     *
+     * @since 2.7.0
+     * // not API for now
+     */
+    protected function urlForModuleAction($module, $controllerAction, $additionalParams = array())
     {
-        if (!Development::isEnabled()) {
-            return;
+        $this->checkisValidCallable($module, $controllerAction);
+
+        $pluginManager = PluginManager::getInstance();
+
+        if (!$pluginManager->isPluginLoaded($module) ||
+            !$pluginManager->isPluginActivated($module)) {
+            return null;
         }
 
-        $prefix = 'Menu item added in ' . get_class($this) . ' will fail when being selected. ';
+        $params = (array) $additionalParams;
+        $params['action'] = $controllerAction;
+        $params['module'] = $module;
 
-        if (!is_string($action)) {
-            Development::error($prefix . 'No valid action is specified. Make sure the defined action that should be executed is a string.');
-        }
-
-        $reportAction = lcfirst(substr($action, 4));
-        if (Report::factory($module, $reportAction)) {
-            return;
-        }
-
-        $controllerClass = '\\Piwik\\Plugins\\' . $module . '\\Controller';
-
-        if (!Development::methodExists($controllerClass, $action)) {
-            Development::error($prefix . 'The defined action "' . $action . '" does not exist in ' . $controllerClass . '". Make sure to define such a method.');
-        }
-
-        if (!Development::isCallableMethod($controllerClass, $action)) {
-            Development::error($prefix . 'The defined action "' . $action . '" is not callable on "' . $controllerClass . '". Make sure the method is public.');
-        }
+        return $params;
     }
 
     /**
@@ -205,39 +178,6 @@ class Menu
     }
 
     /**
-     * Generates a URL for the given action of the given module. We usually do not recommend to use this method as you
-     * should make sure the method of that module actually exists. If the plugin owner of that module changes the method
-     * in a future version your link might no longer work. If you want to link to an action of your controller use the
-     * method {@link urlForAction()}. Note: We will generate a link only if the given module is installed and activated.
-     *
-     * @param  string $module            The name of the module/plugin the action belongs to. The module name is case sensitive.
-     * @param  string $controllerAction  The name of the action that should be executed within your controller
-     * @param  array  $additionalParams  Optional URL parameters that will be appended to the URL
-     * @return array|null   Returns null if the given module is either not installed or not activated. Returns the array
-     *                      of query parameter names and values to the given module action otherwise.
-     *
-     * @since 2.7.0
-     * // not API for now
-     */
-    protected function urlForModuleAction($module, $controllerAction, $additionalParams = array())
-    {
-        $this->checkisValidCallable($module, $controllerAction);
-
-        $pluginManager = PluginManager::getInstance();
-
-        if (!$pluginManager->isPluginLoaded($module) ||
-            !$pluginManager->isPluginActivated($module)) {
-            return null;
-        }
-
-        $params = (array) $additionalParams;
-        $params['action'] = $controllerAction;
-        $params['module'] = $module;
-
-        return $params;
-    }
-
-    /**
      * Returns the &idSite=X&period=Y&date=Z query string fragment,
      * fetched from current logged-in user's preferences.
      *
@@ -267,5 +207,65 @@ class Menu
             'period' => $defaultPeriod,
             'date'   => $defaultDate,
         );
+    }
+
+    /**
+     * Configures the reporting menu which should only contain links to reports of a specific site such as
+     * "Search Engines", "Page Titles" or "Locations & Provider".
+     */
+    public function configureReportingMenu(MenuReporting $menu)
+    {
+    }
+
+    /**
+     * Configures the top menu which is supposed to contain analytics related items such as the
+     * "All Websites Dashboard".
+     */
+    public function configureTopMenu(MenuTop $menu)
+    {
+    }
+
+    /**
+     * Configures the user menu which is supposed to contain user and help related items such as
+     * "User settings", "Alerts" or "Email Reports".
+     */
+    public function configureUserMenu(MenuUser $menu)
+    {
+    }
+
+    /**
+     * Configures the admin menu which is supposed to contain only administration related items such as
+     * "Websites", "Users" or "Plugin settings".
+     */
+    public function configureAdminMenu(MenuAdmin $menu)
+    {
+    }
+
+    private function checkisValidCallable($module, $action)
+    {
+        if (!Development::isEnabled()) {
+            return;
+        }
+
+        $prefix = 'Menu item added in ' . get_class($this) . ' will fail when being selected. ';
+
+        if (!is_string($action)) {
+            Development::error($prefix . 'No valid action is specified. Make sure the defined action that should be executed is a string.');
+        }
+
+        $reportAction = lcfirst(substr($action, 4));
+        if (Report::factory($module, $reportAction)) {
+            return;
+        }
+
+        $controllerClass = '\\Piwik\\Plugins\\' . $module . '\\Controller';
+
+        if (!Development::methodExists($controllerClass, $action)) {
+            Development::error($prefix . 'The defined action "' . $action . '" does not exist in ' . $controllerClass . '". Make sure to define such a method.');
+        }
+
+        if (!Development::isCallableMethod($controllerClass, $action)) {
+            Development::error($prefix . 'The defined action "' . $action . '" is not callable on "' . $controllerClass . '". Make sure the method is public.');
+        }
     }
 }

@@ -10,8 +10,8 @@ namespace Piwik\API;
 
 use Exception;
 use Piwik\Archive\DataTableFactory;
-use Piwik\DataTable;
 use Piwik\DataTable\Row;
+use Piwik\DataTable;
 use Piwik\Period\Range;
 use Piwik\Plugins\API\API;
 
@@ -128,6 +128,16 @@ abstract class DataTableManipulator
     }
 
     /**
+     * In this method, subclasses can clean up the request array for loading subtables
+     * in order to make ResponseBuilder behave correctly (e.g. not trigger the
+     * manipulator again).
+     *
+     * @param $request
+     * @return
+     */
+    abstract protected function manipulateSubtableRequest($request);
+
+    /**
      * Extract the API method for loading subtables from the meta data
      *
      * @throws Exception
@@ -181,14 +191,4 @@ abstract class DataTableManipulator
         $dataTable = $response->getResponse($dataTable, $apiModule, $method);
         return $dataTable;
     }
-
-    /**
-     * In this method, subclasses can clean up the request array for loading subtables
-     * in order to make ResponseBuilder behave correctly (e.g. not trigger the
-     * manipulator again).
-     *
-     * @param $request
-     * @return
-     */
-    abstract protected function manipulateSubtableRequest($request);
 }

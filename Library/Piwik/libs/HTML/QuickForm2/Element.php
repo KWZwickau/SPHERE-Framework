@@ -66,12 +66,32 @@ abstract class HTML_QuickForm2_Element extends HTML_QuickForm2_Node
         return $this;
     }
 
-    /**
-     * Called when the element needs to update its value from form's data sources
-     *
-     * The default behaviour is to go through the complete list of the data
-     * sources until the non-null value is found.
-     */
+   /**
+    * Generates hidden form field containing the element's value
+    *
+    * This is used to pass the frozen element's value if 'persistent freeze'
+    * feature is on
+    *
+    * @return string
+    */
+    protected function getPersistentContent()
+    {
+        if (!$this->persistent || null === ($value = $this->getValue())) {
+            return '';
+        }
+        return '<input type="hidden"' . self::getAttributesString(array(
+            'name'  => $this->getName(),
+            'value' => $value,
+            'id'    => $this->getId()
+        )) . ' />';
+    }
+
+   /**
+    * Called when the element needs to update its value from form's data sources
+    *
+    * The default behaviour is to go through the complete list of the data
+    * sources until the non-null value is found.
+    */
     public function updateValue()
     {
         $name = $this->getName();
@@ -83,12 +103,12 @@ abstract class HTML_QuickForm2_Element extends HTML_QuickForm2_Node
         }
     }
 
-    /**
-     * Renders the element using the given renderer
-     *
-     * @param    HTML_QuickForm2_Renderer    Renderer instance
-     * @return   HTML_QuickForm2_Renderer
-     */
+   /**
+    * Renders the element using the given renderer
+    *
+    * @param    HTML_QuickForm2_Renderer    Renderer instance
+    * @return   HTML_QuickForm2_Renderer
+    */
     public function render(HTML_QuickForm2_Renderer $renderer)
     {
         foreach ($this->rules as $rule) {
@@ -100,35 +120,14 @@ abstract class HTML_QuickForm2_Element extends HTML_QuickForm2_Node
         return $renderer;
     }
 
-    /**
-     * Returns Javascript code for getting the element's value
-     *
-     * @return   string
-     */
+   /**
+    * Returns Javascript code for getting the element's value
+    *
+    * @return   string
+    */
     public function getJavascriptValue()
     {
         return "qf.form.getValue(document.getElementById('" . $this->getId() . "'))";
     }
-
-    /**
-     * Generates hidden form field containing the element's value
-     *
-     * This is used to pass the frozen element's value if 'persistent freeze'
-     * feature is on
-     *
-     * @return string
-     */
-    protected function getPersistentContent()
-    {
-        if (!$this->persistent || null === ($value = $this->getValue())) {
-            return '';
-        }
-        return '<input type="hidden"' . self::getAttributesString(array(
-            'name' => $this->getName(),
-            'value' => $value,
-            'id' => $this->getId()
-        )) . ' />';
-    }
 }
-
 ?>

@@ -9,8 +9,8 @@
 namespace Piwik\Plugins\API\Renderer;
 
 use Piwik\Common;
-use Piwik\DataTable;
 use Piwik\DataTable\Renderer;
+use Piwik\DataTable;
 
 class Tsv extends Csv
 {

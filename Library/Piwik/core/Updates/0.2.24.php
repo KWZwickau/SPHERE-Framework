@@ -17,11 +17,6 @@ use Piwik\Updates;
  */
 class Updates_0_2_24 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -32,5 +27,10 @@ class Updates_0_2_24 extends Updates
             'DROP INDEX index_idsite ON ' . Common::prefixTable('log_visit')                         => 1091,
             'DROP INDEX index_visit_server_date ON ' . Common::prefixTable('log_visit')              => 1091,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

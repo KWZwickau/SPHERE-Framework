@@ -10,6 +10,7 @@ namespace Piwik\Plugins\Ecommerce;
 
 use Piwik\Common;
 use Piwik\Menu\MenuReporting;
+use Piwik\Menu\MenuUser;
 use Piwik\Piwik;
 use Piwik\Site;
 use Piwik\Url;

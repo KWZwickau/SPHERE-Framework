@@ -55,6 +55,60 @@ class Proxy extends Singleton
     }
 
     /**
+     * Registers the API information of a given module.
+     *
+     * The module to be registered must be
+     * - a singleton (providing a getInstance() method)
+     * - the API file must be located in plugins/ModuleName/API.php
+     *   for example plugins/Referrers/API.php
+     *
+     * The method will introspect the methods, their parameters, etc.
+     *
+     * @param string $className ModuleName eg. "API"
+     */
+    public function registerClass($className)
+    {
+        if (isset($this->alreadyRegistered[$className])) {
+            return;
+        }
+        $this->includeApiFile($className);
+        $this->checkClassIsSingleton($className);
+
+        $rClass = new ReflectionClass($className);
+        if (!$this->shouldHideAPIMethod($rClass->getDocComment())) {
+            foreach ($rClass->getMethods() as $method) {
+                $this->loadMethodMetadata($className, $method);
+            }
+
+            $this->setDocumentation($rClass, $className);
+            $this->alreadyRegistered[$className] = true;
+        }
+    }
+
+    /**
+     * Will be displayed in the API page
+     *
+     * @param ReflectionClass $rClass Instance of ReflectionClass
+     * @param string $className Name of the class
+     */
+    private function setDocumentation($rClass, $className)
+    {
+        // Doc comment
+        $doc = $rClass->getDocComment();
+        $doc = str_replace(" * " . PHP_EOL, "<br>", $doc);
+
+        // boldify the first line only if there is more than one line, otherwise too much bold
+        if (substr_count($doc, '<br>') > 1) {
+            $firstLineBreak = strpos($doc, "<br>");
+            $doc = "<div class='apiFirstLine'>" . substr($doc, 0, $firstLineBreak) . "</div>" . substr($doc, $firstLineBreak + strlen("<br>"));
+        }
+        $doc = preg_replace("/(@package)[a-z _A-Z]*/", "", $doc);
+        $doc = preg_replace("/(@method).*/", "", $doc);
+        $doc = str_replace(array("\t", "\n", "/**", "*/", " * ", " *", "  ", "\t*", "  *  @package"), " ", $doc);
+        $this->metadataArray[$className]['__documentation'] = $doc;
+    }
+
+    /**
      * Returns number of classes already loaded
      * @return int
      */
@@ -252,210 +306,6 @@ class Proxy extends Singleton
     }
 
     /**
-     * Registers the API information of a given module.
-     *
-     * The module to be registered must be
-     * - a singleton (providing a getInstance() method)
-     * - the API file must be located in plugins/ModuleName/API.php
-     *   for example plugins/Referrers/API.php
-     *
-     * The method will introspect the methods, their parameters, etc.
-     *
-     * @param string $className ModuleName eg. "API"
-     */
-    public function registerClass($className)
-    {
-        if (isset($this->alreadyRegistered[$className])) {
-            return;
-        }
-        $this->includeApiFile($className);
-        $this->checkClassIsSingleton($className);
-
-        $rClass = new ReflectionClass($className);
-        if (!$this->shouldHideAPIMethod($rClass->getDocComment())) {
-            foreach ($rClass->getMethods() as $method) {
-                $this->loadMethodMetadata($className, $method);
-            }
-
-            $this->setDocumentation($rClass, $className);
-            $this->alreadyRegistered[$className] = true;
-        }
-    }
-
-    /**
-     * Includes the class API by looking up plugins/xxx/API.php
-     *
-     * @param string $fileName api class name eg. "API"
-     * @throws Exception
-     */
-    private function includeApiFile($fileName)
-    {
-        $module = self::getModuleNameFromClassName($fileName);
-        $path = PIWIK_INCLUDE_PATH . '/plugins/' . $module . '/API.php';
-
-        if (is_readable($path)) {
-            require_once $path; // prefixed by PIWIK_INCLUDE_PATH
-        } else {
-            throw new Exception("API module $module not found.");
-        }
-    }
-
-    /**
-     * Returns the 'moduleName' part of '\\Piwik\\Plugins\\moduleName\\API'
-     *
-     * @param string $className "API"
-     * @return string "Referrers"
-     */
-    public function getModuleNameFromClassName($className)
-    {
-        return str_replace(array('\\Piwik\\Plugins\\', '\\API'), '', $className);
-    }
-
-    /**
-     * Checks that the class is a Singleton (presence of the getInstance() method)
-     *
-     * @param string $className The class name
-     * @throws Exception If the class is not a Singleton
-     */
-    private function checkClassIsSingleton($className)
-    {
-        if (!method_exists($className, "getInstance")) {
-            throw new Exception("$className that provide an API must be Singleton and have a 'public static function getInstance()' method.");
-        }
-    }
-
-    /**
-     * @param $docComment
-     * @return bool
-     */
-    public function shouldHideAPIMethod($docComment)
-    {
-        $hideLine = strstr($docComment, '@hide');
-
-        if ($hideLine === false) {
-            return false;
-        }
-
-        $hideLine = trim($hideLine);
-        $hideLine .= ' ';
-
-        $token = trim(strtok($hideLine, " "), "\n");
-
-        $hide = false;
-
-        if (!empty($token)) {
-            /**
-             * This event exists for checking whether a Plugin API class or a Plugin API method tagged
-             * with a `@hideXYZ` should be hidden in the API listing.
-             *
-             * @param bool &$hide whether to hide APIs tagged with $token should be displayed.
-             */
-            Piwik::postEvent(sprintf('API.DocumentationGenerator.%s', $token), array(&$hide));
-        }
-
-        return $hide;
-    }
-
-    /**
-     * @param string $class name of a class
-     * @param ReflectionMethod $method instance of ReflectionMethod
-     */
-    private function loadMethodMetadata($class, $method)
-    {
-        if (!$this->checkIfMethodIsAvailable($method)) {
-            return;
-        }
-        $name = $method->getName();
-        $parameters = $method->getParameters();
-        $docComment = $method->getDocComment();
-
-        $aParameters = array();
-        foreach ($parameters as $parameter) {
-            $nameVariable = $parameter->getName();
-
-            $defaultValue = $this->noDefaultValue;
-            if ($parameter->isDefaultValueAvailable()) {
-                $defaultValue = $parameter->getDefaultValue();
-            }
-
-            $aParameters[$nameVariable] = $defaultValue;
-        }
-        $this->metadataArray[$class][$name]['parameters'] = $aParameters;
-        $this->metadataArray[$class][$name]['numberOfRequiredParameters'] = $method->getNumberOfRequiredParameters();
-        $this->metadataArray[$class][$name]['isDeprecated'] = false !== strstr($docComment, '@deprecated');
-    }
-
-    /**
-     * @param ReflectionMethod $method
-     * @return bool
-     */
-    protected function checkIfMethodIsAvailable(ReflectionMethod $method)
-    {
-        if (!$method->isPublic() || $method->isConstructor() || $method->getName() === 'getInstance') {
-            return false;
-        }
-
-        if ($this->hideIgnoredFunctions && false !== strstr($method->getDocComment(), '@ignore')) {
-            return false;
-        }
-
-        if ($this->shouldHideAPIMethod($method->getDocComment())) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Will be displayed in the API page
-     *
-     * @param ReflectionClass $rClass Instance of ReflectionClass
-     * @param string $className Name of the class
-     */
-    private function setDocumentation($rClass, $className)
-    {
-        // Doc comment
-        $doc = $rClass->getDocComment();
-        $doc = str_replace(" * " . PHP_EOL, "<br>", $doc);
-
-        // boldify the first line only if there is more than one line, otherwise too much bold
-        if (substr_count($doc, '<br>') > 1) {
-            $firstLineBreak = strpos($doc, "<br>");
-            $doc = "<div class='apiFirstLine'>" . substr($doc, 0, $firstLineBreak) . "</div>" . substr($doc, $firstLineBreak + strlen("<br>"));
-        }
-        $doc = preg_replace("/(@package)[a-z _A-Z]*/", "", $doc);
-        $doc = preg_replace("/(@method).*/", "", $doc);
-        $doc = str_replace(array("\t", "\n", "/**", "*/", " * ", " *", "  ", "\t*", "  *  @package"), " ", $doc);
-        $this->metadataArray[$className]['__documentation'] = $doc;
-    }
-
-    /**
-     * Checks that the method exists in the class
-     *
-     * @param string $className The class name
-     * @param string $methodName The method name
-     * @throws Exception If the method is not found
-     */
-    private function checkMethodExists($className, $methodName)
-    {
-        if (!$this->isMethodAvailable($className, $methodName)) {
-            throw new Exception(Piwik::translate('General_ExceptionMethodNotFound', array($methodName, $className)));
-        }
-    }
-
-    /**
-     * Returns true if the method is found in the API of the given class name.
-     *
-     * @param string $className The class name
-     * @param string $methodName The method name
-     * @return bool
-     */
-    private function isMethodAvailable($className, $methodName)
-    {
-        return isset($this->metadataArray[$className][$methodName]);
-    }
-
-    /**
      * Returns the parameters names and default values for the method $name
      * of the class $class
      *
@@ -470,6 +320,52 @@ class Proxy extends Singleton
     public function getParametersList($class, $name)
     {
         return $this->metadataArray[$class][$name]['parameters'];
+    }
+
+    /**
+     * Check if given method name is deprecated or not.
+     */
+    public function isDeprecatedMethod($class, $methodName)
+    {
+        return $this->metadataArray[$class][$methodName]['isDeprecated'];
+    }
+
+    /**
+     * Returns the 'moduleName' part of '\\Piwik\\Plugins\\moduleName\\API'
+     *
+     * @param string $className "API"
+     * @return string "Referrers"
+     */
+    public function getModuleNameFromClassName($className)
+    {
+        return str_replace(array('\\Piwik\\Plugins\\', '\\API'), '', $className);
+    }
+
+    public function isExistingApiAction($pluginName, $apiAction)
+    {
+        $namespacedApiClassName = "\\Piwik\\Plugins\\$pluginName\\API";
+        $api = $namespacedApiClassName::getInstance();
+
+        return method_exists($api, $apiAction);
+    }
+
+    public function buildApiActionName($pluginName, $apiAction)
+    {
+        return sprintf("%s.%s", $pluginName, $apiAction);
+    }
+
+    /**
+     * Sets whether to hide '@ignore'd functions from method metadata or not.
+     *
+     * @param bool $hideIgnoredFunctions
+     */
+    public function setHideIgnoredFunctions($hideIgnoredFunctions)
+    {
+        $this->hideIgnoredFunctions = $hideIgnoredFunctions;
+
+        // make sure metadata gets reloaded
+        $this->alreadyRegistered = array();
+        $this->metadataArray = array();
     }
 
     /**
@@ -515,38 +411,142 @@ class Proxy extends Singleton
     }
 
     /**
-     * Check if given method name is deprecated or not.
+     * Includes the class API by looking up plugins/xxx/API.php
+     *
+     * @param string $fileName api class name eg. "API"
+     * @throws Exception
      */
-    public function isDeprecatedMethod($class, $methodName)
+    private function includeApiFile($fileName)
     {
-        return $this->metadataArray[$class][$methodName]['isDeprecated'];
-    }
+        $module = self::getModuleNameFromClassName($fileName);
+        $path = PIWIK_INCLUDE_PATH . '/plugins/' . $module . '/API.php';
 
-    public function isExistingApiAction($pluginName, $apiAction)
-    {
-        $namespacedApiClassName = "\\Piwik\\Plugins\\$pluginName\\API";
-        $api = $namespacedApiClassName::getInstance();
-
-        return method_exists($api, $apiAction);
-    }
-
-    public function buildApiActionName($pluginName, $apiAction)
-    {
-        return sprintf("%s.%s", $pluginName, $apiAction);
+        if (is_readable($path)) {
+            require_once $path; // prefixed by PIWIK_INCLUDE_PATH
+        } else {
+            throw new Exception("API module $module not found.");
+        }
     }
 
     /**
-     * Sets whether to hide '@ignore'd functions from method metadata or not.
-     *
-     * @param bool $hideIgnoredFunctions
+     * @param string $class name of a class
+     * @param ReflectionMethod $method instance of ReflectionMethod
      */
-    public function setHideIgnoredFunctions($hideIgnoredFunctions)
+    private function loadMethodMetadata($class, $method)
     {
-        $this->hideIgnoredFunctions = $hideIgnoredFunctions;
+        if (!$this->checkIfMethodIsAvailable($method)) {
+            return;
+        }
+        $name = $method->getName();
+        $parameters = $method->getParameters();
+        $docComment = $method->getDocComment();
 
-        // make sure metadata gets reloaded
-        $this->alreadyRegistered = array();
-        $this->metadataArray = array();
+        $aParameters = array();
+        foreach ($parameters as $parameter) {
+            $nameVariable = $parameter->getName();
+
+            $defaultValue = $this->noDefaultValue;
+            if ($parameter->isDefaultValueAvailable()) {
+                $defaultValue = $parameter->getDefaultValue();
+            }
+
+            $aParameters[$nameVariable] = $defaultValue;
+        }
+        $this->metadataArray[$class][$name]['parameters'] = $aParameters;
+        $this->metadataArray[$class][$name]['numberOfRequiredParameters'] = $method->getNumberOfRequiredParameters();
+        $this->metadataArray[$class][$name]['isDeprecated'] = false !== strstr($docComment, '@deprecated');
+    }
+
+    /**
+     * Checks that the method exists in the class
+     *
+     * @param string $className The class name
+     * @param string $methodName The method name
+     * @throws Exception If the method is not found
+     */
+    private function checkMethodExists($className, $methodName)
+    {
+        if (!$this->isMethodAvailable($className, $methodName)) {
+            throw new Exception(Piwik::translate('General_ExceptionMethodNotFound', array($methodName, $className)));
+        }
+    }
+
+    /**
+     * @param $docComment
+     * @return bool
+     */
+    public function shouldHideAPIMethod($docComment)
+    {
+        $hideLine = strstr($docComment, '@hide');
+
+        if ($hideLine === false) {
+            return false;
+        }
+
+        $hideLine = trim($hideLine);
+        $hideLine .= ' ';
+
+        $token = trim(strtok($hideLine, " "), "\n");
+
+        $hide = false;
+
+        if (!empty($token)) {
+            /**
+             * This event exists for checking whether a Plugin API class or a Plugin API method tagged
+             * with a `@hideXYZ` should be hidden in the API listing.
+             *
+             * @param bool &$hide whether to hide APIs tagged with $token should be displayed.
+             */
+            Piwik::postEvent(sprintf('API.DocumentationGenerator.%s', $token), array(&$hide));
+        }
+
+        return $hide;
+    }
+
+    /**
+     * @param ReflectionMethod $method
+     * @return bool
+     */
+    protected function checkIfMethodIsAvailable(ReflectionMethod $method)
+    {
+        if (!$method->isPublic() || $method->isConstructor() || $method->getName() === 'getInstance') {
+            return false;
+        }
+
+        if ($this->hideIgnoredFunctions && false !== strstr($method->getDocComment(), '@ignore')) {
+            return false;
+        }
+
+        if ($this->shouldHideAPIMethod($method->getDocComment())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns true if the method is found in the API of the given class name.
+     *
+     * @param string $className The class name
+     * @param string $methodName The method name
+     * @return bool
+     */
+    private function isMethodAvailable($className, $methodName)
+    {
+        return isset($this->metadataArray[$className][$methodName]);
+    }
+
+    /**
+     * Checks that the class is a Singleton (presence of the getInstance() method)
+     *
+     * @param string $className The class name
+     * @throws Exception If the class is not a Singleton
+     */
+    private function checkClassIsSingleton($className)
+    {
+        if (!method_exists($className, "getInstance")) {
+            throw new Exception("$className that provide an API must be Singleton and have a 'public static function getInstance()' method.");
+        }
     }
 }
 

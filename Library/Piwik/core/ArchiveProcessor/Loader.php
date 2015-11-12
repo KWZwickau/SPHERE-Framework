@@ -45,6 +45,22 @@ class Loader
         $this->params = $params;
     }
 
+    /**
+     * @return bool
+     */
+    protected function isThereSomeVisits($visits)
+    {
+        return $visits > 0;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function mustProcessVisitCount($visits)
+    {
+        return $visits === false;
+    }
+
     public function prepareArchive($pluginName)
     {
         $this->params->setRequestedPlugin($pluginName);
@@ -61,6 +77,81 @@ class Loader
             return $idArchive;
         }
         return false;
+    }
+
+    /**
+     * Prepares the core metrics if needed.
+     *
+     * @param $visits
+     * @return array
+     */
+    protected function prepareCoreMetricsArchive($visits, $visitsConverted)
+    {
+        $createSeparateArchiveForCoreMetrics = $this->mustProcessVisitCount($visits)
+                                && !$this->doesRequestedPluginIncludeVisitsSummary();
+
+        if ($createSeparateArchiveForCoreMetrics) {
+            $requestedPlugin = $this->params->getRequestedPlugin();
+
+            $this->params->setRequestedPlugin('VisitsSummary');
+
+            $pluginsArchiver = new PluginsArchiver($this->params, $this->isArchiveTemporary());
+            $metrics = $pluginsArchiver->callAggregateCoreMetrics();
+            $pluginsArchiver->finalizeArchive();
+
+            $this->params->setRequestedPlugin($requestedPlugin);
+
+            $visits = $metrics['nb_visits'];
+            $visitsConverted = $metrics['nb_visits_converted'];
+        }
+
+        return array($visits, $visitsConverted);
+    }
+
+    protected function prepareAllPluginsArchive($visits, $visitsConverted)
+    {
+        $pluginsArchiver = new PluginsArchiver($this->params, $this->isArchiveTemporary());
+
+        if ($this->mustProcessVisitCount($visits)
+            || $this->doesRequestedPluginIncludeVisitsSummary()
+        ) {
+            $metrics = $pluginsArchiver->callAggregateCoreMetrics();
+            $visits = $metrics['nb_visits'];
+            $visitsConverted = $metrics['nb_visits_converted'];
+        }
+
+        if ($this->isThereSomeVisits($visits)
+            || $this->shouldArchiveForSiteEvenWhenNoVisits()
+        ) {
+            $pluginsArchiver->callAggregateAllPlugins($visits, $visitsConverted);
+        }
+
+        $idArchive = $pluginsArchiver->finalizeArchive();
+
+        return array($idArchive, $visits);
+    }
+
+    protected function doesRequestedPluginIncludeVisitsSummary()
+    {
+        $processAllReportsIncludingVisitsSummary =
+                Rules::shouldProcessReportsAllPlugins($this->params->getIdSites(), $this->params->getSegment(), $this->params->getPeriod()->getLabel());
+        $doesRequestedPluginIncludeVisitsSummary = $processAllReportsIncludingVisitsSummary
+                                                        || $this->params->getRequestedPlugin() == 'VisitsSummary';
+        return $doesRequestedPluginIncludeVisitsSummary;
+    }
+
+    protected function isArchivingForcedToTrigger()
+    {
+        $period = $this->params->getPeriod()->getLabel();
+        $debugSetting = 'always_archive_data_period'; // default
+
+        if ($period == 'day') {
+            $debugSetting = 'always_archive_data_day';
+        } elseif ($period == 'range') {
+            $debugSetting = 'always_archive_data_range';
+        }
+
+        return (bool) Config::getInstance()->Debug[$debugSetting];
     }
 
     /**
@@ -106,9 +197,9 @@ class Loader
         }
 
         $dateStart = $this->params->getDateStart();
-        $period = $this->params->getPeriod();
-        $segment = $this->params->getSegment();
-        $site = $this->params->getSite();
+        $period    = $this->params->getPeriod();
+        $segment   = $this->params->getSegment();
+        $site      = $this->params->getSite();
 
         // Temporary archive
         return Rules::getMinTimeProcessedForTemporaryArchive($dateStart, $period, $segment, $site);
@@ -128,67 +219,6 @@ class Loader
         return false;
     }
 
-    protected function isArchivingForcedToTrigger()
-    {
-        $period = $this->params->getPeriod()->getLabel();
-        $debugSetting = 'always_archive_data_period'; // default
-
-        if ($period == 'day') {
-            $debugSetting = 'always_archive_data_day';
-        } elseif ($period == 'range') {
-            $debugSetting = 'always_archive_data_range';
-        }
-
-        return (bool)Config::getInstance()->Debug[$debugSetting];
-    }
-
-    /**
-     * Prepares the core metrics if needed.
-     *
-     * @param $visits
-     * @return array
-     */
-    protected function prepareCoreMetricsArchive($visits, $visitsConverted)
-    {
-        $createSeparateArchiveForCoreMetrics = $this->mustProcessVisitCount($visits)
-            && !$this->doesRequestedPluginIncludeVisitsSummary();
-
-        if ($createSeparateArchiveForCoreMetrics) {
-            $requestedPlugin = $this->params->getRequestedPlugin();
-
-            $this->params->setRequestedPlugin('VisitsSummary');
-
-            $pluginsArchiver = new PluginsArchiver($this->params, $this->isArchiveTemporary());
-            $metrics = $pluginsArchiver->callAggregateCoreMetrics();
-            $pluginsArchiver->finalizeArchive();
-
-            $this->params->setRequestedPlugin($requestedPlugin);
-
-            $visits = $metrics['nb_visits'];
-            $visitsConverted = $metrics['nb_visits_converted'];
-        }
-
-        return array($visits, $visitsConverted);
-    }
-
-    /**
-     * @return bool
-     */
-    protected function mustProcessVisitCount($visits)
-    {
-        return $visits === false;
-    }
-
-    protected function doesRequestedPluginIncludeVisitsSummary()
-    {
-        $processAllReportsIncludingVisitsSummary =
-            Rules::shouldProcessReportsAllPlugins($this->params->getIdSites(), $this->params->getSegment(),
-                $this->params->getPeriod()->getLabel());
-        $doesRequestedPluginIncludeVisitsSummary = $processAllReportsIncludingVisitsSummary
-            || $this->params->getRequestedPlugin() == 'VisitsSummary';
-        return $doesRequestedPluginIncludeVisitsSummary;
-    }
-
     protected function isArchiveTemporary()
     {
         if (is_null($this->temporaryArchive)) {
@@ -196,37 +226,6 @@ class Loader
         }
 
         return $this->temporaryArchive;
-    }
-
-    protected function prepareAllPluginsArchive($visits, $visitsConverted)
-    {
-        $pluginsArchiver = new PluginsArchiver($this->params, $this->isArchiveTemporary());
-
-        if ($this->mustProcessVisitCount($visits)
-            || $this->doesRequestedPluginIncludeVisitsSummary()
-        ) {
-            $metrics = $pluginsArchiver->callAggregateCoreMetrics();
-            $visits = $metrics['nb_visits'];
-            $visitsConverted = $metrics['nb_visits_converted'];
-        }
-
-        if ($this->isThereSomeVisits($visits)
-            || $this->shouldArchiveForSiteEvenWhenNoVisits()
-        ) {
-            $pluginsArchiver->callAggregateAllPlugins($visits, $visitsConverted);
-        }
-
-        $idArchive = $pluginsArchiver->finalizeArchive();
-
-        return array($idArchive, $visits);
-    }
-
-    /**
-     * @return bool
-     */
-    protected function isThereSomeVisits($visits)
-    {
-        return $visits > 0;
     }
 
     private function shouldArchiveForSiteEvenWhenNoVisits()

@@ -82,6 +82,22 @@ class DoNotTrackHeaderChecker
     }
 
     /**
+     * Deactivates DoNotTrack header checking. This function will not be called by the Tracker.
+     */
+    public function deactivate()
+    {
+        $this->config->doNotTrackEnabled = false;
+    }
+
+    /**
+     * Activates DoNotTrack header checking. This function will not be called by the Tracker.
+     */
+    public function activate()
+    {
+        $this->config->doNotTrackEnabled = true;
+    }
+
+    /**
      * Returns true if server side DoNotTrack support is enabled, false if otherwise.
      *
      * @return bool
@@ -130,25 +146,9 @@ class DoNotTrackHeaderChecker
 
             // Maxthon
             'Maxthon',
-
+            
             // Epiphany - https://github.com/piwik/piwik/issues/8682
             'Epiphany',
         );
-    }
-
-    /**
-     * Deactivates DoNotTrack header checking. This function will not be called by the Tracker.
-     */
-    public function deactivate()
-    {
-        $this->config->doNotTrackEnabled = false;
-    }
-
-    /**
-     * Activates DoNotTrack header checking. This function will not be called by the Tracker.
-     */
-    public function activate()
-    {
-        $this->config->doNotTrackEnabled = true;
     }
 }

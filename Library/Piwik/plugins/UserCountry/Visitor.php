@@ -10,8 +10,8 @@ namespace Piwik\Plugins\UserCountry;
 
 use Piwik\ArchiveProcessor;
 use Piwik\Common;
-use Piwik\Plugins\UserCountry\LocationProvider;
 use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
+use Piwik\Plugins\UserCountry\LocationProvider;
 use Piwik\Tracker\Visit;
 use Piwik\Url;
 
@@ -26,14 +26,19 @@ class Visitor
         $this->details = $details;
     }
 
-    public function getCountryFlag()
-    {
-        return getFlagFromCode($this->getCountryCode());
-    }
-
     public function getCountryCode()
     {
         return $this->details['location_country'];
+    }
+
+    public function getCountryName()
+    {
+        return countryTranslate($this->getCountryCode());
+    }
+
+    public function getCountryFlag()
+    {
+        return getFlagFromCode($this->getCountryCode());
     }
 
     public function getContinent()
@@ -44,25 +49,6 @@ class Visitor
     public function getContinentCode()
     {
         return Common::getContinent($this->details['location_country']);
-    }
-
-    public function getPrettyLocation()
-    {
-        $parts = array();
-
-        $city = $this->getCityName();
-        if (!empty($city)) {
-            $parts[] = $city;
-        }
-        $region = $this->getRegionName();
-        if (!empty($region)) {
-            $parts[] = $region;
-        }
-
-        // add country & return concatenated result
-        $parts[] = $this->getCountryName();
-
-        return implode(', ', $parts);
     }
 
     public function getCityName()
@@ -90,9 +76,23 @@ class Visitor
         return $this->details['location_region'];
     }
 
-    public function getCountryName()
+    public function getPrettyLocation()
     {
-        return countryTranslate($this->getCountryCode());
+        $parts = array();
+
+        $city = $this->getCityName();
+        if (!empty($city)) {
+            $parts[] = $city;
+        }
+        $region = $this->getRegionName();
+        if (!empty($region)) {
+            $parts[] = $region;
+        }
+
+        // add country & return concatenated result
+        $parts[] = $this->getCountryName();
+
+        return implode(', ', $parts);
     }
 
     public function getLatitude()

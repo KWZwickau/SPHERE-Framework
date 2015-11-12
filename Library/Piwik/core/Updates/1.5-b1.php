@@ -17,11 +17,6 @@ use Piwik\Updates;
  */
 class Updates_1_5_b1 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -59,5 +54,10 @@ class Updates_1_5_b1 extends Updates
 				 ADD UNIQUE KEY unique_idsite_idorder (idsite, idorder),
 				 MODIFY  idgoal int(10) NOT NULL'                                      => 1060,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

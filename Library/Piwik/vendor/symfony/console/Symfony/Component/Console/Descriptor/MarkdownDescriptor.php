@@ -29,28 +29,58 @@ class MarkdownDescriptor extends Descriptor
     /**
      * {@inheritdoc}
      */
-    protected function describeApplication(Application $application, array $options = array())
+    protected function describeInputArgument(InputArgument $argument, array $options = array())
     {
-        $describedNamespace = isset($options['namespace']) ? $options['namespace'] : null;
-        $description = new ApplicationDescription($application, $describedNamespace);
+        $this->write(
+            '**'.$argument->getName().':**'."\n\n"
+            .'* Name: '.($argument->getName() ?: '<none>')."\n"
+            .'* Is required: '.($argument->isRequired() ? 'yes' : 'no')."\n"
+            .'* Is array: '.($argument->isArray() ? 'yes' : 'no')."\n"
+            .'* Description: '.($argument->getDescription() ?: '<none>')."\n"
+            .'* Default: `'.str_replace("\n", '', var_export($argument->getDefault(), true)).'`'
+        );
+    }
 
-        $this->write($application->getName()."\n".str_repeat('=', strlen($application->getName())));
+    /**
+     * {@inheritdoc}
+     */
+    protected function describeInputOption(InputOption $option, array $options = array())
+    {
+        $this->write(
+            '**'.$option->getName().':**'."\n\n"
+            .'* Name: `--'.$option->getName().'`'."\n"
+            .'* Shortcut: '.($option->getShortcut() ? '`-'.implode('|-', explode('|', $option->getShortcut())).'`' : '<none>')."\n"
+            .'* Accept value: '.($option->acceptValue() ? 'yes' : 'no')."\n"
+            .'* Is value required: '.($option->isValueRequired() ? 'yes' : 'no')."\n"
+            .'* Is multiple: '.($option->isArray() ? 'yes' : 'no')."\n"
+            .'* Description: '.($option->getDescription() ?: '<none>')."\n"
+            .'* Default: `'.str_replace("\n", '', var_export($option->getDefault(), true)).'`'
+        );
+    }
 
-        foreach ($description->getNamespaces() as $namespace) {
-            if (ApplicationDescription::GLOBAL_NAMESPACE !== $namespace['id']) {
+    /**
+     * {@inheritdoc}
+     */
+    protected function describeInputDefinition(InputDefinition $definition, array $options = array())
+    {
+        if ($showArguments = count($definition->getArguments()) > 0) {
+            $this->write('### Arguments:');
+            foreach ($definition->getArguments() as $argument) {
                 $this->write("\n\n");
-                $this->write('**'.$namespace['id'].':**');
+                $this->write($this->describeInputArgument($argument));
             }
-
-            $this->write("\n\n");
-            $this->write(implode("\n", array_map(function ($commandName) {
-                return '* '.$commandName;
-            }, $namespace['commands'])));
         }
 
-        foreach ($description->getCommands() as $command) {
-            $this->write("\n\n");
-            $this->write($this->describeCommand($command));
+        if (count($definition->getOptions()) > 0) {
+            if ($showArguments) {
+                $this->write("\n\n");
+            }
+
+            $this->write('### Options:');
+            foreach ($definition->getOptions() as $option) {
+                $this->write("\n\n");
+                $this->write($this->describeInputOption($option));
+            }
         }
     }
 
@@ -84,58 +114,28 @@ class MarkdownDescriptor extends Descriptor
     /**
      * {@inheritdoc}
      */
-    protected function describeInputDefinition(InputDefinition $definition, array $options = array())
+    protected function describeApplication(Application $application, array $options = array())
     {
-        if ($showArguments = count($definition->getArguments()) > 0) {
-            $this->write('### Arguments:');
-            foreach ($definition->getArguments() as $argument) {
+        $describedNamespace = isset($options['namespace']) ? $options['namespace'] : null;
+        $description = new ApplicationDescription($application, $describedNamespace);
+
+        $this->write($application->getName()."\n".str_repeat('=', strlen($application->getName())));
+
+        foreach ($description->getNamespaces() as $namespace) {
+            if (ApplicationDescription::GLOBAL_NAMESPACE !== $namespace['id']) {
                 $this->write("\n\n");
-                $this->write($this->describeInputArgument($argument));
+                $this->write('**'.$namespace['id'].':**');
             }
+
+            $this->write("\n\n");
+            $this->write(implode("\n", array_map(function ($commandName) {
+                return '* '.$commandName;
+            }, $namespace['commands'])));
         }
 
-        if (count($definition->getOptions()) > 0) {
-            if ($showArguments) {
-                $this->write("\n\n");
-            }
-
-            $this->write('### Options:');
-            foreach ($definition->getOptions() as $option) {
-                $this->write("\n\n");
-                $this->write($this->describeInputOption($option));
-            }
+        foreach ($description->getCommands() as $command) {
+            $this->write("\n\n");
+            $this->write($this->describeCommand($command));
         }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function describeInputArgument(InputArgument $argument, array $options = array())
-    {
-        $this->write(
-            '**'.$argument->getName().':**'."\n\n"
-            .'* Name: '.($argument->getName() ?: '<none>')."\n"
-            .'* Is required: '.($argument->isRequired() ? 'yes' : 'no')."\n"
-            .'* Is array: '.($argument->isArray() ? 'yes' : 'no')."\n"
-            .'* Description: '.($argument->getDescription() ?: '<none>')."\n"
-            .'* Default: `'.str_replace("\n", '', var_export($argument->getDefault(), true)).'`'
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function describeInputOption(InputOption $option, array $options = array())
-    {
-        $this->write(
-            '**'.$option->getName().':**'."\n\n"
-            .'* Name: `--'.$option->getName().'`'."\n"
-            .'* Shortcut: '.($option->getShortcut() ? '`-'.implode('|-', explode('|', $option->getShortcut())).'`' : '<none>')."\n"
-            .'* Accept value: '.($option->acceptValue() ? 'yes' : 'no')."\n"
-            .'* Is value required: '.($option->isValueRequired() ? 'yes' : 'no')."\n"
-            .'* Is multiple: '.($option->isArray() ? 'yes' : 'no')."\n"
-            .'* Description: '.($option->getDescription() ?: '<none>')."\n"
-            .'* Default: `'.str_replace("\n", '', var_export($option->getDefault(), true)).'`'
-        );
     }
 }

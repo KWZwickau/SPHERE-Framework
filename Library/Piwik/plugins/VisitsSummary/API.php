@@ -42,6 +42,16 @@ class API extends \Piwik\Plugin\API
         return $dataTable;
     }
 
+    /**
+     * @ignore
+     */
+    public function getColumns($period)
+    {
+        $columns = $this->getCoreColumns($period);
+        $columns = array_merge($columns, array('bounce_rate', 'nb_actions_per_visit', 'avg_time_on_site'));
+        return $columns;
+    }
+
     protected function getCoreColumns($period)
     {
         $columns = array(
@@ -59,21 +69,6 @@ class API extends \Piwik\Plugin\API
         return $columns;
     }
 
-    /**
-     * @ignore
-     */
-    public function getColumns($period)
-    {
-        $columns = $this->getCoreColumns($period);
-        $columns = array_merge($columns, array('bounce_rate', 'nb_actions_per_visit', 'avg_time_on_site'));
-        return $columns;
-    }
-
-    public function getVisits($idSite, $period, $date, $segment = false)
-    {
-        return $this->getNumeric($idSite, $period, $date, $segment, 'nb_visits');
-    }
-
     protected function getNumeric($idSite, $period, $date, $segment, $toFetch)
     {
         Piwik::checkUserHasViewAccess($idSite);
@@ -82,26 +77,16 @@ class API extends \Piwik\Plugin\API
         return $dataTable;
     }
 
+    public function getVisits($idSite, $period, $date, $segment = false)
+    {
+        return $this->getNumeric($idSite, $period, $date, $segment, 'nb_visits');
+    }
+
     public function getUniqueVisitors($idSite, $period, $date, $segment = false)
     {
         $metric = 'nb_uniq_visitors';
         $this->checkUniqueIsEnabledOrFail($period, $metric);
         return $this->getNumeric($idSite, $period, $date, $segment, $metric);
-    }
-
-    /**
-     * @param $period
-     * @param $metric
-     * @throws \Exception
-     */
-    private function checkUniqueIsEnabledOrFail($period, $metric)
-    {
-        if (!SettingsPiwik::isUniqueVisitorsEnabled($period)) {
-            throw new \Exception(
-                "The metric " . $metric . " is not enabled for the requested period. " .
-                "Please see this FAQ: http://piwik.org/faq/how-to/faq_113/"
-            );
-        }
     }
 
     public function getUsers($idSite, $period, $date, $segment = false)
@@ -131,6 +116,11 @@ class API extends \Piwik\Plugin\API
         return $this->getNumeric($idSite, $period, $date, $segment, 'nb_visits_converted');
     }
 
+    public function getSumVisitsLength($idSite, $period, $date, $segment = false)
+    {
+        return $this->getNumeric($idSite, $period, $date, $segment, 'sum_visit_length');
+    }
+
     public function getSumVisitsLengthPretty($idSite, $period, $date, $segment = false)
     {
         $formatter = new Formatter();
@@ -145,8 +135,18 @@ class API extends \Piwik\Plugin\API
         return $table;
     }
 
-    public function getSumVisitsLength($idSite, $period, $date, $segment = false)
+    /**
+     * @param $period
+     * @param $metric
+     * @throws \Exception
+     */
+    private function checkUniqueIsEnabledOrFail($period, $metric)
     {
-        return $this->getNumeric($idSite, $period, $date, $segment, 'sum_visit_length');
+        if (!SettingsPiwik::isUniqueVisitorsEnabled($period)) {
+            throw new \Exception(
+                "The metric " . $metric . " is not enabled for the requested period. " .
+                "Please see this FAQ: http://piwik.org/faq/how-to/faq_113/"
+            );
+        }
     }
 }

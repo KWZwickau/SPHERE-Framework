@@ -120,45 +120,6 @@ class Controller extends \Piwik\Plugin\Controller
     }
 
     /**
-     * Authenticate user and password.  Redirect if successful.
-     *
-     * @param string $login user name
-     * @param string $password md5 password
-     * @param bool $rememberMe Remember me?
-     * @param string $urlToRedirect URL to redirect to, if successfully authenticated
-     * @return string failure message if unable to authenticate
-     */
-    protected function authenticateAndRedirect($login, $password, $rememberMe, $urlToRedirect = false, $passwordHashed = false)
-    {
-        Nonce::discardNonce('Login.login');
-
-        $this->auth->setLogin($login);
-        if ($passwordHashed === false) {
-            $this->auth->setPassword($password);
-        } else {
-            $this->auth->setPasswordHash($password);
-        }
-
-        $this->sessionInitializer->initSession($this->auth, $rememberMe);
-
-        // remove password reset entry if it exists
-        $this->passwordResetter->removePasswordResetInfo($login);
-
-        if (empty($urlToRedirect)) {
-            $urlToRedirect = Url::getCurrentUrlWithoutQueryString();
-        }
-
-        Url::redirectToUrl($urlToRedirect);
-    }
-
-    protected function getMessageExceptionNoAccess()
-    {
-        $message = Piwik::translate('Login_InvalidNonceOrHeadersOrReferrer', array('<a href="?module=Proxy&action=redirect&url=' . urlencode('http://piwik.org/faq/how-to-install/#faq_98') . '" target="_blank">', '</a>'));
-        // Should mention trusted_hosts or link to FAQ
-        return $message;
-    }
-
-    /**
      * Configure common view properties
      *
      * @param View $view
@@ -218,6 +179,45 @@ class Controller extends \Piwik\Plugin\Controller
             'index.php?module=' . Piwik::getLoginPluginName(),
             Piwik::translate('Login_LogIn')
         );
+    }
+
+    /**
+     * Authenticate user and password.  Redirect if successful.
+     *
+     * @param string $login user name
+     * @param string $password md5 password
+     * @param bool $rememberMe Remember me?
+     * @param string $urlToRedirect URL to redirect to, if successfully authenticated
+     * @return string failure message if unable to authenticate
+     */
+    protected function authenticateAndRedirect($login, $password, $rememberMe, $urlToRedirect = false, $passwordHashed = false)
+    {
+        Nonce::discardNonce('Login.login');
+
+        $this->auth->setLogin($login);
+        if ($passwordHashed === false) {
+            $this->auth->setPassword($password);
+        } else {
+            $this->auth->setPasswordHash($password);
+        }
+
+        $this->sessionInitializer->initSession($this->auth, $rememberMe);
+
+        // remove password reset entry if it exists
+        $this->passwordResetter->removePasswordResetInfo($login);
+
+        if (empty($urlToRedirect)) {
+            $urlToRedirect = Url::getCurrentUrlWithoutQueryString();
+        }
+
+        Url::redirectToUrl($urlToRedirect);
+    }
+
+    protected function getMessageExceptionNoAccess()
+    {
+        $message = Piwik::translate('Login_InvalidNonceOrHeadersOrReferrer', array('<a href="?module=Proxy&action=redirect&url=' . urlencode('http://piwik.org/faq/how-to-install/#faq_98') . '" target="_blank">', '</a>'));
+        // Should mention trusted_hosts or link to FAQ
+        return $message;
     }
 
     /**
@@ -315,6 +315,21 @@ class Controller extends \Piwik\Plugin\Controller
     }
 
     /**
+     * Clear session information
+     *
+     * @param none
+     * @return void
+     */
+    public static function clearSession()
+    {
+        $authCookieName = Config::getInstance()->General['login_cookie_name'];
+        $cookie = new Cookie($authCookieName);
+        $cookie->delete();
+
+        Session::expireSessionCookie();
+    }
+
+    /**
      * Logout current user
      *
      * @param none
@@ -330,20 +345,5 @@ class Controller extends \Piwik\Plugin\Controller
         } else {
             Url::redirectToUrl($logoutUrl);
         }
-    }
-
-    /**
-     * Clear session information
-     *
-     * @param none
-     * @return void
-     */
-    public static function clearSession()
-    {
-        $authCookieName = Config::getInstance()->General['login_cookie_name'];
-        $cookie = new Cookie($authCookieName);
-        $cookie->delete();
-
-        Session::expireSessionCookie();
     }
 }

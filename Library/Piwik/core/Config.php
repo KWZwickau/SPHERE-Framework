@@ -54,17 +54,47 @@ class Config
      */
     protected $settings;
 
-    public function __construct(GlobalSettingsProvider $settings)
-    {
-        $this->settings = $settings;
-    }
-
     /**
      * @return Config
      */
     public static function getInstance()
     {
         return StaticContainer::get('Piwik\Config');
+    }
+
+    public function __construct(GlobalSettingsProvider $settings)
+    {
+        $this->settings = $settings;
+    }
+
+    /**
+     * Returns the path to the local config file used by this instance.
+     *
+     * @return string
+     */
+    public function getLocalPath()
+    {
+        return $this->settings->getPathLocal();
+    }
+
+    /**
+     * Returns the path to the global config file used by this instance.
+     *
+     * @return string
+     */
+    public function getGlobalPath()
+    {
+        return $this->settings->getPathGlobal();
+    }
+
+    /**
+     * Returns the path to the common config file used by this instance.
+     *
+     * @return string
+     */
+    public function getCommonPath()
+    {
+        return $this->settings->getPathCommon();
     }
 
     /**
@@ -99,35 +129,6 @@ class Config
             return $path;
         }
         return PIWIK_USER_PATH . self::DEFAULT_LOCAL_CONFIG_PATH;
-    }
-
-    public static function getByDomainConfigPath()
-    {
-        $host       = self::getHostname();
-        $hostConfig = self::getLocalConfigInfoForHostname($host);
-
-        if (Filesystem::isValidFilename($hostConfig['file'])
-            && file_exists($hostConfig['path'])
-        ) {
-            return $hostConfig['path'];
-        }
-        return false;
-    }
-
-    /**
-     * Returns the hostname of the current request (without port number)
-     *
-     * @return string
-     */
-    public static function getHostname()
-    {
-        // Check trusted requires config file which is not ready yet
-        $host = Url::getHost($checkIfTrusted = false);
-
-        // Remove any port number to get actual hostname
-        $host = Url::getHostSanitized($host);
-
-        return $host;
     }
 
     private static function getLocalConfigInfoForHostname($hostname)
@@ -172,6 +173,35 @@ class Config
         return $limits;
     }
 
+    public static function getByDomainConfigPath()
+    {
+        $host       = self::getHostname();
+        $hostConfig = self::getLocalConfigInfoForHostname($host);
+
+        if (Filesystem::isValidFilename($hostConfig['file'])
+            && file_exists($hostConfig['path'])
+        ) {
+            return $hostConfig['path'];
+        }
+        return false;
+    }
+
+    /**
+     * Returns the hostname of the current request (without port number)
+     *
+     * @return string
+     */
+    public static function getHostname()
+    {
+        // Check trusted requires config file which is not ready yet
+        $host = Url::getHost($checkIfTrusted = false);
+
+        // Remove any port number to get actual hostname
+        $host = Url::getHostSanitized($host);
+
+        return $host;
+    }
+
     /**
      * If set, Piwik will use the hostname config no matter if it exists or not. Useful for instance if you want to
      * create a new hostname config:
@@ -206,17 +236,6 @@ class Config
     }
 
     /**
-     * Reloads config data from disk.
-     *
-     * @throws \Exception if the global config file is not found and this is a tracker request, or
-     *                    if the local config file is not found and this is NOT a tracker request.
-     */
-    protected function reload($pathLocal = null, $pathGlobal = null, $pathCommon = null)
-    {
-        $this->settings->reload($pathGlobal, $pathLocal, $pathCommon);
-    }
-
-    /**
      * Returns `true` if the local configuration file is writable.
      *
      * @return bool
@@ -247,6 +266,17 @@ class Config
     }
 
     /**
+     * Reloads config data from disk.
+     *
+     * @throws \Exception if the global config file is not found and this is a tracker request, or
+     *                    if the local config file is not found and this is NOT a tracker request.
+     */
+    protected function reload($pathLocal = null, $pathGlobal = null, $pathCommon = null)
+    {
+        $this->settings->reload($pathGlobal, $pathLocal, $pathCommon);
+    }
+
+    /**
      * @deprecated
      */
     public function existsLocalConfig()
@@ -254,20 +284,10 @@ class Config
         return is_readable($this->getLocalPath());
     }
 
-    /**
-     * Returns the path to the local config file used by this instance.
-     *
-     * @return string
-     */
-    public function getLocalPath()
-    {
-        return $this->settings->getPathLocal();
-    }
-
     public function deleteLocalConfig()
     {
         $configLocal = $this->getLocalPath();
-
+        
         if(file_exists($configLocal)){
             @unlink($configLocal);
         }
@@ -289,6 +309,30 @@ class Config
     }
 
     /**
+     * @api
+     */
+    public function getFromGlobalConfig($name)
+    {
+        return $this->settings->getIniFileChain()->getFrom($this->getGlobalPath(), $name);
+    }
+
+    /**
+     * @api
+     */
+    public function getFromCommonConfig($name)
+    {
+        return $this->settings->getIniFileChain()->getFrom($this->getCommonPath(), $name);
+    }
+    
+    /**
+     * @api
+     */
+    public function getFromLocalConfig($name)
+    {
+        return $this->settings->getIniFileChain()->getFrom($this->getLocalPath(), $name);
+    }
+
+    /**
      * Sets a configuration value or section.
      *
      * @param string $name This section name or value name to set.
@@ -301,58 +345,18 @@ class Config
     }
 
     /**
-     * @api
-     */
-    public function getFromGlobalConfig($name)
-    {
-        return $this->settings->getIniFileChain()->getFrom($this->getGlobalPath(), $name);
-    }
-
-    /**
-     * Returns the path to the global config file used by this instance.
+     * Dump config
      *
-     * @return string
+     * @return string|null
+     * @throws \Exception
      */
-    public function getGlobalPath()
+    public function dumpConfig()
     {
-        return $this->settings->getPathGlobal();
-    }
+        $chain = $this->settings->getIniFileChain();
 
-    /**
-     * @api
-     */
-    public function getFromCommonConfig($name)
-    {
-        return $this->settings->getIniFileChain()->getFrom($this->getCommonPath(), $name);
-    }
-
-    /**
-     * Returns the path to the common config file used by this instance.
-     *
-     * @return string
-     */
-    public function getCommonPath()
-    {
-        return $this->settings->getPathCommon();
-    }
-
-    /**
-     * @api
-     */
-    public function getFromLocalConfig($name)
-    {
-        return $this->settings->getIniFileChain()->getFrom($this->getLocalPath(), $name);
-    }
-
-    /**
-     * Writes the current configuration to the **config.ini.php** file. Only writes options whose
-     * values are different from the default.
-     *
-     * @api
-     */
-    public function forceSave()
-    {
-        $this->writeConfig();
+        $header = "; <?php exit; ?> DO NOT REMOVE THIS LINE\n";
+        $header .= "; file automatically generated or modified by Piwik; you can manually override the default values in global.ini.php by redefining them in this file.\n";
+        return $chain->dumpChanges($header);
     }
 
     /**
@@ -389,18 +393,14 @@ class Config
     }
 
     /**
-     * Dump config
+     * Writes the current configuration to the **config.ini.php** file. Only writes options whose
+     * values are different from the default.
      *
-     * @return string|null
-     * @throws \Exception
+     * @api
      */
-    public function dumpConfig()
+    public function forceSave()
     {
-        $chain = $this->settings->getIniFileChain();
-
-        $header = "; <?php exit; ?> DO NOT REMOVE THIS LINE\n";
-        $header .= "; file automatically generated or modified by Piwik; you can manually override the default values in global.ini.php by redefining them in this file.\n";
-        return $chain->dumpChanges($header);
+        $this->writeConfig();
     }
 
     /**

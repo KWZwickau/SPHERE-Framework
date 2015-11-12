@@ -436,7 +436,7 @@ function ajaxHelper() {
         return {
             token_auth: piwik.token_auth
         };
-    };
+    }
 
     /**
      * Mixin the default parameters to send as POST

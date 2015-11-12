@@ -17,7 +17,6 @@ use Piwik\Menu\MenuReporting;
 use Piwik\Notification\Manager as NotificationManager;
 use Piwik\Piwik;
 use Piwik\Plugin\Report;
-use Piwik\Plugin\Widgets as PluginWidgets;
 use Piwik\Plugins\CoreHome\DataTableRowAction\MultiRowEvolution;
 use Piwik\Plugins\CoreHome\DataTableRowAction\RowEvolution;
 use Piwik\Plugins\CorePluginsAdmin\MarketplaceApiClient;
@@ -29,6 +28,7 @@ use Piwik\UpdateCheck;
 use Piwik\Url;
 use Piwik\View;
 use Piwik\ViewDataTable\Manager as ViewDataTableManager;
+use Piwik\Plugin\Widgets as PluginWidgets;
 
 class Controller extends \Piwik\Plugin\Controller
 {
@@ -43,7 +43,7 @@ class Controller extends \Piwik\Plugin\Controller
 
         parent::__construct();
     }
-
+    
     public function getDefaultAction()
     {
         return 'redirectToCoreHomeIndex';
@@ -123,6 +123,12 @@ class Controller extends \Piwik\Plugin\Controller
         return $view->render();
     }
 
+    public function markNotificationAsRead()
+    {
+        $notificationId = Common::getRequestVar('notificationId');
+        NotificationManager::cancel($notificationId);
+    }
+
     protected function getDefaultIndexView()
     {
         $view = new View('@CoreHome/getDefaultIndexView');
@@ -131,19 +137,6 @@ class Controller extends \Piwik\Plugin\Controller
         $view->dashboardSettingsControl = new DashboardManagerControl();
         $view->content = '';
         return $view;
-    }
-
-    public function markNotificationAsRead()
-    {
-        $notificationId = Common::getRequestVar('notificationId');
-        NotificationManager::cancel($notificationId);
-    }
-
-    public function index()
-    {
-        $this->setDateTodayIfWebsiteCreatedToday();
-        $view = $this->getDefaultIndexView();
-        return $view->render();
     }
 
     protected function setDateTodayIfWebsiteCreatedToday()
@@ -174,6 +167,13 @@ class Controller extends \Piwik\Plugin\Controller
         }
     }
 
+    public function index()
+    {
+        $this->setDateTodayIfWebsiteCreatedToday();
+        $view = $this->getDefaultIndexView();
+        return $view->render();
+    }
+
     //  --------------------------------------------------------
     //  ROW EVOLUTION
     //  The following methods render the popover that shows the
@@ -186,16 +186,6 @@ class Controller extends \Piwik\Plugin\Controller
         $rowEvolution = $this->makeRowEvolution($isMulti = false);
         $view = new View('@CoreHome/getRowEvolutionPopover');
         return $rowEvolution->renderPopover($this, $view);
-    }
-
-    /** Utility function. Creates a RowEvolution instance. */
-    private function makeRowEvolution($isMultiRowEvolution, $graphType = null)
-    {
-        if ($isMultiRowEvolution) {
-            return new MultiRowEvolution($this->idSite, $this->date, $graphType);
-        } else {
-            return new RowEvolution($this->idSite, $this->date, $graphType);
-        }
     }
 
     /** Render the entire row evolution popover for multiple rows */
@@ -219,6 +209,16 @@ class Controller extends \Piwik\Plugin\Controller
 
         $view = $rowEvolution->getRowEvolutionGraph();
         return $this->renderView($view);
+    }
+
+    /** Utility function. Creates a RowEvolution instance. */
+    private function makeRowEvolution($isMultiRowEvolution, $graphType = null)
+    {
+        if ($isMultiRowEvolution) {
+            return new MultiRowEvolution($this->idSite, $this->date, $graphType);
+        } else {
+            return new RowEvolution($this->idSite, $this->date, $graphType);
+        }
     }
 
     /**

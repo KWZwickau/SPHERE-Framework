@@ -50,14 +50,6 @@ class Model
         return $table;
     }
 
-    public function getReportByUniqueId($idSite, $reportUniqueId)
-    {
-        $processedReport = new ProcessedReport();
-        $report = $processedReport->getReportMetadataByUniqueId($idSite, $reportUniqueId);
-
-        return $report;
-    }
-
     public function getLastDate($date, $period, $comparedToXPeriods)
     {
         $pastDate = Range::getDateXPeriodsAgo(abs($comparedToXPeriods), $date, $period);
@@ -91,6 +83,20 @@ class Model
         return $totalValue;
     }
 
+    public function getTotalValue($idSite, $period, $date, $metric, $segment)
+    {
+        $visits   = VisitsSummaryAPI::getInstance()->get($idSite, $period, $date, $segment);
+        $firstRow = $visits->getFirstRow();
+
+        if (empty($firstRow)) {
+            return 0;
+        }
+
+        $totalValue = $firstRow->getColumn($metric);
+
+        return (int) $totalValue;
+    }
+
     public function getMetricTotalValue(DataTable $currentReport, $metric)
     {
         $totals = $currentReport->getMetadata('totals');
@@ -104,17 +110,11 @@ class Model
         return $totalValue;
     }
 
-    public function getTotalValue($idSite, $period, $date, $metric, $segment)
+    public function getReportByUniqueId($idSite, $reportUniqueId)
     {
-        $visits   = VisitsSummaryAPI::getInstance()->get($idSite, $period, $date, $segment);
-        $firstRow = $visits->getFirstRow();
+        $processedReport = new ProcessedReport();
+        $report = $processedReport->getReportMetadataByUniqueId($idSite, $reportUniqueId);
 
-        if (empty($firstRow)) {
-            return 0;
-        }
-
-        $totalValue = $firstRow->getColumn($metric);
-
-        return (int) $totalValue;
+        return $report;
     }
 }

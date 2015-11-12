@@ -31,11 +31,6 @@ class VisitorLog extends Visualization
         return new VisitorLog\Config();
     }
 
-    public static function canDisplayViewDataTable(ViewDataTable $view)
-    {
-        return ($view->requestConfig->getApiModuleToRequest() === 'Live');
-    }
-
     public function beforeLoadDataTable()
     {
         $this->requestConfig->addPropertiesThatShouldBeAvailableClientSide(array(
@@ -97,5 +92,10 @@ class VisitorLog extends Visualization
                 )
             )
         );
+    }
+
+    public static function canDisplayViewDataTable(ViewDataTable $view)
+    {
+        return ($view->requestConfig->getApiModuleToRequest() === 'Live');
     }
 }

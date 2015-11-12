@@ -145,95 +145,51 @@ class API extends \Piwik\Plugin\API
         return $table;
     }
 
-    private function loadLastVisitorDetailsFromDatabase($idSite, $period, $date, $segment = false, $offset = 0, $limit = 100, $minTimestamp = false, $filterSortOrder = false, $visitorId = false)
-    {
-        $model = new Model();
-        $data = $model->queryLogVisits($idSite, $period, $date, $segment, $offset, $limit, $visitorId, $minTimestamp, $filterSortOrder);
-        return $this->makeVisitorTableFromArray($data);
-    }
-
     /**
-     * @param $data
+     * Returns the last visits tracked in the specified website
+     * You can define any number of filters: none, one, many or all parameters can be defined
+     *
+     * @param int $idSite Site ID
+     * @param bool|string $period Period to restrict to when looking at the logs
+     * @param bool|string $date Date to restrict to
+     * @param bool|int $segment (optional) Number of visits rows to return
+     * @param bool|int $countVisitorsToFetch DEPRECATED (optional) Only return the last X visits. Please use the API paramaeter 'filter_offset' and 'filter_limit' instead.
+     * @param bool|int $minTimestamp (optional) Minimum timestamp to restrict the query to (useful when paginating or refreshing visits)
+     * @param bool $flat
+     * @param bool $doNotFetchActions
      * @return DataTable
-     * @throws Exception
      */
-    private function makeVisitorTableFromArray($data)
+    public function getLastVisitsDetails($idSite, $period = false, $date = false, $segment = false, $countVisitorsToFetch = false, $minTimestamp = false, $flat = false, $doNotFetchActions = false)
     {
-        $dataTable = new DataTable();
-        $dataTable->addRowsFromSimpleArray($data);
+        Piwik::checkUserHasViewAccess($idSite);
 
-        if (!empty($data[0])) {
-            $columnsToNotAggregate = array_map(function () {
-                return 'skip';
-            }, $data[0]);
-
-            $dataTable->setMetadata(DataTable::COLUMN_AGGREGATION_OPS_METADATA_NAME, $columnsToNotAggregate);
+        if ($countVisitorsToFetch !== false) {
+            $filterLimit     = (int) $countVisitorsToFetch;
+            $filterOffset    = 0;
+        } else {
+            $filterLimit     = Common::getRequestVar('filter_limit', 10, 'int');
+            $filterOffset    = Common::getRequestVar('filter_offset', 0, 'int');
         }
+
+        $filterSortOrder = Common::getRequestVar('filter_sort_order', false, 'string');
+
+        $dataTable = $this->loadLastVisitorDetailsFromDatabase($idSite, $period, $date, $segment, $filterOffset, $filterLimit, $minTimestamp, $filterSortOrder, $visitorId = false);
+        $this->addFilterToCleanVisitors($dataTable, $idSite, $flat, $doNotFetchActions);
+
+        $filterSortColumn = Common::getRequestVar('filter_sort_column', false, 'string');
+
+        if ($filterSortColumn) {
+            $this->logger->warning('Sorting the API method "Live.getLastVisitDetails" by column is currently not supported. To avoid this warning remove the URL parameter "filter_sort_column" from your API request.');
+        }
+
+        // Usually one would Sort a DataTable and then apply a Limit. In this case we apply a Limit first in SQL
+        // for fast offset usage see https://github.com/piwik/piwik/issues/7458. Sorting afterwards would lead to a
+        // wrong sorting result as it would only sort the limited results. Therefore we do not support a Sort for this
+        // API
+        $dataTable->disableFilter('Sort');
+        $dataTable->disableFilter('Limit'); // limit is already applied here
 
         return $dataTable;
-    }
-
-    /**
-     * For an array of visits, query the list of pages for this visit
-     * as well as make the data human readable
-     * @param DataTable $dataTable
-     * @param int $idSite
-     * @param bool $flat whether to flatten the array (eg. 'customVariables' names/values will appear in the root array rather than in 'customVariables' key
-     * @param bool $doNotFetchActions If set to true, we only fetch visit info and not actions (much faster)
-     * @param bool $filterNow If true, the visitors will be cleaned immediately
-     */
-    private function addFilterToCleanVisitors(DataTable $dataTable, $idSite, $flat = false, $doNotFetchActions = false, $filterNow = false)
-    {
-        $filter = 'queueFilter';
-        if ($filterNow) {
-            $filter = 'filter';
-        }
-
-        $dataTable->$filter(function ($table) use ($idSite, $flat, $doNotFetchActions) {
-            /** @var DataTable $table */
-            $actionsLimit = (int)Config::getInstance()->General['visitor_log_maximum_actions_per_visit'];
-
-            $visitorFactory = new VisitorFactory();
-            $website        = new Site($idSite);
-            $timezone       = $website->getTimezone();
-            $currency       = $website->getCurrency();
-            $currencies     = APISitesManager::getInstance()->getCurrencySymbols();
-
-            // live api is not summable, prevents errors like "Unexpected ECommerce status value"
-            $table->deleteRow(DataTable::ID_SUMMARY_ROW);
-
-            foreach ($table->getRows() as $visitorDetailRow) {
-                $visitorDetailsArray = Visitor::cleanVisitorDetails($visitorDetailRow->getColumns());
-
-                $visitor = $visitorFactory->create($visitorDetailsArray);
-                $visitorDetailsArray = $visitor->getAllVisitorDetails();
-
-                $visitorDetailsArray['siteCurrency'] = $currency;
-                $visitorDetailsArray['siteCurrencySymbol'] = @$currencies[$visitorDetailsArray['siteCurrency']];
-                $visitorDetailsArray['serverTimestamp'] = $visitorDetailsArray['lastActionTimestamp'];
-
-                $dateTimeVisit = Date::factory($visitorDetailsArray['lastActionTimestamp'], $timezone);
-                if ($dateTimeVisit) {
-                    $visitorDetailsArray['serverTimePretty'] = $dateTimeVisit->getLocalized(Date::TIME_FORMAT);
-                    $visitorDetailsArray['serverDatePretty'] = $dateTimeVisit->getLocalized(Date::DATE_FORMAT_LONG);
-                }
-
-                $dateTimeVisitFirstAction = Date::factory($visitorDetailsArray['firstActionTimestamp'], $timezone);
-                $visitorDetailsArray['serverDatePrettyFirstAction'] = $dateTimeVisitFirstAction->getLocalized(Date::DATE_FORMAT_LONG);
-                $visitorDetailsArray['serverTimePrettyFirstAction'] = $dateTimeVisitFirstAction->getLocalized(Date::TIME_FORMAT);
-
-                $visitorDetailsArray['actionDetails'] = array();
-                if (!$doNotFetchActions) {
-                    $visitorDetailsArray = Visitor::enrichVisitorArrayWithActions($visitorDetailsArray, $actionsLimit, $timezone);
-                }
-
-                if ($flat) {
-                    $visitorDetailsArray = Visitor::flattenVisitorDetailsArray($visitorDetailsArray);
-                }
-
-                $visitorDetailRow->setColumns($visitorDetailsArray);
-            }
-        });
     }
 
     /**
@@ -321,48 +277,92 @@ class API extends \Piwik\Plugin\API
     }
 
     /**
-     * Returns the last visits tracked in the specified website
-     * You can define any number of filters: none, one, many or all parameters can be defined
-     *
-     * @param int $idSite Site ID
-     * @param bool|string $period Period to restrict to when looking at the logs
-     * @param bool|string $date Date to restrict to
-     * @param bool|int $segment (optional) Number of visits rows to return
-     * @param bool|int $countVisitorsToFetch DEPRECATED (optional) Only return the last X visits. Please use the API paramaeter 'filter_offset' and 'filter_limit' instead.
-     * @param bool|int $minTimestamp (optional) Minimum timestamp to restrict the query to (useful when paginating or refreshing visits)
-     * @param bool $flat
-     * @param bool $doNotFetchActions
-     * @return DataTable
+     * For an array of visits, query the list of pages for this visit
+     * as well as make the data human readable
+     * @param DataTable $dataTable
+     * @param int $idSite
+     * @param bool $flat whether to flatten the array (eg. 'customVariables' names/values will appear in the root array rather than in 'customVariables' key
+     * @param bool $doNotFetchActions If set to true, we only fetch visit info and not actions (much faster)
+     * @param bool $filterNow If true, the visitors will be cleaned immediately
      */
-    public function getLastVisitsDetails($idSite, $period = false, $date = false, $segment = false, $countVisitorsToFetch = false, $minTimestamp = false, $flat = false, $doNotFetchActions = false)
+    private function addFilterToCleanVisitors(DataTable $dataTable, $idSite, $flat = false, $doNotFetchActions = false, $filterNow = false)
     {
-        Piwik::checkUserHasViewAccess($idSite);
-
-        if ($countVisitorsToFetch !== false) {
-            $filterLimit     = (int) $countVisitorsToFetch;
-            $filterOffset    = 0;
-        } else {
-            $filterLimit     = Common::getRequestVar('filter_limit', 10, 'int');
-            $filterOffset    = Common::getRequestVar('filter_offset', 0, 'int');
+        $filter = 'queueFilter';
+        if ($filterNow) {
+            $filter = 'filter';
         }
 
-        $filterSortOrder = Common::getRequestVar('filter_sort_order', false, 'string');
+        $dataTable->$filter(function ($table) use ($idSite, $flat, $doNotFetchActions) {
+            /** @var DataTable $table */
+            $actionsLimit = (int)Config::getInstance()->General['visitor_log_maximum_actions_per_visit'];
 
-        $dataTable = $this->loadLastVisitorDetailsFromDatabase($idSite, $period, $date, $segment, $filterOffset, $filterLimit, $minTimestamp, $filterSortOrder, $visitorId = false);
-        $this->addFilterToCleanVisitors($dataTable, $idSite, $flat, $doNotFetchActions);
+            $visitorFactory = new VisitorFactory();
+            $website        = new Site($idSite);
+            $timezone       = $website->getTimezone();
+            $currency       = $website->getCurrency();
+            $currencies     = APISitesManager::getInstance()->getCurrencySymbols();
 
-        $filterSortColumn = Common::getRequestVar('filter_sort_column', false, 'string');
+            // live api is not summable, prevents errors like "Unexpected ECommerce status value"
+            $table->deleteRow(DataTable::ID_SUMMARY_ROW);
 
-        if ($filterSortColumn) {
-            $this->logger->warning('Sorting the API method "Live.getLastVisitDetails" by column is currently not supported. To avoid this warning remove the URL parameter "filter_sort_column" from your API request.');
+            foreach ($table->getRows() as $visitorDetailRow) {
+                $visitorDetailsArray = Visitor::cleanVisitorDetails($visitorDetailRow->getColumns());
+
+                $visitor = $visitorFactory->create($visitorDetailsArray);
+                $visitorDetailsArray = $visitor->getAllVisitorDetails();
+
+                $visitorDetailsArray['siteCurrency'] = $currency;
+                $visitorDetailsArray['siteCurrencySymbol'] = @$currencies[$visitorDetailsArray['siteCurrency']];
+                $visitorDetailsArray['serverTimestamp'] = $visitorDetailsArray['lastActionTimestamp'];
+
+                $dateTimeVisit = Date::factory($visitorDetailsArray['lastActionTimestamp'], $timezone);
+                if ($dateTimeVisit) {
+                    $visitorDetailsArray['serverTimePretty'] = $dateTimeVisit->getLocalized(Date::TIME_FORMAT);
+                    $visitorDetailsArray['serverDatePretty'] = $dateTimeVisit->getLocalized(Date::DATE_FORMAT_LONG);
+                }
+
+                $dateTimeVisitFirstAction = Date::factory($visitorDetailsArray['firstActionTimestamp'], $timezone);
+                $visitorDetailsArray['serverDatePrettyFirstAction'] = $dateTimeVisitFirstAction->getLocalized(Date::DATE_FORMAT_LONG);
+                $visitorDetailsArray['serverTimePrettyFirstAction'] = $dateTimeVisitFirstAction->getLocalized(Date::TIME_FORMAT);
+
+                $visitorDetailsArray['actionDetails'] = array();
+                if (!$doNotFetchActions) {
+                    $visitorDetailsArray = Visitor::enrichVisitorArrayWithActions($visitorDetailsArray, $actionsLimit, $timezone);
+                }
+
+                if ($flat) {
+                    $visitorDetailsArray = Visitor::flattenVisitorDetailsArray($visitorDetailsArray);
+                }
+
+                $visitorDetailRow->setColumns($visitorDetailsArray);
+            }
+        });
+    }
+
+    private function loadLastVisitorDetailsFromDatabase($idSite, $period, $date, $segment = false, $offset = 0, $limit = 100, $minTimestamp = false, $filterSortOrder = false, $visitorId = false)
+    {
+        $model = new Model();
+        $data = $model->queryLogVisits($idSite, $period, $date, $segment, $offset, $limit, $visitorId, $minTimestamp, $filterSortOrder);
+        return $this->makeVisitorTableFromArray($data);
+    }
+
+    /**
+     * @param $data
+     * @return DataTable
+     * @throws Exception
+     */
+    private function makeVisitorTableFromArray($data)
+    {
+        $dataTable = new DataTable();
+        $dataTable->addRowsFromSimpleArray($data);
+
+        if (!empty($data[0])) {
+            $columnsToNotAggregate = array_map(function () {
+                return 'skip';
+            }, $data[0]);
+
+            $dataTable->setMetadata(DataTable::COLUMN_AGGREGATION_OPS_METADATA_NAME, $columnsToNotAggregate);
         }
-
-        // Usually one would Sort a DataTable and then apply a Limit. In this case we apply a Limit first in SQL
-        // for fast offset usage see https://github.com/piwik/piwik/issues/7458. Sorting afterwards would lead to a
-        // wrong sorting result as it would only sort the limited results. Therefore we do not support a Sort for this
-        // API
-        $dataTable->disableFilter('Sort');
-        $dataTable->disableFilter('Limit'); // limit is already applied here
 
         return $dataTable;
     }

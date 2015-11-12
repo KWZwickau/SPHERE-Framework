@@ -54,18 +54,17 @@ class GenerateWidget extends GeneratePluginBase
         ));
     }
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     * @return array
-     * @throws \RuntimeException
-     */
-    protected function getPluginName(InputInterface $input, OutputInterface $output)
+    protected function getExistingCategories()
     {
-        $pluginNames = $this->getPluginNamesHavingNotSpecificFile('Widgets.php');
-        $invalidName = 'You have to enter the name of an existing plugin which does not already have any widgets defined';
+        $categories = array();
+        foreach (Widgets::getAllWidgets() as $widget) {
+            if ($widget->getCategory()) {
+                $categories[] = Piwik::translate($widget->getCategory());
+            }
+        }
+        $categories = array_values(array_unique($categories));
 
-        return $this->askPluginNameAndValidate($input, $output, $pluginNames, $invalidName);
+        return $categories;
     }
 
     /**
@@ -104,17 +103,18 @@ class GenerateWidget extends GeneratePluginBase
         return $category;
     }
 
-    protected function getExistingCategories()
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return array
+     * @throws \RuntimeException
+     */
+    protected function getPluginName(InputInterface $input, OutputInterface $output)
     {
-        $categories = array();
-        foreach (Widgets::getAllWidgets() as $widget) {
-            if ($widget->getCategory()) {
-                $categories[] = Piwik::translate($widget->getCategory());
-            }
-        }
-        $categories = array_values(array_unique($categories));
+        $pluginNames = $this->getPluginNamesHavingNotSpecificFile('Widgets.php');
+        $invalidName = 'You have to enter the name of an existing plugin which does not already have any widgets defined';
 
-        return $categories;
+        return $this->askPluginNameAndValidate($input, $output, $pluginNames, $invalidName);
     }
 
 }

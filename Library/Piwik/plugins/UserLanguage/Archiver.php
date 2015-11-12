@@ -38,6 +38,25 @@ class Archiver extends \Piwik\Plugin\Archiver
         $this->aggregateByLanguage();
     }
 
+    /**
+     * Period archiving: simply sums up daily archives
+     */
+    public function aggregateMultipleReports()
+    {
+        $dataTableRecords = array(
+            self::LANGUAGE_RECORD_NAME,
+        );
+        $columnsAggregationOperation = null;
+        $this->getProcessor()->aggregateDataTableRecords(
+            $dataTableRecords,
+            $this->maximumRows,
+            $maximumRowsInSubDataTable = null,
+            $columnToSortByBeforeTruncation = null,
+            $columnsAggregationOperation,
+            $columnsToRenameAfterAggregation = null,
+            $countRowsRecursive = array());
+    }
+
     protected function aggregateByLanguage()
     {
         /** @var RegionDataProvider $regionDataProvider */
@@ -62,29 +81,11 @@ class Archiver extends \Piwik\Plugin\Archiver
         $this->insertTable(self::LANGUAGE_RECORD_NAME, $report);
     }
 
+
     protected function insertTable($recordName, DataTable $table)
     {
         $report = $table->getSerialized($this->maximumRows, null, Metrics::INDEX_NB_VISITS);
         return $this->getProcessor()->insertBlobRecord($recordName, $report);
-    }
-
-    /**
-     * Period archiving: simply sums up daily archives
-     */
-    public function aggregateMultipleReports()
-    {
-        $dataTableRecords = array(
-            self::LANGUAGE_RECORD_NAME,
-        );
-        $columnsAggregationOperation = null;
-        $this->getProcessor()->aggregateDataTableRecords(
-            $dataTableRecords,
-            $this->maximumRows,
-            $maximumRowsInSubDataTable = null,
-            $columnToSortByBeforeTruncation = null,
-            $columnsAggregationOperation,
-            $columnsToRenameAfterAggregation = null,
-            $countRowsRecursive = array());
     }
 
 }

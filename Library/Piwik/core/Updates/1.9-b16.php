@@ -22,11 +22,6 @@ class Updates_1_9_b16 extends Updates
         return true;
     }
 
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -48,5 +43,10 @@ class Updates_1_9_b16 extends Updates
             'UPDATE `' . Common::prefixTable('site') . '`
 		    	SET `sitesearch` = 1' => false,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

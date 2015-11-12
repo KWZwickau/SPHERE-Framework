@@ -66,37 +66,15 @@
 class HTML_QuickForm2_Controller_DefaultAction
     extends HTML_QuickForm2_Element_InputImage
 {
-    protected $attributes = array(
-        'type' => 'image',
-        'id' => '_qf_default',
-        'width' => '1',
-        'height' => '1'
-    );
+    protected $attributes = array('type' => 'image', 'id' => '_qf_default',
+                                  'width' => '1', 'height' => '1');
 
-    /**
-     * This element is rendered using renderHidden() method
-     *
-     * renderHidden() is used to
-     *   - prevent using the standard element template as this button is
-     *     expected to be hidden
-     *   - render it above all other submit buttons since hidden elements
-     *     are usually at the top of the form
-     *
-     * @param    HTML_QuickForm2_Renderer    Renderer instance
-     * @return   HTML_QuickForm2_Renderer
-     */
-    public function render(HTML_QuickForm2_Renderer $renderer)
-    {
-        $renderer->renderHidden($this);
-        return $renderer;
-    }
-
-    /**
-     * Disallow changing the 'id' attribute
-     *
-     * @param    string  Attribute name
-     * @param    string  Attribute value, null if attribute is being removed
-     */
+   /**
+    * Disallow changing the 'id' attribute
+    *
+    * @param    string  Attribute name
+    * @param    string  Attribute value, null if attribute is being removed
+    */
     protected function onAttributeChange($name, $value = null)
     {
         if ('id' == $name) {
@@ -106,6 +84,23 @@ class HTML_QuickForm2_Controller_DefaultAction
         }
         parent::onAttributeChange($name, $value);
     }
-}
 
+   /**
+    * This element is rendered using renderHidden() method
+    *
+    * renderHidden() is used to
+    *   - prevent using the standard element template as this button is
+    *     expected to be hidden
+    *   - render it above all other submit buttons since hidden elements
+    *     are usually at the top of the form
+    *
+    * @param    HTML_QuickForm2_Renderer    Renderer instance
+    * @return   HTML_QuickForm2_Renderer
+    */
+    public function render(HTML_QuickForm2_Renderer $renderer)
+    {
+        $renderer->renderHidden($this);
+        return $renderer;
+    }
+}
 ?>

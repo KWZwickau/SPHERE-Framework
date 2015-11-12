@@ -45,16 +45,6 @@ class InstanceInjector extends ObjectCreator
         }
     }
 
-    private function assertIsInstanceDefinition(Definition $definition)
-    {
-        if (!$definition instanceof InstanceDefinition) {
-            throw new \InvalidArgumentException(sprintf(
-                'This definition resolver is only compatible with InstanceDefinition objects, %s given',
-                get_class($definition)
-            ));
-        }
-    }
-
     /**
      * {@inheritdoc}
      */
@@ -63,5 +53,15 @@ class InstanceInjector extends ObjectCreator
         $this->assertIsInstanceDefinition($definition);
 
         return true;
+    }
+
+    private function assertIsInstanceDefinition(Definition $definition)
+    {
+        if (!$definition instanceof InstanceDefinition) {
+            throw new \InvalidArgumentException(sprintf(
+                'This definition resolver is only compatible with InstanceDefinition objects, %s given',
+                get_class($definition)
+            ));
+        }
     }
 }

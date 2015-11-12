@@ -17,7 +17,7 @@ namespace DeviceDetector\Parser\Device;
 class PortableMediaPlayer extends DeviceParserAbstract
 {
     protected $fixtureFile = 'regexes/device/portable_media_player.yml';
-    protected $parserName = 'portablemediaplayer';
+    protected $parserName  = 'portablemediaplayer';
 
     public function parse()
     {

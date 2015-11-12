@@ -9,9 +9,9 @@
 namespace Piwik;
 
 use Exception;
-use Piwik\Cache as PiwikCache;
 use Piwik\Container\StaticContainer;
 use Piwik\Tracker\Cache as TrackerCache;
+use Piwik\Cache as PiwikCache;
 
 /**
  * Contains helper functions that deal with the filesystem.
@@ -32,27 +32,14 @@ class Filesystem
         self::clearPhpCaches();
     }
 
-    public static function clearPhpCaches()
+    /**
+     * ending WITHOUT slash
+     *
+     * @return string
+     */
+    public static function getPathToPiwikRoot()
     {
-        if (function_exists('apc_clear_cache')) {
-            apc_clear_cache(); // clear the system (aka 'opcode') cache
-        }
-
-        if (function_exists('opcache_reset')) {
-            @opcache_reset(); // reset the opcode cache (php 5.5.0+)
-        }
-
-        if (function_exists('wincache_refresh_if_changed')) {
-            @wincache_refresh_if_changed(); // reset the wincache
-        }
-
-        if (function_exists('xcache_clear_cache') && defined('XC_TYPE_VAR')) {
-            if (ini_get('xcache.admin.enable_auth')) {
-                // XCache will not be cleared because "xcache.admin.enable_auth" is enabled in php.ini.
-            } else {
-                @xcache_clear_cache(XC_TYPE_VAR);
-            }
-        }
+        return realpath(dirname(__FILE__) . "/..");
     }
 
     /**
@@ -82,6 +69,31 @@ class Filesystem
             return realpath($path);
         }
         return $path;
+    }
+
+    /**
+     * Attempts to create a new directory. All errors are silenced.
+     *
+     * _Note: This function does **not** create directories recursively._
+     *
+     * @param string $path The path of the directory to create.
+     * @api
+     */
+    public static function mkdir($path)
+    {
+        if (!is_dir($path)) {
+            // the mode in mkdir is modified by the current umask
+            @mkdir($path, self::getChmodForPath($path), $recursive = true);
+        }
+
+        // try to overcome restrictive umask (mis-)configuration
+        if (!is_writable($path)) {
+            @chmod($path, 0755);
+            if (!is_writable($path)) {
+                @chmod($path, 0775);
+                // enough! we're not going to make the directory world-writeable
+            }
+        }
     }
 
     /**
@@ -135,6 +147,35 @@ class Filesystem
         }
 
         return false; // not NFS, or we can't run a program to find out
+    }
+
+    /**
+     * Recursively find pathnames that match a pattern.
+     *
+     * See {@link http://php.net/manual/en/function.glob.php glob} for more info.
+     *
+     * @param string $sDir directory The directory to glob in.
+     * @param string $sPattern pattern The pattern to match paths against.
+     * @param int $nFlags `glob()` . See {@link http://php.net/manual/en/function.glob.php glob()}.
+     * @return array The list of paths that match the pattern.
+     * @api
+     */
+    public static function globr($sDir, $sPattern, $nFlags = null)
+    {
+        if (($aFiles = \_glob("$sDir/$sPattern", $nFlags)) == false) {
+            $aFiles = array();
+        }
+        if (($aDirs = \_glob("$sDir/*", GLOB_ONLYDIR)) != false) {
+            foreach ($aDirs as $sSubDir) {
+                if (is_link($sSubDir)) {
+                    continue;
+                }
+
+                $aSubFiles = self::globr($sSubDir, $sPattern, $nFlags);
+                $aFiles = array_merge($aFiles, $aSubFiles);
+            }
+        }
+        return $aFiles;
     }
 
     /**
@@ -194,6 +235,28 @@ class Filesystem
     }
 
     /**
+     * Sort all given paths/filenames by its path length. Long path names will be listed first. This method can be
+     * useful if you have for instance a bunch of files/directories to delete. By sorting them by lengh you can make
+     * sure to delete all files within the folders before deleting the actual folder.
+     *
+     * @param string[] $files
+     * @return string[]
+     */
+    public static function sortFilesDescByPathLength($files)
+    {
+        usort($files, function ($a, $b) {
+            // sort by filename length so we kinda make sure to remove files before its directories
+            if ($a == $b) {
+                return 0;
+            }
+
+            return (strlen($a) > strlen($b) ? -1 : 1);
+        });
+
+        return $files;
+    }
+
+    /**
      * Computes the difference of directories. Compares $target against $source and returns a relative path to all files
      * and directories in $target that are not present in $source.
      *
@@ -218,148 +281,6 @@ class Filesystem
         $diff = array_diff($targetFiles, $sourceFiles);
 
         return array_values($diff);
-    }
-
-    /**
-     * Recursively find pathnames that match a pattern.
-     *
-     * See {@link http://php.net/manual/en/function.glob.php glob} for more info.
-     *
-     * @param string $sDir directory The directory to glob in.
-     * @param string $sPattern pattern The pattern to match paths against.
-     * @param int $nFlags `glob()` . See {@link http://php.net/manual/en/function.glob.php glob()}.
-     * @return array The list of paths that match the pattern.
-     * @api
-     */
-    public static function globr($sDir, $sPattern, $nFlags = null)
-    {
-        if (($aFiles = \_glob("$sDir/$sPattern", $nFlags)) == false) {
-            $aFiles = array();
-        }
-        if (($aDirs = \_glob("$sDir/*", GLOB_ONLYDIR)) != false) {
-            foreach ($aDirs as $sSubDir) {
-                if (is_link($sSubDir)) {
-                    continue;
-                }
-
-                $aSubFiles = self::globr($sSubDir, $sPattern, $nFlags);
-                $aFiles = array_merge($aFiles, $aSubFiles);
-            }
-        }
-        return $aFiles;
-    }
-
-    /**
-     * Sort all given paths/filenames by its path length. Long path names will be listed first. This method can be
-     * useful if you have for instance a bunch of files/directories to delete. By sorting them by lengh you can make
-     * sure to delete all files within the folders before deleting the actual folder.
-     *
-     * @param string[] $files
-     * @return string[]
-     */
-    public static function sortFilesDescByPathLength($files)
-    {
-        usort($files, function ($a, $b) {
-            // sort by filename length so we kinda make sure to remove files before its directories
-            if ($a == $b) {
-                return 0;
-            }
-
-            return (strlen($a) > strlen($b) ? -1 : 1);
-        });
-
-        return $files;
-    }
-
-    /**
-     * Deletes the given file if it exists.
-     *
-     * @param  string $pathToFile
-     * @return bool   true in case of success or if file does not exist, false otherwise. It might fail in case the
-     *                file is not writeable.
-     * @api
-     */
-    public static function deleteFileIfExists($pathToFile)
-    {
-        if (!file_exists($pathToFile)) {
-            return true;
-        }
-
-        return @unlink($pathToFile);
-    }
-
-    /**
-     * Copies the contents of a directory recursively from `$source` to `$target`.
-     *
-     * @param string $source A directory or file to copy, eg. './tmp/latest'.
-     * @param string $target A directory to copy to, eg. '.'.
-     * @param bool $excludePhp Whether to avoid copying files if the file is related to PHP
-     *                         (includes .php, .tpl, .twig files).
-     * @throws Exception If a file cannot be copied.
-     * @api
-     */
-    public static function copyRecursive($source, $target, $excludePhp = false)
-    {
-        if (is_dir($source)) {
-            self::mkdir($target);
-            $d = dir($source);
-            while (false !== ($entry = $d->read())) {
-                if ($entry == '.' || $entry == '..') {
-                    continue;
-                }
-
-                $sourcePath = $source . '/' . $entry;
-                if (is_dir($sourcePath)) {
-                    self::copyRecursive($sourcePath, $target . '/' . $entry, $excludePhp);
-                    continue;
-                }
-                $destPath = $target . '/' . $entry;
-                self::copy($sourcePath, $destPath, $excludePhp);
-            }
-            $d->close();
-        } else {
-            self::copy($source, $target, $excludePhp);
-        }
-    }
-
-    /**
-     * Attempts to create a new directory. All errors are silenced.
-     *
-     * _Note: This function does **not** create directories recursively._
-     *
-     * @param string $path The path of the directory to create.
-     * @api
-     */
-    public static function mkdir($path)
-    {
-        if (!is_dir($path)) {
-            // the mode in mkdir is modified by the current umask
-            @mkdir($path, self::getChmodForPath($path), $recursive = true);
-        }
-
-        // try to overcome restrictive umask (mis-)configuration
-        if (!is_writable($path)) {
-            @chmod($path, 0755);
-            if (!is_writable($path)) {
-                @chmod($path, 0775);
-                // enough! we're not going to make the directory world-writeable
-            }
-        }
-    }
-
-    /**
-     * @param $path
-     * @return int
-     */
-    private static function getChmodForPath($path)
-    {
-        $pathIsTmp = StaticContainer::get('path.tmp');
-        if (strpos($path, $pathIsTmp) === 0) {
-            // tmp/* folder
-            return 0750;
-        }
-        // plugins/* and all others
-        return 0755;
     }
 
     /**
@@ -408,44 +329,55 @@ class Filesystem
         return false;
     }
 
-    private static function tryToCopyFileAndVerifyItWasCopied($source, $dest)
+    /**
+     * Copies the contents of a directory recursively from `$source` to `$target`.
+     *
+     * @param string $source A directory or file to copy, eg. './tmp/latest'.
+     * @param string $target A directory to copy to, eg. '.'.
+     * @param bool $excludePhp Whether to avoid copying files if the file is related to PHP
+     *                         (includes .php, .tpl, .twig files).
+     * @throws Exception If a file cannot be copied.
+     * @api
+     */
+    public static function copyRecursive($source, $target, $excludePhp = false)
     {
-        if (!@copy($source, $dest)) {
-            @chmod($dest, 0755);
-            if (!@copy($source, $dest)) {
-                $message = "Error while creating/copying file to <code>$dest</code>. <br />"
-                    . Filechecks::getErrorMessageMissingPermissions(self::getPathToPiwikRoot());
-                throw new Exception($message);
+        if (is_dir($source)) {
+            self::mkdir($target);
+            $d = dir($source);
+            while (false !== ($entry = $d->read())) {
+                if ($entry == '.' || $entry == '..') {
+                    continue;
+                }
+
+                $sourcePath = $source . '/' . $entry;
+                if (is_dir($sourcePath)) {
+                    self::copyRecursive($sourcePath, $target . '/' . $entry, $excludePhp);
+                    continue;
+                }
+                $destPath = $target . '/' . $entry;
+                self::copy($sourcePath, $destPath, $excludePhp);
             }
+            $d->close();
+        } else {
+            self::copy($source, $target, $excludePhp);
         }
-
-        if (file_exists($source) && file_exists($dest)) {
-            return self::havePhpFilesSameContent($source, $dest);
-        }
-
-        return true;
     }
 
     /**
-     * ending WITHOUT slash
+     * Deletes the given file if it exists.
      *
-     * @return string
+     * @param  string $pathToFile
+     * @return bool   true in case of success or if file does not exist, false otherwise. It might fail in case the
+     *                file is not writeable.
+     * @api
      */
-    public static function getPathToPiwikRoot()
+    public static function deleteFileIfExists($pathToFile)
     {
-        return realpath(dirname(__FILE__) . "/..");
-    }
-
-    private static function havePhpFilesSameContent($file1, $file2)
-    {
-        if (self::hasPHPExtension($file1)) {
-            $sourceMd5 = md5_file($file1);
-            $destMd5   = md5_file($file2);
-
-            return $sourceMd5 === $destMd5;
+        if (!file_exists($pathToFile)) {
+            return true;
         }
 
-        return true;
+        return @unlink($pathToFile);
     }
 
     /**
@@ -504,5 +436,73 @@ class Filesystem
                 throw new \RuntimeException('Unable to delete file ' . $file);
             }
         }
+    }
+
+    /**
+     * @param $path
+     * @return int
+     */
+    private static function getChmodForPath($path)
+    {
+        $pathIsTmp = StaticContainer::get('path.tmp');
+        if (strpos($path, $pathIsTmp) === 0) {
+            // tmp/* folder
+            return 0750;
+        }
+        // plugins/* and all others
+        return 0755;
+    }
+
+    public static function clearPhpCaches()
+    {
+        if (function_exists('apc_clear_cache')) {
+            apc_clear_cache(); // clear the system (aka 'opcode') cache
+        }
+
+        if (function_exists('opcache_reset')) {
+            @opcache_reset(); // reset the opcode cache (php 5.5.0+)
+        }
+
+        if (function_exists('wincache_refresh_if_changed')) {
+            @wincache_refresh_if_changed(); // reset the wincache
+        }
+
+        if (function_exists('xcache_clear_cache') && defined('XC_TYPE_VAR')) {
+            if (ini_get('xcache.admin.enable_auth')) {
+                // XCache will not be cleared because "xcache.admin.enable_auth" is enabled in php.ini.
+            } else {
+                @xcache_clear_cache(XC_TYPE_VAR);
+            }
+        }
+    }
+
+    private static function havePhpFilesSameContent($file1, $file2)
+    {
+        if (self::hasPHPExtension($file1)) {
+            $sourceMd5 = md5_file($file1);
+            $destMd5   = md5_file($file2);
+
+            return $sourceMd5 === $destMd5;
+        }
+
+        return true;
+    }
+
+    private static function tryToCopyFileAndVerifyItWasCopied($source, $dest)
+    {
+        if (!@copy($source, $dest)) {
+            @chmod($dest, 0755);
+            if (!@copy($source, $dest)) {
+                $message = "Error while creating/copying file to <code>$dest</code>. <br />"
+                    . Filechecks::getErrorMessageMissingPermissions(self::getPathToPiwikRoot());
+                throw new Exception($message);
+            }
+        }
+
+        if (file_exists($source) && file_exists($dest)) {
+            return self::havePhpFilesSameContent($source, $dest);
+        }
+
+        return true;
     }
 }

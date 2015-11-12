@@ -210,25 +210,21 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
      * Maximum nesting level.
      */
     private static $maximumDepthLevelAllowed = self::MAX_DEPTH_DEFAULT;
-    private static $previousRowClasses = array(
-        'O:39:"Piwik\DataTable\Row\DataTableSummaryRow"',
-        'O:19:"Piwik\DataTable\Row"',
-        'O:36:"Piwik_DataTable_Row_DataTableSummary"',
-        'O:19:"Piwik_DataTable_Row"'
-    );
-    private static $rowClassToUseForUnserialize = 'O:29:"Piwik_DataTable_SerializedRow"';
+
     /**
      * Array of Row
      *
      * @var Row[]
      */
     protected $rows = array();
+
     /**
      * Id assigned to the DataTable, used to lookup the table using the DataTable_Manager
      *
      * @var int
      */
     protected $currentId;
+
     /**
      * Current depth level of this data table
      * 0 is the parent data table
@@ -236,12 +232,14 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
      * @var int
      */
     protected $depthLevel = 0;
+
     /**
      * This flag is set to false once we modify the table in a way that outdates the index
      *
      * @var bool
      */
     protected $indexNotUpToDate = true;
+
     /**
      * This flag sets the index to be rebuild whenever a new row is added,
      * as opposed to re-building the full index when getRowFromLabel is called.
@@ -251,57 +249,59 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
      * @var bool
      */
     protected $rebuildIndexContinuously = false;
+
     /**
      * Column name of last time the table was sorted
      *
      * @var string
      */
     protected $tableSortedBy = false;
+
     /**
      * List of BaseFilter queued to this table
      *
      * @var array
      */
     protected $queuedFilters = array();
+
     /**
      * List of disabled filter names eg 'Limit' or 'Sort'
      *
      * @var array
      */
     protected $disabledFilters = array();
+
     /**
      * We keep track of the number of rows before applying the LIMIT filter that deletes some rows
      *
      * @var int
      */
     protected $rowsCountBeforeLimitFilter = 0;
+
     /**
      * Defaults to false for performance reasons (most of the time we don't need recursive sorting so we save a looping over the dataTable)
      *
      * @var bool
      */
     protected $enableRecursiveSort = false;
+
     /**
      * When the table and all subtables are loaded, this flag will be set to true to ensure filters are applied to all subtables
      *
      * @var bool
      */
     protected $enableRecursiveFilters = false;
+
     /**
      * @var array
      */
     protected $rowsIndexByLabel = array();
+
     /**
      * @var \Piwik\DataTable\Row
      */
     protected $summaryRow = null;
-    /**
-     * Maximum number of rows allowed in this datatable (including the summary row).
-     * If adding more rows is attempted, the extra rows get summed to the summary row.
-     *
-     * @var int
-     */
-    protected $maximumAllowedRows = 0;
+
     /**
      * Table metadata. Read [this](#class-desc-the-basics) to learn more.
      *
@@ -312,207 +312,20 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
     private $metadata = array();
 
     /**
+     * Maximum number of rows allowed in this datatable (including the summary row).
+     * If adding more rows is attempted, the extra rows get summed to the summary row.
+     *
+     * @var int
+     */
+    protected $maximumAllowedRows = 0;
+
+    /**
      * Constructor. Creates an empty DataTable.
      */
     public function __construct()
     {
         // registers this instance to the manager
         $this->currentId = Manager::getInstance()->addTable($this);
-    }
-
-    /**
-     * Returns true if both DataTable instances are exactly the same.
-     *
-     * DataTables are equal if they have the same number of rows, if
-     * each row has a label that exists in the other table, and if each row
-     * is equal to the row in the other table with the same label. The order
-     * of rows is not important.
-     *
-     * @param \Piwik\DataTable $table1
-     * @param \Piwik\DataTable $table2
-     * @return bool
-     */
-    public static function isEqual(DataTable $table1, DataTable $table2)
-    {
-        $table1->rebuildIndex();
-        $table2->rebuildIndex();
-
-        if ($table1->getRowsCount() != $table2->getRowsCount()) {
-            return false;
-        }
-
-        $rows1 = $table1->getRows();
-
-        foreach ($rows1 as $row1) {
-            $row2 = $table2->getRowFromLabel($row1->getColumn('label'));
-            if ($row2 === false
-                || !Row::isEqual($row1, $row2)
-            ) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Rewrites the input `$array`
-     *
-     *     array (
-     *         LABEL => array(col1 => X, col2 => Y),
-     *         LABEL2 => array(col1 => X, col2 => Y),
-     *     )
-     *
-     * to a DataTable with rows that look like:
-     *
-     *     array (
-     *         array( Row::COLUMNS => array('label' => LABEL, col1 => X, col2 => Y)),
-     *         array( Row::COLUMNS => array('label' => LABEL2, col1 => X, col2 => Y)),
-     *     )
-     *
-     * Will also convert arrays like:
-     *
-     *     array (
-     *         LABEL => X,
-     *         LABEL2 => Y,
-     *     )
-     *
-     * to:
-     *
-     *     array (
-     *         array( Row::COLUMNS => array('label' => LABEL, 'value' => X)),
-     *         array( Row::COLUMNS => array('label' => LABEL2, 'value' => Y)),
-     *     )
-     *
-     * @param array $array Indexed array, two formats supported, see above.
-     * @param array|null $subtablePerLabel An array mapping label values with DataTable instances to associate as a subtable.
-     * @return \Piwik\DataTable
-     */
-    public static function makeFromIndexedArray($array, $subtablePerLabel = null)
-    {
-        $table = new DataTable();
-        foreach ($array as $label => $row) {
-            $cleanRow = array();
-
-            // Support the case of an $array of single values
-            if (!is_array($row)) {
-                $row = array('value' => $row);
-            }
-            // Put the 'label' column first
-            $cleanRow[Row::COLUMNS] = array('label' => $label) + $row;
-            // Assign subtable if specified
-            if (isset($subtablePerLabel[$label])) {
-                $cleanRow[Row::DATATABLE_ASSOCIATED] = $subtablePerLabel[$label];
-            }
-            $table->addRow(new Row($cleanRow));
-        }
-        return $table;
-    }
-
-    /**
-     * Sets the maximum depth level to at least a certain value. If the current value is
-     * greater than `$atLeastLevel`, the maximum nesting level is not changed.
-     *
-     * The maximum depth level determines the maximum number of subtable levels in the
-     * DataTable tree. For example, if it is set to `2`, this DataTable is allowed to
-     * have subtables, but the subtables are not.
-     *
-     * @param int $atLeastLevel
-     */
-    public static function setMaximumDepthLevelAllowedAtLeast($atLeastLevel)
-    {
-        self::$maximumDepthLevelAllowed = max($atLeastLevel, self::$maximumDepthLevelAllowed);
-        if (self::$maximumDepthLevelAllowed < 1) {
-            self::$maximumDepthLevelAllowed = 1;
-        }
-    }
-
-    /**
-     * Returns a new DataTable created with data from a 'simple' array.
-     *
-     * See {@link addRowsFromSimpleArray()}.
-     *
-     * @param array $array
-     * @return \Piwik\DataTable
-     */
-    public static function makeFromSimpleArray($array)
-    {
-        $dataTable = new DataTable();
-        $dataTable->addRowsFromSimpleArray($array);
-        return $dataTable;
-    }
-
-    /**
-     * Creates a new DataTable instance from a serialized DataTable string.
-     *
-     * See {@link getSerialized()} and {@link addRowsFromSerializedArray()}
-     * for more information on DataTable serialization.
-     *
-     * @param string $data
-     * @return \Piwik\DataTable
-     */
-    public static function fromSerializedArray($data)
-    {
-        $result = new DataTable();
-        $result->addRowsFromSerializedArray($data);
-        return $result;
-    }
-
-    /**
-     * Adds a set of rows from a serialized DataTable string.
-     *
-     * See {@link serialize()}.
-     *
-     * _Note: This function will successfully load DataTables serialized by Piwik 1.X._
-     *
-     * @param string $serialized A string with the format of a string in the array returned by
-     *                                 {@link serialize()}.
-     * @throws Exception if `$serialized` is invalid.
-     */
-    public function addRowsFromSerializedArray($serialized)
-    {
-        $rows = $this->unserializeRows($serialized);
-
-        if (array_key_exists(self::ID_SUMMARY_ROW, $rows)) {
-            if (is_array($rows[self::ID_SUMMARY_ROW])) {
-                $this->summaryRow = new Row($rows[self::ID_SUMMARY_ROW]);
-            } elseif (isset($rows[self::ID_SUMMARY_ROW]->c)) {
-                $this->summaryRow = new Row($rows[self::ID_SUMMARY_ROW]->c); // Pre Piwik 2.13
-            }
-            unset($rows[self::ID_SUMMARY_ROW]);
-        }
-
-        foreach ($rows as $id => $row) {
-            if (isset($row->c)) {
-                $this->addRow(new Row($row->c)); // Pre Piwik 2.13
-            } else {
-                $this->addRow(new Row($row));
-            }
-        }
-    }
-
-    /**
-     * It is faster to unserialize existing serialized Row instances to "Piwik_DataTable_SerializedRow" and access the
-     * `$row->c` property than implementing a "__wakeup" method in the Row instance to map the "$row->c" to $row->columns
-     * etc. We're talking here about 15% faster reports aggregation in some cases. To be concrete: We have a test where
-     * Archiving a year takes 1700 seconds with "__wakeup" and 1400 seconds with this method. Yes, it takes 300 seconds
-     * to wake up millions of rows. We should be able to remove this code here end 2015 and use the "__wakeup" way by then.
-     * Why? By then most new archives will have only arrays serialized anyway and therefore this mapping is rather an overhead.
-     *
-     * @param string $serialized
-     * @return array
-     * @throws Exception In case the unserialize fails
-     */
-    private function unserializeRows($serialized)
-    {
-        $serialized = str_replace(self::$previousRowClasses, self::$rowClassToUseForUnserialize, $serialized);
-        $rows = unserialize($serialized);
-
-        if ($rows === false) {
-            throw new Exception("The unserialization has failed!");
-        }
-
-        return $rows;
     }
 
     /**
@@ -554,6 +367,17 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
     }
 
     /**
+     * @ignore
+     * does not update the summary row!
+     */
+    public function setRows($rows)
+    {
+        unset($this->rows);
+        $this->rows = $rows;
+        $this->indexNotUpToDate = true;
+    }
+
+    /**
      * Sorts the DataTable rows using the supplied callback function.
      *
      * @param string $functionCallback A comparison callback compatible with {@link usort}.
@@ -578,12 +402,24 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * @ignore
+     * Returns the name of the column this table was sorted by (if any).
+     *
+     * See {@link sort()}.
+     *
+     * @return false|string The sorted column name or false if none.
      */
-    public function setTableSortedBy($column)
+    public function getSortedByColumnName()
     {
-        $this->indexNotUpToDate = true;
-        $this->tableSortedBy = $column;
+        return $this->tableSortedBy;
+    }
+
+    /**
+     * Enables recursive sorting. If this method is called {@link sort()} will also sort all
+     * subtables.
+     */
+    public function enableRecursiveSort()
+    {
+        $this->enableRecursiveSort = true;
     }
 
     /**
@@ -597,30 +433,10 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
     /**
      * @ignore
      */
-    public function getRowsWithoutSummaryRow()
+    public function setTableSortedBy($column)
     {
-        return $this->rows;
-    }
-
-    /**
-     * Enables recursive sorting. If this method is called {@link sort()} will also sort all
-     * subtables.
-     */
-    public function enableRecursiveSort()
-    {
-        $this->enableRecursiveSort = true;
-    }
-
-    /**
-     * Returns the name of the column this table was sorted by (if any).
-     *
-     * See {@link sort()}.
-     *
-     * @return false|string The sorted column name or false if none.
-     */
-    public function getSortedByColumnName()
-    {
-        return $this->tableSortedBy;
+        $this->indexNotUpToDate = true;
+        $this->tableSortedBy = $column;
     }
 
     /**
@@ -638,25 +454,6 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
     public function disableRecursiveFilters()
     {
         $this->enableRecursiveFilters = false;
-    }
-
-    /**
-     * Applies a filter to all subtables but not to this datatable.
-     *
-     * @param string|Closure $className Class name, eg. `"Sort"` or "Piwik\DataTable\Filters\Sort"`. If no
-     *                                  namespace is supplied, `Piwik\DataTable\BaseFilter` is assumed. This parameter
-     *                                  can also be a closure that takes a DataTable as its first parameter.
-     * @param array $parameters Array of extra parameters to pass to the filter.
-     */
-    public function filterSubtables($className, $parameters = array())
-    {
-        foreach ($this->getRowsWithoutSummaryRow() as $row) {
-            $subtable = $row->getSubtable();
-            if ($subtable) {
-                $subtable->filter($className, $parameters);
-                $subtable->filterSubtables($className, $parameters);
-            }
-        }
     }
 
     /**
@@ -698,6 +495,25 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
         $filter->enableRecursive($this->enableRecursiveFilters);
 
         $filter->filter($this);
+    }
+
+    /**
+     * Applies a filter to all subtables but not to this datatable.
+     *
+     * @param string|Closure $className Class name, eg. `"Sort"` or "Piwik\DataTable\Filters\Sort"`. If no
+     *                                  namespace is supplied, `Piwik\DataTable\BaseFilter` is assumed. This parameter
+     *                                  can also be a closure that takes a DataTable as its first parameter.
+     * @param array $parameters Array of extra parameters to pass to the filter.
+     */
+    public function filterSubtables($className, $parameters = array())
+    {
+        foreach ($this->getRowsWithoutSummaryRow() as $row) {
+            $subtable = $row->getSubtable();
+            if ($subtable) {
+                $subtable->filter($className, $parameters);
+                $subtable->filterSubtables($className, $parameters);
+            }
+        }
     }
 
     /**
@@ -744,7 +560,7 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
      * handle this filter manually by using a custom filter. Be aware if you disable a given filter, that filter won't
      * be ever executed. Even if another filter calls this filter on the DataTable.
      *
-     * @param string $className eg 'Limit' or 'Sort'. Passing a `Closure` or an `array($class, $methodName)` is not
+     * @param string $className  eg 'Limit' or 'Sort'. Passing a `Closure` or an `array($class, $methodName)` is not
      *                           supported yet. We check for exact match. So if you disable 'Limit' and
      *                           call `->filter('Limit')` this filter won't be executed. If you call
      *                           `->filter('Piwik\DataTable\Filter\Limit')` that filter will be executed. See it as a
@@ -766,14 +582,6 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
             $this->filter($filter['className'], $filter['parameters']);
         }
         $this->clearQueuedFilters();
-    }
-
-    /**
-     * Unsets all queued filters.
-     */
-    public function clearQueuedFilters()
-    {
-        $this->queuedFilters = array();
     }
 
     /**
@@ -815,49 +623,135 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Returns the number of rows in the table including the summary row.
+     * Returns the Row whose `'label'` column is equal to `$label`.
      *
-     * @return int
+     * This method executes in constant time except for the first call which caches row
+     * label => row ID mappings.
+     *
+     * @param string $label `'label'` column value to look for.
+     * @return Row|false The row if found, `false` if otherwise.
      */
-    public function getRowsCount()
+    public function getRowFromLabel($label)
     {
-        if (is_null($this->summaryRow)) {
-            return count($this->rows);
-        } else {
-            return count($this->rows) + 1;
+        $rowId = $this->getRowIdFromLabel($label);
+        if (is_int($rowId) && isset($this->rows[$rowId])) {
+            return $this->rows[$rowId];
         }
+        if ($rowId == self::ID_SUMMARY_ROW
+            && !empty($this->summaryRow)
+        ) {
+            return $this->summaryRow;
+        }
+        if ($rowId instanceof Row) {
+            return $rowId;
+        }
+        return false;
     }
 
     /**
-     * Returns the first row of the DataTable.
+     * Returns the row id for the row whose `'label'` column is equal to `$label`.
      *
-     * @return Row|false The first row or `false` if it cannot be found.
+     * This method executes in constant time except for the first call which caches row
+     * label => row ID mappings.
+     *
+     * @param string $label `'label'` column value to look for.
+     * @return int The row ID.
      */
-    public function getFirstRow()
+    public function getRowIdFromLabel($label)
     {
-        if (count($this->rows) == 0) {
-            if (!is_null($this->summaryRow)) {
+        if ($this->indexNotUpToDate) {
+            $this->rebuildIndex();
+        }
+
+        if ($label === self::LABEL_SUMMARY_ROW
+            && !is_null($this->summaryRow)
+        ) {
+            return self::ID_SUMMARY_ROW;
+        }
+
+        $label = (string) $label;
+
+        if (!isset($this->rowsIndexByLabel[$label])) {
+            return false;
+        }
+        return $this->rowsIndexByLabel[$label];
+    }
+
+    /**
+     * Returns an empty DataTable with the same metadata and queued filters as `$this` one.
+     *
+     * @param bool $keepFilters Whether to pass the queued filter list to the new DataTable or not.
+     * @return DataTable
+     */
+    public function getEmptyClone($keepFilters = true)
+    {
+        $clone = new DataTable;
+        if ($keepFilters) {
+            $clone->queuedFilters = $this->queuedFilters;
+        }
+        $clone->metadata = $this->metadata;
+        return $clone;
+    }
+
+    /**
+     * Rebuilds the index used to lookup a row by label
+     * @internal
+     */
+    public function rebuildIndex()
+    {
+        $this->rebuildIndexContinuously = true;
+
+        foreach ($this->rows as $id => $row) {
+            $label = $row->getColumn('label');
+            if ($label !== false) {
+                $this->rowsIndexByLabel[$label] = $id;
+            }
+        }
+
+        if ($this->summaryRow) {
+            $label = $this->summaryRow->getColumn('label');
+            if ($label !== false) {
+                $this->rowsIndexByLabel[$label] = DataTable::ID_SUMMARY_ROW;
+            }
+        }
+
+        $this->indexNotUpToDate = false;
+    }
+
+    /**
+     * Returns a row by ID. The ID is either the index of the row or {@link ID_SUMMARY_ROW}.
+     *
+     * @param int $id The row ID.
+     * @return Row|false The Row or false if not found.
+     */
+    public function getRowFromId($id)
+    {
+        if (!isset($this->rows[$id])) {
+            if ($id == self::ID_SUMMARY_ROW
+                && !is_null($this->summaryRow)
+            ) {
                 return $this->summaryRow;
             }
             return false;
         }
-        return reset($this->rows);
+        return $this->rows[$id];
     }
 
     /**
-     * @param $row
+     * Returns the row that has a subtable with ID matching `$idSubtable`.
+     *
+     * @param int $idSubTable The subtable ID.
+     * @return Row|false The row or false if not found
      */
-    protected function aggregateRowFromSimpleTable($row)
+    public function getRowFromIdSubDataTable($idSubTable)
     {
-        if ($row === false) {
-            return;
+        $idSubTable = (int)$idSubTable;
+        foreach ($this->rows as $row) {
+            if ($row->getIdSubDataTable() === $idSubTable) {
+                return $row;
+            }
         }
-        $thisRow = $this->getFirstRow();
-        if ($thisRow === false) {
-            $thisRow = new Row;
-            $this->addRow($thisRow);
-        }
-        $thisRow->sumRow($row, $copyMeta = true, $this->getMetadata(self::COLUMN_AGGREGATION_OPS_METADATA_NAME));
+        return false;
     }
 
     /**
@@ -927,200 +821,6 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Returns metadata by name.
-     *
-     * @param string $name The metadata name.
-     * @return mixed|false The metadata value or `false` if it cannot be found.
-     */
-    public function getMetadata($name)
-    {
-        if (!isset($this->metadata[$name])) {
-            return false;
-        }
-        return $this->metadata[$name];
-    }
-
-    /**
-     * Sets a metadata value by name.
-     *
-     * @param string $name The metadata name.
-     * @param mixed $value
-     */
-    public function setMetadata($name, $value)
-    {
-        $this->metadata[$name] = $value;
-    }
-
-    /**
-     * Aggregates the $row columns to this table.
-     *
-     * $row must have a column "label". The $row will be summed to this table's row with the same label.
-     *
-     * @param $row
-     * @params null|array $columnAggregationOps
-     * @throws \Exception
-     */
-    protected function aggregateRowWithLabel(Row $row, $columnAggregationOps)
-    {
-        $labelToLookFor = $row->getColumn('label');
-        if ($labelToLookFor === false) {
-            throw new Exception("Label column not found in the table to add in addDataTable()");
-        }
-        $rowFound = $this->getRowFromLabel($labelToLookFor);
-        if ($rowFound === false) {
-            if ($labelToLookFor === self::LABEL_SUMMARY_ROW) {
-                $this->addSummaryRow($row);
-            } else {
-                $this->addRow($row);
-            }
-        } else {
-            $rowFound->sumRow($row, $copyMeta = true, $columnAggregationOps);
-
-            // if the row to add has a subtable whereas the current row doesn't
-            // we simply add it (cloning the subtable)
-            // if the row has the subtable already
-            // then we have to recursively sum the subtables
-            $subTable = $row->getSubtable();
-            if ($subTable) {
-                $subTable->metadata[self::COLUMN_AGGREGATION_OPS_METADATA_NAME] = $columnAggregationOps;
-                $rowFound->sumSubtable($subTable);
-            }
-        }
-    }
-
-    /**
-     * Returns the Row whose `'label'` column is equal to `$label`.
-     *
-     * This method executes in constant time except for the first call which caches row
-     * label => row ID mappings.
-     *
-     * @param string $label `'label'` column value to look for.
-     * @return Row|false The row if found, `false` if otherwise.
-     */
-    public function getRowFromLabel($label)
-    {
-        $rowId = $this->getRowIdFromLabel($label);
-        if (is_int($rowId) && isset($this->rows[$rowId])) {
-            return $this->rows[$rowId];
-        }
-        if ($rowId == self::ID_SUMMARY_ROW
-            && !empty($this->summaryRow)
-        ) {
-            return $this->summaryRow;
-        }
-        if ($rowId instanceof Row) {
-            return $rowId;
-        }
-        return false;
-    }
-
-    /**
-     * Returns the row id for the row whose `'label'` column is equal to `$label`.
-     *
-     * This method executes in constant time except for the first call which caches row
-     * label => row ID mappings.
-     *
-     * @param string $label `'label'` column value to look for.
-     * @return int The row ID.
-     */
-    public function getRowIdFromLabel($label)
-    {
-        if ($this->indexNotUpToDate) {
-            $this->rebuildIndex();
-        }
-
-        if ($label === self::LABEL_SUMMARY_ROW
-            && !is_null($this->summaryRow)
-        ) {
-            return self::ID_SUMMARY_ROW;
-        }
-
-        $label = (string)$label;
-
-        if (!isset($this->rowsIndexByLabel[$label])) {
-            return false;
-        }
-        return $this->rowsIndexByLabel[$label];
-    }
-
-    /**
-     * Rebuilds the index used to lookup a row by label
-     * @internal
-     */
-    public function rebuildIndex()
-    {
-        $this->rebuildIndexContinuously = true;
-
-        foreach ($this->rows as $id => $row) {
-            $label = $row->getColumn('label');
-            if ($label !== false) {
-                $this->rowsIndexByLabel[$label] = $id;
-            }
-        }
-
-        if ($this->summaryRow) {
-            $label = $this->summaryRow->getColumn('label');
-            if ($label !== false) {
-                $this->rowsIndexByLabel[$label] = DataTable::ID_SUMMARY_ROW;
-            }
-        }
-
-        $this->indexNotUpToDate = false;
-    }
-
-    /**
-     * Returns a row by ID. The ID is either the index of the row or {@link ID_SUMMARY_ROW}.
-     *
-     * @param int $id The row ID.
-     * @return Row|false The Row or false if not found.
-     */
-    public function getRowFromId($id)
-    {
-        if (!isset($this->rows[$id])) {
-            if ($id == self::ID_SUMMARY_ROW
-                && !is_null($this->summaryRow)
-            ) {
-                return $this->summaryRow;
-            }
-            return false;
-        }
-        return $this->rows[$id];
-    }
-
-    /**
-     * Returns an empty DataTable with the same metadata and queued filters as `$this` one.
-     *
-     * @param bool $keepFilters Whether to pass the queued filter list to the new DataTable or not.
-     * @return DataTable
-     */
-    public function getEmptyClone($keepFilters = true)
-    {
-        $clone = new DataTable;
-        if ($keepFilters) {
-            $clone->queuedFilters = $this->queuedFilters;
-        }
-        $clone->metadata = $this->metadata;
-        return $clone;
-    }
-
-    /**
-     * Returns the row that has a subtable with ID matching `$idSubtable`.
-     *
-     * @param int $idSubTable The subtable ID.
-     * @return Row|false The row or false if not found
-     */
-    public function getRowFromIdSubDataTable($idSubTable)
-    {
-        $idSubTable = (int)$idSubTable;
-        foreach ($this->rows as $row) {
-            if ($row->getIdSubDataTable() === $idSubTable) {
-                return $row;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Returns the DataTable ID.
      *
      * @return int
@@ -1141,6 +841,527 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
     public function addRowFromArray($row)
     {
         $this->addRowsFromArray(array($row));
+    }
+
+    /**
+     * Adds a new row a from an array of column values.
+     *
+     * Row metadata cannot be added with this method.
+     *
+     * @param array $row eg. `array('name' => 'google analytics', 'license' => 'commercial')`
+     */
+    public function addRowFromSimpleArray($row)
+    {
+        $this->addRowsFromSimpleArray(array($row));
+    }
+
+    /**
+     * Returns the array of Rows.
+     *
+     * @return Row[]
+     */
+    public function getRows()
+    {
+        if (is_null($this->summaryRow)) {
+            return $this->rows;
+        } else {
+            return $this->rows + array(self::ID_SUMMARY_ROW => $this->summaryRow);
+        }
+    }
+
+    /**
+     * @ignore
+     */
+    public function getRowsWithoutSummaryRow()
+    {
+        return $this->rows;
+    }
+
+    /**
+     * Returns an array containing all column values for the requested column.
+     *
+     * @param string $name The column name.
+     * @return array The array of column values.
+     */
+    public function getColumn($name)
+    {
+        $columnValues = array();
+        foreach ($this->getRows() as $row) {
+            $columnValues[] = $row->getColumn($name);
+        }
+        return $columnValues;
+    }
+
+    /**
+     * Returns an array containing all column values of columns whose name starts with `$name`.
+     *
+     * @param string $namePrefix The column name prefix.
+     * @return array The array of column values.
+     */
+    public function getColumnsStartingWith($namePrefix)
+    {
+        $columnValues = array();
+        foreach ($this->getRows() as $row) {
+            $columns = $row->getColumns();
+            foreach ($columns as $column => $value) {
+                if (strpos($column, $namePrefix) === 0) {
+                    $columnValues[] = $row->getColumn($column);
+                }
+            }
+        }
+        return $columnValues;
+    }
+
+    /**
+     * Returns the names of every column this DataTable contains. This method will return the
+     * columns of the first row with data and will assume they occur in every other row as well.
+     *
+     *_ Note: If column names still use their in-database INDEX values (@see Metrics), they
+     *        will be converted to their string name in the array result._
+     *
+     * @return array Array of string column names.
+     */
+    public function getColumns()
+    {
+        $result = array();
+        foreach ($this->getRows() as $row) {
+            $columns = $row->getColumns();
+            if (!empty($columns)) {
+                $result = array_keys($columns);
+                break;
+            }
+        }
+
+        // make sure column names are not DB index values
+        foreach ($result as &$column) {
+            if (isset(Metrics::$mappingFromIdToName[$column])) {
+                $column = Metrics::$mappingFromIdToName[$column];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns an array containing the requested metadata value of each row.
+     *
+     * @param string $name The metadata column to return.
+     * @return array
+     */
+    public function getRowsMetadata($name)
+    {
+        $metadataValues = array();
+        foreach ($this->getRows() as $row) {
+            $metadataValues[] = $row->getMetadata($name);
+        }
+        return $metadataValues;
+    }
+
+    /**
+     * Returns the number of rows in the table including the summary row.
+     *
+     * @return int
+     */
+    public function getRowsCount()
+    {
+        if (is_null($this->summaryRow)) {
+            return count($this->rows);
+        } else {
+            return count($this->rows) + 1;
+        }
+    }
+
+    /**
+     * Returns the first row of the DataTable.
+     *
+     * @return Row|false The first row or `false` if it cannot be found.
+     */
+    public function getFirstRow()
+    {
+        if (count($this->rows) == 0) {
+            if (!is_null($this->summaryRow)) {
+                return $this->summaryRow;
+            }
+            return false;
+        }
+        return reset($this->rows);
+    }
+
+    /**
+     * Returns the last row of the DataTable. If there is a summary row, it
+     * will always be considered the last row.
+     *
+     * @return Row|false The last row or `false` if it cannot be found.
+     */
+    public function getLastRow()
+    {
+        if (!is_null($this->summaryRow)) {
+            return $this->summaryRow;
+        }
+
+        if (count($this->rows) == 0) {
+            return false;
+        }
+
+        return end($this->rows);
+    }
+
+    /**
+     * Returns the number of rows in the entire DataTable hierarchy. This is the number of rows in this DataTable
+     * summed with the row count of each descendant subtable.
+     *
+     * @return int
+     */
+    public function getRowsCountRecursive()
+    {
+        $totalCount = 0;
+        foreach ($this->rows as $row) {
+            $subTable = $row->getSubtable();
+            if ($subTable) {
+                $count = $subTable->getRowsCountRecursive();
+                $totalCount += $count;
+            }
+        }
+
+        $totalCount += $this->getRowsCount();
+        return $totalCount;
+    }
+
+    /**
+     * Delete a column by name in every row. This change is NOT applied recursively to all
+     * subtables.
+     *
+     * @param string $name Column name to delete.
+     */
+    public function deleteColumn($name)
+    {
+        $this->deleteColumns(array($name));
+    }
+
+    public function __sleep()
+    {
+        return array('rows', 'summaryRow');
+    }
+
+    /**
+     * Rename a column in every row. This change is applied recursively to all subtables.
+     *
+     * @param string $oldName Old column name.
+     * @param string $newName New column name.
+     */
+    public function renameColumn($oldName, $newName)
+    {
+        foreach ($this->rows as $row) {
+            $row->renameColumn($oldName, $newName);
+
+            $subTable = $row->getSubtable();
+            if ($subTable) {
+                $subTable->renameColumn($oldName, $newName);
+            }
+        }
+        if (!is_null($this->summaryRow)) {
+            $this->summaryRow->renameColumn($oldName, $newName);
+        }
+    }
+
+    /**
+     * Deletes several columns by name in every row.
+     *
+     * @param array $names List of column names to delete.
+     * @param bool $deleteRecursiveInSubtables Whether to apply this change to all subtables or not.
+     */
+    public function deleteColumns($names, $deleteRecursiveInSubtables = false)
+    {
+        foreach ($this->rows as $row) {
+            foreach ($names as $name) {
+                $row->deleteColumn($name);
+            }
+            $subTable = $row->getSubtable();
+            if ($subTable) {
+                $subTable->deleteColumns($names, $deleteRecursiveInSubtables);
+            }
+        }
+        if (!is_null($this->summaryRow)) {
+            foreach ($names as $name) {
+                $this->summaryRow->deleteColumn($name);
+            }
+        }
+    }
+
+    /**
+     * Deletes a row by ID.
+     *
+     * @param int $id The row ID.
+     * @throws Exception If the row `$id` cannot be found.
+     */
+    public function deleteRow($id)
+    {
+        if ($id === self::ID_SUMMARY_ROW) {
+            $this->summaryRow = null;
+            return;
+        }
+        if (!isset($this->rows[$id])) {
+            throw new Exception("Trying to delete unknown row with idkey = $id");
+        }
+        unset($this->rows[$id]);
+    }
+
+    /**
+     * Deletes rows from `$offset` to `$offset + $limit`.
+     *
+     * @param int $offset The offset to start deleting rows from.
+     * @param int|null $limit The number of rows to delete. If `null` all rows after the offset
+     *                        will be removed.
+     * @return int The number of rows deleted.
+     */
+    public function deleteRowsOffset($offset, $limit = null)
+    {
+        if ($limit === 0) {
+            return 0;
+        }
+
+        $count = $this->getRowsCount();
+        if ($offset >= $count) {
+            return 0;
+        }
+
+        // if we delete until the end, we delete the summary row as well
+        if (is_null($limit)
+            || $limit >= $count
+        ) {
+            $this->summaryRow = null;
+        }
+
+        if (is_null($limit)) {
+            array_splice($this->rows, $offset);
+        } else {
+            array_splice($this->rows, $offset, $limit);
+        }
+
+        return $count - $this->getRowsCount();
+    }
+
+    /**
+     * Deletes a set of rows by ID.
+     *
+     * @param array $rowIds The list of row IDs to delete.
+     * @throws Exception If a row ID cannot be found.
+     */
+    public function deleteRows(array $rowIds)
+    {
+        foreach ($rowIds as $key) {
+            $this->deleteRow($key);
+        }
+    }
+
+    /**
+     * Returns a string representation of this DataTable for convenient viewing.
+     *
+     * _Note: This uses the **html** DataTable renderer._
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        $renderer = new Html();
+        $renderer->setTable($this);
+        return (string)$renderer;
+    }
+
+    /**
+     * Returns true if both DataTable instances are exactly the same.
+     *
+     * DataTables are equal if they have the same number of rows, if
+     * each row has a label that exists in the other table, and if each row
+     * is equal to the row in the other table with the same label. The order
+     * of rows is not important.
+     *
+     * @param \Piwik\DataTable $table1
+     * @param \Piwik\DataTable $table2
+     * @return bool
+     */
+    public static function isEqual(DataTable $table1, DataTable $table2)
+    {
+        $table1->rebuildIndex();
+        $table2->rebuildIndex();
+
+        if ($table1->getRowsCount() != $table2->getRowsCount()) {
+            return false;
+        }
+
+        $rows1 = $table1->getRows();
+
+        foreach ($rows1 as $row1) {
+            $row2 = $table2->getRowFromLabel($row1->getColumn('label'));
+            if ($row2 === false
+                || !Row::isEqual($row1, $row2)
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Serializes an entire DataTable hierarchy and returns the array of serialized DataTables.
+     *
+     * The first element in the returned array will be the serialized representation of this DataTable.
+     * Every subsequent element will be a serialized subtable.
+     *
+     * This DataTable and subtables can optionally be truncated before being serialized. In most
+     * cases where DataTables can become quite large, they should be truncated before being persisted
+     * in an archive.
+     *
+     * The result of this method is intended for use with the {@link ArchiveProcessor::insertBlobRecord()} method.
+     *
+     * @throws Exception If infinite recursion detected. This will occur if a table's subtable is one of its parent tables.
+     * @param int $maximumRowsInDataTable If not null, defines the maximum number of rows allowed in the serialized DataTable.
+     * @param int $maximumRowsInSubDataTable If not null, defines the maximum number of rows allowed in serialized subtables.
+     * @param string $columnToSortByBeforeTruncation The column to sort by before truncating, eg, `Metrics::INDEX_NB_VISITS`.
+     * @return array The array of serialized DataTables:
+     *
+     *                   array(
+     *                       // this DataTable (the root)
+     *                       0 => 'eghuighahgaueytae78yaet7yaetae',
+     *
+     *                       // a subtable
+     *                       1 => 'gaegae gh gwrh guiwh uigwhuige',
+     *
+     *                       // another subtable
+     *                       2 => 'gqegJHUIGHEQjkgneqjgnqeugUGEQHGUHQE',
+     *
+     *                       // etc.
+     *                   );
+     */
+    public function getSerialized($maximumRowsInDataTable = null,
+                                  $maximumRowsInSubDataTable = null,
+                                  $columnToSortByBeforeTruncation = null)
+    {
+        static $depth = 0;
+        // make sure subtableIds are consecutive from 1 to N
+        static $subtableId = 0;
+
+        if ($depth > self::$maximumDepthLevelAllowed) {
+            $depth = 0;
+            $subtableId = 0;
+            throw new Exception("Maximum recursion level of " . self::$maximumDepthLevelAllowed . " reached. Maybe you have set a DataTable\Row with an associated DataTable belonging already to one of its parent tables?");
+        }
+        if (!is_null($maximumRowsInDataTable)) {
+            $this->filter('Truncate',
+                array($maximumRowsInDataTable - 1,
+                      DataTable::LABEL_SUMMARY_ROW,
+                      $columnToSortByBeforeTruncation,
+                      $filterRecursive = false)
+            );
+        }
+
+        $consecutiveSubtableIds = array();
+        $forcedId = $subtableId;
+
+        // For each row, get the serialized row
+        // If it is associated to a sub table, get the serialized table recursively ;
+        // but returns all serialized tables and subtable in an array of 1 dimension
+        $aSerializedDataTable = array();
+        foreach ($this->rows as $id => $row) {
+            $subTable = $row->getSubtable();
+            if ($subTable) {
+                $consecutiveSubtableIds[$id] = ++$subtableId;
+                $depth++;
+                $aSerializedDataTable = $aSerializedDataTable + $subTable->getSerialized($maximumRowsInSubDataTable, $maximumRowsInSubDataTable, $columnToSortByBeforeTruncation);
+                $depth--;
+            } else {
+                $row->removeSubtable();
+            }
+        }
+
+        // if the datatable is the parent we force the Id at 0 (this is part of the specification)
+        if ($depth == 0) {
+            $forcedId = 0;
+            $subtableId = 0;
+        }
+
+        // we then serialize the rows and store them in the serialized dataTable
+        $rows = array();
+        foreach ($this->rows as $id => $row) {
+            if (array_key_exists($id, $consecutiveSubtableIds)) {
+                $backup = $row->subtableId;
+                $row->subtableId = $consecutiveSubtableIds[$id];
+                $rows[$id] = $row->export();
+                $row->subtableId = $backup;
+            } else {
+                $rows[$id] = $row->export();
+            }
+        }
+
+        if (isset($this->summaryRow)) {
+            $rows[self::ID_SUMMARY_ROW] = $this->summaryRow->export();
+        }
+
+        $aSerializedDataTable[$forcedId] = serialize($rows);
+        unset($rows);
+
+        return $aSerializedDataTable;
+    }
+
+    private static $previousRowClasses = array('O:39:"Piwik\DataTable\Row\DataTableSummaryRow"', 'O:19:"Piwik\DataTable\Row"', 'O:36:"Piwik_DataTable_Row_DataTableSummary"', 'O:19:"Piwik_DataTable_Row"');
+    private static $rowClassToUseForUnserialize = 'O:29:"Piwik_DataTable_SerializedRow"';
+
+    /**
+     * It is faster to unserialize existing serialized Row instances to "Piwik_DataTable_SerializedRow" and access the
+     * `$row->c` property than implementing a "__wakeup" method in the Row instance to map the "$row->c" to $row->columns
+     * etc. We're talking here about 15% faster reports aggregation in some cases. To be concrete: We have a test where
+     * Archiving a year takes 1700 seconds with "__wakeup" and 1400 seconds with this method. Yes, it takes 300 seconds
+     * to wake up millions of rows. We should be able to remove this code here end 2015 and use the "__wakeup" way by then.
+     * Why? By then most new archives will have only arrays serialized anyway and therefore this mapping is rather an overhead.
+     *
+     * @param string $serialized
+     * @return array
+     * @throws Exception In case the unserialize fails
+     */
+    private function unserializeRows($serialized)
+    {
+        $serialized = str_replace(self::$previousRowClasses, self::$rowClassToUseForUnserialize, $serialized);
+        $rows = unserialize($serialized);
+
+        if ($rows === false) {
+            throw new Exception("The unserialization has failed!");
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Adds a set of rows from a serialized DataTable string.
+     *
+     * See {@link serialize()}.
+     *
+     * _Note: This function will successfully load DataTables serialized by Piwik 1.X._
+     *
+     * @param string $serialized A string with the format of a string in the array returned by
+     *                                 {@link serialize()}.
+     * @throws Exception if `$serialized` is invalid.
+     */
+    public function addRowsFromSerializedArray($serialized)
+    {
+        $rows = $this->unserializeRows($serialized);
+
+        if (array_key_exists(self::ID_SUMMARY_ROW, $rows)) {
+            if (is_array($rows[self::ID_SUMMARY_ROW])) {
+                $this->summaryRow = new Row($rows[self::ID_SUMMARY_ROW]);
+            } elseif (isset($rows[self::ID_SUMMARY_ROW]->c)) {
+                $this->summaryRow = new Row($rows[self::ID_SUMMARY_ROW]->c); // Pre Piwik 2.13
+            }
+            unset($rows[self::ID_SUMMARY_ROW]);
+        }
+
+        foreach ($rows as $id => $row) {
+            if (isset($row->c)) {
+                $this->addRow(new Row($row->c)); // Pre Piwik 2.13
+            } else {
+                $this->addRow(new Row($row));
+            }
+        }
     }
 
     /**
@@ -1173,18 +1394,6 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
                 $this->addRow($row);
             }
         }
-    }
-
-    /**
-     * Adds a new row a from an array of column values.
-     *
-     * Row metadata cannot be added with this method.
-     *
-     * @param array $row eg. `array('name' => 'google analytics', 'license' => 'commercial')`
-     */
-    public function addRowFromSimpleArray($row)
-    {
-        $this->addRowsFromSimpleArray(array($row));
     }
 
     /**
@@ -1269,394 +1478,100 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Returns an array containing all column values for the requested column.
+     * Rewrites the input `$array`
      *
-     * @param string $name The column name.
-     * @return array The array of column values.
-     */
-    public function getColumn($name)
-    {
-        $columnValues = array();
-        foreach ($this->getRows() as $row) {
-            $columnValues[] = $row->getColumn($name);
-        }
-        return $columnValues;
-    }
-
-    /**
-     * Returns the array of Rows.
+     *     array (
+     *         LABEL => array(col1 => X, col2 => Y),
+     *         LABEL2 => array(col1 => X, col2 => Y),
+     *     )
      *
-     * @return Row[]
-     */
-    public function getRows()
-    {
-        if (is_null($this->summaryRow)) {
-            return $this->rows;
-        } else {
-            return $this->rows + array(self::ID_SUMMARY_ROW => $this->summaryRow);
-        }
-    }
-
-    /**
-     * @ignore
-     * does not update the summary row!
-     */
-    public function setRows($rows)
-    {
-        unset($this->rows);
-        $this->rows = $rows;
-        $this->indexNotUpToDate = true;
-    }
-
-    /**
-     * Returns an array containing all column values of columns whose name starts with `$name`.
+     * to a DataTable with rows that look like:
      *
-     * @param string $namePrefix The column name prefix.
-     * @return array The array of column values.
+     *     array (
+     *         array( Row::COLUMNS => array('label' => LABEL, col1 => X, col2 => Y)),
+     *         array( Row::COLUMNS => array('label' => LABEL2, col1 => X, col2 => Y)),
+     *     )
+     *
+     * Will also convert arrays like:
+     *
+     *     array (
+     *         LABEL => X,
+     *         LABEL2 => Y,
+     *     )
+     *
+     * to:
+     *
+     *     array (
+     *         array( Row::COLUMNS => array('label' => LABEL, 'value' => X)),
+     *         array( Row::COLUMNS => array('label' => LABEL2, 'value' => Y)),
+     *     )
+     *
+     * @param array $array Indexed array, two formats supported, see above.
+     * @param array|null $subtablePerLabel An array mapping label values with DataTable instances to associate as a subtable.
+     * @return \Piwik\DataTable
      */
-    public function getColumnsStartingWith($namePrefix)
+    public static function makeFromIndexedArray($array, $subtablePerLabel = null)
     {
-        $columnValues = array();
-        foreach ($this->getRows() as $row) {
-            $columns = $row->getColumns();
-            foreach ($columns as $column => $value) {
-                if (strpos($column, $namePrefix) === 0) {
-                    $columnValues[] = $row->getColumn($column);
-                }
+        $table = new DataTable();
+        foreach ($array as $label => $row) {
+            $cleanRow = array();
+
+            // Support the case of an $array of single values
+            if (!is_array($row)) {
+                $row = array('value' => $row);
             }
-        }
-        return $columnValues;
-    }
-
-    /**
-     * Returns the names of every column this DataTable contains. This method will return the
-     * columns of the first row with data and will assume they occur in every other row as well.
-     *
-     *_ Note: If column names still use their in-database INDEX values (@see Metrics), they
-     *        will be converted to their string name in the array result._
-     *
-     * @return array Array of string column names.
-     */
-    public function getColumns()
-    {
-        $result = array();
-        foreach ($this->getRows() as $row) {
-            $columns = $row->getColumns();
-            if (!empty($columns)) {
-                $result = array_keys($columns);
-                break;
+            // Put the 'label' column first
+            $cleanRow[Row::COLUMNS] = array('label' => $label) + $row;
+            // Assign subtable if specified
+            if (isset($subtablePerLabel[$label])) {
+                $cleanRow[Row::DATATABLE_ASSOCIATED] = $subtablePerLabel[$label];
             }
+            $table->addRow(new Row($cleanRow));
         }
-
-        // make sure column names are not DB index values
-        foreach ($result as &$column) {
-            if (isset(Metrics::$mappingFromIdToName[$column])) {
-                $column = Metrics::$mappingFromIdToName[$column];
-            }
-        }
-
-        return $result;
+        return $table;
     }
 
     /**
-     * Returns an array containing the requested metadata value of each row.
+     * Sets the maximum depth level to at least a certain value. If the current value is
+     * greater than `$atLeastLevel`, the maximum nesting level is not changed.
      *
-     * @param string $name The metadata column to return.
-     * @return array
+     * The maximum depth level determines the maximum number of subtable levels in the
+     * DataTable tree. For example, if it is set to `2`, this DataTable is allowed to
+     * have subtables, but the subtables are not.
+     *
+     * @param int $atLeastLevel
      */
-    public function getRowsMetadata($name)
+    public static function setMaximumDepthLevelAllowedAtLeast($atLeastLevel)
     {
-        $metadataValues = array();
-        foreach ($this->getRows() as $row) {
-            $metadataValues[] = $row->getMetadata($name);
+        self::$maximumDepthLevelAllowed = max($atLeastLevel, self::$maximumDepthLevelAllowed);
+        if (self::$maximumDepthLevelAllowed < 1) {
+            self::$maximumDepthLevelAllowed = 1;
         }
-        return $metadataValues;
     }
 
     /**
-     * Returns the last row of the DataTable. If there is a summary row, it
-     * will always be considered the last row.
+     * Returns metadata by name.
      *
-     * @return Row|false The last row or `false` if it cannot be found.
+     * @param string $name The metadata name.
+     * @return mixed|false The metadata value or `false` if it cannot be found.
      */
-    public function getLastRow()
+    public function getMetadata($name)
     {
-        if (!is_null($this->summaryRow)) {
-            return $this->summaryRow;
-        }
-
-        if (count($this->rows) == 0) {
+        if (!isset($this->metadata[$name])) {
             return false;
         }
-
-        return end($this->rows);
+        return $this->metadata[$name];
     }
 
     /**
-     * Returns the number of rows in the entire DataTable hierarchy. This is the number of rows in this DataTable
-     * summed with the row count of each descendant subtable.
+     * Sets a metadata value by name.
      *
-     * @return int
+     * @param string $name The metadata name.
+     * @param mixed $value
      */
-    public function getRowsCountRecursive()
+    public function setMetadata($name, $value)
     {
-        $totalCount = 0;
-        foreach ($this->rows as $row) {
-            $subTable = $row->getSubtable();
-            if ($subTable) {
-                $count = $subTable->getRowsCountRecursive();
-                $totalCount += $count;
-            }
-        }
-
-        $totalCount += $this->getRowsCount();
-        return $totalCount;
-    }
-
-    /**
-     * Delete a column by name in every row. This change is NOT applied recursively to all
-     * subtables.
-     *
-     * @param string $name Column name to delete.
-     */
-    public function deleteColumn($name)
-    {
-        $this->deleteColumns(array($name));
-    }
-
-    /**
-     * Deletes several columns by name in every row.
-     *
-     * @param array $names List of column names to delete.
-     * @param bool $deleteRecursiveInSubtables Whether to apply this change to all subtables or not.
-     */
-    public function deleteColumns($names, $deleteRecursiveInSubtables = false)
-    {
-        foreach ($this->rows as $row) {
-            foreach ($names as $name) {
-                $row->deleteColumn($name);
-            }
-            $subTable = $row->getSubtable();
-            if ($subTable) {
-                $subTable->deleteColumns($names, $deleteRecursiveInSubtables);
-            }
-        }
-        if (!is_null($this->summaryRow)) {
-            foreach ($names as $name) {
-                $this->summaryRow->deleteColumn($name);
-            }
-        }
-    }
-
-    public function __sleep()
-    {
-        return array('rows', 'summaryRow');
-    }
-
-    /**
-     * Rename a column in every row. This change is applied recursively to all subtables.
-     *
-     * @param string $oldName Old column name.
-     * @param string $newName New column name.
-     */
-    public function renameColumn($oldName, $newName)
-    {
-        foreach ($this->rows as $row) {
-            $row->renameColumn($oldName, $newName);
-
-            $subTable = $row->getSubtable();
-            if ($subTable) {
-                $subTable->renameColumn($oldName, $newName);
-            }
-        }
-        if (!is_null($this->summaryRow)) {
-            $this->summaryRow->renameColumn($oldName, $newName);
-        }
-    }
-
-    /**
-     * Deletes rows from `$offset` to `$offset + $limit`.
-     *
-     * @param int $offset The offset to start deleting rows from.
-     * @param int|null $limit The number of rows to delete. If `null` all rows after the offset
-     *                        will be removed.
-     * @return int The number of rows deleted.
-     */
-    public function deleteRowsOffset($offset, $limit = null)
-    {
-        if ($limit === 0) {
-            return 0;
-        }
-
-        $count = $this->getRowsCount();
-        if ($offset >= $count) {
-            return 0;
-        }
-
-        // if we delete until the end, we delete the summary row as well
-        if (is_null($limit)
-            || $limit >= $count
-        ) {
-            $this->summaryRow = null;
-        }
-
-        if (is_null($limit)) {
-            array_splice($this->rows, $offset);
-        } else {
-            array_splice($this->rows, $offset, $limit);
-        }
-
-        return $count - $this->getRowsCount();
-    }
-
-    /**
-     * Deletes a set of rows by ID.
-     *
-     * @param array $rowIds The list of row IDs to delete.
-     * @throws Exception If a row ID cannot be found.
-     */
-    public function deleteRows(array $rowIds)
-    {
-        foreach ($rowIds as $key) {
-            $this->deleteRow($key);
-        }
-    }
-
-    /**
-     * Deletes a row by ID.
-     *
-     * @param int $id The row ID.
-     * @throws Exception If the row `$id` cannot be found.
-     */
-    public function deleteRow($id)
-    {
-        if ($id === self::ID_SUMMARY_ROW) {
-            $this->summaryRow = null;
-            return;
-        }
-        if (!isset($this->rows[$id])) {
-            throw new Exception("Trying to delete unknown row with idkey = $id");
-        }
-        unset($this->rows[$id]);
-    }
-
-    /**
-     * Returns a string representation of this DataTable for convenient viewing.
-     *
-     * _Note: This uses the **html** DataTable renderer._
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        $renderer = new Html();
-        $renderer->setTable($this);
-        return (string)$renderer;
-    }
-
-    /**
-     * Serializes an entire DataTable hierarchy and returns the array of serialized DataTables.
-     *
-     * The first element in the returned array will be the serialized representation of this DataTable.
-     * Every subsequent element will be a serialized subtable.
-     *
-     * This DataTable and subtables can optionally be truncated before being serialized. In most
-     * cases where DataTables can become quite large, they should be truncated before being persisted
-     * in an archive.
-     *
-     * The result of this method is intended for use with the {@link ArchiveProcessor::insertBlobRecord()} method.
-     *
-     * @throws Exception If infinite recursion detected. This will occur if a table's subtable is one of its parent tables.
-     * @param int $maximumRowsInDataTable If not null, defines the maximum number of rows allowed in the serialized DataTable.
-     * @param int $maximumRowsInSubDataTable If not null, defines the maximum number of rows allowed in serialized subtables.
-     * @param string $columnToSortByBeforeTruncation The column to sort by before truncating, eg, `Metrics::INDEX_NB_VISITS`.
-     * @return array The array of serialized DataTables:
-     *
-     *                   array(
-     *                       // this DataTable (the root)
-     *                       0 => 'eghuighahgaueytae78yaet7yaetae',
-     *
-     *                       // a subtable
-     *                       1 => 'gaegae gh gwrh guiwh uigwhuige',
-     *
-     *                       // another subtable
-     *                       2 => 'gqegJHUIGHEQjkgneqjgnqeugUGEQHGUHQE',
-     *
-     *                       // etc.
-     *                   );
-     */
-    public function getSerialized(
-        $maximumRowsInDataTable = null,
-        $maximumRowsInSubDataTable = null,
-        $columnToSortByBeforeTruncation = null
-    ) {
-        static $depth = 0;
-        // make sure subtableIds are consecutive from 1 to N
-        static $subtableId = 0;
-
-        if ($depth > self::$maximumDepthLevelAllowed) {
-            $depth = 0;
-            $subtableId = 0;
-            throw new Exception("Maximum recursion level of " . self::$maximumDepthLevelAllowed . " reached. Maybe you have set a DataTable\Row with an associated DataTable belonging already to one of its parent tables?");
-        }
-        if (!is_null($maximumRowsInDataTable)) {
-            $this->filter('Truncate',
-                array(
-                    $maximumRowsInDataTable - 1,
-                    DataTable::LABEL_SUMMARY_ROW,
-                    $columnToSortByBeforeTruncation,
-                    $filterRecursive = false
-                )
-            );
-        }
-
-        $consecutiveSubtableIds = array();
-        $forcedId = $subtableId;
-
-        // For each row, get the serialized row
-        // If it is associated to a sub table, get the serialized table recursively ;
-        // but returns all serialized tables and subtable in an array of 1 dimension
-        $aSerializedDataTable = array();
-        foreach ($this->rows as $id => $row) {
-            $subTable = $row->getSubtable();
-            if ($subTable) {
-                $consecutiveSubtableIds[$id] = ++$subtableId;
-                $depth++;
-                $aSerializedDataTable = $aSerializedDataTable + $subTable->getSerialized($maximumRowsInSubDataTable,
-                        $maximumRowsInSubDataTable, $columnToSortByBeforeTruncation);
-                $depth--;
-            } else {
-                $row->removeSubtable();
-            }
-        }
-
-        // if the datatable is the parent we force the Id at 0 (this is part of the specification)
-        if ($depth == 0) {
-            $forcedId = 0;
-            $subtableId = 0;
-        }
-
-        // we then serialize the rows and store them in the serialized dataTable
-        $rows = array();
-        foreach ($this->rows as $id => $row) {
-            if (array_key_exists($id, $consecutiveSubtableIds)) {
-                $backup = $row->subtableId;
-                $row->subtableId = $consecutiveSubtableIds[$id];
-                $rows[$id] = $row->export();
-                $row->subtableId = $backup;
-            } else {
-                $rows[$id] = $row->export();
-            }
-        }
-
-        if (isset($this->summaryRow)) {
-            $rows[self::ID_SUMMARY_ROW] = $this->summaryRow->export();
-        }
-
-        $aSerializedDataTable[$forcedId] = serialize($rows);
-        unset($rows);
-
-        return $aSerializedDataTable;
+        $this->metadata[$name] = $value;
     }
 
     /**
@@ -1689,6 +1604,18 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
     public function setAllTableMetadata($metadata)
     {
         $this->metadata = $metadata;
+    }
+
+    /**
+     * Sets the maximum number of rows allowed in this datatable (including the summary
+     * row). If adding more then the allowed number of rows is attempted, the extra
+     * rows are summed to the summary row.
+     *
+     * @param int $maximumAllowedRows If `0`, the maximum number of rows is unset.
+     */
+    public function setMaximumAllowedRows($maximumAllowedRows)
+    {
+        $this->maximumAllowedRows = $maximumAllowedRows;
     }
 
     /**
@@ -1772,18 +1699,6 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * Sets the maximum number of rows allowed in this datatable (including the summary
-     * row). If adding more then the allowed number of rows is attempted, the extra
-     * rows are summed to the summary row.
-     *
-     * @param int $maximumAllowedRows If `0`, the maximum number of rows is unset.
-     */
-    public function setMaximumAllowedRows($maximumAllowedRows)
-    {
-        $this->maximumAllowedRows = $maximumAllowedRows;
-    }
-
-    /**
      * Returns a new DataTable in which the rows of this table are replaced with the aggregatated rows of all its subtables.
      *
      * @param string|bool $labelColumn If supplied the label of the parent row will be added to
@@ -1814,8 +1729,7 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
                         if ($existing === false) {
                             $result->addSummaryRow($copy);
                         } else {
-                            $existing->sumRow($copy, $copyMeta = true,
-                                $this->getMetadata(self::COLUMN_AGGREGATION_OPS_METADATA_NAME));
+                            $existing->sumRow($copy, $copyMeta = true, $this->getMetadata(self::COLUMN_AGGREGATION_OPS_METADATA_NAME));
                         }
                     } else {
                         if ($labelColumn !== false) {
@@ -1841,6 +1755,98 @@ class DataTable implements DataTableInterface, \IteratorAggregate, \ArrayAccess
             }
         }
         return $result;
+    }
+
+    /**
+     * Returns a new DataTable created with data from a 'simple' array.
+     *
+     * See {@link addRowsFromSimpleArray()}.
+     *
+     * @param array $array
+     * @return \Piwik\DataTable
+     */
+    public static function makeFromSimpleArray($array)
+    {
+        $dataTable = new DataTable();
+        $dataTable->addRowsFromSimpleArray($array);
+        return $dataTable;
+    }
+
+    /**
+     * Creates a new DataTable instance from a serialized DataTable string.
+     *
+     * See {@link getSerialized()} and {@link addRowsFromSerializedArray()}
+     * for more information on DataTable serialization.
+     *
+     * @param string $data
+     * @return \Piwik\DataTable
+     */
+    public static function fromSerializedArray($data)
+    {
+        $result = new DataTable();
+        $result->addRowsFromSerializedArray($data);
+        return $result;
+    }
+
+    /**
+     * Aggregates the $row columns to this table.
+     *
+     * $row must have a column "label". The $row will be summed to this table's row with the same label.
+     *
+     * @param $row
+     * @params null|array $columnAggregationOps
+     * @throws \Exception
+     */
+    protected function aggregateRowWithLabel(Row $row, $columnAggregationOps)
+    {
+        $labelToLookFor = $row->getColumn('label');
+        if ($labelToLookFor === false) {
+            throw new Exception("Label column not found in the table to add in addDataTable()");
+        }
+        $rowFound = $this->getRowFromLabel($labelToLookFor);
+        if ($rowFound === false) {
+            if ($labelToLookFor === self::LABEL_SUMMARY_ROW) {
+                $this->addSummaryRow($row);
+            } else {
+                $this->addRow($row);
+            }
+        } else {
+            $rowFound->sumRow($row, $copyMeta = true, $columnAggregationOps);
+
+            // if the row to add has a subtable whereas the current row doesn't
+            // we simply add it (cloning the subtable)
+            // if the row has the subtable already
+            // then we have to recursively sum the subtables
+            $subTable = $row->getSubtable();
+            if ($subTable) {
+                $subTable->metadata[self::COLUMN_AGGREGATION_OPS_METADATA_NAME] = $columnAggregationOps;
+                $rowFound->sumSubtable($subTable);
+            }
+        }
+    }
+
+    /**
+     * @param $row
+     */
+    protected function aggregateRowFromSimpleTable($row)
+    {
+        if ($row === false) {
+            return;
+        }
+        $thisRow = $this->getFirstRow();
+        if ($thisRow === false) {
+            $thisRow = new Row;
+            $this->addRow($thisRow);
+        }
+        $thisRow->sumRow($row, $copyMeta = true, $this->getMetadata(self::COLUMN_AGGREGATION_OPS_METADATA_NAME));
+    }
+
+    /**
+     * Unsets all queued filters.
+     */
+    public function clearQueuedFilters()
+    {
+        $this->queuedFilters = array();
     }
 
     /**

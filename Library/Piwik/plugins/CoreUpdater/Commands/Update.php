@@ -8,6 +8,7 @@
  */
 namespace Piwik\Plugins\CoreUpdater\Commands;
 
+use Piwik\Version;
 use Piwik\Config;
 use Piwik\DbHelper;
 use Piwik\Filesystem;
@@ -17,7 +18,6 @@ use Piwik\Plugins\CoreUpdater\Commands\Update\CliUpdateObserver;
 use Piwik\Plugins\CoreUpdater\NoUpdatesFoundException;
 use Piwik\Plugins\UserCountry\LocationProvider;
 use Piwik\Updater;
-use Piwik\Version;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -72,6 +72,14 @@ class Update extends ConsoleCommand
             // Do not fail if no updates were found
             $this->writeSuccessMessage($output, array($e->getMessage()));
         }
+    }
+
+    private function askForUpdateConfirmation(InputInterface $input, OutputInterface $output)
+    {
+        $helper   = $this->getHelper('question');
+        $question = new ConfirmationQuestion('<comment>A database upgrade is required. Execute update? (y/N) </comment>', false);
+
+        return $helper->ask($input, $output, $question);
     }
 
     protected function executeClearCaches()
@@ -141,22 +149,47 @@ class Update extends ConsoleCommand
         }
     }
 
-    private function makeUpdaterInstance(OutputInterface $output)
+    private function doDryRun(Updater $updater, OutputInterface $output)
     {
-        $updater = new Updater();
+        $migrationQueries = $this->getMigrationQueriesToExecute($updater);
 
-        $migrationQueryCount = count($this->getMigrationQueriesToExecute($updater));
-        $updater->addUpdateObserver(new CliUpdateObserver($output, $migrationQueryCount));
+        $output->writeln(array("    *** Note: this is a Dry Run ***", ""));
 
-        return $updater;
+        foreach ($migrationQueries as $query) {
+            $output->writeln("    " . $query);
+        }
+
+        $output->writeln(array("", "    *** End of Dry Run ***", ""));
     }
 
-    private function getMigrationQueriesToExecute(Updater $updater)
+    private function doRealUpdate(Updater $updater, $componentsWithUpdateFile, OutputInterface $output)
     {
-        if (empty($this->migrationQueries)) {
-            $this->migrationQueries = $updater->getSqlQueriesToExecute();
+        $output->writeln(array("    " . Piwik::translate('CoreUpdater_TheUpgradeProcessMayTakeAWhilePleaseBePatient'), ""));
+
+        $updaterResult = $updater->updateComponents($componentsWithUpdateFile);
+
+        if (@$updaterResult['coreError']) {
+            $this->handleCoreError($output, $updaterResult['errors'], $includeDiyHelp = true);
+            return;
         }
-        return $this->migrationQueries;
+
+        if (!empty($updaterResult['warnings'])) {
+            $this->outputUpdaterWarnings($output, $updaterResult['warnings']);
+        }
+
+        if (!empty($updaterResult['errors'])) {
+            $this->outputUpdaterErrors($output, $updaterResult['errors'], $updaterResult['deactivatedPlugins']);
+        }
+
+        if (!empty($updaterResult['warnings'])
+            || !empty($updaterResult['errors'])
+        ) {
+            $output->writeln(array(
+                "    " . Piwik::translate('CoreUpdater_HelpMessageIntroductionWhenWarning'),
+                "",
+                "    * " . $this->getUpdateHelpMessage()
+            ));
+        }
     }
 
     private function handleCoreError(OutputInterface $output, $errors, $includeDiyHelp = false)
@@ -199,6 +232,39 @@ class Update extends ConsoleCommand
         }
 
         throw new \RuntimeException("Piwik could not be updated! See above for more information.");
+    }
+
+    private function outputUpdaterWarnings(OutputInterface $output, $warnings)
+    {
+        $output->writeln(array(
+            "",
+            "    [!] " . Piwik::translate('CoreUpdater_WarningMessages'),
+            ""
+        ));
+
+        foreach ($warnings as $message) {
+            $output->writeln("    * $message");
+        }
+    }
+
+    private function outputUpdaterErrors(OutputInterface $output, $errors, $deactivatedPlugins)
+    {
+        $output->writeln(array(
+            "",
+            "    [X] " . Piwik::translate('CoreUpdater_ErrorDuringPluginsUpdates'),
+            ""
+        ));
+
+        foreach ($errors as $message) {
+            $output->writeln("    * $message");
+        }
+
+        if (!empty($deactivatedPlugins)) {
+            $output->writeln(array(
+                "",
+                "    [!] " . Piwik::translate('CoreUpdater_WeAutomaticallyDeactivatedTheFollowingPlugins', implode(', ', $deactivatedPlugins))
+            ));
+        }
     }
 
     private function getUpdateHelpMessage()
@@ -251,87 +317,21 @@ class Update extends ConsoleCommand
         return $dimensions;
     }
 
-    private function doDryRun(Updater $updater, OutputInterface $output)
+    private function getMigrationQueriesToExecute(Updater $updater)
     {
-        $migrationQueries = $this->getMigrationQueriesToExecute($updater);
-
-        $output->writeln(array("    *** Note: this is a Dry Run ***", ""));
-
-        foreach ($migrationQueries as $query) {
-            $output->writeln("    " . $query);
+        if (empty($this->migrationQueries)) {
+            $this->migrationQueries = $updater->getSqlQueriesToExecute();
         }
-
-        $output->writeln(array("", "    *** End of Dry Run ***", ""));
+        return $this->migrationQueries;
     }
 
-    private function doRealUpdate(Updater $updater, $componentsWithUpdateFile, OutputInterface $output)
+    private function makeUpdaterInstance(OutputInterface $output)
     {
-        $output->writeln(array("    " . Piwik::translate('CoreUpdater_TheUpgradeProcessMayTakeAWhilePleaseBePatient'), ""));
+        $updater = new Updater();
 
-        $updaterResult = $updater->updateComponents($componentsWithUpdateFile);
+        $migrationQueryCount = count($this->getMigrationQueriesToExecute($updater));
+        $updater->addUpdateObserver(new CliUpdateObserver($output, $migrationQueryCount));
 
-        if (@$updaterResult['coreError']) {
-            $this->handleCoreError($output, $updaterResult['errors'], $includeDiyHelp = true);
-            return;
-        }
-
-        if (!empty($updaterResult['warnings'])) {
-            $this->outputUpdaterWarnings($output, $updaterResult['warnings']);
-        }
-
-        if (!empty($updaterResult['errors'])) {
-            $this->outputUpdaterErrors($output, $updaterResult['errors'], $updaterResult['deactivatedPlugins']);
-        }
-
-        if (!empty($updaterResult['warnings'])
-            || !empty($updaterResult['errors'])
-        ) {
-            $output->writeln(array(
-                "    " . Piwik::translate('CoreUpdater_HelpMessageIntroductionWhenWarning'),
-                "",
-                "    * " . $this->getUpdateHelpMessage()
-            ));
-        }
-    }
-
-    private function outputUpdaterWarnings(OutputInterface $output, $warnings)
-    {
-        $output->writeln(array(
-            "",
-            "    [!] " . Piwik::translate('CoreUpdater_WarningMessages'),
-            ""
-        ));
-
-        foreach ($warnings as $message) {
-            $output->writeln("    * $message");
-        }
-    }
-
-    private function outputUpdaterErrors(OutputInterface $output, $errors, $deactivatedPlugins)
-    {
-        $output->writeln(array(
-            "",
-            "    [X] " . Piwik::translate('CoreUpdater_ErrorDuringPluginsUpdates'),
-            ""
-        ));
-
-        foreach ($errors as $message) {
-            $output->writeln("    * $message");
-        }
-
-        if (!empty($deactivatedPlugins)) {
-            $output->writeln(array(
-                "",
-                "    [!] " . Piwik::translate('CoreUpdater_WeAutomaticallyDeactivatedTheFollowingPlugins', implode(', ', $deactivatedPlugins))
-            ));
-        }
-    }
-
-    private function askForUpdateConfirmation(InputInterface $input, OutputInterface $output)
-    {
-        $helper   = $this->getHelper('question');
-        $question = new ConfirmationQuestion('<comment>A database upgrade is required. Execute update? (y/N) </comment>', false);
-
-        return $helper->ask($input, $output, $question);
+        return $updater;
     }
 }

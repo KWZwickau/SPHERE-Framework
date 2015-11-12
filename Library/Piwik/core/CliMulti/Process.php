@@ -43,100 +43,9 @@ class Process
         $this->markAsNotStarted();
     }
 
-    public static function isSupported()
+    public function getPid()
     {
-        if (SettingsServer::isWindows()) {
-            return false;
-        }
-
-        if (self::shellExecFunctionIsDisabled()) {
-            return false;
-        }
-
-        if (self::isSystemNotSupported()) {
-            return false;
-        }
-
-        if (!self::commandExists('ps') || !self::returnsSuccessCode('ps') || !self::commandExists('awk')) {
-            return false;
-        }
-
-        if (count(self::getRunningProcesses()) > 0) {
-            return true;
-        }
-
-        if (!self::isProcFSMounted()) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private static function shellExecFunctionIsDisabled()
-    {
-        $command = 'shell_exec';
-        $disabled = explode(',', ini_get('disable_functions'));
-        $disabled = array_map('trim', $disabled);
-        return in_array($command, $disabled)  || !function_exists($command);
-    }
-
-    private static function isSystemNotSupported()
-    {
-        $uname = @shell_exec('uname -a 2> /dev/null');
-
-        if (empty($uname)) {
-            $uname = php_uname();
-        }
-
-        if (strpos($uname, 'synology') !== false) {
-            return true;
-        }
-        return false;
-    }
-
-    private static function commandExists($command)
-    {
-        $result = @shell_exec('which ' . escapeshellarg($command) . ' 2> /dev/null');
-
-        return !empty($result);
-    }
-
-    private static function returnsSuccessCode($command)
-    {
-        $exec = $command . ' > /dev/null 2>&1; echo $?';
-        $returnCode = shell_exec($exec);
-        $returnCode = trim($returnCode);
-        return 0 == (int) $returnCode;
-    }
-
-    /**
-     * @return int[] The ids of the currently running processes
-     */
-     public static function getRunningProcesses()
-     {
-         $ids = explode("\n", trim(`ps ex 2>/dev/null | awk '{print $1}' 2>/dev/null`));
-
-         $ids = array_map('intval', $ids);
-         $ids = array_filter($ids, function ($id) {
-            return $id > 0;
-        });
-
-         return $ids;
-     }
-
-    /**
-     * ps -e requires /proc
-     * @return bool
-     */
-    private static function isProcFSMounted()
-    {
-        if (is_resource(@fopen('/proc', 'r'))) {
-            return true;
-        }
-        // Testing if /proc is a resource with @fopen fails on systems with open_basedir set.
-        // by using stat we not only test the existance of /proc but also confirm it's a 'proc' filesystem
-        $type = @shell_exec('stat -f -c "%T" /proc 2>/dev/null');
-        return strpos($type, 'proc') === 0;
+        return $this->pid;
     }
 
     private function markAsNotStarted()
@@ -150,24 +59,24 @@ class Process
         $this->writePidFileContent('');
     }
 
-    private function getPidFileContent()
+    public function hasStarted($content = null)
     {
-        return @file_get_contents($this->pidFile);
-    }
+        if (is_null($content)) {
+            $content = $this->getPidFileContent();
+        }
 
-    private function doesPidFileExist($content)
-    {
-        return false !== $content;
-    }
+        if (!$this->doesPidFileExist($content)) {
+            // process is finished, this means there was a start before
+            return true;
+        }
 
-    private function writePidFileContent($content)
-    {
-        file_put_contents($this->pidFile, $content);
-    }
+        if ('' === trim($content)) {
+            // pid file is overwritten by startProcess()
+            return false;
+        }
 
-    public function getPid()
-    {
-        return $this->pid;
+        // process is probably running or pid file was not removed
+        return true;
     }
 
     public function hasFinished()
@@ -223,6 +132,11 @@ class Process
         Filesystem::deleteFileIfExists($this->pidFile);
     }
 
+    private function doesPidFileExist($content)
+    {
+        return false !== $content;
+    }
+
     private function isProcessStillRunning($content)
     {
         if (!$this->isSupported) {
@@ -235,23 +149,109 @@ class Process
         return !empty($lockedPID) && in_array($lockedPID, $runningPIDs);
     }
 
-    public function hasStarted($content = null)
+    private function getPidFileContent()
     {
-        if (is_null($content)) {
-            $content = $this->getPidFileContent();
-        }
+        return @file_get_contents($this->pidFile);
+    }
 
-        if (!$this->doesPidFileExist($content)) {
-            // process is finished, this means there was a start before
-            return true;
-        }
+    private function writePidFileContent($content)
+    {
+        file_put_contents($this->pidFile, $content);
+    }
 
-        if ('' === trim($content)) {
-            // pid file is overwritten by startProcess()
+    public static function isSupported()
+    {
+        if (SettingsServer::isWindows()) {
             return false;
         }
 
-        // process is probably running or pid file was not removed
+        if (self::shellExecFunctionIsDisabled()) {
+            return false;
+        }
+
+        if (self::isSystemNotSupported()) {
+            return false;
+        }
+
+        if (!self::commandExists('ps') || !self::returnsSuccessCode('ps') || !self::commandExists('awk')) {
+            return false;
+        }
+
+        if (count(self::getRunningProcesses()) > 0) {
+            return true;
+        }
+
+        if (!self::isProcFSMounted()) {
+            return false;
+        }
+
         return true;
     }
+
+    private static function isSystemNotSupported()
+    {
+        $uname = @shell_exec('uname -a 2> /dev/null');
+
+        if (empty($uname)) {
+            $uname = php_uname();
+        }
+
+        if (strpos($uname, 'synology') !== false) {
+            return true;
+        }
+        return false;
+    }
+
+    private static function shellExecFunctionIsDisabled()
+    {
+        $command = 'shell_exec';
+        $disabled = explode(',', ini_get('disable_functions'));
+        $disabled = array_map('trim', $disabled);
+        return in_array($command, $disabled)  || !function_exists($command);
+    }
+
+    private static function returnsSuccessCode($command)
+    {
+        $exec = $command . ' > /dev/null 2>&1; echo $?';
+        $returnCode = shell_exec($exec);
+        $returnCode = trim($returnCode);
+        return 0 == (int) $returnCode;
+    }
+
+    private static function commandExists($command)
+    {
+        $result = @shell_exec('which ' . escapeshellarg($command) . ' 2> /dev/null');
+
+        return !empty($result);
+    }
+
+    /**
+     * ps -e requires /proc
+     * @return bool
+     */
+    private static function isProcFSMounted()
+    {
+        if (is_resource(@fopen('/proc', 'r'))) {
+            return true;
+        }
+        // Testing if /proc is a resource with @fopen fails on systems with open_basedir set.
+        // by using stat we not only test the existance of /proc but also confirm it's a 'proc' filesystem
+        $type = @shell_exec('stat -f -c "%T" /proc 2>/dev/null');
+        return strpos($type, 'proc') === 0;
+    }
+
+    /**
+     * @return int[] The ids of the currently running processes
+     */
+     public static function getRunningProcesses()
+     {
+         $ids = explode("\n", trim(`ps ex 2>/dev/null | awk '{print $1}' 2>/dev/null`));
+
+         $ids = array_map('intval', $ids);
+         $ids = array_filter($ids, function ($id) {
+            return $id > 0;
+        });
+
+         return $ids;
+     }
 }

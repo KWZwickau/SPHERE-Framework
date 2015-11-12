@@ -14,16 +14,16 @@ use Piwik\Updates;
 
 class Updates_2_4_0_b8 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
             "ALTER TABLE `" . Common::prefixTable('session')
             . "` CHANGE `id` `id` VARCHAR( 255 ) NOT NULL " => false,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

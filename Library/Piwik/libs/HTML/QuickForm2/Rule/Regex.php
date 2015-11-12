@@ -72,24 +72,6 @@
 class HTML_QuickForm2_Rule_Regex extends HTML_QuickForm2_Rule
 {
    /**
-    * Sets the regular expression to validate with
-    *
-    * @param    string  Regular expression
-    * @return   HTML_QuickForm2_Rule
-    * @throws   HTML_QuickForm2_InvalidArgumentException    if $config is not a string
-    */
-    public function setConfig($config)
-    {
-        if (!is_string($config)) {
-            throw new HTML_QuickForm2_InvalidArgumentException(
-                'Regex Rule requires a regular expression, ' .
-                preg_replace('/\s+/', ' ', var_export($config, true)) . ' given'
-            );
-        }
-        return parent::setConfig($config);
-    }
-
-   /**
     * Validates the owner element
     *
     * @return   bool    whether element's value matches given regular expression
@@ -106,6 +88,24 @@ class HTML_QuickForm2_Rule_Regex extends HTML_QuickForm2_Rule
             return true;
         }
         return preg_match($this->getConfig() . 'D', $value);
+    }
+
+   /**
+    * Sets the regular expression to validate with
+    *
+    * @param    string  Regular expression
+    * @return   HTML_QuickForm2_Rule
+    * @throws   HTML_QuickForm2_InvalidArgumentException    if $config is not a string
+    */
+    public function setConfig($config)
+    {
+        if (!is_string($config)) {
+            throw new HTML_QuickForm2_InvalidArgumentException(
+                'Regex Rule requires a regular expression, ' .
+                preg_replace('/\s+/', ' ', var_export($config, true)) . ' given'
+            );
+        }
+        return parent::setConfig($config);
     }
 
    /**

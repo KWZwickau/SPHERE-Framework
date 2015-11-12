@@ -59,7 +59,7 @@ class SQLite3Cache extends CacheProvider
     /**
      * Constructor.
      *
-     * Calling the constructor will ensure that the database file and table
+     * Calling the constructor will ensure that the database file and table 
      * exist and will create both if they don't.
      *
      * @param SQLite3 $sqlite
@@ -82,16 +82,6 @@ class SQLite3Cache extends CacheProvider
     }
 
     /**
-     * Gets an array of the fields in our table.
-     *
-     * @return array
-     */
-    private function getFields()
-    {
-        return array(static::ID_FIELD, static::DATA_FIELD, static::EXPIRATION_FIELD);
-    }
-
-    /**
      * {@inheritdoc}
      */
     protected function doFetch($id)
@@ -101,6 +91,66 @@ class SQLite3Cache extends CacheProvider
         }
 
         return false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function doContains($id)
+    {
+        return (boolean) $this->findById($id, false);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function doSave($id, $data, $lifeTime = 0)
+    {
+        $statement = $this->sqlite->prepare(sprintf(
+            'INSERT OR REPLACE INTO %s (%s) VALUES (:id, :data, :expire)',
+            $this->table,
+            implode(',', $this->getFields())
+        ));
+
+        $statement->bindValue(':id', $id);
+        $statement->bindValue(':data', serialize($data), SQLITE3_BLOB);
+        $statement->bindValue(':expire', $lifeTime > 0 ? time() + $lifeTime : null);
+
+        return $statement->execute() instanceof SQLite3Result;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function doDelete($id)
+    {
+        list($idField) = $this->getFields();
+
+        $statement = $this->sqlite->prepare(sprintf(
+            'DELETE FROM %s WHERE %s = :id',
+            $this->table,
+            $idField
+        ));
+
+        $statement->bindValue(':id', $id);
+
+        return $statement->execute() instanceof SQLite3Result;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function doFlush()
+    {
+        return $this->sqlite->exec(sprintf('DELETE FROM %s', $this->table));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function doGetStats()
+    {
+        // no-op.
     }
 
     /**
@@ -145,6 +195,16 @@ class SQLite3Cache extends CacheProvider
     }
 
     /**
+     * Gets an array of the fields in our table.
+     *
+     * @return array
+     */
+    private function getFields()
+    {
+        return array(static::ID_FIELD, static::DATA_FIELD, static::EXPIRATION_FIELD);
+    }
+
+    /**
      * Check if the item is expired.
      *
      * @param array $item
@@ -155,65 +215,5 @@ class SQLite3Cache extends CacheProvider
         return isset($item[static::EXPIRATION_FIELD]) &&
             $item[self::EXPIRATION_FIELD] !== null &&
             $item[self::EXPIRATION_FIELD] < time();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function doDelete($id)
-    {
-        list($idField) = $this->getFields();
-
-        $statement = $this->sqlite->prepare(sprintf(
-            'DELETE FROM %s WHERE %s = :id',
-            $this->table,
-            $idField
-        ));
-
-        $statement->bindValue(':id', $id);
-
-        return $statement->execute() instanceof SQLite3Result;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function doContains($id)
-    {
-        return (boolean) $this->findById($id, false);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function doSave($id, $data, $lifeTime = 0)
-    {
-        $statement = $this->sqlite->prepare(sprintf(
-            'INSERT OR REPLACE INTO %s (%s) VALUES (:id, :data, :expire)',
-            $this->table,
-            implode(',', $this->getFields())
-        ));
-
-        $statement->bindValue(':id', $id);
-        $statement->bindValue(':data', serialize($data), SQLITE3_BLOB);
-        $statement->bindValue(':expire', $lifeTime > 0 ? time() + $lifeTime : null);
-
-        return $statement->execute() instanceof SQLite3Result;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function doFlush()
-    {
-        return $this->sqlite->exec(sprintf('DELETE FROM %s', $this->table));
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function doGetStats()
-    {
-        // no-op.
     }
 }

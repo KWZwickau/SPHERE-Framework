@@ -9,10 +9,10 @@
 
 namespace DI\Definition\Dumper;
 
-use DI\Definition\Definition;
-use DI\Definition\EntryReference;
 use DI\Definition\ObjectDefinition;
 use DI\Definition\ObjectDefinition\MethodInjection;
+use DI\Definition\Definition;
+use DI\Definition\EntryReference;
 use ReflectionException;
 use ReflectionMethod;
 
@@ -83,6 +83,37 @@ class ObjectDefinitionDumper implements DefinitionDumper
         return $str;
     }
 
+    private function dumpProperties(ObjectDefinition $definition)
+    {
+        $str = '';
+
+        foreach ($definition->getPropertyInjections() as $propertyInjection) {
+            $value = $propertyInjection->getValue();
+            if ($value instanceof EntryReference) {
+                $valueStr = sprintf('get(%s)', $value->getName());
+            } else {
+                $valueStr = var_export($value, true);
+            }
+
+            $str .= sprintf("\n    $%s = %s", $propertyInjection->getPropertyName(), $valueStr);
+        }
+
+        return $str;
+    }
+
+    private function dumpMethods($className, ObjectDefinition $definition)
+    {
+        $str = '';
+
+        foreach ($definition->getMethodInjections() as $methodInjection) {
+            $parameters = $this->dumpMethodParameters($className, $methodInjection);
+
+            $str .= sprintf("\n    %s(\n        %s\n    )", $methodInjection->getMethodName(), $parameters);
+        }
+
+        return $str;
+    }
+
     private function dumpMethodParameters($className, MethodInjection $methodInjection)
     {
         $methodReflection = new \ReflectionMethod($className, $methodInjection->getMethodName());
@@ -121,36 +152,5 @@ class ObjectDefinitionDumper implements DefinitionDumper
         }
 
         return implode(PHP_EOL . '        ', $args);
-    }
-
-    private function dumpProperties(ObjectDefinition $definition)
-    {
-        $str = '';
-
-        foreach ($definition->getPropertyInjections() as $propertyInjection) {
-            $value = $propertyInjection->getValue();
-            if ($value instanceof EntryReference) {
-                $valueStr = sprintf('get(%s)', $value->getName());
-            } else {
-                $valueStr = var_export($value, true);
-            }
-
-            $str .= sprintf("\n    $%s = %s", $propertyInjection->getPropertyName(), $valueStr);
-        }
-
-        return $str;
-    }
-
-    private function dumpMethods($className, ObjectDefinition $definition)
-    {
-        $str = '';
-
-        foreach ($definition->getMethodInjections() as $methodInjection) {
-            $parameters = $this->dumpMethodParameters($className, $methodInjection);
-
-            $str .= sprintf("\n    %s(\n        %s\n    )", $methodInjection->getMethodName(), $parameters);
-        }
-
-        return $str;
     }
 }

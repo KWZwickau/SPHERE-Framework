@@ -11,8 +11,8 @@ namespace Piwik\DataTable\Renderer;
 use Exception;
 use Piwik\Archive;
 use Piwik\Common;
-use Piwik\DataTable;
 use Piwik\DataTable\Renderer;
+use Piwik\DataTable;
 use Piwik\Date;
 use Piwik\SettingsPiwik;
 
@@ -88,6 +88,37 @@ class Rss extends Renderer
     }
 
     /**
+     * Returns the RSS file footer
+     *
+     * @return string
+     */
+    protected function getRssFooter()
+    {
+        return "\t</channel>\n</rss>";
+    }
+
+    /**
+     * Returns the RSS file header
+     *
+     * @return string
+     */
+    protected function getRssHeader()
+    {
+        $generationDate = date('r');
+        $header = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<rss version=\"2.0\">
+  <channel>
+    <title>piwik statistics - RSS</title>
+    <link>http://piwik.org</link>
+    <description>Piwik RSS feed</description>
+    <pubDate>$generationDate</pubDate>
+    <generator>piwik</generator>
+    <language>en</language>
+    <lastBuildDate>$generationDate</lastBuildDate>";
+        return $header;
+    }
+
+    /**
      * @param DataTable $table
      *
      * @return string
@@ -149,36 +180,5 @@ class Rss extends Renderer
         }
         $html .= "\n\n</table>";
         return $html;
-    }
-
-    /**
-     * Returns the RSS file header
-     *
-     * @return string
-     */
-    protected function getRssHeader()
-    {
-        $generationDate = date('r');
-        $header = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<rss version=\"2.0\">
-  <channel>
-    <title>piwik statistics - RSS</title>
-    <link>http://piwik.org</link>
-    <description>Piwik RSS feed</description>
-    <pubDate>$generationDate</pubDate>
-    <generator>piwik</generator>
-    <language>en</language>
-    <lastBuildDate>$generationDate</lastBuildDate>";
-        return $header;
-    }
-
-    /**
-     * Returns the RSS file footer
-     *
-     * @return string
-     */
-    protected function getRssFooter()
-    {
-        return "\t</channel>\n</rss>";
     }
 }

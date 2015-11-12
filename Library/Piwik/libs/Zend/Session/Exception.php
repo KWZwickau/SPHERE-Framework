@@ -49,7 +49,7 @@ class Zend_Session_Exception extends Zend_Exception
      * handleSessionStartError() - interface for set_error_handler()
      *
      * @see    http://framework.zend.com/issues/browse/ZF-1325
-     * @param  int $errno
+     * @param  int    $errno
      * @param  string $errstr
      * @return void
      */
@@ -62,7 +62,7 @@ class Zend_Session_Exception extends Zend_Exception
      * handleSilentWriteClose() - interface for set_error_handler()
      *
      * @see    http://framework.zend.com/issues/browse/ZF-1325
-     * @param  int $errno
+     * @param  int    $errno
      * @param  string $errstr
      * @return void
      */

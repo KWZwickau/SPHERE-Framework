@@ -25,17 +25,12 @@ class ConsoleExceptionEvent extends ConsoleEvent
     private $exception;
     private $exitCode;
 
-    public function __construct(
-        Command $command,
-        InputInterface $input,
-        OutputInterface $output,
-        \Exception $exception,
-        $exitCode
-    ) {
+    public function __construct(Command $command, InputInterface $input, OutputInterface $output, \Exception $exception, $exitCode)
+    {
         parent::__construct($command, $input, $output);
 
         $this->setException($exception);
-        $this->exitCode = (int)$exitCode;
+        $this->exitCode = (int) $exitCode;
     }
 
     /**

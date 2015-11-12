@@ -12,6 +12,7 @@ namespace Piwik\Tracker;
 use Piwik\CliMulti;
 use Piwik\Common;
 use Piwik\Option;
+use Piwik\Piwik;
 use Piwik\Tracker;
 
 class ScheduledTasksRunner

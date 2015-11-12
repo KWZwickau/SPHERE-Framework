@@ -61,6 +61,21 @@ class ResolverDispatcher implements DefinitionResolver
     }
 
     /**
+     * Check if a definition can be resolved.
+     *
+     * @param Definition $definition Object that defines how the value should be obtained.
+     * @param array      $parameters Optional parameters to use to build the entry.
+     *
+     * @return bool
+     */
+    public function isResolvable(Definition $definition, array $parameters = array())
+    {
+        $definitionResolver = $this->getDefinitionResolver($definition);
+
+        return $definitionResolver->isResolvable($definition, $parameters);
+    }
+
+    /**
      * Returns a resolver capable of handling the given definition.
      *
      * @param Definition $definition
@@ -122,20 +137,5 @@ class ResolverDispatcher implements DefinitionResolver
             default:
                 throw new \RuntimeException("No definition resolver was configured for definition of type $definitionType");
         }
-    }
-
-    /**
-     * Check if a definition can be resolved.
-     *
-     * @param Definition $definition Object that defines how the value should be obtained.
-     * @param array      $parameters Optional parameters to use to build the entry.
-     *
-     * @return bool
-     */
-    public function isResolvable(Definition $definition, array $parameters = array())
-    {
-        $definitionResolver = $this->getDefinitionResolver($definition);
-
-        return $definitionResolver->isResolvable($definition, $parameters);
     }
 }

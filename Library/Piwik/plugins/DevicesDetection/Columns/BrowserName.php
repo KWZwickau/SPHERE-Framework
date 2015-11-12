@@ -10,14 +10,23 @@ namespace Piwik\Plugins\DevicesDetection\Columns;
 
 use Piwik\Piwik;
 use Piwik\Plugins\DevicesDetection\Segment;
-use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Action;
 
 class BrowserName extends Base
 {
     protected $columnName = 'config_browser_name';
     protected $columnType = 'VARCHAR(10) NOT NULL';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('browserCode');
+        $segment->setName('DevicesDetection_ColumnBrowser');
+        $segment->setAcceptedValues('FF, IE, CH, SF, OP, etc.');
+        $this->addSegment($segment);
+    }
 
     public function getName()
     {
@@ -33,7 +42,7 @@ class BrowserName extends Base
     public function onNewVisit(Request $request, Visitor $visitor, $action)
     {
         $userAgent = $request->getUserAgent();
-        $parser = $this->getUAParser($userAgent);
+        $parser    = $this->getUAParser($userAgent);
 
         $aBrowserInfo = $parser->getClient();
 
@@ -43,14 +52,5 @@ class BrowserName extends Base
         }
 
         return 'UNK';
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('browserCode');
-        $segment->setName('DevicesDetection_ColumnBrowser');
-        $segment->setAcceptedValues('FF, IE, CH, SF, OP, etc.');
-        $this->addSegment($segment);
     }
 }

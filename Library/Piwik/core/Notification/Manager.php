@@ -42,63 +42,6 @@ class Manager
     }
 
     /**
-     * @param $id
-     * @throws \Exception In case id is empty or if id contains non word characters
-     */
-    private static function checkId($id)
-    {
-        if (empty($id)) {
-            throw new \Exception('Notification ID is empty.');
-        }
-
-        if (!preg_match('/^(\w)*$/', $id)) {
-            throw new \Exception('Invalid Notification ID given. Only word characters (AlNum + underscore) allowed.');
-        }
-    }
-
-    private static function removeOldestNotificationsIfThereAreTooMany()
-    {
-        $maxNotificationsInSession = 30;
-
-        $session = static::getSession();
-
-        while (count($session->notifications) >= $maxNotificationsInSession) {
-            array_shift($session->notifications);
-        }
-    }
-
-    /**
-     * @return SessionNamespace
-     */
-    private static function getSession()
-    {
-        if (!isset(static::$session)) {
-            static::$session = new SessionNamespace('notification');
-        }
-
-        if (empty(static::$session->notifications) && self::isEnabled()) {
-            static::$session->notifications = array();
-        }
-
-        return static::$session;
-    }
-
-    private static function isEnabled()
-    {
-        return Session::isWritable() && Session::isReadable();
-    }
-
-    private static function addNotification($id, Notification $notification)
-    {
-        if (!self::isEnabled()) {
-            return;
-        }
-
-        $session = static::getSession();
-        $session->notifications[$id] = $notification;
-    }
-
-    /**
      * Removes a posted notification by ID.
      *
      * @param string $id The notification ID, see {@link notify()}.
@@ -108,18 +51,6 @@ class Manager
         self::checkId($id);
 
         self::removeNotification($id);
-    }
-
-    private static function removeNotification($id)
-    {
-        if (!self::isEnabled()) {
-            return;
-        }
-
-        $session = static::getSession();
-        if (array_key_exists($id, $session->notifications)) {
-            unset($session->notifications[$id]);
-        }
     }
 
     /**
@@ -135,17 +66,6 @@ class Manager
                 static::removeNotification($id);
             }
         }
-    }
-
-    private static function getAllNotifications()
-    {
-        if (!self::isEnabled()) {
-            return array();
-        }
-
-        $session = static::getSession();
-
-        return $session->notifications;
     }
 
     /**
@@ -166,5 +86,85 @@ class Manager
         });
 
         return $notifications;
+    }
+
+    /**
+     * @param $id
+     * @throws \Exception In case id is empty or if id contains non word characters
+     */
+    private static function checkId($id)
+    {
+        if (empty($id)) {
+            throw new \Exception('Notification ID is empty.');
+        }
+
+        if (!preg_match('/^(\w)*$/', $id)) {
+            throw new \Exception('Invalid Notification ID given. Only word characters (AlNum + underscore) allowed.');
+        }
+    }
+
+    private static function addNotification($id, Notification $notification)
+    {
+        if (!self::isEnabled()) {
+            return;
+        }
+
+        $session = static::getSession();
+        $session->notifications[$id] = $notification;
+    }
+
+    private static function removeOldestNotificationsIfThereAreTooMany()
+    {
+        $maxNotificationsInSession = 30;
+
+        $session = static::getSession();
+
+        while (count($session->notifications) >= $maxNotificationsInSession) {
+            array_shift($session->notifications);
+        }
+    }
+
+    private static function getAllNotifications()
+    {
+        if (!self::isEnabled()) {
+            return array();
+        }
+
+        $session = static::getSession();
+
+        return $session->notifications;
+    }
+
+    private static function removeNotification($id)
+    {
+        if (!self::isEnabled()) {
+            return;
+        }
+
+        $session = static::getSession();
+        if (array_key_exists($id, $session->notifications)) {
+            unset($session->notifications[$id]);
+        }
+    }
+
+    private static function isEnabled()
+    {
+        return Session::isWritable() && Session::isReadable();
+    }
+
+    /**
+     * @return SessionNamespace
+     */
+    private static function getSession()
+    {
+        if (!isset(static::$session)) {
+            static::$session = new SessionNamespace('notification');
+        }
+
+        if (empty(static::$session->notifications) && self::isEnabled()) {
+            static::$session->notifications = array();
+        }
+
+        return static::$session;
     }
 }

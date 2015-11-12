@@ -576,7 +576,7 @@ $.extend(DataTable.prototype, UIControl.prototype, {
         if (self.param.filter_sort_column) {
             // are we in a subdatatable?
             var currentIsSubDataTable = $(domElem).parent().hasClass('cellSubDataTable');
-            var imageSortClassType = currentIsSubDataTable ? 'sortSubtable' : '';
+            var imageSortClassType = currentIsSubDataTable ? 'sortSubtable' : ''
             var imageSortWidth = 16;
             var imageSortHeight = 16;
 
@@ -617,7 +617,7 @@ $.extend(DataTable.prototype, UIControl.prototype, {
         }
         currentPattern = piwikHelper.htmlDecode(currentPattern);
 
-        var patternsToReplace = [{from: '?', to: '\\?'}, {from: '+', to: '\\+'}, {from: '*', to: '\\*'}];
+        var patternsToReplace = [{from: '?', to: '\\?'}, {from: '+', to: '\\+'}, {from: '*', to: '\\*'}]
 
         $.each(patternsToReplace, function (index, pattern) {
             if (0 === currentPattern.indexOf(pattern.to)) {

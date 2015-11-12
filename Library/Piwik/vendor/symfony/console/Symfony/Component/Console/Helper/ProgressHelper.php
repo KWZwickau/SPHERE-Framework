@@ -223,27 +223,6 @@ class ProgressHelper extends Helper
     }
 
     /**
-     * Initializes the progress helper.
-     */
-    private function initialize()
-    {
-        $this->formatVars = array();
-        foreach ($this->defaultFormatVars as $var) {
-            if (false !== strpos($this->format, "%{$var}%")) {
-                $this->formatVars[$var] = true;
-            }
-        }
-
-        if ($this->max > 0) {
-            $this->widths['max'] = $this->strlen($this->max);
-            $this->widths['current'] = $this->widths['max'];
-        } else {
-            $this->barCharOriginal = $this->barChar;
-            $this->barChar = $this->emptyBarChar;
-        }
-    }
-
-    /**
      * Advances the progress output X steps.
      *
      * @param int  $step   Number of steps to advance
@@ -308,6 +287,59 @@ class ProgressHelper extends Helper
             $message = str_replace("%{$name}%", $value, $message);
         }
         $this->overwrite($this->output, $message);
+    }
+
+    /**
+     * Removes the progress bar from the current line.
+     *
+     * This is useful if you wish to write some output
+     * while a progress bar is running.
+     * Call display() to show the progress bar again.
+     */
+    public function clear()
+    {
+        $this->overwrite($this->output, '');
+    }
+
+    /**
+     * Finishes the progress output.
+     */
+    public function finish()
+    {
+        if (null === $this->startTime) {
+            throw new \LogicException('You must start the progress bar before calling finish().');
+        }
+
+        if (null !== $this->startTime) {
+            if (!$this->max) {
+                $this->barChar = $this->barCharOriginal;
+                $this->display(true);
+            }
+            $this->startTime = null;
+            $this->output->writeln('');
+            $this->output = null;
+        }
+    }
+
+    /**
+     * Initializes the progress helper.
+     */
+    private function initialize()
+    {
+        $this->formatVars = array();
+        foreach ($this->defaultFormatVars as $var) {
+            if (false !== strpos($this->format, "%{$var}%")) {
+                $this->formatVars[$var] = true;
+            }
+        }
+
+        if ($this->max > 0) {
+            $this->widths['max'] = $this->strlen($this->max);
+            $this->widths['current'] = $this->widths['max'];
+        } else {
+            $this->barCharOriginal = $this->barChar;
+            $this->barChar = $this->emptyBarChar;
+        }
     }
 
     /**
@@ -413,38 +445,6 @@ class ProgressHelper extends Helper
         $output->write($message);
 
         $this->lastMessagesLength = $this->strlen($message);
-    }
-
-    /**
-     * Removes the progress bar from the current line.
-     *
-     * This is useful if you wish to write some output
-     * while a progress bar is running.
-     * Call display() to show the progress bar again.
-     */
-    public function clear()
-    {
-        $this->overwrite($this->output, '');
-    }
-
-    /**
-     * Finishes the progress output.
-     */
-    public function finish()
-    {
-        if (null === $this->startTime) {
-            throw new \LogicException('You must start the progress bar before calling finish().');
-        }
-
-        if (null !== $this->startTime) {
-            if (!$this->max) {
-                $this->barChar = $this->barCharOriginal;
-                $this->display(true);
-            }
-            $this->startTime = null;
-            $this->output->writeln('');
-            $this->output = null;
-        }
     }
 
     /**

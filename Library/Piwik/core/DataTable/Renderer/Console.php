@@ -34,6 +34,35 @@ class Console extends Renderer
     }
 
     /**
+     * Sets the prefix to be used
+     *
+     * @param string $str new prefix
+     */
+    public function setPrefixRow($str)
+    {
+        $this->prefixRows = $str;
+    }
+
+    /**
+     * Computes the output of the given array of data tables
+     *
+     * @param DataTable\Map $map data tables to render
+     * @param string $prefix prefix to output before table data
+     * @return string
+     */
+    protected function renderDataTableMap(DataTable\Map $map, $prefix)
+    {
+        $output = "Set<hr />";
+        $prefix = $prefix . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+        foreach ($map->getDataTables() as $descTable => $table) {
+            $output .= $prefix . "<b>" . $descTable . "</b><br />";
+            $output .= $prefix . $this->renderTable($table, $prefix . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+            $output .= "<hr />";
+        }
+        return $output;
+    }
+
+    /**
      * Computes the given dataTable output and returns the string/binary
      *
      * @param DataTable $table data table to render
@@ -123,34 +152,5 @@ class Console extends Renderer
             }
         }
         return $output;
-    }
-
-    /**
-     * Computes the output of the given array of data tables
-     *
-     * @param DataTable\Map $map data tables to render
-     * @param string $prefix prefix to output before table data
-     * @return string
-     */
-    protected function renderDataTableMap(DataTable\Map $map, $prefix)
-    {
-        $output = "Set<hr />";
-        $prefix = $prefix . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-        foreach ($map->getDataTables() as $descTable => $table) {
-            $output .= $prefix . "<b>" . $descTable . "</b><br />";
-            $output .= $prefix . $this->renderTable($table, $prefix . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
-            $output .= "<hr />";
-        }
-        return $output;
-    }
-
-    /**
-     * Sets the prefix to be used
-     *
-     * @param string $str new prefix
-     */
-    public function setPrefixRow($str)
-    {
-        $this->prefixRows = $str;
     }
 }

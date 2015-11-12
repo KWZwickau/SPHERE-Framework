@@ -26,14 +26,14 @@ class TrackerConfig
         Config::getInstance()->Tracker = $section;
     }
 
-    private static function getConfig()
-    {
-        return Config::getInstance()->Tracker;
-    }
-
     public static function getConfigValue($name)
     {
         $config = self::getConfig();
         return $config[$name];
+    }
+
+    private static function getConfig()
+    {
+        return Config::getInstance()->Tracker;
     }
 }

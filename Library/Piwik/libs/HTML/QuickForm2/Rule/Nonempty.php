@@ -74,6 +74,29 @@
  */
 class HTML_QuickForm2_Rule_Nonempty extends HTML_QuickForm2_Rule
 {
+    protected function validateOwner()
+    {
+        if ($this->owner instanceof HTML_QuickForm2_Container) {
+            $nonempty = 0;
+            foreach ($this->owner->getRecursiveIterator(RecursiveIteratorIterator::LEAVES_ONLY) as $child) {
+                $rule = new self($child);
+                if ($rule->validateOwner()) {
+                    $nonempty++;
+                }
+            }
+            return $nonempty >= $this->getConfig();
+        }
+
+        $value = $this->owner->getValue();
+        if ($this->owner instanceof HTML_QuickForm2_Element_InputFile) {
+            return isset($value['error']) && (UPLOAD_ERR_OK == $value['error']);
+        } elseif (is_array($value)) {
+            return count(array_filter($value, 'strlen')) >= $this->getConfig();
+        } else {
+            return (bool)strlen($value);
+        }
+    }
+
    /**
     * Sets minimum number of nonempty values
     *
@@ -97,29 +120,6 @@ class HTML_QuickForm2_Rule_Nonempty extends HTML_QuickForm2_Rule
             );
         }
         return parent::setConfig(intval($config));
-    }
-
-    protected function validateOwner()
-    {
-        if ($this->owner instanceof HTML_QuickForm2_Container) {
-            $nonempty = 0;
-            foreach ($this->owner->getRecursiveIterator(RecursiveIteratorIterator::LEAVES_ONLY) as $child) {
-                $rule = new self($child);
-                if ($rule->validateOwner()) {
-                    $nonempty++;
-                }
-            }
-            return $nonempty >= $this->getConfig();
-        }
-
-        $value = $this->owner->getValue();
-        if ($this->owner instanceof HTML_QuickForm2_Element_InputFile) {
-            return isset($value['error']) && (UPLOAD_ERR_OK == $value['error']);
-        } elseif (is_array($value)) {
-            return count(array_filter($value, 'strlen')) >= $this->getConfig();
-        } else {
-            return (bool)strlen($value);
-        }
     }
 
     protected function getJavascriptCallback()

@@ -8,6 +8,7 @@
  */
 namespace Piwik\Plugins\MobileMessaging;
 
+use Piwik\Common;
 use Piwik\Option;
 use Piwik\Piwik;
 use Piwik\Plugins\MobileMessaging\SMSProvider;
@@ -24,6 +25,15 @@ class API extends \Piwik\Plugin\API
 {
     const VERIFICATION_CODE_LENGTH = 5;
     const SMS_FROM = 'Piwik';
+
+    /**
+     * @param string $provider
+     * @return SMSProvider
+     */
+    private static function getSMSProviderInstance($provider)
+    {
+        return SMSProvider::factory($provider);
+    }
 
     /**
      * determine if SMS API credential are available for the current user
@@ -49,41 +59,6 @@ class API extends \Piwik\Plugin\API
         );
     }
 
-    private function getCredentialManagerSettings()
-    {
-        return $this->getUserSettings($this->getCredentialManagerLogin());
-    }
-
-    private function getUserSettings($user)
-    {
-        $optionIndex = $user . MobileMessaging::USER_SETTINGS_POSTFIX_OPTION;
-        $userSettings = Option::get($optionIndex);
-
-        if (empty($userSettings)) {
-            $userSettings = array();
-        } else {
-            $userSettings = json_decode($userSettings, true);
-        }
-
-        return $userSettings;
-    }
-
-    private function getCredentialManagerLogin()
-    {
-        return $this->getDelegatedManagement() ? Piwik::getCurrentUserLogin() : '';
-    }
-
-    /**
-     * Determine if normal users can manage their own SMS API credential
-     *
-     * @return bool false if SMS API credential only manageable by super admin, true otherwise
-     */
-    public function getDelegatedManagement()
-    {
-        Piwik::checkUserHasSomeViewAccess();
-        return Option::get(MobileMessaging::DELEGATED_MANAGEMENT_OPTION) == 'true';
-    }
-
     /**
      * return the SMS API Provider for the current user
      *
@@ -94,11 +69,6 @@ class API extends \Piwik\Plugin\API
         $this->checkCredentialManagementRights();
         $credential = $this->getSMSAPICredential();
         return $credential[MobileMessaging::PROVIDER_OPTION];
-    }
-
-    private function checkCredentialManagementRights()
-    {
-        $this->getDelegatedManagement() ? Piwik::checkUserIsNotAnonymous() : Piwik::checkUserHasSuperUserAccess();
     }
 
     /**
@@ -124,28 +94,6 @@ class API extends \Piwik\Plugin\API
         $this->setCredentialManagerSettings($settings);
 
         return true;
-    }
-
-    /**
-     * @param string $provider
-     * @return SMSProvider
-     */
-    private static function getSMSProviderInstance($provider)
-    {
-        return SMSProvider::factory($provider);
-    }
-
-    private function setCredentialManagerSettings($settings)
-    {
-        $this->setUserSettings($this->getCredentialManagerLogin(), $settings);
-    }
-
-    private function setUserSettings($user, $settings)
-    {
-        Option::set(
-            $user . MobileMessaging::USER_SETTINGS_POSTFIX_OPTION,
-            json_encode($settings)
-        );
     }
 
     /**
@@ -225,58 +173,6 @@ class API extends \Piwik\Plugin\API
         return true;
     }
 
-    private function increaseCount($option, $phoneNumber)
-    {
-        $settings = $this->getCurrentUserSettings();
-
-        $counts = array();
-        if (isset($settings[$option])) {
-            $counts = $settings[$option];
-        }
-
-        $countToUpdate = 0;
-        if (isset($counts[$phoneNumber])) {
-            $countToUpdate = $counts[$phoneNumber];
-        }
-
-        $counts[$phoneNumber] = $countToUpdate + 1;
-
-        $settings[$option] = $counts;
-
-        $this->setCurrentUserSettings($settings);
-    }
-
-    private function getCurrentUserSettings()
-    {
-        return $this->getUserSettings(Piwik::getCurrentUserLogin());
-    }
-
-    private function setCurrentUserSettings($settings)
-    {
-        $this->setUserSettings(Piwik::getCurrentUserLogin(), $settings);
-    }
-
-    private function retrievePhoneNumbers()
-    {
-        $settings = $this->getCurrentUserSettings();
-
-        $phoneNumbers = array();
-        if (isset($settings[MobileMessaging::PHONE_NUMBERS_OPTION])) {
-            $phoneNumbers = $settings[MobileMessaging::PHONE_NUMBERS_OPTION];
-        }
-
-        return $phoneNumbers;
-    }
-
-    private function savePhoneNumbers($phoneNumbers)
-    {
-        $settings = $this->getCurrentUserSettings();
-
-        $settings[MobileMessaging::PHONE_NUMBERS_OPTION] = $phoneNumbers;
-
-        $this->setCurrentUserSettings($settings);
-    }
-
     /**
      * get remaining credit
      *
@@ -327,6 +223,48 @@ class API extends \Piwik\Plugin\API
         return true;
     }
 
+    private function retrievePhoneNumbers()
+    {
+        $settings = $this->getCurrentUserSettings();
+
+        $phoneNumbers = array();
+        if (isset($settings[MobileMessaging::PHONE_NUMBERS_OPTION])) {
+            $phoneNumbers = $settings[MobileMessaging::PHONE_NUMBERS_OPTION];
+        }
+
+        return $phoneNumbers;
+    }
+
+    private function savePhoneNumbers($phoneNumbers)
+    {
+        $settings = $this->getCurrentUserSettings();
+
+        $settings[MobileMessaging::PHONE_NUMBERS_OPTION] = $phoneNumbers;
+
+        $this->setCurrentUserSettings($settings);
+    }
+
+    private function increaseCount($option, $phoneNumber)
+    {
+        $settings = $this->getCurrentUserSettings();
+
+        $counts = array();
+        if (isset($settings[$option])) {
+            $counts = $settings[$option];
+        }
+
+        $countToUpdate = 0;
+        if (isset($counts[$phoneNumber])) {
+            $countToUpdate = $counts[$phoneNumber];
+        }
+
+        $counts[$phoneNumber] = $countToUpdate + 1;
+
+        $settings[$option] = $counts;
+
+        $this->setCurrentUserSettings($settings);
+    }
+
     /**
      * validate phone number
      *
@@ -373,11 +311,6 @@ class API extends \Piwik\Plugin\API
         return $phoneNumbers;
     }
 
-    private static function isActivated($verificationCode)
-    {
-        return $verificationCode === null;
-    }
-
     /**
      * get activated phone number list
      *
@@ -400,6 +333,11 @@ class API extends \Piwik\Plugin\API
         return $activatedPhoneNumbers;
     }
 
+    private static function isActivated($verificationCode)
+    {
+        return $verificationCode === null;
+    }
+
     /**
      * delete the SMS API credential
      *
@@ -418,6 +356,58 @@ class API extends \Piwik\Plugin\API
         return true;
     }
 
+    private function checkCredentialManagementRights()
+    {
+        $this->getDelegatedManagement() ? Piwik::checkUserIsNotAnonymous() : Piwik::checkUserHasSuperUserAccess();
+    }
+
+    private function setUserSettings($user, $settings)
+    {
+        Option::set(
+            $user . MobileMessaging::USER_SETTINGS_POSTFIX_OPTION,
+            json_encode($settings)
+        );
+    }
+
+    private function setCurrentUserSettings($settings)
+    {
+        $this->setUserSettings(Piwik::getCurrentUserLogin(), $settings);
+    }
+
+    private function setCredentialManagerSettings($settings)
+    {
+        $this->setUserSettings($this->getCredentialManagerLogin(), $settings);
+    }
+
+    private function getCredentialManagerLogin()
+    {
+        return $this->getDelegatedManagement() ? Piwik::getCurrentUserLogin() : '';
+    }
+
+    private function getUserSettings($user)
+    {
+        $optionIndex = $user . MobileMessaging::USER_SETTINGS_POSTFIX_OPTION;
+        $userSettings = Option::get($optionIndex);
+
+        if (empty($userSettings)) {
+            $userSettings = array();
+        } else {
+            $userSettings = json_decode($userSettings, true);
+        }
+
+        return $userSettings;
+    }
+
+    private function getCredentialManagerSettings()
+    {
+        return $this->getUserSettings($this->getCredentialManagerLogin());
+    }
+
+    private function getCurrentUserSettings()
+    {
+        return $this->getUserSettings(Piwik::getCurrentUserLogin());
+    }
+
     /**
      * Specify if normal users can manage their own SMS API credential
      *
@@ -427,5 +417,16 @@ class API extends \Piwik\Plugin\API
     {
         Piwik::checkUserHasSuperUserAccess();
         Option::set(MobileMessaging::DELEGATED_MANAGEMENT_OPTION, $delegatedManagement);
+    }
+
+    /**
+     * Determine if normal users can manage their own SMS API credential
+     *
+     * @return bool false if SMS API credential only manageable by super admin, true otherwise
+     */
+    public function getDelegatedManagement()
+    {
+        Piwik::checkUserHasSomeViewAccess();
+        return Option::get(MobileMessaging::DELEGATED_MANAGEMENT_OPTION) == 'true';
     }
 }

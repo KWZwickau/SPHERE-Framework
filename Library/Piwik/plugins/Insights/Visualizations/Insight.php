@@ -27,11 +27,6 @@ class Insight extends Visualization
     const FOOTER_ICON_TITLE = 'Insights';
     const FOOTER_ICON       = 'plugins/Insights/images/idea.png';
 
-    public static function getDefaultRequestConfig()
-    {
-        return new Insight\RequestConfig();
-    }
-
     public function beforeLoadDataTable()
     {
         if (!self::canDisplayViewDataTable($this)) {
@@ -59,25 +54,6 @@ class Insight extends Visualization
         );
     }
 
-    public static function canDisplayViewDataTable(ViewDataTable $view)
-    {
-        $period = Common::getRequestVar('period', null, 'string');
-        $date   = Common::getRequestVar('date', null, 'string');
-
-        $canGenerateInsights = API::getInstance()->canGenerateInsights($date, $period);
-
-        if (!$canGenerateInsights) {
-            return false;
-        }
-
-        if ($view->requestConfig->apiMethodToRequestDataTable
-            && 0 === strpos($view->requestConfig->apiMethodToRequestDataTable, 'DBStats')) {
-            return false;
-        }
-
-        return parent::canDisplayViewDataTable($view);
-    }
-
     private function getLimitIncrease()
     {
         $filterLimit   = $this->requestConfig->filter_limit;
@@ -98,6 +74,11 @@ class Insight extends Visualization
         $limitDecrease = $filterLimit - $this->getLimitIncrease();
 
         return abs($limitDecrease);
+    }
+
+    public static function getDefaultRequestConfig()
+    {
+        return new Insight\RequestConfig();
     }
 
     public function isThereDataToDisplay()
@@ -121,5 +102,24 @@ class Insight extends Visualization
 
         $period = Common::getRequestVar('period', null, 'string');
         $this->assignTemplateVar('period', $period);
+    }
+
+    public static function canDisplayViewDataTable(ViewDataTable $view)
+    {
+        $period = Common::getRequestVar('period', null, 'string');
+        $date   = Common::getRequestVar('date', null, 'string');
+
+        $canGenerateInsights = API::getInstance()->canGenerateInsights($date, $period);
+
+        if (!$canGenerateInsights) {
+            return false;
+        }
+
+        if ($view->requestConfig->apiMethodToRequestDataTable
+            && 0 === strpos($view->requestConfig->apiMethodToRequestDataTable, 'DBStats')) {
+            return false;
+        }
+
+        return parent::canDisplayViewDataTable($view);
     }
 }

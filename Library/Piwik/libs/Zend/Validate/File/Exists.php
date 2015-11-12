@@ -69,14 +69,44 @@ class Zend_Validate_File_Exists extends Zend_Validate_Abstract
     {
         if ($directory instanceof Zend_Config) {
             $directory = $directory->toArray();
-        } else {if (is_string($directory)) {
+        } else if (is_string($directory)) {
             $directory = explode(',', $directory);
-        } else {if (!is_array($directory)) {
+        } else if (!is_array($directory)) {
             // require_once 'Zend/Validate/Exception.php';
             throw new Zend_Validate_Exception ('Invalid options to validator provided');
-        }}}
+        }
 
         $this->setDirectory($directory);
+    }
+
+    /**
+     * Returns the set file directories which are checked
+     *
+     * @param  boolean $asArray Returns the values as array, when false an concated string is returned
+     * @return string
+     */
+    public function getDirectory($asArray = false)
+    {
+        $asArray   = (bool) $asArray;
+        $directory = (string) $this->_directory;
+        if ($asArray) {
+            $directory = explode(',', $directory);
+        }
+
+        return $directory;
+    }
+
+    /**
+     * Sets the file directory which will be checked
+     *
+     * @param  string|array $directory The directories to validate
+     * @return Zend_Validate_File_Extension Provides a fluent interface
+     */
+    public function setDirectory($directory)
+    {
+        $this->_directory = null;
+        $this->addDirectory($directory);
+        return $this;
     }
 
     /**
@@ -91,10 +121,10 @@ class Zend_Validate_File_Exists extends Zend_Validate_Abstract
 
         if (is_string($directory)) {
             $directory = explode(',', $directory);
-        } else {if (!is_array($directory)) {
+        } else if (!is_array($directory)) {
             // require_once 'Zend/Validate/Exception.php';
             throw new Zend_Validate_Exception ('Invalid options to validator provided');
-        }}
+        }
 
         foreach ($directory as $content) {
             if (empty($content) || !is_string($content)) {
@@ -131,9 +161,9 @@ class Zend_Validate_File_Exists extends Zend_Validate_Abstract
         $directories = $this->getDirectory(true);
         if (($file !== null) and (!empty($file['destination']))) {
             $directories[] = $file['destination'];
-        } else {if (!isset($file['name'])) {
+        } else if (!isset($file['name'])) {
             $file['name'] = $value;
-        }}
+        }
 
         $check = false;
         foreach ($directories as $directory) {
@@ -152,36 +182,6 @@ class Zend_Validate_File_Exists extends Zend_Validate_Abstract
         }
 
         return true;
-    }
-
-    /**
-     * Returns the set file directories which are checked
-     *
-     * @param  boolean $asArray Returns the values as array, when false an concated string is returned
-     * @return string
-     */
-    public function getDirectory($asArray = false)
-    {
-        $asArray   = (bool) $asArray;
-        $directory = (string) $this->_directory;
-        if ($asArray) {
-            $directory = explode(',', $directory);
-        }
-
-        return $directory;
-    }
-
-    /**
-     * Sets the file directory which will be checked
-     *
-     * @param  string|array $directory The directories to validate
-     * @return Zend_Validate_File_Extension Provides a fluent interface
-     */
-    public function setDirectory($directory)
-    {
-        $this->_directory = null;
-        $this->addDirectory($directory);
-        return $this;
     }
 
     /**

@@ -12,8 +12,8 @@ use Piwik\Common;
 use Piwik\Config;
 use Piwik\Piwik;
 use Piwik\Plugins\API\API as APIMetadata;
-use Piwik\Plugins\SegmentEditor\API as SegmentEditorAPI;
 use Piwik\View\UIControl;
+use Piwik\Plugins\SegmentEditor\API as SegmentEditorAPI;
 
 /**
  * Generates the HTML for the segment selector control (which includes the segment editor).
@@ -75,6 +75,15 @@ class SegmentSelectorControl extends UIControl
         $this->segmentTranslations = $this->getTranslations();
     }
 
+    public function getClientSideProperties()
+    {
+        return array('availableSegments',
+                     'segmentTranslations',
+                     'isSegmentNotAppliedBecauseBrowserArchivingIsDisabled',
+                     'selectedSegment',
+                     'authorizedToCreateSegments');
+    }
+
     private function wouldApplySegment($savedSegment)
     {
         $isBrowserArchivingDisabled = Config::getInstance()->General['browser_archiving_disabled_enforce'];
@@ -84,6 +93,15 @@ class SegmentSelectorControl extends UIControl
         }
 
         return (bool) $savedSegment['auto_archive'];
+    }
+
+    public function sortSegmentCategories($a, $b)
+    {
+        // Custom Variables last
+        if ($a == Piwik::translate('CustomVariables_CustomVariables')) {
+            return 1;
+        }
+        return 0;
     }
 
     private function getTranslations()
@@ -113,23 +131,5 @@ class SegmentSelectorControl extends UIControl
             $translations[$key] = Piwik::translate($key);
         }
         return $translations;
-    }
-
-    public function getClientSideProperties()
-    {
-        return array('availableSegments',
-                     'segmentTranslations',
-                     'isSegmentNotAppliedBecauseBrowserArchivingIsDisabled',
-                     'selectedSegment',
-                     'authorizedToCreateSegments');
-    }
-
-    public function sortSegmentCategories($a, $b)
-    {
-        // Custom Variables last
-        if ($a == Piwik::translate('CustomVariables_CustomVariables')) {
-            return 1;
-        }
-        return 0;
     }
 }

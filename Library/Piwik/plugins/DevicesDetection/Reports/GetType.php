@@ -8,22 +8,13 @@
  */
 namespace Piwik\Plugins\DevicesDetection\Reports;
 
-use DeviceDetector\Parser\Device\DeviceParserAbstract as DeviceParser;
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
 use Piwik\Plugins\DevicesDetection\Columns\DeviceType;
+use DeviceDetector\Parser\Device\DeviceParserAbstract as DeviceParser;
 
 class GetType extends Base
 {
-    public function configureView(ViewDataTable $view)
-    {
-        $unknownTypeCount = 1;
-        $view->requestConfig->filter_limit = $unknownTypeCount + count(DeviceParser::getAvailableDeviceTypeNames());
-        $view->config->show_search = false;
-        $view->config->show_exclude_low_population = false;
-        $view->config->addTranslation('label', Piwik::translate("DevicesDetection_dataTableLabelTypes"));
-    }
-
     protected function init()
     {
         parent::init();
@@ -32,6 +23,15 @@ class GetType extends Base
         $this->documentation = ''; // TODO
         $this->order = 0;
         $this->widgetTitle  = 'DevicesDetection_DeviceType';
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $unknownTypeCount = 1;
+        $view->requestConfig->filter_limit = $unknownTypeCount + count(DeviceParser::getAvailableDeviceTypeNames());
+        $view->config->show_search = false;
+        $view->config->show_exclude_low_population = false;
+        $view->config->addTranslation('label', Piwik::translate("DevicesDetection_dataTableLabelTypes"));
     }
 
 }

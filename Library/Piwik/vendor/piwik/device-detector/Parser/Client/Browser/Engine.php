@@ -18,6 +18,9 @@ use DeviceDetector\Parser\Client\ClientParserAbstract;
  */
 class Engine extends ClientParserAbstract
 {
+    protected $fixtureFile = 'regexes/client/browser_engine.yml';
+    protected $parserName = 'browserengine';
+
     /**
      * Known browser engines mapped to their internal short codes
      *
@@ -36,8 +39,15 @@ class Engine extends ClientParserAbstract
         'NetFront',
         'Edge'
     );
-    protected $fixtureFile = 'regexes/client/browser_engine.yml';
-    protected $parserName = 'browserengine';
+
+    /**
+     * Returns list of all available browser engines
+     * @return array
+     */
+    public static function getAvailableEngines()
+    {
+        return self::$availableEngines;
+    }
 
     public function parse()
     {
@@ -62,14 +72,5 @@ class Engine extends ClientParserAbstract
 
         // This Exception should never be thrown. If so a defined browser name is missing in $availableEngines
         throw new \Exception('Detected browser engine was not found in $availableEngines'); // @codeCoverageIgnore
-    }
-
-    /**
-     * Returns list of all available browser engines
-     * @return array
-     */
-    public static function getAvailableEngines()
-    {
-        return self::$availableEngines;
     }
 }

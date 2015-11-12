@@ -96,11 +96,6 @@ class ControllerResolver
         return array($this->createCoreHomeController(), 'renderWidget');
     }
 
-    private function createCoreHomeController()
-    {
-        return $this->abstractFactory->make('Piwik\Plugins\CoreHome\Controller');
-    }
-
     private function createReportController($module, $action, array &$parameters)
     {
         $report = Report::factory($module, $action);
@@ -137,5 +132,10 @@ class ControllerResolver
         $startsWithMenu = (Report::PREFIX_ACTION_IN_MENU === substr($action, 0, strlen(Report::PREFIX_ACTION_IN_MENU)));
 
         return !empty($action) && $startsWithMenu;
+    }
+
+    private function createCoreHomeController()
+    {
+        return $this->abstractFactory->make('Piwik\Plugins\CoreHome\Controller');
     }
 }

@@ -83,57 +83,6 @@ class Controller extends ControllerAdmin
         return $view->render();
     }
 
-    private function handleGeneralSettingsAdmin($view)
-    {
-        // Whether to display or not the general settings (cron, beta, smtp)
-        $view->isGeneralSettingsAdminEnabled = self::isGeneralSettingsAdminEnabled();
-        if ($view->isGeneralSettingsAdminEnabled) {
-            $this->displayWarningIfConfigFileNotWritable();
-        }
-
-        $enableBrowserTriggerArchiving = Rules::isBrowserTriggerEnabled();
-        $todayArchiveTimeToLive = Rules::getTodayArchiveTimeToLive();
-        $showWarningCron = false;
-        if (!$enableBrowserTriggerArchiving
-            && $todayArchiveTimeToLive < 3600
-        ) {
-            $showWarningCron = true;
-        }
-        $view->showWarningCron = $showWarningCron;
-        $view->todayArchiveTimeToLive = $todayArchiveTimeToLive;
-        $view->todayArchiveTimeToLiveDefault = Rules::getTodayArchiveTimeToLiveDefault();
-        $view->enableBrowserTriggerArchiving = $enableBrowserTriggerArchiving;
-
-        $releaseChannels = $this->makeReleaseChannels();
-        $activeChannelId = $releaseChannels->getActiveReleaseChannel()->getId();
-        $allChannels = array();
-        foreach ($releaseChannels->getAllReleaseChannels() as $channel) {
-            $allChannels[] = array(
-                'id'   => $channel->getId(),
-                'name' => $channel->getName(),
-                'description' => $channel->getDescription(),
-                'active' => $channel->getId() === $activeChannelId
-            );
-        }
-
-        $view->releaseChannels = $allChannels;
-        $view->mail = Config::getInstance()->mail;
-
-        $pluginUpdateCommunication = new UpdateCommunication();
-        $view->canUpdateCommunication              = $pluginUpdateCommunication->canBeEnabled();
-        $view->enableSendPluginUpdateCommunication = $pluginUpdateCommunication->isEnabled();
-    }
-
-    public static function isGeneralSettingsAdminEnabled()
-    {
-        return (bool) Config::getInstance()->General['enable_general_settings_admin'];
-    }
-
-    private function makeReleaseChannels()
-    {
-        return StaticContainer::get('Piwik\Plugin\ReleaseChannels');
-    }
-
     public function adminPluginSettings()
     {
         Piwik::checkUserHasSuperUserAccess();
@@ -148,15 +97,6 @@ class Controller extends ControllerAdmin
         );
 
         return $this->renderTemplate('pluginSettings', $vars);
-    }
-
-    private function getPluginSettings()
-    {
-        $pluginsSettings = SettingsManager::getPluginSettingsForCurrentUser();
-
-        ksort($pluginsSettings);
-
-        return $pluginsSettings;
     }
 
     /**
@@ -189,6 +129,31 @@ class Controller extends ControllerAdmin
         return $byType;
     }
 
+    public function userPluginSettings()
+    {
+        Piwik::checkUserIsNotAnonymous();
+
+        $settings = $this->getPluginSettings();
+
+        $vars = array(
+            'nonce'                      => Nonce::getNonce(static::SET_PLUGIN_SETTINGS_NONCE),
+            'pluginsSettings'            => $this->getSettingsByType($settings, 'user'),
+            'firstSuperUserSettingNames' => $this->getFirstSuperUserSettingNames($settings),
+            'mode' => 'user'
+        );
+
+        return $this->renderTemplate('pluginSettings', $vars);
+    }
+
+    private function getPluginSettings()
+    {
+        $pluginsSettings = SettingsManager::getPluginSettingsForCurrentUser();
+
+        ksort($pluginsSettings);
+
+        return $pluginsSettings;
+    }
+
     /**
      * @param \Piwik\Plugin\Settings[] $pluginsSettings
      * @return array   array([pluginName] => [])
@@ -207,22 +172,6 @@ class Controller extends ControllerAdmin
         }
 
         return $names;
-    }
-
-    public function userPluginSettings()
-    {
-        Piwik::checkUserIsNotAnonymous();
-
-        $settings = $this->getPluginSettings();
-
-        $vars = array(
-            'nonce'                      => Nonce::getNonce(static::SET_PLUGIN_SETTINGS_NONCE),
-            'pluginsSettings'            => $this->getSettingsByType($settings, 'user'),
-            'firstSuperUserSettingNames' => $this->getFirstSuperUserSettingNames($settings),
-            'mode' => 'user'
-        );
-
-        return $this->renderTemplate('pluginSettings', $vars);
     }
 
     public function setPluginSettings()
@@ -327,56 +276,6 @@ class Controller extends ControllerAdmin
         return $toReturn;
     }
 
-    private function saveGeneralSettings()
-    {
-        if (!self::isGeneralSettingsAdminEnabled()) {
-            // General settings + Beta channel + SMTP settings is disabled
-            return;
-        }
-
-        // General Setting
-        $enableBrowserTriggerArchiving = Common::getRequestVar('enableBrowserTriggerArchiving');
-        $todayArchiveTimeToLive = Common::getRequestVar('todayArchiveTimeToLive');
-        Rules::setBrowserTriggerArchiving((bool)$enableBrowserTriggerArchiving);
-        Rules::setTodayArchiveTimeToLive($todayArchiveTimeToLive);
-
-        $releaseChannels = $this->makeReleaseChannels();
-
-        // update beta channel setting
-        $releaseChannel = Common::getRequestVar('releaseChannel', '', 'string');
-        if (!$releaseChannels->isValidReleaseChannelId($releaseChannel)) {
-            $releaseChannel = '';
-        }
-        $releaseChannels->setActiveReleaseChannelId($releaseChannel);
-
-        // Update email settings
-        $mail = array();
-        $mail['transport'] = (Common::getRequestVar('mailUseSmtp') == '1') ? 'smtp' : '';
-        $mail['port'] = Common::getRequestVar('mailPort', '');
-        $mail['host'] = Common::unsanitizeInputValue(Common::getRequestVar('mailHost', ''));
-        $mail['type'] = Common::getRequestVar('mailType', '');
-        $mail['username'] = Common::unsanitizeInputValue(Common::getRequestVar('mailUsername', ''));
-        $mail['password'] = Common::unsanitizeInputValue(Common::getRequestVar('mailPassword', ''));
-        $mail['encryption'] = Common::getRequestVar('mailEncryption', '');
-
-        Config::getInstance()->mail = $mail;
-
-        // update trusted host settings
-        $trustedHosts = Common::getRequestVar('trustedHosts', false, 'json');
-        if ($trustedHosts !== false) {
-            Url::saveTrustedHostnameInConfig($trustedHosts);
-        }
-
-        Config::getInstance()->forceSave();
-
-        $pluginUpdateCommunication = new UpdateCommunication();
-        if (Common::getRequestVar('enablePluginUpdateCommunication', '0', 'int')) {
-            $pluginUpdateCommunication->enable();
-        } else {
-            $pluginUpdateCommunication->disable();
-        }
-    }
-
     /**
      * Renders and echo's an admin page that lets users generate custom JavaScript
      * tracking code and custom image tracker links.
@@ -384,7 +283,7 @@ class Controller extends ControllerAdmin
     public function trackingCodeGenerator()
     {
         Piwik::checkUserHasSomeViewAccess();
-
+        
         $view = new View('@CoreAdminHome/trackingCodeGenerator');
         $this->setBasicVariablesView($view);
         $view->topMenu  = MenuTop::getInstance()->getMenu();
@@ -440,6 +339,107 @@ class Controller extends ControllerAdmin
             return '1';
         }
         return '0';
+    }
+
+    public static function isGeneralSettingsAdminEnabled()
+    {
+        return (bool) Config::getInstance()->General['enable_general_settings_admin'];
+    }
+
+    private function makeReleaseChannels()
+    {
+        return StaticContainer::get('Piwik\Plugin\ReleaseChannels');
+    }
+
+    private function saveGeneralSettings()
+    {
+        if (!self::isGeneralSettingsAdminEnabled()) {
+            // General settings + Beta channel + SMTP settings is disabled
+            return;
+        }
+
+        // General Setting
+        $enableBrowserTriggerArchiving = Common::getRequestVar('enableBrowserTriggerArchiving');
+        $todayArchiveTimeToLive = Common::getRequestVar('todayArchiveTimeToLive');
+        Rules::setBrowserTriggerArchiving((bool)$enableBrowserTriggerArchiving);
+        Rules::setTodayArchiveTimeToLive($todayArchiveTimeToLive);
+
+        $releaseChannels = $this->makeReleaseChannels();
+
+        // update beta channel setting
+        $releaseChannel = Common::getRequestVar('releaseChannel', '', 'string');
+        if (!$releaseChannels->isValidReleaseChannelId($releaseChannel)) {
+            $releaseChannel = '';
+        }
+        $releaseChannels->setActiveReleaseChannelId($releaseChannel);
+
+        // Update email settings
+        $mail = array();
+        $mail['transport'] = (Common::getRequestVar('mailUseSmtp') == '1') ? 'smtp' : '';
+        $mail['port'] = Common::getRequestVar('mailPort', '');
+        $mail['host'] = Common::unsanitizeInputValue(Common::getRequestVar('mailHost', ''));
+        $mail['type'] = Common::getRequestVar('mailType', '');
+        $mail['username'] = Common::unsanitizeInputValue(Common::getRequestVar('mailUsername', ''));
+        $mail['password'] = Common::unsanitizeInputValue(Common::getRequestVar('mailPassword', ''));
+        $mail['encryption'] = Common::getRequestVar('mailEncryption', '');
+
+        Config::getInstance()->mail = $mail;
+
+        // update trusted host settings
+        $trustedHosts = Common::getRequestVar('trustedHosts', false, 'json');
+        if ($trustedHosts !== false) {
+            Url::saveTrustedHostnameInConfig($trustedHosts);
+        }
+
+        Config::getInstance()->forceSave();
+
+        $pluginUpdateCommunication = new UpdateCommunication();
+        if (Common::getRequestVar('enablePluginUpdateCommunication', '0', 'int')) {
+            $pluginUpdateCommunication->enable();
+        } else {
+            $pluginUpdateCommunication->disable();
+        }
+    }
+
+    private function handleGeneralSettingsAdmin($view)
+    {
+        // Whether to display or not the general settings (cron, beta, smtp)
+        $view->isGeneralSettingsAdminEnabled = self::isGeneralSettingsAdminEnabled();
+        if ($view->isGeneralSettingsAdminEnabled) {
+            $this->displayWarningIfConfigFileNotWritable();
+        }
+
+        $enableBrowserTriggerArchiving = Rules::isBrowserTriggerEnabled();
+        $todayArchiveTimeToLive = Rules::getTodayArchiveTimeToLive();
+        $showWarningCron = false;
+        if (!$enableBrowserTriggerArchiving
+            && $todayArchiveTimeToLive < 3600
+        ) {
+            $showWarningCron = true;
+        }
+        $view->showWarningCron = $showWarningCron;
+        $view->todayArchiveTimeToLive = $todayArchiveTimeToLive;
+        $view->todayArchiveTimeToLiveDefault = Rules::getTodayArchiveTimeToLiveDefault();
+        $view->enableBrowserTriggerArchiving = $enableBrowserTriggerArchiving;
+
+        $releaseChannels = $this->makeReleaseChannels();
+        $activeChannelId = $releaseChannels->getActiveReleaseChannel()->getId();
+        $allChannels = array();
+        foreach ($releaseChannels->getAllReleaseChannels() as $channel) {
+            $allChannels[] = array(
+                'id'   => $channel->getId(),
+                'name' => $channel->getName(),
+                'description' => $channel->getDescription(),
+                'active' => $channel->getId() === $activeChannelId
+            );
+        }
+
+        $view->releaseChannels = $allChannels;
+        $view->mail = Config::getInstance()->mail;
+
+        $pluginUpdateCommunication = new UpdateCommunication();
+        $view->canUpdateCommunication              = $pluginUpdateCommunication->canBeEnabled();
+        $view->enableSendPluginUpdateCommunication = $pluginUpdateCommunication->isEnabled();
     }
 
 }

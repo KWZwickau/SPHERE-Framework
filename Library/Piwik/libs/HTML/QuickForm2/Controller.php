@@ -120,6 +120,24 @@ class HTML_QuickForm2_Controller implements IteratorAggregate
     protected $sessionContainer = null;
 
    /**
+    * Finds a controller name in $_REQUEST
+    *
+    * @return string|null   Returns nulle if either a KEY_ID is not present
+    *                       in $_REQUEST or KEY_CONTAINER is not present in
+    *                       $_SESSION
+    */
+    public static function findControllerID()
+    {
+        if (empty($_REQUEST[self::KEY_ID])
+            || empty($_SESSION[sprintf(self::KEY_CONTAINER, $_REQUEST[self::KEY_ID])])
+        ) {
+            return null;
+        } else {
+            return $_REQUEST[self::KEY_ID];
+        }
+    }
+
+   /**
     * Class constructor
     *
     * Sets the form ID, whether to send this ID in POST and GET parameters,
@@ -156,21 +174,13 @@ class HTML_QuickForm2_Controller implements IteratorAggregate
     }
 
    /**
-    * Finds a controller name in $_REQUEST
+    * Returns whether the form is a wizard
     *
-    * @return string|null   Returns nulle if either a KEY_ID is not present
-    *                       in $_REQUEST or KEY_CONTAINER is not present in
-    *                       $_SESSION
+    * @return   boolean
     */
-    public static function findControllerID()
+    public function isWizard()
     {
-        if (empty($_REQUEST[self::KEY_ID])
-            || empty($_SESSION[sprintf(self::KEY_CONTAINER, $_REQUEST[self::KEY_ID])])
-        ) {
-            return null;
-        } else {
-            return $_REQUEST[self::KEY_ID];
-        }
+        return $this->wizard;
     }
 
    /**
@@ -194,26 +204,25 @@ class HTML_QuickForm2_Controller implements IteratorAggregate
     }
 
    /**
+    * Returns the session container with the controller data
+    *
+    * @return   HTML_QuickForm2_Controller_SessionContainer
+    */
+    public function getSessionContainer()
+    {
+        if (empty($this->sessionContainer)) {
+            $this->sessionContainer = new HTML_QuickForm2_Controller_SessionContainer($this);
+        }
+        return $this->sessionContainer;
+    }
+
+   /**
     * Removes the session variable containing the controller data
     */
     public function destroySessionContainer()
     {
         unset($_SESSION[sprintf(self::KEY_CONTAINER, $this->id)]);
         $this->sessionContainer = null;
-    }
-
-   /**
-    * Processes the request
-    *
-    * This finds the page, the action to perform with it and passes the action
-    * to the page's handle() method.
-    *
-    * @throws HTML_QuickForm2_Exception
-    */
-    public function run()
-    {
-        list($page, $action) = $this->getActionName();
-        return $this->pages[$page]->handle($action);
     }
 
    /**
@@ -245,6 +254,31 @@ class HTML_QuickForm2_Controller implements IteratorAggregate
     }
 
    /**
+    * Processes the request
+    *
+    * This finds the page, the action to perform with it and passes the action
+    * to the page's handle() method.
+    *
+    * @throws HTML_QuickForm2_Exception
+    */
+    public function run()
+    {
+        list($page, $action) = $this->getActionName();
+        return $this->pages[$page]->handle($action);
+    }
+
+   /**
+    * Adds a handler for a specific action
+    *
+    * @param  string                            action name
+    * @param  HTML_QuickForm2_Controller_Action the handler for the action
+    */
+    public function addHandler($actionName, HTML_QuickForm2_Controller_Action $action)
+    {
+        $this->handlers[$actionName] = $action;
+    }
+
+   /**
     * Handles an action
     *
     * This will be called if the page itself does not have a handler for a
@@ -273,17 +307,6 @@ class HTML_QuickForm2_Controller implements IteratorAggregate
                 "Unhandled action '{$actionName}' for page '{$page->getForm()->getId()}'"
             );
         }
-    }
-
-   /**
-    * Adds a handler for a specific action
-    *
-    * @param  string                            action name
-    * @param  HTML_QuickForm2_Controller_Action the handler for the action
-    */
-    public function addHandler($actionName, HTML_QuickForm2_Controller_Action $action)
-    {
-        $this->handlers[$actionName] = $action;
     }
 
    /**
@@ -393,29 +416,6 @@ class HTML_QuickForm2_Controller implements IteratorAggregate
             }
         }
         return true;
-    }
-
-   /**
-    * Returns the session container with the controller data
-    *
-    * @return   HTML_QuickForm2_Controller_SessionContainer
-    */
-    public function getSessionContainer()
-    {
-        if (empty($this->sessionContainer)) {
-            $this->sessionContainer = new HTML_QuickForm2_Controller_SessionContainer($this);
-        }
-        return $this->sessionContainer;
-    }
-
-   /**
-    * Returns whether the form is a wizard
-    *
-    * @return   boolean
-    */
-    public function isWizard()
-    {
-        return $this->wizard;
     }
 
    /**

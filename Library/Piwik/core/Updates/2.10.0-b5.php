@@ -13,9 +13,9 @@ use Piwik\Common;
 use Piwik\DataAccess\ArchiveTableCreator;
 use Piwik\DataTable;
 use Piwik\Db;
-use Piwik\Plugins\Dashboard\Model as DashboardModel;
 use Piwik\Updater;
 use Piwik\Updates;
+use Piwik\Plugins\Dashboard\Model as DashboardModel;
 
 /**
  * This Update script will update all browser and os archives of UserSettings and DevicesDetection plugin
@@ -42,19 +42,6 @@ use Piwik\Updates;
 class Updates_2_10_0_b5 extends Updates
 {
     public static $archiveBlobTables;
-
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-
-        // DeviceDetection upgrade in beta1 timed out on demo #6750
-        $archiveBlobTables = self::getAllArchiveBlobTables();
-
-        foreach ($archiveBlobTables as $table) {
-            self::updateBrowserArchives($table);
-            self::updateOsArchives($table);
-        }
-    }
 
     public function getMigrationQueries(Updater $updater)
     {
@@ -112,6 +99,19 @@ class Updates_2_10_0_b5 extends Updates
         return $sqls;
     }
 
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
+
+        // DeviceDetection upgrade in beta1 timed out on demo #6750
+        $archiveBlobTables = self::getAllArchiveBlobTables();
+
+        foreach ($archiveBlobTables as $table) {
+            self::updateBrowserArchives($table);
+            self::updateOsArchives($table);
+        }
+    }
+
     /**
      * Returns all available archive blob tables
      *
@@ -131,31 +131,6 @@ class Updates_2_10_0_b5 extends Updates
         }
 
         return (array) self::$archiveBlobTables;
-    }
-
-    /**
-     * Updates all browser archives to new structure
-     * @param string $table
-     * @throws \Exception
-     */
-    public static function updateBrowserArchives($table)
-    {
-        // rename old UserSettings archives where no DeviceDetection archives exists
-        Db::exec(sprintf("UPDATE IGNORE %s SET name='DevicesDetection_browserVersions' WHERE name = 'UserSettings_browser'", $table));
-
-        /*
-         * check dates of remaining (non-day) archives with calculated safe date
-         * archives before or within that week/month/year of that date will be replaced
-         */
-        $oldBrowserBlobs = Db::get()->fetchAll(sprintf("SELECT * FROM %s WHERE name = 'UserSettings_browser' AND `period` > 1", $table));
-        foreach ($oldBrowserBlobs as $blob) {
-
-            // if start date of blob is before calculated date us old usersettings archive instead of already existing DevicesDetection archive
-            if (strtotime($blob['date1']) < self::getFirstDayOfArchivedDeviceDetectorData()) {
-                Db::get()->query(sprintf("DELETE FROM %s WHERE idarchive = ? AND name = ?", $table), array($blob['idarchive'], 'DevicesDetection_browserVersions'));
-                Db::get()->query(sprintf("UPDATE %s SET name = ? WHERE idarchive = ? AND name = ?", $table), array('DevicesDetection_browserVersions', $blob['idarchive'], 'UserSettings_browser'));
-            }
-        }
     }
 
     /**
@@ -185,6 +160,31 @@ class Updates_2_10_0_b5 extends Updates
         }
 
         return $deviceDetectionBlobAvailableDate;
+    }
+
+    /**
+     * Updates all browser archives to new structure
+     * @param string $table
+     * @throws \Exception
+     */
+    public static function updateBrowserArchives($table)
+    {
+        // rename old UserSettings archives where no DeviceDetection archives exists
+        Db::exec(sprintf("UPDATE IGNORE %s SET name='DevicesDetection_browserVersions' WHERE name = 'UserSettings_browser'", $table));
+
+        /*
+         * check dates of remaining (non-day) archives with calculated safe date
+         * archives before or within that week/month/year of that date will be replaced
+         */
+        $oldBrowserBlobs = Db::get()->fetchAll(sprintf("SELECT * FROM %s WHERE name = 'UserSettings_browser' AND `period` > 1", $table));
+        foreach ($oldBrowserBlobs as $blob) {
+
+            // if start date of blob is before calculated date us old usersettings archive instead of already existing DevicesDetection archive
+            if (strtotime($blob['date1']) < self::getFirstDayOfArchivedDeviceDetectorData()) {
+                Db::get()->query(sprintf("DELETE FROM %s WHERE idarchive = ? AND name = ?", $table), array($blob['idarchive'], 'DevicesDetection_browserVersions'));
+                Db::get()->query(sprintf("UPDATE %s SET name = ? WHERE idarchive = ? AND name = ?", $table), array('DevicesDetection_browserVersions', $blob['idarchive'], 'UserSettings_browser'));
+            }
+        }
     }
 
     public static function updateOsArchives($table)

@@ -41,48 +41,9 @@ abstract class ReportRenderer extends BaseFactory
         self::CSV_FORMAT,
     );
 
-    public static function getStaticGraph($reportMetadata, $width, $height, $evolution, $segment)
-    {
-        $imageGraphUrl = $reportMetadata['imageGraphUrl'];
-
-        if ($evolution && !empty($reportMetadata['imageGraphEvolutionUrl'])) {
-            $imageGraphUrl = $reportMetadata['imageGraphEvolutionUrl'];
-        }
-
-        $requestGraph = $imageGraphUrl .
-            '&outputType=' . API::GRAPH_OUTPUT_PHP .
-            '&format=original&serialize=0' .
-            '&filter_truncate=' .
-            '&width=' . $width .
-            '&height=' . $height .
-            ($segment != null ? '&segment=' . urlencode($segment['definition']) : '');
-
-        $request = new Request($requestGraph);
-
-        try {
-            $imageGraph = $request->process();
-
-            // Get image data as string
-            ob_start();
-            imagepng($imageGraph);
-            $imageGraphData = ob_get_contents();
-            ob_end_clean();
-            imagedestroy($imageGraph);
-
-            return $imageGraphData;
-        } catch (Exception $e) {
-            throw new Exception("ImageGraph API returned an error: " . $e->getMessage() . "\n");
-        }
-    }
-
     protected static function getClassNameFromClassId($rendererType)
     {
         return 'Piwik\ReportRenderer\\' . self::normalizeRendererType($rendererType);
-    }
-
-    protected static function normalizeRendererType($rendererType)
-    {
-        return ucfirst(strtolower($rendererType));
     }
 
     protected static function getInvalidClassIdExceptionMessage($rendererType)
@@ -93,108 +54,9 @@ abstract class ReportRenderer extends BaseFactory
         );
     }
 
-    protected static function writeFile($filename, $extension, $content)
+    protected static function normalizeRendererType($rendererType)
     {
-        $filename = self::makeFilenameWithExtension($filename, $extension);
-        $outputFilename = self::getOutputPath($filename);
-
-        $bytesWritten = file_put_contents($outputFilename, $content);
-        if ($bytesWritten === false) {
-            throw new Exception("ReportRenderer: Could not write to file '" . $outputFilename . "'.");
-        }
-
-        return $outputFilename;
-    }
-
-    /**
-     * Append $extension to $filename
-     *
-     * @static
-     * @param  string $filename
-     * @param  string $extension
-     * @return string  filename with extension
-     */
-    protected static function makeFilenameWithExtension($filename, $extension)
-    {
-        // the filename can be used in HTTP headers, remove new lines to prevent HTTP header injection
-        $filename = str_replace(array("\n", "\t"), " ", $filename);
-
-        return $filename . "." . $extension;
-    }
-
-    /**
-     * Return $filename with temp directory and delete file
-     *
-     * @static
-     * @param  $filename
-     * @return string path of file in temp directory
-     */
-    protected static function getOutputPath($filename)
-    {
-        $outputFilename = StaticContainer::get('path.tmp') . '/assets/' . $filename;
-
-        @chmod($outputFilename, 0600);
-
-        if(file_exists($outputFilename)){
-            @unlink($outputFilename);
-        }
-
-        return $outputFilename;
-    }
-
-    protected static function sendToBrowser($filename, $extension, $contentType, $content)
-    {
-        $filename = ReportRenderer::makeFilenameWithExtension($filename, $extension);
-
-        ProxyHttp::overrideCacheControlHeaders();
-        Common::sendHeader('Content-Description: File Transfer');
-        Common::sendHeader('Content-Type: ' . $contentType);
-        Common::sendHeader('Content-Disposition: attachment; filename="' . str_replace('"', '\'', basename($filename)) . '";');
-        Common::sendHeader('Content-Length: ' . strlen($content));
-
-        echo $content;
-    }
-
-    protected static function inlineToBrowser($contentType, $content)
-    {
-        Common::sendHeader('Content-Type: ' . $contentType);
-        echo $content;
-    }
-
-    /**
-     * Convert a dimension-less report to a multi-row two-column data table
-     *
-     * @static
-     * @param  $reportMetadata array
-     * @param  $report DataTable
-     * @param  $reportColumns array
-     * @return array DataTable $report & array $columns
-     */
-    protected static function processTableFormat($reportMetadata, $report, $reportColumns)
-    {
-        $finalReport = $report;
-        if (empty($reportMetadata['dimension'])) {
-            $simpleReportMetrics = $report->getFirstRow();
-            if ($simpleReportMetrics) {
-                $finalReport = new Simple();
-                foreach ($simpleReportMetrics->getColumns() as $metricId => $metric) {
-                    $newRow = new Row();
-                    $newRow->addColumn("label", $reportColumns[$metricId]);
-                    $newRow->addColumn("value", $metric);
-                    $finalReport->addRow($newRow);
-                }
-            }
-
-            $reportColumns = array(
-                'label' => Piwik::translate('General_Name'),
-                'value' => Piwik::translate('General_Value'),
-            );
-        }
-
-        return array(
-            $finalReport,
-            $reportColumns,
-        );
+        return ucfirst(strtolower($rendererType));
     }
 
     /**
@@ -260,4 +122,142 @@ abstract class ReportRenderer extends BaseFactory
      * @return array
      */
     abstract public function getAttachments($report, $processedReports, $prettyDate);
+
+    /**
+     * Append $extension to $filename
+     *
+     * @static
+     * @param  string $filename
+     * @param  string $extension
+     * @return string  filename with extension
+     */
+    protected static function makeFilenameWithExtension($filename, $extension)
+    {
+        // the filename can be used in HTTP headers, remove new lines to prevent HTTP header injection
+        $filename = str_replace(array("\n", "\t"), " ", $filename);
+
+        return $filename . "." . $extension;
+    }
+
+    /**
+     * Return $filename with temp directory and delete file
+     *
+     * @static
+     * @param  $filename
+     * @return string path of file in temp directory
+     */
+    protected static function getOutputPath($filename)
+    {
+        $outputFilename = StaticContainer::get('path.tmp') . '/assets/' . $filename;
+
+        @chmod($outputFilename, 0600);
+        
+        if(file_exists($outputFilename)){
+            @unlink($outputFilename);
+        }
+        
+        return $outputFilename;
+    }
+
+    protected static function writeFile($filename, $extension, $content)
+    {
+        $filename = self::makeFilenameWithExtension($filename, $extension);
+        $outputFilename = self::getOutputPath($filename);
+
+        $bytesWritten = file_put_contents($outputFilename, $content);
+        if ($bytesWritten === false) {
+            throw new Exception("ReportRenderer: Could not write to file '" . $outputFilename . "'.");
+        }
+
+        return $outputFilename;
+    }
+
+    protected static function sendToBrowser($filename, $extension, $contentType, $content)
+    {
+        $filename = ReportRenderer::makeFilenameWithExtension($filename, $extension);
+
+        ProxyHttp::overrideCacheControlHeaders();
+        Common::sendHeader('Content-Description: File Transfer');
+        Common::sendHeader('Content-Type: ' . $contentType);
+        Common::sendHeader('Content-Disposition: attachment; filename="' . str_replace('"', '\'', basename($filename)) . '";');
+        Common::sendHeader('Content-Length: ' . strlen($content));
+
+        echo $content;
+    }
+
+    protected static function inlineToBrowser($contentType, $content)
+    {
+        Common::sendHeader('Content-Type: ' . $contentType);
+        echo $content;
+    }
+
+    /**
+     * Convert a dimension-less report to a multi-row two-column data table
+     *
+     * @static
+     * @param  $reportMetadata array
+     * @param  $report DataTable
+     * @param  $reportColumns array
+     * @return array DataTable $report & array $columns
+     */
+    protected static function processTableFormat($reportMetadata, $report, $reportColumns)
+    {
+        $finalReport = $report;
+        if (empty($reportMetadata['dimension'])) {
+            $simpleReportMetrics = $report->getFirstRow();
+            if ($simpleReportMetrics) {
+                $finalReport = new Simple();
+                foreach ($simpleReportMetrics->getColumns() as $metricId => $metric) {
+                    $newRow = new Row();
+                    $newRow->addColumn("label", $reportColumns[$metricId]);
+                    $newRow->addColumn("value", $metric);
+                    $finalReport->addRow($newRow);
+                }
+            }
+
+            $reportColumns = array(
+                'label' => Piwik::translate('General_Name'),
+                'value' => Piwik::translate('General_Value'),
+            );
+        }
+
+        return array(
+            $finalReport,
+            $reportColumns,
+        );
+    }
+
+    public static function getStaticGraph($reportMetadata, $width, $height, $evolution, $segment)
+    {
+        $imageGraphUrl = $reportMetadata['imageGraphUrl'];
+
+        if ($evolution && !empty($reportMetadata['imageGraphEvolutionUrl'])) {
+            $imageGraphUrl = $reportMetadata['imageGraphEvolutionUrl'];
+        }
+
+        $requestGraph = $imageGraphUrl .
+            '&outputType=' . API::GRAPH_OUTPUT_PHP .
+            '&format=original&serialize=0' .
+            '&filter_truncate=' .
+            '&width=' . $width .
+            '&height=' . $height .
+            ($segment != null ? '&segment=' . urlencode($segment['definition']) : '');
+
+        $request = new Request($requestGraph);
+
+        try {
+            $imageGraph = $request->process();
+
+            // Get image data as string
+            ob_start();
+            imagepng($imageGraph);
+            $imageGraphData = ob_get_contents();
+            ob_end_clean();
+            imagedestroy($imageGraph);
+
+            return $imageGraphData;
+        } catch (Exception $e) {
+            throw new Exception("ImageGraph API returned an error: " . $e->getMessage() . "\n");
+        }
+    }
 }

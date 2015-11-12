@@ -18,6 +18,11 @@ use Piwik\Plugins\CoreVisualizations\Visualizations\Graph;
  */
 class GetReportDataSummary extends Base
 {
+    protected function init()
+    {
+        $this->name = Piwik::translate('DBStats_ReportTables');
+    }
+
     public function configureView(ViewDataTable $view)
     {
         $this->addBaseDisplayProperties($view);
@@ -31,10 +36,5 @@ class GetReportDataSummary extends Base
         return array(
             self::factory('DBStats', 'getReportDataSummaryByYear'),
         );
-    }
-
-    protected function init()
-    {
-        $this->name = Piwik::translate('DBStats_ReportTables');
     }
 }

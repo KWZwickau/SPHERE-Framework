@@ -30,6 +30,31 @@ class Dashboard extends \Piwik\Plugin
         );
     }
 
+    /**
+     * Returns the layout in the DB for the given user, or false if the layout has not been set yet.
+     * Parameters must be checked BEFORE this function call
+     *
+     * @param string $login
+     * @param int $idDashboard
+     *
+     * @return bool|string
+     */
+    public function getLayoutForUser($login, $idDashboard)
+    {
+        $return = $this->getModel()->getLayoutForUser($login, $idDashboard);
+
+        if (count($return) == 0) {
+            return false;
+        }
+
+        return $return[0]['layout'];
+    }
+
+    private function getModel()
+    {
+        return new Model();
+    }
+
     public function getDefaultLayout()
     {
         $defaultLayout = $this->getLayoutForUser('', 1);
@@ -80,29 +105,38 @@ class Dashboard extends \Piwik\Plugin
         return $defaultLayout;
     }
 
-    /**
-     * Returns the layout in the DB for the given user, or false if the layout has not been set yet.
-     * Parameters must be checked BEFORE this function call
-     *
-     * @param string $login
-     * @param int $idDashboard
-     *
-     * @return bool|string
-     */
-    public function getLayoutForUser($login, $idDashboard)
+    public function getAllDashboards($login)
     {
-        $return = $this->getModel()->getLayoutForUser($login, $idDashboard);
+        $dashboards = $this->getModel()->getAllDashboardsForUser($login);
 
-        if (count($return) == 0) {
-            return false;
+        $nameless = 1;
+        foreach ($dashboards as &$dashboard) {
+
+            if (empty($dashboard['name'])) {
+                $dashboard['name'] = Piwik::translate('Dashboard_DashboardOf', $login);
+                if ($nameless > 1) {
+                    $dashboard['name'] .= " ($nameless)";
+                }
+
+                $nameless++;
+            }
+
+            $dashboard['name'] = Common::unsanitizeInputValue($dashboard['name']);
+
+            $layout = '[]';
+            if (!empty($dashboard['layout'])) {
+                $layout = $dashboard['layout'];
+            }
+
+            $dashboard['layout'] = $this->decodeLayout($layout);
         }
 
-        return $return[0]['layout'];
+        return $dashboards;
     }
 
-    private function getModel()
+    private function isAlreadyDecodedLayout($layout)
     {
-        return new Model();
+        return !is_string($layout);
     }
 
     public function removeDisabledPluginFromLayout($layout)
@@ -161,43 +195,9 @@ class Dashboard extends \Piwik\Plugin
         return json_decode($layout, $assoc = false);
     }
 
-    private function isAlreadyDecodedLayout($layout)
-    {
-        return !is_string($layout);
-    }
-
     public function encodeLayout($layout)
     {
         return json_encode($layout);
-    }
-
-    public function getAllDashboards($login)
-    {
-        $dashboards = $this->getModel()->getAllDashboardsForUser($login);
-
-        $nameless = 1;
-        foreach ($dashboards as &$dashboard) {
-
-            if (empty($dashboard['name'])) {
-                $dashboard['name'] = Piwik::translate('Dashboard_DashboardOf', $login);
-                if ($nameless > 1) {
-                    $dashboard['name'] .= " ($nameless)";
-                }
-
-                $nameless++;
-            }
-
-            $dashboard['name'] = Common::unsanitizeInputValue($dashboard['name']);
-
-            $layout = '[]';
-            if (!empty($dashboard['layout'])) {
-                $layout = $dashboard['layout'];
-            }
-
-            $dashboard['layout'] = $this->decodeLayout($layout);
-        }
-
-        return $dashboards;
     }
 
     public function getJsFiles(&$jsFiles)

@@ -31,26 +31,16 @@ class Model
         $this->scope = $scope;
     }
 
-    public static function getScopes()
+    public function getScopeName()
     {
-        return array(self::SCOPE_PAGE, self::SCOPE_VISIT, self::SCOPE_CONVERSION);
-    }
-
-    public static function install()
-    {
-        foreach (self::getScopes() as $scope) {
-            $model = new Model($scope);
-
-            try {
-                $maxCustomVars   = self::DEFAULT_CUSTOM_VAR_COUNT;
-                $customVarsToAdd = $maxCustomVars - $model->getCurrentNumCustomVars();
-
-                for ($index = 0; $index < $customVarsToAdd; $index++) {
-                    $model->addCustomVariable();
-                }
-            } catch (\Exception $e) {
-                Log::error('Failed to add custom variable: ' . $e->getMessage());
-            }
+        // actually we should have a class for each scope but don't want to overengineer it for now
+        switch ($this->scope) {
+            case self::SCOPE_PAGE:
+                return 'Page';
+            case self::SCOPE_VISIT:
+                return 'Visit';
+            case self::SCOPE_CONVERSION:
+                return 'Conversion';
         }
     }
 
@@ -63,6 +53,30 @@ class Model
         $indexes = $this->getCustomVarIndexes();
 
         return count($indexes);
+    }
+
+    /**
+     * result of getHighestCustomVarIndex() can be different to getCurrentNumCustomVars() in case there are some missing
+     * custom variable indexes. For instance in case of manual changes on the DB
+     *
+     * custom_var_v1
+     * custom_var_v2
+     * custom_var_v4
+     *
+     * getHighestCustomVarIndex() -> returns 4
+     * getCurrentNumCustomVars() -> returns 3
+     *
+     * @return int
+     */
+    public function getHighestCustomVarIndex()
+    {
+        $indexes = $this->getCustomVarIndexes();
+
+        if (empty($indexes)) {
+            return 0;
+        }
+
+        return max($indexes);
     }
 
     public function getCustomVarIndexes()
@@ -92,68 +106,6 @@ class Model
         return $customVarColumns;
     }
 
-    private function getDbTableName()
-    {
-        return Common::prefixTable($this->scope);
-    }
-
-    public static function getCustomVariableIndexFromFieldName($fieldName)
-    {
-        $onlyNumber = str_replace(array('custom_var_k', 'custom_var_v'), '', $fieldName);
-
-        if (is_numeric($onlyNumber)) {
-            return (int) $onlyNumber;
-        }
-    }
-
-    public function addCustomVariable()
-    {
-        $dbTable = $this->getDbTableName();
-        $index   = $this->getHighestCustomVarIndex() + 1;
-        $maxLen  = CustomVariables::getMaxLengthCustomVariables();
-
-        Db::exec(sprintf('ALTER TABLE %s ', $dbTable)
-               . sprintf('ADD COLUMN custom_var_k%d VARCHAR(%d) DEFAULT NULL,', $index, $maxLen)
-               . sprintf('ADD COLUMN custom_var_v%d VARCHAR(%d) DEFAULT NULL;', $index, $maxLen));
-
-        return $index;
-    }
-
-    /**
-     * result of getHighestCustomVarIndex() can be different to getCurrentNumCustomVars() in case there are some missing
-     * custom variable indexes. For instance in case of manual changes on the DB
-     *
-     * custom_var_v1
-     * custom_var_v2
-     * custom_var_v4
-     *
-     * getHighestCustomVarIndex() -> returns 4
-     * getCurrentNumCustomVars() -> returns 3
-     *
-     * @return int
-     */
-    public function getHighestCustomVarIndex()
-    {
-        $indexes = $this->getCustomVarIndexes();
-
-        if (empty($indexes)) {
-            return 0;
-        }
-
-        return max($indexes);
-    }
-
-    public static function uninstall()
-    {
-        foreach (self::getScopes() as $scope) {
-            $model = new Model($scope);
-
-            while ($model->getHighestCustomVarIndex()) {
-                $model->removeCustomVariable();
-            }
-        }
-    }
-
     public function removeCustomVariable()
     {
         $dbTable = $this->getDbTableName();
@@ -170,16 +122,64 @@ class Model
         return $index;
     }
 
-    public function getScopeName()
+    public function addCustomVariable()
     {
-        // actually we should have a class for each scope but don't want to overengineer it for now
-        switch ($this->scope) {
-            case self::SCOPE_PAGE:
-                return 'Page';
-            case self::SCOPE_VISIT:
-                return 'Visit';
-            case self::SCOPE_CONVERSION:
-                return 'Conversion';
+        $dbTable = $this->getDbTableName();
+        $index   = $this->getHighestCustomVarIndex() + 1;
+        $maxLen  = CustomVariables::getMaxLengthCustomVariables();
+
+        Db::exec(sprintf('ALTER TABLE %s ', $dbTable)
+               . sprintf('ADD COLUMN custom_var_k%d VARCHAR(%d) DEFAULT NULL,', $index, $maxLen)
+               . sprintf('ADD COLUMN custom_var_v%d VARCHAR(%d) DEFAULT NULL;', $index, $maxLen));
+
+        return $index;
+    }
+
+    private function getDbTableName()
+    {
+        return Common::prefixTable($this->scope);
+    }
+
+    public static function getCustomVariableIndexFromFieldName($fieldName)
+    {
+        $onlyNumber = str_replace(array('custom_var_k', 'custom_var_v'), '', $fieldName);
+
+        if (is_numeric($onlyNumber)) {
+            return (int) $onlyNumber;
+        }
+    }
+
+    public static function getScopes()
+    {
+        return array(self::SCOPE_PAGE, self::SCOPE_VISIT, self::SCOPE_CONVERSION);
+    }
+
+    public static function install()
+    {
+        foreach (self::getScopes() as $scope) {
+            $model = new Model($scope);
+
+            try {
+                $maxCustomVars   = self::DEFAULT_CUSTOM_VAR_COUNT;
+                $customVarsToAdd = $maxCustomVars - $model->getCurrentNumCustomVars();
+
+                for ($index = 0; $index < $customVarsToAdd; $index++) {
+                    $model->addCustomVariable();
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to add custom variable: ' . $e->getMessage());
+            }
+        }
+    }
+
+    public static function uninstall()
+    {
+        foreach (self::getScopes() as $scope) {
+            $model = new Model($scope);
+
+            while ($model->getHighestCustomVarIndex()) {
+                $model->removeCustomVariable();
+            }
         }
     }
 

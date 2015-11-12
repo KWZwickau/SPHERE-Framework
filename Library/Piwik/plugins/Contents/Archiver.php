@@ -37,6 +37,14 @@ class Archiver extends \Piwik\Plugin\Archiver
         $this->maximumRowsInSubDataTable      = ArchivingHelper::$maximumRowsInSubDataTable;
     }
 
+    private function getRecordToDimensions()
+    {
+        return array(
+            self::CONTENTS_PIECE_NAME_RECORD_NAME => array('contentPiece', 'contentName'),
+            self::CONTENTS_NAME_PIECE_RECORD_NAME => array('contentName', 'contentPiece')
+        );
+    }
+
     public function aggregateMultipleReports()
     {
         $dataTableToSum = $this->getRecordNames();
@@ -55,14 +63,6 @@ class Archiver extends \Piwik\Plugin\Archiver
     {
         $mapping = $this->getRecordToDimensions();
         return array_keys($mapping);
-    }
-
-    private function getRecordToDimensions()
-    {
-        return array(
-            self::CONTENTS_PIECE_NAME_RECORD_NAME => array('contentPiece', 'contentName'),
-            self::CONTENTS_NAME_PIECE_RECORD_NAME => array('contentName', 'contentPiece')
-        );
     }
 
     public function aggregateDayReport()
@@ -132,86 +132,6 @@ class Archiver extends \Piwik\Plugin\Archiver
         }
     }
 
-    private function archiveDayQueryProcess($select, $from, $where, $groupBy, $orderBy, RankingQuery $rankingQuery)
-    {
-        // get query with segmentation
-        $query = $this->getLogAggregator()->generateQuery($select, $from, $where, $groupBy, $orderBy);
-
-        // apply ranking query
-        if ($rankingQuery) {
-            $query['sql'] = $rankingQuery->generateRankingQuery($query['sql']);
-        }
-
-        // get result
-        $resultSet = $this->getLogAggregator()->getDb()->query($query['sql'], $query['bind']);
-
-        if ($resultSet === false) {
-            return;
-        }
-
-        return $resultSet;
-    }
-
-    private function aggregateImpressionRow($row)
-    {
-        foreach ($this->getRecordToDimensions() as $record => $dimensions) {
-            $dataArray = $this->getDataArray($record);
-
-            $mainDimension = $dimensions[0];
-            $mainLabel     = $row[$mainDimension];
-
-            // content piece is optional
-            if ($mainDimension == 'contentPiece'
-                && empty($mainLabel)) {
-                $mainLabel = self::CONTENT_PIECE_NOT_SET;
-            }
-
-            $dataArray->sumMetricsImpressions($mainLabel, $row);
-            $this->rememberMetadataForRow($row, $mainLabel);
-
-            $subDimension = $dimensions[1];
-            $subLabel     = $row[$subDimension];
-
-            if (empty($subLabel)) {
-                continue;
-            }
-
-            // content piece is optional
-            if ($subDimension == 'contentPiece'
-                && empty($subLabel)) {
-                $subLabel = self::CONTENT_PIECE_NOT_SET;
-            }
-
-            $dataArray->sumMetricsContentsImpressionPivot($mainLabel, $subLabel, $row);
-        }
-    }
-
-    /**
-     * @param string $name
-     * @return DataArray
-     */
-    private function getDataArray($name)
-    {
-        if (empty($this->arrays[$name])) {
-            $this->arrays[$name] = new DataArray();
-        }
-
-        return $this->arrays[$name];
-    }
-
-    private function rememberMetadataForRow($row, $mainLabel)
-    {
-        $this->metadata[$mainLabel] = array();
-
-        $target = $row['contentTarget'];
-        if (empty($target)) {
-            $target = Archiver::CONTENT_TARGET_NOT_SET;
-        }
-
-        // there can be many different targets
-        $this->metadata[$mainLabel]['contentTarget'] = $target;
-    }
-
     private function aggregateDayInteractions()
     {
         $select = "
@@ -269,25 +189,24 @@ class Archiver extends \Piwik\Plugin\Archiver
         }
     }
 
-    private function aggregateInteractionRow($row)
+    private function archiveDayQueryProcess($select, $from, $where, $groupBy, $orderBy, RankingQuery $rankingQuery)
     {
-        foreach ($this->getRecordToDimensions() as $record => $dimensions) {
-            $dataArray = $this->getDataArray($record);
+        // get query with segmentation
+        $query = $this->getLogAggregator()->generateQuery($select, $from, $where, $groupBy, $orderBy);
 
-            $mainDimension = $dimensions[0];
-            $mainLabel     = $row[$mainDimension];
-
-            $dataArray->sumMetricsInteractions($mainLabel, $row);
-
-            $subDimension = $dimensions[1];
-            $subLabel     = $row[$subDimension];
-
-            if (empty($subLabel)) {
-                continue;
-            }
-
-            $dataArray->sumMetricsContentsInteractionPivot($mainLabel, $subLabel, $row);
+        // apply ranking query
+        if ($rankingQuery) {
+            $query['sql'] = $rankingQuery->generateRankingQuery($query['sql']);
         }
+
+        // get result
+        $resultSet = $this->getLogAggregator()->getDb()->query($query['sql'], $query['bind']);
+
+        if ($resultSet === false) {
+            return;
+        }
+
+        return $resultSet;
     }
 
     /**
@@ -315,6 +234,87 @@ class Archiver extends \Piwik\Plugin\Archiver
                 $this->columnToSortByBeforeTruncation);
             $this->getProcessor()->insertBlobRecord($recordName, $blob);
         }
+    }
+
+    /**
+     * @param string $name
+     * @return DataArray
+     */
+    private function getDataArray($name)
+    {
+        if (empty($this->arrays[$name])) {
+            $this->arrays[$name] = new DataArray();
+        }
+
+        return $this->arrays[$name];
+    }
+
+    private function aggregateImpressionRow($row)
+    {
+        foreach ($this->getRecordToDimensions() as $record => $dimensions) {
+            $dataArray = $this->getDataArray($record);
+
+            $mainDimension = $dimensions[0];
+            $mainLabel     = $row[$mainDimension];
+
+            // content piece is optional
+            if ($mainDimension == 'contentPiece'
+                && empty($mainLabel)) {
+                $mainLabel = self::CONTENT_PIECE_NOT_SET;
+            }
+
+            $dataArray->sumMetricsImpressions($mainLabel, $row);
+            $this->rememberMetadataForRow($row, $mainLabel);
+
+            $subDimension = $dimensions[1];
+            $subLabel     = $row[$subDimension];
+
+            if (empty($subLabel)) {
+                continue;
+            }
+
+            // content piece is optional
+            if ($subDimension == 'contentPiece'
+                && empty($subLabel)) {
+                $subLabel = self::CONTENT_PIECE_NOT_SET;
+            }
+
+            $dataArray->sumMetricsContentsImpressionPivot($mainLabel, $subLabel, $row);
+        }
+    }
+
+    private function aggregateInteractionRow($row)
+    {
+        foreach ($this->getRecordToDimensions() as $record => $dimensions) {
+            $dataArray = $this->getDataArray($record);
+
+            $mainDimension = $dimensions[0];
+            $mainLabel     = $row[$mainDimension];
+
+            $dataArray->sumMetricsInteractions($mainLabel, $row);
+
+            $subDimension = $dimensions[1];
+            $subLabel     = $row[$subDimension];
+
+            if (empty($subLabel)) {
+                continue;
+            }
+
+            $dataArray->sumMetricsContentsInteractionPivot($mainLabel, $subLabel, $row);
+        }
+    }
+
+    private function rememberMetadataForRow($row, $mainLabel)
+    {
+        $this->metadata[$mainLabel] = array();
+
+        $target = $row['contentTarget'];
+        if (empty($target)) {
+            $target = Archiver::CONTENT_TARGET_NOT_SET;
+        }
+
+        // there can be many different targets
+        $this->metadata[$mainLabel]['contentTarget'] = $target;
     }
 
 }

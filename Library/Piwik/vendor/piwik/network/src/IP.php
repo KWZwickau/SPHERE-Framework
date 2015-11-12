@@ -35,19 +35,6 @@ abstract class IP
     }
 
     /**
-     * Factory method to create an IP instance from an IP represented as string.
-     *
-     * @see fromBinaryIP
-     *
-     * @param string $ip IP address in a string format (X.X.X.X).
-     * @return IP
-     */
-    public static function fromStringIP($ip)
-    {
-        return self::fromBinaryIP(IPUtils::stringToBinaryIP($ip));
-    }
-
-    /**
      * Factory method to create an IP instance from an IP in binary format.
      *
      * @see fromStringIP
@@ -69,17 +56,16 @@ abstract class IP
     }
 
     /**
-     * Returns true if this is an IPv4, IPv4-compat, or IPv4-mapped address, false otherwise.
+     * Factory method to create an IP instance from an IP represented as string.
      *
-     * @param string $binaryIp
-     * @return bool
+     * @see fromBinaryIP
+     *
+     * @param string $ip IP address in a string format (X.X.X.X).
+     * @return IP
      */
-    private static function isIPv4($binaryIp)
+    public static function fromStringIP($ip)
     {
-        // in case mbstring overloads strlen function
-        $strlen = function_exists('mb_orig_strlen') ? 'mb_orig_strlen' : 'strlen';
-
-        return $strlen($binaryIp) == 4;
+        return self::fromBinaryIP(IPUtils::stringToBinaryIP($ip));
     }
 
     /**
@@ -93,14 +79,6 @@ abstract class IP
     }
 
     /**
-     * @return string
-     */
-    public function __toString()
-    {
-        return $this->toString();
-    }
-
-    /**
      * Returns the IP address in a string format (X.X.X.X).
      *
      * @return string
@@ -108,6 +86,14 @@ abstract class IP
     public function toString()
     {
         return IPUtils::binaryToStringIP($this->ip);
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->toString();
     }
 
     /**
@@ -126,30 +112,6 @@ abstract class IP
         }
 
         return $host;
-    }
-
-    /**
-     * Determines if the IP address is in a specified IP address range.
-     *
-     * An IPv4-mapped address should be range checked with IPv4-mapped address ranges.
-     *
-     * @param array $ipRanges List of IP address ranges (strings or arrays containing min and max IP addresses).
-     * @return bool True if in any of the specified IP address ranges; false otherwise.
-     */
-    public function isInRanges(array $ipRanges)
-    {
-        $ipLen = strlen($this->ip);
-        if (empty($this->ip) || empty($ipRanges) || ($ipLen != 4 && $ipLen != 16)) {
-            return false;
-        }
-
-        foreach ($ipRanges as $ipRange) {
-            if ($this->isInRange($ipRange)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -194,6 +156,30 @@ abstract class IP
     }
 
     /**
+     * Determines if the IP address is in a specified IP address range.
+     *
+     * An IPv4-mapped address should be range checked with IPv4-mapped address ranges.
+     *
+     * @param array $ipRanges List of IP address ranges (strings or arrays containing min and max IP addresses).
+     * @return bool True if in any of the specified IP address ranges; false otherwise.
+     */
+    public function isInRanges(array $ipRanges)
+    {
+        $ipLen = strlen($this->ip);
+        if (empty($this->ip) || empty($ipRanges) || ($ipLen != 4 && $ipLen != 16)) {
+            return false;
+        }
+
+        foreach ($ipRanges as $ipRange) {
+            if ($this->isInRange($ipRange)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Returns the IP address as an IPv4 string when possible.
      *
      * Some IPv6 can be transformed to IPv4 addresses, for example
@@ -213,4 +199,18 @@ abstract class IP
      * @return IP Returns a new modified instance.
      */
     public abstract function anonymize($byteCount);
+
+    /**
+     * Returns true if this is an IPv4, IPv4-compat, or IPv4-mapped address, false otherwise.
+     *
+     * @param string $binaryIp
+     * @return bool
+     */
+    private static function isIPv4($binaryIp)
+    {
+        // in case mbstring overloads strlen function
+        $strlen = function_exists('mb_orig_strlen') ? 'mb_orig_strlen' : 'strlen';
+
+        return $strlen($binaryIp) == 4;
+    }
 }

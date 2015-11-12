@@ -57,11 +57,6 @@ class Model
         return $users;
     }
 
-    private function getDb()
-    {
-        return Db::get();
-    }
-
     /**
      * Returns the list of all the users login
      *
@@ -287,6 +282,11 @@ class Model
                 );
             }
         }
+    }
+
+    private function getDb()
+    {
+        return Db::get();
     }
 
 }

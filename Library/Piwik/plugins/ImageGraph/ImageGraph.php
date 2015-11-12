@@ -13,25 +13,22 @@ use Piwik\Common;
 use Piwik\Config;
 use Piwik\Container\StaticContainer;
 use Piwik\Period;
-use Piwik\Period\Factory as PeriodFactory;
 use Piwik\Period\Range;
 use Piwik\Scheduler\Scheduler;
 use Piwik\Site;
 use Piwik\Url;
+use Piwik\Period\Factory as PeriodFactory;
 
 class ImageGraph extends \Piwik\Plugin
 {
-    const GRAPH_EVOLUTION_LAST_PERIODS = 30;
-
-    // row evolution support not yet implemented for these APIs
     private static $CONSTANT_ROW_COUNT_REPORT_EXCEPTIONS = array(
         'Referrers_getReferrerType',
     );
+
+    // row evolution support not yet implemented for these APIs
     private static $REPORTS_DISABLED_EVOLUTION_GRAPH = array(
         'Referrers_getAll',
     );
-
-    // Number of periods to plot on an evolution graph
 
     /**
      * @see Piwik\Plugin::registerEvents
@@ -39,13 +36,14 @@ class ImageGraph extends \Piwik\Plugin
     public function registerEvents()
     {
         $hooks = array(
-            'API.getReportMetadata.end' => array(
-                'function' => 'getReportMetadata',
-                'after' => true
-            ),
+            'API.getReportMetadata.end' => array('function' => 'getReportMetadata',
+                                                 'after'    => true),
         );
         return $hooks;
     }
+
+    // Number of periods to plot on an evolution graph
+    const GRAPH_EVOLUTION_LAST_PERIODS = 30;
 
     /**
      * @param array $reports
@@ -86,26 +84,24 @@ class ImageGraph extends \Piwik\Plugin
                 // for period=range, show the configured sub-periods
                 $periodForMultiplePeriodGraph = Config::getInstance()->General['graphs_default_period_to_plot_when_period_range'];
                 $dateForMultiplePeriodGraph = $dateForSinglePeriodGraph;
-            } else {
-                if ($info['period'] == 'day' || !Config::getInstance()->General['graphs_show_evolution_within_selected_period']) {
-                    // for period=day, always show the last n days
-                    // if graphs_show_evolution_within_selected_period=false, show the last n periods
-                    $periodForMultiplePeriodGraph = $periodForSinglePeriodGraph;
-                    $dateForMultiplePeriodGraph = Range::getRelativeToEndDate(
-                        $periodForSinglePeriodGraph,
-                        'last' . self::GRAPH_EVOLUTION_LAST_PERIODS,
-                        $dateForSinglePeriodGraph,
-                        $piwikSite
-                    );
-                } else {
-                    // if graphs_show_evolution_within_selected_period=true, show the days withing the period
-                    // (except if the period is day, see above)
-                    $periodForMultiplePeriodGraph = 'day';
-                    $period = PeriodFactory::build($info['period'], $info['date']);
-                    $start = $period->getDateStart()->toString();
-                    $end = $period->getDateEnd()->toString();
-                    $dateForMultiplePeriodGraph = $start . ',' . $end;
-                }
+            } else if ($info['period'] == 'day' || !Config::getInstance()->General['graphs_show_evolution_within_selected_period']) {
+                // for period=day, always show the last n days
+                // if graphs_show_evolution_within_selected_period=false, show the last n periods
+				$periodForMultiplePeriodGraph = $periodForSinglePeriodGraph;
+				$dateForMultiplePeriodGraph = Range::getRelativeToEndDate(
+					$periodForSinglePeriodGraph,
+					'last' . self::GRAPH_EVOLUTION_LAST_PERIODS,
+					$dateForSinglePeriodGraph,
+					$piwikSite
+				);
+			} else {
+                // if graphs_show_evolution_within_selected_period=true, show the days withing the period
+                // (except if the period is day, see above)
+				$periodForMultiplePeriodGraph = 'day';
+				$period = PeriodFactory::build($info['period'], $info['date']);
+				$start = $period->getDateStart()->toString();
+				$end = $period->getDateEnd()->toString();
+				$dateForMultiplePeriodGraph = $start . ',' . $end;
             }
         }
 
@@ -165,8 +161,7 @@ class ImageGraph extends \Piwik\Plugin
             // thanks to API.getRowEvolution, reports with dimensions can now be plotted using an evolution graph
             // however, most reports with a fixed set of dimension values are excluded
             // this is done so Piwik Mobile and Scheduled Reports do not display them
-            $reportWithDimensionsSupportsEvolution = empty($report['constantRowsCount']) || in_array($reportUniqueId,
-                    self::$CONSTANT_ROW_COUNT_REPORT_EXCEPTIONS);
+            $reportWithDimensionsSupportsEvolution = empty($report['constantRowsCount']) || in_array($reportUniqueId, self::$CONSTANT_ROW_COUNT_REPORT_EXCEPTIONS);
 
             $reportSupportsEvolution = !in_array($reportUniqueId, self::$REPORTS_DISABLED_EVOLUTION_GRAPH);
 

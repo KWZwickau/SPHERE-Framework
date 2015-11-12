@@ -62,6 +62,14 @@ class CliPhp
         return false !== strpos($bin, 'hhvm');
     }
 
+    private function isValidPhpVersion($bin)
+    {
+        global $piwik_minimumPHPVersion;
+        $cliVersion = $this->getPhpVersion($bin);
+        $isCliVersionValid = version_compare($piwik_minimumPHPVersion, $cliVersion) <= 0;
+        return $isCliVersionValid;
+    }
+
     private function isValidPhpType($path)
     {
         return !empty($path)
@@ -78,14 +86,6 @@ class CliPhp
             }
         }
         return null;
-    }
-
-    private function isValidPhpVersion($bin)
-    {
-        global $piwik_minimumPHPVersion;
-        $cliVersion = $this->getPhpVersion($bin);
-        $isCliVersionValid = version_compare($piwik_minimumPHPVersion, $cliVersion) <= 0;
-        return $isCliVersionValid;
     }
 
     /**

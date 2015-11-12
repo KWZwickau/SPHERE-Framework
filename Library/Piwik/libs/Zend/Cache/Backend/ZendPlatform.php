@@ -274,14 +274,14 @@ class Zend_Cache_Backend_ZendPlatform extends Zend_Cache_Backend implements Zend
             } else {
                 if ($mode == Zend_Cache::CLEANING_MODE_ALL) {
                     $result = ($this->_remove($file)) && ($result);
-                } else {if ($mode == Zend_Cache::CLEANING_MODE_OLD) {
+                } else if ($mode == Zend_Cache::CLEANING_MODE_OLD) {
                     // Files older than lifetime get deleted from cache
                     if ($this->_directives['lifetime'] !== null) {
                         if ((time() - @filemtime($file)) > $this->_directives['lifetime']) {
                             $result = ($this->_remove($file)) && ($result);
                         }
                     }
-                }}
+                }
             }
         }
         $d->close();

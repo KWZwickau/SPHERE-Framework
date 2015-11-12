@@ -54,16 +54,6 @@ class Month extends Period
         return $out;
     }
 
-    public function getImmediateChildPeriodLabel()
-    {
-        return 'week';
-    }
-
-    public function getParentPeriodLabel()
-    {
-        return 'year';
-    }
-
     /**
      * Generates the subperiods (one for each day in the month)
      */
@@ -122,5 +112,15 @@ class Month extends Period
             $this->addSubperiod(new Day($startDate));
             $startDate = $startDate->addDay(1);
         }
+    }
+
+    public function getImmediateChildPeriodLabel()
+    {
+        return 'week';
+    }
+
+    public function getParentPeriodLabel()
+    {
+        return 'year';
     }
 }

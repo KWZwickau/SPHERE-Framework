@@ -45,8 +45,8 @@ class Zend_Config_Writer_Xml extends Zend_Config_Writer_FileAbstract
      */
     public function render()
     {
-        $xml = new SimpleXMLElement('<zend-config xmlns:zf="' . Zend_Config_Xml::XML_NAMESPACE . '"/>');
-        $extends = $this->_config->getExtends();
+        $xml         = new SimpleXMLElement('<zend-config xmlns:zf="' . Zend_Config_Xml::XML_NAMESPACE . '"/>');
+        $extends     = $this->_config->getExtends();
         $sectionName = $this->_config->getSectionName();
 
         if (is_string($sectionName)) {
@@ -56,7 +56,7 @@ class Zend_Config_Writer_Xml extends Zend_Config_Writer_FileAbstract
         } else {
             foreach ($this->_config as $sectionName => $data) {
                 if (!($data instanceof Zend_Config)) {
-                    $xml->addChild($sectionName, (string)$data);
+                    $xml->addChild($sectionName, (string) $data);
                 } else {
                     $child = $xml->addChild($sectionName);
 
@@ -80,7 +80,7 @@ class Zend_Config_Writer_Xml extends Zend_Config_Writer_FileAbstract
     /**
      * Add a branch to an XML object recursively
      *
-     * @param  Zend_Config $config
+     * @param  Zend_Config      $config
      * @param  SimpleXMLElement $xml
      * @param  SimpleXMLElement $parent
      * @return void
@@ -94,17 +94,15 @@ class Zend_Config_Writer_Xml extends Zend_Config_Writer_FileAbstract
                 if (is_numeric($key)) {
                     $branchType = 'numeric';
                     $branchName = $xml->getName();
-                    $xml = $parent;
+                    $xml        = $parent;
 
                     unset($parent->{$branchName});
                 } else {
                     $branchType = 'string';
                 }
-            } else {
-                if ($branchType !== (is_numeric($key) ? 'numeric' : 'string')) {
-                    // require_once 'Zend/Config/Exception.php';
-                    throw new Zend_Config_Exception('Mixing of string and numeric keys is not allowed');
-                }
+            } else if ($branchType !== (is_numeric($key) ? 'numeric' : 'string')) {
+                // require_once 'Zend/Config/Exception.php';
+                throw new Zend_Config_Exception('Mixing of string and numeric keys is not allowed');
             }
 
             if ($branchType === 'numeric') {
@@ -113,7 +111,7 @@ class Zend_Config_Writer_Xml extends Zend_Config_Writer_FileAbstract
 
                     $this->_addBranch($value, $child, $parent);
                 } else {
-                    $parent->addChild($branchName, (string)$value);
+                    $parent->addChild($branchName, (string) $value);
                 }
             } else {
                 if ($value instanceof Zend_Config) {
@@ -121,7 +119,7 @@ class Zend_Config_Writer_Xml extends Zend_Config_Writer_FileAbstract
 
                     $this->_addBranch($value, $child, $xml);
                 } else {
-                    $xml->addChild($key, (string)$value);
+                    $xml->addChild($key, (string) $value);
                 }
             }
         }

@@ -25,6 +25,29 @@ class API extends \Piwik\Plugin\API
      * @param int $idSite
      * @param string $period
      * @param Date $date
+     * @param string $segment
+     * @param bool $expanded
+     * @param int $idSubtable
+     *
+     * @return DataTable|DataTable\Map
+     */
+    protected function getDataTable($idSite, $period, $date, $segment, $expanded, $flat, $idSubtable)
+    {
+        $dataTable = Archive::createDataTableFromArchive(Archiver::CUSTOM_VARIABLE_RECORD_NAME, $idSite, $period, $date, $segment, $expanded, $flat, $idSubtable);
+        $dataTable->queueFilter('ColumnDelete', 'nb_uniq_visitors');
+
+        if ($flat) {
+            $dataTable->filterSubtables('Sort', array(Metrics::INDEX_NB_ACTIONS, 'desc', $naturalSort = false, $expanded));
+            $dataTable->queueFilterSubtables('ColumnDelete', 'nb_uniq_visitors');
+        }
+
+        return $dataTable;
+    }
+
+    /**
+     * @param int $idSite
+     * @param string $period
+     * @param Date $date
      * @param string|bool $segment
      * @param bool $expanded
      * @param bool $_leavePiwikCoreVariables
@@ -52,29 +75,6 @@ class API extends \Piwik\Plugin\API
             $dataTable->filterSubtables('Piwik\Plugins\CustomVariables\DataTable\Filter\CustomVariablesValuesFromNameId');
         } else {
             $dataTable->filter('AddSegmentByLabel', array('customVariableName'));
-        }
-
-        return $dataTable;
-    }
-
-    /**
-     * @param int $idSite
-     * @param string $period
-     * @param Date $date
-     * @param string $segment
-     * @param bool $expanded
-     * @param int $idSubtable
-     *
-     * @return DataTable|DataTable\Map
-     */
-    protected function getDataTable($idSite, $period, $date, $segment, $expanded, $flat, $idSubtable)
-    {
-        $dataTable = Archive::createDataTableFromArchive(Archiver::CUSTOM_VARIABLE_RECORD_NAME, $idSite, $period, $date, $segment, $expanded, $flat, $idSubtable);
-        $dataTable->queueFilter('ColumnDelete', 'nb_uniq_visitors');
-
-        if ($flat) {
-            $dataTable->filterSubtables('Sort', array(Metrics::INDEX_NB_ACTIONS, 'desc', $naturalSort = false, $expanded));
-            $dataTable->queueFilterSubtables('ColumnDelete', 'nb_uniq_visitors');
         }
 
         return $dataTable;

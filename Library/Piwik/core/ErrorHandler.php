@@ -15,6 +15,50 @@ use Piwik\Exception\ErrorException;
  */
 class ErrorHandler
 {
+    /**
+     * Returns a string description of a PHP error number.
+     *
+     * @param int $errno `E_ERROR`, `E_WARNING`, `E_PARSE`, etc.
+     * @return string
+     */
+    public static function getErrNoString($errno)
+    {
+        switch ($errno) {
+            case E_ERROR:
+                return "Error";
+            case E_WARNING:
+                return "Warning";
+            case E_PARSE:
+                return "Parse Error";
+            case E_NOTICE:
+                return "Notice";
+            case E_CORE_ERROR:
+                return "Core Error";
+            case E_CORE_WARNING:
+                return "Core Warning";
+            case E_COMPILE_ERROR:
+                return "Compile Error";
+            case E_COMPILE_WARNING:
+                return "Compile Warning";
+            case E_USER_ERROR:
+                return "User Error";
+            case E_USER_WARNING:
+                return "User Warning";
+            case E_USER_NOTICE:
+                return "User Notice";
+            case E_STRICT:
+                return "Strict Notice";
+            case E_RECOVERABLE_ERROR:
+                return "Recoverable Error";
+            case E_DEPRECATED:
+                return "Deprecated";
+            case E_USER_DEPRECATED:
+                return "User Deprecated";
+            default:
+                return "Unknown error ($errno)";
+        }
+    }
+
     public static function registerErrorHandler()
     {
         set_error_handler(array('Piwik\ErrorHandler', 'errorHandler'));
@@ -61,6 +105,17 @@ class ErrorHandler
         }
     }
 
+    private static function createLogMessage($errno, $errstr, $errfile, $errline)
+    {
+        return sprintf(
+            "%s(%d): %s - %s - Piwik " . (class_exists('Piwik\Version') ? Version::VERSION : '') . " - Please report this message in the Piwik forums: http://forum.piwik.org (please do a search first as it might have been reported already)",
+            $errfile,
+            $errline,
+            ErrorHandler::getErrNoString($errno),
+            $errstr
+        );
+    }
+
     private static function getHtmlMessage($errno, $errstr, $errfile, $errline, $trace)
     {
         $trace = Log::$debugBacktraceForTests ?: $trace;
@@ -76,60 +131,5 @@ class ErrorHandler
         $html .= "</pre>";
 
         return $html;
-    }
-
-    /**
-     * Returns a string description of a PHP error number.
-     *
-     * @param int $errno `E_ERROR`, `E_WARNING`, `E_PARSE`, etc.
-     * @return string
-     */
-    public static function getErrNoString($errno)
-    {
-        switch ($errno) {
-            case E_ERROR:
-                return "Error";
-            case E_WARNING:
-                return "Warning";
-            case E_PARSE:
-                return "Parse Error";
-            case E_NOTICE:
-                return "Notice";
-            case E_CORE_ERROR:
-                return "Core Error";
-            case E_CORE_WARNING:
-                return "Core Warning";
-            case E_COMPILE_ERROR:
-                return "Compile Error";
-            case E_COMPILE_WARNING:
-                return "Compile Warning";
-            case E_USER_ERROR:
-                return "User Error";
-            case E_USER_WARNING:
-                return "User Warning";
-            case E_USER_NOTICE:
-                return "User Notice";
-            case E_STRICT:
-                return "Strict Notice";
-            case E_RECOVERABLE_ERROR:
-                return "Recoverable Error";
-            case E_DEPRECATED:
-                return "Deprecated";
-            case E_USER_DEPRECATED:
-                return "User Deprecated";
-            default:
-                return "Unknown error ($errno)";
-        }
-    }
-
-    private static function createLogMessage($errno, $errstr, $errfile, $errline)
-    {
-        return sprintf(
-            "%s(%d): %s - %s - Piwik " . (class_exists('Piwik\Version') ? Version::VERSION : '') . " - Please report this message in the Piwik forums: http://forum.piwik.org (please do a search first as it might have been reported already)",
-            $errfile,
-            $errline,
-            ErrorHandler::getErrNoString($errno),
-            $errstr
-        );
     }
 }

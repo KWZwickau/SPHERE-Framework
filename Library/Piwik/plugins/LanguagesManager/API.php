@@ -9,11 +9,11 @@
  */
 namespace Piwik\Plugins\LanguagesManager;
 
-use Piwik\Cache as PiwikCache;
 use Piwik\Db;
 use Piwik\Development;
 use Piwik\Filesystem;
 use Piwik\Piwik;
+use Piwik\Cache as PiwikCache;
 use Piwik\Plugin\Manager as PluginManager;
 use Piwik\Translation\Loader\DevelopmentLoader;
 
@@ -33,6 +33,55 @@ class API extends \Piwik\Plugin\API
 {
     protected $availableLanguageNames = null;
     protected $languageNames = null;
+
+    /**
+     * Returns true if specified language is available
+     *
+     * @param string $languageCode
+     * @return bool true if language available; false otherwise
+     */
+    public function isLanguageAvailable($languageCode)
+    {
+        return $languageCode !== false
+        && Filesystem::isValidFilename($languageCode)
+        && in_array($languageCode, $this->getAvailableLanguages());
+    }
+
+    /**
+     * Return array of available languages
+     *
+     * @return array Array of strings, each containing its ISO language code
+     */
+    public function getAvailableLanguages()
+    {
+        if (!is_null($this->languageNames)) {
+            return $this->languageNames;
+        }
+        $path = PIWIK_INCLUDE_PATH . "/lang/";
+        $languagesPath = _glob($path . "*.json");
+
+        $pathLength = strlen($path);
+        $languages = array();
+        if ($languagesPath) {
+            foreach ($languagesPath as $language) {
+                $languages[] = substr($language, $pathLength, -strlen('.json'));
+            }
+        }
+
+        $this->enableDevelopmentLanguageInDevEnvironment($languages);
+
+        /**
+         * Hook called after loading available language files.
+         *
+         * Use this hook to customise the list of languagesPath available in Piwik.
+         *
+         * @param array
+         */
+        Piwik::postEvent('LanguageManager.getAvailableLanguages', array(&$languages));
+
+        $this->languageNames = $languages;
+        return $languages;
+    }
 
     /**
      * Return information on translations (code, language, % translated, etc)
@@ -86,65 +135,17 @@ class API extends \Piwik\Plugin\API
             }
 
             $translationStringsDone = $intersect($englishTranslation, $translations);
-            $percentageComplete = count($translationStringsDone, COUNT_RECURSIVE) / count($englishTranslation,
-                    COUNT_RECURSIVE);
+            $percentageComplete = count($translationStringsDone, COUNT_RECURSIVE) / count($englishTranslation, COUNT_RECURSIVE);
             $percentageComplete = round(100 * $percentageComplete, 0);
-            $languageInfo = array(
-                'code' => $filename,
-                'name' => $translations['Intl']['OriginalLanguageName'],
-                'english_name' => $translations['Intl']['EnglishLanguageName'],
-                'translators' => $translations['General']['TranslatorName'],
-                'percentage_complete' => $percentageComplete . '%',
+            $languageInfo = array('code'                => $filename,
+                                  'name'                => $translations['Intl']['OriginalLanguageName'],
+                                  'english_name'        => $translations['Intl']['EnglishLanguageName'],
+                                  'translators'         => $translations['General']['TranslatorName'],
+                                  'percentage_complete' => $percentageComplete . '%',
             );
             $languagesInfo[] = $languageInfo;
         }
         return $languagesInfo;
-    }
-
-    /**
-     * Return array of available languages
-     *
-     * @return array Array of strings, each containing its ISO language code
-     */
-    public function getAvailableLanguages()
-    {
-        if (!is_null($this->languageNames)) {
-            return $this->languageNames;
-        }
-        $path = PIWIK_INCLUDE_PATH . "/lang/";
-        $languagesPath = _glob($path . "*.json");
-
-        $pathLength = strlen($path);
-        $languages = array();
-        if ($languagesPath) {
-            foreach ($languagesPath as $language) {
-                $languages[] = substr($language, $pathLength, -strlen('.json'));
-            }
-        }
-
-        $this->enableDevelopmentLanguageInDevEnvironment($languages);
-
-        /**
-         * Hook called after loading available language files.
-         *
-         * Use this hook to customise the list of languagesPath available in Piwik.
-         *
-         * @param array
-         */
-        Piwik::postEvent('LanguageManager.getAvailableLanguages', array(&$languages));
-
-        $this->languageNames = $languages;
-        return $languages;
-    }
-
-    private function enableDevelopmentLanguageInDevEnvironment(&$languages)
-    {
-        if (!Development::isEnabled()) {
-            $key = array_search(DevelopmentLoader::LANGUAGE_ID, $languages);
-            if ($key) {
-                unset($languages[$key]);
-            }
-        }
     }
 
     /**
@@ -156,42 +157,6 @@ class API extends \Piwik\Plugin\API
     {
         $this->loadAvailableLanguages();
         return $this->availableLanguageNames;
-    }
-
-    private function loadAvailableLanguages()
-    {
-        if (!is_null($this->availableLanguageNames)) {
-            return;
-        }
-
-        $cacheId = 'availableLanguages';
-        $cache = PiwikCache::getEagerCache();
-
-        if ($cache->contains($cacheId)) {
-            $languagesInfo = $cache->fetch($cacheId);
-        } else {
-            $languages = $this->getAvailableLanguages();
-            $languagesInfo = array();
-            foreach ($languages as $languageCode) {
-                $data = @file_get_contents(PIWIK_INCLUDE_PATH . "/plugins/Intl/lang/$languageCode.json");
-
-                // Skip languages not having Intl translations
-                if (empty($data)) {
-                    continue;
-                }
-
-                $translations = json_decode($data, true);
-                $languagesInfo[] = array(
-                    'code' => $languageCode,
-                    'name' => $translations['Intl']['OriginalLanguageName'],
-                    'english_name' => $translations['Intl']['EnglishLanguageName']
-                );
-            }
-
-            $cache->save($cacheId, $languagesInfo);
-        }
-
-        $this->availableLanguageNames = $languagesInfo;
     }
 
     /**
@@ -228,19 +193,6 @@ class API extends \Piwik\Plugin\API
         }
 
         return $languageInfo;
-    }
-
-    /**
-     * Returns true if specified language is available
-     *
-     * @param string $languageCode
-     * @return bool true if language available; false otherwise
-     */
-    public function isLanguageAvailable($languageCode)
-    {
-        return $languageCode !== false
-        && Filesystem::isValidFilename($languageCode)
-        && in_array($languageCode, $this->getAvailableLanguages());
     }
 
     /**
@@ -321,5 +273,51 @@ class API extends \Piwik\Plugin\API
         $this->getModel()->setLanguageForUser($login, $languageCode);
 
         return true;
+    }
+
+    private function loadAvailableLanguages()
+    {
+        if (!is_null($this->availableLanguageNames)) {
+            return;
+        }
+
+        $cacheId = 'availableLanguages';
+        $cache = PiwikCache::getEagerCache();
+
+        if ($cache->contains($cacheId)) {
+            $languagesInfo = $cache->fetch($cacheId);
+        } else {
+            $languages = $this->getAvailableLanguages();
+            $languagesInfo = array();
+            foreach ($languages as $languageCode) {
+                $data = @file_get_contents(PIWIK_INCLUDE_PATH . "/plugins/Intl/lang/$languageCode.json");
+
+                // Skip languages not having Intl translations
+                if (empty($data)) {
+                    continue;
+                }
+
+                $translations = json_decode($data, true);
+                $languagesInfo[] = array(
+                    'code'         => $languageCode,
+                    'name'         => $translations['Intl']['OriginalLanguageName'],
+                    'english_name' => $translations['Intl']['EnglishLanguageName']
+                );
+            }
+
+            $cache->save($cacheId, $languagesInfo);
+        }
+
+        $this->availableLanguageNames = $languagesInfo;
+    }
+
+    private function enableDevelopmentLanguageInDevEnvironment(&$languages)
+    {
+        if (!Development::isEnabled()) {
+            $key = array_search(DevelopmentLoader::LANGUAGE_ID, $languages);
+            if ($key) {
+                unset($languages[$key]);
+            }
+        }
     }
 }

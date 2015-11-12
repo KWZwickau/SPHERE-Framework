@@ -7,8 +7,7 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-(function (window)
-{
+(function (window) {
 
     var MODULE_SPLIT_REGEX = /[\/.\\]/;
 
@@ -22,8 +21,7 @@
      *                          '/', '.' or '\'.
      * @return {Object} The module object.
      */
-    window.require = function (moduleId)
-    {
+    window.require = function (moduleId) {
         var parts = moduleId.split(MODULE_SPLIT_REGEX);
 
         // TODO: we use window objects for backwards compatibility. when rest of Piwik is rewritten to use

@@ -15,29 +15,6 @@ abstract class ClientParserAbstract extends ParserAbstract
     protected $parserName = '';
 
     /**
-     * Returns all names defined in the regexes
-     *
-     * Attention: This method might not return all names of detected clients
-     *
-     * @return array
-     */
-    public static function getAvailableClients()
-    {
-        $instance = new static();
-        $regexes = $instance->getRegexes();
-        $names = array();
-        foreach ($regexes as $regex) {
-            if ($regex['name'] != '$1') {
-                $names[] = $regex['name'];
-            }
-        }
-
-        natcasesort($names);
-
-        return array_unique($names);
-    }
-
-    /**
      * Parses the current UA and checks whether it contains any client information
      *
      * @see $fixtureFile for file with list of detected clients
@@ -60,9 +37,9 @@ abstract class ClientParserAbstract extends ParserAbstract
 
                 if ($matches) {
                     $result = array(
-                        'type' => $this->parserName,
-                        'name' => $this->buildByMatch($regex['name'], $matches),
-                        'version' => $this->buildVersion($regex['version'], $matches)
+                        'type'       => $this->parserName,
+                        'name'       => $this->buildByMatch($regex['name'], $matches),
+                        'version'    => $this->buildVersion($regex['version'], $matches)
                     );
                     break;
                 }
@@ -70,5 +47,28 @@ abstract class ClientParserAbstract extends ParserAbstract
         }
 
         return $result;
+    }
+
+    /**
+     * Returns all names defined in the regexes
+     *
+     * Attention: This method might not return all names of detected clients
+     *
+     * @return array
+     */
+    public static function getAvailableClients()
+    {
+        $instance = new static();
+        $regexes = $instance->getRegexes();
+        $names = array();
+        foreach ($regexes as $regex) {
+            if ($regex['name'] != '$1') {
+                $names[] = $regex['name'];
+            }
+        }
+
+        natcasesort($names);
+
+        return array_unique($names);
     }
 }

@@ -152,47 +152,6 @@ class Zend_Db_Adapter_Pdo_Ibm_Ids
     }
 
     /**
-     * Helper method to retrieve primary key column
-     * and column location
-     *
-     * @param int $tabid
-     * @return array
-     */
-    protected function _getPrimaryInfo($tabid)
-    {
-        $sql = "SELECT i.part1, i.part2, i.part3, i.part4, i.part5, i.part6,
-                i.part7, i.part8, i.part9, i.part10, i.part11, i.part12,
-                i.part13, i.part14, i.part15, i.part16
-                FROM sysindexes i
-                JOIN sysconstraints c ON c.idxname = i.idxname
-                WHERE i.tabid = " . $tabid . " AND c.constrtype = 'P'";
-
-        $stmt = $this->_adapter->query($sql);
-        $results = $stmt->fetchAll();
-
-        $cols = array();
-
-        // this should return only 1 row
-        // unless there is no primary key,
-        // in which case, the empty array is returned
-        if ($results) {
-            $row = $results[0];
-        } else {
-            return $cols;
-        }
-
-        $position = 0;
-        foreach ($row as $key => $colno) {
-            $position++;
-            if ($colno == 0) {
-                return $cols;
-            } else {
-                $cols[$colno] = $position;
-            }
-        }
-    }
-
-    /**
      * Map number representation of a data type
      * to a string
      *
@@ -237,6 +196,47 @@ class Zend_Db_Adapter_Pdo_Ibm_Ids
     }
 
     /**
+     * Helper method to retrieve primary key column
+     * and column location
+     *
+     * @param int $tabid
+     * @return array
+     */
+    protected function _getPrimaryInfo($tabid)
+    {
+        $sql = "SELECT i.part1, i.part2, i.part3, i.part4, i.part5, i.part6,
+                i.part7, i.part8, i.part9, i.part10, i.part11, i.part12,
+                i.part13, i.part14, i.part15, i.part16
+                FROM sysindexes i
+                JOIN sysconstraints c ON c.idxname = i.idxname
+                WHERE i.tabid = " . $tabid . " AND c.constrtype = 'P'";
+
+        $stmt = $this->_adapter->query($sql);
+        $results = $stmt->fetchAll();
+
+        $cols = array();
+
+        // this should return only 1 row
+        // unless there is no primary key,
+        // in which case, the empty array is returned
+        if ($results) {
+            $row = $results[0];
+        } else {
+            return $cols;
+        }
+
+        $position = 0;
+        foreach ($row as $key => $colno) {
+            $position++;
+            if ($colno == 0) {
+                return $cols;
+            } else {
+                $cols[$colno] = $position;
+            }
+        }
+    }
+
+    /**
      * Adds an IDS-specific LIMIT clause to the SELECT statement.
      *
      * @param string $sql
@@ -252,7 +252,7 @@ class Zend_Db_Adapter_Pdo_Ibm_Ids
             /** @see Zend_Db_Adapter_Exception */
             // require_once 'Zend/Db/Adapter/Exception.php';
             throw new Zend_Db_Adapter_Exception("LIMIT argument count=$count is not valid");
-        } else {if ($count == 0) {
+        } else if ($count == 0) {
               $limit_sql = str_ireplace("SELECT", "SELECT * FROM (SELECT", $sql);
               $limit_sql .= ") WHERE 0 = 1";
         } else {
@@ -267,7 +267,7 @@ class Zend_Db_Adapter_Pdo_Ibm_Ids
             } else {
                 $limit_sql = str_ireplace("SELECT", "SELECT SKIP $offset LIMIT $count", $sql);
             }
-        }}
+        }
         return $limit_sql;
     }
 

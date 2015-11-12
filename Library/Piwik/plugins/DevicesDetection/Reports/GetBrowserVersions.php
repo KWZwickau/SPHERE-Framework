@@ -14,6 +14,16 @@ use Piwik\Plugins\DevicesDetection\Columns\BrowserVersion;
 
 class GetBrowserVersions extends Base
 {
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new BrowserVersion();
+        $this->name          = Piwik::translate('DevicesDetection_BrowserVersion');
+        $this->documentation = ''; // TODO
+        $this->order = 2;
+        $this->widgetTitle  = 'DevicesDetection_BrowserVersion';
+    }
+
     public function configureView(ViewDataTable $view)
     {
         $view->config->show_search = true;
@@ -26,15 +36,5 @@ class GetBrowserVersions extends Base
         return array(
             self::factory('DevicesDetection', 'getBrowsers'),
         );
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension     = new BrowserVersion();
-        $this->name          = Piwik::translate('DevicesDetection_BrowserVersion');
-        $this->documentation = ''; // TODO
-        $this->order = 2;
-        $this->widgetTitle  = 'DevicesDetection_BrowserVersion';
     }
 }

@@ -24,6 +24,22 @@ class Chunk
     const NUM_TABLES_IN_CHUNK = 100;
 
     /**
+     * Get's the record name to use for a given tableId/subtableId.
+     *
+     * @param string $recordName eg 'Actions_ActionsUrl'
+     * @param int    $tableId    eg '5' for tableId '5'
+     * @return string            eg 'Actions_ActionsUrl_chunk_0_99' as the table should be stored under this blob id.
+     */
+    public function getRecordNameForTableId($recordName, $tableId)
+    {
+        $chunk = (floor($tableId / self::NUM_TABLES_IN_CHUNK));
+        $start = $chunk * self::NUM_TABLES_IN_CHUNK;
+        $end   = $start + self::NUM_TABLES_IN_CHUNK - 1;
+
+        return $recordName . $this->getAppendix() . $start . '_' . $end;
+    }
+
+    /**
      * Moves the given blobs into chunks and assigns a proper record name containing the chunk number.
      *
      * @param string $recordName The original archive record name, eg 'Actions_ActionsUrl'
@@ -50,29 +66,33 @@ class Chunk
     }
 
     /**
-     * Get's the record name to use for a given tableId/subtableId.
+     * Detects whether a recordName like 'Actions_ActionUrls_chunk_0_99' or 'Actions_ActionUrls' belongs to a
+     * chunk or not.
      *
-     * @param string $recordName eg 'Actions_ActionsUrl'
-     * @param int    $tableId    eg '5' for tableId '5'
-     * @return string            eg 'Actions_ActionsUrl_chunk_0_99' as the table should be stored under this blob id.
+     * To be a valid recordName that belongs to a chunk it must end with '_chunk_NUMERIC_NUMERIC'.
+     *
+     * @param string $recordName
+     * @return bool
      */
-    public function getRecordNameForTableId($recordName, $tableId)
+    public function isRecordNameAChunk($recordName)
     {
-        $chunk = (floor($tableId / self::NUM_TABLES_IN_CHUNK));
-        $start = $chunk * self::NUM_TABLES_IN_CHUNK;
-        $end   = $start + self::NUM_TABLES_IN_CHUNK - 1;
+        $posAppendix = $this->getEndPosOfChunkAppendix($recordName);
 
-        return $recordName . $this->getAppendix() . $start . '_' . $end;
+        if (false === $posAppendix) {
+            return false;
+        }
+
+        // will contain "0_99" of "chunk_0_99"
+        $blobId = substr($recordName, $posAppendix);
+
+        return $this->isChunkRange($blobId);
     }
 
-    /**
-     * Returns the string that is appended to the original record name. This appendix identifes a record name is a
-     * chunk.
-     * @return string
-     */
-    public function getAppendix()
+    private function isChunkRange($blobId)
     {
-        return '_' . self::ARCHIVE_APPENDIX_SUBTABLES . '_';
+        $blobId = explode('_', $blobId);
+
+        return 2 === count($blobId) && is_numeric($blobId[0]) && is_numeric($blobId[1]);
     }
 
     /**
@@ -97,26 +117,18 @@ class Chunk
     }
 
     /**
-     * Detects whether a recordName like 'Actions_ActionUrls_chunk_0_99' or 'Actions_ActionUrls' belongs to a
-     * chunk or not.
-     *
-     * To be a valid recordName that belongs to a chunk it must end with '_chunk_NUMERIC_NUMERIC'.
-     *
-     * @param string $recordName
-     * @return bool
+     * Returns the string that is appended to the original record name. This appendix identifes a record name is a
+     * chunk.
+     * @return string
      */
-    public function isRecordNameAChunk($recordName)
+    public function getAppendix()
     {
-        $posAppendix = $this->getEndPosOfChunkAppendix($recordName);
+        return '_' . self::ARCHIVE_APPENDIX_SUBTABLES . '_';
+    }
 
-        if (false === $posAppendix) {
-            return false;
-        }
-
-        // will contain "0_99" of "chunk_0_99"
-        $blobId = substr($recordName, $posAppendix);
-
-        return $this->isChunkRange($blobId);
+    private function getStartPosOfChunkAppendix($recordName)
+    {
+        return strpos($recordName, $this->getAppendix());
     }
 
     private function getEndPosOfChunkAppendix($recordName)
@@ -128,17 +140,5 @@ class Chunk
         }
 
         return $pos + strlen($this->getAppendix());
-    }
-
-    private function isChunkRange($blobId)
-    {
-        $blobId = explode('_', $blobId);
-
-        return 2 === count($blobId) && is_numeric($blobId[0]) && is_numeric($blobId[1]);
-    }
-
-    private function getStartPosOfChunkAppendix($recordName)
-    {
-        return strpos($recordName, $this->getAppendix());
     }
 }

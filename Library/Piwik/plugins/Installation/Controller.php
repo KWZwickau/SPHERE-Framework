@@ -55,6 +55,16 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
     );
 
     /**
+     * Get installation steps
+     *
+     * @return array installation steps
+     */
+    public function getInstallationSteps()
+    {
+        return $this->steps;
+    }
+
+    /**
      * Get default action (first installation step)
      *
      * @return string function name
@@ -86,31 +96,6 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         return $view->render();
     }
 
-    private function checkPiwikIsNotInstalled()
-    {
-        if (!SettingsPiwik::isPiwikInstalled()) {
-            return;
-        }
-        \Piwik\Plugins\Login\Controller::clearSession();
-        $message = Piwik::translate('Installation_InvalidStateError',
-            array('<br /><strong>',
-                  // piwik-is-already-installed is checked against in checkPiwikServerWorking
-                  '</strong><a id="piwik-is-already-installed" href=\'' . Common::sanitizeInputValue(Url::getCurrentUrlWithoutFileName()) . '\'>',
-                  '</a>')
-        );
-        Piwik::exitWithErrorMessage($message);
-    }
-
-    /**
-     * Get installation steps
-     *
-     * @return array installation steps
-     */
-    public function getInstallationSteps()
-    {
-        return $this->steps;
-    }
-
     /**
      * Installation Step 2: System Check
      */
@@ -137,25 +122,6 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         $view->showNextStepAtTop = $view->showNextStep && !$view->diagnosticReport->hasWarnings();
 
         return $view->render();
-    }
-
-    private function deleteConfigFileIfNeeded()
-    {
-        $config = Config::getInstance();
-        if ($config->existsLocalConfig()) {
-            $config->deleteLocalConfig();
-
-            // deleting the config file removes the salt, which in turns invalidates existing cookies (including the
-            // one for selected language), so we re-save that cookie now
-            $this->resetLanguageCookie();
-        }
-    }
-
-    private function resetLanguageCookie()
-    {
-        /** @var Translator $translator */
-        $translator = StaticContainer::get('Piwik\Translation\Translator');
-        LanguagesManager::setLanguageForSession($translator->getCurrentLanguage());
     }
 
     /**
@@ -194,63 +160,6 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         $view->addForm($form);
 
         return $view->render();
-    }
-
-    /**
-     * Write configuration file from session-store
-     */
-    private function createConfigFile($dbInfos)
-    {
-        $config = Config::getInstance();
-
-        // make sure DB sessions are used if the filesystem is NFS
-        if (Filesystem::checkIfFileSystemIsNFS()) {
-            $config->General['session_save_handler'] = 'dbtable';
-        }
-        if (count($headers = ProxyHeaders::getProxyClientHeaders()) > 0) {
-            $config->General['proxy_client_headers'] = $headers;
-        }
-        if (count($headers = ProxyHeaders::getProxyHostHeaders()) > 0) {
-            $config->General['proxy_host_headers'] = $headers;
-        }
-
-        if (Common::getRequestVar('clientProtocol', 'http', 'string') == 'https') {
-            $protocol = 'https';
-        } else {
-            $protocol = ProxyHeaders::getProtocolInformation();
-        }
-
-        if (!empty($protocol)
-            && !\Piwik\ProxyHttp::isHttps()) {
-            $config->General['assume_secure_protocol'] = '1';
-        }
-
-        $config->General['salt'] = Common::generateUniqId();
-        $config->General['installation_in_progress'] = 1;
-
-        $config->database = $dbInfos;
-        if (!DbHelper::isDatabaseConnectionUTF8()) {
-            $config->database['charset'] = 'utf8';
-        }
-
-        $config->forceSave();
-
-        // re-save the currently viewed language (since we saved the config file, there is now a salt which makes the
-        // existing session cookie invalid)
-        $this->resetLanguageCookie();
-    }
-
-    /**
-     * Redirect to next step
-     *
-     * @param string $currentStep Current step
-     * @return void
-     */
-    private function redirectToNextStep($currentStep, $parameters = array())
-    {
-        $steps = array_keys($this->steps);
-        $nextStep = $steps[1 + array_search($currentStep, $steps)];
-        Piwik::redirectToModule('Installation', $nextStep, $parameters);
     }
 
     /**
@@ -305,43 +214,6 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         }
 
         return $view->render();
-    }
-
-    private function getParam($name)
-    {
-        return Common::getRequestVar($name, false, 'string');
-    }
-
-    public function hasEnoughTablesToReuseDb($tablesInstalled)
-    {
-        if (empty($tablesInstalled) || !is_array($tablesInstalled)) {
-            return false;
-        }
-
-        $archiveTables       = ArchiveTableCreator::getTablesArchivesInstalled();
-        $baseTablesInstalled = count($tablesInstalled) - count($archiveTables);
-        $minimumCountPiwikTables = 12;
-
-        return $baseTablesInstalled >= $minimumCountPiwikTables;
-    }
-
-    /**
-     * @return array|bool
-     */
-    protected function updateComponents()
-    {
-        Access::getInstance();
-
-        return Access::doAsSuperUser(function () {
-            $updater = new Updater();
-            $componentsWithUpdateFile = $updater->getComponentUpdates();
-
-            if (empty($componentsWithUpdateFile)) {
-                return false;
-            }
-            $result = $updater->updateComponents($componentsWithUpdateFile);
-            return $result;
-        });
     }
 
     function reuseTables()
@@ -421,50 +293,6 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         return $view->render();
     }
 
-    private function createSuperUser($login, $password, $email)
-    {
-        $self = $this;
-        Access::doAsSuperUser(function () use ($self, $login, $password, $email) {
-            $api = APIUsersManager::getInstance();
-            $api->addUser($login, $password, $email);
-            $api->setSuperUserAccess($login, true);
-        });
-    }
-
-    /**
-     * @param $email
-     * @param $newsletterPiwikORG
-     * @param $newsletterPiwikPRO
-     */
-    protected function registerNewsletter($email, $newsletterPiwikORG, $newsletterPiwikPRO)
-    {
-        $url = Config::getInstance()->General['api_service_url'];
-        $url .= '/1.0/subscribeNewsletter/';
-        $params = array(
-            'email'     => $email,
-            'piwikorg'  => $newsletterPiwikORG,
-            'piwikpro'  => $newsletterPiwikPRO,
-            'url'       => Url::getCurrentUrlWithoutQueryString(),
-            'language'  => StaticContainer::get('Piwik\Translation\Translator')->getCurrentLanguage(),
-        );
-        if ($params['piwikorg'] == '1'
-            || $params['piwikpro'] == '1'
-        ) {
-            if (!isset($params['piwikorg'])) {
-                $params['piwikorg'] = '0';
-            }
-            if (!isset($params['piwikpro'])) {
-                $params['piwikpro'] = '0';
-            }
-            $url .= '?' . http_build_query($params, '', '&');
-            try {
-                Http::sendHttpRequest($url, $timeout = 2);
-            } catch (Exception $e) {
-                // e.g., disable_functions = fsockopen; allow_url_open = Off
-            }
-        }
-    }
-
     /**
      * Installation Step 6: Configure first web-site
      */
@@ -518,51 +346,6 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
 
         $view->addForm($form);
         return $view->render();
-    }
-
-    /**
-     * Add trusted hosts
-     */
-    private function addTrustedHosts($siteUrl)
-    {
-        $trustedHosts = array();
-
-        // extract host from the request header
-        if (($host = $this->extractHost('http://' . Url::getHost())) !== false) {
-            $trustedHosts[] = $host;
-        }
-
-        // extract host from first web site
-        if (($host = $this->extractHost(urldecode($siteUrl))) !== false) {
-            $trustedHosts[] = $host;
-        }
-
-        $trustedHosts = array_unique($trustedHosts);
-        if (count($trustedHosts)) {
-
-            $general = Config::getInstance()->General;
-            $general['trusted_hosts'] = $trustedHosts;
-            Config::getInstance()->General = $general;
-
-            Config::getInstance()->forceSave();
-        }
-    }
-
-    /**
-     * Extract host from URL
-     *
-     * @param string $url URL
-     *
-     * @return string|false
-     */
-    private function extractHost($url)
-    {
-        $urlParts = parse_url($url);
-        if (isset($urlParts['host']) && strlen($host = $urlParts['host'])) {
-            return $host;
-        }
-
-        return false;
     }
 
     /**
@@ -648,18 +431,6 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
     }
 
     /**
-     * Write configuration file from session-store
-     */
-    private function markInstallationAsCompleted()
-    {
-        $config = Config::getInstance();
-        unset($config->General['installation_in_progress']);
-        $config->forceSave();
-    }
-
-    // should be private but there's a bug in php 5.3.6
-
-    /**
      * System check will call this page which should load quickly,
      * in order to look at Response headers (eg. to detect if pagespeed is running)
      *
@@ -719,5 +490,233 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
     {
         Common::sendHeader('Content-Type: text/css');
         return AssetManager::getInstance()->getCompiledBaseCss()->getContent();
+    }
+
+    private function getParam($name)
+    {
+        return Common::getRequestVar($name, false, 'string');
+    }
+
+    /**
+     * Write configuration file from session-store
+     */
+    private function createConfigFile($dbInfos)
+    {
+        $config = Config::getInstance();
+
+        // make sure DB sessions are used if the filesystem is NFS
+        if (Filesystem::checkIfFileSystemIsNFS()) {
+            $config->General['session_save_handler'] = 'dbtable';
+        }
+        if (count($headers = ProxyHeaders::getProxyClientHeaders()) > 0) {
+            $config->General['proxy_client_headers'] = $headers;
+        }
+        if (count($headers = ProxyHeaders::getProxyHostHeaders()) > 0) {
+            $config->General['proxy_host_headers'] = $headers;
+        }
+
+        if (Common::getRequestVar('clientProtocol', 'http', 'string') == 'https') {
+            $protocol = 'https';
+        } else {
+            $protocol = ProxyHeaders::getProtocolInformation();
+        }
+
+        if (!empty($protocol)
+            && !\Piwik\ProxyHttp::isHttps()) {
+            $config->General['assume_secure_protocol'] = '1';
+        }
+
+        $config->General['salt'] = Common::generateUniqId();
+        $config->General['installation_in_progress'] = 1;
+
+        $config->database = $dbInfos;
+        if (!DbHelper::isDatabaseConnectionUTF8()) {
+            $config->database['charset'] = 'utf8';
+        }
+
+        $config->forceSave();
+
+        // re-save the currently viewed language (since we saved the config file, there is now a salt which makes the
+        // existing session cookie invalid)
+        $this->resetLanguageCookie();
+    }
+
+    private function resetLanguageCookie()
+    {
+        /** @var Translator $translator */
+        $translator = StaticContainer::get('Piwik\Translation\Translator');
+        LanguagesManager::setLanguageForSession($translator->getCurrentLanguage());
+    }
+
+    private function checkPiwikIsNotInstalled()
+    {
+        if (!SettingsPiwik::isPiwikInstalled()) {
+            return;
+        }
+        \Piwik\Plugins\Login\Controller::clearSession();
+        $message = Piwik::translate('Installation_InvalidStateError',
+            array('<br /><strong>',
+                  // piwik-is-already-installed is checked against in checkPiwikServerWorking
+                  '</strong><a id="piwik-is-already-installed" href=\'' . Common::sanitizeInputValue(Url::getCurrentUrlWithoutFileName()) . '\'>',
+                  '</a>')
+        );
+        Piwik::exitWithErrorMessage($message);
+    }
+
+    /**
+     * Write configuration file from session-store
+     */
+    private function markInstallationAsCompleted()
+    {
+        $config = Config::getInstance();
+        unset($config->General['installation_in_progress']);
+        $config->forceSave();
+    }
+
+    /**
+     * Redirect to next step
+     *
+     * @param string $currentStep Current step
+     * @return void
+     */
+    private function redirectToNextStep($currentStep, $parameters = array())
+    {
+        $steps = array_keys($this->steps);
+        $nextStep = $steps[1 + array_search($currentStep, $steps)];
+        Piwik::redirectToModule('Installation', $nextStep, $parameters);
+    }
+
+    /**
+     * Extract host from URL
+     *
+     * @param string $url URL
+     *
+     * @return string|false
+     */
+    private function extractHost($url)
+    {
+        $urlParts = parse_url($url);
+        if (isset($urlParts['host']) && strlen($host = $urlParts['host'])) {
+            return $host;
+        }
+
+        return false;
+    }
+
+    /**
+     * Add trusted hosts
+     */
+    private function addTrustedHosts($siteUrl)
+    {
+        $trustedHosts = array();
+
+        // extract host from the request header
+        if (($host = $this->extractHost('http://' . Url::getHost())) !== false) {
+            $trustedHosts[] = $host;
+        }
+
+        // extract host from first web site
+        if (($host = $this->extractHost(urldecode($siteUrl))) !== false) {
+            $trustedHosts[] = $host;
+        }
+
+        $trustedHosts = array_unique($trustedHosts);
+        if (count($trustedHosts)) {
+
+            $general = Config::getInstance()->General;
+            $general['trusted_hosts'] = $trustedHosts;
+            Config::getInstance()->General = $general;
+
+            Config::getInstance()->forceSave();
+        }
+    }
+
+    private function createSuperUser($login, $password, $email)
+    {
+        $self = $this;
+        Access::doAsSuperUser(function () use ($self, $login, $password, $email) {
+            $api = APIUsersManager::getInstance();
+            $api->addUser($login, $password, $email);
+            $api->setSuperUserAccess($login, true);
+        });
+    }
+
+    // should be private but there's a bug in php 5.3.6
+    public function hasEnoughTablesToReuseDb($tablesInstalled)
+    {
+        if (empty($tablesInstalled) || !is_array($tablesInstalled)) {
+            return false;
+        }
+
+        $archiveTables       = ArchiveTableCreator::getTablesArchivesInstalled();
+        $baseTablesInstalled = count($tablesInstalled) - count($archiveTables);
+        $minimumCountPiwikTables = 12;
+
+        return $baseTablesInstalled >= $minimumCountPiwikTables;
+    }
+
+    private function deleteConfigFileIfNeeded()
+    {
+        $config = Config::getInstance();
+        if ($config->existsLocalConfig()) {
+            $config->deleteLocalConfig();
+
+            // deleting the config file removes the salt, which in turns invalidates existing cookies (including the
+            // one for selected language), so we re-save that cookie now
+            $this->resetLanguageCookie();
+        }
+    }
+
+    /**
+     * @param $email
+     * @param $newsletterPiwikORG
+     * @param $newsletterPiwikPRO
+     */
+    protected function registerNewsletter($email, $newsletterPiwikORG, $newsletterPiwikPRO)
+    {
+        $url = Config::getInstance()->General['api_service_url'];
+        $url .= '/1.0/subscribeNewsletter/';
+        $params = array(
+            'email'     => $email,
+            'piwikorg'  => $newsletterPiwikORG,
+            'piwikpro'  => $newsletterPiwikPRO,
+            'url'       => Url::getCurrentUrlWithoutQueryString(),
+            'language'  => StaticContainer::get('Piwik\Translation\Translator')->getCurrentLanguage(),
+        );
+        if ($params['piwikorg'] == '1'
+            || $params['piwikpro'] == '1'
+        ) {
+            if (!isset($params['piwikorg'])) {
+                $params['piwikorg'] = '0';
+            }
+            if (!isset($params['piwikpro'])) {
+                $params['piwikpro'] = '0';
+            }
+            $url .= '?' . http_build_query($params, '', '&');
+            try {
+                Http::sendHttpRequest($url, $timeout = 2);
+            } catch (Exception $e) {
+                // e.g., disable_functions = fsockopen; allow_url_open = Off
+            }
+        }
+    }
+
+    /**
+     * @return array|bool
+     */
+    protected function updateComponents()
+    {
+        Access::getInstance();
+
+        return Access::doAsSuperUser(function () {
+            $updater = new Updater();
+            $componentsWithUpdateFile = $updater->getComponentUpdates();
+
+            if (empty($componentsWithUpdateFile)) {
+                return false;
+            }
+            $result = $updater->updateComponents($componentsWithUpdateFile);
+            return $result;
+        });
     }
 }

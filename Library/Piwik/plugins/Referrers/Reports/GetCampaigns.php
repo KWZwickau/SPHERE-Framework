@@ -14,14 +14,6 @@ use Piwik\Plugins\Referrers\Columns\Campaign;
 
 class GetCampaigns extends Base
 {
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->show_exclude_low_population = false;
-        $view->config->addTranslation('label', $this->dimension->getName());
-
-        $view->requestConfig->filter_limit = 25;
-    }
-
     protected function init()
     {
         parent::init();
@@ -34,6 +26,14 @@ class GetCampaigns extends Base
         $this->order = 9;
         $this->widgetTitle  = 'Referrers_Campaigns';
         $this->menuTitle    = 'Referrers_Campaigns';
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->show_exclude_low_population = false;
+        $view->config->addTranslation('label', $this->dimension->getName());
+
+        $view->requestConfig->filter_limit = 25;
     }
 
 }

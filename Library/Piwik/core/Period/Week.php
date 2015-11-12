@@ -9,6 +9,7 @@
 namespace Piwik\Period;
 
 use Piwik\Period;
+use Piwik\Piwik;
 
 /**
  */
@@ -54,16 +55,6 @@ class Week extends Period
         return $out;
     }
 
-    public function getImmediateChildPeriodLabel()
-    {
-        return 'day';
-    }
-
-    public function getParentPeriodLabel()
-    {
-        return 'month';
-    }
-
     /**
      * Generates the subperiods - one for each day in the week
      */
@@ -87,5 +78,15 @@ class Week extends Period
             $this->addSubperiod(new Day($currentDay));
             $currentDay = $currentDay->addDay(1);
         }
+    }
+
+    public function getImmediateChildPeriodLabel()
+    {
+        return 'day';
+    }
+
+    public function getParentPeriodLabel()
+    {
+        return 'month';
     }
 }

@@ -8,8 +8,8 @@
 
 namespace Piwik\CliMulti;
 
-use Piwik\Access;
 use Piwik\Application\Environment;
+use Piwik\Access;
 use Piwik\Container\StaticContainer;
 use Piwik\Db;
 use Piwik\Log;
@@ -83,19 +83,9 @@ class RequestCommand extends ConsoleCommand
         }
     }
 
-    /**
-     * We will be simulating an HTTP request here (by including index.php).
-     *
-     * To avoid weird side-effects (e.g. the logging output messing up the HTTP response on the CLI output)
-     * we need to recreate the container with the default environment instead of the CLI environment.
-     */
-    private function recreateContainerWithWebEnvironment()
+    private function isTestModeEnabled()
     {
-        StaticContainer::clearContainer();
-        Log::unsetInstance();
-
-        $this->environment = new Environment(null);
-        $this->environment->init();
+        return !empty($_GET['testmode']);
     }
 
     /**
@@ -115,9 +105,19 @@ class RequestCommand extends ConsoleCommand
         }
     }
 
-    private function isTestModeEnabled()
+    /**
+     * We will be simulating an HTTP request here (by including index.php).
+     *
+     * To avoid weird side-effects (e.g. the logging output messing up the HTTP response on the CLI output)
+     * we need to recreate the container with the default environment instead of the CLI environment.
+     */
+    private function recreateContainerWithWebEnvironment()
     {
-        return !empty($_GET['testmode']);
+        StaticContainer::clearContainer();
+        Log::unsetInstance();
+
+        $this->environment = new Environment(null);
+        $this->environment->init();
     }
 
     private function resetDatabase()

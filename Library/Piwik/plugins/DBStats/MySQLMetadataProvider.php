@@ -26,13 +26,14 @@ use Piwik\Option;
 class MySQLMetadataProvider
 {
     /**
-     * Data access object.
-     */
-    public $dataAccess = null;
-    /**
      * Cached MySQL table statuses. So we won't needlessly re-issue SHOW TABLE STATUS queries.
      */
     private $tableStatuses = null;
+
+    /**
+     * Data access object.
+     */
+    public $dataAccess = null;
 
     /**
      * Constructor.
@@ -73,17 +74,6 @@ class MySQLMetadataProvider
     }
 
     /**
-     * Returns table statuses for every log table.
-     *
-     * @return array An array of status arrays. See http://dev.mysql.com/doc/refman/5.5/en/show-table-status.html.
-     */
-    public function getAllLogTableStatus()
-    {
-        $regex = "/^" . Common::prefixTable('log_') . "(?!profiling)/";
-        return $this->getAllTablesStatus($regex);
-    }
-
-    /**
      * Gets the result of a SHOW TABLE STATUS query for every Piwik table in the DB.
      * Non-piwik tables are ignored.
      *
@@ -119,6 +109,39 @@ class MySQLMetadataProvider
     }
 
     /**
+     * Returns table statuses for every log table.
+     *
+     * @return array An array of status arrays. See http://dev.mysql.com/doc/refman/5.5/en/show-table-status.html.
+     */
+    public function getAllLogTableStatus()
+    {
+        $regex = "/^" . Common::prefixTable('log_') . "(?!profiling)/";
+        return $this->getAllTablesStatus($regex);
+    }
+
+    /**
+     * Returns table statuses for every numeric archive table.
+     *
+     * @return array An array of status arrays. See http://dev.mysql.com/doc/refman/5.5/en/show-table-status.html.
+     */
+    public function getAllNumericArchiveStatus()
+    {
+        $regex = "/^" . Common::prefixTable('archive_numeric') . "_/";
+        return $this->getAllTablesStatus($regex);
+    }
+
+    /**
+     * Returns table statuses for every blob archive table.
+     *
+     * @return array An array of status arrays. See http://dev.mysql.com/doc/refman/5.5/en/show-table-status.html.
+     */
+    public function getAllBlobArchiveStatus()
+    {
+        $regex = "/^" . Common::prefixTable('archive_blob') . "_/";
+        return $this->getAllTablesStatus($regex);
+    }
+
+    /**
      * Retruns table statuses for every admin table.
      *
      * @return array An array of status arrays. See http://dev.mysql.com/doc/refman/5.5/en/show-table-status.html.
@@ -146,6 +169,22 @@ class MySQLMetadataProvider
         return $this->getRowCountsByArchiveName(
             $this->getAllBlobArchiveStatus(), 'getEstimatedBlobArchiveRowSize', $forceCache, $extraSelects,
             $extraCols);
+    }
+
+    /**
+     * Returns a DataTable that lists the number of rows and the estimated amount of space
+     * each metric archive type takes up in the database.
+     *
+     * Metric types are differentiated by name.
+     *
+     * @param bool $forceCache false to use the cached result, true to run the queries again and
+     *                         cache the result.
+     * @return DataTable
+     */
+    public function getRowCountsAndSizeByMetricName($forceCache = false)
+    {
+        return $this->getRowCountsByArchiveName(
+            $this->getAllNumericArchiveStatus(), 'getEstimatedRowsSize', $forceCache);
     }
 
     /**
@@ -190,52 +229,6 @@ class MySQLMetadataProvider
             $dataTable->addDataTable($table);
         }
         return $dataTable;
-    }
-
-    /**
-     * Gets the option name used to cache the result of an intensive query.
-     */
-    private function getCachedOptionName($tableName, $suffix)
-    {
-        return 'dbstats_cached_' . $tableName . '_' . $suffix;
-    }
-
-    /**
-     * Returns table statuses for every blob archive table.
-     *
-     * @return array An array of status arrays. See http://dev.mysql.com/doc/refman/5.5/en/show-table-status.html.
-     */
-    public function getAllBlobArchiveStatus()
-    {
-        $regex = "/^" . Common::prefixTable('archive_blob') . "_/";
-        return $this->getAllTablesStatus($regex);
-    }
-
-    /**
-     * Returns a DataTable that lists the number of rows and the estimated amount of space
-     * each metric archive type takes up in the database.
-     *
-     * Metric types are differentiated by name.
-     *
-     * @param bool $forceCache false to use the cached result, true to run the queries again and
-     *                         cache the result.
-     * @return DataTable
-     */
-    public function getRowCountsAndSizeByMetricName($forceCache = false)
-    {
-        return $this->getRowCountsByArchiveName(
-            $this->getAllNumericArchiveStatus(), 'getEstimatedRowsSize', $forceCache);
-    }
-
-    /**
-     * Returns table statuses for every numeric archive table.
-     *
-     * @return array An array of status arrays. See http://dev.mysql.com/doc/refman/5.5/en/show-table-status.html.
-     */
-    public function getAllNumericArchiveStatus()
-    {
-        $regex = "/^" . Common::prefixTable('archive_numeric') . "_/";
-        return $this->getAllTablesStatus($regex);
     }
 
     /**
@@ -307,6 +300,14 @@ class MySQLMetadataProvider
             default:
                 return 0;
         }
+    }
+
+    /**
+     * Gets the option name used to cache the result of an intensive query.
+     */
+    private function getCachedOptionName($tableName, $suffix)
+    {
+        return 'dbstats_cached_' . $tableName . '_' . $suffix;
     }
 
     /**

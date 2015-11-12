@@ -21,7 +21,7 @@ class Menu extends \Piwik\Plugin\Menu
     public function configureReportingMenu(MenuReporting $menu)
     {
         $idSite = $this->getIdSite();
-        $goals = API::getInstance()->getGoals($idSite);
+        $goals  = API::getInstance()->getGoals($idSite);
         $mainGoalMenu = 'Goals_Goals';
 
         if (count($goals) == 0) {
@@ -43,8 +43,8 @@ class Menu extends \Piwik\Plugin\Menu
         $group = new Group();
         foreach ($goals as $goal) {
             $subMenuName = str_replace('%', '%%', Translate::clean($goal['name']));
-            $params = $this->urlForAction('goalReport', array('idGoal' => $goal['idgoal']));
-            $tooltip = sprintf('%s (id = %d)', $subMenuName, $goal['idgoal']);
+            $params      = $this->urlForAction('goalReport', array('idGoal' => $goal['idgoal']));
+            $tooltip     = sprintf('%s (id = %d)', $subMenuName, $goal['idgoal']);
 
             if (count($goals) > 3) {
                 $group->add($subMenuName, $params, $tooltip);
@@ -60,12 +60,6 @@ class Menu extends \Piwik\Plugin\Menu
         $menu->addItem($mainGoalMenu, 'Goals_ManageGoals', $this->urlForAction('editGoals'), ++$order);
     }
 
-    private function getIdSite($default = null)
-    {
-        $idSite = Common::getRequestVar('idSite', $default, 'int');
-        return $idSite;
-    }
-
     public function configureUserMenu(MenuUser $menu)
     {
         $userPreferences = new UserPreferences();
@@ -75,6 +69,12 @@ class Menu extends \Piwik\Plugin\Menu
             $menu->addManageItem('Goals_Goals', $this->urlForAction('manage', array('idSite' => $idSite)), 1);
         }
 
+    }
+
+    private function getIdSite($default = null)
+    {
+        $idSite = Common::getRequestVar('idSite', $default, 'int');
+        return $idSite;
     }
 
 }

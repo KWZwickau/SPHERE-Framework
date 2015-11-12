@@ -12,13 +12,13 @@ use Piwik\Piwik;
 
 class CustomVariableName extends Base
 {
-    public function getName()
-    {
-        return Piwik::translate('CustomVariables_ColumnCustomVariableName');
-    }
-
     protected function configureSegments()
     {
         $this->configureSegmentsFor('custom_var_k', 'Name');
+    }
+
+    public function getName()
+    {
+        return Piwik::translate('CustomVariables_ColumnCustomVariableName');
     }
 }

@@ -35,6 +35,14 @@ class Controller extends \Piwik\Plugin\Controller
         return $view->render();
     }
 
+    public function getOverallMoversAndShakers()
+    {
+        $view = $this->prepareWidgetView('moversAndShakersOverviewWidget.twig');
+        $view->reports = $this->requestApiReport('getMoversAndShakersOverview');
+
+        return $view->render();
+    }
+
     private function prepareWidgetView($template)
     {
         if (!$this->canGenerateInsights()) {
@@ -54,14 +62,6 @@ class Controller extends \Piwik\Plugin\Controller
         return $view;
     }
 
-    private function canGenerateInsights()
-    {
-        $period = Common::getRequestVar('period', null, 'string');
-        $date   = Common::getRequestVar('date', null, 'string');
-
-        return API::getInstance()->canGenerateInsights($date, $period);
-    }
-
     private function requestApiReport($apiReport)
     {
         if (!$this->canGenerateInsights()) {
@@ -76,11 +76,11 @@ class Controller extends \Piwik\Plugin\Controller
         return API::getInstance()->$apiReport($idSite, $period, $date, $segment);
     }
 
-    public function getOverallMoversAndShakers()
+    private function canGenerateInsights()
     {
-        $view = $this->prepareWidgetView('moversAndShakersOverviewWidget.twig');
-        $view->reports = $this->requestApiReport('getMoversAndShakersOverview');
+        $period = Common::getRequestVar('period', null, 'string');
+        $date   = Common::getRequestVar('date', null, 'string');
 
-        return $view->render();
+        return API::getInstance()->canGenerateInsights($date, $period);
     }
 }

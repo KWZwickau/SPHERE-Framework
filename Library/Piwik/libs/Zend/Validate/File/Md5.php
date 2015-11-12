@@ -80,15 +80,13 @@ class Zend_Validate_File_Md5 extends Zend_Validate_File_Hash
     }
 
     /**
-     * Sets the md5 hash for one or multiple files
+     * Returns all set md5 hashes
      *
-     * @param  string|array $options
-     * @return Zend_Validate_File_Hash Provides a fluent interface
+     * @return array
      */
-    public function setMd5($options)
+    public function getMd5()
     {
-        $this->setHash($options);
-        return $this;
+        return $this->getHash();
     }
 
     /**
@@ -110,24 +108,14 @@ class Zend_Validate_File_Md5 extends Zend_Validate_File_Hash
     }
 
     /**
-     * Returns all set md5 hashes
-     *
-     * @return array
-     */
-    public function getMd5()
-    {
-        return $this->getHash();
-    }
-
-    /**
-     * Adds the md5 hash for one or multiple files
+     * Sets the md5 hash for one or multiple files
      *
      * @param  string|array $options
      * @return Zend_Validate_File_Hash Provides a fluent interface
      */
-    public function addMd5($options)
+    public function setMd5($options)
     {
-        $this->addHash($options);
+        $this->setHash($options);
         return $this;
     }
 
@@ -146,6 +134,18 @@ class Zend_Validate_File_Md5 extends Zend_Validate_File_Hash
 
         $options['algorithm'] = 'md5';
         parent::addHash($options);
+        return $this;
+    }
+
+    /**
+     * Adds the md5 hash for one or multiple files
+     *
+     * @param  string|array $options
+     * @return Zend_Validate_File_Hash Provides a fluent interface
+     */
+    public function addMd5($options)
+    {
+        $this->addHash($options);
         return $this;
     }
 

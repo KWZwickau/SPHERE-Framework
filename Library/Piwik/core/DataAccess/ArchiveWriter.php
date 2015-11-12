@@ -11,8 +11,8 @@ namespace Piwik\DataAccess;
 use Exception;
 use Piwik\Archive;
 use Piwik\Archive\Chunk;
-use Piwik\ArchiveProcessor;
 use Piwik\ArchiveProcessor\Rules;
+use Piwik\ArchiveProcessor;
 use Piwik\Db;
 use Piwik\Db\BatchInsert;
 use Piwik\Period;
@@ -111,6 +111,31 @@ class ArchiveWriter
         $this->insertRecord($name, $values);
     }
 
+    public function getIdArchive()
+    {
+        if ($this->idArchive === false) {
+            throw new Exception("Must call allocateNewArchiveId() first");
+        }
+
+        return $this->idArchive;
+    }
+
+    public function initNewArchive()
+    {
+        $this->allocateNewArchiveId();
+        $this->logArchiveStatusAsIncomplete();
+    }
+
+    public function finalizeArchive()
+    {
+        $numericTable = $this->getTableNumeric();
+        $idArchive    = $this->getIdArchive();
+
+        $this->getModel()->deletePreviousArchiveStatus($numericTable, $idArchive, $this->doneFlag);
+
+        $this->logArchiveStatusAsFinal();
+    }
+
     protected function compress($data)
     {
         if (Db::get()->hasBlobDataType()) {
@@ -118,6 +143,35 @@ class ArchiveWriter
         }
 
         return $data;
+    }
+
+    protected function allocateNewArchiveId()
+    {
+        $numericTable = $this->getTableNumeric();
+
+        $this->idArchive = $this->getModel()->allocateNewArchiveId($numericTable);
+        return $this->idArchive;
+    }
+
+    private function getModel()
+    {
+        return new Model();
+    }
+
+    protected function logArchiveStatusAsIncomplete()
+    {
+        $this->insertRecord($this->doneFlag, self::DONE_ERROR);
+    }
+
+    protected function logArchiveStatusAsFinal()
+    {
+        $status = self::DONE_OK;
+
+        if ($this->isArchiveTemporary) {
+            $status = self::DONE_OK_TEMPORARY;
+        }
+
+        $this->insertRecord($this->doneFlag, $status);
     }
 
     protected function insertBulkRecords($records)
@@ -186,9 +240,14 @@ class ArchiveWriter
         return true;
     }
 
-    protected function isRecordZero($value)
+    protected function getInsertRecordBind()
     {
-        return ($value === '0' || $value === false || $value === 0 || $value === 0.0);
+        return array($this->getIdArchive(),
+            $this->idSite,
+            $this->dateStart->toString('Y-m-d'),
+            $this->period->getDateEnd()->toString('Y-m-d'),
+            $this->period->getId(),
+            date("Y-m-d H:i:s"));
     }
 
     protected function getTableNameToInsert($value)
@@ -210,67 +269,8 @@ class ArchiveWriter
         return $this->fields;
     }
 
-    protected function getInsertRecordBind()
+    protected function isRecordZero($value)
     {
-        return array($this->getIdArchive(),
-            $this->idSite,
-            $this->dateStart->toString('Y-m-d'),
-            $this->period->getDateEnd()->toString('Y-m-d'),
-            $this->period->getId(),
-            date("Y-m-d H:i:s"));
-    }
-
-    public function getIdArchive()
-    {
-        if ($this->idArchive === false) {
-            throw new Exception("Must call allocateNewArchiveId() first");
-        }
-
-        return $this->idArchive;
-    }
-
-    private function getModel()
-    {
-        return new Model();
-    }
-
-    public function initNewArchive()
-    {
-        $this->allocateNewArchiveId();
-        $this->logArchiveStatusAsIncomplete();
-    }
-
-    protected function allocateNewArchiveId()
-    {
-        $numericTable = $this->getTableNumeric();
-
-        $this->idArchive = $this->getModel()->allocateNewArchiveId($numericTable);
-        return $this->idArchive;
-    }
-
-    protected function logArchiveStatusAsIncomplete()
-    {
-        $this->insertRecord($this->doneFlag, self::DONE_ERROR);
-    }
-
-    public function finalizeArchive()
-    {
-        $numericTable = $this->getTableNumeric();
-        $idArchive    = $this->getIdArchive();
-
-        $this->getModel()->deletePreviousArchiveStatus($numericTable, $idArchive, $this->doneFlag);
-
-        $this->logArchiveStatusAsFinal();
-    }
-
-    protected function logArchiveStatusAsFinal()
-    {
-        $status = self::DONE_OK;
-
-        if ($this->isArchiveTemporary) {
-            $status = self::DONE_OK_TEMPORARY;
-        }
-
-        $this->insertRecord($this->doneFlag, $status);
+        return ($value === '0' || $value === false || $value === 0 || $value === 0.0);
     }
 }

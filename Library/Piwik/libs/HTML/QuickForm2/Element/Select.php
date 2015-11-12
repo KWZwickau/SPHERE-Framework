@@ -348,66 +348,6 @@ class HTML_QuickForm2_Element_Select extends HTML_QuickForm2_Element
         $this->loadOptions($options);
     }
 
-   /**
-    * Loads <option>s (and <optgroup>s) for select element
-    *
-    * The method expects a array of options and optgroups:
-    * <pre>
-    * array(
-    *     'option value 1' => 'option text 1',
-    *     ...
-    *     'option value N' => 'option text N',
-    *     'optgroup label 1' => array(
-    *         'option value' => 'option text',
-    *         ...
-    *     ),
-    *     ...
-    * )
-    * </pre>
-    * If value is a scalar, then array key is treated as "value" attribute of
-    * <option> and value as this <option>'s text. If value is an array, then
-    * key is treated as a "label" attribute of <optgroup> and value as an
-    * array of <option>s for this <optgroup>.
-    *
-    * If you need to specify additional attributes for <option> and <optgroup>
-    * tags, then you need to use {@link addOption()} and {@link addOptgroup()}
-    * methods instead of this one.
-    *
-    * @param    array
-    * @throws   HTML_QuickForm2_InvalidArgumentException    if junk is given in $options
-    * @return   HTML_QuickForm2_Element_Select
-    */
-    public function loadOptions(array $options)
-    {
-        $this->possibleValues  = array();
-        $this->optionContainer = new HTML_QuickForm2_Element_Select_OptionContainer(
-                                     $this->values, $this->possibleValues
-                                 );
-        $this->loadOptionsFromArray($this->optionContainer, $options);
-        return $this;
-    }
-
-   /**
-    * Adds options from given array into given container
-    *
-    * @param    HTML_QuickForm2_Element_Select_OptionContainer  options will be
-    *           added to this container
-    * @param    array   options array
-    */
-    protected function loadOptionsFromArray(
-        HTML_QuickForm2_Element_Select_OptionContainer $container, $options
-    )
-    {
-        foreach ($options as $key => $value) {
-            if (is_array($value)) {
-                $optgroup = $container->addOptgroup($key);
-                $this->loadOptionsFromArray($optgroup, $value);
-            } else {
-                $container->addOption($value, $key);
-            }
-        }
-    }
-
     public function getType()
     {
         return 'select';
@@ -514,6 +454,78 @@ class HTML_QuickForm2_Element_Select extends HTML_QuickForm2_Element
         }
     }
 
+    public function setValue($value)
+    {
+        if (is_array($value)) {
+            $this->values = array_values($value);
+        } else {
+            $this->values = array($value);
+        }
+        return $this;
+    }
+
+   /**
+    * Loads <option>s (and <optgroup>s) for select element
+    *
+    * The method expects a array of options and optgroups:
+    * <pre>
+    * array(
+    *     'option value 1' => 'option text 1',
+    *     ...
+    *     'option value N' => 'option text N',
+    *     'optgroup label 1' => array(
+    *         'option value' => 'option text',
+    *         ...
+    *     ),
+    *     ...
+    * )
+    * </pre>
+    * If value is a scalar, then array key is treated as "value" attribute of
+    * <option> and value as this <option>'s text. If value is an array, then
+    * key is treated as a "label" attribute of <optgroup> and value as an
+    * array of <option>s for this <optgroup>.
+    *
+    * If you need to specify additional attributes for <option> and <optgroup>
+    * tags, then you need to use {@link addOption()} and {@link addOptgroup()}
+    * methods instead of this one.
+    *
+    * @param    array
+    * @throws   HTML_QuickForm2_InvalidArgumentException    if junk is given in $options
+    * @return   HTML_QuickForm2_Element_Select
+    */
+    public function loadOptions(array $options)
+    {
+        $this->possibleValues  = array();
+        $this->optionContainer = new HTML_QuickForm2_Element_Select_OptionContainer(
+                                     $this->values, $this->possibleValues
+                                 );
+        $this->loadOptionsFromArray($this->optionContainer, $options);
+        return $this;
+    }
+
+
+   /**
+    * Adds options from given array into given container
+    *
+    * @param    HTML_QuickForm2_Element_Select_OptionContainer  options will be
+    *           added to this container
+    * @param    array   options array
+    */
+    protected function loadOptionsFromArray(
+        HTML_QuickForm2_Element_Select_OptionContainer $container, $options
+    )
+    {
+        foreach ($options as $key => $value) {
+            if (is_array($value)) {
+                $optgroup = $container->addOptgroup($key);
+                $this->loadOptionsFromArray($optgroup, $value);
+            } else {
+                $container->addOption($value, $key);
+            }
+        }
+    }
+
+
    /**
     * Adds a new option
     *
@@ -558,16 +570,6 @@ class HTML_QuickForm2_Element_Select extends HTML_QuickForm2_Element
                 }
             }
         }
-    }
-
-    public function setValue($value)
-    {
-        if (is_array($value)) {
-            $this->values = array_values($value);
-        } else {
-            $this->values = array($value);
-        }
-        return $this;
     }
 }
 ?>

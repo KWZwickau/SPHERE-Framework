@@ -7,9 +7,9 @@
  */
 namespace Piwik\Plugin;
 
-use Exception;
 use Piwik\Log;
 use Piwik\Plugin\Manager as PluginManager;
+use Exception;
 
 /**
  * Factory class with methods to find and instantiate Plugin components.
@@ -65,30 +65,6 @@ class ComponentFactory
     }
 
     /**
-     * @param string $function
-     * @param string $pluginName
-     * @return null|\Piwik\Plugin
-     */
-    private static function getActivatedPlugin($function, $pluginName)
-    {
-        $pluginManager = PluginManager::getInstance();
-        try {
-            if (!$pluginManager->isPluginActivated($pluginName)) {
-                Log::debug("ComponentFactory::%s: component for deactivated plugin ('%s') requested.",
-                    $function, $pluginName);
-
-                return null;
-            }
-
-            return $pluginManager->getLoadedPlugin($pluginName);
-        } catch (Exception $e) {
-            Log::debug($e);
-
-            return null;
-        }
-    }
-
-    /**
      * Finds a component instance that satisfies a given predicate.
      *
      * @param string $componentTypeClass The fully qualified class name of the component type, eg,
@@ -127,5 +103,29 @@ class ComponentFactory
             __FUNCTION__, $componentTypeClass, $pluginName, get_class($predicate));
 
         return null;
+    }
+
+    /**
+     * @param string $function
+     * @param string $pluginName
+     * @return null|\Piwik\Plugin
+     */
+    private static function getActivatedPlugin($function, $pluginName)
+    {
+        $pluginManager = PluginManager::getInstance();
+        try {
+            if (!$pluginManager->isPluginActivated($pluginName)) {
+                Log::debug("ComponentFactory::%s: component for deactivated plugin ('%s') requested.",
+                    $function, $pluginName);
+
+                return null;
+            }
+
+            return $pluginManager->getLoadedPlugin($pluginName);
+        } catch (Exception $e) {
+            Log::debug($e);
+
+            return null;
+        }
     }
 }

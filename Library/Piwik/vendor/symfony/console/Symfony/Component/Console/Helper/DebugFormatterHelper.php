@@ -41,16 +41,6 @@ class DebugFormatterHelper extends Helper
     }
 
     /**
-     * @param string $id The id of the formatting session
-     *
-     * @return string
-     */
-    private function getBorder($id)
-    {
-        return sprintf('<bg=%s> </>', $this->colors[$this->started[$id]['border']]);
-    }
-
-    /**
      * Adds progress to a formatting session
      *
      * @param string $id          The id of the formatting session
@@ -115,6 +105,16 @@ class DebugFormatterHelper extends Helper
         unset($this->started[$id]['out'], $this->started[$id]['err']);
 
         return $message;
+    }
+
+    /**
+     * @param string $id The id of the formatting session
+     *
+     * @return string
+     */
+    private function getBorder($id)
+    {
+        return sprintf('<bg=%s> </>', $this->colors[$this->started[$id]['border']]);
     }
 
     /**

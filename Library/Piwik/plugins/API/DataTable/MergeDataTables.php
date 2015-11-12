@@ -8,8 +8,8 @@
  */
 namespace Piwik\Plugins\API\DataTable;
 
-use Piwik\DataTable;
 use Piwik\DataTable\Row;
+use Piwik\DataTable;
 
 class MergeDataTables
 {

@@ -9,15 +9,15 @@
 
 namespace Piwik\ArchiveProcessor;
 
-use Exception;
 use Piwik\ArchiveProcessor;
 use Piwik\DataAccess\ArchiveWriter;
 use Piwik\DataAccess\LogAggregator;
 use Piwik\DataTable\Manager;
-use Piwik\Log;
 use Piwik\Metrics;
 use Piwik\Plugin\Archiver;
+use Piwik\Log;
 use Piwik\Timer;
+use Exception;
 
 /**
  * This class creates the Archiver objects found in plugins and will trigger aggregation,
@@ -26,23 +26,26 @@ use Piwik\Timer;
 class PluginsArchiver
 {
     /**
+     * @param ArchiveProcessor $archiveProcessor
+     */
+    public $archiveProcessor;
+
+    /**
+     * @var Parameters
+     */
+    protected $params;
+
+    /**
+     * @var LogAggregator
+     */
+    private $logAggregator;
+
+    /**
      * Public only for tests. Won't be necessary after DI changes are complete.
      *
      * @var Archiver[] $archivers
      */
     public static $archivers = array();
-    /**
-     * @param ArchiveProcessor $archiveProcessor
-     */
-    public $archiveProcessor;
-    /**
-     * @var Parameters
-     */
-    protected $params;
-    /**
-     * @var LogAggregator
-     */
-    private $logAggregator;
 
     public function __construct(Parameters $params, $isTemporaryArchive)
     {
@@ -83,33 +86,6 @@ class PluginsArchiver
             'nb_visits' => $metrics['nb_visits'],
             'nb_visits_converted' => $metrics['nb_visits_converted']
         );
-    }
-
-    protected function aggregateDayVisitsMetrics()
-    {
-        $query = $this->archiveProcessor->getLogAggregator()->queryVisitsByDimension();
-        $data = $query->fetch();
-
-        $metrics = $this->convertMetricsIdToName($data);
-        $this->archiveProcessor->insertNumericRecords($metrics);
-        return $metrics;
-    }
-
-    protected function convertMetricsIdToName($data)
-    {
-        $metrics = array();
-        foreach ($data as $metricId => $value) {
-            $readableMetric = Metrics::$mappingFromIdToName[$metricId];
-            $metrics[$readableMetric] = $value;
-        }
-        return $metrics;
-    }
-
-    protected function aggregateMultipleVisitsMetrics()
-    {
-        $toSum = Metrics::getVisitsMetricNames();
-        $metrics = $this->archiveProcessor->aggregateNumericMetrics($toSum);
-        return $metrics;
     }
 
     /**
@@ -176,6 +152,13 @@ class PluginsArchiver
         }
     }
 
+    public function finalizeArchive()
+    {
+        $this->params->logStatusDebug($this->archiveWriter->isArchiveTemporary);
+        $this->archiveWriter->finalizeArchive();
+        return $this->archiveWriter->getIdArchive();
+    }
+
     /**
      * Loads Archiver class from any plugin that defines one.
      *
@@ -227,10 +210,30 @@ class PluginsArchiver
         return false;
     }
 
-    public function finalizeArchive()
+    protected function aggregateDayVisitsMetrics()
     {
-        $this->params->logStatusDebug($this->archiveWriter->isArchiveTemporary);
-        $this->archiveWriter->finalizeArchive();
-        return $this->archiveWriter->getIdArchive();
+        $query = $this->archiveProcessor->getLogAggregator()->queryVisitsByDimension();
+        $data = $query->fetch();
+
+        $metrics = $this->convertMetricsIdToName($data);
+        $this->archiveProcessor->insertNumericRecords($metrics);
+        return $metrics;
+    }
+
+    protected function convertMetricsIdToName($data)
+    {
+        $metrics = array();
+        foreach ($data as $metricId => $value) {
+            $readableMetric = Metrics::$mappingFromIdToName[$metricId];
+            $metrics[$readableMetric] = $value;
+        }
+        return $metrics;
+    }
+
+    protected function aggregateMultipleVisitsMetrics()
+    {
+        $toSum = Metrics::getVisitsMetricNames();
+        $metrics = $this->archiveProcessor->aggregateNumericMetrics($toSum);
+        return $metrics;
     }
 }

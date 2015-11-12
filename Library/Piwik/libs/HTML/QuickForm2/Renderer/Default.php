@@ -163,6 +163,23 @@ class HTML_QuickForm2_Renderer_Default extends HTML_QuickForm2_Renderer
     }
 
    /**
+    * Sets template for form elements that are instances of the given class
+    *
+    * When searching for a template to use, renderer will check for templates
+    * set for element's class and its parent classes, until found. Thus a more
+    * specific template will override a more generic one.
+    *
+    * @param    string  Class name
+    * @param    mixed   Template to use for elements of that class
+    * @return   HTML_QuickForm2_Renderer_Default
+    */
+    public function setTemplateForClass($className, $template)
+    {
+        $this->templatesForClass[strtolower($className)] = $template;
+        return $this;
+    }
+
+   /**
     * Sets template for form element with the given id
     *
     * If a template is set for an element via this method, it will be used.
@@ -192,23 +209,6 @@ class HTML_QuickForm2_Renderer_Default extends HTML_QuickForm2_Renderer
     public function setErrorTemplate(array $template)
     {
         return $this->setTemplateForClass('special:error', $template);
-    }
-
-   /**
-    * Sets template for form elements that are instances of the given class
-    *
-    * When searching for a template to use, renderer will check for templates
-    * set for element's class and its parent classes, until found. Thus a more
-    * specific template will override a more generic one.
-    *
-    * @param    string  Class name
-    * @param    mixed   Template to use for elements of that class
-    * @return   HTML_QuickForm2_Renderer_Default
-    */
-    public function setTemplateForClass($className, $template)
-    {
-        $this->templatesForClass[strtolower($className)] = $template;
-        return $this;
     }
 
    /**
@@ -250,6 +250,25 @@ class HTML_QuickForm2_Renderer_Default extends HTML_QuickForm2_Renderer
     }
 
    /**
+    * Resets the accumulated data
+    *
+    * This method is called automatically by startForm() method, but should
+    * be called manually before calling other rendering methods separately.
+    *
+    * @return HTML_QuickForm2_Renderer_Default
+    */
+    public function reset()
+    {
+        $this->html        = array(array());
+        $this->hiddenHtml  = '';
+        $this->errors      = array();
+        $this->hasRequired = false;
+        $this->groupId     = array();
+
+        return $this;
+    }
+
+   /**
     * Returns generated HTML
     *
     * @return string
@@ -270,147 +289,6 @@ class HTML_QuickForm2_Renderer_Default extends HTML_QuickForm2_Renderer
         $elTpl = $this->prepareTemplate($this->findTemplate($element), $element);
         $this->html[count($this->html) - 1][] = str_replace(array('{element}', '{id}'),
                                                             array($element, $element->getId()), $elTpl);
-    }
-
-   /**
-    * Processes the element's template, adding label(s), required note and error message
-    *
-    * @param    string                  Element template
-    * @param    HTML_QuickForm2_Node    Element being rendered
-    * @return   string  Template with some substitutions done
-    */
-    public function prepareTemplate($elTpl, HTML_QuickForm2_Node $element)
-    {
-        // if element is required
-        $elTpl = $this->markRequired($elTpl, $element->isRequired());
-        $elTpl = $this->outputError($elTpl, $element->getError());
-        return $this->outputLabel($elTpl, $element->getLabel());
-    }
-
-   /**
-    * Marks element required or removes "required" block
-    *
-    * @param    string  Element template
-    * @param    bool    Whether element is required
-    * @return   string  Template with processed "required" block
-    */
-    public function markRequired($elTpl, $required)
-    {
-        if ($required) {
-            $this->hasRequired = true;
-            $elTpl = str_replace(array('<qf:required>', '</qf:required>'),
-                                  array('', ''), $elTpl);
-        } else {
-            $elTpl = preg_replace('!<qf:required>.*</qf:required>!isU', '', $elTpl);
-        }
-        return $elTpl;
-    }
-
-   /**
-    * Outputs element error, removes empty error blocks
-    *
-    * @param    string  Element template
-    * @param    string  Validation error for the element
-    * @return   string  Template with error substitutions done
-    */
-    public function outputError($elTpl, $error)
-    {
-        if ($error && !$this->options['group_errors']) {
-            $elTpl = str_replace(array('<qf:error>', '</qf:error>', '{error}'),
-                                  array('', '', $error), $elTpl);
-        } else {
-            if ($error && $this->options['group_errors']) {
-                $this->errors[] = $error;
-            }
-            $elTpl = preg_replace('!<qf:error>.*</qf:error>!isU', '', $elTpl);
-        }
-        return $elTpl;
-    }
-
-   /**
-    * Outputs element's label(s), removes empty label blocks
-    *
-    * @param    string  Element template
-    * @param    mixed   Element label(s)
-    * @return   string  Template with label substitutions done
-    */
-    public function outputLabel($elTpl, $label)
-    {
-        $mainLabel = is_array($label)? array_shift($label): $label;
-        $elTpl     = str_replace('{label}', $mainLabel, $elTpl);
-        if (false !== strpos($elTpl, '<qf:label>')) {
-            if ($mainLabel) {
-                $elTpl = str_replace(array('<qf:label>', '</qf:label>'), array('', ''), $elTpl);
-            } else {
-                $elTpl = preg_replace('!<qf:label>.*</qf:label>!isU', '', $elTpl);
-            }
-        }
-        if (is_array($label)) {
-            foreach($label as $key => $text) {
-                $key   = is_int($key)? $key + 2: $key;
-                $elTpl = str_replace(array('<qf:label_' . $key . '>', '</qf:label_' . $key . '>', '{label_' . $key . '}'),
-                                     array('', '', $text), $elTpl);
-            }
-        }
-        if (strpos($elTpl, '{label_')) {
-            $elTpl = preg_replace('!<qf:label_([^>]+)>.*</qf:label_\1>!isU', '', $elTpl);
-        }
-        return $elTpl;
-    }
-
-   /**
-    * Finds a proper template for the element
-    *
-    * Templates are scanned in a predefined order. First, if a template was
-    * set for a specific element by id, it is returned, no matter if the
-    * element belongs to a group. If the element does not belong to a group,
-    * we try to match a template using the element class.
-    * But, if the element belongs to a group, templates are first looked up
-    * using the containing group id, then using the containing group class.
-    * When no template is found, the provided default template is returned.
-    *
-    * @param    HTML_QuickForm2_Node    Element being rendered
-    * @param    string                  Default template to use if not found
-    * @return   string  Template
-    */
-    public function findTemplate(HTML_QuickForm2_Node $element, $default = '{element}')
-    {
-        if (!empty($this->templatesForId[$element->getId()])) {
-            return $this->templatesForId[$element->getId()];
-        }
-        $class          = strtolower(get_class($element));
-        $groupId        = end($this->groupId);
-        $elementClasses = array();
-        do {
-            if (empty($groupId) && !empty($this->templatesForClass[$class])) {
-                return $this->templatesForClass[$class];
-            }
-            $elementClasses[$class] = true;
-        } while ($class = strtolower(get_parent_class($class)));
-
-        if (!empty($groupId)) {
-            if (!empty($this->elementTemplatesForGroupId[$groupId])) {
-                while (list($elClass) = each($elementClasses)) {
-                    if (!empty($this->elementTemplatesForGroupId[$groupId][$elClass])) {
-                        return $this->elementTemplatesForGroupId[$groupId][$elClass];
-                    }
-                }
-            }
-
-            $group = $element->getContainer();
-            $grClass = strtolower(get_class($group));
-            do {
-                if (!empty($this->elementTemplatesForGroupClass[$grClass])) {
-                    reset($elementClasses);
-                    while (list($elClass) = each($elementClasses)) {
-                        if (!empty($this->elementTemplatesForGroupClass[$grClass][$elClass])) {
-                            return $this->elementTemplatesForGroupClass[$grClass][$elClass];
-                        }
-                    }
-                }
-            } while ($grClass = strtolower(get_parent_class($grClass)));
-        }
-        return $default;
     }
 
    /**
@@ -512,25 +390,6 @@ class HTML_QuickForm2_Renderer_Default extends HTML_QuickForm2_Renderer
     }
 
    /**
-    * Resets the accumulated data
-    *
-    * This method is called automatically by startForm() method, but should
-    * be called manually before calling other rendering methods separately.
-    *
-    * @return HTML_QuickForm2_Renderer_Default
-    */
-    public function reset()
-    {
-        $this->html        = array(array());
-        $this->hiddenHtml  = '';
-        $this->errors      = array();
-        $this->hasRequired = false;
-        $this->groupId     = array();
-
-        return $this;
-    }
-
-   /**
     * Finishes rendering a form, called after processing contained elements
     *
     * @param    HTML_QuickForm2_Node    Form being rendered
@@ -593,6 +452,147 @@ class HTML_QuickForm2_Renderer_Default extends HTML_QuickForm2_Renderer
                                       $this->templatesForClass['special:error']['suffix']);
         }
         return $errorHtml;
+    }
+
+   /**
+    * Finds a proper template for the element
+    *
+    * Templates are scanned in a predefined order. First, if a template was
+    * set for a specific element by id, it is returned, no matter if the
+    * element belongs to a group. If the element does not belong to a group,
+    * we try to match a template using the element class.
+    * But, if the element belongs to a group, templates are first looked up
+    * using the containing group id, then using the containing group class.
+    * When no template is found, the provided default template is returned.
+    *
+    * @param    HTML_QuickForm2_Node    Element being rendered
+    * @param    string                  Default template to use if not found
+    * @return   string  Template
+    */
+    public function findTemplate(HTML_QuickForm2_Node $element, $default = '{element}')
+    {
+        if (!empty($this->templatesForId[$element->getId()])) {
+            return $this->templatesForId[$element->getId()];
+        }
+        $class          = strtolower(get_class($element));
+        $groupId        = end($this->groupId);
+        $elementClasses = array();
+        do {
+            if (empty($groupId) && !empty($this->templatesForClass[$class])) {
+                return $this->templatesForClass[$class];
+            }
+            $elementClasses[$class] = true;
+        } while ($class = strtolower(get_parent_class($class)));
+
+        if (!empty($groupId)) {
+            if (!empty($this->elementTemplatesForGroupId[$groupId])) {
+                while (list($elClass) = each($elementClasses)) {
+                    if (!empty($this->elementTemplatesForGroupId[$groupId][$elClass])) {
+                        return $this->elementTemplatesForGroupId[$groupId][$elClass];
+                    }
+                }
+            }
+
+            $group = $element->getContainer();
+            $grClass = strtolower(get_class($group));
+            do {
+                if (!empty($this->elementTemplatesForGroupClass[$grClass])) {
+                    reset($elementClasses);
+                    while (list($elClass) = each($elementClasses)) {
+                        if (!empty($this->elementTemplatesForGroupClass[$grClass][$elClass])) {
+                            return $this->elementTemplatesForGroupClass[$grClass][$elClass];
+                        }
+                    }
+                }
+            } while ($grClass = strtolower(get_parent_class($grClass)));
+        }
+        return $default;
+    }
+
+   /**
+    * Processes the element's template, adding label(s), required note and error message
+    *
+    * @param    string                  Element template
+    * @param    HTML_QuickForm2_Node    Element being rendered
+    * @return   string  Template with some substitutions done
+    */
+    public function prepareTemplate($elTpl, HTML_QuickForm2_Node $element)
+    {
+        // if element is required
+        $elTpl = $this->markRequired($elTpl, $element->isRequired());
+        $elTpl = $this->outputError($elTpl, $element->getError());
+        return $this->outputLabel($elTpl, $element->getLabel());
+    }
+
+   /**
+    * Marks element required or removes "required" block
+    *
+    * @param    string  Element template
+    * @param    bool    Whether element is required
+    * @return   string  Template with processed "required" block
+    */
+    public function markRequired($elTpl, $required)
+    {
+        if ($required) {
+            $this->hasRequired = true;
+            $elTpl = str_replace(array('<qf:required>', '</qf:required>'),
+                                  array('', ''), $elTpl);
+        } else {
+            $elTpl = preg_replace('!<qf:required>.*</qf:required>!isU', '', $elTpl);
+        }
+        return $elTpl;
+    }
+
+   /**
+    * Outputs element error, removes empty error blocks
+    *
+    * @param    string  Element template
+    * @param    string  Validation error for the element
+    * @return   string  Template with error substitutions done
+    */
+    public function outputError($elTpl, $error)
+    {
+        if ($error && !$this->options['group_errors']) {
+            $elTpl = str_replace(array('<qf:error>', '</qf:error>', '{error}'),
+                                  array('', '', $error), $elTpl);
+        } else {
+            if ($error && $this->options['group_errors']) {
+                $this->errors[] = $error;
+            }
+            $elTpl = preg_replace('!<qf:error>.*</qf:error>!isU', '', $elTpl);
+        }
+        return $elTpl;
+    }
+
+   /**
+    * Outputs element's label(s), removes empty label blocks
+    *
+    * @param    string  Element template
+    * @param    mixed   Element label(s)
+    * @return   string  Template with label substitutions done
+    */
+    public function outputLabel($elTpl, $label)
+    {
+        $mainLabel = is_array($label)? array_shift($label): $label;
+        $elTpl     = str_replace('{label}', $mainLabel, $elTpl);
+        if (false !== strpos($elTpl, '<qf:label>')) {
+            if ($mainLabel) {
+                $elTpl = str_replace(array('<qf:label>', '</qf:label>'), array('', ''), $elTpl);
+            } else {
+                $elTpl = preg_replace('!<qf:label>.*</qf:label>!isU', '', $elTpl);
+            }
+        }
+        if (is_array($label)) {
+            foreach($label as $key => $text) {
+                $key   = is_int($key)? $key + 2: $key;
+                $elTpl = str_replace(array('<qf:label_' . $key . '>', '</qf:label_' . $key . '>', '{label_' . $key . '}'),
+                                     array('', '', $text), $elTpl);
+            }
+        }
+        if (strpos($elTpl, '{label_')) {
+            $elTpl = preg_replace('!<qf:label_([^>]+)>.*</qf:label_\1>!isU', '', $elTpl);
+        }
+        return $elTpl;
     }
 }
 ?>

@@ -4,8 +4,7 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
-(function ($)
-{
+(function ($) {
 
     $.widget('piwik.dashboardWidget', {
 
@@ -44,8 +43,7 @@
         /**
          * creates a widget object
          */
-        _create: function ()
-        {
+        _create: function () {
 
             if (!this.options.uniqueId) {
                 piwikHelper.error('widgets can\'t be created without an uniqueId');
@@ -61,10 +59,7 @@
             this._createDashboardWidget(this.uniqueId);
 
             var self = this;
-            this.element.on('setParameters.dashboardWidget', function (e, params)
-            {
-                self.setParameters(params);
-            });
+            this.element.on('setParameters.dashboardWidget', function (e, params) { self.setParameters(params); });
 
             this.reload(true, true);
         },
@@ -73,8 +68,7 @@
          * Cleanup some events and dialog
          * Called automatically upon removing the widgets domNode
          */
-        destroy: function ()
-        {
+        destroy: function () {
             if (this.isMaximised) {
                 $('[widgetId=' + this.uniqueId + ']').dialog('destroy');
             }
@@ -88,8 +82,7 @@
          * Returns the data currently set for the widget
          * @return {object}
          */
-        getWidgetObject: function ()
-        {
+        getWidgetObject: function () {
             return {
                 uniqueId: this.uniqueId,
                 parameters: this.widgetParameters,
@@ -100,8 +93,7 @@
         /**
          * Show the current widget in an ui.dialog
          */
-        maximise: function ()
-        {
+        maximise: function () {
             this.isMaximised = true;
 
             if (this.options.onMaximise) {
@@ -117,8 +109,7 @@
         /**
          * Reloads the widgets content with the currently set parameters
          */
-        reload: function (hideLoading, notJQueryUI, overrideParams)
-        {
+        reload: function (hideLoading, notJQueryUI, overrideParams) {
             if (!notJQueryUI) {
                 piwikHelper.log('widget.reload() was called by jquery.ui, ignoring', arguments.callee.caller);
                 return;
@@ -126,8 +117,7 @@
 
             var self = this, currentWidget = this.element;
 
-            function onWidgetLoadedReplaceElementWithContent(loadedContent)
-            {
+            function onWidgetLoadedReplaceElementWithContent(loadedContent) {
                 var $widgetContent = $('.widgetContent', currentWidget);
 
                 $widgetContent.html(loadedContent);
@@ -147,22 +137,19 @@
             }
 
             var params = $.extend(this.widgetParameters, overrideParams || {});
-            widgetsHelper.loadWidgetAjax(this.uniqueId, params, onWidgetLoadedReplaceElementWithContent,
-                function (deferred, status)
-                {
-                    if (status == 'abort' || !deferred || deferred.status < 400 || deferred.status >= 600) {
-                        return;
-                    }
+            widgetsHelper.loadWidgetAjax(this.uniqueId, params, onWidgetLoadedReplaceElementWithContent, function (deferred, status) {
+                if (status == 'abort' || !deferred || deferred.status < 400 || deferred.status >= 600) {
+                    return;
+                }
 
-                    $('.widgetContent', currentWidget).removeClass('loading');
-                    var errorMessage = _pk_translate('General_ErrorRequest', ['', '']);
-                    if ($('#loadingError').html()) {
-                        errorMessage = $('#loadingError').html();
-                    }
+                $('.widgetContent', currentWidget).removeClass('loading');
+                var errorMessage = _pk_translate('General_ErrorRequest', ['', '']);
+                if ($('#loadingError').html()) {
+                    errorMessage = $('#loadingError').html();
+                }
 
-                    $('.widgetContent', currentWidget).html(
-                        '<div class="widgetLoadingError">' + errorMessage + '</div>');
-                });
+                $('.widgetContent', currentWidget).html('<div class="widgetLoadingError">' + errorMessage + '</div>');
+            });
 
             return this;
         },
@@ -172,8 +159,7 @@
          *
          * @param {object} parameters
          */
-        setParameters: function (parameters)
-        {
+        setParameters: function (parameters) {
             if (!this.isMaximised
                 && this.options.autoMaximiseVisualizations.indexOf(parameters.viewDataTable) !== -1
             ) {
@@ -194,8 +180,7 @@
          *
          * @param {object} parameters
          */
-        getParameters: function ()
-        {
+        getParameters: function () {
             return $.extend({}, this.widgetParameters);
         },
 
@@ -204,8 +189,7 @@
          *
          * @param {String} uniqueId
          */
-        _createDashboardWidget: function (uniqueId)
-        {
+        _createDashboardWidget: function (uniqueId) {
 
             var widgetName = widgetsHelper.getWidgetNameFromUniqueId(uniqueId);
             if (!widgetName) {
@@ -219,15 +203,13 @@
             var widgetElement = $('#' + uniqueId, this.element);
             var self = this;
             widgetElement
-                .on('mouseenter.dashboardWidget', function ()
-                {
+                .on('mouseenter.dashboardWidget', function () {
                     if (!self.isMaximised) {
                         $(this).addClass('widgetHover');
                         $('.widgetTop', this).addClass('widgetTopHover');
                     }
                 })
-                .on('mouseleave.dashboardWidget', function ()
-                {
+                .on('mouseleave.dashboardWidget', function () {
                     if (!self.isMaximised) {
                         $(this).removeClass('widgetHover');
                         $('.widgetTop', this).removeClass('widgetTopHover');
@@ -235,29 +217,23 @@
                 });
 
             if (this.options.isHidden) {
-                $('.widgetContent', widgetElement).toggleClass('hidden').closest('.widget').toggleClass(
-                    'hiddenContent');
+                $('.widgetContent', widgetElement).toggleClass('hidden').closest('.widget').toggleClass('hiddenContent');
             }
 
             $('.button#close', widgetElement)
-                .on('click.dashboardWidget', function (ev)
-                {
-                    piwikHelper.modalConfirm('#confirm', {
-                        yes: function ()
-                        {
-                            if (self.options.onRemove) {
-                                self.options.onRemove(self.element);
-                            } else {
-                                self.element.remove();
-                                self.options.onChange();
-                            }
+                .on('click.dashboardWidget', function (ev) {
+                    piwikHelper.modalConfirm('#confirm', {yes: function () {
+                        if (self.options.onRemove) {
+                            self.options.onRemove(self.element);
+                        } else {
+                            self.element.remove();
+                            self.options.onChange();
                         }
-                    });
+                    }});
                 });
 
             $('.button#maximise', widgetElement)
-                .on('click.dashboardWidget', function (ev)
-                {
+                .on('click.dashboardWidget', function (ev) {
                     if (self.options.onMaximise) {
                         self.options.onMaximise(self.element);
                     } else {
@@ -270,8 +246,7 @@
                 });
 
             $('.button#minimise', widgetElement)
-                .on('click.dashboardWidget', function (ev)
-                {
+                .on('click.dashboardWidget', function (ev) {
                     if (self.options.onMinimise) {
                         self.options.onMinimise(self.element);
                     } else {
@@ -284,8 +259,7 @@
                 });
 
             $('.button#refresh', widgetElement)
-                .on('click.dashboardWidget', function (ev)
-                {
+                .on('click.dashboardWidget', function (ev) {
                     if (self.options.onRefresh) {
                         self.options.onRefresh(self.element);
                     } else {
@@ -297,8 +271,7 @@
         /**
          * Hide the widget content. Triggers the onChange event.
          */
-        hideContent: function ()
-        {
+        hideContent: function () {
             $('.widgetContent', this.element.find('.widget').addClass('hiddenContent')).addClass('hidden');
             this.options.isHidden = true;
             this.options.onChange();
@@ -307,8 +280,7 @@
         /**
          * Show the widget content. Triggers the onChange event.
          */
-        showContent: function ()
-        {
+        showContent: function () {
             this.isMaximised = false;
             this.options.isHidden = false;
             this.element.find('.widget').removeClass('hiddenContent').find('.widgetContent').removeClass('hidden');
@@ -321,8 +293,7 @@
          * Default maximise behavior. Will create a dialog that is 70% of the document's width,
          * displaying the widget alone.
          */
-        _maximiseImpl: function ()
-        {
+        _maximiseImpl: function () {
             this.detachWidget();
 
             var width = Math.floor($('body').width() * 0.7);
@@ -337,8 +308,7 @@
                 position: ['center', 'center'],
                 resizable: true,
                 autoOpen: true,
-                close: function (event, ui)
-                {
+                close: function (event, ui) {
                     self.isMaximised = false;
                     if (!isFooterExpanded) {
                         $('.dataTableFeatures', self.element).removeClass('expanded');
@@ -356,8 +326,7 @@
             $('.dataTableFeatures', this.element).addClass('expanded');
 
             var currentWidget = this.element;
-            $('body').on('click.dashboardWidget', function (ev)
-            {
+            $('body').on('click.dashboardWidget', function (ev) {
                 if (/ui-widget-overlay/.test(ev.target.className)) {
                     $(currentWidget).dialog("close");
                 }
@@ -371,8 +340,7 @@
          *
          * @return {jQuery} the detached widget
          */
-        detachWidget: function ()
-        {
+        detachWidget: function () {
             this.element.before('<div id="' + this.uniqueId + '-placeholder" class="widgetPlaceholder widget"> </div>');
             $('#' + this.uniqueId + '-placeholder').height(this.element.height());
             $('#' + this.uniqueId + '-placeholder').width(this.element.width() - 16);

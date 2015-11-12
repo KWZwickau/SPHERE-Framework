@@ -43,22 +43,6 @@ class Response
         return $this->content;
     }
 
-    private function outputAccessControlHeaders()
-    {
-        if (!$this->isHttpGetRequest()) {
-            $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
-            Common::sendHeader('Access-Control-Allow-Origin: ' . $origin);
-            Common::sendHeader('Access-Control-Allow-Credentials: true');
-        }
-    }
-
-    private function isHttpGetRequest()
-    {
-        $requestMethod = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
-
-        return strtoupper($requestMethod) === 'GET';
-    }
-
     /**
      * Echos an error message & other information, then exits.
      *
@@ -82,70 +66,6 @@ class Response
         } else {
             $this->outputApiResponse($tracker);
         }
-    }
-
-    protected function logExceptionToErrorLog(Exception $e)
-    {
-        error_log(sprintf("Error in Piwik (tracker): %s", str_replace("\n", " ", $this->getMessageFromException($e))));
-    }
-
-    /**
-     * Gets the error message to output when a tracking request fails.
-     *
-     * @param Exception $e
-     * @return string
-     */
-    protected function getMessageFromException($e)
-    {
-        // Note: duplicated from FormDatabaseSetup.isAccessDenied
-        // Avoid leaking the username/db name when access denied
-        if ($e->getCode() == 1044 || $e->getCode() == 42000) {
-            return "Error while connecting to the Piwik database - please check your credentials in config/config.ini.php file";
-        }
-
-        if (Common::isPhpCliMode()) {
-            return $e->getMessage() . "\n" . $e->getTraceAsString();
-        }
-
-        return $e->getMessage();
-    }
-
-    private function outputApiResponse(Tracker $tracker)
-    {
-        if ($tracker->isDebugModeEnabled()) {
-            return;
-        }
-
-        if ($this->hasAlreadyPrintedOutput()) {
-            return;
-        }
-
-        $request = $_GET + $_POST;
-
-        if (array_key_exists('send_image', $request) && $request['send_image'] === '0') {
-            Common::sendResponseCode(204);
-            return;
-        }
-
-        $this->outputTransparentGif();
-    }
-
-    protected function hasAlreadyPrintedOutput()
-    {
-        return strlen($this->getOutputBuffer()) > 0;
-    }
-
-    private function getOutputBuffer()
-    {
-        return ob_get_contents();
-    }
-
-    private function outputTransparentGif()
-    {
-        $transGifBase64 = "R0lGODlhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
-        Common::sendHeader('Content-Type: image/gif');
-
-        echo base64_decode($transGifBase64);
     }
 
     public function outputResponse(Tracker $tracker)
@@ -178,5 +98,85 @@ class Response
             Common::printDebug($_COOKIE);
             Common::printDebug((string)$this->timer);
         }
+    }
+
+    private function outputAccessControlHeaders()
+    {
+        if (!$this->isHttpGetRequest()) {
+            $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '*';
+            Common::sendHeader('Access-Control-Allow-Origin: ' . $origin);
+            Common::sendHeader('Access-Control-Allow-Credentials: true');
+        }
+    }
+
+    private function isHttpGetRequest()
+    {
+        $requestMethod = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
+
+        return strtoupper($requestMethod) === 'GET';
+    }
+
+    private function getOutputBuffer()
+    {
+        return ob_get_contents();
+    }
+
+    protected function hasAlreadyPrintedOutput()
+    {
+        return strlen($this->getOutputBuffer()) > 0;
+    }
+
+    private function outputApiResponse(Tracker $tracker)
+    {
+        if ($tracker->isDebugModeEnabled()) {
+            return;
+        }
+
+        if ($this->hasAlreadyPrintedOutput()) {
+            return;
+        }
+
+        $request = $_GET + $_POST;
+
+        if (array_key_exists('send_image', $request) && $request['send_image'] === '0') {
+            Common::sendResponseCode(204);
+            return;
+        }
+
+        $this->outputTransparentGif();
+    }
+
+    private function outputTransparentGif()
+    {
+        $transGifBase64 = "R0lGODlhAQABAIAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
+        Common::sendHeader('Content-Type: image/gif');
+
+        echo base64_decode($transGifBase64);
+    }
+
+    /**
+     * Gets the error message to output when a tracking request fails.
+     *
+     * @param Exception $e
+     * @return string
+     */
+    protected function getMessageFromException($e)
+    {
+        // Note: duplicated from FormDatabaseSetup.isAccessDenied
+        // Avoid leaking the username/db name when access denied
+        if ($e->getCode() == 1044 || $e->getCode() == 42000) {
+            return "Error while connecting to the Piwik database - please check your credentials in config/config.ini.php file";
+        }
+
+        if (Common::isPhpCliMode()) {
+            return $e->getMessage() . "\n" . $e->getTraceAsString();
+        }
+
+        return $e->getMessage();
+    }
+
+    protected function logExceptionToErrorLog(Exception $e)
+    {
+        error_log(sprintf("Error in Piwik (tracker): %s", str_replace("\n", " ", $this->getMessageFromException($e))));
     }
 }

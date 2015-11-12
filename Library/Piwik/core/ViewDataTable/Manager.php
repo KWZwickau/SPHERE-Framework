@@ -12,7 +12,6 @@ use Piwik\Cache;
 use Piwik\Common;
 use Piwik\Option;
 use Piwik\Piwik;
-use Piwik\Plugin\Manager as PluginManager;
 use Piwik\Plugin\Report;
 use Piwik\Plugin\ViewDataTable;
 use Piwik\Plugins\CoreVisualizations\Visualizations\Cloud;
@@ -21,6 +20,7 @@ use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Bar;
 use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Pie;
 use Piwik\Plugins\Goals\Visualizations\Goals;
 use Piwik\Plugins\Insights\Visualizations\Insight;
+use Piwik\Plugin\Manager as PluginManager;
 
 /**
  * ViewDataTable Manager.
@@ -48,6 +48,93 @@ class Manager
             } catch (\Exception $e) {
                 // in case $klass did not define an id: eg Plugin\ViewDataTable
                 continue;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns all registered visualization classes. Uses the 'Visualization.getAvailable'
+     * event to retrieve visualizations.
+     *
+     * @return array Array mapping visualization IDs with their associated visualization classes.
+     * @throws \Exception If a visualization class does not exist or if a duplicate visualization ID
+     *                   is found.
+     * @return array
+     */
+    public static function getAvailableViewDataTables()
+    {
+        $cache = Cache::getTransientCache();
+        $cacheId = 'ViewDataTable.getAvailableViewDataTables';
+        $dataTables = $cache->fetch($cacheId);
+
+        if (!empty($dataTables)) {
+            return $dataTables;
+        }
+
+        $klassToExtend = '\\Piwik\\Plugin\\ViewDataTable';
+
+        /** @var string[] $visualizations */
+        $visualizations = PluginManager::getInstance()->findMultipleComponents('Visualizations', $klassToExtend);
+
+        /**
+         * Triggered when gathering all available DataTable visualizations.
+         *
+         * Plugins that want to expose new DataTable visualizations should subscribe to
+         * this event and add visualization class names to the incoming array.
+         *
+         * **Example**
+         *
+         *     public function addViewDataTable(&$visualizations)
+         *     {
+         *         $visualizations[] = 'Piwik\\Plugins\\MyPlugin\\MyVisualization';
+         *     }
+         *
+         * @param array &$visualizations The array of all available visualizations.
+         * @ignore
+         * @deprecated since 2.5.0 Place visualization in a "Visualizations" directory instead.
+         */
+        Piwik::postEvent('ViewDataTable.addViewDataTable', array(&$visualizations));
+
+        $result = array();
+
+        foreach ($visualizations as $viz) {
+            if (!class_exists($viz)) {
+                throw new \Exception("Invalid visualization class '$viz' found in Visualization.getAvailableVisualizations.");
+            }
+
+            if (!is_subclass_of($viz, $klassToExtend)) {
+                throw new \Exception("ViewDataTable class '$viz' does not extend Plugin/ViewDataTable");
+            }
+
+            $vizId = $viz::getViewDataTableId();
+
+            if (isset($result[$vizId])) {
+                throw new \Exception("ViewDataTable ID '$vizId' is already in use!");
+            }
+
+            $result[$vizId] = $viz;
+        }
+
+        $cache->save($cacheId, $result);
+
+        return $result;
+    }
+
+    /**
+     * Returns all available visualizations that are not part of the CoreVisualizations plugin.
+     *
+     * @return array Array mapping visualization IDs with their associated visualization classes.
+     */
+    public static function getNonCoreViewDataTables()
+    {
+        $result = array();
+
+        foreach (static::getAvailableViewDataTables() as $vizId => $vizClass) {
+            if (false === strpos($vizClass, 'Piwik\\Plugins\\CoreVisualizations')
+                && false === strpos($vizClass, 'Piwik\\Plugins\\Goals\\Visualizations\\Goals')) {
+                $result[$vizId] = $vizClass;
             }
         }
 
@@ -123,6 +210,146 @@ class Manager
         return $result;
     }
 
+    /**
+     * Returns an array with information necessary for adding the viewDataTable to the footer.
+     *
+     * @param string $viewDataTableId
+     *
+     * @return array
+     */
+    private static function getFooterIconFor($viewDataTableId)
+    {
+        $tables = static::getAvailableViewDataTables();
+
+        if (!array_key_exists($viewDataTableId, $tables)) {
+            return;
+        }
+
+        $klass = $tables[$viewDataTableId];
+
+        return array(
+            'id'    => $klass::getViewDataTableId(),
+            'title' => Piwik::translate($klass::FOOTER_ICON_TITLE),
+            'icon'  => $klass::FOOTER_ICON,
+        );
+    }
+
+    public static function clearAllViewDataTableParameters()
+    {
+        Option::deleteLike('viewDataTableParameters_%');
+    }
+
+    public static function clearUserViewDataTableParameters($userLogin)
+    {
+        Option::deleteLike('viewDataTableParameters_' . $userLogin . '_%');
+    }
+
+    public static function getViewDataTableParameters($login, $controllerAction)
+    {
+        $paramsKey = self::buildViewDataTableParametersOptionKey($login, $controllerAction);
+        $params    = Option::get($paramsKey);
+
+        if (empty($params)) {
+            return array();
+        }
+
+        $params = json_decode($params);
+        $params = (array) $params;
+
+        // when setting an invalid parameter, we silently ignore the invalid parameter and proceed
+        $params = self::removeNonOverridableParameters($controllerAction, $params);
+
+        return $params;
+    }
+
+    /**
+     * Any parameter set here will be set into one of the following objects:
+     *
+     * - ViewDataTable.requestConfig[paramName]
+     * - ViewDataTable.config.custom_parameters[paramName]
+     * - ViewDataTable.config.custom_parameters[paramName]
+     *
+     * (see ViewDataTable::overrideViewPropertiesWithParams)
+
+     * @param $login
+     * @param $controllerAction
+     * @param $parametersToOverride
+     * @throws \Exception
+     */
+    public static function saveViewDataTableParameters($login, $controllerAction, $parametersToOverride)
+    {
+        $params = self::getViewDataTableParameters($login, $controllerAction);
+
+        foreach ($parametersToOverride as $key => $value) {
+            if ($key === 'viewDataTable'
+                && !empty($params[$key])
+                && $params[$key] !== $value) {
+                if (!empty($params['columns'])) {
+                    unset($params['columns']);
+                }
+                if (!empty($params['columns_to_display'])) {
+                    unset($params['columns_to_display']);
+                }
+            }
+
+            $params[$key] = $value;
+        }
+
+        $paramsKey = self::buildViewDataTableParametersOptionKey($login, $controllerAction);
+
+        // when setting an invalid parameter, we fail and let user know
+        self::errorWhenSettingNonOverridableParameter($controllerAction, $params);
+
+        Option::set($paramsKey, json_encode($params));
+    }
+
+    private static function buildViewDataTableParametersOptionKey($login, $controllerAction)
+    {
+        return sprintf('viewDataTableParameters_%s_%s', $login, $controllerAction);
+    }
+
+    /**
+     * Display a meaningful error message when any invalid parameter is being set.
+     *
+     * @param $params
+     * @throws
+     */
+    private static function errorWhenSettingNonOverridableParameter($controllerAction, $params)
+    {
+        $viewDataTable = self::makeTemporaryViewDataTableInstance($controllerAction, $params);
+        $viewDataTable->throwWhenSettingNonOverridableParameter($params);
+    }
+
+    private static function removeNonOverridableParameters($controllerAction, $params)
+    {
+        $viewDataTable = self::makeTemporaryViewDataTableInstance($controllerAction, $params);
+        $nonOverridableParams = $viewDataTable->getNonOverridableParams($params);
+
+        foreach($params as $key => $value) {
+            if(in_array($key, $nonOverridableParams)) {
+                unset($params[$key]);
+            }
+        }
+        return $params;
+    }
+
+    /**
+     * @param $controllerAction
+     * @param $params
+     * @return ViewDataTable
+     * @throws \Exception
+     */
+    private static function makeTemporaryViewDataTableInstance($controllerAction, $params)
+    {
+        $report = new Report();
+        $viewDataTableType = isset($params['viewDataTable']) ? $params['viewDataTable'] : $report->getDefaultTypeViewDataTable();
+
+        $apiAction = $controllerAction;
+        $loadViewDataTableParametersForUser = false;
+        $viewDataTable = Factory::build($viewDataTableType, $apiAction, $controllerAction, $forceDefault = false, $loadViewDataTableParametersForUser);
+        return $viewDataTable;
+    }
+
     private static function getNormalViewIcons(ViewDataTable $view)
     {
         // add normal view icons (eg, normal table, all columns, goals)
@@ -169,98 +396,6 @@ class Manager
         return $normalViewIcons;
     }
 
-    /**
-     * Returns an array with information necessary for adding the viewDataTable to the footer.
-     *
-     * @param string $viewDataTableId
-     *
-     * @return array
-     */
-    private static function getFooterIconFor($viewDataTableId)
-    {
-        $tables = static::getAvailableViewDataTables();
-
-        if (!array_key_exists($viewDataTableId, $tables)) {
-            return;
-        }
-
-        $klass = $tables[$viewDataTableId];
-
-        return array(
-            'id'    => $klass::getViewDataTableId(),
-            'title' => Piwik::translate($klass::FOOTER_ICON_TITLE),
-            'icon'  => $klass::FOOTER_ICON,
-        );
-    }
-
-    /**
-     * Returns all registered visualization classes. Uses the 'Visualization.getAvailable'
-     * event to retrieve visualizations.
-     *
-     * @return array Array mapping visualization IDs with their associated visualization classes.
-     * @throws \Exception If a visualization class does not exist or if a duplicate visualization ID
-     *                   is found.
-     * @return array
-     */
-    public static function getAvailableViewDataTables()
-    {
-        $cache = Cache::getTransientCache();
-        $cacheId = 'ViewDataTable.getAvailableViewDataTables';
-        $dataTables = $cache->fetch($cacheId);
-
-        if (!empty($dataTables)) {
-            return $dataTables;
-        }
-
-        $klassToExtend = '\\Piwik\\Plugin\\ViewDataTable';
-
-        /** @var string[] $visualizations */
-        $visualizations = PluginManager::getInstance()->findMultipleComponents('Visualizations', $klassToExtend);
-
-        /**
-         * Triggered when gathering all available DataTable visualizations.
-         *
-         * Plugins that want to expose new DataTable visualizations should subscribe to
-         * this event and add visualization class names to the incoming array.
-         *
-         * **Example**
-         *
-         *     public function addViewDataTable(&$visualizations)
-         *     {
-         *         $visualizations[] = 'Piwik\\Plugins\\MyPlugin\\MyVisualization';
-         *     }
-         *
-         * @param array &$visualizations The array of all available visualizations.
-         * @ignore
-         * @deprecated since 2.5.0 Place visualization in a "Visualizations" directory instead.
-         */
-        Piwik::postEvent('ViewDataTable.addViewDataTable', array(&$visualizations));
-
-        $result = array();
-
-        foreach ($visualizations as $viz) {
-            if (!class_exists($viz)) {
-                throw new \Exception("Invalid visualization class '$viz' found in Visualization.getAvailableVisualizations.");
-            }
-
-            if (!is_subclass_of($viz, $klassToExtend)) {
-                throw new \Exception("ViewDataTable class '$viz' does not extend Plugin/ViewDataTable");
-            }
-
-            $vizId = $viz::getViewDataTableId();
-
-            if (isset($result[$vizId])) {
-                throw new \Exception("ViewDataTable ID '$vizId' is already in use!");
-            }
-
-            $result[$vizId] = $viz;
-        }
-
-        $cache->save($cacheId, $result);
-
-        return $result;
-    }
-
     private static function getGraphViewIcons(ViewDataTable $view)
     {
         // add graph views
@@ -284,140 +419,6 @@ class Manager
         }
 
         return $graphViewIcons;
-    }
-
-    /**
-     * Returns all available visualizations that are not part of the CoreVisualizations plugin.
-     *
-     * @return array Array mapping visualization IDs with their associated visualization classes.
-     */
-    public static function getNonCoreViewDataTables()
-    {
-        $result = array();
-
-        foreach (static::getAvailableViewDataTables() as $vizId => $vizClass) {
-            if (false === strpos($vizClass, 'Piwik\\Plugins\\CoreVisualizations')
-                && false === strpos($vizClass, 'Piwik\\Plugins\\Goals\\Visualizations\\Goals')) {
-                $result[$vizId] = $vizClass;
-            }
-        }
-
-        return $result;
-    }
-
-    public static function clearAllViewDataTableParameters()
-    {
-        Option::deleteLike('viewDataTableParameters_%');
-    }
-
-    public static function clearUserViewDataTableParameters($userLogin)
-    {
-        Option::deleteLike('viewDataTableParameters_' . $userLogin . '_%');
-    }
-
-    /**
-     * Any parameter set here will be set into one of the following objects:
-     *
-     * - ViewDataTable.requestConfig[paramName]
-     * - ViewDataTable.config.custom_parameters[paramName]
-     * - ViewDataTable.config.custom_parameters[paramName]
-     *
-     * (see ViewDataTable::overrideViewPropertiesWithParams)
- * @param $login
-     * @param $controllerAction
-     * @param $parametersToOverride
-     * @throws \Exception
-     */
-    public static function saveViewDataTableParameters($login, $controllerAction, $parametersToOverride)
-    {
-        $params = self::getViewDataTableParameters($login, $controllerAction);
-
-        foreach ($parametersToOverride as $key => $value) {
-            if ($key === 'viewDataTable'
-                && !empty($params[$key])
-                && $params[$key] !== $value) {
-                if (!empty($params['columns'])) {
-                    unset($params['columns']);
-                }
-                if (!empty($params['columns_to_display'])) {
-                    unset($params['columns_to_display']);
-                }
-            }
-
-            $params[$key] = $value;
-        }
-
-        $paramsKey = self::buildViewDataTableParametersOptionKey($login, $controllerAction);
-
-        // when setting an invalid parameter, we fail and let user know
-        self::errorWhenSettingNonOverridableParameter($controllerAction, $params);
-
-        Option::set($paramsKey, json_encode($params));
-    }
-
-    public static function getViewDataTableParameters($login, $controllerAction)
-    {
-        $paramsKey = self::buildViewDataTableParametersOptionKey($login, $controllerAction);
-        $params    = Option::get($paramsKey);
-
-        if (empty($params)) {
-            return array();
-        }
-
-        $params = json_decode($params);
-        $params = (array) $params;
-
-        // when setting an invalid parameter, we silently ignore the invalid parameter and proceed
-        $params = self::removeNonOverridableParameters($controllerAction, $params);
-
-        return $params;
-    }
-
-    private static function buildViewDataTableParametersOptionKey($login, $controllerAction)
-    {
-        return sprintf('viewDataTableParameters_%s_%s', $login, $controllerAction);
-    }
-
-    private static function removeNonOverridableParameters($controllerAction, $params)
-    {
-        $viewDataTable = self::makeTemporaryViewDataTableInstance($controllerAction, $params);
-        $nonOverridableParams = $viewDataTable->getNonOverridableParams($params);
-
-        foreach($params as $key => $value) {
-            if(in_array($key, $nonOverridableParams)) {
-                unset($params[$key]);
-            }
-        }
-        return $params;
-    }
-
-    /**
-     * @param $controllerAction
-     * @param $params
-     * @return ViewDataTable
-     * @throws \Exception
-     */
-    private static function makeTemporaryViewDataTableInstance($controllerAction, $params)
-    {
-        $report = new Report();
-        $viewDataTableType = isset($params['viewDataTable']) ? $params['viewDataTable'] : $report->getDefaultTypeViewDataTable();
-
-        $apiAction = $controllerAction;
-        $loadViewDataTableParametersForUser = false;
-        $viewDataTable = Factory::build($viewDataTableType, $apiAction, $controllerAction, $forceDefault = false, $loadViewDataTableParametersForUser);
-        return $viewDataTable;
-    }
-
-    /**
-     * Display a meaningful error message when any invalid parameter is being set.
-     *
-     * @param $params
-     * @throws
-     */
-    private static function errorWhenSettingNonOverridableParameter($controllerAction, $params)
-    {
-        $viewDataTable = self::makeTemporaryViewDataTableInstance($controllerAction, $params);
-        $viewDataTable->throwWhenSettingNonOverridableParameter($params);
     }
 
 }

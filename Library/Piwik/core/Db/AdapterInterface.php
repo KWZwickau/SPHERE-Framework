@@ -16,6 +16,11 @@ use Exception;
 interface AdapterInterface
 {
     /**
+     * Reset the configuration variables in this adapter.
+     */
+    public function resetConfig();
+
+    /**
      * Return default port.
      *
      * @return int
@@ -23,23 +28,18 @@ interface AdapterInterface
     public static function getDefaultPort();
 
     /**
-     * Returns true if this adapter's required extensions are enabled
-     *
-     * @return bool
-     */
-    public static function isEnabled();
-
-    /**
-     * Reset the configuration variables in this adapter.
-     */
-    public function resetConfig();
-
-    /**
      * Check database server version
      *
      * @throws Exception if database version is less than required version
      */
     public function checkServerVersion();
+
+    /**
+     * Returns true if this adapter's required extensions are enabled
+     *
+     * @return bool
+     */
+    public static function isEnabled();
 
     /**
      * Returns true if this adapter supports blobs as fields

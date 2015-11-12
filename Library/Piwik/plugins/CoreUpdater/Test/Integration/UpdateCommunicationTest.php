@@ -11,9 +11,9 @@ namespace Piwik\Plugins\CoreUpdater\Test;
 use Piwik\Config;
 use Piwik\Option;
 use Piwik\Plugins\CoreUpdater\UpdateCommunication;
-use Piwik\Tests\Framework\TestCase\IntegrationTestCase;
 use Piwik\UpdateCheck;
 use Piwik\Version;
+use Piwik\Tests\Framework\TestCase\IntegrationTestCase;
 
 /**
  * @group Plugins
@@ -53,36 +53,6 @@ class UpdateCommunicationTest extends IntegrationTestCase
         $this->assertEquals($expectedLastSentVersion, $this->getLastSentVersion());
     }
 
-    private function setLatestVersion($value)
-    {
-        $this->preventVersionIsOverwrittenByActualVersionCheck();
-        Option::set(UpdateCheck::LATEST_VERSION, $value);
-    }
-
-    private function preventVersionIsOverwrittenByActualVersionCheck()
-    {
-        Config::getInstance()->General['enable_auto_update'] = false;
-    }
-
-    private function setLastSentVersion($value)
-    {
-        Option::set('last_update_communication_sent_core', $value);
-    }
-
-    /**
-     * @param array $methodsToOverwrite
-     * @return UpdateCommunication
-     */
-    private function getCommunicationMock($methodsToOverwrite)
-    {
-        return $this->getMock('\Piwik\Plugins\CoreUpdater\UpdateCommunication', $methodsToOverwrite);
-    }
-
-    private function getLastSentVersion()
-    {
-        return Option::get('last_update_communication_sent_core');
-    }
-
     public function provideSendNotificationData()
     {
         return array(
@@ -113,19 +83,6 @@ http://piwik.org/contact/';
         $this->assertEmailForVersion('33.0.0', $message);
     }
 
-    private function assertEmailForVersion($version, $expectedMessage)
-    {
-        $this->setLatestVersion($version);
-
-        $subject = 'CoreUpdater_NotificationSubjectAvailableCoreUpdate';
-
-        $mock = $this->getCommunicationMock(array('sendEmailNotification'));
-        $mock->expects($this->once())
-            ->method('sendEmailNotification')
-            ->with($this->equalTo($subject), $this->equalTo($expectedMessage));
-        $mock->sendNotificationIfUpdateAvailable();
-    }
-
     public function test_sendNotifications_shouldNotIncludeChangelogIfNotMajorVersionUpdate()
     {
         $message = 'ScheduledReports_EmailHello
@@ -139,5 +96,48 @@ CoreUpdater_FeedbackRequest
 http://piwik.org/contact/';
 
         $this->assertEmailForVersion('33.0.0-b1', $message);
+    }
+
+    private function assertEmailForVersion($version, $expectedMessage)
+    {
+        $this->setLatestVersion($version);
+
+        $subject = 'CoreUpdater_NotificationSubjectAvailableCoreUpdate';
+
+        $mock = $this->getCommunicationMock(array('sendEmailNotification'));
+        $mock->expects($this->once())
+            ->method('sendEmailNotification')
+            ->with($this->equalTo($subject), $this->equalTo($expectedMessage));
+        $mock->sendNotificationIfUpdateAvailable();
+    }
+
+    private function setLastSentVersion($value)
+    {
+        Option::set('last_update_communication_sent_core', $value);
+    }
+
+    private function getLastSentVersion()
+    {
+        return Option::get('last_update_communication_sent_core');
+    }
+
+    private function setLatestVersion($value)
+    {
+        $this->preventVersionIsOverwrittenByActualVersionCheck();
+        Option::set(UpdateCheck::LATEST_VERSION, $value);
+    }
+
+    private function preventVersionIsOverwrittenByActualVersionCheck()
+    {
+        Config::getInstance()->General['enable_auto_update'] = false;
+    }
+
+    /**
+     * @param array $methodsToOverwrite
+     * @return UpdateCommunication
+     */
+    private function getCommunicationMock($methodsToOverwrite)
+    {
+        return $this->getMock('\Piwik\Plugins\CoreUpdater\UpdateCommunication', $methodsToOverwrite);
     }
 }

@@ -69,25 +69,6 @@ class Metric
     }
 
     /**
-     * Allows the class to be serialized with var_export (in the cache).
-     *
-     * @param array $array
-     * @return Metric
-     */
-    public static function __set_state($array)
-    {
-        return new self(
-            $array['id'],
-            $array['name'],
-            $array['value'],
-            $array['logo'],
-            $array['logoLink'],
-            $array['logoTooltip'],
-            $array['valueSuffix']
-        );
-    }
-
-    /**
      * @return string
      */
     public function getId()
@@ -141,5 +122,24 @@ class Metric
     public function getValueSuffix()
     {
         return $this->valueSuffix;
+    }
+
+    /**
+     * Allows the class to be serialized with var_export (in the cache).
+     *
+     * @param array $array
+     * @return Metric
+     */
+    public static function __set_state($array)
+    {
+        return new self(
+            $array['id'],
+            $array['name'],
+            $array['value'],
+            $array['logo'],
+            $array['logoLink'],
+            $array['logoTooltip'],
+            $array['valueSuffix']
+        );
     }
 }

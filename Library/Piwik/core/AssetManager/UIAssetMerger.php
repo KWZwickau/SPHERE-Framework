@@ -12,21 +12,24 @@ namespace Piwik\AssetManager;
 abstract class UIAssetMerger
 {
     /**
-     * @var UIAssetCacheBuster
-     */
-    protected $cacheBuster;
-    /**
      * @var UIAssetFetcher
      */
     private $assetFetcher;
+
     /**
      * @var UIAsset
      */
     private $mergedAsset;
+
     /**
      * @var string
      */
     private $mergedContent;
+
+    /**
+     * @var UIAssetCacheBuster
+     */
+    protected $cacheBuster;
 
     /**
      * @param UIAsset $mergedAsset
@@ -55,6 +58,76 @@ abstract class UIAssetMerger
         $this->addPreamble();
 
         $this->writeContentToFile();
+    }
+
+    /**
+     * @return string
+     */
+    abstract protected function getMergedAssets();
+
+    /**
+     * @return string
+     */
+    abstract protected function generateCacheBuster();
+
+    /**
+     * @return string
+     */
+    abstract protected function getPreamble();
+
+    /**
+     * @return string
+     */
+    abstract protected function getFileSeparator();
+
+    /**
+     * @param UIAsset $uiAsset
+     * @return string
+     */
+    abstract protected function processFileContent($uiAsset);
+
+    /**
+     * @param string $mergedContent
+     */
+    abstract protected function postEvent(&$mergedContent);
+
+    protected function getConcatenatedAssets()
+    {
+        if (empty($this->mergedContent)) {
+            $this->concatenateAssets();
+        }
+
+        return $this->mergedContent;
+    }
+
+    private function concatenateAssets()
+    {
+        $mergedContent = '';
+
+        foreach ($this->getAssetCatalog()->getAssets() as $uiAsset) {
+            $uiAsset->validateFile();
+            $content = $this->processFileContent($uiAsset);
+
+            $mergedContent .= $this->getFileSeparator() . $content;
+        }
+
+        $this->mergedContent = $mergedContent;
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function getPlugins()
+    {
+        return $this->assetFetcher->getPlugins();
+    }
+
+    /**
+     * @return UIAssetCatalog
+     */
+    protected function getAssetCatalog()
+    {
+        return $this->assetFetcher->getCatalog();
     }
 
     /**
@@ -87,6 +160,20 @@ abstract class UIAssetMerger
         return false;
     }
 
+    private function adjustPaths()
+    {
+        $theme = $this->assetFetcher->getTheme();
+        // During installation theme is not yet ready
+        if ($theme) {
+            $this->mergedContent = $this->assetFetcher->getTheme()->rewriteAssetsPathToTheme($this->mergedContent);
+        }
+    }
+
+    private function writeContentToFile()
+    {
+        $this->mergedAsset->writeContent($this->mergedContent);
+    }
+
     /**
      * @return string
      */
@@ -99,92 +186,8 @@ abstract class UIAssetMerger
         return $this->cacheBusterValue;
     }
 
-    /**
-     * @return string
-     */
-    abstract protected function generateCacheBuster();
-
-    /**
-     * @return string
-     */
-    abstract protected function getMergedAssets();
-
-    /**
-     * @param string $mergedContent
-     */
-    abstract protected function postEvent(&$mergedContent);
-
-    private function adjustPaths()
-    {
-        $theme = $this->assetFetcher->getTheme();
-        // During installation theme is not yet ready
-        if ($theme) {
-            $this->mergedContent = $this->assetFetcher->getTheme()->rewriteAssetsPathToTheme($this->mergedContent);
-        }
-    }
-
     private function addPreamble()
     {
         $this->mergedContent = $this->getPreamble() . $this->mergedContent;
-    }
-
-    /**
-     * @return string
-     */
-    abstract protected function getPreamble();
-
-    private function writeContentToFile()
-    {
-        $this->mergedAsset->writeContent($this->mergedContent);
-    }
-
-    protected function getConcatenatedAssets()
-    {
-        if (empty($this->mergedContent)) {
-            $this->concatenateAssets();
-        }
-
-        return $this->mergedContent;
-    }
-
-    private function concatenateAssets()
-    {
-        $mergedContent = '';
-
-        foreach ($this->getAssetCatalog()->getAssets() as $uiAsset) {
-            $uiAsset->validateFile();
-            $content = $this->processFileContent($uiAsset);
-
-            $mergedContent .= $this->getFileSeparator() . $content;
-        }
-
-        $this->mergedContent = $mergedContent;
-    }
-
-    /**
-     * @return UIAssetCatalog
-     */
-    protected function getAssetCatalog()
-    {
-        return $this->assetFetcher->getCatalog();
-    }
-
-    /**
-     * @param UIAsset $uiAsset
-     * @return string
-     */
-    abstract protected function processFileContent($uiAsset);
-
-    /**
-     * @return string
-     */
-    abstract protected function getFileSeparator();
-
-    /**
-     * @return string[]
-     */
-    protected function getPlugins()
-    {
-        return $this->assetFetcher->getPlugins();
     }
 }

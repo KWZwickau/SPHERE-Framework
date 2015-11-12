@@ -24,6 +24,10 @@ class Singleton
     {
     }
 
+    final private function __clone()
+    {
+    }
+
     /**
      * Returns the singleton instance for the derived class. If the singleton instance
      * has not been created, this method will create it.
@@ -66,9 +70,5 @@ class Singleton
     public static function clearAll()
     {
         self::$instances = array();
-    }
-
-    final private function __clone()
-    {
     }
 }

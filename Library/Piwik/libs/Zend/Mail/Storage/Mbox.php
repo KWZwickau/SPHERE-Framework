@@ -78,6 +78,140 @@ class Zend_Mail_Storage_Mbox extends Zend_Mail_Storage_Abstract
     protected $_messageClass = 'Zend_Mail_Message_File';
 
     /**
+     * Count messages all messages in current box
+     *
+     * @return int number of messages
+     * @throws Zend_Mail_Storage_Exception
+     */
+    public function countMessages()
+    {
+        return count($this->_positions);
+    }
+
+
+    /**
+     * Get a list of messages with number and size
+     *
+     * @param  int|null $id  number of message or null for all messages
+     * @return int|array size of given message of list with all messages as array(num => size)
+     */
+    public function getSize($id = 0)
+    {
+        if ($id) {
+            $pos = $this->_positions[$id - 1];
+            return $pos['end'] - $pos['start'];
+        }
+
+        $result = array();
+        foreach ($this->_positions as $num => $pos) {
+            $result[$num + 1] = $pos['end'] - $pos['start'];
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Get positions for mail message or throw exeption if id is invalid
+     *
+     * @param int $id number of message
+     * @return array positions as in _positions
+     * @throws Zend_Mail_Storage_Exception
+     */
+    protected function _getPos($id)
+    {
+        if (!isset($this->_positions[$id - 1])) {
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception('id does not exist');
+        }
+
+        return $this->_positions[$id - 1];
+    }
+
+
+    /**
+     * Fetch a message
+     *
+     * @param  int $id number of message
+     * @return Zend_Mail_Message_File
+     * @throws Zend_Mail_Storage_Exception
+     */
+    public function getMessage($id)
+    {
+        // TODO that's ugly, would be better to let the message class decide
+        if (strtolower($this->_messageClass) == 'zend_mail_message_file' || is_subclass_of($this->_messageClass, 'zend_mail_message_file')) {
+            // TODO top/body lines
+            $messagePos = $this->_getPos($id);
+            return new $this->_messageClass(array('file' => $this->_fh, 'startPos' => $messagePos['start'],
+                                                  'endPos' => $messagePos['end']));
+        }
+
+        $bodyLines = 0; // TODO: need a way to change that
+
+        $message = $this->getRawHeader($id);
+        // file pointer is after headers now
+        if ($bodyLines) {
+            $message .= "\n";
+            while ($bodyLines-- && ftell($this->_fh) < $this->_positions[$id - 1]['end']) {
+                $message .= fgets($this->_fh);
+            }
+        }
+
+        return new $this->_messageClass(array('handler' => $this, 'id' => $id, 'headers' => $message));
+    }
+
+    /*
+     * Get raw header of message or part
+     *
+     * @param  int               $id       number of message
+     * @param  null|array|string $part     path to part or null for messsage header
+     * @param  int               $topLines include this many lines with header (after an empty line)
+     * @return string raw header
+     * @throws Zend_Mail_Protocol_Exception
+     * @throws Zend_Mail_Storage_Exception
+     */
+    public function getRawHeader($id, $part = null, $topLines = 0)
+    {
+        if ($part !== null) {
+            // TODO: implement
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception('not implemented');
+        }
+        $messagePos = $this->_getPos($id);
+        // TODO: toplines
+        return stream_get_contents($this->_fh, $messagePos['separator'] - $messagePos['start'], $messagePos['start']);
+    }
+
+    /*
+     * Get raw content of message or part
+     *
+     * @param  int               $id   number of message
+     * @param  null|array|string $part path to part or null for messsage content
+     * @return string raw content
+     * @throws Zend_Mail_Protocol_Exception
+     * @throws Zend_Mail_Storage_Exception
+     */
+    public function getRawContent($id, $part = null)
+    {
+        if ($part !== null) {
+            // TODO: implement
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception('not implemented');
+        }
+        $messagePos = $this->_getPos($id);
+        return stream_get_contents($this->_fh, $messagePos['end'] - $messagePos['separator'], $messagePos['separator']);
+    }
+
+    /**
      * Create instance with parameters
      * Supported parameters are:
      *   - filename filename of mbox file
@@ -102,6 +236,40 @@ class Zend_Mail_Storage_Mbox extends Zend_Mail_Storage_Abstract
         $this->_openMboxFile($params->filename);
         $this->_has['top']      = true;
         $this->_has['uniqueid'] = false;
+    }
+
+    /**
+     * check if given file is a mbox file
+     *
+     * if $file is a resource its file pointer is moved after the first line
+     *
+     * @param  resource|string $file stream resource of name of file
+     * @param  bool $fileIsString file is string or resource
+     * @return bool file is mbox file
+     */
+    protected function _isMboxFile($file, $fileIsString = true)
+    {
+        if ($fileIsString) {
+            $file = @fopen($file, 'r');
+            if (!$file) {
+                return false;
+            }
+        } else {
+            fseek($file, 0);
+        }
+
+        $result = false;
+
+        $line = fgets($file);
+        if (strpos($line, 'From ') === 0) {
+            $result = true;
+        }
+
+        if ($fileIsString) {
+            @fclose($file);
+        }
+
+        return $result;
     }
 
     /**
@@ -171,161 +339,6 @@ class Zend_Mail_Storage_Mbox extends Zend_Mail_Storage_Abstract
         $this->_positions = array();
     }
 
-    /**
-     * check if given file is a mbox file
-     *
-     * if $file is a resource its file pointer is moved after the first line
-     *
-     * @param  resource|string $file stream resource of name of file
-     * @param  bool $fileIsString file is string or resource
-     * @return bool file is mbox file
-     */
-    protected function _isMboxFile($file, $fileIsString = true)
-    {
-        if ($fileIsString) {
-            $file = @fopen($file, 'r');
-            if (!$file) {
-                return false;
-            }
-        } else {
-            fseek($file, 0);
-        }
-
-        $result = false;
-
-        $line = fgets($file);
-        if (strpos($line, 'From ') === 0) {
-            $result = true;
-        }
-
-        if ($fileIsString) {
-            @fclose($file);
-        }
-
-        return $result;
-    }
-
-    /*
-     * Get raw header of message or part
-     *
-     * @param  int               $id       number of message
-     * @param  null|array|string $part     path to part or null for messsage header
-     * @param  int               $topLines include this many lines with header (after an empty line)
-     * @return string raw header
-     * @throws Zend_Mail_Protocol_Exception
-     * @throws Zend_Mail_Storage_Exception
-     */
-
-    /**
-     * Get a list of messages with number and size
-     *
-     * @param  int|null $id  number of message or null for all messages
-     * @return int|array size of given message of list with all messages as array(num => size)
-     */
-    public function getSize($id = 0)
-    {
-        if ($id) {
-            $pos = $this->_positions[$id - 1];
-            return $pos['end'] - $pos['start'];
-        }
-
-        $result = array();
-        foreach ($this->_positions as $num => $pos) {
-            $result[$num + 1] = $pos['end'] - $pos['start'];
-        }
-
-        return $result;
-    }
-
-    /*
-     * Get raw content of message or part
-     *
-     * @param  int               $id   number of message
-     * @param  null|array|string $part path to part or null for messsage content
-     * @return string raw content
-     * @throws Zend_Mail_Protocol_Exception
-     * @throws Zend_Mail_Storage_Exception
-     */
-
-    /**
-     * Fetch a message
-     *
-     * @param  int $id number of message
-     * @return Zend_Mail_Message_File
-     * @throws Zend_Mail_Storage_Exception
-     */
-    public function getMessage($id)
-    {
-        // TODO that's ugly, would be better to let the message class decide
-        if (strtolower($this->_messageClass) == 'zend_mail_message_file' || is_subclass_of($this->_messageClass, 'zend_mail_message_file')) {
-            // TODO top/body lines
-            $messagePos = $this->_getPos($id);
-            return new $this->_messageClass(array('file' => $this->_fh, 'startPos' => $messagePos['start'],
-                                                  'endPos' => $messagePos['end']));
-        }
-
-        $bodyLines = 0; // TODO: need a way to change that
-
-        $message = $this->getRawHeader($id);
-        // file pointer is after headers now
-        if ($bodyLines) {
-            $message .= "\n";
-            while ($bodyLines-- && ftell($this->_fh) < $this->_positions[$id - 1]['end']) {
-                $message .= fgets($this->_fh);
-            }
-        }
-
-        return new $this->_messageClass(array('handler' => $this, 'id' => $id, 'headers' => $message));
-    }
-
-    /**
-     * Get positions for mail message or throw exeption if id is invalid
-     *
-     * @param int $id number of message
-     * @return array positions as in _positions
-     * @throws Zend_Mail_Storage_Exception
-     */
-    protected function _getPos($id)
-    {
-        if (!isset($this->_positions[$id - 1])) {
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception('id does not exist');
-        }
-
-        return $this->_positions[$id - 1];
-    }
-
-    public function getRawHeader($id, $part = null, $topLines = 0)
-    {
-        if ($part !== null) {
-            // TODO: implement
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception('not implemented');
-        }
-        $messagePos = $this->_getPos($id);
-        // TODO: toplines
-        return stream_get_contents($this->_fh, $messagePos['separator'] - $messagePos['start'], $messagePos['start']);
-    }
-
-    public function getRawContent($id, $part = null)
-    {
-        if ($part !== null) {
-            // TODO: implement
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception('not implemented');
-        }
-        $messagePos = $this->_getPos($id);
-        return stream_get_contents($this->_fh, $messagePos['end'] - $messagePos['separator'], $messagePos['separator']);
-    }
 
     /**
      * Waste some CPU cycles doing nothing.
@@ -336,6 +349,7 @@ class Zend_Mail_Storage_Mbox extends Zend_Mail_Storage_Abstract
     {
         return true;
     }
+
 
     /**
      * stub for not supported message deletion
@@ -373,17 +387,6 @@ class Zend_Mail_Storage_Mbox extends Zend_Mail_Storage_Abstract
 
         $range = range(1, $this->countMessages());
         return array_combine($range, $range);
-    }
-
-    /**
-     * Count messages all messages in current box
-     *
-     * @return int number of messages
-     * @throws Zend_Mail_Storage_Exception
-     */
-    public function countMessages()
-    {
-        return count($this->_positions);
     }
 
     /**

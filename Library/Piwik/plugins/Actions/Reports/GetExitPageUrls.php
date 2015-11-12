@@ -8,9 +8,10 @@
  */
 namespace Piwik\Plugins\Actions\Reports;
 
-use Piwik\API\Request;
+use Piwik\Common;
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
+use Piwik\API\Request;
 use Piwik\Plugins\Actions\Columns\ExitPageUrl;
 use Piwik\Plugins\Actions\Columns\Metrics\AveragePageGenerationTime;
 use Piwik\Plugins\Actions\Columns\Metrics\AverageTimeOnPage;
@@ -19,6 +20,30 @@ use Piwik\Plugins\Actions\Columns\Metrics\ExitRate;
 
 class GetExitPageUrls extends Base
 {
+    protected function init()
+    {
+        parent::init();
+
+        $this->dimension     = new ExitPageUrl();
+        $this->name          = Piwik::translate('Actions_SubmenuPagesExit');
+        $this->documentation = Piwik::translate('Actions_ExitPagesReportDocumentation', '<br />')
+                             . '<br />' . Piwik::translate('General_UsePlusMinusIconsDocumentation');
+
+        $this->metrics = array('exit_nb_visits', 'nb_visits');
+        $this->processedMetrics = array(
+            new AverageTimeOnPage(),
+            new BounceRate(),
+            new ExitRate(),
+            new AveragePageGenerationTime()
+        );
+        $this->actionToLoadSubTables = $this->action;
+
+        $this->order = 4;
+
+        $this->menuTitle   = 'Actions_SubmenuPagesExit';
+        $this->widgetTitle = 'Actions_WidgetPagesExit';
+    }
+
     public function getProcessedMetrics()
     {
         $result = parent::getProcessedMetrics();
@@ -38,6 +63,14 @@ class GetExitPageUrls extends Base
 
         unset($metrics['bounce_rate']);
         unset($metrics['avg_time_on_page']);
+
+        return $metrics;
+    }
+
+    protected function getMetricsDocumentation()
+    {
+        $metrics = parent::getMetricsDocumentation();
+        $metrics['nb_visits'] = Piwik::translate('General_ColumnUniquePageviewsDocumentation');
 
         return $metrics;
     }
@@ -66,38 +99,6 @@ class GetExitPageUrls extends Base
         return array(
             self::factory('Actions', 'getExitPageTitles'),
         );
-    }
-
-    protected function init()
-    {
-        parent::init();
-
-        $this->dimension     = new ExitPageUrl();
-        $this->name          = Piwik::translate('Actions_SubmenuPagesExit');
-        $this->documentation = Piwik::translate('Actions_ExitPagesReportDocumentation', '<br />')
-                             . '<br />' . Piwik::translate('General_UsePlusMinusIconsDocumentation');
-
-        $this->metrics = array('exit_nb_visits', 'nb_visits');
-        $this->processedMetrics = array(
-            new AverageTimeOnPage(),
-            new BounceRate(),
-            new ExitRate(),
-            new AveragePageGenerationTime()
-        );
-        $this->actionToLoadSubTables = $this->action;
-
-        $this->order = 4;
-
-        $this->menuTitle   = 'Actions_SubmenuPagesExit';
-        $this->widgetTitle = 'Actions_WidgetPagesExit';
-    }
-
-    protected function getMetricsDocumentation()
-    {
-        $metrics = parent::getMetricsDocumentation();
-        $metrics['nb_visits'] = Piwik::translate('General_ColumnUniquePageviewsDocumentation');
-
-        return $metrics;
     }
 
 }

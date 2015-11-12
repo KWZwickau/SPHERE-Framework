@@ -11,9 +11,9 @@ namespace Piwik\Plugins\Actions\Actions;
 
 use Piwik\Common;
 use Piwik\Tracker\Action;
-use Piwik\Tracker\Cache;
 use Piwik\Tracker\PageUrl;
 use Piwik\Tracker\Request;
+use Piwik\Tracker\Cache;
 use Piwik\UrlHelper;
 
 /**
@@ -25,12 +25,13 @@ use Piwik\UrlHelper;
  */
 class ActionSiteSearch extends Action
 {
+    private $searchCategory = false;
+    private $searchCount = false;
+
     const CVAR_KEY_SEARCH_CATEGORY = '_pk_scat';
     const CVAR_KEY_SEARCH_COUNT = '_pk_scount';
     const CVAR_INDEX_SEARCH_CATEGORY = '4';
     const CVAR_INDEX_SEARCH_COUNT = '5';
-    private $searchCategory = false;
-    private $searchCount = false;
 
     public function __construct(Request $request, $detect = true)
     {
@@ -40,6 +41,32 @@ class ActionSiteSearch extends Action
         if ($detect) {
             $this->isSearchDetected();
         }
+    }
+
+    public static function shouldHandle(Request $request)
+    {
+        $search = new self($request, false);
+
+        return $search->detectSiteSearch($request->getParam('url'));
+    }
+
+    protected function getActionsToLookup()
+    {
+        return array(
+            'idaction_name' => array($this->getActionName(), Action::TYPE_SITE_SEARCH),
+        );
+    }
+
+    public function getIdActionUrl()
+    {
+        // Site Search, by default, will not track URL. We do not want URL to appear as "Page URL not defined"
+        // so we specifically set it to NULL in the table (the archiving query does IS NOT NULL)
+        return null;
+    }
+
+    public function getCustomFloatValue()
+    {
+        return $this->request->getPageGenerationTime();
     }
 
     protected function isSearchDetected()
@@ -64,75 +91,26 @@ class ActionSiteSearch extends Action
         return true;
     }
 
-    public function detectSiteSearch($originalUrl)
+    public function getCustomVariables()
     {
-        $website = Cache::getCacheWebsiteAttributes($this->request->getIdSite());
-        if (empty($website['sitesearch'])) {
-            Common::printDebug("Internal 'Site Search' tracking is not enabled for this site. ");
-            return false;
-        }
+        $customVariables = parent::getCustomVariables();
 
-        $actionName = $url = $categoryName = $count = false;
-
-        $originalUrl = PageUrl::cleanupUrl($originalUrl);
-
-        // Detect Site search from Tracking API parameters rather than URL
-        $searchKwd = $this->request->getParam('search');
-        if (!empty($searchKwd)) {
-            $actionName = $searchKwd;
-            $isCategoryName = $this->request->getParam('search_cat');
-            if (!empty($isCategoryName)) {
-                $categoryName = $isCategoryName;
+        // Enrich Site Search actions with Custom Variables, overwriting existing values
+        if (!empty($this->searchCategory)) {
+            if (!empty($customVariables['custom_var_k' . self::CVAR_INDEX_SEARCH_CATEGORY])) {
+                Common::printDebug("WARNING: Overwriting existing Custom Variable  in slot " . self::CVAR_INDEX_SEARCH_CATEGORY . " for this page view");
             }
-            $isCount = $this->request->getParam('search_count');
-            if ($this->isValidSearchCount($isCount)) {
-                $count = $isCount;
+            $customVariables['custom_var_k' . self::CVAR_INDEX_SEARCH_CATEGORY] = self::CVAR_KEY_SEARCH_CATEGORY;
+            $customVariables['custom_var_v' . self::CVAR_INDEX_SEARCH_CATEGORY] = Request::truncateCustomVariable($this->searchCategory);
+        }
+        if ($this->searchCount !== false) {
+            if (!empty($customVariables['custom_var_k' . self::CVAR_INDEX_SEARCH_COUNT])) {
+                Common::printDebug("WARNING: Overwriting existing Custom Variable  in slot " . self::CVAR_INDEX_SEARCH_COUNT . " for this page view");
             }
+            $customVariables['custom_var_k' . self::CVAR_INDEX_SEARCH_COUNT] = self::CVAR_KEY_SEARCH_COUNT;
+            $customVariables['custom_var_v' . self::CVAR_INDEX_SEARCH_COUNT] = (int)$this->searchCount;
         }
-
-        if (empty($actionName)) {
-            $parsedUrl = @parse_url($originalUrl);
-
-            // Detect Site Search from URL query parameters
-            if (!empty($parsedUrl['query']) || !empty($parsedUrl['fragment'])) {
-                // array($url, $actionName, $categoryName, $count);
-                $searchInfo = $this->detectSiteSearchFromUrl($website, $parsedUrl);
-                if (!empty($searchInfo)) {
-                    list ($url, $actionName, $categoryName, $count) = $searchInfo;
-                }
-            }
-        }
-
-        $actionName = trim($actionName);
-        $categoryName = trim($categoryName);
-
-        if (empty($actionName)) {
-            Common::printDebug("(this is not a Site Search request)");
-            return false;
-        }
-
-        Common::printDebug("Detected Site Search keyword '$actionName'. ");
-        if (!empty($categoryName)) {
-            Common::printDebug("- Detected Site Search Category '$categoryName'. ");
-        }
-        if ($count !== false) {
-            Common::printDebug("- Search Results Count was '$count'. ");
-        }
-        if ($url != $originalUrl) {
-            Common::printDebug("NOTE: The Page URL was changed / removed, during the Site Search detection, was '$originalUrl', now is '$url'");
-        }
-
-        return array(
-            $actionName,
-            $url,
-            $categoryName,
-            $count
-        );
-    }
-
-    protected function isValidSearchCount($count)
-    {
-        return is_numeric($count) && $count >= 0;
+        return $customVariables;
     }
 
     protected function detectSiteSearchFromUrl($website, $parsedUrl)
@@ -218,51 +196,74 @@ class ActionSiteSearch extends Action
         return array($url, $actionName, $categoryName, $count);
     }
 
-    public static function shouldHandle(Request $request)
+    protected function isValidSearchCount($count)
     {
-        $search = new self($request, false);
-
-        return $search->detectSiteSearch($request->getParam('url'));
+        return is_numeric($count) && $count >= 0;
     }
 
-    public function getIdActionUrl()
+    public function detectSiteSearch($originalUrl)
     {
-        // Site Search, by default, will not track URL. We do not want URL to appear as "Page URL not defined"
-        // so we specifically set it to NULL in the table (the archiving query does IS NOT NULL)
-        return null;
-    }
-
-    public function getCustomFloatValue()
-    {
-        return $this->request->getPageGenerationTime();
-    }
-
-    public function getCustomVariables()
-    {
-        $customVariables = parent::getCustomVariables();
-
-        // Enrich Site Search actions with Custom Variables, overwriting existing values
-        if (!empty($this->searchCategory)) {
-            if (!empty($customVariables['custom_var_k' . self::CVAR_INDEX_SEARCH_CATEGORY])) {
-                Common::printDebug("WARNING: Overwriting existing Custom Variable  in slot " . self::CVAR_INDEX_SEARCH_CATEGORY . " for this page view");
-            }
-            $customVariables['custom_var_k' . self::CVAR_INDEX_SEARCH_CATEGORY] = self::CVAR_KEY_SEARCH_CATEGORY;
-            $customVariables['custom_var_v' . self::CVAR_INDEX_SEARCH_CATEGORY] = Request::truncateCustomVariable($this->searchCategory);
+        $website = Cache::getCacheWebsiteAttributes($this->request->getIdSite());
+        if (empty($website['sitesearch'])) {
+            Common::printDebug("Internal 'Site Search' tracking is not enabled for this site. ");
+            return false;
         }
-        if ($this->searchCount !== false) {
-            if (!empty($customVariables['custom_var_k' . self::CVAR_INDEX_SEARCH_COUNT])) {
-                Common::printDebug("WARNING: Overwriting existing Custom Variable  in slot " . self::CVAR_INDEX_SEARCH_COUNT . " for this page view");
-            }
-            $customVariables['custom_var_k' . self::CVAR_INDEX_SEARCH_COUNT] = self::CVAR_KEY_SEARCH_COUNT;
-            $customVariables['custom_var_v' . self::CVAR_INDEX_SEARCH_COUNT] = (int)$this->searchCount;
-        }
-        return $customVariables;
-    }
 
-    protected function getActionsToLookup()
-    {
+        $actionName = $url = $categoryName = $count = false;
+
+        $originalUrl = PageUrl::cleanupUrl($originalUrl);
+
+        // Detect Site search from Tracking API parameters rather than URL
+        $searchKwd = $this->request->getParam('search');
+        if (!empty($searchKwd)) {
+            $actionName = $searchKwd;
+            $isCategoryName = $this->request->getParam('search_cat');
+            if (!empty($isCategoryName)) {
+                $categoryName = $isCategoryName;
+            }
+            $isCount = $this->request->getParam('search_count');
+            if ($this->isValidSearchCount($isCount)) {
+                $count = $isCount;
+            }
+        }
+
+        if (empty($actionName)) {
+            $parsedUrl = @parse_url($originalUrl);
+
+            // Detect Site Search from URL query parameters
+            if (!empty($parsedUrl['query']) || !empty($parsedUrl['fragment'])) {
+                // array($url, $actionName, $categoryName, $count);
+                $searchInfo = $this->detectSiteSearchFromUrl($website, $parsedUrl);
+                if (!empty($searchInfo)) {
+                    list ($url, $actionName, $categoryName, $count) = $searchInfo;
+                }
+            }
+        }
+
+        $actionName = trim($actionName);
+        $categoryName = trim($categoryName);
+
+        if (empty($actionName)) {
+            Common::printDebug("(this is not a Site Search request)");
+            return false;
+        }
+
+        Common::printDebug("Detected Site Search keyword '$actionName'. ");
+        if (!empty($categoryName)) {
+            Common::printDebug("- Detected Site Search Category '$categoryName'. ");
+        }
+        if ($count !== false) {
+            Common::printDebug("- Search Results Count was '$count'. ");
+        }
+        if ($url != $originalUrl) {
+            Common::printDebug("NOTE: The Page URL was changed / removed, during the Site Search detection, was '$originalUrl', now is '$url'");
+        }
+
         return array(
-            'idaction_name' => array($this->getActionName(), Action::TYPE_SITE_SEARCH),
+            $actionName,
+            $url,
+            $categoryName,
+            $count
         );
     }
 

@@ -78,15 +78,6 @@ abstract class GoalSpecificProcessedMetric extends ProcessedMetric
         }
     }
 
-    protected function getGoalNameForDocs()
-    {
-        $goalName = $this->getGoalName();
-        if ($goalName == Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER) {
-            $goalName = '"' . $goalName . '"';
-        }
-        return $goalName;
-    }
-
     protected function getGoalName()
     {
         if ($this->idGoal == Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER) {
@@ -100,5 +91,14 @@ abstract class GoalSpecificProcessedMetric extends ProcessedMetric
         } else {
             return "";
         }
+    }
+
+    protected function getGoalNameForDocs()
+    {
+        $goalName = $this->getGoalName();
+        if ($goalName == Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_ORDER) {
+            $goalName = '"' . $goalName . '"';
+        }
+        return $goalName;
     }
 }

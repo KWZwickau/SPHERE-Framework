@@ -11,7 +11,6 @@ namespace Piwik\Plugin;
 
 use Piwik\API\DataTablePostProcessor;
 use Piwik\API\Proxy;
-use Piwik\API\Request as ApiRequest;
 use Piwik\API\ResponseBuilder;
 use Piwik\Common;
 use Piwik\DataTable;
@@ -22,11 +21,12 @@ use Piwik\NoAccessException;
 use Piwik\Option;
 use Piwik\Period;
 use Piwik\Piwik;
-use Piwik\Plugin\Manager as PluginManager;
 use Piwik\Plugins\API\API as ApiApi;
 use Piwik\Plugins\PrivacyManager\PrivacyManager;
 use Piwik\View;
 use Piwik\ViewDataTable\Manager as ViewDataTableManager;
+use Piwik\Plugin\Manager as PluginManager;
+use Piwik\API\Request as ApiRequest;
 
 /**
  * The base class for report visualizations that output HTML and use JavaScript.
@@ -145,14 +145,16 @@ class Visualization extends ViewDataTable
      * @api
      */
     const TEMPLATE_FILE = '';
+
+    private $templateVars = array();
+    private $reportLastUpdatedMessage = null;
+    private $metadata = null;
     protected $metricsFormatter = null;
+
     /**
      * @var Report
      */
     protected $report;
-    private $templateVars = array();
-    private $reportLastUpdatedMessage = null;
-    private $metadata = null;
 
     final public function __construct($controllerAction, $apiMethodToRequestDataTable, $params = array())
     {
@@ -166,27 +168,7 @@ class Visualization extends ViewDataTable
 
         parent::__construct($controllerAction, $apiMethodToRequestDataTable, $params);
 
-        $this->report = Report::factory($this->requestConfig->getApiModuleToRequest(),
-            $this->requestConfig->getApiMethodToRequest());
-    }
-
-    /**
-     * Assigns a template variable making it available in the Twig template specified by
-     * {@link TEMPLATE_FILE}.
-     *
-     * @param array|string $vars One or more variable names to set.
-     * @param mixed $value The value to set each variable to.
-     * @api
-     */
-    public function assignTemplateVar($vars, $value = null)
-    {
-        if (is_string($vars)) {
-            $this->templateVars[$vars] = $value;
-        } elseif (is_array($vars)) {
-            foreach ($vars as $key => $value) {
-                $this->templateVars[$key] = $value;
-            }
-        }
+        $this->report = Report::factory($this->requestConfig->getApiModuleToRequest(), $this->requestConfig->getApiMethodToRequest());
     }
 
     protected function buildView()
@@ -226,7 +208,7 @@ class Visualization extends ViewDataTable
         }
 
         $view->assign($this->templateVars);
-        $view->visualization = $this;
+        $view->visualization         = $this;
         $view->visualizationTemplate = static::TEMPLATE_FILE;
         $view->visualizationCssClass = $this->getDefaultDataTableCssClass();
         $view->reportMetdadata = $this->getReportMetadata();
@@ -235,51 +217,23 @@ class Visualization extends ViewDataTable
             $view->dataTable = null;
         } else {
             $view->dataTableHasNoData = !$this->isThereDataToDisplay();
-            $view->dataTable = $this->dataTable;
+            $view->dataTable          = $this->dataTable;
 
             // if it's likely that the report data for this data table has been purged,
             // set whether we should display a message to that effect.
             $view->showReportDataWasPurgedMessage = $this->hasReportBeenPurged();
-            $view->deleteReportsOlderThan = Option::get('delete_reports_older_than');
+            $view->deleteReportsOlderThan         = Option::get('delete_reports_older_than');
         }
 
-        $view->idSubtable = $this->requestConfig->idSubtable;
+        $view->idSubtable  = $this->requestConfig->idSubtable;
         $view->clientSideParameters = $this->getClientSideParametersToSet();
         $view->clientSideProperties = $this->getClientSidePropertiesToSet();
-        $view->properties = array_merge($this->requestConfig->getProperties(), $this->config->getProperties());
+        $view->properties  = array_merge($this->requestConfig->getProperties(), $this->config->getProperties());
         $view->reportLastUpdatedMessage = $this->reportLastUpdatedMessage;
         $view->footerIcons = $this->config->footer_icons;
-        $view->isWidget = Common::getRequestVar('widget', 0, 'int');
+        $view->isWidget    = Common::getRequestVar('widget', 0, 'int');
 
         return $view;
-    }
-
-    private function overrideSomeConfigPropertiesIfNeeded()
-    {
-        if (empty($this->config->footer_icons)) {
-            $this->config->footer_icons = ViewDataTableManager::configureFooterIcons($this);
-        }
-
-        if (!$this->isPluginActivated('Goals')) {
-            $this->config->show_goals = false;
-        }
-    }
-
-    private function isPluginActivated($pluginName)
-    {
-        return PluginManager::getInstance()->isPluginActivated($pluginName);
-    }
-
-    /**
-     * Hook that is called before loading report data from the API.
-     *
-     * Use this method to change the request parameters that is sent to the API when requesting
-     * data.
-     *
-     * @api
-     */
-    public function beforeLoadDataTable()
-    {
     }
 
     /**
@@ -301,7 +255,7 @@ class Visualization extends ViewDataTable
 
         PluginManager::getInstance()->checkIsPluginActivated($module);
 
-        $class = ApiRequest::getClassNameAPI($module);
+        $class     = ApiRequest::getClassNameAPI($module);
         $dataTable = Proxy::getInstance()->call($class, $method, $request);
 
         $response = new ResponseBuilder($format = 'original', $request);
@@ -311,30 +265,67 @@ class Visualization extends ViewDataTable
         $this->dataTable = $response->getResponse($dataTable, $module, $method);
     }
 
-    /**
-     * @internal
-     *
-     * @return array
-     */
-    public function buildApiRequestArray()
+    private function getReportMetadata()
     {
-        $requestArray = $this->request->getRequestArray();
-        $request = APIRequest::getRequestArrayFromString($requestArray);
+        $request = $this->request->getRequestArray() + $_GET + $_POST;
 
-        if (false === $this->config->enable_sort) {
-            $request['filter_sort_column'] = '';
-            $request['filter_sort_order'] = '';
+        $idSite  = Common::getRequestVar('idSite', null, 'string', $request);
+        $module  = $this->requestConfig->getApiModuleToRequest();
+        $action  = $this->requestConfig->getApiMethodToRequest();
+        $metadata = ApiApi::getInstance()->getMetadata($idSite, $module, $action);
+
+        if (!empty($metadata)) {
+            return array_shift($metadata);
         }
 
-        if (!array_key_exists('format_metrics', $request) || $request['format_metrics'] === 'bc') {
-            $request['format_metrics'] = '1';
+        return false;
+    }
+
+    private function overrideSomeConfigPropertiesIfNeeded()
+    {
+        if (empty($this->config->footer_icons)) {
+            $this->config->footer_icons = ViewDataTableManager::configureFooterIcons($this);
         }
 
-        if (!$this->requestConfig->disable_queued_filters && array_key_exists('disable_queued_filters', $request)) {
-            unset($request['disable_queued_filters']);
+        if (!$this->isPluginActivated('Goals')) {
+            $this->config->show_goals = false;
         }
+    }
 
-        return $request;
+    private function isPluginActivated($pluginName)
+    {
+        return PluginManager::getInstance()->isPluginActivated($pluginName);
+    }
+
+    /**
+     * Assigns a template variable making it available in the Twig template specified by
+     * {@link TEMPLATE_FILE}.
+     *
+     * @param array|string $vars One or more variable names to set.
+     * @param mixed $value The value to set each variable to.
+     * @api
+     */
+    public function assignTemplateVar($vars, $value = null)
+    {
+        if (is_string($vars)) {
+            $this->templateVars[$vars] = $value;
+        } elseif (is_array($vars)) {
+            foreach ($vars as $key => $value) {
+                $this->templateVars[$key] = $value;
+            }
+        }
+    }
+
+    /**
+     * Returns `true` if there is data to display, `false` if otherwise.
+     *
+     * Derived classes should override this method if they change the amount of data that is loaded.
+     *
+     * @api
+     */
+    protected function isThereDataToDisplay()
+    {
+        return !empty($this->dataTable) && 0 < $this->dataTable->getRowsCount();
     }
 
     /**
@@ -346,7 +337,7 @@ class Visualization extends ViewDataTable
     private function postDataTableLoadedFromAPI()
     {
         $columns = $this->dataTable->getColumns();
-        $hasNbVisits = in_array('nb_visits', $columns);
+        $hasNbVisits       = in_array('nb_visits', $columns);
         $hasNbUniqVisitors = in_array('nb_uniq_visitors', $columns);
 
         // default columns_to_display to label, nb_uniq_visitors/nb_visits if those columns exist in the
@@ -380,48 +371,25 @@ class Visualization extends ViewDataTable
         }
     }
 
-    private function removeEmptyColumnsFromDisplay()
+    private function addVisualizationInfoFromMetricMetadata()
     {
-        if ($this->dataTable instanceof DataTable\Map) {
-            $emptyColumns = $this->dataTable->getMetadataIntersectArray(DataTable::EMPTY_COLUMNS_METADATA_NAME);
-        } else {
-            $emptyColumns = $this->dataTable->getMetadata(DataTable::EMPTY_COLUMNS_METADATA_NAME);
-        }
+        $dataTable = $this->dataTable instanceof DataTable\Map ? $this->dataTable->getFirstRow() : $this->dataTable;
 
-        if (is_array($emptyColumns)) {
-            foreach ($emptyColumns as $emptyColumn) {
-                $key = array_search($emptyColumn, $this->config->columns_to_display);
-                if ($key !== false) {
-                    unset($this->config->columns_to_display[$key]);
-                }
+        $metrics = Report::getMetricsForTable($dataTable, $this->report);
+
+        // TODO: instead of iterating & calling translate everywhere, maybe we can get all translated names in one place.
+        //       may be difficult, though, since translated metrics are specific to the report.
+        foreach ($metrics as $metric) {
+            $name = $metric->getName();
+
+            if (empty($this->config->translations[$name])) {
+                $this->config->translations[$name] = $metric->getTranslatedName();
             }
 
-            $this->config->columns_to_display = array_values($this->config->columns_to_display);
+            if (empty($this->config->metrics_documentation[$name])) {
+                $this->config->metrics_documentation[$name] = $metric->getDocumentation();
+            }
         }
-    }
-
-    /**
-     * Returns prettified and translated text that describes when a report was last updated.
-     *
-     * @return string
-     */
-    private function makePrettyArchivedOnText()
-    {
-        $dateText = $this->metadata[DataTable::ARCHIVED_DATE_METADATA_NAME];
-        $date = Date::factory($dateText);
-        $today = mktime(0, 0, 0);
-
-        if ($date->getTimestamp() > $today) {
-            $elapsedSeconds = time() - $date->getTimestamp();
-            $timeAgo = $this->metricsFormatter->getPrettyTimeFromSeconds($elapsedSeconds);
-
-            return Piwik::translate('CoreHome_ReportGeneratedXAgo', $timeAgo);
-        }
-
-        $prettyDate = $date->getLocalized(Date::DATE_FORMAT_SHORT);
-
-        $timezoneAppend = ' (UTC)';
-        return Piwik::translate('CoreHome_ReportGeneratedOn', $prettyDate) . $timezoneAppend;
     }
 
     private function applyFilters()
@@ -429,10 +397,7 @@ class Visualization extends ViewDataTable
         $postProcessor = $this->makeDataTablePostProcessor(); // must be created after requestConfig is final
         $self = $this;
 
-        $postProcessor->setCallbackBeforeGenericFilters(function (DataTable\DataTableInterface $dataTable) use (
-            $self,
-            $postProcessor
-        ) {
+        $postProcessor->setCallbackBeforeGenericFilters(function (DataTable\DataTableInterface $dataTable) use ($self, $postProcessor) {
 
             $self->setDataTable($dataTable);
 
@@ -468,153 +433,48 @@ class Visualization extends ViewDataTable
         $this->dataTable = $postProcessor->process($this->dataTable);
     }
 
-    private function makeDataTablePostProcessor()
+    private function removeEmptyColumnsFromDisplay()
     {
-        $request = $this->buildApiRequestArray();
-        $module = $this->requestConfig->getApiModuleToRequest();
-        $method = $this->requestConfig->getApiMethodToRequest();
+        if ($this->dataTable instanceof DataTable\Map) {
+            $emptyColumns = $this->dataTable->getMetadataIntersectArray(DataTable::EMPTY_COLUMNS_METADATA_NAME);
+        } else {
+            $emptyColumns = $this->dataTable->getMetadata(DataTable::EMPTY_COLUMNS_METADATA_NAME);
+        }
 
-        $processor = new DataTablePostProcessor($module, $method, $request);
-        $processor->setFormatter($this->metricsFormatter);
-
-        return $processor;
-    }
-
-    /**
-     * Hook that is executed before generic filters are applied.
-     *
-     * Use this method if you need access to the entire dataset (since generic filters will
-     * limit and truncate reports).
-     *
-     * @api
-     */
-    public function beforeGenericFiltersAreAppliedToLoadedDataTable()
-    {
-    }
-
-    /**
-     * Hook that is executed after generic filters are applied.
-     *
-     * @api
-     */
-    public function afterGenericFiltersAreAppliedToLoadedDataTable()
-    {
-    }
-
-    private function addVisualizationInfoFromMetricMetadata()
-    {
-        $dataTable = $this->dataTable instanceof DataTable\Map ? $this->dataTable->getFirstRow() : $this->dataTable;
-
-        $metrics = Report::getMetricsForTable($dataTable, $this->report);
-
-        // TODO: instead of iterating & calling translate everywhere, maybe we can get all translated names in one place.
-        //       may be difficult, though, since translated metrics are specific to the report.
-        foreach ($metrics as $metric) {
-            $name = $metric->getName();
-
-            if (empty($this->config->translations[$name])) {
-                $this->config->translations[$name] = $metric->getTranslatedName();
+        if (is_array($emptyColumns)) {
+            foreach ($emptyColumns as $emptyColumn) {
+                $key = array_search($emptyColumn, $this->config->columns_to_display);
+                if ($key !== false) {
+                    unset($this->config->columns_to_display[$key]);
+                }
             }
 
-            if (empty($this->config->metrics_documentation[$name])) {
-                $this->config->metrics_documentation[$name] = $metric->getDocumentation();
-            }
+            $this->config->columns_to_display = array_values($this->config->columns_to_display);
         }
     }
 
     /**
-     * Hook that is executed after the report data is loaded and after all filters have been applied.
-     * Use this method to format the report data before the view is rendered.
+     * Returns prettified and translated text that describes when a report was last updated.
      *
-     * @api
+     * @return string
      */
-    public function afterAllFiltersAreApplied()
+    private function makePrettyArchivedOnText()
     {
-    }
+        $dateText = $this->metadata[DataTable::ARCHIVED_DATE_METADATA_NAME];
+        $date     = Date::factory($dateText);
+        $today    = mktime(0, 0, 0);
 
-    /**
-     * Hook that is executed directly before rendering. Use this hook to force display properties to
-     * be a certain value, despite changes from plugins and query parameters.
-     *
-     * @api
-     */
-    public function beforeRender()
-    {
-        // eg $this->config->showFooterColumns = true;
-    }
+        if ($date->getTimestamp() > $today) {
+            $elapsedSeconds = time() - $date->getTimestamp();
+            $timeAgo        = $this->metricsFormatter->getPrettyTimeFromSeconds($elapsedSeconds);
 
-    private function logMessageIfRequestPropertiesHaveChanged(array $requestPropertiesBefore)
-    {
-        $requestProperties = $this->requestConfig->getProperties();
-
-        $diff = array_diff_assoc($this->makeSureArrayContainsOnlyStrings($requestProperties),
-            $this->makeSureArrayContainsOnlyStrings($requestPropertiesBefore));
-
-        if (!empty($diff['filter_sort_column'])) {
-            // this here might be ok as it can be changed after data loaded but before filters applied
-            unset($diff['filter_sort_column']);
-        }
-        if (!empty($diff['filter_sort_order'])) {
-            // this here might be ok as it can be changed after data loaded but before filters applied
-            unset($diff['filter_sort_order']);
+            return Piwik::translate('CoreHome_ReportGeneratedXAgo', $timeAgo);
         }
 
-        if (empty($diff)) {
-            return;
-        }
+        $prettyDate = $date->getLocalized(Date::DATE_FORMAT_SHORT);
 
-        $details = array(
-            'changedProperties' => $diff,
-            'apiMethod' => $this->requestConfig->apiMethodToRequestDataTable,
-            'controller' => $this->config->controllerName . '.' . $this->config->controllerAction,
-            'viewDataTable' => static::getViewDataTableId()
-        );
-
-        $message = 'Some ViewDataTable::requestConfig properties have changed after requesting the data table. '
-            . 'That means the changed values had probably no effect. For instance in beforeRender() hook. '
-            . 'Probably a bug? Details:'
-            . print_r($details, 1);
-
-        Log::warning($message);
-    }
-
-    private function makeSureArrayContainsOnlyStrings($array)
-    {
-        $result = array();
-
-        foreach ($array as $key => $value) {
-            $result[$key] = json_encode($value);
-        }
-
-        return $result;
-    }
-
-    private function getReportMetadata()
-    {
-        $request = $this->request->getRequestArray() + $_GET + $_POST;
-
-        $idSite = Common::getRequestVar('idSite', null, 'string', $request);
-        $module = $this->requestConfig->getApiModuleToRequest();
-        $action = $this->requestConfig->getApiMethodToRequest();
-        $metadata = ApiApi::getInstance()->getMetadata($idSite, $module, $action);
-
-        if (!empty($metadata)) {
-            return array_shift($metadata);
-        }
-
-        return false;
-    }
-
-    /**
-     * Returns `true` if there is data to display, `false` if otherwise.
-     *
-     * Derived classes should override this method if they change the amount of data that is loaded.
-     *
-     * @api
-     */
-    protected function isThereDataToDisplay()
-    {
-        return !empty($this->dataTable) && 0 < $this->dataTable->getRowsCount();
+        $timezoneAppend = ' (UTC)';
+        return Piwik::translate('CoreHome_ReportGeneratedOn', $prettyDate) . $timezoneAppend;
     }
 
     /**
@@ -634,6 +494,32 @@ class Visualization extends ViewDataTable
         }
 
         return PrivacyManager::hasReportBeenPurged($this->dataTable);
+    }
+
+    /**
+     * Returns array of properties that should be visible to client side JavaScript. The data
+     * will be available in the data-props HTML attribute of the .dataTable div.
+     *
+     * @return array Maps property names w/ property values.
+     */
+    private function getClientSidePropertiesToSet()
+    {
+        $result = array();
+
+        foreach ($this->config->clientSideProperties as $name) {
+            if (property_exists($this->requestConfig, $name)) {
+                $result[$name] = $this->getIntIfValueIsBool($this->requestConfig->$name);
+            } elseif (property_exists($this->config, $name)) {
+                $result[$name] = $this->getIntIfValueIsBool($this->config->$name);
+            }
+        }
+
+        return $result;
+    }
+
+    private function getIntIfValueIsBool($value)
+    {
+        return is_bool($value) ? (int)$value : $value;
     }
 
     /**
@@ -720,29 +606,141 @@ class Visualization extends ViewDataTable
         return $javascriptVariablesToSet;
     }
 
-    private function getIntIfValueIsBool($value)
+    /**
+     * Hook that is called before loading report data from the API.
+     *
+     * Use this method to change the request parameters that is sent to the API when requesting
+     * data.
+     *
+     * @api
+     */
+    public function beforeLoadDataTable()
     {
-        return is_bool($value) ? (int)$value : $value;
     }
 
     /**
-     * Returns array of properties that should be visible to client side JavaScript. The data
-     * will be available in the data-props HTML attribute of the .dataTable div.
+     * Hook that is executed before generic filters are applied.
      *
-     * @return array Maps property names w/ property values.
+     * Use this method if you need access to the entire dataset (since generic filters will
+     * limit and truncate reports).
+     *
+     * @api
      */
-    private function getClientSidePropertiesToSet()
+    public function beforeGenericFiltersAreAppliedToLoadedDataTable()
+    {
+    }
+
+    /**
+     * Hook that is executed after generic filters are applied.
+     *
+     * @api
+     */
+    public function afterGenericFiltersAreAppliedToLoadedDataTable()
+    {
+    }
+
+    /**
+     * Hook that is executed after the report data is loaded and after all filters have been applied.
+     * Use this method to format the report data before the view is rendered.
+     *
+     * @api
+     */
+    public function afterAllFiltersAreApplied()
+    {
+    }
+
+    /**
+     * Hook that is executed directly before rendering. Use this hook to force display properties to
+     * be a certain value, despite changes from plugins and query parameters.
+     *
+     * @api
+     */
+    public function beforeRender()
+    {
+        // eg $this->config->showFooterColumns = true;
+    }
+
+    private function makeDataTablePostProcessor()
+    {
+        $request = $this->buildApiRequestArray();
+        $module  = $this->requestConfig->getApiModuleToRequest();
+        $method  = $this->requestConfig->getApiMethodToRequest();
+
+        $processor = new DataTablePostProcessor($module, $method, $request);
+        $processor->setFormatter($this->metricsFormatter);
+
+        return $processor;
+    }
+
+    private function logMessageIfRequestPropertiesHaveChanged(array $requestPropertiesBefore)
+    {
+        $requestProperties = $this->requestConfig->getProperties();
+
+        $diff = array_diff_assoc($this->makeSureArrayContainsOnlyStrings($requestProperties),
+                                 $this->makeSureArrayContainsOnlyStrings($requestPropertiesBefore));
+
+        if (!empty($diff['filter_sort_column'])) {
+            // this here might be ok as it can be changed after data loaded but before filters applied
+            unset($diff['filter_sort_column']);
+        }
+        if (!empty($diff['filter_sort_order'])) {
+            // this here might be ok as it can be changed after data loaded but before filters applied
+            unset($diff['filter_sort_order']);
+        }
+
+        if (empty($diff)) {
+            return;
+        }
+
+        $details = array(
+            'changedProperties' => $diff,
+            'apiMethod'         => $this->requestConfig->apiMethodToRequestDataTable,
+            'controller'        => $this->config->controllerName . '.' . $this->config->controllerAction,
+            'viewDataTable'     => static::getViewDataTableId()
+        );
+
+        $message = 'Some ViewDataTable::requestConfig properties have changed after requesting the data table. '
+                 . 'That means the changed values had probably no effect. For instance in beforeRender() hook. '
+                 . 'Probably a bug? Details:'
+                 . print_r($details, 1);
+
+        Log::warning($message);
+    }
+
+    private function makeSureArrayContainsOnlyStrings($array)
     {
         $result = array();
 
-        foreach ($this->config->clientSideProperties as $name) {
-            if (property_exists($this->requestConfig, $name)) {
-                $result[$name] = $this->getIntIfValueIsBool($this->requestConfig->$name);
-            } elseif (property_exists($this->config, $name)) {
-                $result[$name] = $this->getIntIfValueIsBool($this->config->$name);
-            }
+        foreach ($array as $key => $value) {
+            $result[$key] = json_encode($value);
         }
 
         return $result;
+    }
+
+    /**
+     * @internal
+     *
+     * @return array
+     */
+    public function buildApiRequestArray()
+    {
+        $requestArray = $this->request->getRequestArray();
+        $request = APIRequest::getRequestArrayFromString($requestArray);
+
+        if (false === $this->config->enable_sort) {
+            $request['filter_sort_column'] = '';
+            $request['filter_sort_order'] = '';
+        }
+
+        if (!array_key_exists('format_metrics', $request) || $request['format_metrics'] === 'bc') {
+            $request['format_metrics'] = '1';
+        }
+
+        if (!$this->requestConfig->disable_queued_filters && array_key_exists('disable_queued_filters', $request)) {
+            unset($request['disable_queued_filters']);
+        }
+
+        return $request;
     }
 }

@@ -61,171 +61,6 @@ class IniFileChain
     }
 
     /**
-     * Reloads settings from disk.
-     */
-    public function reload($defaultSettingsFiles = array(), $userSettingsFile = null)
-    {
-        if (!empty($defaultSettingsFiles)
-            || !empty($userSettingsFile)
-        ) {
-            $this->resetSettingsChain($defaultSettingsFiles, $userSettingsFile);
-        }
-
-        $reader = new IniReader();
-        foreach ($this->settingsChain as $file => $ignore) {
-            if (is_readable($file)) {
-                try {
-                    $contents = $reader->readFile($file);
-                    $this->settingsChain[$file] = $this->decodeValues($contents);
-                } catch (IniReadingException $ex) {
-                    throw new IniReadingException('Unable to read INI file {' . $file . '}: ' . $ex->getMessage() . "\n Your host may have disabled parse_ini_file().");
-                }
-
-                $this->decodeValues($this->settingsChain[$file]);
-            }
-        }
-
-        $merged = $this->mergeFileSettings();
-        // remove reference to $this->settingsChain... otherwise dump() or compareElements() will never notice a difference
-        // on PHP 7+ as they would be always equal
-        $this->mergedSettings = $this->copy($merged);
-    }
-
-    private function resetSettingsChain($defaultSettingsFiles, $userSettingsFile)
-    {
-        $this->settingsChain = array();
-
-        if (!empty($defaultSettingsFiles)) {
-            foreach ($defaultSettingsFiles as $file) {
-                $this->settingsChain[$file] = null;
-            }
-        }
-
-        if (!empty($userSettingsFile)) {
-            $this->settingsChain[$userSettingsFile] = null;
-        }
-    }
-
-    /**
-     * Decode HTML entities
-     *
-     * @param mixed $values
-     * @return mixed
-     */
-    protected function decodeValues(&$values)
-    {
-        if (is_array($values)) {
-            foreach ($values as &$value) {
-                $value = $this->decodeValues($value);
-            }
-            return $values;
-        } elseif (is_string($values)) {
-            return html_entity_decode($values, ENT_COMPAT, 'UTF-8');
-        }
-        return $values;
-    }
-
-    protected function mergeFileSettings()
-    {
-        $mergedSettings = $this->getMergedDefaultSettings();
-
-        $userSettings = end($this->settingsChain) ?: array();
-        foreach ($userSettings as $sectionName => $section) {
-            if (!isset($mergedSettings[$sectionName])) {
-                $mergedSettings[$sectionName] = $section;
-            } else {
-                // the last user settings file completely overwrites INI sections. the other files in the chain
-                // can add to array options
-                $mergedSettings[$sectionName] = array_merge($mergedSettings[$sectionName], $section);
-            }
-        }
-
-        return $mergedSettings;
-    }
-
-    protected function getMergedDefaultSettings()
-    {
-        $userSettingsFile = $this->getUserSettingsFile();
-
-        $mergedSettings = array();
-        foreach ($this->settingsChain as $file => $settings) {
-            if ($file == $userSettingsFile
-                || empty($settings)
-            ) {
-                continue;
-            }
-
-            foreach ($settings as $sectionName => $section) {
-                if (!isset($mergedSettings[$sectionName])) {
-                    $mergedSettings[$sectionName] = $section;
-                } else {
-                    $mergedSettings[$sectionName] = $this->array_merge_recursive_distinct($mergedSettings[$sectionName],
-                        $section);
-                }
-            }
-        }
-        return $mergedSettings;
-    }
-
-    protected function getUserSettingsFile()
-    {
-        // the user settings file is the last key in $settingsChain
-        end($this->settingsChain);
-        return key($this->settingsChain);
-    }
-
-    /**
-     * array_merge_recursive does indeed merge arrays, but it converts values with duplicate
-     * keys to arrays rather than overwriting the value in the first array with the duplicate
-     * value in the second array, as array_merge does. I.e., with array_merge_recursive,
-     * this happens (documented behavior):
-     *
-     * array_merge_recursive(array('key' => 'org value'), array('key' => 'new value'));
-     *     => array('key' => array('org value', 'new value'));
-     *
-     * array_merge_recursive_distinct does not change the datatypes of the values in the arrays.
-     * Matching keys' values in the second array overwrite those in the first array, as is the
-     * case with array_merge, i.e.:
-     *
-     * array_merge_recursive_distinct(array('key' => 'org value'), array('key' => 'new value'));
-     *     => array('key' => array('new value'));
-     *
-     * Parameters are passed by reference, though only for performance reasons. They're not
-     * altered by this function.
-     *
-     * @param array $array1
-     * @param array $array2
-     * @return array
-     * @author Daniel <daniel (at) danielsmedegaardbuus (dot) dk>
-     * @author Gabriel Sobrinho <gabriel (dot) sobrinho (at) gmail (dot) com>
-     */
-    private function array_merge_recursive_distinct(array &$array1, array &$array2)
-    {
-        $merged = $array1;
-        foreach ($array2 as $key => &$value) {
-            if (is_array($value) && isset($merged [$key]) && is_array($merged [$key])) {
-                $merged [$key] = $this->array_merge_recursive_distinct($merged [$key], $value);
-            } else {
-                $merged [$key] = $value;
-            }
-        }
-        return $merged;
-    }
-
-    private function copy($merged)
-    {
-        $copy = array();
-        foreach ($merged as $index => $value) {
-            if (is_array($value)) {
-                $copy[$index] = $this->copy($value);
-            } else {
-                $copy[$index] = $value;
-            }
-        }
-        return $copy;
-    }
-
-    /**
      * Return setting section by reference.
      *
      * @param string $name
@@ -285,35 +120,6 @@ class IniFileChain
         return $this->dumpSettings($this->mergedSettings, $header);
     }
 
-    private function dumpSettings($values, $header)
-    {
-        $values = $this->encodeValues($values);
-
-        $writer = new IniWriter();
-        return $writer->writeToString($values, $header);
-    }
-
-    /**
-     * Encode HTML entities
-     *
-     * @param mixed $values
-     * @return mixed
-     */
-    protected function encodeValues(&$values)
-    {
-        if (is_array($values)) {
-            foreach ($values as &$value) {
-                $value = $this->encodeValues($value);
-            }
-        } elseif (is_float($values)) {
-            $values = Common::forceDotAsSeparatorForDecimalPoint($values);
-        } elseif (is_string($values)) {
-            $values = htmlentities($values, ENT_COMPAT, 'UTF-8');
-            $values = str_replace('$', '&#36;', $values);
-        }
-        return $values;
-    }
-
     /**
      * Writes the difference of the in-memory setting values and the on-disk user settings file setting
      * values to a string in INI format, and returns it.
@@ -335,9 +141,9 @@ class IniFileChain
 
         $configToWrite = array();
         foreach ($this->mergedSettings as $sectionName => $changedSection) {
-            if (isset($existingMutableSettings[$sectionName])) {
+            if(isset($existingMutableSettings[$sectionName])){
                 $existingMutableSection = $existingMutableSettings[$sectionName];
-            } else {
+            } else{
                 $existingMutableSection = array();
             }
 
@@ -392,21 +198,110 @@ class IniFileChain
     }
 
     /**
-     * Compare arrays and return difference, such that:
-     *
-     *     $modified = array_merge($original, $difference);
-     *
-     * @param array $original original array
-     * @param array $modified modified array
-     * @return array differences between original and modified
+     * Reloads settings from disk.
      */
-    public function arrayUnmerge($original, $modified)
+    public function reload($defaultSettingsFiles = array(), $userSettingsFile = null)
     {
-        // return key/value pairs for keys in $modified but not in $original
-        // return key/value pairs for keys in both $modified and $original, but values differ
-        // ignore keys that are in $original but not in $modified
+        if (!empty($defaultSettingsFiles)
+            || !empty($userSettingsFile)
+        ) {
+            $this->resetSettingsChain($defaultSettingsFiles, $userSettingsFile);
+        }
 
-        return array_udiff_assoc($modified, $original, array(__CLASS__, 'compareElements'));
+        $reader = new IniReader();
+        foreach ($this->settingsChain as $file => $ignore) {
+            if (is_readable($file)) {
+                try {
+                    $contents = $reader->readFile($file);
+                    $this->settingsChain[$file] = $this->decodeValues($contents);
+                } catch (IniReadingException $ex) {
+                    throw new IniReadingException('Unable to read INI file {' . $file . '}: ' . $ex->getMessage() . "\n Your host may have disabled parse_ini_file().");
+                }
+
+                $this->decodeValues($this->settingsChain[$file]);
+            }
+        }
+
+        $merged = $this->mergeFileSettings();
+        // remove reference to $this->settingsChain... otherwise dump() or compareElements() will never notice a difference
+        // on PHP 7+ as they would be always equal
+        $this->mergedSettings = $this->copy($merged);
+    }
+
+    private function copy($merged)
+    {
+        $copy = array();
+        foreach ($merged as $index => $value) {
+            if (is_array($value)) {
+                $copy[$index] = $this->copy($value);
+            } else {
+                $copy[$index] = $value;
+            }
+        }
+        return $copy;
+    }
+
+    private function resetSettingsChain($defaultSettingsFiles, $userSettingsFile)
+    {
+        $this->settingsChain = array();
+
+        if (!empty($defaultSettingsFiles)) {
+            foreach ($defaultSettingsFiles as $file) {
+                $this->settingsChain[$file] = null;
+            }
+        }
+
+        if (!empty($userSettingsFile)) {
+            $this->settingsChain[$userSettingsFile] = null;
+        }
+    }
+
+    protected function mergeFileSettings()
+    {
+        $mergedSettings = $this->getMergedDefaultSettings();
+
+        $userSettings = end($this->settingsChain) ?: array();
+        foreach ($userSettings as $sectionName => $section) {
+            if (!isset($mergedSettings[$sectionName])) {
+                $mergedSettings[$sectionName] = $section;
+            } else {
+                // the last user settings file completely overwrites INI sections. the other files in the chain
+                // can add to array options
+                $mergedSettings[$sectionName] = array_merge($mergedSettings[$sectionName], $section);
+            }
+        }
+
+        return $mergedSettings;
+    }
+
+    protected function getMergedDefaultSettings()
+    {
+        $userSettingsFile = $this->getUserSettingsFile();
+
+        $mergedSettings = array();
+        foreach ($this->settingsChain as $file => $settings) {
+            if ($file == $userSettingsFile
+                || empty($settings)
+            ) {
+                continue;
+            }
+
+            foreach ($settings as $sectionName => $section) {
+                if (!isset($mergedSettings[$sectionName])) {
+                    $mergedSettings[$sectionName] = $section;
+                } else {
+                    $mergedSettings[$sectionName] = $this->array_merge_recursive_distinct($mergedSettings[$sectionName], $section);
+                }
+            }
+        }
+        return $mergedSettings;
+    }
+
+    protected function getUserSettingsFile()
+    {
+        // the user settings file is the last key in $settingsChain
+        end($this->settingsChain);
+        return key($this->settingsChain);
     }
 
     /**
@@ -435,6 +330,62 @@ class IniFileChain
         }
 
         return ((string)$elem1 > (string)$elem2) ? 1 : -1;
+    }
+
+    /**
+     * Compare arrays and return difference, such that:
+     *
+     *     $modified = array_merge($original, $difference);
+     *
+     * @param array $original original array
+     * @param array $modified modified array
+     * @return array differences between original and modified
+     */
+    public function arrayUnmerge($original, $modified)
+    {
+        // return key/value pairs for keys in $modified but not in $original
+        // return key/value pairs for keys in both $modified and $original, but values differ
+        // ignore keys that are in $original but not in $modified
+
+        return array_udiff_assoc($modified, $original, array(__CLASS__, 'compareElements'));
+    }
+
+    /**
+     * array_merge_recursive does indeed merge arrays, but it converts values with duplicate
+     * keys to arrays rather than overwriting the value in the first array with the duplicate
+     * value in the second array, as array_merge does. I.e., with array_merge_recursive,
+     * this happens (documented behavior):
+     *
+     * array_merge_recursive(array('key' => 'org value'), array('key' => 'new value'));
+     *     => array('key' => array('org value', 'new value'));
+     *
+     * array_merge_recursive_distinct does not change the datatypes of the values in the arrays.
+     * Matching keys' values in the second array overwrite those in the first array, as is the
+     * case with array_merge, i.e.:
+     *
+     * array_merge_recursive_distinct(array('key' => 'org value'), array('key' => 'new value'));
+     *     => array('key' => array('new value'));
+     *
+     * Parameters are passed by reference, though only for performance reasons. They're not
+     * altered by this function.
+     *
+     * @param array $array1
+     * @param array $array2
+     * @return array
+     * @author Daniel <daniel (at) danielsmedegaardbuus (dot) dk>
+     * @author Gabriel Sobrinho <gabriel (dot) sobrinho (at) gmail (dot) com>
+     */
+    private function array_merge_recursive_distinct(array &$array1, array &$array2)
+    {
+        $merged = $array1;
+        foreach ($array2 as $key => &$value) {
+            if (is_array($value) && isset($merged [$key]) && is_array($merged [$key])) {
+                $merged [$key] = $this->array_merge_recursive_distinct($merged [$key], $value);
+            } else {
+                $merged [$key] = $value;
+            }
+        }
+        return $merged;
     }
 
     /**
@@ -471,5 +422,53 @@ class IniFileChain
         $settingsDataSectionNames = array_keys($settingsData);
 
         return array_search($sectionName, $settingsDataSectionNames);
+    }
+
+    /**
+     * Encode HTML entities
+     *
+     * @param mixed $values
+     * @return mixed
+     */
+    protected function encodeValues(&$values)
+    {
+        if (is_array($values)) {
+            foreach ($values as &$value) {
+                $value = $this->encodeValues($value);
+            }
+        } elseif (is_float($values)) {
+            $values = Common::forceDotAsSeparatorForDecimalPoint($values);
+        } elseif (is_string($values)) {
+            $values = htmlentities($values, ENT_COMPAT, 'UTF-8');
+            $values = str_replace('$', '&#36;', $values);
+        }
+        return $values;
+    }
+
+    /**
+     * Decode HTML entities
+     *
+     * @param mixed $values
+     * @return mixed
+     */
+    protected function decodeValues(&$values)
+    {
+        if (is_array($values)) {
+            foreach ($values as &$value) {
+                $value = $this->decodeValues($value);
+            }
+            return $values;
+        } elseif (is_string($values)) {
+            return html_entity_decode($values, ENT_COMPAT, 'UTF-8');
+        }
+        return $values;
+    }
+
+    private function dumpSettings($values, $header)
+    {
+        $values = $this->encodeValues($values);
+
+        $writer = new IniWriter();
+        return $writer->writeToString($values, $header);
     }
 }

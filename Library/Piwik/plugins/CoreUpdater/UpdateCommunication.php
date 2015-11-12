@@ -55,67 +55,6 @@ class UpdateCommunication
         $this->sendNotifications();
     }
 
-    protected function isNewVersionAvailable()
-    {
-        UpdateCheck::check();
-
-        $hasUpdate = UpdateCheck::isNewestVersionAvailable();
-
-        if (!$hasUpdate) {
-            return false;
-        }
-
-        $latestVersion = self::getLatestVersion();
-        $version = new Version();
-        if (!$version->isVersionNumber($latestVersion)) {
-            return false;
-        }
-
-        return $hasUpdate;
-    }
-
-    private function getLatestVersion()
-    {
-        $version = UpdateCheck::getLatestVersion();
-
-        if (!empty($version)) {
-            $version = trim($version);
-        }
-
-        return $version;
-    }
-
-    protected function hasNotificationAlreadyReceived()
-    {
-        $latestVersion   = $this->getLatestVersion();
-        $lastVersionSent = $this->getLatestVersionSent();
-
-        if (!empty($lastVersionSent)
-            && ($latestVersion == $lastVersionSent
-                || version_compare($latestVersion, $lastVersionSent) == -1)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private function getLatestVersionSent()
-    {
-        return Option::get($this->getNotificationSentOptionName());
-    }
-
-    private function getNotificationSentOptionName()
-    {
-        return 'last_update_communication_sent_core';
-    }
-
-    private function setHasLatestUpdateNotificationReceived()
-    {
-        $latestVersion = $this->getLatestVersion();
-
-        Option::set($this->getNotificationSentOptionName(), $latestVersion);
-    }
-
     protected function sendNotifications()
     {
         $latestVersion = $this->getLatestVersion();
@@ -174,5 +113,66 @@ class UpdateCommunication
             $mail->setBodyText($message);
             $mail->send();
         }
+    }
+
+    protected function isNewVersionAvailable()
+    {
+        UpdateCheck::check();
+
+        $hasUpdate = UpdateCheck::isNewestVersionAvailable();
+
+        if (!$hasUpdate) {
+            return false;
+        }
+
+        $latestVersion = self::getLatestVersion();
+        $version = new Version();
+        if (!$version->isVersionNumber($latestVersion)) {
+            return false;
+        }
+
+        return $hasUpdate;
+    }
+
+    protected function hasNotificationAlreadyReceived()
+    {
+        $latestVersion   = $this->getLatestVersion();
+        $lastVersionSent = $this->getLatestVersionSent();
+
+        if (!empty($lastVersionSent)
+            && ($latestVersion == $lastVersionSent
+                || version_compare($latestVersion, $lastVersionSent) == -1)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function getLatestVersion()
+    {
+        $version = UpdateCheck::getLatestVersion();
+
+        if (!empty($version)) {
+            $version = trim($version);
+        }
+
+        return $version;
+    }
+
+    private function getLatestVersionSent()
+    {
+        return Option::get($this->getNotificationSentOptionName());
+    }
+
+    private function setHasLatestUpdateNotificationReceived()
+    {
+        $latestVersion = $this->getLatestVersion();
+
+        Option::set($this->getNotificationSentOptionName(), $latestVersion);
+    }
+
+    private function getNotificationSentOptionName()
+    {
+        return 'last_update_communication_sent_core';
     }
 }

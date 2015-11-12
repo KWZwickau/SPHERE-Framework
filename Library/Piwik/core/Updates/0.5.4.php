@@ -18,6 +18,14 @@ use Piwik\Updates;
  */
 class Updates_0_5_4 extends Updates
 {
+    public function getMigrationQueries(Updater $updater)
+    {
+        return array(
+            'ALTER TABLE `' . Common::prefixTable('log_action') . '`
+				 CHANGE `name` `name` TEXT' => false,
+        );
+    }
+
     public function doUpdate(Updater $updater)
     {
         $salt = Common::generateUniqId();
@@ -53,13 +61,5 @@ class Updates_0_5_4 extends Updates
         }
 
         $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
-    public function getMigrationQueries(Updater $updater)
-    {
-        return array(
-            'ALTER TABLE `' . Common::prefixTable('log_action') . '`
-				 CHANGE `name` `name` TEXT' => false,
-        );
     }
 }

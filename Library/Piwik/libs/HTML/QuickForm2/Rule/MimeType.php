@@ -68,6 +68,22 @@
 class HTML_QuickForm2_Rule_MimeType extends HTML_QuickForm2_Rule
 {
    /**
+    * Validates the owner element
+    *
+    * @return   bool    whether uploaded file's MIME type is correct
+    */
+    protected function validateOwner()
+    {
+        $value = $this->owner->getValue();
+        if (!isset($value['error']) || UPLOAD_ERR_NO_FILE == $value['error']) {
+            return true;
+        }
+        $mime = $this->getConfig();
+        return is_array($mime)? in_array($value['type'], $mime):
+                                $value['type'] == $mime;
+    }
+
+   /**
     * Sets allowed MIME type(s) for the uploaded file
     *
     * @param    string|array    Allowed MIME type or an array of types
@@ -101,22 +117,6 @@ class HTML_QuickForm2_Rule_MimeType extends HTML_QuickForm2_Rule
             );
         }
         parent::setOwner($owner);
-    }
-
-   /**
-    * Validates the owner element
-    *
-    * @return   bool    whether uploaded file's MIME type is correct
-    */
-    protected function validateOwner()
-    {
-        $value = $this->owner->getValue();
-        if (!isset($value['error']) || UPLOAD_ERR_NO_FILE == $value['error']) {
-            return true;
-        }
-        $mime = $this->getConfig();
-        return is_array($mime)? in_array($value['type'], $mime):
-                                $value['type'] == $mime;
     }
 }
 ?>

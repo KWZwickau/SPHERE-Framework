@@ -11,6 +11,7 @@ namespace Piwik\Period;
 use Exception;
 use Piwik\Date;
 use Piwik\Period;
+use Piwik\Piwik;
 
 /**
  */
@@ -81,16 +82,6 @@ class Day extends Period
     }
 
     /**
-     * Returns the current period as a string
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        return $this->toString();
-    }
-
-    /**
      * Returns the day of the period in the given format
      *
      * @param string $format
@@ -99,6 +90,16 @@ class Day extends Period
     public function toString($format = "Y-m-d")
     {
         return $this->date->toString($format);
+    }
+
+    /**
+     * Returns the current period as a string
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->toString();
     }
 
     public function getImmediateChildPeriodLabel()

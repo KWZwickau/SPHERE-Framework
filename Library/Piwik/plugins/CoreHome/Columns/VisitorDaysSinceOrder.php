@@ -19,6 +19,16 @@ class VisitorDaysSinceOrder extends VisitDimension
     protected $columnName = 'visitor_days_since_order';
     protected $columnType = 'SMALLINT(5) UNSIGNED NOT NULL';
 
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('daysSinceLastEcommerceOrder');
+        $segment->setName('General_DaysSinceLastEcommerceOrder');
+        $segment->setType(Segment::TYPE_METRIC);
+
+        $this->addSegment($segment);
+    }
+
     /**
      * @param Request $request
      * @param Visitor $visitor
@@ -45,15 +55,5 @@ class VisitorDaysSinceOrder extends VisitDimension
     public function onAnyGoalConversion(Request $request, Visitor $visitor, $action)
     {
         return $visitor->getVisitorColumn($this->columnName);
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('daysSinceLastEcommerceOrder');
-        $segment->setName('General_DaysSinceLastEcommerceOrder');
-        $segment->setType(Segment::TYPE_METRIC);
-
-        $this->addSegment($segment);
     }
 }

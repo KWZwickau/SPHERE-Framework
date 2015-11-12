@@ -52,6 +52,59 @@ class TableLogAction
         return $queriedIds;
     }
 
+    /**
+     * @param $matchType
+     * @param $actionType
+     * @return string
+     * @throws \Exception
+     */
+    private static function getSelectQueryWhereNameContains($matchType, $actionType)
+    {
+        // now, we handle the cases =@ (contains) and !@ (does not contain)
+        // build the expression based on the match type
+        $sql = 'SELECT idaction FROM ' . Common::prefixTable('log_action') . ' WHERE %s AND type = ' . $actionType . ' )';
+
+        switch ($matchType) {
+            case '=@':
+                // use concat to make sure, no %s occurs because some plugins use %s in their sql
+                $where = '( name LIKE CONCAT(\'%\', ?, \'%\') ';
+                break;
+            case '!@':
+                $where = '( name NOT LIKE CONCAT(\'%\', ?, \'%\') ';
+                break;
+            default:
+                throw new \Exception("This match type $matchType is not available for action-segments.");
+                break;
+        }
+
+        $sql = sprintf($sql, $where);
+
+        return $sql;
+    }
+
+    private static function insertNewIdsAction($actionsNameAndType, $fieldNamesToInsert)
+    {
+        // Then, we insert all new actions in the lookup table
+        $inserted = array();
+
+        foreach ($fieldNamesToInsert as $fieldName) {
+            list($name, $type, $urlPrefix) = $actionsNameAndType[$fieldName];
+
+            $actionId = self::getModel()->createNewIdAction($name, $type, $urlPrefix);
+
+            Common::printDebug("Recorded a new action (" . Action::getTypeAsString($type) . ") in the lookup table: " . $name . " (idaction = " . $actionId . ")");
+
+            $inserted[$fieldName] = $actionId;
+        }
+
+        return $inserted;
+    }
+
+    private static function getModel()
+    {
+        return new Model();
+    }
+
     private static function queryIdsAction($actionsNameAndType)
     {
         $toQuery = array();
@@ -63,11 +116,6 @@ class TableLogAction
         $actionIds = self::getModel()->getIdsAction($toQuery);
 
         return $actionIds;
-    }
-
-    private static function getModel()
-    {
-        return new Model();
     }
 
     private static function processIdsToInsert($actionsNameAndType, $actionIds)
@@ -100,24 +148,6 @@ class TableLogAction
         }
 
         return array($fieldNameToActionId, $fieldNamesToInsert);
-    }
-
-    private static function insertNewIdsAction($actionsNameAndType, $fieldNamesToInsert)
-    {
-        // Then, we insert all new actions in the lookup table
-        $inserted = array();
-
-        foreach ($fieldNamesToInsert as $fieldName) {
-            list($name, $type, $urlPrefix) = $actionsNameAndType[$fieldName];
-
-            $actionId = self::getModel()->createNewIdAction($name, $type, $urlPrefix);
-
-            Common::printDebug("Recorded a new action (" . Action::getTypeAsString($type) . ") in the lookup table: " . $name . " (idaction = " . $actionId . ")");
-
-            $inserted[$fieldName] = $actionId;
-        }
-
-        return $inserted;
     }
 
     /**
@@ -234,35 +264,5 @@ class TableLogAction
         );
 
         return in_array($actionType, $actionsTypesStoredUnsanitized);
-    }
-
-    /**
-     * @param $matchType
-     * @param $actionType
-     * @return string
-     * @throws \Exception
-     */
-    private static function getSelectQueryWhereNameContains($matchType, $actionType)
-    {
-        // now, we handle the cases =@ (contains) and !@ (does not contain)
-        // build the expression based on the match type
-        $sql = 'SELECT idaction FROM ' . Common::prefixTable('log_action') . ' WHERE %s AND type = ' . $actionType . ' )';
-
-        switch ($matchType) {
-            case '=@':
-                // use concat to make sure, no %s occurs because some plugins use %s in their sql
-                $where = '( name LIKE CONCAT(\'%\', ?, \'%\') ';
-                break;
-            case '!@':
-                $where = '( name NOT LIKE CONCAT(\'%\', ?, \'%\') ';
-                break;
-            default:
-                throw new \Exception("This match type $matchType is not available for action-segments.");
-                break;
-        }
-
-        $sql = sprintf($sql, $where);
-
-        return $sql;
     }
 }

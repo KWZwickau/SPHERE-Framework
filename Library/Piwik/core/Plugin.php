@@ -148,6 +148,13 @@ class Plugin
         }
     }
 
+    private function createCacheIfNeeded()
+    {
+        if (is_null($this->cache)) {
+            $this->cache = Cache::getEagerCache();
+        }
+    }
+
     private function hasDefinedPluginInformationInPluginClass()
     {
         $myClassName = get_class();
@@ -165,49 +172,23 @@ class Plugin
     }
 
     /**
-     * Extracts the plugin name from a backtrace array. Returns `false` if we can't find one.
+     * Returns plugin information, including:
      *
-     * @param array $backtrace The result of {@link debug_backtrace()} or
-     *                         [Exception::getTrace()](http://www.php.net/manual/en/exception.gettrace.php).
-     * @return string|false
-     */
-    public static function getPluginNameFromBacktrace($backtrace)
-    {
-        foreach ($backtrace as $tracepoint) {
-            // try and discern the plugin name
-            if (isset($tracepoint['class'])) {
-                $className = self::getPluginNameFromNamespace($tracepoint['class']);
-                if ($className) {
-                    return $className;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Extracts the plugin name from a namespace name or a fully qualified class name. Returns `false`
-     * if we can't find one.
+     * - 'description' => string        // 1-2 sentence description of the plugin
+     * - 'author' => string             // plugin author
+     * - 'author_homepage' => string    // author homepage URL (or email "mailto:youremail@example.org")
+     * - 'homepage' => string           // plugin homepage URL
+     * - 'license' => string            // plugin license
+     * - 'license_homepage' => string   // license homepage URL
+     * - 'version' => string            // plugin version number; examples and 3rd party plugins must not use Version::VERSION; 3rd party plugins must increment the version number with each plugin release
+     * - 'theme' => bool                // Whether this plugin is a theme (a theme is a plugin, but a plugin is not necessarily a theme)
      *
-     * @param string $namespaceOrClassName The namespace or class string.
-     * @return string|false
-     */
-    public static function getPluginNameFromNamespace($namespaceOrClassName)
-    {
-        if (preg_match("/Piwik\\\\Plugins\\\\([a-zA-Z_0-9]+)\\\\/", $namespaceOrClassName, $matches)) {
-            return $matches[1];
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @deprecated since 2.15.0 use {@link registerEvents()} instead.
      * @return array
+     * @deprecated
      */
-    public function getListHooksRegistered()
+    public function getInformation()
     {
-        return $this->registerEvents();
+        return $this->pluginInformation;
     }
 
     /**
@@ -233,6 +214,15 @@ class Plugin
     public function registerEvents()
     {
         return array();
+    }
+
+    /**
+     * @deprecated since 2.15.0 use {@link registerEvents()} instead.
+     * @return array
+     */
+    public function getListHooksRegistered()
+    {
+        return $this->registerEvents();
     }
 
     /**
@@ -298,26 +288,6 @@ class Plugin
     {
         $info = $this->getInformation();
         return $info['version'];
-    }
-
-    /**
-     * Returns plugin information, including:
-     *
-     * - 'description' => string        // 1-2 sentence description of the plugin
-     * - 'author' => string             // plugin author
-     * - 'author_homepage' => string    // author homepage URL (or email "mailto:youremail@example.org")
-     * - 'homepage' => string           // plugin homepage URL
-     * - 'license' => string            // plugin license
-     * - 'license_homepage' => string   // license homepage URL
-     * - 'version' => string            // plugin version number; examples and 3rd party plugins must not use Version::VERSION; 3rd party plugins must increment the version number with each plugin release
-     * - 'theme' => bool                // Whether this plugin is a theme (a theme is a plugin, but a plugin is not necessarily a theme)
-     *
-     * @return array
-     * @deprecated
-     */
-    public function getInformation()
-    {
-        return $this->pluginInformation;
     }
 
     /**
@@ -402,13 +372,6 @@ class Plugin
         return StaticContainer::get($classname);
     }
 
-    private function createCacheIfNeeded()
-    {
-        if (is_null($this->cache)) {
-            $this->cache = Cache::getEagerCache();
-        }
-    }
-
     public function findMultipleComponents($directoryWithinPlugin, $expectedSubclass)
     {
         $this->createCacheIfNeeded();
@@ -433,20 +396,82 @@ class Plugin
     }
 
     /**
-     * @param $components
-     * @return bool true if all files were included, false if any file cannot be read
+     * Detect whether there are any missing dependencies.
+     *
+     * @param null $piwikVersion Defaults to the current Piwik version
+     * @return bool
      */
-    private function includeComponents($components)
+    public function hasMissingDependencies($piwikVersion = null)
     {
-        foreach ($components as $file => $klass) {
-            if (!is_readable($file)) {
-                return false;
+        $requirements = $this->getMissingDependencies($piwikVersion);
+
+        return !empty($requirements);
+    }
+
+    public function getMissingDependencies($piwikVersion = null)
+    {
+        if (empty($this->pluginInformation['require'])) {
+            return array();
+        }
+
+        $dependency = new Dependency();
+
+        if (!is_null($piwikVersion)) {
+            $dependency->setPiwikVersion($piwikVersion);
+        }
+
+        return $dependency->getMissingDependencies($this->pluginInformation['require']);
+    }
+
+    /**
+     * Extracts the plugin name from a backtrace array. Returns `false` if we can't find one.
+     *
+     * @param array $backtrace The result of {@link debug_backtrace()} or
+     *                         [Exception::getTrace()](http://www.php.net/manual/en/exception.gettrace.php).
+     * @return string|false
+     */
+    public static function getPluginNameFromBacktrace($backtrace)
+    {
+        foreach ($backtrace as $tracepoint) {
+            // try and discern the plugin name
+            if (isset($tracepoint['class'])) {
+                $className = self::getPluginNameFromNamespace($tracepoint['class']);
+                if ($className) {
+                    return $className;
+                }
             }
         }
-        foreach ($components as $file => $klass) {
-            include_once $file;
+        return false;
+    }
+
+    /**
+     * Extracts the plugin name from a namespace name or a fully qualified class name. Returns `false`
+     * if we can't find one.
+     *
+     * @param string $namespaceOrClassName The namespace or class string.
+     * @return string|false
+     */
+    public static function getPluginNameFromNamespace($namespaceOrClassName)
+    {
+        if (preg_match("/Piwik\\\\Plugins\\\\([a-zA-Z_0-9]+)\\\\/", $namespaceOrClassName, $matches)) {
+            return $matches[1];
+        } else {
+            return false;
         }
-        return true;
+    }
+
+    /**
+     * Override this method in your plugin class if you want your plugin to be loaded during tracking.
+     *
+     * Note: If you define your own dimension or handle a tracker event, your plugin will automatically
+     * be detected as a tracker plugin.
+     *
+     * @return bool
+     * @internal
+     */
+    public function isTrackerPlugin()
+    {
+        return false;
     }
 
     /**
@@ -487,44 +512,19 @@ class Plugin
     }
 
     /**
-     * Detect whether there are any missing dependencies.
-     *
-     * @param null $piwikVersion Defaults to the current Piwik version
-     * @return bool
+     * @param $components
+     * @return bool true if all files were included, false if any file cannot be read
      */
-    public function hasMissingDependencies($piwikVersion = null)
+    private function includeComponents($components)
     {
-        $requirements = $this->getMissingDependencies($piwikVersion);
-
-        return !empty($requirements);
-    }
-
-    public function getMissingDependencies($piwikVersion = null)
-    {
-        if (empty($this->pluginInformation['require'])) {
-            return array();
+        foreach ($components as $file => $klass) {
+            if (!is_readable($file)) {
+                return false;
+            }
         }
-
-        $dependency = new Dependency();
-
-        if (!is_null($piwikVersion)) {
-            $dependency->setPiwikVersion($piwikVersion);
+        foreach ($components as $file => $klass) {
+            include_once $file;
         }
-
-        return $dependency->getMissingDependencies($this->pluginInformation['require']);
-    }
-
-    /**
-     * Override this method in your plugin class if you want your plugin to be loaded during tracking.
-     *
-     * Note: If you define your own dimension or handle a tracker event, your plugin will automatically
-     * be detected as a tracker plugin.
-     *
-     * @return bool
-     * @internal
-     */
-    public function isTrackerPlugin()
-    {
-        return false;
+        return true;
     }
 }

@@ -47,6 +47,32 @@ class Zend_Config_Writer_FileAbstract extends Zend_Config_Writer
     protected $_exclusiveLock = false;
 
     /**
+     * Set the target filename
+     *
+     * @param  string $filename
+     * @return Zend_Config_Writer_Array
+     */
+    public function setFilename($filename)
+    {
+        $this->_filename = $filename;
+
+        return $this;
+    }
+
+    /**
+     * Set wether to exclusively lock the file or not
+     *
+     * @param  boolean     $exclusiveLock
+     * @return Zend_Config_Writer_Array
+     */
+    public function setExclusiveLock($exclusiveLock)
+    {
+        $this->_exclusiveLock = $exclusiveLock;
+
+        return $this;
+    }
+
+    /**
      * Write configuration to file.
      *
      * @param string $filename
@@ -92,32 +118,6 @@ class Zend_Config_Writer_FileAbstract extends Zend_Config_Writer
             // require_once 'Zend/Config/Exception.php';
             throw new Zend_Config_Exception('Could not write to file "' . $this->_filename . '"');
         }
-    }
-
-    /**
-     * Set the target filename
-     *
-     * @param  string $filename
-     * @return Zend_Config_Writer_Array
-     */
-    public function setFilename($filename)
-    {
-        $this->_filename = $filename;
-
-        return $this;
-    }
-
-    /**
-     * Set wether to exclusively lock the file or not
-     *
-     * @param  boolean     $exclusiveLock
-     * @return Zend_Config_Writer_Array
-     */
-    public function setExclusiveLock($exclusiveLock)
-    {
-        $this->_exclusiveLock = $exclusiveLock;
-
-        return $this;
     }
 
     /**

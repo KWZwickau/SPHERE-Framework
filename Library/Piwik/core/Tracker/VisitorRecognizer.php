@@ -146,6 +146,58 @@ class VisitorRecognizer
         }
     }
 
+    protected function shouldLookupOneVisitorFieldOnly($isVisitorIdToLookup, Request $request)
+    {
+        $isForcedUserIdMustMatch = (false !== $request->getForcedUserId());
+
+        if ($isForcedUserIdMustMatch) {
+            // if &iud was set, we must try and match both idvisitor and config_id
+            return false;
+        }
+
+        // This setting would be enabled for Intranet websites, to ensure that visitors using all the same computer config, same IP
+        // are not counted as 1 visitor. In this case, we want to enforce and trust the visitor ID from the cookie.
+        if ($isVisitorIdToLookup && $this->trustCookiesOnly) {
+            return true;
+        }
+
+        // If a &cid= was set, we force to select this visitor (or create a new one)
+        $isForcedVisitorIdMustMatch = ($request->getForcedVisitorId() != null);
+
+        if ($isForcedVisitorIdMustMatch) {
+            return true;
+        }
+
+        if (!$isVisitorIdToLookup) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * By default, we look back 30 minutes to find a previous visitor (for performance reasons).
+     * In some cases, it is useful to look back and count unique visitors more accurately. You can set custom lookback window in
+     * [Tracker] window_look_back_for_visitor
+     *
+     * The returned value is the window range (Min, max) that the matched visitor should fall within
+     *
+     * @return array( datetimeMin, datetimeMax )
+     */
+    protected function getWindowLookupThisVisit(Request $request)
+    {
+        $lookAheadNSeconds = $this->visitStandardLength;
+        $lookBackNSeconds  = $this->visitStandardLength;
+        if ($this->lookBackNSecondsCustom > $lookBackNSeconds) {
+            $lookBackNSeconds = $this->lookBackNSecondsCustom;
+        }
+
+        $timeLookBack  = date('Y-m-d H:i:s', $request->getCurrentTimestamp() - $lookBackNSeconds);
+        $timeLookAhead = date('Y-m-d H:i:s', $request->getCurrentTimestamp() + $lookAheadNSeconds);
+
+        return array($timeLookBack, $timeLookAhead);
+    }
+
     /**
      * @return array
      */
@@ -197,7 +249,7 @@ class VisitorRecognizer
              *
              * This event is deprecated, use [Dimensions](http://developer.piwik.org/guides/dimensions) instead.
              *
-             * @deprecated
+             * @deprecated 
              */
             $this->eventDispatcher->postEvent('Tracker.getVisitFieldsToPersist', array(&$fields));
 
@@ -213,57 +265,5 @@ class VisitorRecognizer
         }
 
         return $this->visitFieldsToSelect;
-    }
-
-    protected function shouldLookupOneVisitorFieldOnly($isVisitorIdToLookup, Request $request)
-    {
-        $isForcedUserIdMustMatch = (false !== $request->getForcedUserId());
-
-        if ($isForcedUserIdMustMatch) {
-            // if &iud was set, we must try and match both idvisitor and config_id
-            return false;
-        }
-
-        // This setting would be enabled for Intranet websites, to ensure that visitors using all the same computer config, same IP
-        // are not counted as 1 visitor. In this case, we want to enforce and trust the visitor ID from the cookie.
-        if ($isVisitorIdToLookup && $this->trustCookiesOnly) {
-            return true;
-        }
-
-        // If a &cid= was set, we force to select this visitor (or create a new one)
-        $isForcedVisitorIdMustMatch = ($request->getForcedVisitorId() != null);
-
-        if ($isForcedVisitorIdMustMatch) {
-            return true;
-        }
-
-        if (!$isVisitorIdToLookup) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * By default, we look back 30 minutes to find a previous visitor (for performance reasons).
-     * In some cases, it is useful to look back and count unique visitors more accurately. You can set custom lookback window in
-     * [Tracker] window_look_back_for_visitor
-     *
-     * The returned value is the window range (Min, max) that the matched visitor should fall within
-     *
-     * @return array( datetimeMin, datetimeMax )
-     */
-    protected function getWindowLookupThisVisit(Request $request)
-    {
-        $lookAheadNSeconds = $this->visitStandardLength;
-        $lookBackNSeconds  = $this->visitStandardLength;
-        if ($this->lookBackNSecondsCustom > $lookBackNSeconds) {
-            $lookBackNSeconds = $this->lookBackNSecondsCustom;
-        }
-
-        $timeLookBack  = date('Y-m-d H:i:s', $request->getCurrentTimestamp() - $lookBackNSeconds);
-        $timeLookAhead = date('Y-m-d H:i:s', $request->getCurrentTimestamp() + $lookAheadNSeconds);
-
-        return array($timeLookBack, $timeLookAhead);
     }
 }

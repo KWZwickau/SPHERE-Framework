@@ -69,36 +69,6 @@ class Auth implements \Piwik\Auth
         return new AuthResult(AuthResult::FAILURE, $login, null);
     }
 
-    private function authenticationSuccess(array $user)
-    {
-        $this->setTokenAuth($user['token_auth']);
-
-        $isSuperUser = (int) $user['superuser_access'];
-        $code = $isSuperUser ? AuthResult::SUCCESS_SUPERUSER_AUTH_CODE : AuthResult::SUCCESS;
-
-        return new AuthResult($code, $user['login'], $user['token_auth']);
-    }
-
-    /**
-     * Accessor to set authentication token
-     *
-     * @param string $token_auth authentication token
-     */
-    public function setTokenAuth($token_auth)
-    {
-        $this->token_auth = $token_auth;
-    }
-
-    /**
-     * Returns the secret used to calculate a user's token auth.
-     *
-     * @return string
-     */
-    public function getTokenAuthSecret()
-    {
-        return $this->md5Password;
-    }
-
     private function authenticateWithToken($token)
     {
         $user = $this->userModel->getUserByTokenAuth($token);
@@ -125,6 +95,16 @@ class Auth implements \Piwik\Auth
         return new AuthResult(AuthResult::FAILURE, $login, $token);
     }
 
+    private function authenticationSuccess(array $user)
+    {
+        $this->setTokenAuth($user['token_auth']);
+
+        $isSuperUser = (int) $user['superuser_access'];
+        $code = $isSuperUser ? AuthResult::SUCCESS_SUPERUSER_AUTH_CODE : AuthResult::SUCCESS;
+
+        return new AuthResult($code, $user['login'], $user['token_auth']);
+    }
+
     /**
      * Returns the login of the user being authenticated.
      *
@@ -143,6 +123,26 @@ class Auth implements \Piwik\Auth
     public function setLogin($login)
     {
         $this->login = $login;
+    }
+
+    /**
+     * Returns the secret used to calculate a user's token auth.
+     *
+     * @return string
+     */
+    public function getTokenAuthSecret()
+    {
+        return $this->md5Password;
+    }
+
+    /**
+     * Accessor to set authentication token
+     *
+     * @param string $token_auth authentication token
+     */
+    public function setTokenAuth($token_auth)
+    {
+        $this->token_auth = $token_auth;
     }
 
     /**

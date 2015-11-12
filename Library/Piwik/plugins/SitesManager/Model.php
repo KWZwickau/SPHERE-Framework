@@ -8,11 +8,11 @@
  */
 namespace Piwik\Plugins\SitesManager;
 
-use Exception;
 use Piwik\Access;
-use Piwik\Common;
 use Piwik\Date;
 use Piwik\Db;
+use Piwik\Common;
+use Exception;
 
 class Model
 {
@@ -32,11 +32,6 @@ class Model
         $idSite = $db->lastInsertId();
 
         return $idSite;
-    }
-
-    private function getDb()
-    {
-        return Db::get();
     }
 
     /**
@@ -104,6 +99,7 @@ class Model
 
         return $sites;
     }
+
 
     /**
      * Returns the list of websites ID associated with a URL.
@@ -219,6 +215,21 @@ class Model
     }
 
     /**
+     * Returns the website information : name, main_url
+     *
+     * @throws Exception if the site ID doesn't exist or the user doesn't have access to it
+     * @param int $idSite
+     * @return array
+     */
+    public function getSiteFromId($idSite)
+    {
+        $site = $this->getDb()->fetchRow("SELECT * FROM " . $this->table . "
+                                          WHERE idsite = ?", $idSite);
+
+        return $site;
+    }
+
+    /**
      * Returns the list of all the website IDs registered.
      * Caller must check access.
      *
@@ -273,21 +284,6 @@ class Model
         }
 
         return $urls;
-    }
-
-    /**
-     * Returns the website information : name, main_url
-     *
-     * @throws Exception if the site ID doesn't exist or the user doesn't have access to it
-     * @param int $idSite
-     * @return array
-     */
-    public function getSiteFromId($idSite)
-    {
-        $site = $this->getDb()->fetchRow("SELECT * FROM " . $this->table . "
-                                          WHERE idsite = ?", $idSite);
-
-        return $site;
     }
 
     public function updateSite($site, $idSite)
@@ -407,5 +403,10 @@ class Model
     {
         $db = $this->getDb();
         $db->query("DELETE FROM " . Common::prefixTable("site_url") . " WHERE idsite = ?", $idsite);
+    }
+
+    private function getDb()
+    {
+        return Db::get();
     }
 }

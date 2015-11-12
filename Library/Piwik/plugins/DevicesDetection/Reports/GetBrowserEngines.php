@@ -15,6 +15,16 @@ use Piwik\Plugins\DevicesDetection\Columns\BrowserEngine;
 
 class GetBrowserEngines extends Base
 {
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new BrowserEngine();
+        $this->name          = Piwik::translate('DevicesDetection_BrowserEngines');
+        $this->documentation = Piwik::translate('DevicesDetection_BrowserEngineDocumentation', '<br />');
+        $this->order = 7;
+        $this->widgetTitle  = 'DevicesDetection_BrowserEngines';
+    }
+
     public function getDefaultTypeViewDataTable()
     {
         return Pie::ID;
@@ -25,15 +35,5 @@ class GetBrowserEngines extends Base
         $view->config->show_search = false;
         $view->config->show_exclude_low_population = false;
         $view->config->addTranslation('label', $this->dimension->getName());
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension = new BrowserEngine();
-        $this->name = Piwik::translate('DevicesDetection_BrowserEngines');
-        $this->documentation = Piwik::translate('DevicesDetection_BrowserEngineDocumentation', '<br />');
-        $this->order = 7;
-        $this->widgetTitle = 'DevicesDetection_BrowserEngines';
     }
 }

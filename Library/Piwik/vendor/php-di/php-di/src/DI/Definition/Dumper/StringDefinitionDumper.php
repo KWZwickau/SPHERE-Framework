@@ -25,7 +25,7 @@ class StringDefinitionDumper implements DefinitionDumper
      */
     public function dump(Definition $definition)
     {
-        if (!$definition instanceof StringDefinition) {
+        if (! $definition instanceof StringDefinition) {
             throw new \InvalidArgumentException(sprintf(
                 'This definition dumper is only compatible with StringDefinition objects, %s given',
                 get_class($definition)

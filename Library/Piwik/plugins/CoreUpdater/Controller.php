@@ -17,15 +17,15 @@ use Piwik\Filesystem;
 use Piwik\Http;
 use Piwik\Option;
 use Piwik\Piwik;
-use Piwik\Plugin;
 use Piwik\Plugin\Manager as PluginManager;
+use Piwik\Plugin;
 use Piwik\Plugins\CorePluginsAdmin\Marketplace;
 use Piwik\Plugins\LanguagesManager\LanguagesManager;
 use Piwik\SettingsServer;
 use Piwik\Updater as DbUpdater;
 use Piwik\Version;
-use Piwik\View;
 use Piwik\View\OneClickDone;
+use Piwik\View;
 
 class Controller extends \Piwik\Plugin\Controller
 {
@@ -44,14 +44,6 @@ class Controller extends \Piwik\Plugin\Controller
         $this->updater = $updater;
 
         parent::__construct();
-    }
-
-    public static function isUpdatingOverHttps()
-    {
-        $openSslEnabled = extension_loaded('openssl');
-        $usingMethodSupportingHttps = (Http::getTransportMethod() !== 'socket');
-
-        return $openSslEnabled && $usingMethodSupportingHttps;
     }
 
     public function newVersionAvailable()
@@ -85,18 +77,6 @@ class Controller extends \Piwik\Plugin\Controller
         $view->makeWritableCommands = Filechecks::getAutoUpdateMakeWritableMessage();
 
         return $view->render();
-    }
-
-    private function checkNewVersionIsAvailableOrDie()
-    {
-        if (!$this->updater->isNewVersionAvailable()) {
-            throw new Exception(Piwik::translate('CoreUpdater_ExceptionAlreadyLatestVersion', Version::VERSION));
-        }
-    }
-
-    private function getIncompatiblePlugins($piwikVersion)
-    {
-        return PluginManager::getInstance()->getIncompatiblePlugins($piwikVersion);
     }
 
     public function oneClickUpdate()
@@ -142,6 +122,25 @@ class Controller extends \Piwik\Plugin\Controller
         $this->addCustomLogoInfo($view);
         $this->setBasicVariablesView($view);
         return $view->render();
+    }
+
+    protected function redirectToDashboardWhenNoError(DbUpdater $updater)
+    {
+        if (count($updater->getSqlQueriesToExecute()) == 1
+            && !$this->coreError
+            && empty($this->warningMessages)
+            && empty($this->errorMessages)
+            && empty($this->deactivatedPlugins)
+        ) {
+            Piwik::redirectToModule('CoreHome');
+        }
+    }
+
+    private function checkNewVersionIsAvailableOrDie()
+    {
+        if (!$this->updater->isNewVersionAvailable()) {
+            throw new Exception(Piwik::translate('CoreUpdater_ExceptionAlreadyLatestVersion', Version::VERSION));
+        }
     }
 
     public function index()
@@ -272,15 +271,16 @@ class Controller extends \Piwik\Plugin\Controller
         $view->deactivatedPlugins = $this->deactivatedPlugins;
     }
 
-    protected function redirectToDashboardWhenNoError(DbUpdater $updater)
+    private function getIncompatiblePlugins($piwikVersion)
     {
-        if (count($updater->getSqlQueriesToExecute()) == 1
-            && !$this->coreError
-            && empty($this->warningMessages)
-            && empty($this->errorMessages)
-            && empty($this->deactivatedPlugins)
-        ) {
-            Piwik::redirectToModule('CoreHome');
-        }
+        return PluginManager::getInstance()->getIncompatiblePlugins($piwikVersion);
+    }
+
+    public static function isUpdatingOverHttps()
+    {
+        $openSslEnabled = extension_loaded('openssl');
+        $usingMethodSupportingHttps = (Http::getTransportMethod() !== 'socket');
+
+        return $openSslEnabled && $usingMethodSupportingHttps;
     }
 }

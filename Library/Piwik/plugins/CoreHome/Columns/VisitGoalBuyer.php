@@ -34,27 +34,18 @@ class VisitGoalBuyer extends VisitDimension
     protected $columnName = 'visit_goal_buyer';
     protected $columnType = 'TINYINT(1) NOT NULL';
 
-    public static function getVisitEcommerceStatus($status)
+    protected function configureSegments()
     {
-        $id = array_search($status, self::$visitEcommerceStatus);
+        $example = Piwik::translate('General_EcommerceVisitStatusEg', '"&segment=visitEcommerceStatus==ordered,visitEcommerceStatus==orderedThenAbandonedCart"');
+        $acceptedValues = implode(", ", self::$visitEcommerceStatus) . '. ' . $example;
 
-        if ($id === false) {
-            throw new \Exception("Invalid 'visitEcommerceStatus' segment value $status");
-        }
+        $segment = new Segment();
+        $segment->setSegment('visitEcommerceStatus');
+        $segment->setName('General_EcommerceVisitStatusDesc');
+        $segment->setAcceptedValues($acceptedValues);
+        $segment->setSqlFilterValue(__NAMESPACE__ . '\VisitGoalBuyer::getVisitEcommerceStatus');
 
-        return $id;
-    }
-
-    /**
-     * @ignore
-     */
-    public static function getVisitEcommerceStatusFromId($id)
-    {
-        if (!isset(self::$visitEcommerceStatus[$id])) {
-            throw new \Exception("Unexpected ECommerce status value ");
-        }
-
-        return self::$visitEcommerceStatus[$id];
+        $this->addSegment($segment);
     }
 
     /**
@@ -66,28 +57,6 @@ class VisitGoalBuyer extends VisitDimension
     public function onNewVisit(Request $request, Visitor $visitor, $action)
     {
         return $this->getBuyerType($request);
-    }
-
-    private function getBuyerType(Request $request, $existingType = self::TYPE_BUYER_NONE)
-    {
-        $isRequestEcommerce = $request->getMetadata('Ecommerce', 'isRequestEcommerce');
-        if (!$isRequestEcommerce) {
-            return $existingType;
-        }
-
-        $isGoalAnOrder = $request->getMetadata('Ecommerce', 'isGoalAnOrder');
-        if ($isGoalAnOrder) {
-            return self::TYPE_BUYER_ORDERED;
-        }
-
-        // request is Add to Cart
-        if ($existingType == self::TYPE_BUYER_ORDERED
-            || $existingType == self::TYPE_BUYER_ORDERED_AND_OPEN_CART
-        ) {
-            return self::TYPE_BUYER_ORDERED_AND_OPEN_CART;
-        }
-
-        return self::TYPE_BUYER_OPEN_CART;
     }
 
     /**
@@ -114,18 +83,49 @@ class VisitGoalBuyer extends VisitDimension
         return false;
     }
 
-    protected function configureSegments()
+    public static function getVisitEcommerceStatus($status)
     {
-        $example = Piwik::translate('General_EcommerceVisitStatusEg', '"&segment=visitEcommerceStatus==ordered,visitEcommerceStatus==orderedThenAbandonedCart"');
-        $acceptedValues = implode(", ", self::$visitEcommerceStatus) . '. ' . $example;
+        $id = array_search($status, self::$visitEcommerceStatus);
 
-        $segment = new Segment();
-        $segment->setSegment('visitEcommerceStatus');
-        $segment->setName('General_EcommerceVisitStatusDesc');
-        $segment->setAcceptedValues($acceptedValues);
-        $segment->setSqlFilterValue(__NAMESPACE__ . '\VisitGoalBuyer::getVisitEcommerceStatus');
+        if ($id === false) {
+            throw new \Exception("Invalid 'visitEcommerceStatus' segment value $status");
+        }
 
-        $this->addSegment($segment);
+        return $id;
+    }
+
+    /**
+     * @ignore
+     */
+    public static function getVisitEcommerceStatusFromId($id)
+    {
+        if (!isset(self::$visitEcommerceStatus[$id])) {
+            throw new \Exception("Unexpected ECommerce status value ");
+        }
+
+        return self::$visitEcommerceStatus[$id];
+    }
+
+    private function getBuyerType(Request $request, $existingType = self::TYPE_BUYER_NONE)
+    {
+        $isRequestEcommerce = $request->getMetadata('Ecommerce', 'isRequestEcommerce');
+        if (!$isRequestEcommerce) {
+            return $existingType;
+        }
+
+        $isGoalAnOrder = $request->getMetadata('Ecommerce', 'isGoalAnOrder');
+        if ($isGoalAnOrder) {
+            return self::TYPE_BUYER_ORDERED;
+        }
+
+        // request is Add to Cart
+        if ($existingType == self::TYPE_BUYER_ORDERED
+            || $existingType == self::TYPE_BUYER_ORDERED_AND_OPEN_CART
+        ) {
+            return self::TYPE_BUYER_ORDERED_AND_OPEN_CART;
+        }
+
+        return self::TYPE_BUYER_OPEN_CART;
     }
 
 }

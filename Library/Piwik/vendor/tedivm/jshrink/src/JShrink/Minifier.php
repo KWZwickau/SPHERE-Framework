@@ -58,25 +58,12 @@
 class Minifier
 {
 	/**
-	 * Contains the default options for minification. This array is merged with
-     * the one passed in by the user to create the request specific set of
-     * options (stored in the $options attribute).
-	 *
-	 * @var array
-	 */
-	static protected $defaultOptions = array('flaggedComments' => true);
-	/**
-	 * Contains a copy of the JShrink object used to run minification. This is
-     * only used internally, and is only stored for performance reasons. There
-     * is no internal data shared between minification requests.
-	 */
-	static protected $jshrink;
-	/**
 	 * The input javascript to be minified.
 	 *
 	 * @var string
 	 */
 	protected $input;
+
 	/**
 	 * The location of the character (in the input string) that is next to be
      * processed.
@@ -84,30 +71,51 @@ class Minifier
 	 * @var int
 	 */
 	protected $index = 0;
+
 	/**
 	 * The first of the characters currently being looked at.
 	 *
 	 * @var string
 	 */
 	protected $a = '';
+
+
 	/**
 	 * The next character being looked at (after a);
 	 *
 	 * @var string
 	 */
 	protected $b = '';
+
 	/**
 	 * This character is only active when certain look ahead actions take place.
 	 *
 	 *  @var string
 	 */
 	protected $c;
+
 	/**
 	 * Contains the options for the current minification process.
 	 *
 	 * @var array
 	 */
 	protected $options;
+
+	/**
+	 * Contains the default options for minification. This array is merged with
+     * the one passed in by the user to create the request specific set of
+     * options (stored in the $options attribute).
+	 *
+	 * @var array
+	 */
+	static protected $defaultOptions = array('flaggedComments' => true);
+
+	/**
+	 * Contains a copy of the JShrink object used to run minification. This is
+     * only used internally, and is only stored for performance reasons. There
+     * is no internal data shared between minification requests.
+	 */
+	static protected $jshrink;
 
 	/**
 	 * Minifier::minify takes a string containing javascript and removes
@@ -121,14 +129,14 @@ class Minifier
 			$currentOptions = array_merge(self::$defaultOptions, $options);
 
 			if(!isset(self::$jshrink))
-				{self::$jshrink = new Minifier();}
+				self::$jshrink = new Minifier();
 
 			self::$jshrink->breakdownScript($js, $currentOptions);
 			return ob_get_clean();
 
 		}catch(Exception $e){
 			if(isset(self::$jshrink))
-				{self::$jshrink->clean();}
+				self::$jshrink->clean();
 
 			ob_end_clean();
 			throw $e;
@@ -194,13 +202,13 @@ class Minifier
 
 					// if its a space we move down to the string test below
 					if($this->b === ' ')
-						{break;}
+						break;
 
 					// otherwise we treat the newline like a space
 
 				case ' ':
 					if(self::isAlphaNumeric($this->b))
-						{echo $this->a;}
+						echo $this->a;
 
 					$this->saveString();
 					break;
@@ -225,7 +233,7 @@ class Minifier
 
 						case ' ':
 							if(!self::isAlphaNumeric($this->a))
-								{break;}
+								break;
 
 						default:
 							// check for some regex that breaks stuff
@@ -245,22 +253,37 @@ class Minifier
 			$this->b = $this->getReal();
 
 			if(($this->b == '/' && strpos('(,=:[!&|?', $this->a) !== false))
-				{$this->saveRegex();}
+				$this->saveRegex();
 		}
 		$this->clean();
 	}
 
 	/**
-	 * Resets attributes that do not need to be stored between requests so that
-     * the next request is ready to go.
+	 * Returns the next string for processing based off of the current index.
+	 *
+	 * @return string
 	 */
-	protected function clean()
+	protected function getChar()
 	{
-		unset($this->input);
-		$this->index = 0;
-		$this->a = $this->b = '';
-		unset($this->c);
-		unset($this->options);
+		if(isset($this->c))
+		{
+			$char = $this->c;
+			unset($this->c);
+		}else{
+			$tchar = substr($this->input, $this->index, 1);
+			if(isset($tchar) && $tchar !== false)
+			{
+				$char = $tchar;
+				$this->index++;
+			}else{
+				return false;
+			}
+		}
+
+		if($char !== "\n" && ord($char) < 32)
+			return ' ';
+
+		return $char;
 	}
 
 	/**
@@ -332,41 +355,13 @@ class Minifier
 				}
 
 				if($char === false)
-					{throw new \RuntimeException('Stray comment. ' . $this->index);}
+					throw new \RuntimeException('Stray comment. ' . $this->index);
 
 				// if we're here c is part of the comment and therefore tossed
 				if(isset($this->c))
-					{unset($this->c);}
+					unset($this->c);
 			}
 		}
-		return $char;
-	}
-
-	/**
-	 * Returns the next string for processing based off of the current index.
-	 *
-	 * @return string
-	 */
-	protected function getChar()
-	{
-		if(isset($this->c))
-		{
-			$char = $this->c;
-			unset($this->c);
-		}else{
-			$tchar = substr($this->input, $this->index, 1);
-			if(isset($tchar) && $tchar !== false)
-			{
-				$char = $tchar;
-				$this->index++;
-			}else{
-				return false;
-			}
-		}
-
-		if($char !== "\n" && ord($char) < 32)
-			{return ' ';}
-
 		return $char;
 	}
 
@@ -381,7 +376,7 @@ class Minifier
 		$pos = strpos($this->input, $string, $this->index);
 
 		if($pos === false)
-			{return false;}
+			return false;
 
 		$this->index = $pos;
 		return substr($this->input, $this->index, 1);
@@ -423,16 +418,6 @@ class Minifier
 	}
 
 	/**
-	 * Checks to see if a character is alphanumeric.
-	 *
-	 * @return bool
-	 */
-	static protected function isAlphaNumeric($char)
-	{
-		return preg_match('/^[\w\$]$/', $char) === 1 || $char == '/';
-	}
-
-	/**
 	 * When a regular expression is detected this funcion crawls for the end of
      * it and saves the whole regex.
 	 */
@@ -443,7 +428,7 @@ class Minifier
 		while(($this->a = $this->getChar()) !== false)
 		{
 			if($this->a == '/')
-				{break;}
+				break;
 
 			if($this->a == '\\')
 			{
@@ -452,11 +437,34 @@ class Minifier
 			}
 
 			if($this->a == "\n")
-				{throw new \RuntimeException('Stray regex pattern. ' . $this->index);}
+				throw new \RuntimeException('Stray regex pattern. ' . $this->index);
 
 			echo $this->a;
 		}
 		$this->b = $this->getReal();
+	}
+
+	/**
+	 * Resets attributes that do not need to be stored between requests so that
+     * the next request is ready to go.
+	 */
+	protected function clean()
+	{
+		unset($this->input);
+		$this->index = 0;
+		$this->a = $this->b = '';
+		unset($this->c);
+		unset($this->options);
+	}
+
+	/**
+	 * Checks to see if a character is alphanumeric.
+	 *
+	 * @return bool
+	 */
+	static protected function isAlphaNumeric($char)
+	{
+		return preg_match('/^[\w\$]$/', $char) === 1 || $char == '/';
 	}
 
 }

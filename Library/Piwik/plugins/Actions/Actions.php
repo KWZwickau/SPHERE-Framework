@@ -9,10 +9,11 @@
 namespace Piwik\Plugins\Actions;
 
 use Piwik\ArchiveProcessor;
+use Piwik\Common;
 use Piwik\Db;
+use Piwik\Site;
 use Piwik\Plugin\ViewDataTable;
 use Piwik\Plugins\CoreVisualizations\Visualizations\HtmlTable;
-use Piwik\Site;
 
 /**
  * Actions plugin
@@ -23,34 +24,6 @@ use Piwik\Site;
 class Actions extends \Piwik\Plugin
 {
     const ACTIONS_REPORT_ROWS_DISPLAY = 100;
-
-    public static function checkCustomVariablesPluginEnabled()
-    {
-        if (!self::isCustomVariablesPluginsEnabled()) {
-            throw new \Exception("To Track Site Search Categories, please ask the Piwik Administrator to enable the 'Custom Variables' plugin in Settings > Plugins.");
-        }
-    }
-
-    public static function isCustomVariablesPluginsEnabled()
-    {
-        return \Piwik\Plugin\Manager::getInstance()->isPluginActivated('CustomVariables');
-    }
-
-    /**
-     * @param \Piwik\DataTable $dataTable
-     * @param int $level
-     */
-    public static function setDataTableRowLevels($dataTable, $level = 0)
-    {
-        foreach ($dataTable->getRows() as $row) {
-            $row->setMetadata('css_class', 'level' . $level);
-
-            $subtable = $row->getSubtable();
-            if ($subtable) {
-                self::setDataTableRowLevels($subtable, $level + 1);
-            }
-        }
-    }
 
     /**
      * @see Piwik\Plugin::registerEvents
@@ -155,6 +128,18 @@ class Actions extends \Piwik\Plugin
         return true;
     }
 
+    public static function checkCustomVariablesPluginEnabled()
+    {
+        if (!self::isCustomVariablesPluginsEnabled()) {
+            throw new \Exception("To Track Site Search Categories, please ask the Piwik Administrator to enable the 'Custom Variables' plugin in Settings > Plugins.");
+        }
+    }
+
+    public static function isCustomVariablesPluginsEnabled()
+    {
+        return \Piwik\Plugin\Manager::getInstance()->isPluginActivated('CustomVariables');
+    }
+
     public function configureViewDataTable(ViewDataTable $view)
     {
         if ($this->pluginName == $view->requestConfig->getApiModuleToRequest()) {
@@ -164,6 +149,22 @@ class Actions extends \Piwik\Plugin
                 $view->config->show_bar_chart = false;
                 $view->config->show_pie_chart = false;
                 $view->config->show_tag_cloud = false;
+            }
+        }
+    }
+
+    /**
+     * @param \Piwik\DataTable $dataTable
+     * @param int $level
+     */
+    public static function setDataTableRowLevels($dataTable, $level = 0)
+    {
+        foreach ($dataTable->getRows() as $row) {
+            $row->setMetadata('css_class', 'level' . $level);
+
+            $subtable = $row->getSubtable();
+            if ($subtable) {
+                self::setDataTableRowLevels($subtable, $level + 1);
             }
         }
     }

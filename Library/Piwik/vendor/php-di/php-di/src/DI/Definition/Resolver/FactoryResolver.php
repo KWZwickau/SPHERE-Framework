@@ -9,9 +9,9 @@
 
 namespace DI\Definition\Resolver;
 
-use DI\Definition\Definition;
 use DI\Definition\Exception\DefinitionException;
 use DI\Definition\FactoryDefinition;
+use DI\Definition\Definition;
 use Interop\Container\ContainerInterface;
 
 /**
@@ -63,16 +63,6 @@ class FactoryResolver implements DefinitionResolver
         return call_user_func($callable, $this->container);
     }
 
-    private function assertIsFactoryDefinition(Definition $definition)
-    {
-        if (!$definition instanceof FactoryDefinition) {
-            throw new \InvalidArgumentException(sprintf(
-                'This definition resolver is only compatible with FactoryDefinition objects, %s given',
-                get_class($definition)
-            ));
-        }
-    }
-
     /**
      * {@inheritdoc}
      */
@@ -81,5 +71,15 @@ class FactoryResolver implements DefinitionResolver
         $this->assertIsFactoryDefinition($definition);
 
         return true;
+    }
+
+    private function assertIsFactoryDefinition(Definition $definition)
+    {
+        if (!$definition instanceof FactoryDefinition) {
+            throw new \InvalidArgumentException(sprintf(
+                'This definition resolver is only compatible with FactoryDefinition objects, %s given',
+                get_class($definition)
+            ));
+        }
     }
 }

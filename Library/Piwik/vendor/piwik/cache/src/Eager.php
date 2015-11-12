@@ -68,6 +68,14 @@ class Eager implements Cache
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function contains($id)
+    {
+        return array_key_exists($id, $this->content);
+    }
+
+    /**
      * Puts data into the cache.
      *
      * @param string $id The cache id.
@@ -99,14 +107,6 @@ class Eager implements Cache
         }
 
         return false;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function contains($id)
-    {
-        return array_key_exists($id, $this->content);
     }
 
     /**

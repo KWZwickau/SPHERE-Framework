@@ -11,33 +11,33 @@
 
 namespace Symfony\Component\Console;
 
+use Symfony\Component\Console\Descriptor\TextDescriptor;
+use Symfony\Component\Console\Descriptor\XmlDescriptor;
+use Symfony\Component\Console\Helper\DebugFormatterHelper;
+use Symfony\Component\Console\Helper\ProcessHelper;
+use Symfony\Component\Console\Helper\QuestionHelper;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputAwareInterface;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\HelpCommand;
 use Symfony\Component\Console\Command\ListCommand;
-use Symfony\Component\Console\Descriptor\TextDescriptor;
-use Symfony\Component\Console\Descriptor\XmlDescriptor;
+use Symfony\Component\Console\Helper\HelperSet;
+use Symfony\Component\Console\Helper\FormatterHelper;
+use Symfony\Component\Console\Helper\DialogHelper;
+use Symfony\Component\Console\Helper\ProgressHelper;
+use Symfony\Component\Console\Helper\TableHelper;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
-use Symfony\Component\Console\Helper\DebugFormatterHelper;
-use Symfony\Component\Console\Helper\DialogHelper;
-use Symfony\Component\Console\Helper\FormatterHelper;
-use Symfony\Component\Console\Helper\HelperSet;
-use Symfony\Component\Console\Helper\ProcessHelper;
-use Symfony\Component\Console\Helper\ProgressHelper;
-use Symfony\Component\Console\Helper\QuestionHelper;
-use Symfony\Component\Console\Helper\TableHelper;
-use Symfony\Component\Console\Input\ArgvInput;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputAwareInterface;
-use Symfony\Component\Console\Input\InputDefinition;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -91,108 +91,6 @@ class Application
         foreach ($this->getDefaultCommands() as $command) {
             $this->add($command);
         }
-    }
-
-    /**
-     * Gets the default helper set with the helpers that should always be available.
-     *
-     * @return HelperSet A HelperSet instance
-     */
-    protected function getDefaultHelperSet()
-    {
-        return new HelperSet(array(
-            new FormatterHelper(),
-            new DialogHelper(),
-            new ProgressHelper(),
-            new TableHelper(),
-            new DebugFormatterHelper(),
-            new ProcessHelper(),
-            new QuestionHelper(),
-        ));
-    }
-
-    /**
-     * Gets the default input definition.
-     *
-     * @return InputDefinition An InputDefinition instance
-     */
-    protected function getDefaultInputDefinition()
-    {
-        return new InputDefinition(array(
-            new InputArgument('command', InputArgument::REQUIRED, 'The command to execute'),
-
-            new InputOption('--help', '-h', InputOption::VALUE_NONE, 'Display this help message'),
-            new InputOption('--quiet', '-q', InputOption::VALUE_NONE, 'Do not output any message'),
-            new InputOption('--verbose', '-v|vv|vvv', InputOption::VALUE_NONE, 'Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug'),
-            new InputOption('--version', '-V', InputOption::VALUE_NONE, 'Display this application version'),
-            new InputOption('--ansi', '', InputOption::VALUE_NONE, 'Force ANSI output'),
-            new InputOption('--no-ansi', '', InputOption::VALUE_NONE, 'Disable ANSI output'),
-            new InputOption('--no-interaction', '-n', InputOption::VALUE_NONE, 'Do not ask any interactive question'),
-        ));
-    }
-
-    /**
-     * Gets the default commands that should always be available.
-     *
-     * @return Command[] An array of default Command instances
-     */
-    protected function getDefaultCommands()
-    {
-        return array(new HelpCommand(), new ListCommand());
-    }
-
-    /**
-     * Adds a command object.
-     *
-     * If a command with the same name already exists, it will be overridden.
-     *
-     * @param Command $command A Command object
-     *
-     * @return Command The registered command
-     *
-     * @api
-     */
-    public function add(Command $command)
-    {
-        $command->setApplication($this);
-
-        if (!$command->isEnabled()) {
-            $command->setApplication(null);
-
-            return;
-        }
-
-        if (null === $command->getDefinition()) {
-            throw new \LogicException(sprintf('Command class "%s" is not correctly initialized. You probably forgot to call the parent constructor.', get_class($command)));
-        }
-
-        $this->commands[$command->getName()] = $command;
-
-        foreach ($command->getAliases() as $alias) {
-            $this->commands[$alias] = $command;
-        }
-
-        return $command;
-    }
-
-    /**
-     * Returns an array of possible abbreviations given a set of names.
-     *
-     * @param array $names An array of names
-     *
-     * @return array An array of abbreviations
-     */
-    public static function getAbbreviations($names)
-    {
-        $abbrevs = array();
-        foreach ($names as $name) {
-            for ($len = strlen($name); $len > 0; --$len) {
-                $abbrev = substr($name, 0, $len);
-                $abbrevs[$abbrev][] = $name;
-            }
-        }
-
-        return $abbrevs;
     }
 
     public function setDispatcher(EventDispatcherInterface $dispatcher)
@@ -260,66 +158,6 @@ class Application
     }
 
     /**
-     * Configures the input and output instances based on the user arguments and options.
-     *
-     * @param InputInterface  $input  An InputInterface instance
-     * @param OutputInterface $output An OutputInterface instance
-     */
-    protected function configureIO(InputInterface $input, OutputInterface $output)
-    {
-        if (true === $input->hasParameterOption(array('--ansi'))) {
-            $output->setDecorated(true);
-        } elseif (true === $input->hasParameterOption(array('--no-ansi'))) {
-            $output->setDecorated(false);
-        }
-
-        if (true === $input->hasParameterOption(array('--no-interaction', '-n'))) {
-            $input->setInteractive(false);
-        } elseif (function_exists('posix_isatty') && $this->getHelperSet()->has('question')) {
-            $inputStream = $this->getHelperSet()->get('question')->getInputStream();
-            if (!@posix_isatty($inputStream) && false === getenv('SHELL_INTERACTIVE')) {
-                $input->setInteractive(false);
-            }
-        }
-
-        if (true === $input->hasParameterOption(array('--quiet', '-q'))) {
-            $output->setVerbosity(OutputInterface::VERBOSITY_QUIET);
-        } else {
-            if ($input->hasParameterOption('-vvv') || $input->hasParameterOption('--verbose=3') || $input->getParameterOption('--verbose') === 3) {
-                $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
-            } elseif ($input->hasParameterOption('-vv') || $input->hasParameterOption('--verbose=2') || $input->getParameterOption('--verbose') === 2) {
-                $output->setVerbosity(OutputInterface::VERBOSITY_VERY_VERBOSE);
-            } elseif ($input->hasParameterOption('-v') || $input->hasParameterOption('--verbose=1') || $input->hasParameterOption('--verbose') || $input->getParameterOption('--verbose')) {
-                $output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
-            }
-        }
-    }
-
-    /**
-     * Get the helper set associated with the command.
-     *
-     * @return HelperSet The HelperSet instance associated with this command
-     *
-     * @api
-     */
-    public function getHelperSet()
-    {
-        return $this->helperSet;
-    }
-
-    /**
-     * Set a helper set to be used with the command.
-     *
-     * @param HelperSet $helperSet The helper set
-     *
-     * @api
-     */
-    public function setHelperSet(HelperSet $helperSet)
-    {
-        $this->helperSet = $helperSet;
-    }
-
-    /**
      * Runs the current application.
      *
      * @param InputInterface  $input  An Input instance
@@ -361,19 +199,83 @@ class Application
     }
 
     /**
-     * Returns the long version of the application.
+     * Set a helper set to be used with the command.
      *
-     * @return string The long application version
+     * @param HelperSet $helperSet The helper set
      *
      * @api
      */
-    public function getLongVersion()
+    public function setHelperSet(HelperSet $helperSet)
     {
-        if ('UNKNOWN' !== $this->getName() && 'UNKNOWN' !== $this->getVersion()) {
-            return sprintf('<info>%s</info> version <comment>%s</comment>', $this->getName(), $this->getVersion());
-        }
+        $this->helperSet = $helperSet;
+    }
 
-        return '<info>Console Tool</info>';
+    /**
+     * Get the helper set associated with the command.
+     *
+     * @return HelperSet The HelperSet instance associated with this command
+     *
+     * @api
+     */
+    public function getHelperSet()
+    {
+        return $this->helperSet;
+    }
+
+    /**
+     * Set an input definition set to be used with this application.
+     *
+     * @param InputDefinition $definition The input definition
+     *
+     * @api
+     */
+    public function setDefinition(InputDefinition $definition)
+    {
+        $this->definition = $definition;
+    }
+
+    /**
+     * Gets the InputDefinition related to this Application.
+     *
+     * @return InputDefinition The InputDefinition instance
+     */
+    public function getDefinition()
+    {
+        return $this->definition;
+    }
+
+    /**
+     * Gets the help message.
+     *
+     * @return string A help message.
+     */
+    public function getHelp()
+    {
+        return $this->getLongVersion();
+    }
+
+    /**
+     * Sets whether to catch exceptions or not during commands execution.
+     *
+     * @param bool $boolean Whether to catch exceptions or not during commands execution
+     *
+     * @api
+     */
+    public function setCatchExceptions($boolean)
+    {
+        $this->catchExceptions = (bool) $boolean;
+    }
+
+    /**
+     * Sets whether to automatically exit after a command execution or not.
+     *
+     * @param bool $boolean Whether to automatically exit after a command execution or not
+     *
+     * @api
+     */
+    public function setAutoExit($boolean)
+    {
+        $this->autoExit = (bool) $boolean;
     }
 
     /**
@@ -425,15 +327,186 @@ class Application
     }
 
     /**
-     * Gets the name of the command based on input.
+     * Returns the long version of the application.
      *
-     * @param InputInterface $input The input interface
+     * @return string The long application version
      *
-     * @return string The command name
+     * @api
      */
-    protected function getCommandName(InputInterface $input)
+    public function getLongVersion()
     {
-        return $input->getFirstArgument();
+        if ('UNKNOWN' !== $this->getName() && 'UNKNOWN' !== $this->getVersion()) {
+            return sprintf('<info>%s</info> version <comment>%s</comment>', $this->getName(), $this->getVersion());
+        }
+
+        return '<info>Console Tool</info>';
+    }
+
+    /**
+     * Registers a new command.
+     *
+     * @param string $name The command name
+     *
+     * @return Command The newly created command
+     *
+     * @api
+     */
+    public function register($name)
+    {
+        return $this->add(new Command($name));
+    }
+
+    /**
+     * Adds an array of command objects.
+     *
+     * @param Command[] $commands An array of commands
+     *
+     * @api
+     */
+    public function addCommands(array $commands)
+    {
+        foreach ($commands as $command) {
+            $this->add($command);
+        }
+    }
+
+    /**
+     * Adds a command object.
+     *
+     * If a command with the same name already exists, it will be overridden.
+     *
+     * @param Command $command A Command object
+     *
+     * @return Command The registered command
+     *
+     * @api
+     */
+    public function add(Command $command)
+    {
+        $command->setApplication($this);
+
+        if (!$command->isEnabled()) {
+            $command->setApplication(null);
+
+            return;
+        }
+
+        if (null === $command->getDefinition()) {
+            throw new \LogicException(sprintf('Command class "%s" is not correctly initialized. You probably forgot to call the parent constructor.', get_class($command)));
+        }
+
+        $this->commands[$command->getName()] = $command;
+
+        foreach ($command->getAliases() as $alias) {
+            $this->commands[$alias] = $command;
+        }
+
+        return $command;
+    }
+
+    /**
+     * Returns a registered command by name or alias.
+     *
+     * @param string $name The command name or alias
+     *
+     * @return Command A Command object
+     *
+     * @throws \InvalidArgumentException When command name given does not exist
+     *
+     * @api
+     */
+    public function get($name)
+    {
+        if (!isset($this->commands[$name])) {
+            throw new \InvalidArgumentException(sprintf('The command "%s" does not exist.', $name));
+        }
+
+        $command = $this->commands[$name];
+
+        if ($this->wantHelps) {
+            $this->wantHelps = false;
+
+            $helpCommand = $this->get('help');
+            $helpCommand->setCommand($command);
+
+            return $helpCommand;
+        }
+
+        return $command;
+    }
+
+    /**
+     * Returns true if the command exists, false otherwise.
+     *
+     * @param string $name The command name or alias
+     *
+     * @return bool true if the command exists, false otherwise
+     *
+     * @api
+     */
+    public function has($name)
+    {
+        return isset($this->commands[$name]);
+    }
+
+    /**
+     * Returns an array of all unique namespaces used by currently registered commands.
+     *
+     * It does not returns the global namespace which always exists.
+     *
+     * @return array An array of namespaces
+     */
+    public function getNamespaces()
+    {
+        $namespaces = array();
+        foreach ($this->commands as $command) {
+            $namespaces = array_merge($namespaces, $this->extractAllNamespaces($command->getName()));
+
+            foreach ($command->getAliases() as $alias) {
+                $namespaces = array_merge($namespaces, $this->extractAllNamespaces($alias));
+            }
+        }
+
+        return array_values(array_unique(array_filter($namespaces)));
+    }
+
+    /**
+     * Finds a registered namespace by a name or an abbreviation.
+     *
+     * @param string $namespace A namespace or abbreviation to search for
+     *
+     * @return string A registered namespace
+     *
+     * @throws \InvalidArgumentException When namespace is incorrect or ambiguous
+     */
+    public function findNamespace($namespace)
+    {
+        $allNamespaces = $this->getNamespaces();
+        $expr = preg_replace_callback('{([^:]+|)}', function ($matches) { return preg_quote($matches[1]).'[^:]*'; }, $namespace);
+        $namespaces = preg_grep('{^'.$expr.'}', $allNamespaces);
+
+        if (empty($namespaces)) {
+            $message = sprintf('There are no commands defined in the "%s" namespace.', $namespace);
+
+            if ($alternatives = $this->findAlternatives($namespace, $allNamespaces)) {
+                if (1 == count($alternatives)) {
+                    $message .= "\n\nDid you mean this?\n    ";
+                } else {
+                    $message .= "\n\nDid you mean one of these?\n    ";
+                }
+
+                $message .= implode("\n    ", $alternatives);
+            }
+
+            throw new \InvalidArgumentException($message);
+        }
+
+        $exact = in_array($namespace, $namespaces, true);
+        if (count($namespaces) > 1 && !$exact) {
+            throw new \InvalidArgumentException(sprintf('The namespace "%s" is ambiguous (%s).', $namespace, $this->getAbbreviationSuggestions(array_values($namespaces))));
+        }
+
+        return $exact ? $namespace : reset($namespaces);
     }
 
     /**
@@ -497,232 +570,93 @@ class Application
     }
 
     /**
-     * Finds a registered namespace by a name or an abbreviation.
+     * Gets the commands (registered in the given namespace if provided).
      *
-     * @param string $namespace A namespace or abbreviation to search for
+     * The array keys are the full names and the values the command instances.
      *
-     * @return string A registered namespace
+     * @param string $namespace A namespace name
      *
-     * @throws \InvalidArgumentException When namespace is incorrect or ambiguous
-     */
-    public function findNamespace($namespace)
-    {
-        $allNamespaces = $this->getNamespaces();
-        $expr = preg_replace_callback('{([^:]+|)}', function ($matches) { return preg_quote($matches[1]).'[^:]*'; }, $namespace);
-        $namespaces = preg_grep('{^'.$expr.'}', $allNamespaces);
-
-        if (empty($namespaces)) {
-            $message = sprintf('There are no commands defined in the "%s" namespace.', $namespace);
-
-            if ($alternatives = $this->findAlternatives($namespace, $allNamespaces)) {
-                if (1 == count($alternatives)) {
-                    $message .= "\n\nDid you mean this?\n    ";
-                } else {
-                    $message .= "\n\nDid you mean one of these?\n    ";
-                }
-
-                $message .= implode("\n    ", $alternatives);
-            }
-
-            throw new \InvalidArgumentException($message);
-        }
-
-        $exact = in_array($namespace, $namespaces, true);
-        if (count($namespaces) > 1 && !$exact) {
-            throw new \InvalidArgumentException(sprintf('The namespace "%s" is ambiguous (%s).', $namespace, $this->getAbbreviationSuggestions(array_values($namespaces))));
-        }
-
-        return $exact ? $namespace : reset($namespaces);
-    }
-
-    /**
-     * Returns an array of all unique namespaces used by currently registered commands.
-     *
-     * It does not returns the global namespace which always exists.
-     *
-     * @return array An array of namespaces
-     */
-    public function getNamespaces()
-    {
-        $namespaces = array();
-        foreach ($this->commands as $command) {
-            $namespaces = array_merge($namespaces, $this->extractAllNamespaces($command->getName()));
-
-            foreach ($command->getAliases() as $alias) {
-                $namespaces = array_merge($namespaces, $this->extractAllNamespaces($alias));
-            }
-        }
-
-        return array_values(array_unique(array_filter($namespaces)));
-    }
-
-    /**
-     * Returns all namespaces of the command name.
-     *
-     * @param string $name The full name of the command
-     *
-     * @return array The namespaces of the command
-     */
-    private function extractAllNamespaces($name)
-    {
-        // -1 as third argument is needed to skip the command short name when exploding
-        $parts = explode(':', $name, -1);
-        $namespaces = array();
-
-        foreach ($parts as $part) {
-            if (count($namespaces)) {
-                $namespaces[] = end($namespaces).':'.$part;
-            } else {
-                $namespaces[] = $part;
-            }
-        }
-
-        return $namespaces;
-    }
-
-    /**
-     * Finds alternative of $name among $collection,
-     * if nothing is found in $collection, try in $abbrevs.
-     *
-     * @param string             $name       The string
-     * @param array|\Traversable $collection The collection
-     *
-     * @return array A sorted array of similar string
-     */
-    private function findAlternatives($name, $collection)
-    {
-        $threshold = 1e3;
-        $alternatives = array();
-
-        $collectionParts = array();
-        foreach ($collection as $item) {
-            $collectionParts[$item] = explode(':', $item);
-        }
-
-        foreach (explode(':', $name) as $i => $subname) {
-            foreach ($collectionParts as $collectionName => $parts) {
-                $exists = isset($alternatives[$collectionName]);
-                if (!isset($parts[$i]) && $exists) {
-                    $alternatives[$collectionName] += $threshold;
-                    continue;
-                } elseif (!isset($parts[$i])) {
-                    continue;
-                }
-
-                $lev = levenshtein($subname, $parts[$i]);
-                if ($lev <= strlen($subname) / 3 || '' !== $subname && false !== strpos($parts[$i], $subname)) {
-                    $alternatives[$collectionName] = $exists ? $alternatives[$collectionName] + $lev : $lev;
-                } elseif ($exists) {
-                    $alternatives[$collectionName] += $threshold;
-                }
-            }
-        }
-
-        foreach ($collection as $item) {
-            $lev = levenshtein($name, $item);
-            if ($lev <= strlen($name) / 3 || false !== strpos($item, $name)) {
-                $alternatives[$item] = isset($alternatives[$item]) ? $alternatives[$item] - $lev : $lev;
-            }
-        }
-
-        $alternatives = array_filter($alternatives, function ($lev) use ($threshold) { return $lev < 2 * $threshold; });
-        asort($alternatives);
-
-        return array_keys($alternatives);
-    }
-
-    /**
-     * Returns abbreviated suggestions in string format.
-     *
-     * @param array $abbrevs Abbreviated suggestions to convert
-     *
-     * @return string A formatted string of abbreviated suggestions
-     */
-    private function getAbbreviationSuggestions($abbrevs)
-    {
-        return sprintf('%s, %s%s', $abbrevs[0], $abbrevs[1], count($abbrevs) > 2 ? sprintf(' and %d more', count($abbrevs) - 2) : '');
-    }
-
-    /**
-     * Returns a registered command by name or alias.
-     *
-     * @param string $name The command name or alias
-     *
-     * @return Command A Command object
-     *
-     * @throws \InvalidArgumentException When command name given does not exist
+     * @return Command[] An array of Command instances
      *
      * @api
      */
-    public function get($name)
+    public function all($namespace = null)
     {
-        if (!isset($this->commands[$name])) {
-            throw new \InvalidArgumentException(sprintf('The command "%s" does not exist.', $name));
+        if (null === $namespace) {
+            return $this->commands;
         }
 
-        $command = $this->commands[$name];
-
-        if ($this->wantHelps) {
-            $this->wantHelps = false;
-
-            $helpCommand = $this->get('help');
-            $helpCommand->setCommand($command);
-
-            return $helpCommand;
+        $commands = array();
+        foreach ($this->commands as $name => $command) {
+            if ($namespace === $this->extractNamespace($name, substr_count($namespace, ':') + 1)) {
+                $commands[$name] = $command;
+            }
         }
 
-        return $command;
+        return $commands;
     }
 
     /**
-     * Runs the current command.
+     * Returns an array of possible abbreviations given a set of names.
      *
-     * If an event dispatcher has been attached to the application,
-     * events are also dispatched during the life-cycle of the command.
+     * @param array $names An array of names
      *
-     * @param Command         $command A Command instance
-     * @param InputInterface  $input   An Input instance
-     * @param OutputInterface $output  An Output instance
-     *
-     * @return int 0 if everything went fine, or an error code
-     *
-     * @throws \Exception when the command being run threw an exception
+     * @return array An array of abbreviations
      */
-    protected function doRunCommand(Command $command, InputInterface $input, OutputInterface $output)
+    public static function getAbbreviations($names)
     {
-        foreach ($command->getHelperSet() as $helper) {
-            if ($helper instanceof InputAwareInterface) {
-                $helper->setInput($input);
+        $abbrevs = array();
+        foreach ($names as $name) {
+            for ($len = strlen($name); $len > 0; --$len) {
+                $abbrev = substr($name, 0, $len);
+                $abbrevs[$abbrev][] = $name;
             }
         }
 
-        if (null === $this->dispatcher) {
-            return $command->run($input, $output);
+        return $abbrevs;
+    }
+
+    /**
+     * Returns a text representation of the Application.
+     *
+     * @param string $namespace An optional namespace name
+     * @param bool   $raw       Whether to return raw command list
+     *
+     * @return string A string representing the Application
+     *
+     * @deprecated Deprecated since version 2.3, to be removed in 3.0.
+     */
+    public function asText($namespace = null, $raw = false)
+    {
+        $descriptor = new TextDescriptor();
+        $output = new BufferedOutput(BufferedOutput::VERBOSITY_NORMAL, !$raw);
+        $descriptor->describe($output, $this, array('namespace' => $namespace, 'raw_output' => true));
+
+        return $output->fetch();
+    }
+
+    /**
+     * Returns an XML representation of the Application.
+     *
+     * @param string $namespace An optional namespace name
+     * @param bool   $asDom     Whether to return a DOM or an XML string
+     *
+     * @return string|\DOMDocument An XML string representing the Application
+     *
+     * @deprecated Deprecated since version 2.3, to be removed in 3.0.
+     */
+    public function asXml($namespace = null, $asDom = false)
+    {
+        $descriptor = new XmlDescriptor();
+
+        if ($asDom) {
+            return $descriptor->getApplicationDocument($this, $namespace);
         }
 
-        $event = new ConsoleCommandEvent($command, $input, $output);
-        $this->dispatcher->dispatch(ConsoleEvents::COMMAND, $event);
+        $output = new BufferedOutput();
+        $descriptor->describe($output, $this, array('namespace' => $namespace));
 
-        if ($event->commandShouldRun()) {
-            try {
-                $exitCode = $command->run($input, $output);
-            } catch (\Exception $e) {
-                $event = new ConsoleTerminateEvent($command, $input, $output, $e->getCode());
-                $this->dispatcher->dispatch(ConsoleEvents::TERMINATE, $event);
-
-                $event = new ConsoleExceptionEvent($command, $input, $output, $e, $event->getExitCode());
-                $this->dispatcher->dispatch(ConsoleEvents::EXCEPTION, $event);
-
-                throw $event->getException();
-            }
-        } else {
-            $exitCode = ConsoleCommandEvent::RETURN_CODE_DISABLED;
-        }
-
-        $event = new ConsoleTerminateEvent($command, $input, $output, $exitCode);
-        $this->dispatcher->dispatch(ConsoleEvents::TERMINATE, $event);
-
-        return $event->getExitCode();
+        return $output->fetch();
     }
 
     /**
@@ -801,19 +735,6 @@ class Application
         }
     }
 
-    private function stringWidth($string)
-    {
-        if (!function_exists('mb_strwidth')) {
-            return strlen($string);
-        }
-
-        if (false === $encoding = mb_detect_encoding($string)) {
-            return strlen($string);
-        }
-
-        return mb_strwidth($string, $encoding);
-    }
-
     /**
      * Tries to figure out the terminal width in which this application runs.
      *
@@ -824,6 +745,18 @@ class Application
         $dimensions = $this->getTerminalDimensions();
 
         return $dimensions[0];
+    }
+
+    /**
+     * Tries to figure out the terminal height in which this application runs.
+     *
+     * @return int|null
+     */
+    protected function getTerminalHeight()
+    {
+        $dimensions = $this->getTerminalDimensions();
+
+        return $dimensions[1];
     }
 
     /**
@@ -880,6 +813,176 @@ class Application
     }
 
     /**
+     * Configures the input and output instances based on the user arguments and options.
+     *
+     * @param InputInterface  $input  An InputInterface instance
+     * @param OutputInterface $output An OutputInterface instance
+     */
+    protected function configureIO(InputInterface $input, OutputInterface $output)
+    {
+        if (true === $input->hasParameterOption(array('--ansi'))) {
+            $output->setDecorated(true);
+        } elseif (true === $input->hasParameterOption(array('--no-ansi'))) {
+            $output->setDecorated(false);
+        }
+
+        if (true === $input->hasParameterOption(array('--no-interaction', '-n'))) {
+            $input->setInteractive(false);
+        } elseif (function_exists('posix_isatty') && $this->getHelperSet()->has('question')) {
+            $inputStream = $this->getHelperSet()->get('question')->getInputStream();
+            if (!@posix_isatty($inputStream) && false === getenv('SHELL_INTERACTIVE')) {
+                $input->setInteractive(false);
+            }
+        }
+
+        if (true === $input->hasParameterOption(array('--quiet', '-q'))) {
+            $output->setVerbosity(OutputInterface::VERBOSITY_QUIET);
+        } else {
+            if ($input->hasParameterOption('-vvv') || $input->hasParameterOption('--verbose=3') || $input->getParameterOption('--verbose') === 3) {
+                $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
+            } elseif ($input->hasParameterOption('-vv') || $input->hasParameterOption('--verbose=2') || $input->getParameterOption('--verbose') === 2) {
+                $output->setVerbosity(OutputInterface::VERBOSITY_VERY_VERBOSE);
+            } elseif ($input->hasParameterOption('-v') || $input->hasParameterOption('--verbose=1') || $input->hasParameterOption('--verbose') || $input->getParameterOption('--verbose')) {
+                $output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
+            }
+        }
+    }
+
+    /**
+     * Runs the current command.
+     *
+     * If an event dispatcher has been attached to the application,
+     * events are also dispatched during the life-cycle of the command.
+     *
+     * @param Command         $command A Command instance
+     * @param InputInterface  $input   An Input instance
+     * @param OutputInterface $output  An Output instance
+     *
+     * @return int 0 if everything went fine, or an error code
+     *
+     * @throws \Exception when the command being run threw an exception
+     */
+    protected function doRunCommand(Command $command, InputInterface $input, OutputInterface $output)
+    {
+        foreach ($command->getHelperSet() as $helper) {
+            if ($helper instanceof InputAwareInterface) {
+                $helper->setInput($input);
+            }
+        }
+
+        if (null === $this->dispatcher) {
+            return $command->run($input, $output);
+        }
+
+        $event = new ConsoleCommandEvent($command, $input, $output);
+        $this->dispatcher->dispatch(ConsoleEvents::COMMAND, $event);
+
+        if ($event->commandShouldRun()) {
+            try {
+                $exitCode = $command->run($input, $output);
+            } catch (\Exception $e) {
+                $event = new ConsoleTerminateEvent($command, $input, $output, $e->getCode());
+                $this->dispatcher->dispatch(ConsoleEvents::TERMINATE, $event);
+
+                $event = new ConsoleExceptionEvent($command, $input, $output, $e, $event->getExitCode());
+                $this->dispatcher->dispatch(ConsoleEvents::EXCEPTION, $event);
+
+                throw $event->getException();
+            }
+        } else {
+            $exitCode = ConsoleCommandEvent::RETURN_CODE_DISABLED;
+        }
+
+        $event = new ConsoleTerminateEvent($command, $input, $output, $exitCode);
+        $this->dispatcher->dispatch(ConsoleEvents::TERMINATE, $event);
+
+        return $event->getExitCode();
+    }
+
+    /**
+     * Gets the name of the command based on input.
+     *
+     * @param InputInterface $input The input interface
+     *
+     * @return string The command name
+     */
+    protected function getCommandName(InputInterface $input)
+    {
+        return $input->getFirstArgument();
+    }
+
+    /**
+     * Gets the default input definition.
+     *
+     * @return InputDefinition An InputDefinition instance
+     */
+    protected function getDefaultInputDefinition()
+    {
+        return new InputDefinition(array(
+            new InputArgument('command', InputArgument::REQUIRED, 'The command to execute'),
+
+            new InputOption('--help', '-h', InputOption::VALUE_NONE, 'Display this help message'),
+            new InputOption('--quiet', '-q', InputOption::VALUE_NONE, 'Do not output any message'),
+            new InputOption('--verbose', '-v|vv|vvv', InputOption::VALUE_NONE, 'Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug'),
+            new InputOption('--version', '-V', InputOption::VALUE_NONE, 'Display this application version'),
+            new InputOption('--ansi', '', InputOption::VALUE_NONE, 'Force ANSI output'),
+            new InputOption('--no-ansi', '', InputOption::VALUE_NONE, 'Disable ANSI output'),
+            new InputOption('--no-interaction', '-n', InputOption::VALUE_NONE, 'Do not ask any interactive question'),
+        ));
+    }
+
+    /**
+     * Gets the default commands that should always be available.
+     *
+     * @return Command[] An array of default Command instances
+     */
+    protected function getDefaultCommands()
+    {
+        return array(new HelpCommand(), new ListCommand());
+    }
+
+    /**
+     * Gets the default helper set with the helpers that should always be available.
+     *
+     * @return HelperSet A HelperSet instance
+     */
+    protected function getDefaultHelperSet()
+    {
+        return new HelperSet(array(
+            new FormatterHelper(),
+            new DialogHelper(),
+            new ProgressHelper(),
+            new TableHelper(),
+            new DebugFormatterHelper(),
+            new ProcessHelper(),
+            new QuestionHelper(),
+        ));
+    }
+
+    /**
+     * Runs and parses stty -a if it's available, suppressing any error output.
+     *
+     * @return string
+     */
+    private function getSttyColumns()
+    {
+        if (!function_exists('proc_open')) {
+            return;
+        }
+
+        $descriptorspec = array(1 => array('pipe', 'w'), 2 => array('pipe', 'w'));
+        $process = proc_open('stty -a | grep columns', $descriptorspec, $pipes, null, null, array('suppress_errors' => true));
+        if (is_resource($process)) {
+            $info = stream_get_contents($pipes[1]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            proc_close($process);
+
+            return $info;
+        }
+    }
+
+    /**
      * Runs and parses mode CON if it's available, suppressing any error output.
      *
      * @return string <width>x<height> or null if it could not be parsed
@@ -905,26 +1008,107 @@ class Application
     }
 
     /**
-     * Runs and parses stty -a if it's available, suppressing any error output.
+     * Returns abbreviated suggestions in string format.
      *
-     * @return string
+     * @param array $abbrevs Abbreviated suggestions to convert
+     *
+     * @return string A formatted string of abbreviated suggestions
      */
-    private function getSttyColumns()
+    private function getAbbreviationSuggestions($abbrevs)
     {
-        if (!function_exists('proc_open')) {
-            return;
+        return sprintf('%s, %s%s', $abbrevs[0], $abbrevs[1], count($abbrevs) > 2 ? sprintf(' and %d more', count($abbrevs) - 2) : '');
+    }
+
+    /**
+     * Returns the namespace part of the command name.
+     *
+     * This method is not part of public API and should not be used directly.
+     *
+     * @param string $name  The full name of the command
+     * @param string $limit The maximum number of parts of the namespace
+     *
+     * @return string The namespace of the command
+     */
+    public function extractNamespace($name, $limit = null)
+    {
+        $parts = explode(':', $name);
+        array_pop($parts);
+
+        return implode(':', null === $limit ? $parts : array_slice($parts, 0, $limit));
+    }
+
+    /**
+     * Finds alternative of $name among $collection,
+     * if nothing is found in $collection, try in $abbrevs.
+     *
+     * @param string             $name       The string
+     * @param array|\Traversable $collection The collection
+     *
+     * @return array A sorted array of similar string
+     */
+    private function findAlternatives($name, $collection)
+    {
+        $threshold = 1e3;
+        $alternatives = array();
+
+        $collectionParts = array();
+        foreach ($collection as $item) {
+            $collectionParts[$item] = explode(':', $item);
         }
 
-        $descriptorspec = array(1 => array('pipe', 'w'), 2 => array('pipe', 'w'));
-        $process = proc_open('stty -a | grep columns', $descriptorspec, $pipes, null, null, array('suppress_errors' => true));
-        if (is_resource($process)) {
-            $info = stream_get_contents($pipes[1]);
-            fclose($pipes[1]);
-            fclose($pipes[2]);
-            proc_close($process);
+        foreach (explode(':', $name) as $i => $subname) {
+            foreach ($collectionParts as $collectionName => $parts) {
+                $exists = isset($alternatives[$collectionName]);
+                if (!isset($parts[$i]) && $exists) {
+                    $alternatives[$collectionName] += $threshold;
+                    continue;
+                } elseif (!isset($parts[$i])) {
+                    continue;
+                }
 
-            return $info;
+                $lev = levenshtein($subname, $parts[$i]);
+                if ($lev <= strlen($subname) / 3 || '' !== $subname && false !== strpos($parts[$i], $subname)) {
+                    $alternatives[$collectionName] = $exists ? $alternatives[$collectionName] + $lev : $lev;
+                } elseif ($exists) {
+                    $alternatives[$collectionName] += $threshold;
+                }
+            }
         }
+
+        foreach ($collection as $item) {
+            $lev = levenshtein($name, $item);
+            if ($lev <= strlen($name) / 3 || false !== strpos($item, $name)) {
+                $alternatives[$item] = isset($alternatives[$item]) ? $alternatives[$item] - $lev : $lev;
+            }
+        }
+
+        $alternatives = array_filter($alternatives, function ($lev) use ($threshold) { return $lev < 2 * $threshold; });
+        asort($alternatives);
+
+        return array_keys($alternatives);
+    }
+
+    /**
+     * Sets the default Command name.
+     *
+     * @param string $commandName The Command name
+     */
+    public function setDefaultCommand($commandName)
+    {
+        $this->defaultCommand = $commandName;
+    }
+
+    private function stringWidth($string)
+    {
+        if (!function_exists('mb_strwidth')) {
+            return strlen($string);
+        }
+
+        if (false === $encoding = mb_detect_encoding($string)) {
+            return strlen($string);
+        }
+
+        return mb_strwidth($string, $encoding);
     }
 
     private function splitStringByWidth($string, $width)
@@ -964,210 +1148,26 @@ class Application
     }
 
     /**
-     * Gets the InputDefinition related to this Application.
+     * Returns all namespaces of the command name.
      *
-     * @return InputDefinition The InputDefinition instance
+     * @param string $name The full name of the command
+     *
+     * @return array The namespaces of the command
      */
-    public function getDefinition()
+    private function extractAllNamespaces($name)
     {
-        return $this->definition;
-    }
+        // -1 as third argument is needed to skip the command short name when exploding
+        $parts = explode(':', $name, -1);
+        $namespaces = array();
 
-    /**
-     * Set an input definition set to be used with this application.
-     *
-     * @param InputDefinition $definition The input definition
-     *
-     * @api
-     */
-    public function setDefinition(InputDefinition $definition)
-    {
-        $this->definition = $definition;
-    }
-
-    /**
-     * Gets the help message.
-     *
-     * @return string A help message.
-     */
-    public function getHelp()
-    {
-        return $this->getLongVersion();
-    }
-
-    /**
-     * Sets whether to catch exceptions or not during commands execution.
-     *
-     * @param bool $boolean Whether to catch exceptions or not during commands execution
-     *
-     * @api
-     */
-    public function setCatchExceptions($boolean)
-    {
-        $this->catchExceptions = (bool) $boolean;
-    }
-
-    /**
-     * Sets whether to automatically exit after a command execution or not.
-     *
-     * @param bool $boolean Whether to automatically exit after a command execution or not
-     *
-     * @api
-     */
-    public function setAutoExit($boolean)
-    {
-        $this->autoExit = (bool) $boolean;
-    }
-
-    /**
-     * Registers a new command.
-     *
-     * @param string $name The command name
-     *
-     * @return Command The newly created command
-     *
-     * @api
-     */
-    public function register($name)
-    {
-        return $this->add(new Command($name));
-    }
-
-    /**
-     * Adds an array of command objects.
-     *
-     * @param Command[] $commands An array of commands
-     *
-     * @api
-     */
-    public function addCommands(array $commands)
-    {
-        foreach ($commands as $command) {
-            $this->add($command);
-        }
-    }
-
-    /**
-     * Returns true if the command exists, false otherwise.
-     *
-     * @param string $name The command name or alias
-     *
-     * @return bool true if the command exists, false otherwise
-     *
-     * @api
-     */
-    public function has($name)
-    {
-        return isset($this->commands[$name]);
-    }
-
-    /**
-     * Gets the commands (registered in the given namespace if provided).
-     *
-     * The array keys are the full names and the values the command instances.
-     *
-     * @param string $namespace A namespace name
-     *
-     * @return Command[] An array of Command instances
-     *
-     * @api
-     */
-    public function all($namespace = null)
-    {
-        if (null === $namespace) {
-            return $this->commands;
-        }
-
-        $commands = array();
-        foreach ($this->commands as $name => $command) {
-            if ($namespace === $this->extractNamespace($name, substr_count($namespace, ':') + 1)) {
-                $commands[$name] = $command;
+        foreach ($parts as $part) {
+            if (count($namespaces)) {
+                $namespaces[] = end($namespaces).':'.$part;
+            } else {
+                $namespaces[] = $part;
             }
         }
 
-        return $commands;
-    }
-
-    /**
-     * Returns the namespace part of the command name.
-     *
-     * This method is not part of public API and should not be used directly.
-     *
-     * @param string $name  The full name of the command
-     * @param string $limit The maximum number of parts of the namespace
-     *
-     * @return string The namespace of the command
-     */
-    public function extractNamespace($name, $limit = null)
-    {
-        $parts = explode(':', $name);
-        array_pop($parts);
-
-        return implode(':', null === $limit ? $parts : array_slice($parts, 0, $limit));
-    }
-
-    /**
-     * Returns a text representation of the Application.
-     *
-     * @param string $namespace An optional namespace name
-     * @param bool   $raw       Whether to return raw command list
-     *
-     * @return string A string representing the Application
-     *
-     * @deprecated Deprecated since version 2.3, to be removed in 3.0.
-     */
-    public function asText($namespace = null, $raw = false)
-    {
-        $descriptor = new TextDescriptor();
-        $output = new BufferedOutput(BufferedOutput::VERBOSITY_NORMAL, !$raw);
-        $descriptor->describe($output, $this, array('namespace' => $namespace, 'raw_output' => true));
-
-        return $output->fetch();
-    }
-
-    /**
-     * Returns an XML representation of the Application.
-     *
-     * @param string $namespace An optional namespace name
-     * @param bool   $asDom     Whether to return a DOM or an XML string
-     *
-     * @return string|\DOMDocument An XML string representing the Application
-     *
-     * @deprecated Deprecated since version 2.3, to be removed in 3.0.
-     */
-    public function asXml($namespace = null, $asDom = false)
-    {
-        $descriptor = new XmlDescriptor();
-
-        if ($asDom) {
-            return $descriptor->getApplicationDocument($this, $namespace);
-        }
-
-        $output = new BufferedOutput();
-        $descriptor->describe($output, $this, array('namespace' => $namespace));
-
-        return $output->fetch();
-    }
-
-    /**
-     * Sets the default Command name.
-     *
-     * @param string $commandName The Command name
-     */
-    public function setDefaultCommand($commandName)
-    {
-        $this->defaultCommand = $commandName;
-    }
-
-    /**
-     * Tries to figure out the terminal height in which this application runs.
-     *
-     * @return int|null
-     */
-    protected function getTerminalHeight()
-    {
-        $dimensions = $this->getTerminalDimensions();
-
-        return $dimensions[1];
+        return $namespaces;
     }
 }

@@ -65,6 +65,106 @@ class FrontController extends Singleton
      */
     public static $enableDispatch = true;
 
+    /**
+     * Executes the requested plugin controller method.
+     *
+     * @throws Exception|\Piwik\PluginDeactivatedException in case the plugin doesn't exist, the action doesn't exist,
+     *                                                     there is not enough permission, etc.
+     *
+     * @param string $module The name of the plugin whose controller to execute, eg, `'UserCountryMap'`.
+     * @param string $action The controller method name, eg, `'realtimeMap'`.
+     * @param array $parameters Array of parameters to pass to the controller method.
+     * @return void|mixed The returned value of the call. This is the output of the controller method.
+     * @api
+     */
+    public function dispatch($module = null, $action = null, $parameters = null)
+    {
+        if (self::$enableDispatch === false) {
+            return;
+        }
+
+        $filter = new Router();
+        $redirection = $filter->filterUrl(Url::getCurrentUrl());
+        if ($redirection !== null) {
+            Url::redirectToUrl($redirection);
+            return;
+        }
+
+        try {
+            $result = $this->doDispatch($module, $action, $parameters);
+            return $result;
+        } catch (NoAccessException $exception) {
+            Log::debug($exception);
+
+            /**
+             * Triggered when a user with insufficient access permissions tries to view some resource.
+             *
+             * This event can be used to customize the error that occurs when a user is denied access
+             * (for example, displaying an error message, redirecting to a page other than login, etc.).
+             *
+             * @param \Piwik\NoAccessException $exception The exception that was caught.
+             */
+            Piwik::postEvent('User.isNotAuthorized', array($exception), $pending = true);
+        }
+    }
+
+    /**
+     * Executes the requested plugin controller method and returns the data, capturing anything the
+     * method `echo`s.
+     *
+     * _Note: If the plugin controller returns something, the return value is returned instead
+     * of whatever is in the output buffer._
+     *
+     * @param string $module The name of the plugin whose controller to execute, eg, `'UserCountryMap'`.
+     * @param string $actionName The controller action name, eg, `'realtimeMap'`.
+     * @param array $parameters Array of parameters to pass to the controller action method.
+     * @return string The `echo`'d data or the return value of the controller action.
+     * @deprecated
+     */
+    public function fetchDispatch($module = null, $actionName = null, $parameters = null)
+    {
+        ob_start();
+        $output = $this->dispatch($module, $actionName, $parameters);
+        // if nothing returned we try to load something that was printed on the screen
+        if (empty($output)) {
+            $output = ob_get_contents();
+        } else {
+            // if something was returned, flush output buffer as it is meant to be written to the screen
+            ob_flush();
+        }
+        ob_end_clean();
+        return $output;
+    }
+
+    /**
+     * Called at the end of the page generation
+     */
+    public function __destruct()
+    {
+        try {
+            if (class_exists('Piwik\\Profiler')
+                && !SettingsServer::isTrackerApiRequest()
+            ) {
+                // in tracker mode Piwik\Tracker\Db\Pdo\Mysql does currently not implement profiling
+                Profiler::displayDbProfileReport();
+                Profiler::printQueryCount();
+            }
+        } catch (Exception $e) {
+            Log::debug($e);
+        }
+    }
+
+    // Should we show exceptions messages directly rather than display an html error page?
+    public static function shouldRethrowException()
+    {
+        // If we are in no dispatch mode, eg. a script reusing Piwik libs,
+        // then we should return the exception directly, rather than trigger the event "bad config file"
+        // which load the HTML page of the installer with the error.
+        return (defined('PIWIK_ENABLE_DISPATCH') && !PIWIK_ENABLE_DISPATCH)
+        || Common::isPhpCliMode()
+        || SettingsServer::isArchivePhpTriggered();
+    }
+
     public static function setUpSafeMode()
     {
         register_shutdown_function(array('\\Piwik\\FrontController', 'triggerSafeModeWhenError'));
@@ -239,7 +339,40 @@ class FrontController extends Singleton
         Piwik::postEvent('Platform.initialized');
     }
 
-    // Should we show exceptions messages directly rather than display an html error page?
+    protected function prepareDispatch($module, $action, $parameters)
+    {
+        if (is_null($module)) {
+            $module = Common::getRequestVar('module', self::DEFAULT_MODULE, 'string');
+        }
+
+        if (is_null($action)) {
+            $action = Common::getRequestVar('action', false);
+        }
+
+        if (SettingsPiwik::isPiwikInstalled()
+            && ($module !== 'API' || ($action && $action !== 'index'))
+        ) {
+            Session::start();
+
+            $this->closeSessionEarlyForFasterUI();
+        }
+
+        if (is_null($parameters)) {
+            $parameters = array();
+        }
+
+        if (!ctype_alnum($module)) {
+            throw new Exception("Invalid module name '$module'");
+        }
+
+        list($module, $action) = Request::getRenamedModuleAndAction($module, $action);
+
+        if (!\Piwik\Plugin\Manager::getInstance()->isPluginActivated($module)) {
+            throw new PluginDeactivatedException($module);
+        }
+
+        return array($module, $action, $parameters);
+    }
 
     protected function handleMaintenanceMode()
     {
@@ -267,14 +400,6 @@ class FrontController extends Singleton
         exit;
     }
 
-    private function handleProfiler()
-    {
-        if (!empty($_GET['xhprof'])) {
-            $mainRun = $_GET['xhprof'] == 1; // core:archive command sets xhprof=2
-            Profiler::setupProfilerXHProf($mainRun);
-        }
-    }
-
     protected function handleSSLRedirection()
     {
         // Specifically disable for the opt out iframe
@@ -299,109 +424,30 @@ class FrontController extends Singleton
         Url::redirectToHttps();
     }
 
-    public static function shouldRethrowException()
+    private function closeSessionEarlyForFasterUI()
     {
-        // If we are in no dispatch mode, eg. a script reusing Piwik libs,
-        // then we should return the exception directly, rather than trigger the event "bad config file"
-        // which load the HTML page of the installer with the error.
-        return (defined('PIWIK_ENABLE_DISPATCH') && !PIWIK_ENABLE_DISPATCH)
-        || Common::isPhpCliMode()
-        || SettingsServer::isArchivePhpTriggered();
-    }
+        $isDashboardReferrer = !empty($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'module=CoreHome&action=index') !== false;
+        $isAllWebsitesReferrer = !empty($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'module=MultiSites&action=index') !== false;
 
-    /**
-     * This method ensures that Piwik Platform cannot be running when using a NEWER database.
-     */
-    private function throwIfPiwikVersionIsOlderThanDBSchema()
-    {
-        // When developing this situation happens often when switching branches
-        if (Development::isEnabled()) {
-            return;
+        if ($isDashboardReferrer
+            && !empty($_POST['token_auth'])
+            && Common::getRequestVar('widget', 0, 'int') === 1
+        ) {
+            Session::close();
         }
 
-        $updater = new Updater();
-
-        $dbSchemaVersion = $updater->getCurrentComponentVersion('core');
-        $current = Version::VERSION;
-        if (-1 === version_compare($current, $dbSchemaVersion)) {
-            $messages = array(
-                Piwik::translate('General_ExceptionDatabaseVersionNewerThanCodebase', array($current, $dbSchemaVersion)),
-                Piwik::translate('General_ExceptionDatabaseVersionNewerThanCodebaseWait'),
-                // we cannot fill in the Super User emails as we are failing before Authentication was ready
-                Piwik::translate('General_ExceptionContactSupportGeneric', array('', ''))
-            );
-            throw new DatabaseSchemaIsNewerThanCodebaseException(implode(" ", $messages));
+        if (($isDashboardReferrer || $isAllWebsitesReferrer)
+            && Common::getRequestVar('viewDataTable', '', 'string') === 'sparkline'
+        ) {
+            Session::close();
         }
     }
 
-    /**
-     * Executes the requested plugin controller method and returns the data, capturing anything the
-     * method `echo`s.
-     *
-     * _Note: If the plugin controller returns something, the return value is returned instead
-     * of whatever is in the output buffer._
-     *
-     * @param string $module The name of the plugin whose controller to execute, eg, `'UserCountryMap'`.
-     * @param string $actionName The controller action name, eg, `'realtimeMap'`.
-     * @param array $parameters Array of parameters to pass to the controller action method.
-     * @return string The `echo`'d data or the return value of the controller action.
-     * @deprecated
-     */
-    public function fetchDispatch($module = null, $actionName = null, $parameters = null)
+    private function handleProfiler()
     {
-        ob_start();
-        $output = $this->dispatch($module, $actionName, $parameters);
-        // if nothing returned we try to load something that was printed on the screen
-        if (empty($output)) {
-            $output = ob_get_contents();
-        } else {
-            // if something was returned, flush output buffer as it is meant to be written to the screen
-            ob_flush();
-        }
-        ob_end_clean();
-        return $output;
-    }
-
-    /**
-     * Executes the requested plugin controller method.
-     *
-     * @throws Exception|\Piwik\PluginDeactivatedException in case the plugin doesn't exist, the action doesn't exist,
-     *                                                     there is not enough permission, etc.
-     *
-     * @param string $module The name of the plugin whose controller to execute, eg, `'UserCountryMap'`.
-     * @param string $action The controller method name, eg, `'realtimeMap'`.
-     * @param array $parameters Array of parameters to pass to the controller method.
-     * @return void|mixed The returned value of the call. This is the output of the controller method.
-     * @api
-     */
-    public function dispatch($module = null, $action = null, $parameters = null)
-    {
-        if (self::$enableDispatch === false) {
-            return;
-        }
-
-        $filter = new Router();
-        $redirection = $filter->filterUrl(Url::getCurrentUrl());
-        if ($redirection !== null) {
-            Url::redirectToUrl($redirection);
-            return;
-        }
-
-        try {
-            $result = $this->doDispatch($module, $action, $parameters);
-            return $result;
-        } catch (NoAccessException $exception) {
-            Log::debug($exception);
-
-            /**
-             * Triggered when a user with insufficient access permissions tries to view some resource.
-             *
-             * This event can be used to customize the error that occurs when a user is denied access
-             * (for example, displaying an error message, redirecting to a page other than login, etc.).
-             *
-             * @param \Piwik\NoAccessException $exception The exception that was caught.
-             */
-            Piwik::postEvent('User.isNotAuthorized', array($exception), $pending = true);
+        if (!empty($_GET['xhprof'])) {
+            $mainRun = $_GET['xhprof'] == 1; // core:archive command sets xhprof=2
+            Profiler::setupProfilerXHProf($mainRun);
         }
     }
 
@@ -475,75 +521,28 @@ class FrontController extends Singleton
         return $result;
     }
 
-    protected function prepareDispatch($module, $action, $parameters)
-    {
-        if (is_null($module)) {
-            $module = Common::getRequestVar('module', self::DEFAULT_MODULE, 'string');
-        }
-
-        if (is_null($action)) {
-            $action = Common::getRequestVar('action', false);
-        }
-
-        if (SettingsPiwik::isPiwikInstalled()
-            && ($module !== 'API' || ($action && $action !== 'index'))
-        ) {
-            Session::start();
-
-            $this->closeSessionEarlyForFasterUI();
-        }
-
-        if (is_null($parameters)) {
-            $parameters = array();
-        }
-
-        if (!ctype_alnum($module)) {
-            throw new Exception("Invalid module name '$module'");
-        }
-
-        list($module, $action) = Request::getRenamedModuleAndAction($module, $action);
-
-        if (!\Piwik\Plugin\Manager::getInstance()->isPluginActivated($module)) {
-            throw new PluginDeactivatedException($module);
-        }
-
-        return array($module, $action, $parameters);
-    }
-
-    private function closeSessionEarlyForFasterUI()
-    {
-        $isDashboardReferrer = !empty($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'module=CoreHome&action=index') !== false;
-        $isAllWebsitesReferrer = !empty($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'module=MultiSites&action=index') !== false;
-
-        if ($isDashboardReferrer
-            && !empty($_POST['token_auth'])
-            && Common::getRequestVar('widget', 0, 'int') === 1
-        ) {
-            Session::close();
-        }
-
-        if (($isDashboardReferrer || $isAllWebsitesReferrer)
-            && Common::getRequestVar('viewDataTable', '', 'string') === 'sparkline'
-        ) {
-            Session::close();
-        }
-    }
-
     /**
-     * Called at the end of the page generation
+     * This method ensures that Piwik Platform cannot be running when using a NEWER database.
      */
-    public function __destruct()
+    private function throwIfPiwikVersionIsOlderThanDBSchema()
     {
-        try {
-            if (class_exists('Piwik\\Profiler')
-                && !SettingsServer::isTrackerApiRequest()
-            ) {
-                // in tracker mode Piwik\Tracker\Db\Pdo\Mysql does currently not implement profiling
-                Profiler::displayDbProfileReport();
-                Profiler::printQueryCount();
-            }
-        } catch (Exception $e) {
-            Log::debug($e);
+        // When developing this situation happens often when switching branches
+        if (Development::isEnabled()) {
+            return;
+        }
+
+        $updater = new Updater();
+
+        $dbSchemaVersion = $updater->getCurrentComponentVersion('core');
+        $current = Version::VERSION;
+        if (-1 === version_compare($current, $dbSchemaVersion)) {
+            $messages = array(
+                Piwik::translate('General_ExceptionDatabaseVersionNewerThanCodebase', array($current, $dbSchemaVersion)),
+                Piwik::translate('General_ExceptionDatabaseVersionNewerThanCodebaseWait'),
+                // we cannot fill in the Super User emails as we are failing before Authentication was ready
+                Piwik::translate('General_ExceptionContactSupportGeneric', array('', ''))
+            );
+            throw new DatabaseSchemaIsNewerThanCodebaseException(implode(" ", $messages));
         }
     }
 }

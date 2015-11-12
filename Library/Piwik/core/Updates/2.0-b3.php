@@ -22,16 +22,6 @@ class Updates_2_0_b3 extends Updates
         return true;
     }
 
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-
-        try {
-            \Piwik\Plugin\Manager::getInstance()->activatePlugin('Events');
-        } catch (\Exception $e) {
-        }
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -42,5 +32,15 @@ class Updates_2_0_b3 extends Updates
             . " ADD COLUMN  idaction_event_category INTEGER(10) UNSIGNED AFTER idaction_name_ref,
 	            ADD COLUMN  idaction_event_action INTEGER(10) UNSIGNED AFTER idaction_event_category" => 1060,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
+
+        try {
+            \Piwik\Plugin\Manager::getInstance()->activatePlugin('Events');
+        } catch (\Exception $e) {
+        }
     }
 }

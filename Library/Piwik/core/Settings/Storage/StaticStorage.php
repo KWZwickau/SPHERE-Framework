@@ -20,15 +20,15 @@ use Piwik\Settings\Storage;
 class StaticStorage extends Storage
 {
 
+    protected function loadSettings()
+    {
+        return array();
+    }
+
     /**
      * Saves (persists) the current setting values in the database.
      */
     public function save()
     {
-    }
-
-    protected function loadSettings()
-    {
-        return array();
     }
 }

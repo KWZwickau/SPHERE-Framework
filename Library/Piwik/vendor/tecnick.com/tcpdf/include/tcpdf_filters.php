@@ -128,6 +128,18 @@ class TCPDF_FILTERS {
 	// --- FILTERS (PDF 32000-2008 - 7.4 Filters) ------------------------------
 
 	/**
+	 * Standard
+	 * Default decoding filter (leaves data unchanged).
+	 * @param $data (string) Data to decode.
+	 * @return Decoded data string.
+	 * @since 1.0.000 (2011-05-23)
+	 * @public static
+	 */
+	public static function decodeFilterStandard($data) {
+		return $data;
+	}
+
+	/**
 	 * ASCIIHexDecode
 	 * Decodes data encoded in an ASCII hexadecimal representation, reproducing the original binary data.
 	 * @param $data (string) Data to decode.
@@ -165,16 +177,6 @@ class TCPDF_FILTERS {
 		// get one byte of binary data for each pair of ASCII hexadecimal digits
 		$decoded = pack('H*', $data);
 		return $decoded;
-	}
-
-	/**
-	 * Throw an exception.
-	 * @param $msg (string) The error message
-	 * @since 1.0.000 (2011-05-23)
-	 * @public static
-	 */
-	public static function Error($msg) {
-		throw new Exception('TCPDF_PARSER ERROR: '.$msg);
 	}
 
 	/**
@@ -463,15 +465,13 @@ class TCPDF_FILTERS {
 	// --- END FILTERS SECTION -------------------------------------------------
 
 	/**
-	 * Standard
-	 * Default decoding filter (leaves data unchanged).
-	 * @param $data (string) Data to decode.
-	 * @return Decoded data string.
+	 * Throw an exception.
+	 * @param $msg (string) The error message
 	 * @since 1.0.000 (2011-05-23)
 	 * @public static
 	 */
-	public static function decodeFilterStandard($data) {
-		return $data;
+	public static function Error($msg) {
+		throw new Exception('TCPDF_PARSER ERROR: '.$msg);
 	}
 
 } // END OF TCPDF_FILTERS CLASS

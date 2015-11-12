@@ -10,9 +10,9 @@ namespace Piwik\Plugins\CoreVisualizations\Visualizations;
 
 use Piwik\DataTable;
 use Piwik\DataTable\Row;
+use Piwik\Plugins\CoreVisualizations\Metrics\Formatter\Numeric;
 use Piwik\Piwik;
 use Piwik\Plugin\Visualization;
-use Piwik\Plugins\CoreVisualizations\Metrics\Formatter\Numeric;
 
 /**
  * This is an abstract visualization that should be the base of any 'graph' visualization.
@@ -65,6 +65,51 @@ abstract class Graph extends Visualization
     }
 
     /**
+     * Determines what rows are selectable and stores them in the selectable_rows property in
+     * a format the SeriesPicker JavaScript class can use.
+     */
+    public function determineWhichRowsAreSelectable()
+    {
+        if ($this->config->row_picker_match_rows_by === false) {
+            return;
+        }
+
+        // collect all selectable rows
+        $self = $this;
+
+        $this->dataTable->filter(function ($dataTable) use ($self) {
+            /** @var DataTable $dataTable */
+
+            foreach ($dataTable->getRows() as $row) {
+                $rowLabel = $row->getColumn('label');
+
+                if (false === $rowLabel) {
+                    continue;
+                }
+
+                // build config
+                if (!isset($self->selectableRows[$rowLabel])) {
+                    $self->selectableRows[$rowLabel] = array(
+                        'label'     => $rowLabel,
+                        'matcher'   => $rowLabel,
+                        'displayed' => $self->isRowVisible($rowLabel)
+                    );
+                }
+            }
+        });
+    }
+
+    public function isRowVisible($rowLabel)
+    {
+        $isVisible = true;
+        if ('label' == $this->config->row_picker_match_rows_by) {
+            $isVisible = in_array($rowLabel, $this->config->rows_to_display);
+        }
+
+        return $isVisible;
+    }
+
+    /**
      * Defaults the selectable_columns property if it has not been set and then transforms
      * it into something the SeriesPicker JavaScript class can use.
      */
@@ -111,50 +156,5 @@ abstract class Graph extends Visualization
         }
 
         $this->config->selectable_columns = $transformed;
-    }
-
-    /**
-     * Determines what rows are selectable and stores them in the selectable_rows property in
-     * a format the SeriesPicker JavaScript class can use.
-     */
-    public function determineWhichRowsAreSelectable()
-    {
-        if ($this->config->row_picker_match_rows_by === false) {
-            return;
-        }
-
-        // collect all selectable rows
-        $self = $this;
-
-        $this->dataTable->filter(function ($dataTable) use ($self) {
-            /** @var DataTable $dataTable */
-
-            foreach ($dataTable->getRows() as $row) {
-                $rowLabel = $row->getColumn('label');
-
-                if (false === $rowLabel) {
-                    continue;
-                }
-
-                // build config
-                if (!isset($self->selectableRows[$rowLabel])) {
-                    $self->selectableRows[$rowLabel] = array(
-                        'label'     => $rowLabel,
-                        'matcher'   => $rowLabel,
-                        'displayed' => $self->isRowVisible($rowLabel)
-                    );
-                }
-            }
-        });
-    }
-
-    public function isRowVisible($rowLabel)
-    {
-        $isVisible = true;
-        if ('label' == $this->config->row_picker_match_rows_by) {
-            $isVisible = in_array($rowLabel, $this->config->rows_to_display);
-        }
-
-        return $isVisible;
     }
 }

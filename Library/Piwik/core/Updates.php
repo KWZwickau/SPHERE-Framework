@@ -32,6 +32,59 @@ namespace Piwik;
 abstract class Updates
 {
     /**
+     * @deprecated since v2.12.0 use getMigrationQueries() instead
+     */
+    public static function getSql()
+    {
+        return array();
+    }
+
+    /**
+     * @deprecated since v2.12.0 use doUpdate() instead
+     */
+    public static function update()
+    {
+    }
+
+    /**
+     * Return SQL to be executed in this update.
+     *
+     * SQL queries should be defined here, instead of in `doUpdate()`, since this method is used
+     * in the `core:update` command when displaying the queries an update will run. If you execute
+     * queries directly in `doUpdate()`, they won't be displayed to the user.
+     *
+     * @param Updater $updater
+     * @return array ```
+     *               array(
+     *                   'ALTER .... ' => '1234', // if the query fails, it will be ignored if the error code is 1234
+     *                   'ALTER .... ' => false,  // if an error occurs, the update will stop and fail
+     *                                            // and user will have to manually run the query
+     *               )
+     *               ```
+     * @api
+     */
+    public function getMigrationQueries(Updater $updater)
+    {
+        return static::getSql();
+    }
+
+    /**
+     * Perform the incremental version update.
+     *
+     * This method should preform all updating logic. If you define queries in an overridden `getMigrationQueries()`
+     * method, you must call {@link Updater::executeMigrationQueries()} here.
+     *
+     * See {@link Updates} for an example.
+     *
+     * @param Updater $updater
+     * @api
+     */
+    public function doUpdate(Updater $updater)
+    {
+        static::update();
+    }
+
+    /**
      * Tell the updater that this is a major update.
      * Leads to a more visible notice.
      *
@@ -100,58 +153,5 @@ abstract class Updates
 
             $config->forceSave();
         }
-    }
-
-    /**
-     * Return SQL to be executed in this update.
-     *
-     * SQL queries should be defined here, instead of in `doUpdate()`, since this method is used
-     * in the `core:update` command when displaying the queries an update will run. If you execute
-     * queries directly in `doUpdate()`, they won't be displayed to the user.
-     *
-     * @param Updater $updater
-     * @return array ```
-     *               array(
-     *                   'ALTER .... ' => '1234', // if the query fails, it will be ignored if the error code is 1234
-     *                   'ALTER .... ' => false,  // if an error occurs, the update will stop and fail
-     *                                            // and user will have to manually run the query
-     *               )
-     *               ```
-     * @api
-     */
-    public function getMigrationQueries(Updater $updater)
-    {
-        return static::getSql();
-    }
-
-    /**
-     * @deprecated since v2.12.0 use getMigrationQueries() instead
-     */
-    public static function getSql()
-    {
-        return array();
-    }
-
-    /**
-     * Perform the incremental version update.
-     *
-     * This method should preform all updating logic. If you define queries in an overridden `getMigrationQueries()`
-     * method, you must call {@link Updater::executeMigrationQueries()} here.
-     *
-     * See {@link Updates} for an example.
-     *
-     * @param Updater $updater
-     * @api
-     */
-    public function doUpdate(Updater $updater)
-    {
-        static::update();
-    }
-
-    /**
-     * @deprecated since v2.12.0 use doUpdate() instead
-     */
-    public static function update()
-    {
     }
 }

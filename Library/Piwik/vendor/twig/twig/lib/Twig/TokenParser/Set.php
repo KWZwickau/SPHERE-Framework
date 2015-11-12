@@ -66,6 +66,11 @@ class Twig_TokenParser_Set extends Twig_TokenParser
         return new Twig_Node_Set($capture, $names, $values, $lineno, $this->getTag());
     }
 
+    public function decideBlockEnd(Twig_Token $token)
+    {
+        return $token->test('endset');
+    }
+
     /**
      * Gets the tag name associated with this token parser.
      *
@@ -74,10 +79,5 @@ class Twig_TokenParser_Set extends Twig_TokenParser
     public function getTag()
     {
         return 'set';
-    }
-
-    public function decideBlockEnd(Twig_Token $token)
-    {
-        return $token->test('endset');
     }
 }

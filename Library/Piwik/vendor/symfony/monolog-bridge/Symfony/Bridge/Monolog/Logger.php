@@ -12,8 +12,8 @@
 namespace Symfony\Bridge\Monolog;
 
 use Monolog\Logger as BaseLogger;
-use Symfony\Component\HttpKernel\Log\DebugLoggerInterface;
 use Symfony\Component\HttpKernel\Log\LoggerInterface;
+use Symfony\Component\HttpKernel\Log\DebugLoggerInterface;
 
 /**
  * Logger.
@@ -67,6 +67,18 @@ class Logger extends BaseLogger implements LoggerInterface, DebugLoggerInterface
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function countErrors()
+    {
+        if ($logger = $this->getDebugLogger()) {
+            return $logger->countErrors();
+        }
+
+        return 0;
+    }
+
+    /**
      * Returns a DebugLoggerInterface instance if one is registered with this logger.
      *
      * @return DebugLoggerInterface|null A DebugLoggerInterface instance or null if none is registered
@@ -78,17 +90,5 @@ class Logger extends BaseLogger implements LoggerInterface, DebugLoggerInterface
                 return $handler;
             }
         }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function countErrors()
-    {
-        if ($logger = $this->getDebugLogger()) {
-            return $logger->countErrors();
-        }
-
-        return 0;
     }
 }

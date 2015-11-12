@@ -8,8 +8,8 @@
  */
 namespace Piwik\Cache\Backend;
 
-use Doctrine\Common\Cache\ArrayCache as DoctrineArrayCache;
 use Piwik\Cache\Backend;
+use Doctrine\Common\Cache\ArrayCache as DoctrineArrayCache;
 
 class ArrayCache extends DoctrineArrayCache implements Backend
 {
@@ -17,6 +17,11 @@ class ArrayCache extends DoctrineArrayCache implements Backend
     public function doFetch($id)
     {
         return parent::doFetch($id);
+    }
+
+    public function doContains($id)
+    {
+        return parent::doContains($id);
     }
 
     public function doSave($id, $data, $lifeTime = 0)
@@ -31,11 +36,6 @@ class ArrayCache extends DoctrineArrayCache implements Backend
         }
 
         return parent::doDelete($id);
-    }
-
-    public function doContains($id)
-    {
-        return parent::doContains($id);
     }
 
     public function doFlush()

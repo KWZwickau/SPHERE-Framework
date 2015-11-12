@@ -16,6 +16,16 @@ use Piwik\Plugins\Referrers\Referrers;
 
 class GetAll extends Base
 {
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new Referrer();
+        $this->name          = Piwik::translate('Referrers_WidgetGetAll');
+        $this->documentation = Piwik::translate('Referrers_AllReferrersReportDocumentation', '<br />');
+        $this->order = 2;
+        $this->widgetTitle  = 'Referrers_WidgetGetAll';
+    }
+
     public function getDefaultTypeViewDataTable()
     {
         return HtmlTable\AllColumns::ID;
@@ -37,16 +47,6 @@ class GetAll extends Base
         }
 
         $view->config->filters[] = array('MetadataCallbackAddMetadata', array('referer_type', 'html_label_prefix', $setGetAllHtmlPrefix));
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension     = new Referrer();
-        $this->name          = Piwik::translate('Referrers_WidgetGetAll');
-        $this->documentation = Piwik::translate('Referrers_AllReferrersReportDocumentation', '<br />');
-        $this->order = 2;
-        $this->widgetTitle  = 'Referrers_WidgetGetAll';
     }
 
 }

@@ -16,6 +16,16 @@ use Piwik\Plugins\Provider\Columns\Provider;
 
 class GetProvider extends Report
 {
+    protected function init()
+    {
+        $this->category      = 'General_Visitors';
+        $this->dimension     = new Provider();
+        $this->name          = Piwik::translate('Provider_ColumnProvider');
+        $this->documentation = Piwik::translate('Provider_ProviderReportDocumentation', '<br />');
+        $this->order = 50;
+        $this->widgetTitle  = 'Provider_WidgetProviders';
+    }
+
     public function configureView(ViewDataTable $view)
     {
         $view->requestConfig->filter_limit = 5;
@@ -29,15 +39,5 @@ class GetProvider extends Report
                 );
         }
         $view->config->show_footer_message = $message;
-    }
-
-    protected function init()
-    {
-        $this->category      = 'General_Visitors';
-        $this->dimension     = new Provider();
-        $this->name          = Piwik::translate('Provider_ColumnProvider');
-        $this->documentation = Piwik::translate('Provider_ProviderReportDocumentation', '<br />');
-        $this->order = 50;
-        $this->widgetTitle  = 'Provider_WidgetProviders';
     }
 }

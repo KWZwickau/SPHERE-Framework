@@ -52,17 +52,33 @@ class DiagnosticResult
         return $result;
     }
 
-    public function addItem(DiagnosticResultItem $item)
-    {
-        $this->items[] = $item;
-    }
-
     /**
      * @return string
      */
     public function getLabel()
     {
         return $this->label;
+    }
+
+    /**
+     * @return DiagnosticResultItem[]
+     */
+    public function getItems()
+    {
+        return $this->items;
+    }
+
+    public function addItem(DiagnosticResultItem $item)
+    {
+        $this->items[] = $item;
+    }
+
+    /**
+     * @param DiagnosticResultItem[] $items
+     */
+    public function setItems(array $items)
+    {
+        $this->items = $items;
     }
 
     /**
@@ -101,21 +117,5 @@ class DiagnosticResult
         }
 
         return $status;
-    }
-
-    /**
-     * @return DiagnosticResultItem[]
-     */
-    public function getItems()
-    {
-        return $this->items;
-    }
-
-    /**
-     * @param DiagnosticResultItem[] $items
-     */
-    public function setItems(array $items)
-    {
-        $this->items = $items;
     }
 }

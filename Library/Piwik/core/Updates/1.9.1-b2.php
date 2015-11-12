@@ -17,6 +17,13 @@ use Piwik\Updates;
  */
 class Updates_1_9_1_b2 extends Updates
 {
+    public function getMigrationQueries(Updater $updater)
+    {
+        return array(
+            'ALTER TABLE ' . Common::prefixTable('site') . " DROP `feedburnerName`" => 1091
+        );
+    }
+
     public function doUpdate(Updater $updater)
     {
         // manually remove ExampleFeedburner column
@@ -25,12 +32,5 @@ class Updates_1_9_1_b2 extends Updates
         // remove ExampleFeedburner plugin
         $pluginToDelete = 'ExampleFeedburner';
         self::deletePluginFromConfigFile($pluginToDelete);
-    }
-
-    public function getMigrationQueries(Updater $updater)
-    {
-        return array(
-            'ALTER TABLE ' . Common::prefixTable('site') . " DROP `feedburnerName`" => 1091
-        );
     }
 }

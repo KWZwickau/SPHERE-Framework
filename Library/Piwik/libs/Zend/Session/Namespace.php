@@ -48,18 +48,7 @@ class Zend_Session_Namespace extends Zend_Session_Abstract implements IteratorAg
      * used as option to constructor to prevent additional instances to the same namespace
      */
     const SINGLE_INSTANCE = true;
-    /**
-     * Namespace locking mechanism
-     *
-     * @var array
-     */
-    protected static $_namespaceLocks = array();
-    /**
-     * Single instance namespace array to ensure data security.
-     *
-     * @var array
-     */
-    protected static $_singleInstances = array();
+
     /**
      * Namespace - which namespace this instance of zend-session is saving-to/getting-from
      *
@@ -68,13 +57,46 @@ class Zend_Session_Namespace extends Zend_Session_Abstract implements IteratorAg
     protected $_namespace = "Default";
 
     /**
+     * Namespace locking mechanism
+     *
+     * @var array
+     */
+    protected static $_namespaceLocks = array();
+
+    /**
+     * Single instance namespace array to ensure data security.
+     *
+     * @var array
+     */
+    protected static $_singleInstances = array();
+
+    /**
+     * resetSingleInstance()
+     *
+     * @param string $namespaceName
+     * @return null
+     */
+    public static function resetSingleInstance($namespaceName = null)
+    {
+        if ($namespaceName != null) {
+            if (array_key_exists($namespaceName, self::$_singleInstances)) {
+                unset(self::$_singleInstances[$namespaceName]);
+            }
+            return;
+        }
+
+        self::$_singleInstances = array();
+        return;
+    }
+
+    /**
      * __construct() - Returns an instance object bound to a particular, isolated section
      * of the session, identified by $namespace name (defaulting to 'Default').
      * The optional argument $singleInstance will prevent construction of additional
      * instance objects acting as accessors to this $namespace.
      *
-     * @param string $namespace - programmatic name of the requested namespace
-     * @param bool $singleInstance - prevent creation of additional accessor instance objects for this namespace
+     * @param string $namespace       - programmatic name of the requested namespace
+     * @param bool $singleInstance    - prevent creation of additional accessor instance objects for this namespace
      * @return void
      */
     public function __construct($namespace = 'Default', $singleInstance = false)
@@ -162,7 +184,7 @@ class Zend_Session_Namespace extends Zend_Session_Abstract implements IteratorAg
                             unset($_SESSION['__ZF'][$namespace]['ENVNH'][$variable]);
                         }
                     }
-                    if (empty($_SESSION['__ZF'][$namespace]['ENVNH'])) {
+                    if(empty($_SESSION['__ZF'][$namespace]['ENVNH'])) {
                         unset($_SESSION['__ZF'][$namespace]['ENVNH']);
                     }
                 }
@@ -178,34 +200,6 @@ class Zend_Session_Namespace extends Zend_Session_Abstract implements IteratorAg
         }
     }
 
-    /**
-     * resetSingleInstance()
-     *
-     * @param string $namespaceName
-     * @return null
-     */
-    public static function resetSingleInstance($namespaceName = null)
-    {
-        if ($namespaceName != null) {
-            if (array_key_exists($namespaceName, self::$_singleInstances)) {
-                unset(self::$_singleInstances[$namespaceName]);
-            }
-            return;
-        }
-
-        self::$_singleInstances = array();
-        return;
-    }
-
-    /**
-     * unlockAll() - unmark all session/namespaces to enable read & write
-     *
-     * @return void
-     */
-    public static function unlockAll()
-    {
-        self::$_namespaceLocks = array();
-    }
 
     /**
      * getIterator() - return an iteratable object for use in foreach and the like,
@@ -218,6 +212,7 @@ class Zend_Session_Namespace extends Zend_Session_Abstract implements IteratorAg
         return new ArrayObject(parent::_namespaceGetAll($this->_namespace));
     }
 
+
     /**
      * lock() - mark a session/namespace as readonly
      *
@@ -228,6 +223,7 @@ class Zend_Session_Namespace extends Zend_Session_Abstract implements IteratorAg
         self::$_namespaceLocks[$this->_namespace] = true;
     }
 
+
     /**
      * unlock() - unmark a session/namespace to enable read & write
      *
@@ -237,6 +233,18 @@ class Zend_Session_Namespace extends Zend_Session_Abstract implements IteratorAg
     {
         unset(self::$_namespaceLocks[$this->_namespace]);
     }
+
+
+    /**
+     * unlockAll() - unmark all session/namespaces to enable read & write
+     *
+     * @return void
+     */
+    public static function unlockAll()
+    {
+        self::$_namespaceLocks = array();
+    }
+
 
     /**
      * isLocked() - return lock status, true if, and only if, read-only
@@ -314,7 +322,7 @@ class Zend_Session_Namespace extends Zend_Session_Abstract implements IteratorAg
             throw new Zend_Session_Exception(parent::_THROW_NOT_WRITABLE_MSG);
         }
 
-        $name = (string)$name;
+        $name = (string) $name;
 
         $_SESSION[$this->_namespace][$name] = $value;
     }
@@ -411,7 +419,7 @@ class Zend_Session_Namespace extends Zend_Session_Abstract implements IteratorAg
      * setExpirationSeconds() - expire the namespace, or specific variables after a specified
      * number of seconds
      *
-     * @param int $seconds - expires in this many seconds
+     * @param int $seconds     - expires in this many seconds
      * @param mixed $variables - OPTIONAL list of variables to expire (defaults to all)
      * @throws Zend_Session_Exception
      * @return void
@@ -458,7 +466,7 @@ class Zend_Session_Namespace extends Zend_Session_Abstract implements IteratorAg
      * setExpirationHops() - expire the namespace, or specific variables after a specified
      * number of page hops
      *
-     * @param int $hops - how many "hops" (number of subsequent requests) before expiring
+     * @param int $hops        - how many "hops" (number of subsequent requests) before expiring
      * @param mixed $variables - OPTIONAL list of variables to expire (defaults to all)
      * @param boolean $hopCountOnUsageOnly - OPTIONAL if set, only count a hop/request if this namespace is used
      * @throws Zend_Session_Exception

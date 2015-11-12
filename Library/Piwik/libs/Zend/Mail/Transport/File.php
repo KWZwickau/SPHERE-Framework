@@ -95,17 +95,6 @@ class Zend_Mail_Transport_File extends Zend_Mail_Transport_Abstract
     }
 
     /**
-     * Default callback for generating filenames
-     *
-     * @param Zend_Mail_Transport_File File transport instance
-     * @return string
-     */
-    public function defaultCallback($transport)
-    {
-        return 'ZendMail_' . $_SERVER['REQUEST_TIME'] . '_' . mt_rand() . '.tmp';
-    }
-
-    /**
      * Saves e-mail message to a file
      *
      * @return void
@@ -130,5 +119,16 @@ class Zend_Mail_Transport_File extends Zend_Mail_Transport_Abstract
             // require_once 'Zend/Mail/Transport/Exception.php';
             throw new Zend_Mail_Transport_Exception('Unable to send mail');
         }
+    }
+
+    /**
+     * Default callback for generating filenames
+     *
+     * @param Zend_Mail_Transport_File File transport instance
+     * @return string
+     */
+    public function defaultCallback($transport)
+    {
+        return 'ZendMail_' . $_SERVER['REQUEST_TIME'] . '_' . mt_rand() . '.tmp';
     }
 }

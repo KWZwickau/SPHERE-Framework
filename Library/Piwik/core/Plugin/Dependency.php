@@ -23,11 +23,6 @@ class Dependency
         $this->setPiwikVersion(Version::VERSION);
     }
 
-    public function setPiwikVersion($piwikVersion)
-    {
-        $this->piwikVersion = $piwikVersion;
-    }
-
     public function getMissingDependencies($requires)
     {
         $missingRequirements = array();
@@ -51,6 +46,35 @@ class Dependency
         }
 
         return $missingRequirements;
+    }
+
+    public function getMissingVersions($currentVersion, $requiredVersion)
+    {
+        $currentVersion   = trim($currentVersion);
+        $requiredVersions = explode(',', (string) $requiredVersion);
+
+        $missingVersions = array();
+
+        foreach ($requiredVersions as $required) {
+            $comparison = '>=';
+            $required   = trim($required);
+
+            if (preg_match('{^(<>|!=|>=?|<=?|==?)\s*(.*)}', $required, $matches)) {
+                $required   = $matches[2];
+                $comparison = trim($matches[1]);
+            }
+
+            if (false === version_compare($currentVersion, $required, $comparison)) {
+                $missingVersions[] = $comparison . $required;
+            }
+        }
+
+        return $missingVersions;
+    }
+
+    public function setPiwikVersion($piwikVersion)
+    {
+        $this->piwikVersion = $piwikVersion;
     }
 
     private function getCurrentVersion($name)
@@ -78,29 +102,5 @@ class Dependency
         }
 
         return '';
-    }
-
-    public function getMissingVersions($currentVersion, $requiredVersion)
-    {
-        $currentVersion   = trim($currentVersion);
-        $requiredVersions = explode(',', (string) $requiredVersion);
-
-        $missingVersions = array();
-
-        foreach ($requiredVersions as $required) {
-            $comparison = '>=';
-            $required   = trim($required);
-
-            if (preg_match('{^(<>|!=|>=?|<=?|==?)\s*(.*)}', $required, $matches)) {
-                $required   = $matches[2];
-                $comparison = trim($matches[1]);
-            }
-
-            if (false === version_compare($currentVersion, $required, $comparison)) {
-                $missingVersions[] = $comparison . $required;
-            }
-        }
-
-        return $missingVersions;
     }
 }

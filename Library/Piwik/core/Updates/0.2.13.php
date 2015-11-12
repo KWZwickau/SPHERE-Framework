@@ -17,11 +17,6 @@ use Piwik\Updates;
  */
 class Updates_0_2_13 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -34,5 +29,10 @@ class Updates_0_2_13 extends Updates
 				PRIMARY KEY ( option_name )
 			)" => 1050,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

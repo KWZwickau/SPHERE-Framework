@@ -9,8 +9,7 @@ var getReportParametersFunctions = Object();
 var updateReportParametersFunctions = Object();
 var resetReportParametersFunctions = Object();
 
-function formSetEditReport(idReport)
-{
+function formSetEditReport(idReport) {
     var report = {
         'type': ReportPlugin.defaultReportType,
         'format': ReportPlugin.defaultReportFormat,
@@ -37,14 +36,13 @@ function formSetEditReport(idReport)
     $('#report_hour').val(report.hour);
     $('[name=report_format].' + report.type + ' option[value=' + report.format + ']').prop('selected', 'selected');
 
-    $('select[name=report_type]').change(toggleDisplayOptionsByFormat);
-    $('select[name=report_format]').change(toggleDisplayOptionsByFormat);
+    $('select[name=report_type]').change( toggleDisplayOptionsByFormat );
+    $('select[name=report_format]').change( toggleDisplayOptionsByFormat );
 
     // When CSV is selected, hide "Display options"
     toggleDisplayOptionsByFormat();
 
-    function toggleDisplayOptionsByFormat()
-    {
+    function toggleDisplayOptionsByFormat() {
         var selectorReportFormat = 'select[name=report_format].' + $('#report_type').val();
         var format = $(selectorReportFormat).val();
         var displayOptionsSelector = $('#row_report_display_options');
@@ -67,8 +65,7 @@ function formSetEditReport(idReport)
     $('#report_idreport').val(idReport);
 }
 
-function getReportAjaxRequest(idReport, defaultApiMethod)
-{
+function getReportAjaxRequest(idReport, defaultApiMethod) {
     var parameters = {};
     piwikHelper.lazyScrollTo(".emailReports>h2", 400);
     parameters.module = 'API';
@@ -80,18 +77,15 @@ function getReportAjaxRequest(idReport, defaultApiMethod)
     return parameters;
 }
 
-function toggleReportType(reportType)
-{
+function toggleReportType(reportType) {
     resetReportParametersFunctions[reportType]();
-    $('#report_type').find('option').each(function (index, type)
-    {
+    $('#report_type').find('option').each(function (index, type) {
         $('.' + $(type).val()).hide();
     });
     $('.' + reportType).show();
 }
 
-function fadeInOutSuccessMessage(selector, message)
-{
+function fadeInOutSuccessMessage(selector, message) {
 
     var UI = require('piwik/UI');
     var notification = new UI.Notification();
@@ -107,11 +101,9 @@ function fadeInOutSuccessMessage(selector, message)
     piwikHelper.refreshAfter(2);
 }
 
-function initManagePdf()
-{
+function initManagePdf() {
     // Click Add/Update Submit
-    $('#addEditReport').submit(function ()
-    {
+    $('#addEditReport').submit(function () {
         var idReport = $('#report_idreport').val();
         var apiParameters = getReportAjaxRequest(idReport, 'ScheduledReports.updateReport');
         apiParameters.idReport = idReport;
@@ -121,8 +113,7 @@ function initManagePdf()
         apiParameters.reportFormat = $('[name=report_format].' + apiParameters.reportType + ' option:selected').val();
 
         var reports = [];
-        $('[name=reportsList].' + apiParameters.reportType + ' input:checked').each(function ()
-        {
+        $('[name=reportsList].' + apiParameters.reportType + ' input:checked').each(function () {
             reports.push($(this).attr('report-unique-id'));
         });
         if (reports.length > 0) {
@@ -138,8 +129,7 @@ function initManagePdf()
         ajaxHandler.redirectOnSuccess();
         ajaxHandler.setLoadingElement();
         if (idReport) {
-            ajaxHandler.setCallback(function (response)
-            {
+            ajaxHandler.setCallback(function (response) {
 
                 fadeInOutSuccessMessage('#reportUpdatedSuccess', _pk_translate('ScheduledReports_ReportUpdated'));
             });
@@ -149,8 +139,7 @@ function initManagePdf()
     });
 
     // Email now
-    $('a[name=linkSendNow]').click(function ()
-    {
+    $('a[name=linkSendNow]').click(function () {
         var idReport = $(this).attr('idreport');
         var parameters = getReportAjaxRequest(idReport, 'ScheduledReports.sendReport');
         parameters.idReport = idReport;
@@ -159,20 +148,17 @@ function initManagePdf()
         var ajaxHandler = new ajaxHelper();
         ajaxHandler.addParams(parameters, 'POST');
         ajaxHandler.setLoadingElement();
-        ajaxHandler.setCallback(function (response)
-        {
+        ajaxHandler.setCallback(function (response) {
             fadeInOutSuccessMessage('#reportSentSuccess', _pk_translate('ScheduledReports_ReportSent'));
         });
         ajaxHandler.send(true);
     });
 
     // Delete Report
-    $('.delete-report').click(function ()
-    {
+    $('.delete-report').click(function () {
         var idReport = $(this).attr('id');
 
-        function onDelete()
-        {
+        function onDelete() {
             var parameters = getReportAjaxRequest(idReport, 'ScheduledReports.deleteReport');
             parameters.idReport = idReport;
 
@@ -187,8 +173,7 @@ function initManagePdf()
     });
 
     // Edit Report click
-    $('.edit-report').click(function ()
-    {
+    $('.edit-report').click(function () {
         var idReport = $(this).attr('id');
         formSetEditReport(idReport);
         $('.entityAddContainer').show();
@@ -197,23 +182,20 @@ function initManagePdf()
     });
 
     // Switch Report Type
-    $('#report_type').change(function ()
-    {
+    $('#report_type').change(function () {
         var reportType = $(this).val();
         toggleReportType(reportType);
     });
 
     // Add a Report click
-    $('#add-report').click(function ()
-    {
+    $('#add-report').click(function () {
         $('.entityAddContainer').show();
         $('#entityEditContainer').hide();
         formSetEditReport(/*idReport = */0);
     });
 
     // Cancel click
-    $('.entityCancelLink').click(function ()
-    {
+    $('.entityCancelLink').click(function () {
         $('.entityAddContainer').hide();
         $('#entityEditContainer').show();
         piwikHelper.hideAjaxError();

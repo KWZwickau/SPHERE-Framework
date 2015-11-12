@@ -9,15 +9,16 @@
 namespace Piwik\Plugins\Live;
 
 use Piwik\Common;
+use Piwik\DataAccess\LogAggregator;
 use Piwik\DataTable\Filter\ColumnDelete;
 use Piwik\Date;
 use Piwik\Db;
 use Piwik\Metrics\Formatter;
 use Piwik\Network\IPUtils;
 use Piwik\Piwik;
-use Piwik\Plugins\Actions\Actions\ActionSiteSearch;
 use Piwik\Plugins\CustomVariables\CustomVariables;
 use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
+use Piwik\Plugins\Actions\Actions\ActionSiteSearch;
 use Piwik\Tracker;
 use Piwik\Tracker\Action;
 use Piwik\Tracker\GoalManager;
@@ -31,6 +32,95 @@ class Visitor implements VisitorInterface
     function __construct($visitorRawData)
     {
         $this->details = $visitorRawData;
+    }
+
+    function getAllVisitorDetails()
+    {
+        $visitor = array(
+            'idSite'                      => $this->getIdSite(),
+            'idVisit'                     => $this->getIdVisit(),
+            'visitIp'                     => $this->getIp(),
+            'visitorId'                   => $this->getVisitorId(),
+
+            // => false are placeholders to be filled in API later
+            'actionDetails'               => false,
+            'goalConversions'             => false,
+            'siteCurrency'                => false,
+            'siteCurrencySymbol'          => false,
+
+            // all time entries
+            'serverDate'                  => $this->getServerDate(),
+            'visitServerHour'             => $this->getVisitServerHour(),
+            'lastActionTimestamp'         => $this->getTimestampLastAction(),
+            'lastActionDateTime'          => $this->getDateTimeLastAction(),
+        );
+
+        /**
+         * This event can be used to add any details to a visitor. The visitor's details are for instance used in
+         * API requests like 'Live.getVisitorProfile' and 'Live.getLastVisitDetails'. This can be useful for instance
+         * in case your plugin defines any visit dimensions and you want to add the value of your dimension to a user.
+         * It can be also useful if you want to enrich a visitor with custom fields based on other fields or if you
+         * want to change or remove any fields from the user.
+         *
+         * **Example**
+         *
+         *     Piwik::addAction('Live.getAllVisitorDetails', function (&visitor, $details) {
+         *         $visitor['userPoints'] = $details['actions'] + $details['events'] + $details['searches'];
+         *         unset($visitor['anyFieldYouWantToRemove']);
+         *     });
+         *
+         * @param array &visitor You can add or remove fields to the visitor array and it will reflected in the API output
+         * @param array $details The details array contains all visit dimensions (columns of log_visit table)
+         */
+        Piwik::postEvent('Live.getAllVisitorDetails', array(&$visitor, $this->details));
+
+        return $visitor;
+    }
+
+    function getVisitorId()
+    {
+        if (isset($this->details['idvisitor'])) {
+            return bin2hex($this->details['idvisitor']);
+        }
+        return false;
+    }
+
+    function getVisitServerHour()
+    {
+        return date('G', strtotime($this->details['visit_last_action_time']));
+    }
+
+    function getServerDate()
+    {
+        return date('Y-m-d', strtotime($this->details['visit_last_action_time']));
+    }
+
+    function getIp()
+    {
+        if (isset($this->details['location_ip'])) {
+            return IPUtils::binaryToStringIP($this->details['location_ip']);
+        }
+        return null;
+    }
+
+    function getIdVisit()
+    {
+        return $this->details['idvisit'];
+    }
+
+    function getIdSite()
+    {
+        return $this->details['idsite'];
+    }
+
+    function getTimestampLastAction()
+    {
+        return strtotime($this->details['visit_last_action_time']);
+    }
+
+    function getDateTimeLastAction()
+    {
+        return date('Y-m-d H:i:s', strtotime($this->details['visit_last_action_time']));
     }
 
     /**
@@ -204,11 +294,11 @@ class Visitor implements VisitorInterface
 
                 unset($actionDetail['pageTitle']);
 
-            } else {if ($actionDetail['type'] == Action::TYPE_SITE_SEARCH) {
+            } else if ($actionDetail['type'] == Action::TYPE_SITE_SEARCH) {
                 // Handle Site Search
                 $actionDetail['siteSearchKeyword'] = $actionDetail['pageTitle'];
                 unset($actionDetail['pageTitle']);
-            }}
+            }
 
             // Event value / Generation time
             if ($actionDetail['type'] == Action::TYPE_EVENT_CATEGORY) {
@@ -383,94 +473,5 @@ class Visitor implements VisitorInterface
         }
 
         return 1;
-    }
-
-    function getAllVisitorDetails()
-    {
-        $visitor = array(
-            'idSite'                      => $this->getIdSite(),
-            'idVisit'                     => $this->getIdVisit(),
-            'visitIp'                     => $this->getIp(),
-            'visitorId'                   => $this->getVisitorId(),
-
-            // => false are placeholders to be filled in API later
-            'actionDetails'               => false,
-            'goalConversions'             => false,
-            'siteCurrency'                => false,
-            'siteCurrencySymbol'          => false,
-
-            // all time entries
-            'serverDate'                  => $this->getServerDate(),
-            'visitServerHour'             => $this->getVisitServerHour(),
-            'lastActionTimestamp'         => $this->getTimestampLastAction(),
-            'lastActionDateTime'          => $this->getDateTimeLastAction(),
-        );
-
-        /**
-         * This event can be used to add any details to a visitor. The visitor's details are for instance used in
-         * API requests like 'Live.getVisitorProfile' and 'Live.getLastVisitDetails'. This can be useful for instance
-         * in case your plugin defines any visit dimensions and you want to add the value of your dimension to a user.
-         * It can be also useful if you want to enrich a visitor with custom fields based on other fields or if you
-         * want to change or remove any fields from the user.
-         *
-         * **Example**
-         *
-         *     Piwik::addAction('Live.getAllVisitorDetails', function (&visitor, $details) {
-         *         $visitor['userPoints'] = $details['actions'] + $details['events'] + $details['searches'];
-         *         unset($visitor['anyFieldYouWantToRemove']);
-         *     });
-         *
-         * @param array &visitor You can add or remove fields to the visitor array and it will reflected in the API output
-         * @param array $details The details array contains all visit dimensions (columns of log_visit table)
-         */
-        Piwik::postEvent('Live.getAllVisitorDetails', array(&$visitor, $this->details));
-
-        return $visitor;
-    }
-
-    function getIdSite()
-    {
-        return $this->details['idsite'];
-    }
-
-    function getIdVisit()
-    {
-        return $this->details['idvisit'];
-    }
-
-    function getIp()
-    {
-        if (isset($this->details['location_ip'])) {
-            return IPUtils::binaryToStringIP($this->details['location_ip']);
-        }
-        return null;
-    }
-
-    function getVisitorId()
-    {
-        if (isset($this->details['idvisitor'])) {
-            return bin2hex($this->details['idvisitor']);
-        }
-        return false;
-    }
-
-    function getServerDate()
-    {
-        return date('Y-m-d', strtotime($this->details['visit_last_action_time']));
-    }
-
-    function getVisitServerHour()
-    {
-        return date('G', strtotime($this->details['visit_last_action_time']));
-    }
-
-    function getTimestampLastAction()
-    {
-        return strtotime($this->details['visit_last_action_time']);
-    }
-
-    function getDateTimeLastAction()
-    {
-        return date('Y-m-d H:i:s', strtotime($this->details['visit_last_action_time']));
     }
 }

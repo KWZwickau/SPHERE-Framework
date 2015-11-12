@@ -17,16 +17,16 @@ use Piwik\Updates;
  */
 class Updates_1_5_b4 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
             'ALTER TABLE `' . Common::prefixTable('site') . '`
 				 ADD ecommerce TINYINT DEFAULT 0' => 1060,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

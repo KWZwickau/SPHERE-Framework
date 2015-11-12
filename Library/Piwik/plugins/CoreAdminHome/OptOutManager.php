@@ -69,6 +69,14 @@ class OptOutManager
     }
 
     /**
+     * @return array
+     */
+    public function getJavascripts()
+    {
+        return $this->javascripts;
+    }
+
+    /**
      * Add a stylesheet file|code into the OptOut View
      * Note: This method will not escape the inline css code!
      *
@@ -82,11 +90,71 @@ class OptOutManager
     }
 
     /**
+     * @return array
+     */
+    public function getStylesheets()
+    {
+        return $this->stylesheets;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTitle()
+    {
+        return $this->title;
+    }
+
+    /**
+     * @param string $title
+     */
+    public function setTitle($title)
+    {
+        $this->title = $title;
+    }
+
+    /**
+     * @param string $key
+     * @param string $value
+     * @param bool $override
+     *
+     * @return bool
+     */
+    public function addQueryParameter($key, $value, $override = true)
+    {
+        if (!isset($this->queryParameters[$key]) || true === $override) {
+            $this->queryParameters[$key] = $value;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param array $items
+     * @param bool|true $override
+     */
+    public function addQueryParameters(array $items, $override = true)
+    {
+        foreach ($items as $key => $value) {
+            $this->addQueryParameter($key, $value, $override);
+        }
+    }
+
+    /**
      * @param $key
      */
     public function removeQueryParameter($key)
     {
         unset($this->queryParameters[$key]);
+    }
+
+    /**
+     * @return array
+     */
+    public function getQueryParameters()
+    {
+        return $this->queryParameters;
     }
 
     /**
@@ -153,73 +221,5 @@ class OptOutManager
     protected function getDoNotTrackHeaderChecker()
     {
         return $this->doNotTrackHeaderChecker;
-    }
-
-    /**
-     * @param array $items
-     * @param bool|true $override
-     */
-    public function addQueryParameters(array $items, $override = true)
-    {
-        foreach ($items as $key => $value) {
-            $this->addQueryParameter($key, $value, $override);
-        }
-    }
-
-    /**
-     * @param string $key
-     * @param string $value
-     * @param bool $override
-     *
-     * @return bool
-     */
-    public function addQueryParameter($key, $value, $override = true)
-    {
-        if (!isset($this->queryParameters[$key]) || true === $override) {
-            $this->queryParameters[$key] = $value;
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @return array
-     */
-    public function getJavascripts()
-    {
-        return $this->javascripts;
-    }
-
-    /**
-     * @return array
-     */
-    public function getStylesheets()
-    {
-        return $this->stylesheets;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTitle()
-    {
-        return $this->title;
-    }
-
-    /**
-     * @param string $title
-     */
-    public function setTitle($title)
-    {
-        $this->title = $title;
-    }
-
-    /**
-     * @return array
-     */
-    public function getQueryParameters()
-    {
-        return $this->queryParameters;
     }
 }

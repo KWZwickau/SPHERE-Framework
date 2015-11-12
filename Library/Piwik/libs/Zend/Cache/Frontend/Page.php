@@ -154,36 +154,6 @@ class Zend_Cache_Frontend_Page extends Zend_Cache_Core
     }
 
     /**
-     * Specific setter for the 'regexps' option (with some additional tests)
-     *
-     * @param  array $options Associative array
-     * @throws Zend_Cache_Exception
-     * @return void
-     */
-    protected function _setRegexps($regexps)
-    {
-        if (!is_array($regexps)) {
-            Zend_Cache::throwException('regexps option must be an array !');
-        }
-        foreach ($regexps as $regexp=>$conf) {
-            if (!is_array($conf)) {
-                Zend_Cache::throwException('regexps option must be an array of arrays !');
-            }
-            $validKeys = array_keys($this->_specificOptions['default_options']);
-            foreach ($conf as $key=>$value) {
-                if (!is_string($key)) {
-                    Zend_Cache::throwException("unknown option [$key] !");
-                }
-                $key = strtolower($key);
-                if (!in_array($key, $validKeys)) {
-                    unset($regexps[$regexp][$key]);
-                }
-            }
-        }
-        $this->setOption('regexps', $regexps);
-    }
-
-    /**
      * Specific setter for the 'default_options' option (with some additional tests)
      *
      * @param  array $options Associative array
@@ -230,6 +200,36 @@ class Zend_Cache_Frontend_Page extends Zend_Cache_Core
                 unset($this->_specificOptions['memorize_headers'][$found]);
             }
         }
+    }
+
+    /**
+     * Specific setter for the 'regexps' option (with some additional tests)
+     *
+     * @param  array $options Associative array
+     * @throws Zend_Cache_Exception
+     * @return void
+     */
+    protected function _setRegexps($regexps)
+    {
+        if (!is_array($regexps)) {
+            Zend_Cache::throwException('regexps option must be an array !');
+        }
+        foreach ($regexps as $regexp=>$conf) {
+            if (!is_array($conf)) {
+                Zend_Cache::throwException('regexps option must be an array of arrays !');
+            }
+            $validKeys = array_keys($this->_specificOptions['default_options']);
+            foreach ($conf as $key=>$value) {
+                if (!is_string($key)) {
+                    Zend_Cache::throwException("unknown option [$key] !");
+                }
+                $key = strtolower($key);
+                if (!in_array($key, $validKeys)) {
+                    unset($regexps[$regexp][$key]);
+                }
+            }
+        }
+        $this->setOption('regexps', $regexps);
     }
 
     /**
@@ -289,6 +289,47 @@ class Zend_Cache_Frontend_Page extends Zend_Cache_Core
         ob_start(array($this, '_flush'));
         ob_implicit_flush(false);
         return false;
+    }
+
+    /**
+     * Cancel the current caching process
+     */
+    public function cancel()
+    {
+        $this->_cancel = true;
+    }
+
+    /**
+     * callback for output buffering
+     * (shouldn't really be called manually)
+     *
+     * @param  string $data Buffered output
+     * @return string Data to send to browser
+     */
+    public function _flush($data)
+    {
+        if ($this->_cancel) {
+            return $data;
+        }
+        $contentType = null;
+        $storedHeaders = array();
+        $headersList = headers_list();
+        foreach($this->_specificOptions['memorize_headers'] as $key=>$headerName) {
+            foreach ($headersList as $headerSent) {
+                $tmp = explode(':', $headerSent);
+                $headerSentName = trim(array_shift($tmp));
+                if (strtolower($headerName) == strtolower($headerSentName)) {
+                    $headerSentValue = trim(implode(':', $tmp));
+                    $storedHeaders[] = array($headerSentName, $headerSentValue);
+                }
+            }
+        }
+        $array = array(
+            'data' => $data,
+            'headers' => $storedHeaders
+        );
+        $this->save($array, null, $this->_activeOptions['tags'], $this->_activeOptions['specific_lifetime'], $this->_activeOptions['priority']);
+        return $data;
     }
 
     /**
@@ -358,47 +399,6 @@ class Zend_Cache_Frontend_Page extends Zend_Cache_Core
             return false;
         }
         return '';
-    }
-
-    /**
-     * Cancel the current caching process
-     */
-    public function cancel()
-    {
-        $this->_cancel = true;
-    }
-
-    /**
-     * callback for output buffering
-     * (shouldn't really be called manually)
-     *
-     * @param  string $data Buffered output
-     * @return string Data to send to browser
-     */
-    public function _flush($data)
-    {
-        if ($this->_cancel) {
-            return $data;
-        }
-        $contentType = null;
-        $storedHeaders = array();
-        $headersList = headers_list();
-        foreach($this->_specificOptions['memorize_headers'] as $key=>$headerName) {
-            foreach ($headersList as $headerSent) {
-                $tmp = explode(':', $headerSent);
-                $headerSentName = trim(array_shift($tmp));
-                if (strtolower($headerName) == strtolower($headerSentName)) {
-                    $headerSentValue = trim(implode(':', $tmp));
-                    $storedHeaders[] = array($headerSentName, $headerSentValue);
-                }
-            }
-        }
-        $array = array(
-            'data' => $data,
-            'headers' => $storedHeaders
-        );
-        $this->save($array, null, $this->_activeOptions['tags'], $this->_activeOptions['specific_lifetime'], $this->_activeOptions['priority']);
-        return $data;
     }
 
 }

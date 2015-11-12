@@ -125,6 +125,41 @@ class Zend_Db_Statement_Db2 extends Zend_Db_Statement
         return true;
     }
 
+
+    /**
+     * Returns the number of columns in the result set.
+     * Returns null if the statement has no result set metadata.
+     *
+     * @return int The number of columns.
+     */
+    public function columnCount()
+    {
+        if (!$this->_stmt) {
+            return false;
+        }
+        return db2_num_fields($this->_stmt);
+    }
+
+    /**
+     * Retrieves the error code, if any, associated with the last operation on
+     * the statement handle.
+     *
+     * @return string error code.
+     */
+    public function errorCode()
+    {
+        if (!$this->_stmt) {
+            return false;
+        }
+
+        $error = db2_stmt_error();
+        if ($error === '') {
+            return false;
+        }
+
+        return $error;
+    }
+
     /**
      * Retrieves an array of error information, if any, associated with the
      * last operation on the statement handle.
@@ -147,26 +182,6 @@ class Zend_Db_Statement_Db2 extends Zend_Db_Statement
             $error,
             db2_stmt_errormsg()
         );
-    }
-
-    /**
-     * Retrieves the error code, if any, associated with the last operation on
-     * the statement handle.
-     *
-     * @return string error code.
-     */
-    public function errorCode()
-    {
-        if (!$this->_stmt) {
-            return false;
-        }
-
-        $error = db2_stmt_error();
-        if ($error === '') {
-            return false;
-        }
-
-        return $error;
     }
 
     /**
@@ -213,33 +228,6 @@ class Zend_Db_Statement_Db2 extends Zend_Db_Statement
         }
 
         return $retval;
-    }
-
-    /**
-     * Returns the number of columns in the result set.
-     * Returns null if the statement has no result set metadata.
-     *
-     * @return int The number of columns.
-     */
-    public function columnCount()
-    {
-        if (!$this->_stmt) {
-            return false;
-        }
-        return db2_num_fields($this->_stmt);
-    }
-
-    /**
-     * Fetches the next row and returns it as an object.
-     *
-     * @param string $class  OPTIONAL Name of the class to create.
-     * @param array  $config OPTIONAL Constructor arguments for the class.
-     * @return mixed One object instance of the specified class.
-     */
-    public function fetchObject($class = 'stdClass', array $config = array())
-    {
-        $obj = $this->fetch(Zend_Db::FETCH_OBJ);
-        return $obj;
     }
 
     /**
@@ -290,6 +278,19 @@ class Zend_Db_Statement_Db2 extends Zend_Db_Statement
         }
 
         return $row;
+    }
+
+    /**
+     * Fetches the next row and returns it as an object.
+     *
+     * @param string $class  OPTIONAL Name of the class to create.
+     * @param array  $config OPTIONAL Constructor arguments for the class.
+     * @return mixed One object instance of the specified class.
+     */
+    public function fetchObject($class = 'stdClass', array $config = array())
+    {
+        $obj = $this->fetch(Zend_Db::FETCH_OBJ);
+        return $obj;
     }
 
     /**

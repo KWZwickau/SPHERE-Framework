@@ -62,18 +62,6 @@ class Translator
     }
 
     /**
-     * @return string The default configured language.
-     */
-    public function getDefaultLanguage()
-    {
-        $generalSection = Config::getInstance()->General;
-
-        // the config may not be available (for example, during environment setup), so we default to 'en'
-        // if the config cannot be found.
-        return @$generalSection['default_language'] ?: 'en';
-    }
-
-    /**
      * Returns an internationalized string using a translation ID. If a translation
      * cannot be found for the ID, the ID is returned.
      *
@@ -101,45 +89,6 @@ class Translator
         return vsprintf($translationId, $args);
     }
 
-    private function getTranslation($id, $lang, $plugin, $key)
-    {
-        $this->loadTranslations($lang);
-
-        if (isset($this->translations[$lang][$plugin])
-            && isset($this->translations[$lang][$plugin][$key])
-        ) {
-            return $this->translations[$lang][$plugin][$key];
-        }
-
-        /**
-         * Fallback for keys moved to new Intl plugin to avoid untranslated string in non core plugins
-         * @todo remove this in Piwik 3.0
-         */
-        if ($plugin != 'Intl') {
-            if (isset($this->translations[$lang]['Intl'])
-                && isset($this->translations[$lang]['Intl'][$key])
-            ) {
-                return $this->translations[$lang]['Intl'][$key];
-            }
-        }
-
-        // fallback
-        if ($lang !== $this->fallback) {
-            return $this->getTranslation($id, $this->fallback, $plugin, $key);
-        }
-
-        return $id;
-    }
-
-    private function loadTranslations($language)
-    {
-        if (empty($language) || isset($this->translations[$language])) {
-            return;
-        }
-
-        $this->translations[$language] = $this->loader->load($language, $this->directories);
-    }
-
     /**
      * @return string
      */
@@ -158,6 +107,18 @@ class Translator
         }
 
         $this->currentLanguage = $language;
+    }
+
+    /**
+     * @return string The default configured language.
+     */
+    public function getDefaultLanguage()
+    {
+        $generalSection = Config::getInstance()->General;
+
+        // the config may not be available (for example, during environment setup), so we default to 'en'
+        // if the config cannot be found.
+        return @$generalSection['default_language'] ?: 'en';
     }
 
     /**
@@ -267,5 +228,44 @@ class Translator
         }
 
         return $this->translations[$this->currentLanguage];
+    }
+
+    private function getTranslation($id, $lang, $plugin, $key)
+    {
+        $this->loadTranslations($lang);
+
+        if (isset($this->translations[$lang][$plugin])
+            && isset($this->translations[$lang][$plugin][$key])
+        ) {
+            return $this->translations[$lang][$plugin][$key];
+        }
+
+        /**
+         * Fallback for keys moved to new Intl plugin to avoid untranslated string in non core plugins
+         * @todo remove this in Piwik 3.0
+         */
+        if ($plugin != 'Intl') {
+            if (isset($this->translations[$lang]['Intl'])
+                && isset($this->translations[$lang]['Intl'][$key])
+            ) {
+                return $this->translations[$lang]['Intl'][$key];
+            }
+        }
+
+        // fallback
+        if ($lang !== $this->fallback) {
+            return $this->getTranslation($id, $this->fallback, $plugin, $key);
+        }
+
+        return $id;
+    }
+
+    private function loadTranslations($language)
+    {
+        if (empty($language) || isset($this->translations[$language])) {
+            return;
+        }
+
+        $this->translations[$language] = $this->loader->load($language, $this->directories);
     }
 }

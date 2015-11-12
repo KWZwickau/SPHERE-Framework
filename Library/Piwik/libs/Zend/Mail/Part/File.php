@@ -134,11 +134,11 @@ class Zend_Mail_Part_File extends Zend_Mail_Part
                     $this->_partPos[] = $part;
                 }
                 $part = array($pos);
-            } else {if ($line == '--' . $boundary . '--') {
+            } else if ($line == '--' . $boundary . '--') {
                 $part[1] = $lastPos;
                 $this->_partPos[] = $part;
                 break;
-            }}
+            }
         }
         $this->_countParts = count($this->_partPos);
 

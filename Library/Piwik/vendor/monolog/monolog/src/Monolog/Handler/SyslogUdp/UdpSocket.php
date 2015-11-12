@@ -27,6 +27,14 @@ class UdpSocket
         $this->send($this->assembleMessage($line, $header));
     }
 
+    public function close()
+    {
+        if (is_resource($this->socket)) {
+            socket_close($this->socket);
+            $this->socket = null;
+        }
+    }
+
     protected function send($chunk)
     {
         if (!is_resource($this->socket)) {
@@ -40,13 +48,5 @@ class UdpSocket
         $chunkSize = self::DATAGRAM_MAX_LENGTH - strlen($header);
 
         return $header . substr($line, 0, $chunkSize);
-    }
-
-    public function close()
-    {
-        if (is_resource($this->socket)) {
-            socket_close($this->socket);
-            $this->socket = null;
-        }
     }
 }

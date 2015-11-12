@@ -8,9 +8,9 @@
  */
 namespace Piwik\Plugins\SitesManager;
 
-use Piwik\Measurable\Type\TypeManager;
 use Piwik\Menu\MenuAdmin;
 use Piwik\Piwik;
+use Piwik\Measurable\Type\TypeManager;
 
 class Menu extends \Piwik\Plugin\Menu
 {

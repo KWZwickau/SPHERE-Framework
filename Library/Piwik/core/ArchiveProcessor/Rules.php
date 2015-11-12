@@ -65,29 +65,6 @@ class Rules
     }
 
     /**
-     * @param array $idSites
-     * @param Segment $segment
-     * @return bool
-     */
-    protected static function isSegmentPreProcessed(array $idSites, Segment $segment)
-    {
-        $segmentsToProcess = self::getSegmentsToProcess($idSites);
-
-        if (empty($segmentsToProcess)) {
-            return false;
-        }
-        // If the requested segment is one of the segments to pre-process
-        // we ensure that any call to the API will trigger archiving of all reports for this segment
-        $segment = $segment->getString();
-
-        // Turns out the getString() above returns the URL decoded segment string
-        $segmentsToProcessUrlDecoded = array_map('urldecode', $segmentsToProcess);
-
-        return in_array($segment, $segmentsToProcess)
-            || in_array($segment, $segmentsToProcessUrlDecoded);
-    }
-
-    /**
      * @param $idSites
      * @return array
      */
@@ -157,6 +134,15 @@ class Rules
             }
         }
         return $minimumArchiveTime;
+    }
+
+    public static function setTodayArchiveTimeToLive($timeToLiveSeconds)
+    {
+        $timeToLiveSeconds = (int)$timeToLiveSeconds;
+        if ($timeToLiveSeconds <= 0) {
+            throw new Exception(Piwik::translate('General_ExceptionInvalidArchiveTimeToLive'));
+        }
+        Option::set(self::OPTION_TODAY_ARCHIVE_TTL, $timeToLiveSeconds, $autoLoad = true);
     }
 
     public static function getTodayArchiveTimeToLive()
@@ -231,15 +217,6 @@ class Rules
         return (bool)Config::getInstance()->General['enable_browser_archiving_triggering'];
     }
 
-    public static function setTodayArchiveTimeToLive($timeToLiveSeconds)
-    {
-        $timeToLiveSeconds = (int)$timeToLiveSeconds;
-        if ($timeToLiveSeconds <= 0) {
-            throw new Exception(Piwik::translate('General_ExceptionInvalidArchiveTimeToLive'));
-        }
-        Option::set(self::OPTION_TODAY_ARCHIVE_TTL, $timeToLiveSeconds, $autoLoad = true);
-    }
-
     public static function setBrowserTriggerArchiving($enabled)
     {
         if (!is_bool($enabled)) {
@@ -259,6 +236,29 @@ class Rules
     public static function shouldSkipUniqueVisitorsCalculationForMultipleSites()
     {
         return Config::getInstance()->General['enable_processing_unique_visitors_multiple_sites'] != 1;
+    }
+
+    /**
+     * @param array $idSites
+     * @param Segment $segment
+     * @return bool
+     */
+    protected static function isSegmentPreProcessed(array $idSites, Segment $segment)
+    {
+        $segmentsToProcess = self::getSegmentsToProcess($idSites);
+
+        if (empty($segmentsToProcess)) {
+            return false;
+        }
+        // If the requested segment is one of the segments to pre-process
+        // we ensure that any call to the API will trigger archiving of all reports for this segment
+        $segment = $segment->getString();
+
+        // Turns out the getString() above returns the URL decoded segment string
+        $segmentsToProcessUrlDecoded = array_map('urldecode', $segmentsToProcess);
+
+        return in_array($segment, $segmentsToProcess)
+            || in_array($segment, $segmentsToProcessUrlDecoded);
     }
 
     /**

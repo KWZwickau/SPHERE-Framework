@@ -12,9 +12,9 @@ use Piwik\Common;
 use Piwik\Config;
 use Piwik\Http;
 use Piwik\Plugins\SitesManager\API;
-use Piwik\UpdateCheck\ReleaseChannel as BaseReleaseChannel;
 use Piwik\Url;
 use Piwik\Version;
+use Piwik\UpdateCheck\ReleaseChannel as BaseReleaseChannel;
 
 abstract class ReleaseChannel extends BaseReleaseChannel
 {

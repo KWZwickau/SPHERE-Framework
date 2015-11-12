@@ -68,6 +68,20 @@ class SourceChain implements DefinitionSource, MutableDefinitionSource
         return null;
     }
 
+    public function addDefinition(Definition $definition)
+    {
+        if (! $this->mutableSource) {
+            throw new \LogicException("The container's definition source has not been initialized correctly");
+        }
+
+        $this->mutableSource->addDefinition($definition);
+    }
+
+    public function setRootDefinitionSource(DefinitionSource $rootSource)
+    {
+        $this->rootSource = $rootSource;
+    }
+
     private function resolveSubDefinition(HasSubDefinition $definition, $currentIndex)
     {
         $subDefinitionName = $definition->getSubDefinitionName();
@@ -83,20 +97,6 @@ class SourceChain implements DefinitionSource, MutableDefinitionSource
         if ($subDefinition) {
             $definition->setSubDefinition($subDefinition);
         }
-    }
-
-    public function addDefinition(Definition $definition)
-    {
-        if (! $this->mutableSource) {
-            throw new \LogicException("The container's definition source has not been initialized correctly");
-        }
-
-        $this->mutableSource->addDefinition($definition);
-    }
-
-    public function setRootDefinitionSource(DefinitionSource $rootSource)
-    {
-        $this->rootSource = $rootSource;
     }
 
     public function setMutableDefinitionSource(MutableDefinitionSource $mutableSource)

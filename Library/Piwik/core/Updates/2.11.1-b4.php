@@ -11,8 +11,8 @@ namespace Piwik\Updates;
 
 use Piwik\Config;
 use Piwik\Development;
-use Piwik\Updater;
 use Piwik\Updates;
+use Piwik\Updater;
 
 class Updates_2_11_1_b4 extends Updates
 {

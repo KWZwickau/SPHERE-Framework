@@ -8,10 +8,10 @@
  */
 namespace Piwik\Plugins\CoreAdminHome\Commands;
 
-use Piwik\Archive\ArchiveInvalidator;
 use Piwik\Common;
 use Piwik\Container\StaticContainer;
 use Piwik\DataAccess\Actions;
+use Piwik\Archive\ArchiveInvalidator;
 use Piwik\Date;
 use Piwik\Plugin\ConsoleCommand;
 use Piwik\Plugins\CoreAdminHome\Model\DuplicateActionRemover;
@@ -123,6 +123,24 @@ class FixDuplicateLogActions extends ConsoleCommand
         ));
     }
 
+    private function invalidateArchivesUsingActionDuplicates($archivesAffected, OutputInterface $output)
+    {
+        $output->write("Invalidating archives affected by duplicates fixed...");
+        foreach ($archivesAffected as $archiveInfo) {
+            $dates = array(Date::factory($archiveInfo['server_time']));
+            $this->archiveInvalidator->markArchivesAsInvalidated(array($archiveInfo['idsite']), $dates, $period = false);
+        }
+        $output->writeln("Done.");
+    }
+
+    private function printAffectedArchives($allArchivesAffected, OutputInterface $output)
+    {
+        $output->writeln("The following archives used duplicate actions and should be invalidated if you want correct reports:");
+        foreach ($allArchivesAffected as $archiveInfo) {
+            $output->writeln("\t[ idSite = {$archiveInfo['idsite']}, date = {$archiveInfo['server_time']} ]");
+        }
+    }
+
     private function fixDuplicateActionReferences($duplicateActions, OutputInterface $output)
     {
         $dupeCount = count($duplicateActions);
@@ -179,23 +197,5 @@ class FixDuplicateLogActions extends ConsoleCommand
         }
 
         $this->actionsAccess->delete($idActions);
-    }
-
-    private function invalidateArchivesUsingActionDuplicates($archivesAffected, OutputInterface $output)
-    {
-        $output->write("Invalidating archives affected by duplicates fixed...");
-        foreach ($archivesAffected as $archiveInfo) {
-            $dates = array(Date::factory($archiveInfo['server_time']));
-            $this->archiveInvalidator->markArchivesAsInvalidated(array($archiveInfo['idsite']), $dates, $period = false);
-        }
-        $output->writeln("Done.");
-    }
-
-    private function printAffectedArchives($allArchivesAffected, OutputInterface $output)
-    {
-        $output->writeln("The following archives used duplicate actions and should be invalidated if you want correct reports:");
-        foreach ($allArchivesAffected as $archiveInfo) {
-            $output->writeln("\t[ idSite = {$archiveInfo['idsite']}, date = {$archiveInfo['server_time']} ]");
-        }
     }
 }

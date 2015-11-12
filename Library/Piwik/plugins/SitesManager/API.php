@@ -14,12 +14,11 @@ use Piwik\Common;
 use Piwik\Container\StaticContainer;
 use Piwik\Date;
 use Piwik\Db;
-use Piwik\Measurable\MeasurableSettings;
-use Piwik\Measurable\Type;
 use Piwik\Metrics\Formatter;
 use Piwik\Network\IPUtils;
 use Piwik\Option;
 use Piwik\Piwik;
+use Piwik\Measurable\MeasurableSettings;
 use Piwik\ProxyHttp;
 use Piwik\Scheduler\Scheduler;
 use Piwik\SettingsPiwik;
@@ -28,6 +27,7 @@ use Piwik\Site;
 use Piwik\Tracker;
 use Piwik\Tracker\Cache;
 use Piwik\Tracker\TrackerCodeGenerator;
+use Piwik\Measurable\Type;
 use Piwik\Url;
 use Piwik\UrlHelper;
 
@@ -148,6 +148,22 @@ class API extends \Piwik\Plugin\API
     }
 
     /**
+     * Returns all websites belonging to the specified group
+     * @param string $group Group name
+     * @return array of sites
+     */
+    public function getSitesFromGroup($group = '')
+    {
+        Piwik::checkUserHasSuperUserAccess();
+
+        $group = trim($group);
+        $sites = $this->getModel()->getSitesFromGroup($group);
+
+        Site::setSitesFromArray($sites);
+        return $sites;
+    }
+
+    /**
      * Returns the list of website groups, including the empty group
      * if no group were specified for some websites
      *
@@ -161,11 +177,6 @@ class API extends \Piwik\Plugin\API
         $cleanedGroups = array_map('trim', $groups);
 
         return $cleanedGroups;
-    }
-
-    private function getModel()
-    {
-        return new Model();
     }
 
     /**
@@ -184,6 +195,29 @@ class API extends \Piwik\Plugin\API
         Site::setSiteFromArray($idSite, $site);
 
         return $site;
+    }
+
+    private function getModel()
+    {
+        return new Model();
+    }
+
+    /**
+     * Returns the list of all URLs registered for the given idSite (main_url + alias URLs).
+     *
+     * @throws Exception if the website ID doesn't exist or the user doesn't have access to it
+     * @param int $idSite
+     * @return array list of URLs
+     */
+    public function getSiteUrlsFromId($idSite)
+    {
+        Piwik::checkUserHasViewAccess($idSite);
+        return $this->getModel()->getSiteUrlsFromId($idSite);
+    }
+
+    private function getSitesId()
+    {
+        return $this->getModel()->getSitesId();
     }
 
     /**
@@ -223,11 +257,6 @@ class API extends \Piwik\Plugin\API
         }
     }
 
-    private function getSitesId()
-    {
-        return $this->getModel()->getSitesId();
-    }
-
     /**
      * Returns the list of the website IDs that received some visits since the specified timestamp.
      * Requires Super User access.
@@ -240,7 +269,7 @@ class API extends \Piwik\Plugin\API
     {
         Piwik::checkUserHasSuperUserAccess();
 
-        if (empty($timestamp)) {$timestamp = time();}
+        if (empty($timestamp)) $timestamp = time();
 
         $time   = Date::factory((int)$timestamp)->getDatetime();
         $now    = Date::now()->addHour(1)->getDatetime();
@@ -285,48 +314,6 @@ class API extends \Piwik\Plugin\API
     }
 
     /**
-     * Returns the list of websites ID with the 'admin' access for the current user.
-     * For the superUser it returns all the websites in the database.
-     *
-     * @return array list of websites ID
-     */
-    public function getSitesIdWithAdminAccess()
-    {
-        $sitesId = Access::getInstance()->getSitesIdWithAdminAccess();
-        return $sitesId;
-    }
-
-    /**
-     * Returns the list of websites from the ID array in parameters.
-     * The user access is not checked in this method so the ID have to be accessible by the user!
-     *
-     * @param array $idSites list of website ID
-     * @param bool $limit
-     * @return array
-     */
-    private function getSitesFromIds($idSites, $limit = false)
-    {
-        $sites = $this->getModel()->getSitesFromIds($idSites, $limit);
-
-        Site::setSitesFromArray($sites);
-
-        return $sites;
-    }
-
-    /**
-     * Returns the list of all URLs registered for the given idSite (main_url + alias URLs).
-     *
-     * @throws Exception if the website ID doesn't exist or the user doesn't have access to it
-     * @param int $idSite
-     * @return array list of URLs
-     */
-    public function getSiteUrlsFromId($idSite)
-    {
-        Piwik::checkUserHasViewAccess($idSite);
-        return $this->getModel()->getSiteUrlsFromId($idSite);
-    }
-
-    /**
      * Returns the list of websites with the 'view' access for the current user.
      * For the superUser it doesn't return any result because the superUser has admin access on all the websites (use getSitesWithAtLeastViewAccess() instead).
      *
@@ -336,17 +323,6 @@ class API extends \Piwik\Plugin\API
     {
         $sitesId = $this->getSitesIdWithViewAccess();
         return $this->getSitesFromIds($sitesId);
-    }
-
-    /**
-     * Returns the list of websites ID with the 'view' access for the current user.
-     * For the superUser it doesn't return any result because the superUser has admin access on all the websites (use getSitesIdWithAtLeastViewAccess() instead).
-     *
-     * @return array list of websites ID
-     */
-    public function getSitesIdWithViewAccess()
-    {
-        return Access::getInstance()->getSitesIdWithViewAccess();
     }
 
     /**
@@ -361,6 +337,29 @@ class API extends \Piwik\Plugin\API
     {
         $sitesId = $this->getSitesIdWithAtLeastViewAccess($_restrictSitesToLogin);
         return $this->getSitesFromIds($sitesId, $limit);
+    }
+
+    /**
+     * Returns the list of websites ID with the 'admin' access for the current user.
+     * For the superUser it returns all the websites in the database.
+     *
+     * @return array list of websites ID
+     */
+    public function getSitesIdWithAdminAccess()
+    {
+        $sitesId = Access::getInstance()->getSitesIdWithAdminAccess();
+        return $sitesId;
+    }
+
+    /**
+     * Returns the list of websites ID with the 'view' access for the current user.
+     * For the superUser it doesn't return any result because the superUser has admin access on all the websites (use getSitesIdWithAtLeastViewAccess() instead).
+     *
+     * @return array list of websites ID
+     */
+    public function getSitesIdWithViewAccess()
+    {
+        return Access::getInstance()->getSitesIdWithViewAccess();
     }
 
     /**
@@ -405,6 +404,40 @@ class API extends \Piwik\Plugin\API
     }
 
     /**
+     * Returns the list of websites from the ID array in parameters.
+     * The user access is not checked in this method so the ID have to be accessible by the user!
+     *
+     * @param array $idSites list of website ID
+     * @param bool $limit
+     * @return array
+     */
+    private function getSitesFromIds($idSites, $limit = false)
+    {
+        $sites = $this->getModel()->getSitesFromIds($idSites, $limit);
+
+        Site::setSitesFromArray($sites);
+
+        return $sites;
+    }
+
+    protected function getNormalizedUrls($url)
+    {
+        // if found, remove scheme and www. from URL
+        $hostname = str_replace('www.', '', $url);
+        $hostname = str_replace('http://', '', $hostname);
+        $hostname = str_replace('https://', '', $hostname);
+
+        // return all variations of the URL
+        return array(
+            $url,
+            "http://" . $hostname,
+            "http://www." . $hostname,
+            "https://" . $hostname,
+            "https://www." . $hostname
+        );
+    }
+
+    /**
      * Returns the list of websites ID associated with a URL.
      *
      * @param string $url
@@ -423,41 +456,6 @@ class API extends \Piwik\Plugin\API
         }
 
         return $ids;
-    }
-
-    /**
-     * Remove the final slash in the URLs if found
-     *
-     * @param string $url
-     * @return string the URL without the trailing slash
-     */
-    private function removeTrailingSlash($url)
-    {
-        // if there is a final slash, we take the URL without this slash (expected URL format)
-        if (strlen($url) > 5
-            && $url[strlen($url) - 1] == '/'
-        ) {
-            $url = substr($url, 0, strlen($url) - 1);
-        }
-
-        return $url;
-    }
-
-    protected function getNormalizedUrls($url)
-    {
-        // if found, remove scheme and www. from URL
-        $hostname = str_replace('www.', '', $url);
-        $hostname = str_replace('http://', '', $hostname);
-        $hostname = str_replace('https://', '', $hostname);
-
-        // return all variations of the URL
-        return array(
-            $url,
-            "http://" . $hostname,
-            "http://www." . $hostname,
-            "https://" . $hostname,
-            "https://www." . $hostname
-        );
     }
 
     /**
@@ -613,333 +611,6 @@ class API extends \Piwik\Plugin\API
         return (int) $idSite;
     }
 
-    /**
-     * Check that the website name has a correct format.
-     *
-     * @param $siteName
-     * @throws Exception
-     */
-    private function checkName($siteName)
-    {
-        if (empty($siteName)) {
-            throw new Exception(Piwik::translate("SitesManager_ExceptionEmptyName"));
-        }
-    }
-
-    /**
-     * Clean the parameter URLs:
-     * - if the parameter is a string make it an array
-     * - remove the trailing slashes if found
-     *
-     * @param string|array urls
-     * @return array the array of cleaned URLs
-     */
-    private function cleanParameterUrls($urls)
-    {
-        if (!is_array($urls)) {
-            $urls = array($urls);
-        }
-
-        $urls = array_filter($urls);
-        $urls = array_map('urldecode', $urls);
-
-        foreach ($urls as &$url) {
-            $url = $this->removeTrailingSlash($url);
-            $scheme = parse_url($url, PHP_URL_SCHEME);
-            if (empty($scheme)
-                && strpos($url, '://') === false
-            ) {
-                $url = 'http://' . $url;
-            }
-            $url = trim($url);
-            $url = Common::sanitizeInputValue($url);
-        }
-
-        $urls = array_unique($urls);
-        return $urls;
-    }
-
-    /**
-     * Check that the array of URLs are valid URLs
-     *
-     * @param array $urls
-     * @throws Exception if any of the urls is not valid
-     */
-    private function checkUrls($urls)
-    {
-        foreach ($urls as $url) {
-            if (!$this->isValidUrl($url)) {
-                throw new Exception(sprintf(Piwik::translate("SitesManager_ExceptionInvalidUrl"), $url));
-            }
-        }
-    }
-
-    /**
-     * Tests if the URL is a valid URL
-     *
-     * @param string $url
-     * @return bool
-     */
-    private function isValidUrl($url)
-    {
-        return UrlHelper::isLookLikeUrl($url);
-    }
-
-    /**
-     * Checks that the array has at least one element
-     *
-     * @param array $urls
-     * @throws Exception
-     */
-    private function checkAtLeastOneUrl($urls)
-    {
-        if (!is_array($urls)
-            || count($urls) == 0
-        ) {
-            throw new Exception(Piwik::translate("SitesManager_ExceptionNoUrl"));
-        }
-    }
-
-    private function checkSiteSearch($siteSearch)
-    {
-        if ($siteSearch === null) {
-            return "1";
-        }
-        return $siteSearch == 1 ? "1" : "0";
-    }
-
-    private function checkSiteSearchParameters($searchKeywordParameters, $searchCategoryParameters)
-    {
-        $searchKeywordParameters = trim($searchKeywordParameters);
-        $searchCategoryParameters = trim($searchCategoryParameters);
-        if (empty($searchKeywordParameters)) {
-            $searchKeywordParameters = '';
-        }
-
-        if (empty($searchCategoryParameters)) {
-            $searchCategoryParameters = '';
-        }
-
-        return array($searchKeywordParameters, $searchCategoryParameters);
-    }
-
-    /**
-     * Utility function that throws if a value is not valid for the 'keep_url_fragment'
-     * column of the piwik_site table.
-     *
-     * @param int $keepURLFragments
-     * @throws Exception
-     */
-    private static function checkKeepURLFragmentsValue($keepURLFragments)
-    {
-        // make sure value is between 0 & 2
-        if (!in_array($keepURLFragments, array(0, 1, 2))) {
-            throw new Exception("Error in SitesManager.updateSite: keepURLFragments must be between 0 & 2" .
-                " (actual value: $keepURLFragments).");
-        }
-    }
-
-    /**
-     * Returns the default timezone that will be set when creating a website through the API.
-     * Via the UI, if the default timezone is not UTC, it will be pre-selected in the drop down
-     *
-     * @return string Timezone eg. UTC+7 or Europe/Paris
-     */
-    public function getDefaultTimezone()
-    {
-        $defaultTimezone = Option::get(self::OPTION_DEFAULT_TIMEZONE);
-        if ($defaultTimezone) {
-            return $defaultTimezone;
-        }
-        return 'UTC';
-    }
-
-    private function checkValidTimezone($timezone)
-    {
-        $timezones = $this->getTimezonesList();
-        foreach (array_values($timezones) as $cities) {
-            foreach ($cities as $timezoneId => $city) {
-                if ($timezoneId == $timezone) {
-                    return true;
-                }
-            }
-        }
-        throw new Exception(Piwik::translate('SitesManager_ExceptionInvalidTimezone', array($timezone)));
-    }
-
-    /**
-     * Returns the list of timezones supported.
-     * Used for addSite and updateSite
-     *
-     * @return array of timezone strings
-     */
-    public function getTimezonesList()
-    {
-        if (!SettingsServer::isTimezoneSupportEnabled()) {
-            return array('UTC' => $this->getTimezonesListUTCOffsets());
-        }
-
-        $continents = array('Africa', 'America', 'Antarctica', 'Arctic', 'Asia', 'Atlantic', 'Australia', 'Europe', 'Indian', 'Pacific');
-        $timezones = timezone_identifiers_list();
-
-        $return = array();
-        foreach ($timezones as $timezone) {
-            // filter out timezones not recognized by strtotime()
-            // @see http://bugs.php.net/46111
-            $testDate = '2008-09-18 13:00:00 ' . $timezone;
-            if (!strtotime($testDate)) {
-                continue;
-            }
-
-            $timezoneExploded = explode('/', $timezone);
-            $continent = $timezoneExploded[0];
-
-            // only display timezones that are grouped by continent
-            if (!in_array($continent, $continents)) {
-                continue;
-            }
-            $city = $timezoneExploded[1];
-            if (!empty($timezoneExploded[2])) {
-                $city .= ' - ' . $timezoneExploded[2];
-            }
-            $city = str_replace('_', ' ', $city);
-            $return[$continent][$timezone] = $city;
-        }
-
-        foreach ($continents as $continent) {
-            if (!empty($return[$continent])) {
-                ksort($return[$continent]);
-            }
-        }
-
-        $return['UTC'] = $this->getTimezonesListUTCOffsets();
-        return $return;
-    }
-
-    private function getTimezonesListUTCOffsets()
-    {
-        // manually add the UTC offsets
-        $GmtOffsets = array(-12, -11.5, -11, -10.5, -10, -9.5, -9, -8.5, -8, -7.5, -7, -6.5, -6, -5.5, -5, -4.5, -4, -3.5, -3, -2.5, -2, -1.5, -1, -0.5,
-                            0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 5.75, 6, 6.5, 7, 7.5, 8, 8.5, 8.75, 9, 9.5, 10, 10.5, 11, 11.5, 12, 12.75, 13, 13.75, 14);
-
-        $return = array();
-        foreach ($GmtOffsets as $offset) {
-            $offset = Common::forceDotAsSeparatorForDecimalPoint($offset);
-
-            if ($offset > 0) {
-                $offset = '+' . $offset;
-            } elseif ($offset == 0) {
-                $offset = '';
-            }
-            $offset = 'UTC' . $offset;
-            $offsetName = str_replace(array('.25', '.5', '.75'), array(':15', ':30', ':45'), $offset);
-            $return[$offset] = $offsetName;
-        }
-        return $return;
-    }
-
-    /**
-     * Returns the default currency that will be set when creating a website through the API.
-     *
-     * @return string Currency ID eg. 'USD'
-     */
-    public function getDefaultCurrency()
-    {
-        Piwik::checkUserHasSomeAdminAccess();
-        $defaultCurrency = Option::get(self::OPTION_DEFAULT_CURRENCY);
-        if ($defaultCurrency) {
-            return $defaultCurrency;
-        }
-        return 'USD';
-    }
-
-    private function checkValidCurrency($currency)
-    {
-        if (!in_array($currency, array_keys($this->getCurrencyList()))) {
-            throw new Exception(Piwik::translate('SitesManager_ExceptionInvalidCurrency', array($currency, "USD, EUR, etc.")));
-        }
-    }
-
-    /**
-     * Returns the list of supported currencies
-     * @see getCurrencySymbols()
-     * @return array ( currencyId => currencyName)
-     */
-    public function getCurrencyList()
-    {
-        $currencies = Site::getCurrencyList();
-        return array_map(function ($a) {
-            return $a[1] . " (" . $a[0] . ")";
-        }, $currencies);
-    }
-
-    /**
-     * Checks that the submitted IPs (comma separated list) are valid
-     * Returns the cleaned up IPs
-     *
-     * @param string $excludedIps Comma separated list of IP addresses
-     * @throws Exception
-     * @return array of IPs
-     */
-    private function checkAndReturnExcludedIps($excludedIps)
-    {
-        if (empty($excludedIps)) {
-            return '';
-        }
-
-        $ips = explode(',', $excludedIps);
-        $ips = array_map('trim', $ips);
-        $ips = array_filter($ips, 'strlen');
-
-        foreach ($ips as $ip) {
-            if (!$this->isValidIp($ip)) {
-                throw new Exception(Piwik::translate('SitesManager_ExceptionInvalidIPFormat', array($ip, "1.2.3.4, 1.2.3.*, or 1.2.3.4/5")));
-            }
-        }
-
-        $ips = implode(',', $ips);
-        return $ips;
-    }
-
-    /**
-     * Tests if the IP is a valid IP, allowing wildcards, except in the first octet.
-     * Wildcards can only be used from right to left, ie. 1.1.*.* is allowed, but 1.1.*.1 is not.
-     *
-     * @param string $ip IP address
-     * @return bool
-     */
-    private function isValidIp($ip)
-    {
-        return IPUtils::getIPRangeBounds($ip) !== null;
-    }
-
-    private function checkAndReturnCommaSeparatedStringList($parameters)
-    {
-        $parameters = trim($parameters);
-        if (empty($parameters)) {
-            return '';
-        }
-
-        $parameters = explode(',', $parameters);
-        $parameters = array_map('trim', $parameters);
-        $parameters = array_filter($parameters, 'strlen');
-        $parameters = array_unique($parameters);
-        return implode(',', $parameters);
-    }
-
-    private function checkAndReturnType($type)
-    {
-        if (empty($type)) {
-            $type = Site::DEFAULT_SITE_TYPE;
-        }
-
-        if (!is_string($type)) {
-            throw new Exception("Invalid website type $type");
-        }
-
-        return $type;
-    }
-
     private function validateMeasurableSettings($idType, $settings)
     {
         $measurableSettings = new MeasurableSettings(0, $idType);
@@ -948,23 +619,6 @@ class API extends \Piwik\Plugin\API
             $name = $measurableSetting->getName();
             if (!empty($settings[$name])) {
                 $measurableSetting->setValue($settings[$name]);
-            }
-        }
-    }
-
-    /**
-     * Insert the list of alias URLs for the website.
-     * The URLs must not exist already for this website!
-     */
-    private function insertSiteUrls($idSite, $urls)
-    {
-        if (count($urls) != 0) {
-            foreach ($urls as $url) {
-                try {
-                    $this->getModel()->insertSiteUrl($idSite, $url);
-                } catch(Exception $e) {
-                    // See bug #4149
-                }
             }
         }
     }
@@ -1027,6 +681,107 @@ class API extends \Piwik\Plugin\API
          * @param int $idSite The ID of the site being deleted.
          */
         Piwik::postEvent('SitesManager.deleteSite.end', array($idSite));
+    }
+
+    /**
+     * Checks that the array has at least one element
+     *
+     * @param array $urls
+     * @throws Exception
+     */
+    private function checkAtLeastOneUrl($urls)
+    {
+        if (!is_array($urls)
+            || count($urls) == 0
+        ) {
+            throw new Exception(Piwik::translate("SitesManager_ExceptionNoUrl"));
+        }
+    }
+
+    private function checkValidTimezone($timezone)
+    {
+        $timezones = $this->getTimezonesList();
+        foreach (array_values($timezones) as $cities) {
+            foreach ($cities as $timezoneId => $city) {
+                if ($timezoneId == $timezone) {
+                    return true;
+                }
+            }
+        }
+        throw new Exception(Piwik::translate('SitesManager_ExceptionInvalidTimezone', array($timezone)));
+    }
+
+    private function checkValidCurrency($currency)
+    {
+        if (!in_array($currency, array_keys($this->getCurrencyList()))) {
+            throw new Exception(Piwik::translate('SitesManager_ExceptionInvalidCurrency', array($currency, "USD, EUR, etc.")));
+        }
+    }
+
+    private function checkAndReturnType($type)
+    {
+        if (empty($type)) {
+            $type = Site::DEFAULT_SITE_TYPE;
+        }
+
+        if (!is_string($type)) {
+            throw new Exception("Invalid website type $type");
+        }
+
+        return $type;
+    }
+
+    /**
+     * Checks that the submitted IPs (comma separated list) are valid
+     * Returns the cleaned up IPs
+     *
+     * @param string $excludedIps Comma separated list of IP addresses
+     * @throws Exception
+     * @return array of IPs
+     */
+    private function checkAndReturnExcludedIps($excludedIps)
+    {
+        if (empty($excludedIps)) {
+            return '';
+        }
+
+        $ips = explode(',', $excludedIps);
+        $ips = array_map('trim', $ips);
+        $ips = array_filter($ips, 'strlen');
+
+        foreach ($ips as $ip) {
+            if (!$this->isValidIp($ip)) {
+                throw new Exception(Piwik::translate('SitesManager_ExceptionInvalidIPFormat', array($ip, "1.2.3.4, 1.2.3.*, or 1.2.3.4/5")));
+            }
+        }
+
+        $ips = implode(',', $ips);
+        return $ips;
+    }
+
+    /**
+     * Add a list of alias Urls to the given idSite
+     *
+     * If some URLs given in parameter are already recorded as alias URLs for this website,
+     * they won't be duplicated. The 'main_url' of the website won't be affected by this method.
+     *
+     * @param int $idSite
+     * @param array|string $urls
+     * @return int the number of inserted URLs
+     */
+    public function addSiteAliasUrls($idSite, $urls)
+    {
+        Piwik::checkUserHasAdminAccess($idSite);
+
+        $urls = $this->cleanParameterUrls($urls);
+        $this->checkUrls($urls);
+
+        $urlsInit = $this->getSiteUrlsFromId($idSite);
+        $toInsert = array_diff($urls, $urlsInit);
+        $this->insertSiteUrls($idSite, $toInsert);
+        $this->postUpdateWebsite($idSite);
+
+        return count($toInsert);
     }
 
     /**
@@ -1256,6 +1011,21 @@ class API extends \Piwik\Plugin\API
     }
 
     /**
+     * Returns the default currency that will be set when creating a website through the API.
+     *
+     * @return string Currency ID eg. 'USD'
+     */
+    public function getDefaultCurrency()
+    {
+        Piwik::checkUserHasSomeAdminAccess();
+        $defaultCurrency = Option::get(self::OPTION_DEFAULT_CURRENCY);
+        if ($defaultCurrency) {
+            return $defaultCurrency;
+        }
+        return 'USD';
+    }
+
+    /**
      * Sets the default currency that will be used when creating websites
      *
      * @param string $defaultCurrency Currency code, eg. 'USD'
@@ -1270,6 +1040,21 @@ class API extends \Piwik\Plugin\API
     }
 
     /**
+     * Returns the default timezone that will be set when creating a website through the API.
+     * Via the UI, if the default timezone is not UTC, it will be pre-selected in the drop down
+     *
+     * @return string Timezone eg. UTC+7 or Europe/Paris
+     */
+    public function getDefaultTimezone()
+    {
+        $defaultTimezone = Option::get(self::OPTION_DEFAULT_TIMEZONE);
+        if ($defaultTimezone) {
+            return $defaultTimezone;
+        }
+        return 'UTC';
+    }
+
+    /**
      * Sets the default timezone that will be used when creating websites
      *
      * @param string $defaultTimezone Timezone string eg. Europe/Paris or UTC+8
@@ -1281,104 +1066,6 @@ class API extends \Piwik\Plugin\API
         $this->checkValidTimezone($defaultTimezone);
         Option::set(self::OPTION_DEFAULT_TIMEZONE, $defaultTimezone);
         return true;
-    }
-
-    /**
-     * Updates the field ts_created for the specified websites.
-     *
-     * @param $idSites int Id Site to update ts_created
-     * @param $minDate Date to set as creation date. To play it safe it will substract one more day.
-     *
-     * @ignore
-     */
-    public function updateSiteCreatedTime($idSites, Date $minDate)
-    {
-        $idSites = Site::getIdSitesFromIdSitesString($idSites);
-        Piwik::checkUserHasAdminAccess($idSites);
-
-        $minDateSql = $minDate->subDay(1)->getDatetime();
-
-        $this->getModel()->updateSiteCreatedTime($idSites, $minDateSql);
-    }
-
-    /**
-     * Returns the list of currency symbols
-     * @see getCurrencyList()
-     * @return array( currencyId => currencySymbol )
-     */
-    public function getCurrencySymbols()
-    {
-        $currencies = Site::getCurrencyList();
-        return array_map(function ($a) {
-            return $a[0];
-        }, $currencies);
-    }
-
-    /**
-     * Return true if Timezone support is enabled on server
-     *
-     * @return bool
-     */
-    public function isTimezoneSupportEnabled()
-    {
-        Piwik::checkUserHasSomeViewAccess();
-        return SettingsServer::isTimezoneSupportEnabled();
-    }
-
-    /**
-     * Returns the list of unique timezones from all configured sites.
-     *
-     * @return array ( string )
-     */
-    public function getUniqueSiteTimezones()
-    {
-        Piwik::checkUserHasSuperUserAccess();
-
-        return $this->getModel()->getUniqueSiteTimezones();
-    }
-
-    public function renameGroup($oldGroupName, $newGroupName)
-    {
-        Piwik::checkUserHasSuperUserAccess();
-
-        if ($oldGroupName == $newGroupName) {
-            return true;
-        }
-
-        $sitesHavingOldGroup = $this->getSitesFromGroup($oldGroupName);
-
-        foreach ($sitesHavingOldGroup as $site) {
-            $this->updateSite($site['idsite'],
-                              $siteName = null,
-                              $urls = null,
-                              $ecommerce = null,
-                              $siteSearch = null,
-                              $searchKeywordParameters = null,
-                              $searchCategoryParameters = null,
-                              $excludedIps = null,
-                              $excludedQueryParameters = null,
-                              $timezone = null,
-                              $currency = null,
-                              $newGroupName);
-        }
-
-        return true;
-    }
-
-    /**
-     * Returns all websites belonging to the specified group
-     * @param string $group Group name
-     * @return array of sites
-     */
-    public function getSitesFromGroup($group = '')
-    {
-        Piwik::checkUserHasSuperUserAccess();
-
-        $group = trim($group);
-        $sites = $this->getModel()->getSitesFromGroup($group);
-
-        Site::setSitesFromArray($sites);
-        return $sites;
     }
 
     /**
@@ -1517,28 +1204,325 @@ class API extends \Piwik\Plugin\API
     }
 
     /**
-     * Add a list of alias Urls to the given idSite
+     * Updates the field ts_created for the specified websites.
      *
-     * If some URLs given in parameter are already recorded as alias URLs for this website,
-     * they won't be duplicated. The 'main_url' of the website won't be affected by this method.
+     * @param $idSites int Id Site to update ts_created
+     * @param $minDate Date to set as creation date. To play it safe it will substract one more day.
      *
-     * @param int $idSite
-     * @param array|string $urls
-     * @return int the number of inserted URLs
+     * @ignore
      */
-    public function addSiteAliasUrls($idSite, $urls)
+    public function updateSiteCreatedTime($idSites, Date $minDate)
     {
-        Piwik::checkUserHasAdminAccess($idSite);
+        $idSites = Site::getIdSitesFromIdSitesString($idSites);
+        Piwik::checkUserHasAdminAccess($idSites);
 
-        $urls = $this->cleanParameterUrls($urls);
-        $this->checkUrls($urls);
+        $minDateSql = $minDate->subDay(1)->getDatetime();
 
-        $urlsInit = $this->getSiteUrlsFromId($idSite);
-        $toInsert = array_diff($urls, $urlsInit);
-        $this->insertSiteUrls($idSite, $toInsert);
-        $this->postUpdateWebsite($idSite);
+        $this->getModel()->updateSiteCreatedTime($idSites, $minDateSql);
+    }
 
-        return count($toInsert);
+    private function checkAndReturnCommaSeparatedStringList($parameters)
+    {
+        $parameters = trim($parameters);
+        if (empty($parameters)) {
+            return '';
+        }
+
+        $parameters = explode(',', $parameters);
+        $parameters = array_map('trim', $parameters);
+        $parameters = array_filter($parameters, 'strlen');
+        $parameters = array_unique($parameters);
+        return implode(',', $parameters);
+    }
+
+    /**
+     * Returns the list of supported currencies
+     * @see getCurrencySymbols()
+     * @return array ( currencyId => currencyName)
+     */
+    public function getCurrencyList()
+    {
+        $currencies = Site::getCurrencyList();
+        return array_map(function ($a) {
+            return $a[1] . " (" . $a[0] . ")";
+        }, $currencies);
+    }
+
+    /**
+     * Returns the list of currency symbols
+     * @see getCurrencyList()
+     * @return array( currencyId => currencySymbol )
+     */
+    public function getCurrencySymbols()
+    {
+        $currencies = Site::getCurrencyList();
+        return array_map(function ($a) {
+            return $a[0];
+        }, $currencies);
+    }
+
+    /**
+     * Return true if Timezone support is enabled on server
+     *
+     * @return bool
+     */
+    public function isTimezoneSupportEnabled()
+    {
+        Piwik::checkUserHasSomeViewAccess();
+        return SettingsServer::isTimezoneSupportEnabled();
+    }
+
+    /**
+     * Returns the list of timezones supported.
+     * Used for addSite and updateSite
+     *
+     * @return array of timezone strings
+     */
+    public function getTimezonesList()
+    {
+        if (!SettingsServer::isTimezoneSupportEnabled()) {
+            return array('UTC' => $this->getTimezonesListUTCOffsets());
+        }
+
+        $continents = array('Africa', 'America', 'Antarctica', 'Arctic', 'Asia', 'Atlantic', 'Australia', 'Europe', 'Indian', 'Pacific');
+        $timezones = timezone_identifiers_list();
+
+        $return = array();
+        foreach ($timezones as $timezone) {
+            // filter out timezones not recognized by strtotime()
+            // @see http://bugs.php.net/46111
+            $testDate = '2008-09-18 13:00:00 ' . $timezone;
+            if (!strtotime($testDate)) {
+                continue;
+            }
+
+            $timezoneExploded = explode('/', $timezone);
+            $continent = $timezoneExploded[0];
+
+            // only display timezones that are grouped by continent
+            if (!in_array($continent, $continents)) {
+                continue;
+            }
+            $city = $timezoneExploded[1];
+            if (!empty($timezoneExploded[2])) {
+                $city .= ' - ' . $timezoneExploded[2];
+            }
+            $city = str_replace('_', ' ', $city);
+            $return[$continent][$timezone] = $city;
+        }
+
+        foreach ($continents as $continent) {
+            if (!empty($return[$continent])) {
+                ksort($return[$continent]);
+            }
+        }
+
+        $return['UTC'] = $this->getTimezonesListUTCOffsets();
+        return $return;
+    }
+
+    private function getTimezonesListUTCOffsets()
+    {
+        // manually add the UTC offsets
+        $GmtOffsets = array(-12, -11.5, -11, -10.5, -10, -9.5, -9, -8.5, -8, -7.5, -7, -6.5, -6, -5.5, -5, -4.5, -4, -3.5, -3, -2.5, -2, -1.5, -1, -0.5,
+                            0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 5.75, 6, 6.5, 7, 7.5, 8, 8.5, 8.75, 9, 9.5, 10, 10.5, 11, 11.5, 12, 12.75, 13, 13.75, 14);
+
+        $return = array();
+        foreach ($GmtOffsets as $offset) {
+            $offset = Common::forceDotAsSeparatorForDecimalPoint($offset);
+
+            if ($offset > 0) {
+                $offset = '+' . $offset;
+            } elseif ($offset == 0) {
+                $offset = '';
+            }
+            $offset = 'UTC' . $offset;
+            $offsetName = str_replace(array('.25', '.5', '.75'), array(':15', ':30', ':45'), $offset);
+            $return[$offset] = $offsetName;
+        }
+        return $return;
+    }
+
+    /**
+     * Returns the list of unique timezones from all configured sites.
+     *
+     * @return array ( string )
+     */
+    public function getUniqueSiteTimezones()
+    {
+        Piwik::checkUserHasSuperUserAccess();
+
+        return $this->getModel()->getUniqueSiteTimezones();
+    }
+
+    /**
+     * Insert the list of alias URLs for the website.
+     * The URLs must not exist already for this website!
+     */
+    private function insertSiteUrls($idSite, $urls)
+    {
+        if (count($urls) != 0) {
+            foreach ($urls as $url) {
+                try {
+                    $this->getModel()->insertSiteUrl($idSite, $url);
+                } catch(Exception $e) {
+                    // See bug #4149
+                }
+            }
+        }
+    }
+
+    /**
+     * Remove the final slash in the URLs if found
+     *
+     * @param string $url
+     * @return string the URL without the trailing slash
+     */
+    private function removeTrailingSlash($url)
+    {
+        // if there is a final slash, we take the URL without this slash (expected URL format)
+        if (strlen($url) > 5
+            && $url[strlen($url) - 1] == '/'
+        ) {
+            $url = substr($url, 0, strlen($url) - 1);
+        }
+
+        return $url;
+    }
+
+    /**
+     * Tests if the URL is a valid URL
+     *
+     * @param string $url
+     * @return bool
+     */
+    private function isValidUrl($url)
+    {
+        return UrlHelper::isLookLikeUrl($url);
+    }
+
+    /**
+     * Tests if the IP is a valid IP, allowing wildcards, except in the first octet.
+     * Wildcards can only be used from right to left, ie. 1.1.*.* is allowed, but 1.1.*.1 is not.
+     *
+     * @param string $ip IP address
+     * @return bool
+     */
+    private function isValidIp($ip)
+    {
+        return IPUtils::getIPRangeBounds($ip) !== null;
+    }
+
+    /**
+     * Check that the website name has a correct format.
+     *
+     * @param $siteName
+     * @throws Exception
+     */
+    private function checkName($siteName)
+    {
+        if (empty($siteName)) {
+            throw new Exception(Piwik::translate("SitesManager_ExceptionEmptyName"));
+        }
+    }
+
+    private function checkSiteSearch($siteSearch)
+    {
+        if ($siteSearch === null) {
+            return "1";
+        }
+        return $siteSearch == 1 ? "1" : "0";
+    }
+
+    private function checkSiteSearchParameters($searchKeywordParameters, $searchCategoryParameters)
+    {
+        $searchKeywordParameters = trim($searchKeywordParameters);
+        $searchCategoryParameters = trim($searchCategoryParameters);
+        if (empty($searchKeywordParameters)) {
+            $searchKeywordParameters = '';
+        }
+
+        if (empty($searchCategoryParameters)) {
+            $searchCategoryParameters = '';
+        }
+
+        return array($searchKeywordParameters, $searchCategoryParameters);
+    }
+
+    /**
+     * Check that the array of URLs are valid URLs
+     *
+     * @param array $urls
+     * @throws Exception if any of the urls is not valid
+     */
+    private function checkUrls($urls)
+    {
+        foreach ($urls as $url) {
+            if (!$this->isValidUrl($url)) {
+                throw new Exception(sprintf(Piwik::translate("SitesManager_ExceptionInvalidUrl"), $url));
+            }
+        }
+    }
+
+    /**
+     * Clean the parameter URLs:
+     * - if the parameter is a string make it an array
+     * - remove the trailing slashes if found
+     *
+     * @param string|array urls
+     * @return array the array of cleaned URLs
+     */
+    private function cleanParameterUrls($urls)
+    {
+        if (!is_array($urls)) {
+            $urls = array($urls);
+        }
+
+        $urls = array_filter($urls);
+        $urls = array_map('urldecode', $urls);
+
+        foreach ($urls as &$url) {
+            $url = $this->removeTrailingSlash($url);
+            $scheme = parse_url($url, PHP_URL_SCHEME);
+            if (empty($scheme)
+                && strpos($url, '://') === false
+            ) {
+                $url = 'http://' . $url;
+            }
+            $url = trim($url);
+            $url = Common::sanitizeInputValue($url);
+        }
+
+        $urls = array_unique($urls);
+        return $urls;
+    }
+
+    public function renameGroup($oldGroupName, $newGroupName)
+    {
+        Piwik::checkUserHasSuperUserAccess();
+
+        if ($oldGroupName == $newGroupName) {
+            return true;
+        }
+
+        $sitesHavingOldGroup = $this->getSitesFromGroup($oldGroupName);
+
+        foreach ($sitesHavingOldGroup as $site) {
+            $this->updateSite($site['idsite'],
+                              $siteName = null,
+                              $urls = null,
+                              $ecommerce = null,
+                              $siteSearch = null,
+                              $searchKeywordParameters = null,
+                              $searchCategoryParameters = null,
+                              $excludedIps = null,
+                              $excludedQueryParameters = null,
+                              $timezone = null,
+                              $currency = null,
+                              $newGroupName);
+        }
+
+        return true;
     }
 
     /**
@@ -1578,5 +1562,21 @@ class API extends \Piwik\Plugin\API
         Piwik::checkUserHasSomeViewAccess();
 
         return SettingsPiwik::getWebsitesCountToDisplay();
+    }
+
+    /**
+     * Utility function that throws if a value is not valid for the 'keep_url_fragment'
+     * column of the piwik_site table.
+     *
+     * @param int $keepURLFragments
+     * @throws Exception
+     */
+    private static function checkKeepURLFragmentsValue($keepURLFragments)
+    {
+        // make sure value is between 0 & 2
+        if (!in_array($keepURLFragments, array(0, 1, 2))) {
+            throw new Exception("Error in SitesManager.updateSite: keepURLFragments must be between 0 & 2" .
+                " (actual value: $keepURLFragments).");
+        }
     }
 }

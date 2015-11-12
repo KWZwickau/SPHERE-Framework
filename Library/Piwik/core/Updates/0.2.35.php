@@ -17,16 +17,16 @@ use Piwik\Updates;
  */
 class Updates_0_2_35 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
             'ALTER TABLE `' . Common::prefixTable('user_dashboard') . '`
 				CHANGE `layout` `layout` TEXT NOT NULL' => false,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

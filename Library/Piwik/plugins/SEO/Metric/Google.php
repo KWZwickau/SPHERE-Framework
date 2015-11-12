@@ -82,6 +82,28 @@ class Google implements MetricsProvider
     }
 
     /**
+     * Generate a hash for a url
+     *
+     * @param string $string
+     * @return int
+     */
+    private function hashURL($string)
+    {
+        $Check1 = $this->strToNum($string, 0x1505, 0x21);
+        $Check2 = $this->strToNum($string, 0, 0x1003F);
+
+        $Check1 >>= 2;
+        $Check1 = (($Check1 >> 4) & 0x3FFFFC0) | ($Check1 & 0x3F);
+        $Check1 = (($Check1 >> 4) & 0x3FFC00) | ($Check1 & 0x3FF);
+        $Check1 = (($Check1 >> 4) & 0x3C000) | ($Check1 & 0x3FFF);
+
+        $T1 = (((($Check1 & 0x3C0) << 4) | ($Check1 & 0x3C)) << 2) | ($Check2 & 0xF0F);
+        $T2 = (((($Check1 & 0xFFFFC000) << 4) | ($Check1 & 0x3C00)) << 0xA) | ($Check2 & 0xF0F0000);
+
+        return ($T1 | $T2);
+    }
+
+    /**
      * Generate a checksum for the hash string
      *
      * @param int $hashnum
@@ -117,28 +139,6 @@ class Google implements MetricsProvider
         }
 
         return '7' . $CheckByte . $HashStr;
-    }
-
-    /**
-     * Generate a hash for a url
-     *
-     * @param string $string
-     * @return int
-     */
-    private function hashURL($string)
-    {
-        $Check1 = $this->strToNum($string, 0x1505, 0x21);
-        $Check2 = $this->strToNum($string, 0, 0x1003F);
-
-        $Check1 >>= 2;
-        $Check1 = (($Check1 >> 4) & 0x3FFFFC0) | ($Check1 & 0x3F);
-        $Check1 = (($Check1 >> 4) & 0x3FFC00) | ($Check1 & 0x3FF);
-        $Check1 = (($Check1 >> 4) & 0x3C000) | ($Check1 & 0x3FFF);
-
-        $T1 = (((($Check1 & 0x3C0) << 4) | ($Check1 & 0x3C)) << 2) | ($Check2 & 0xF0F);
-        $T2 = (((($Check1 & 0xFFFFC000) << 4) | ($Check1 & 0x3C00)) << 0xA) | ($Check2 & 0xF0F0000);
-
-        return ($T1 | $T2);
     }
 
     /**

@@ -17,11 +17,6 @@ class PageUrl extends ActionDimension
     protected $columnName = 'idaction_url';
     protected $columnType = 'INTEGER(10) UNSIGNED DEFAULT NULL';
 
-    public function getName()
-    {
-        return Piwik::translate('Actions_ColumnPageURL');
-    }
-
     protected function configureSegments()
     {
         $segment = new Segment();
@@ -29,5 +24,10 @@ class PageUrl extends ActionDimension
         $segment->setName('Actions_ColumnPageURL');
         $segment->setAcceptedValues('All these segments must be URL encoded, for example: ' . urlencode('http://example.com/path/page?query'));
         $this->addSegment($segment);
+    }
+
+    public function getName()
+    {
+        return Piwik::translate('Actions_ColumnPageURL');
     }
 }

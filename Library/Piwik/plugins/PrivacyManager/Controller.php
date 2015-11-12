@@ -41,11 +41,11 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
                     $enable = Common::getRequestVar("anonymizeIPEnable", 0);
                     if ($enable == 1) {
                         IPAnonymizer::activate();
-                    } else {if ($enable == 0) {
+                    } else if ($enable == 0) {
                         IPAnonymizer::deactivate();
                     } else {
                         // pass
-                    }}
+                    }
 
                     $privacyConfig = new Config();
                     $privacyConfig->ipAddressMaskLength = Common::getRequestVar("maskLength", 1);
@@ -125,6 +125,57 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         return $view->render();
     }
 
+    public function privacySettings()
+    {
+        Piwik::checkUserHasSomeAdminAccess();
+        $view = new View('@PrivacyManager/privacySettings');
+
+        if (Piwik::hasUserSuperUserAccess()) {
+            $view->deleteData = $this->getDeleteDataInfo();
+            $view->anonymizeIP = $this->getAnonymizeIPInfo();
+            $dntChecker = new DoNotTrackHeaderChecker();
+            $view->dntSupport = $dntChecker->isActive();
+            $view->canDeleteLogActions = Db::isLockPrivilegeGranted();
+            $view->dbUser = PiwikConfig::getInstance()->database['username'];
+            $view->deactivateNonce = Nonce::getNonce(self::DEACTIVATE_DNT_NONCE);
+            $view->activateNonce   = Nonce::getNonce(self::ACTIVATE_DNT_NONCE);
+        }
+        $view->language = LanguagesManager::getLanguageCodeForCurrentUser();
+        $this->setBasicVariablesView($view);
+        return $view->render();
+    }
+
+    /**
+     * Executes a data purge, deleting log data and report data using the current config
+     * options. Echo's the result of getDatabaseSize after purging.
+     */
+    public function executeDataPurge()
+    {
+        $this->checkDataPurgeAdminSettingsIsEnabled();
+
+        Piwik::checkUserHasSuperUserAccess();
+        $this->checkTokenInUrl();
+
+        // if the request isn't a POST, redirect to index
+        if ($_SERVER["REQUEST_METHOD"] != "POST"
+            && !Common::isPhpCliMode()
+        ) {
+            $this->redirectToIndex('PrivacyManager', 'privacySettings');
+            return;
+        }
+
+        $settings = PrivacyManager::getPurgeDataSettings();
+        if ($settings['delete_logs_enable']) {
+            /** @var LogDataPurger $logDataPurger */
+            $logDataPurger = StaticContainer::get('Piwik\Plugins\PrivacyManager\LogDataPurger');
+            $logDataPurger->purgeData($settings['delete_logs_older_than']);
+        }
+        if ($settings['delete_reports_enable']) {
+            $reportsPurger = ReportsPurger::make($settings, PrivacyManager::getAllMetricsToKeep());
+            $reportsPurger->purgeData(true);
+        }
+    }
+
     protected function getDeleteDBSizeEstimate($getSettingsFromQuery = false, $forceEstimate = false)
     {
         $this->checkDataPurgeAdminSettingsIsEnabled();
@@ -183,24 +234,17 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         return $result;
     }
 
-    public function privacySettings()
+    protected function getAnonymizeIPInfo()
     {
-        Piwik::checkUserHasSomeAdminAccess();
-        $view = new View('@PrivacyManager/privacySettings');
+        Piwik::checkUserHasSuperUserAccess();
+        $anonymizeIP = array();
 
-        if (Piwik::hasUserSuperUserAccess()) {
-            $view->deleteData = $this->getDeleteDataInfo();
-            $view->anonymizeIP = $this->getAnonymizeIPInfo();
-            $dntChecker = new DoNotTrackHeaderChecker();
-            $view->dntSupport = $dntChecker->isActive();
-            $view->canDeleteLogActions = Db::isLockPrivilegeGranted();
-            $view->dbUser = PiwikConfig::getInstance()->database['username'];
-            $view->deactivateNonce = Nonce::getNonce(self::DEACTIVATE_DNT_NONCE);
-            $view->activateNonce   = Nonce::getNonce(self::ACTIVATE_DNT_NONCE);
-        }
-        $view->language = LanguagesManager::getLanguageCodeForCurrentUser();
-        $this->setBasicVariablesView($view);
-        return $view->render();
+        $privacyConfig = new Config();
+        $anonymizeIP["enabled"] = IpAnonymizer::isActive();
+        $anonymizeIP["maskLength"] = $privacyConfig->ipAddressMaskLength;
+        $anonymizeIP["useAnonymizedIpForVisitEnrichment"] = $privacyConfig->useAnonymizedIpForVisitEnrichment;
+
+        return $anonymizeIP;
     }
 
     protected function getDeleteDataInfo()
@@ -253,50 +297,6 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         $deleteDataInfos["nextRunPretty"] = $formatter->getPrettyTimeFromSeconds($deleteDataInfos["nextScheduleTime"] - time());
 
         return $deleteDataInfos;
-    }
-
-    protected function getAnonymizeIPInfo()
-    {
-        Piwik::checkUserHasSuperUserAccess();
-        $anonymizeIP = array();
-
-        $privacyConfig = new Config();
-        $anonymizeIP["enabled"] = IpAnonymizer::isActive();
-        $anonymizeIP["maskLength"] = $privacyConfig->ipAddressMaskLength;
-        $anonymizeIP["useAnonymizedIpForVisitEnrichment"] = $privacyConfig->useAnonymizedIpForVisitEnrichment;
-
-        return $anonymizeIP;
-    }
-
-    /**
-     * Executes a data purge, deleting log data and report data using the current config
-     * options. Echo's the result of getDatabaseSize after purging.
-     */
-    public function executeDataPurge()
-    {
-        $this->checkDataPurgeAdminSettingsIsEnabled();
-
-        Piwik::checkUserHasSuperUserAccess();
-        $this->checkTokenInUrl();
-
-        // if the request isn't a POST, redirect to index
-        if ($_SERVER["REQUEST_METHOD"] != "POST"
-            && !Common::isPhpCliMode()
-        ) {
-            $this->redirectToIndex('PrivacyManager', 'privacySettings');
-            return;
-        }
-
-        $settings = PrivacyManager::getPurgeDataSettings();
-        if ($settings['delete_logs_enable']) {
-            /** @var LogDataPurger $logDataPurger */
-            $logDataPurger = StaticContainer::get('Piwik\Plugins\PrivacyManager\LogDataPurger');
-            $logDataPurger->purgeData($settings['delete_logs_older_than']);
-        }
-        if ($settings['delete_reports_enable']) {
-            $reportsPurger = ReportsPurger::make($settings, PrivacyManager::getAllMetricsToKeep());
-            $reportsPurger->purgeData(true);
-        }
     }
 
     public function deactivateDoNotTrack()

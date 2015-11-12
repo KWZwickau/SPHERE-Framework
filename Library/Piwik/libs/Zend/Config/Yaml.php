@@ -38,23 +38,74 @@ class Zend_Config_Yaml extends Zend_Config
      * Attribute name that indicates what section a config extends from
      */
     const EXTENDS_NAME = "_extends";
-    /**
-     * Whether or not to ignore constants in parsed YAML
-     * @var bool
-     */
-    protected static $_ignoreConstants = false;
+
     /**
      * Whether to skip extends or not
      *
      * @var boolean
      */
     protected $_skipExtends = false;
+
     /**
      * What to call when we need to decode some YAML?
      *
      * @var callable
      */
     protected $_yamlDecoder = array(__CLASS__, 'decode');
+
+    /**
+     * Whether or not to ignore constants in parsed YAML
+     * @var bool
+     */
+    protected static $_ignoreConstants = false;
+
+    /**
+     * Indicate whether parser should ignore constants or not
+     *
+     * @param  bool $flag
+     * @return void
+     */
+    public static function setIgnoreConstants($flag)
+    {
+        self::$_ignoreConstants = (bool) $flag;
+    }
+
+    /**
+     * Whether parser should ignore constants or not
+     *
+     * @return bool
+     */
+    public static function ignoreConstants()
+    {
+        return self::$_ignoreConstants;
+    }
+
+    /**
+     * Get callback for decoding YAML
+     *
+     * @return callable
+     */
+    public function getYamlDecoder()
+    {
+        return $this->_yamlDecoder;
+    }
+
+    /**
+     * Set callback for decoding YAML
+     *
+     * @param  callable $yamlDecoder the decoder to set
+     * @return Zend_Config_Yaml
+     */
+    public function setYamlDecoder($yamlDecoder)
+    {
+        if (!is_callable($yamlDecoder)) {
+            // require_once 'Zend/Config/Exception.php';
+            throw new Zend_Config_Exception('Invalid parameter to setYamlDecoder() - must be callable');
+        }
+
+        $this->_yamlDecoder = $yamlDecoder;
+        return $this;
+    }
 
     /**
      * Loads the section $section from the config file encoded as YAML
@@ -75,7 +126,7 @@ class Zend_Config_Yaml extends Zend_Config
      *
      * @param  string        $yaml     YAML file to process
      * @param  mixed         $section  Section to process
-     * @param  array|boolean $options
+     * @param  array|boolean $options 
      */
     public function __construct($yaml, $section = null, $options = false)
     {
@@ -174,54 +225,6 @@ class Zend_Config_Yaml extends Zend_Config
     }
 
     /**
-     * Whether parser should ignore constants or not
-     *
-     * @return bool
-     */
-    public static function ignoreConstants()
-    {
-        return self::$_ignoreConstants;
-    }
-
-    /**
-     * Indicate whether parser should ignore constants or not
-     *
-     * @param  bool $flag
-     * @return void
-     */
-    public static function setIgnoreConstants($flag)
-    {
-        self::$_ignoreConstants = (bool) $flag;
-    }
-
-    /**
-     * Get callback for decoding YAML
-     *
-     * @return callable
-     */
-    public function getYamlDecoder()
-    {
-        return $this->_yamlDecoder;
-    }
-
-    /**
-     * Set callback for decoding YAML
-     *
-     * @param  callable $yamlDecoder the decoder to set
-     * @return Zend_Config_Yaml
-     */
-    public function setYamlDecoder($yamlDecoder)
-    {
-        if (!is_callable($yamlDecoder)) {
-            // require_once 'Zend/Config/Exception.php';
-            throw new Zend_Config_Exception('Invalid parameter to setYamlDecoder() - must be callable');
-        }
-
-        $this->_yamlDecoder = $yamlDecoder;
-        return $this;
-    }
-
-    /**
      * Helper function to process each element in the section and handle
      * the "_extends" inheritance attribute.
      *
@@ -282,7 +285,7 @@ class Zend_Config_Yaml extends Zend_Config
         $inIndent = false;
         while (list($n, $line) = each($lines)) {
             $lineno = $n + 1;
-
+            
             $line = rtrim(preg_replace("/#.*$/", "", $line));
             if (strlen($line) == 0) {
                 continue;

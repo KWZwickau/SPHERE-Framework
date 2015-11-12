@@ -8,9 +8,9 @@
 
 namespace Piwik\Plugins\Diagnostics\Test\Integration\Commands;
 
-use Piwik\Plugins\VisitsSummary\API as VisitsSummaryAPI;
 use Piwik\Tests\Fixtures\OneVisitorTwoVisits;
 use Piwik\Tests\Framework\TestCase\ConsoleCommandTestCase;
+use Piwik\Plugins\VisitsSummary\API as VisitsSummaryAPI;
 
 /**
  * TODO: This could be a unit test if we could inject the ArchiveTableDao in the command

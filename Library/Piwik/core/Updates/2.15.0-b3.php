@@ -16,11 +16,6 @@ use Piwik\Updates;
 
 class Updates_2_15_0_b3 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         $updateSql = array(
@@ -28,5 +23,10 @@ class Updates_2_15_0_b3 extends Updates
                 . '` ADD COLUMN `exclude_unknown_urls` TINYINT(1) DEFAULT 0 AFTER `currency`' => array(1060)
         );
         return $updateSql;
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

@@ -67,7 +67,6 @@
                     var iSize = setInterval(function ()
                     {
                         curHeight = iFrame.contents().find('body').height();
-                        console.log(curHeight, '>', lastHeight);
                         if (curHeight > lastHeight || !curHeight) {
                             iFrame.css('height', (lastHeight = curHeight) + 'px');
                         } else {

@@ -9,7 +9,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
 class Twig_Node_Expression_Name extends Twig_Node_Expression
 {
     protected $specialVars = array(
@@ -20,12 +19,7 @@ class Twig_Node_Expression_Name extends Twig_Node_Expression
 
     public function __construct($name, $lineno)
     {
-        parent::__construct(array(), array(
-            'name' => $name,
-            'is_defined_test' => false,
-            'ignore_strict_check' => false,
-            'always_defined' => false
-        ), $lineno);
+        parent::__construct(array(), array('name' => $name, 'is_defined_test' => false, 'ignore_strict_check' => false, 'always_defined' => false), $lineno);
     }
 
     public function compile(Twig_Compiler $compiler)
@@ -37,8 +31,7 @@ class Twig_Node_Expression_Name extends Twig_Node_Expression
         if ($this->getAttribute('is_defined_test')) {
             if ($this->isSpecial()) {
                 if ('_self' === $name) {
-                    @trigger_error(sprintf('Global variable "_self" is deprecated in %s at line %d', '?',
-                        $this->getLine()), E_USER_DEPRECATED);
+                    @trigger_error(sprintf('Global variable "_self" is deprecated in %s at line %d', '?', $this->getLine()), E_USER_DEPRECATED);
                 }
 
                 $compiler->repr(true);
@@ -47,8 +40,7 @@ class Twig_Node_Expression_Name extends Twig_Node_Expression
             }
         } elseif ($this->isSpecial()) {
             if ('_self' === $name) {
-                @trigger_error(sprintf('Global variable "_self" is deprecated in %s at line %d', '?', $this->getLine()),
-                    E_USER_DEPRECATED);
+                @trigger_error(sprintf('Global variable "_self" is deprecated in %s at line %d', '?', $this->getLine()), E_USER_DEPRECATED);
             }
 
             $compiler->raw($this->specialVars[$name]);
@@ -56,7 +48,8 @@ class Twig_Node_Expression_Name extends Twig_Node_Expression
             $compiler
                 ->raw('$context[')
                 ->string($name)
-                ->raw(']');
+                ->raw(']')
+            ;
         } else {
             // remove the non-PHP 5.4 version when PHP 5.3 support is dropped
             // as the non-optimized version is just a workaround for slow ternary operator
@@ -68,7 +61,8 @@ class Twig_Node_Expression_Name extends Twig_Node_Expression
                     ->string($name)
                     ->raw(']) ? $context[')
                     ->string($name)
-                    ->raw('] : ');
+                    ->raw('] : ')
+                ;
 
                 if ($this->getAttribute('ignore_strict_check') || !$compiler->getEnvironment()->isStrictVariables()) {
                     $compiler->raw('null)');
@@ -78,14 +72,16 @@ class Twig_Node_Expression_Name extends Twig_Node_Expression
             } else {
                 $compiler
                     ->raw('$this->getContext($context, ')
-                    ->string($name);
+                    ->string($name)
+                ;
 
                 if ($this->getAttribute('ignore_strict_check')) {
                     $compiler->raw(', true');
                 }
 
                 $compiler
-                    ->raw(')');
+                    ->raw(')')
+                ;
             }
         }
     }

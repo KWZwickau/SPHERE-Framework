@@ -12,8 +12,8 @@ namespace Piwik\Updates;
 use Piwik\Filesystem;
 use Piwik\Plugins\PrivacyManager\DoNotTrackHeaderChecker;
 use Piwik\Plugins\PrivacyManager\IPAnonymizer;
-use Piwik\Updater;
 use Piwik\Updates;
+use Piwik\Updater;
 
 /**
  */

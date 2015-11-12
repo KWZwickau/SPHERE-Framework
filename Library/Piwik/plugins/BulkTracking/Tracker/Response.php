@@ -42,6 +42,24 @@ class Response extends Tracker\Response
         echo json_encode($result);
     }
 
+    public function outputResponse(Tracker $tracker)
+    {
+        if ($this->hasAlreadyPrintedOutput()) {
+            return;
+        }
+
+        $result = $this->formatResponse($tracker);
+
+        echo json_encode($result);
+    }
+
+    public function getOutput()
+    {
+        Common::sendHeader('Content-Type: application/json');
+
+        return parent::getOutput();
+    }
+
     private function formatException(Tracker $tracker, Exception $e)
     {
         // when doing bulk tracking we return JSON so the caller will know how many succeeded
@@ -61,24 +79,6 @@ class Response extends Tracker\Response
         return $result;
     }
 
-    private function addInvalidIndicesIfAuthenticated(&$result)
-    {
-        if ($this->isAuthenticated) {
-            $result['invalid_indices'] = $this->invalidRequests;
-        }
-    }
-
-    public function outputResponse(Tracker $tracker)
-    {
-        if ($this->hasAlreadyPrintedOutput()) {
-            return;
-        }
-
-        $result = $this->formatResponse($tracker);
-
-        echo json_encode($result);
-    }
-
     private function formatResponse(Tracker $tracker)
     {
         $result = array(
@@ -92,13 +92,6 @@ class Response extends Tracker\Response
         return $result;
     }
 
-    public function getOutput()
-    {
-        Common::sendHeader('Content-Type: application/json');
-
-        return parent::getOutput();
-    }
-
     public function setInvalidRequests($invalidRequests)
     {
         $this->invalidRequests = $invalidRequests;
@@ -107,5 +100,12 @@ class Response extends Tracker\Response
     public function setIsAuthenticated($isAuthenticated)
     {
         $this->isAuthenticated = $isAuthenticated;
+    }
+
+    private function addInvalidIndicesIfAuthenticated(&$result)
+    {
+        if ($this->isAuthenticated) {
+            $result['invalid_indices'] = $this->invalidRequests;
+        }
     }
 }

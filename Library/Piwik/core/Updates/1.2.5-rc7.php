@@ -17,16 +17,16 @@ use Piwik\Updates;
  */
 class Updates_1_2_5_rc7 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
             'ALTER TABLE `' . Common::prefixTable('log_visit') . '`
 		    	ADD INDEX index_idsite_idvisitor (idsite, idvisitor)' => 1061,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

@@ -11,12 +11,28 @@ namespace Piwik\Plugins\VisitorInterest\Reports;
 use Piwik\Metrics;
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
-use Piwik\Plugins\CoreHome\Columns\Metrics\VisitsPercent;
 use Piwik\Plugins\VisitorInterest\Columns\VisitsbyVisitNumber;
+use Piwik\Plugins\CoreHome\Columns\Metrics\VisitsPercent;
 
 class GetNumberOfVisitsByVisitCount extends Base
 {
     protected $defaultSortColumn = '';
+
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new VisitsbyVisitNumber();
+        $this->name          = Piwik::translate('VisitorInterest_visitsByVisitCount');
+        $this->documentation = Piwik::translate('VisitorInterest_WidgetVisitsByNumDocumentation')
+                             . '<br />' . Piwik::translate('General_ChangeTagCloudView');
+        $this->metrics       = array('nb_visits');
+        $this->processedMetrics  = array(
+            new VisitsPercent()
+        );
+        $this->constantRowsCount = true;
+        $this->order = 25;
+        $this->widgetTitle  = 'VisitorInterest_visitsByVisitCount';
+    }
 
     public function configureView(ViewDataTable $view)
     {
@@ -39,22 +55,6 @@ class GetNumberOfVisitsByVisitCount extends Base
         $view->config->show_search             = false;
         $view->config->show_table_all_columns  = false;
         $view->config->show_all_views_icons    = false;
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension     = new VisitsbyVisitNumber();
-        $this->name          = Piwik::translate('VisitorInterest_visitsByVisitCount');
-        $this->documentation = Piwik::translate('VisitorInterest_WidgetVisitsByNumDocumentation')
-                             . '<br />' . Piwik::translate('General_ChangeTagCloudView');
-        $this->metrics       = array('nb_visits');
-        $this->processedMetrics  = array(
-            new VisitsPercent()
-        );
-        $this->constantRowsCount = true;
-        $this->order = 25;
-        $this->widgetTitle  = 'VisitorInterest_visitsByVisitCount';
     }
 
 }

@@ -10,20 +10,11 @@ namespace Piwik\Plugins\CustomVariables;
 
 use Piwik\ArchiveProcessor;
 use Piwik\Piwik;
-use Piwik\Tracker;
 use Piwik\Tracker\Cache;
+use Piwik\Tracker;
 
 class CustomVariables extends \Piwik\Plugin
 {
-    /**
-     * There are also some hardcoded places in JavaScript
-     * @return int
-     */
-    public static function getMaxLengthCustomVariables()
-    {
-        return 200;
-    }
-
     /**
      * @see Piwik\Plugin::registerEvents
      */
@@ -61,6 +52,15 @@ class CustomVariables extends \Piwik\Plugin
         }
 
         $visitor['customVariables'] = $customVariables;
+    }
+
+    /**
+     * There are also some hardcoded places in JavaScript
+     * @return int
+     */
+    public static function getMaxLengthCustomVariables()
+    {
+        return 200;
     }
 
     /**

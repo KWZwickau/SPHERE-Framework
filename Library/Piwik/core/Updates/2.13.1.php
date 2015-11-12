@@ -19,15 +19,6 @@ use Piwik\Updates;
 class Updates_2_13_1 extends Updates
 {
     /**
-     * Here you can define any action that should be performed during the update. For instance executing SQL statements,
-     * renaming config entries, updating files, etc.
-     */
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
-    /**
      * Here you can define one or multiple SQL statements that should be executed during the update.
      * @return array
      */
@@ -39,5 +30,14 @@ class Updates_2_13_1 extends Updates
         return array(
             $removeEmptyDefaultReportsSql => false
         );
+    }
+
+    /**
+     * Here you can define any action that should be performed during the update. For instance executing SQL statements,
+     * renaming config entries, updating files, etc.
+     */
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

@@ -35,15 +35,6 @@ class LineMessageFormatter implements FormatterInterface
         $this->allowInlineLineBreaks = $allowInlineLineBreaks;
     }
 
-    public function formatBatch(array $records)
-    {
-        foreach ($records as $key => $record) {
-            $records[$key] = $this->format($record);
-        }
-
-        return $records;
-    }
-
     public function format(array $record)
     {
         $class = isset($record['extra']['class']) ? $record['extra']['class'] : '';
@@ -68,6 +59,27 @@ class LineMessageFormatter implements FormatterInterface
         return $total;
     }
 
+    private function formatMessage($class, $message, $date, $record)
+    {
+        $message = str_replace(
+            array('%tag%', '%message%', '%datetime%', '%level%'),
+            array($class, $message, $date, $record['level_name']),
+            $this->logMessageFormat
+        );
+
+        $message .= "\n";
+        return $message;
+    }
+
+    public function formatBatch(array $records)
+    {
+        foreach ($records as $key => $record) {
+            $records[$key] = $this->format($record);
+        }
+
+        return $records;
+    }
+
     private function prefixMessageWithRequestId(array $record, $message)
     {
         $requestId = isset($record['extra']['request_id']) ? $record['extra']['request_id'] : '';
@@ -78,18 +90,6 @@ class LineMessageFormatter implements FormatterInterface
             $message = '[' . $requestId . '] ' . $message;
         }
 
-        return $message;
-    }
-
-    private function formatMessage($class, $message, $date, $record)
-    {
-        $message = str_replace(
-            array('%tag%', '%message%', '%datetime%', '%level%'),
-            array($class, $message, $date, $record['level_name']),
-            $this->logMessageFormat
-        );
-
-        $message .= "\n";
         return $message;
     }
 }

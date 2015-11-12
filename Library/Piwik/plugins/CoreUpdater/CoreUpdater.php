@@ -9,6 +9,7 @@
 namespace Piwik\Plugins\CoreUpdater;
 
 use Exception;
+use Piwik\Access;
 use Piwik\API\ResponseBuilder;
 use Piwik\Common;
 use Piwik\Filesystem;
@@ -16,6 +17,7 @@ use Piwik\FrontController;
 use Piwik\Piwik;
 use Piwik\UpdateCheck;
 use Piwik\Updater as PiwikCoreUpdater;
+use Piwik\UpdaterErrorException;
 use Piwik\Version;
 
 /**
@@ -23,6 +25,17 @@ use Piwik\Version;
  */
 class CoreUpdater extends \Piwik\Plugin
 {
+    /**
+     * @see Piwik\Plugin::registerEvents
+     */
+    public function registerEvents()
+    {
+        return array(
+            'Request.dispatchCoreAndPluginUpdatesScreen' => 'dispatch',
+            'Platform.initialized'                       => 'updateCheck',
+        );
+    }
+
     /**
      * @deprecated
      */
@@ -37,17 +50,6 @@ class CoreUpdater extends \Piwik\Plugin
     public static function getComponentUpdates(PiwikCoreUpdater $updater)
     {
         return $updater->getComponentUpdates();
-    }
-
-    /**
-     * @see Piwik\Plugin::registerEvents
-     */
-    public function registerEvents()
-    {
-        return array(
-            'Request.dispatchCoreAndPluginUpdatesScreen' => 'dispatch',
-            'Platform.initialized'                       => 'updateCheck',
-        );
     }
 
     public function dispatch()

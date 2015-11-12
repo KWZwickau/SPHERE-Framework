@@ -9,9 +9,9 @@
 
 namespace Piwik\Plugins\Contents\Actions;
 
-use Piwik\Tracker;
 use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
+use Piwik\Tracker;
 
 /**
  * A content is composed of a name, an actual piece of content, and optionally a target.
@@ -33,24 +33,22 @@ class ActionContent extends Action
         return !empty($name);
     }
 
-    public function getIdActionUrlForEntryAndExitIds()
-    {
-        return false;
-    }
-
-    // Do not track this Event URL as Entry/Exit Page URL (leave the existing entry/exit)
-
-    public function getIdActionNameForEntryAndExitIds()
-    {
-        return false;
-    }
-
-    // Do not track this Event Name as Entry/Exit Page Title (leave the existing entry/exit)
-
     protected function getActionsToLookup()
     {
         return array(
             'idaction_url' => array($this->getActionUrl(), $this->getActionType())
         );
+    }
+
+    // Do not track this Event URL as Entry/Exit Page URL (leave the existing entry/exit)
+    public function getIdActionUrlForEntryAndExitIds()
+    {
+        return false;
+    }
+
+    // Do not track this Event Name as Entry/Exit Page Title (leave the existing entry/exit)
+    public function getIdActionNameForEntryAndExitIds()
+    {
+        return false;
     }
 }

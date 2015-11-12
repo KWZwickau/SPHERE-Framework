@@ -97,9 +97,9 @@ class PEAR_Exception extends Exception
     const OBSERVER_PRINT = -2;
     const OBSERVER_TRIGGER = -4;
     const OBSERVER_DIE = -8;
+    protected $cause;
     private static $_observers = array();
     private static $_uniqueid = 0;
-    protected $cause;
     private $_trace;
 
     /**
@@ -147,38 +147,6 @@ class PEAR_Exception extends Exception
     }
 
     /**
-     * Send a signal to all observers
-     *
-     * @return void
-     */
-    protected function signal()
-    {
-        foreach (self::$_observers as $func) {
-            if (is_callable($func)) {
-                call_user_func($func, $this);
-                continue;
-            }
-            settype($func, 'array');
-            switch ($func[0]) {
-            case self::OBSERVER_PRINT :
-                $f = (isset($func[1])) ? $func[1] : '%s';
-                printf($f, $this->getMessage());
-                break;
-            case self::OBSERVER_TRIGGER :
-                $f = (isset($func[1])) ? $func[1] : E_USER_NOTICE;
-                trigger_error($this->getMessage(), $f);
-                break;
-            case self::OBSERVER_DIE :
-                $f = (isset($func[1])) ? $func[1] : '%s';
-                die(printf($f, $this->getMessage()));
-                break;
-            default:
-                trigger_error('invalid observer type', E_USER_WARNING);
-            }
-        }
-    }
-
-    /**
      * Add an exception observer
      *
      * @param mixed  $callback - A valid php callback, see php func is_callable()
@@ -218,6 +186,38 @@ class PEAR_Exception extends Exception
     }
 
     /**
+     * Send a signal to all observers
+     *
+     * @return void
+     */
+    protected function signal()
+    {
+        foreach (self::$_observers as $func) {
+            if (is_callable($func)) {
+                call_user_func($func, $this);
+                continue;
+            }
+            settype($func, 'array');
+            switch ($func[0]) {
+            case self::OBSERVER_PRINT :
+                $f = (isset($func[1])) ? $func[1] : '%s';
+                printf($f, $this->getMessage());
+                break;
+            case self::OBSERVER_TRIGGER :
+                $f = (isset($func[1])) ? $func[1] : E_USER_NOTICE;
+                trigger_error($this->getMessage(), $f);
+                break;
+            case self::OBSERVER_DIE :
+                $f = (isset($func[1])) ? $func[1] : '%s';
+                die(printf($f, $this->getMessage()));
+                break;
+            default:
+                trigger_error('invalid observer type', E_USER_WARNING);
+            }
+        }
+    }
+
+    /**
      * Return specific error information that can be used for more detailed
      * error messages or translation.
      *
@@ -245,111 +245,6 @@ class PEAR_Exception extends Exception
     public function getCause()
     {
         return $this->cause;
-    }
-
-    /**
-     * Gets the first class of the backtrace
-     *
-     * @return string Class name
-     */
-    public function getErrorClass()
-    {
-        $trace = $this->getTraceSafe();
-        return $trace[0]['class'];
-    }
-
-    /**
-     * Gets the first method of the backtrace
-     *
-     * @return string Method/function name
-     */
-    public function getErrorMethod()
-    {
-        $trace = $this->getTraceSafe();
-        return $trace[0]['function'];
-    }
-
-    /**
-     * Converts the exception to a string (HTML or plain text)
-     *
-     * @return string String representation
-     *
-     * @see toHtml()
-     * @see toText()
-     */
-    public function __toString()
-    {
-        if (isset($_SERVER['REQUEST_URI'])) {
-            return $this->toHtml();
-        }
-        return $this->toText();
-    }
-
-    /**
-     * Generates a HTML representation of the exception
-     *
-     * @return string HTML code
-     */
-    public function toHtml()
-    {
-        $trace = $this->getTraceSafe();
-        $causes = array();
-        $this->getCauseMessage($causes);
-        $html =  '<table style="border: 1px" cellspacing="0">' . "\n";
-        foreach ($causes as $i => $cause) {
-            $html .= '<tr><td colspan="3" style="background: #ff9999">'
-               . str_repeat('-', $i) . ' <b>' . $cause['class'] . '</b>: '
-               . htmlspecialchars($cause['message'])
-                . ' in <b>' . $cause['file'] . '</b> '
-               . 'on line <b>' . $cause['line'] . '</b>'
-               . "</td></tr>\n";
-        }
-        $html .= '<tr><td colspan="3" style="background-color: #aaaaaa; text-align: center; font-weight: bold;">Exception trace</td></tr>' . "\n"
-               . '<tr><td style="text-align: center; background: #cccccc; width:20px; font-weight: bold;">#</td>'
-               . '<td style="text-align: center; background: #cccccc; font-weight: bold;">Function</td>'
-               . '<td style="text-align: center; background: #cccccc; font-weight: bold;">Location</td></tr>' . "\n";
-
-        foreach ($trace as $k => $v) {
-            $html .= '<tr><td style="text-align: center;">' . $k . '</td>'
-                   . '<td>';
-            if (!empty($v['class'])) {
-                $html .= $v['class'] . $v['type'];
-            }
-            $html .= $v['function'];
-            $args = array();
-            if (!empty($v['args'])) {
-                foreach ($v['args'] as $arg) {
-                    if (is_null($arg)) {
-                        $args[] = 'null';
-                    } else {if (is_array($arg)) {
-                        $args[] = 'Array';
-                    } else {if (is_object($arg)) {
-                        $args[] = 'Object('.get_class($arg).')';
-                    } else {if (is_bool($arg)) {
-                        $args[] = $arg ? 'true' : 'false';
-                    } else {if (is_int($arg) || is_double($arg)) {
-                        $args[] = $arg;
-                    } else {
-                        $arg = (string)$arg;
-                        $str = htmlspecialchars(substr($arg, 0, 16));
-                        if (strlen($arg) > 16) {
-                            $str .= '&hellip;';
-                        }
-                        $args[] = "'" . $str . "'";
-                    }}}}}
-                }
-            }
-            $html .= '(' . implode(', ', $args) . ')'
-                   . '</td>'
-                   . '<td>' . (isset($v['file']) ? $v['file'] : 'unknown')
-                   . ':' . (isset($v['line']) ? $v['line'] : 'unknown')
-                   . '</td></tr>' . "\n";
-        }
-        $html .= '<tr><td style="text-align: center;">' . ($k+1) . '</td>'
-               . '<td>{main}</td>'
-               . '<td>&nbsp;</td></tr>' . "\n"
-               . '</table>';
-        return $html;
     }
 
     /**
@@ -433,6 +328,111 @@ class PEAR_Exception extends Exception
             }
         }
         return $this->_trace;
+    }
+
+    /**
+     * Gets the first class of the backtrace
+     *
+     * @return string Class name
+     */
+    public function getErrorClass()
+    {
+        $trace = $this->getTraceSafe();
+        return $trace[0]['class'];
+    }
+
+    /**
+     * Gets the first method of the backtrace
+     *
+     * @return string Method/function name
+     */
+    public function getErrorMethod()
+    {
+        $trace = $this->getTraceSafe();
+        return $trace[0]['function'];
+    }
+
+    /**
+     * Converts the exception to a string (HTML or plain text)
+     *
+     * @return string String representation
+     *
+     * @see toHtml()
+     * @see toText()
+     */
+    public function __toString()
+    {
+        if (isset($_SERVER['REQUEST_URI'])) {
+            return $this->toHtml();
+        }
+        return $this->toText();
+    }
+
+    /**
+     * Generates a HTML representation of the exception
+     *
+     * @return string HTML code
+     */
+    public function toHtml()
+    {
+        $trace = $this->getTraceSafe();
+        $causes = array();
+        $this->getCauseMessage($causes);
+        $html =  '<table style="border: 1px" cellspacing="0">' . "\n";
+        foreach ($causes as $i => $cause) {
+            $html .= '<tr><td colspan="3" style="background: #ff9999">'
+               . str_repeat('-', $i) . ' <b>' . $cause['class'] . '</b>: '
+               . htmlspecialchars($cause['message'])
+                . ' in <b>' . $cause['file'] . '</b> '
+               . 'on line <b>' . $cause['line'] . '</b>'
+               . "</td></tr>\n";
+        }
+        $html .= '<tr><td colspan="3" style="background-color: #aaaaaa; text-align: center; font-weight: bold;">Exception trace</td></tr>' . "\n"
+               . '<tr><td style="text-align: center; background: #cccccc; width:20px; font-weight: bold;">#</td>'
+               . '<td style="text-align: center; background: #cccccc; font-weight: bold;">Function</td>'
+               . '<td style="text-align: center; background: #cccccc; font-weight: bold;">Location</td></tr>' . "\n";
+
+        foreach ($trace as $k => $v) {
+            $html .= '<tr><td style="text-align: center;">' . $k . '</td>'
+                   . '<td>';
+            if (!empty($v['class'])) {
+                $html .= $v['class'] . $v['type'];
+            }
+            $html .= $v['function'];
+            $args = array();
+            if (!empty($v['args'])) {
+                foreach ($v['args'] as $arg) {
+                    if (is_null($arg)) {
+                        $args[] = 'null';
+                    } else if (is_array($arg)) {
+                        $args[] = 'Array';
+                    } else if (is_object($arg)) {
+                        $args[] = 'Object('.get_class($arg).')';
+                    } else if (is_bool($arg)) {
+                        $args[] = $arg ? 'true' : 'false';
+                    } else if (is_int($arg) || is_double($arg)) {
+                        $args[] = $arg;
+                    } else {
+                        $arg = (string)$arg;
+                        $str = htmlspecialchars(substr($arg, 0, 16));
+                        if (strlen($arg) > 16) {
+                            $str .= '&hellip;';
+                        }
+                        $args[] = "'" . $str . "'";
+                    }
+                }
+            }
+            $html .= '(' . implode(', ', $args) . ')'
+                   . '</td>'
+                   . '<td>' . (isset($v['file']) ? $v['file'] : 'unknown')
+                   . ':' . (isset($v['line']) ? $v['line'] : 'unknown')
+                   . '</td></tr>' . "\n";
+        }
+        $html .= '<tr><td style="text-align: center;">' . ($k+1) . '</td>'
+               . '<td>{main}</td>'
+               . '<td>&nbsp;</td></tr>' . "\n"
+               . '</table>';
+        return $html;
     }
 
     /**

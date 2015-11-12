@@ -85,6 +85,17 @@ class Zend_Db_Profiler_Query
     }
 
     /**
+     * Clone handler for the query object.
+     * @return void
+     */
+    public function __clone()
+    {
+        $this->_boundParams = array();
+        $this->_endedMicrotime = null;
+        $this->start();
+    }
+
+    /**
      * Starts the elapsed time click ticking.
      * This can be called subsequent to object creation,
      * to restart the clock.  For instance, this is useful
@@ -95,17 +106,6 @@ class Zend_Db_Profiler_Query
     public function start()
     {
         $this->_startedMicrotime = microtime(true);
-    }
-
-    /**
-     * Clone handler for the query object.
-     * @return void
-     */
-    public function __clone()
-    {
-        $this->_boundParams = array();
-        $this->_endedMicrotime = null;
-        $this->start();
     }
 
     /**
@@ -149,6 +149,16 @@ class Zend_Db_Profiler_Query
     }
 
     /**
+     * @param string $param
+     * @param mixed $variable
+     * @return void
+     */
+    public function bindParam($param, $variable)
+    {
+        $this->_boundParams[$param] = $variable;
+    }
+
+    /**
      * @param array $param
      * @return void
      */
@@ -161,16 +171,6 @@ class Zend_Db_Profiler_Query
         foreach ($params as $param => $value) {
             $this->bindParam($param, $value);
         }
-    }
-
-    /**
-     * @param string $param
-     * @param mixed $variable
-     * @return void
-     */
-    public function bindParam($param, $variable)
-    {
-        $this->_boundParams[$param] = $variable;
     }
 
     /**

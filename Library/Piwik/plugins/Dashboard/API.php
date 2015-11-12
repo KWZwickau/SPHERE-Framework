@@ -42,6 +42,23 @@ class API extends \Piwik\Plugin\API
     }
 
     /**
+     * Get the default dashboard.
+     *
+     * @return array[]
+     */
+    private function getDefaultDashboard()
+    {
+        $defaultLayout = $this->dashboard->getDefaultLayout();
+        $defaultLayout = $this->dashboard->decodeLayout($defaultLayout);
+
+        $defaultDashboard = array('name' => Piwik::translate('Dashboard_Dashboard'), 'layout' => $defaultLayout);
+
+        $widgets = $this->getExistingWidgetsWithinDashboard($defaultDashboard);
+
+        return $this->buildDashboard($defaultDashboard, $widgets);
+    }
+
+    /**
      * Get all dashboards which a user has created.
      *
      * @return array[]
@@ -62,16 +79,6 @@ class API extends \Piwik\Plugin\API
         }
 
         return $dashboards;
-    }
-
-    private function hasDashboardColumns($dashboard)
-    {
-        if (is_array($dashboard['layout'])) {
-
-            return !empty($dashboard['layout']);
-        }
-
-        return !empty($dashboard['layout']->columns);
     }
 
     private function getExistingWidgetsWithinDashboard($dashboard)
@@ -106,9 +113,19 @@ class API extends \Piwik\Plugin\API
         return $dashboard['layout']->columns;
     }
 
-    private function widgetIsNotHidden($widget)
+    private function hasDashboardColumns($dashboard)
     {
-        return empty($widget->isHidden);
+        if (is_array($dashboard['layout'])) {
+
+            return !empty($dashboard['layout']);
+        }
+
+        return !empty($dashboard['layout']->columns);
+    }
+
+    private function buildDashboard($dashboard, $widgets)
+    {
+        return array('name' => $dashboard['name'], 'widgets' => $widgets);
     }
 
     private function widgetExists($widget)
@@ -123,25 +140,8 @@ class API extends \Piwik\Plugin\API
         return WidgetsList::isDefined($module, $action);
     }
 
-    private function buildDashboard($dashboard, $widgets)
+    private function widgetIsNotHidden($widget)
     {
-        return array('name' => $dashboard['name'], 'widgets' => $widgets);
-    }
-
-    /**
-     * Get the default dashboard.
-     *
-     * @return array[]
-     */
-    private function getDefaultDashboard()
-    {
-        $defaultLayout = $this->dashboard->getDefaultLayout();
-        $defaultLayout = $this->dashboard->decodeLayout($defaultLayout);
-
-        $defaultDashboard = array('name' => Piwik::translate('Dashboard_Dashboard'), 'layout' => $defaultLayout);
-
-        $widgets = $this->getExistingWidgetsWithinDashboard($defaultDashboard);
-
-        return $this->buildDashboard($defaultDashboard, $widgets);
+        return empty($widget->isHidden);
     }
 }

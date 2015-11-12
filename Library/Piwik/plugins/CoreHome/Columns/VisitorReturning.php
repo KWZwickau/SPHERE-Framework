@@ -25,6 +25,22 @@ class VisitorReturning extends VisitDimension
     protected $columnType = 'TINYINT(1) NOT NULL';
     protected $conversionField = true;
 
+    protected function configureSegments()
+    {
+        $acceptedValues  = 'new, returning, returningCustomer. ';
+        $acceptedValues .= Piwik::translate('General_VisitTypeExample', '"&segment=visitorType==returning,visitorType==returningCustomer"');
+
+        $segment = new Segment();
+        $segment->setSegment('visitorType');
+        $segment->setName('General_VisitType');
+        $segment->setAcceptedValues($acceptedValues);
+        $segment->setSqlFilterValue(function ($type) {
+            return $type == "new" ? 0 : ($type == "returning" ? 1 : 2);
+        });
+
+        $this->addSegment($segment);
+    }
+
     /**
      * @param Request $request
      * @param Visitor $visitor
@@ -59,21 +75,5 @@ class VisitorReturning extends VisitDimension
     public function onAnyGoalConversion(Request $request, Visitor $visitor, $action)
     {
         return $visitor->getVisitorColumn($this->columnName);
-    }
-
-    protected function configureSegments()
-    {
-        $acceptedValues  = 'new, returning, returningCustomer. ';
-        $acceptedValues .= Piwik::translate('General_VisitTypeExample', '"&segment=visitorType==returning,visitorType==returningCustomer"');
-
-        $segment = new Segment();
-        $segment->setSegment('visitorType');
-        $segment->setName('General_VisitType');
-        $segment->setAcceptedValues($acceptedValues);
-        $segment->setSqlFilterValue(function ($type) {
-            return $type == "new" ? 0 : ($type == "returning" ? 1 : 2);
-        });
-
-        $this->addSegment($segment);
     }
 }

@@ -8,9 +8,9 @@
  */
 namespace Piwik\Plugins\MultiSites\DataTable\Filter;
 
-use Piwik\DataTable;
 use Piwik\DataTable\BaseFilter;
 use Piwik\DataTable\Row;
+use Piwik\DataTable;
 
 /**
  * Makes sure to not have any subtables anymore and applies the limit to the flattened table.
@@ -102,15 +102,6 @@ class NestedSitesLimiter extends BaseFilter
         $table->setRows($this->rows);
     }
 
-    private function addRowIfNeeded(Row $row, $numRows)
-    {
-        $inOffset = $numRows >= $this->offset;
-
-        if ($inOffset && !$this->hasNumberOfRequestedRowsFound()) {
-            $this->rows[] = $row;
-        }
-    }
-
     private function hasNumberOfRequestedRowsFound()
     {
         return count($this->rows) >= $this->limit;
@@ -119,6 +110,15 @@ class NestedSitesLimiter extends BaseFilter
     private function hasRows()
     {
         return count($this->rows) !== 0;
+    }
+
+    private function addRowIfNeeded(Row $row, $numRows)
+    {
+        $inOffset = $numRows >= $this->offset;
+
+        if ($inOffset && !$this->hasNumberOfRequestedRowsFound()) {
+            $this->rows[] = $row;
+        }
     }
 
     /**

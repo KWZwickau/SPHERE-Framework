@@ -28,6 +28,43 @@ class API
     }
 
     /**
+     * Returns all resources available on Transifex project
+     *
+     * @return array
+     */
+    public function getAvailableResources()
+    {
+        $cache = Cache::getTransientCache();
+        $cacheId = 'transifex_resources_' . $this->projectSlug;
+        $resources = $cache->fetch($cacheId);
+
+        if (empty($resources)) {
+            $apiPath = 'project/' . $this->projectSlug . '/resources';
+            $resources = $this->getApiResults($apiPath);
+            $cache->save($cacheId, $resources);
+        }
+
+        return $resources;
+    }
+
+    /**
+     * Checks if the given resource exists in Transifex project
+     *
+     * @param string $resource
+     * @return bool
+     */
+    public function resourceExists($resource)
+    {
+        $resources = $this->getAvailableResources();
+        foreach ($resources as $res) {
+            if ($res->slug == $resource) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Returns all language codes the transifex project is available for
      *
      * @return array
@@ -48,34 +85,6 @@ class API
             $cache->save($cacheId, $languageCodes);
         }
         return $languageCodes;
-    }
-
-    /**
-     * Returns response for API request with given path
-     *
-     * @param $apiPath
-     * @param bool $raw
-     * @return mixed
-     * @throws AuthenticationFailedException
-     * @throws Exception
-     */
-    protected function getApiResults($apiPath, $raw = false)
-    {
-        $apiUrl = $this->apiUrl . $apiPath;
-
-        $response = Http::sendHttpRequest($apiUrl, 1000, null, null, 5, false, false, true, 'GET', $this->username,
-            $this->password);
-
-        $httpStatus = $response['status'];
-        $response = $response['data'];
-
-        if ($httpStatus == 401) {
-            throw new AuthenticationFailedException();
-        } elseif ($httpStatus != 200) {
-            throw new Exception('Error while getting API results', $httpStatus);
-        }
-
-        return $raw ? $response : json_decode($response);
     }
 
     /**
@@ -111,39 +120,29 @@ class API
     }
 
     /**
-     * Checks if the given resource exists in Transifex project
+     * Returns response for API request with given path
      *
-     * @param string $resource
-     * @return bool
+     * @param $apiPath
+     * @param bool $raw
+     * @return mixed
+     * @throws AuthenticationFailedException
+     * @throws Exception
      */
-    public function resourceExists($resource)
+    protected function getApiResults($apiPath, $raw = false)
     {
-        $resources = $this->getAvailableResources();
-        foreach ($resources as $res) {
-            if ($res->slug == $resource) {
-                return true;
-            }
-        }
-        return false;
-    }
+        $apiUrl = $this->apiUrl . $apiPath;
 
-    /**
-     * Returns all resources available on Transifex project
-     *
-     * @return array
-     */
-    public function getAvailableResources()
-    {
-        $cache = Cache::getTransientCache();
-        $cacheId = 'transifex_resources_' . $this->projectSlug;
-        $resources = $cache->fetch($cacheId);
+        $response = Http::sendHttpRequest($apiUrl, 1000, null, null, 5, false, false, true, 'GET', $this->username, $this->password);
 
-        if (empty($resources)) {
-            $apiPath = 'project/' . $this->projectSlug . '/resources';
-            $resources = $this->getApiResults($apiPath);
-            $cache->save($cacheId, $resources);
+        $httpStatus = $response['status'];
+        $response = $response['data'];
+
+        if ($httpStatus == 401) {
+            throw new AuthenticationFailedException();
+        } elseif ($httpStatus != 200) {
+            throw new Exception('Error while getting API results', $httpStatus);
         }
 
-        return $resources;
+        return $raw ? $response : json_decode($response);
     }
 }

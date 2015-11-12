@@ -21,43 +21,6 @@ class InsightReport
     const ORDER_BY_IMPORTANCE = 'importance';
 
     /**
-     * Extends an already generated insight report by adding a column "isMoverAndShaker" whether a row is also a
-     * "Mover and Shaker" or not.
-     *
-     * Avoids the need to fetch all reports again when we already have the currentReport/lastReport
-     */
-    public function markMoversAndShakers(DataTable $insight, $currentReport, $lastReport, $totalValue, $lastTotalValue)
-    {
-        if (!$insight->getRowsCount()) {
-            return;
-        }
-
-        $limitIncreaser = max($insight->getRowsCount(), 3);
-        $limitDecreaser = max($insight->getRowsCount(), 3);
-
-        $lastDate = $insight->getMetadata('lastDate');
-        $date     = $insight->getMetadata('date');
-        $period   = $insight->getMetadata('period');
-        $metric   = $insight->getMetadata('metric');
-        $orderBy  = $insight->getMetadata('orderBy');
-        $reportMetadata = $insight->getMetadata('report');
-
-        $shakers = $this->generateMoverAndShaker($reportMetadata, $period, $date, $lastDate, $metric, $currentReport, $lastReport, $totalValue, $lastTotalValue, $orderBy, $limitIncreaser, $limitDecreaser);
-
-        foreach ($insight->getRows() as $row) {
-            $label = $row->getColumn('label');
-
-            if ($shakers->getRowFromLabel($label)) {
-                $row->setColumn('isMoverAndShaker', true);
-            } else {
-                $row->setColumn('isMoverAndShaker', false);
-            }
-        }
-
-        $this->addMoversAndShakersMetadata($insight, $totalValue, $lastTotalValue);
-    }
-
-    /**
      * @param array $reportMetadata
      * @param string $period
      * @param string $date
@@ -114,9 +77,41 @@ class InsightReport
         return $dataTable;
     }
 
-    private function getTotalEvolution($totalValue, $lastTotalValue)
+    /**
+     * Extends an already generated insight report by adding a column "isMoverAndShaker" whether a row is also a
+     * "Mover and Shaker" or not.
+     *
+     * Avoids the need to fetch all reports again when we already have the currentReport/lastReport
+     */
+    public function markMoversAndShakers(DataTable $insight, $currentReport, $lastReport, $totalValue, $lastTotalValue)
     {
-        return Piwik::getPercentageSafe($totalValue - $lastTotalValue, $lastTotalValue, 1);
+        if (!$insight->getRowsCount()) {
+            return;
+        }
+
+        $limitIncreaser = max($insight->getRowsCount(), 3);
+        $limitDecreaser = max($insight->getRowsCount(), 3);
+
+        $lastDate = $insight->getMetadata('lastDate');
+        $date     = $insight->getMetadata('date');
+        $period   = $insight->getMetadata('period');
+        $metric   = $insight->getMetadata('metric');
+        $orderBy  = $insight->getMetadata('orderBy');
+        $reportMetadata = $insight->getMetadata('report');
+
+        $shakers = $this->generateMoverAndShaker($reportMetadata, $period, $date, $lastDate, $metric, $currentReport, $lastReport, $totalValue, $lastTotalValue, $orderBy, $limitIncreaser, $limitDecreaser);
+
+        foreach ($insight->getRows() as $row) {
+            $label = $row->getColumn('label');
+
+            if ($shakers->getRowFromLabel($label)) {
+                $row->setColumn('isMoverAndShaker', true);
+            } else {
+                $row->setColumn('isMoverAndShaker', false);
+            }
+        }
+
+        $this->addMoversAndShakersMetadata($insight, $totalValue, $lastTotalValue);
     }
 
     /**
@@ -251,17 +246,6 @@ class InsightReport
         return $dataTable;
     }
 
-    private function getMinVisits($totalValue, $percent)
-    {
-        if ($percent <= 0) {
-            return 0;
-        }
-
-        $minVisits = ceil(($totalValue / 100) * $percent);
-
-        return (int) $minVisits;
-    }
-
     private function getOrderByColumn($orderBy)
     {
         if (self::ORDER_BY_RELATIVE == $orderBy) {
@@ -277,6 +261,17 @@ class InsightReport
         return $orderByColumn;
     }
 
+    private function getMinVisits($totalValue, $percent)
+    {
+        if ($percent <= 0) {
+            return 0;
+        }
+
+        $minVisits = ceil(($totalValue / 100) * $percent);
+
+        return (int) $minVisits;
+    }
+
     private function addMoversAndShakersMetadata(DataTable $dataTable, $totalValue, $lastTotalValue)
     {
         $totalEvolution = $this->getTotalEvolution($totalValue, $lastTotalValue);
@@ -284,5 +279,10 @@ class InsightReport
         $dataTable->setMetadata('lastTotalValue', $lastTotalValue);
         $dataTable->setMetadata('evolutionTotal', $totalEvolution);
         $dataTable->setMetadata('evolutionDifference', $totalValue - $lastTotalValue);
+    }
+
+    private function getTotalEvolution($totalValue, $lastTotalValue)
+    {
+        return Piwik::getPercentageSafe($totalValue - $lastTotalValue, $lastTotalValue, 1);
     }
 }

@@ -23,12 +23,6 @@ use Piwik\View;
  */
 class Controller extends \Piwik\Plugin\Controller
 {
-    protected $referrerTypeToLabel = array(
-        Common::REFERRER_TYPE_DIRECT_ENTRY  => 'Referrers_DirectEntry',
-        Common::REFERRER_TYPE_SEARCH_ENGINE => 'Referrers_SearchEngines',
-        Common::REFERRER_TYPE_WEBSITE       => 'Referrers_Websites',
-        Common::REFERRER_TYPE_CAMPAIGN      => 'Referrers_Campaigns',
-    );
     /**
      * @var Translator
      */
@@ -102,6 +96,88 @@ class Controller extends \Piwik\Plugin\Controller
         return $view->render();
     }
 
+    public function allReferrers()
+    {
+        $view = new View('@Referrers/allReferrers');
+
+        // building the referrers summary report
+        $view->dataTableReferrerType = $this->renderReport('getReferrerType');
+
+        $nameValues = $this->getReferrersVisitorsByType();
+
+        $totalVisits = array_sum($nameValues);
+        foreach ($nameValues as $name => $value) {
+            $view->$name = $value;
+
+            // calculate percent of total, if there were any visits
+            if ($value != 0
+                && $totalVisits != 0
+            ) {
+                $percentName = $name . 'Percent';
+                $view->$percentName = round(($value / $totalVisits) * 100, 0);
+            }
+        }
+
+        $view->totalVisits = $totalVisits;
+        $view->referrersReportsByDimension = $this->renderReport('getAll');
+
+        return $view->render();
+    }
+
+    public function getSearchEnginesAndKeywords()
+    {
+        $view = new View('@Referrers/getSearchEnginesAndKeywords');
+        $view->searchEngines = $this->renderReport('getSearchEngines');
+        $view->keywords      = $this->renderReport('getKeywords');
+        return $view->render();
+    }
+
+    public function indexWebsites()
+    {
+        $view = new View('@Referrers/indexWebsites');
+        $view->websites = $this->renderReport('getWebsites');
+        $view->socials  = $this->renderReport('getSocials');
+
+        return $view->render();
+    }
+
+    protected function getReferrersVisitorsByType($date = false)
+    {
+        if ($date === false) {
+            $date = Common::getRequestVar('date', false);
+        }
+
+        // we disable the queued filters because here we want to get the visits coming from search engines
+        // if the filters were applied we would have to look up for a label looking like "Search Engines"
+        // which is not good when we have translations
+        $dataTableReferrersType = Request::processRequest(
+            "Referrers.getReferrerType", array('disable_queued_filters' => '1', 'date' => $date));
+
+        $nameToColumnId = array(
+            'visitorsFromSearchEngines' => Common::REFERRER_TYPE_SEARCH_ENGINE,
+            'visitorsFromDirectEntry'   => Common::REFERRER_TYPE_DIRECT_ENTRY,
+            'visitorsFromWebsites'      => Common::REFERRER_TYPE_WEBSITE,
+            'visitorsFromCampaigns'     => Common::REFERRER_TYPE_CAMPAIGN,
+        );
+        $return = array();
+        foreach ($nameToColumnId as $nameVar => $columnId) {
+            $value = 0;
+            $row = $dataTableReferrersType->getRowFromLabel($columnId);
+            if ($row !== false) {
+                $value = $row->getColumn(Metrics::INDEX_NB_VISITS);
+            }
+            $return[$nameVar] = $value;
+        }
+        return $return;
+    }
+
+    protected $referrerTypeToLabel = array(
+        Common::REFERRER_TYPE_DIRECT_ENTRY  => 'Referrers_DirectEntry',
+        Common::REFERRER_TYPE_SEARCH_ENGINE => 'Referrers_SearchEngines',
+        Common::REFERRER_TYPE_WEBSITE       => 'Referrers_Websites',
+        Common::REFERRER_TYPE_CAMPAIGN      => 'Referrers_Campaigns',
+    );
+
     public function getEvolutionGraph($typeReferrer = false, array $columns = array(), array $defaultColumns = array())
     {
         $view = $this->getLastUnitGraph($this->pluginName, __FUNCTION__, 'Referrers.getReferrerType');
@@ -167,156 +243,6 @@ class Controller extends \Piwik\Plugin\Controller
                 . $this->translator->translate('Referrers_ReferrerTypes') . '&quot;');
 
         return $this->renderView($view);
-    }
-
-    /**
-     * Returns the i18n-ized label for a referrer type.
-     *
-     * @param int $typeReferrer The referrer type. Referrer types are defined in Common class.
-     * @return string The i18n-ized label.
-     */
-    public static function getTranslatedReferrerTypeLabel($typeReferrer)
-    {
-        $label = getReferrerTypeLabel($typeReferrer);
-        return Piwik::translate($label);
-    }
-
-    protected function getReferrersVisitorsByType($date = false)
-    {
-        if ($date === false) {
-            $date = Common::getRequestVar('date', false);
-        }
-
-        // we disable the queued filters because here we want to get the visits coming from search engines
-        // if the filters were applied we would have to look up for a label looking like "Search Engines"
-        // which is not good when we have translations
-        $dataTableReferrersType = Request::processRequest(
-            "Referrers.getReferrerType", array('disable_queued_filters' => '1', 'date' => $date));
-
-        $nameToColumnId = array(
-            'visitorsFromSearchEngines' => Common::REFERRER_TYPE_SEARCH_ENGINE,
-            'visitorsFromDirectEntry'   => Common::REFERRER_TYPE_DIRECT_ENTRY,
-            'visitorsFromWebsites'      => Common::REFERRER_TYPE_WEBSITE,
-            'visitorsFromCampaigns'     => Common::REFERRER_TYPE_CAMPAIGN,
-        );
-        $return = array();
-        foreach ($nameToColumnId as $nameVar => $columnId) {
-            $value = 0;
-            $row = $dataTableReferrersType->getRowFromLabel($columnId);
-            if ($row !== false) {
-                $value = $row->getColumn(Metrics::INDEX_NB_VISITS);
-            }
-            $return[$nameVar] = $value;
-        }
-        return $return;
-    }
-
-    /**
-     * Returns an array containing the number of distinct referrers for each
-     * referrer type.
-     *
-     * @param bool|string $date The date to use when getting metrics. If false, the
-     *                           date query param is used.
-     * @return array The metrics.
-     */
-    private function getDistinctReferrersMetrics($date = false)
-    {
-        $propertyToAccessorMapping = array(
-            'numberDistinctSearchEngines' => 'getNumberOfDistinctSearchEngines',
-            'numberDistinctKeywords'      => 'getNumberOfDistinctKeywords',
-            'numberDistinctWebsites'      => 'getNumberOfDistinctWebsites',
-            'numberDistinctWebsitesUrls'  => 'getNumberOfDistinctWebsitesUrls',
-            'numberDistinctCampaigns'     => 'getNumberOfDistinctCampaigns',
-        );
-
-        $result = array();
-        foreach ($propertyToAccessorMapping as $property => $method) {
-            $result[$property] = $this->getNumericValue('Referrers.' . $method, $date);
-        }
-        return $result;
-    }
-
-    /**
-     * Utility method that calculates evolution values for a set of current & past values
-     * and sets properties on a View w/ HTML that displays the evolution percents.
-     *
-     * @param View $view The view to set properties on.
-     * @param string $date The date of the current values.
-     * @param array $currentValues Array mapping view property names w/ present values.
-     * @param string $lastPeriodDate The date of the period in the past.
-     * @param array $previousValues Array mapping view property names w/ past values. Keys
-     *                              in this array should be the same as keys in $currentValues.
-     */
-    private function addEvolutionPropertiesToView($view, $date, $currentValues, $lastPeriodDate, $previousValues)
-    {
-        foreach ($previousValues as $name => $pastValue) {
-            $currentValue = $currentValues[$name];
-            $evolutionName = $name . 'Evolution';
-
-            $view->$evolutionName = $this->getEvolutionHtml($date, $currentValue, $lastPeriodDate, $pastValue);
-        }
-    }
-
-    /**
-     * Returns the URL for the sparkline of visits with a specific referrer type.
-     *
-     * @param int $referrerType The referrer type. Referrer types are defined in Common class.
-     * @return string The URL that can be used to get a sparkline image.
-     */
-    private function getReferrerUrlSparkline($referrerType)
-    {
-        $totalRow = $this->translator->translate('General_Total');
-        return $this->getUrlSparkline(
-            'getEvolutionGraph',
-            array('columns'      => array('nb_visits'),
-                  'rows'         => array(self::getTranslatedReferrerTypeLabel($referrerType), $totalRow),
-                  'typeReferrer' => $referrerType)
-        );
-    }
-
-    public function allReferrers()
-    {
-        $view = new View('@Referrers/allReferrers');
-
-        // building the referrers summary report
-        $view->dataTableReferrerType = $this->renderReport('getReferrerType');
-
-        $nameValues = $this->getReferrersVisitorsByType();
-
-        $totalVisits = array_sum($nameValues);
-        foreach ($nameValues as $name => $value) {
-            $view->$name = $value;
-
-            // calculate percent of total, if there were any visits
-            if ($value != 0
-                && $totalVisits != 0
-            ) {
-                $percentName = $name . 'Percent';
-                $view->$percentName = round(($value / $totalVisits) * 100, 0);
-            }
-        }
-
-        $view->totalVisits = $totalVisits;
-        $view->referrersReportsByDimension = $this->renderReport('getAll');
-
-        return $view->render();
-    }
-
-    public function getSearchEnginesAndKeywords()
-    {
-        $view = new View('@Referrers/getSearchEnginesAndKeywords');
-        $view->searchEngines = $this->renderReport('getSearchEngines');
-        $view->keywords      = $this->renderReport('getKeywords');
-        return $view->render();
-    }
-
-    public function indexWebsites()
-    {
-        $view = new View('@Referrers/indexWebsites');
-        $view->websites = $this->renderReport('getWebsites');
-        $view->socials  = $this->renderReport('getSocials');
-
-        return $view->render();
     }
 
     public function getLastDistinctSearchEnginesGraph()
@@ -470,5 +396,80 @@ function DisplayTopKeywords($url = "")
 		<br/>On medium to large traffic websites, we recommend to cache this data, as to minimize the performance impact of calling the Piwik API on each page view.
 		</p>
 		";
+    }
+
+    /**
+     * Returns the i18n-ized label for a referrer type.
+     *
+     * @param int $typeReferrer The referrer type. Referrer types are defined in Common class.
+     * @return string The i18n-ized label.
+     */
+    public static function getTranslatedReferrerTypeLabel($typeReferrer)
+    {
+        $label = getReferrerTypeLabel($typeReferrer);
+        return Piwik::translate($label);
+    }
+
+    /**
+     * Returns the URL for the sparkline of visits with a specific referrer type.
+     *
+     * @param int $referrerType The referrer type. Referrer types are defined in Common class.
+     * @return string The URL that can be used to get a sparkline image.
+     */
+    private function getReferrerUrlSparkline($referrerType)
+    {
+        $totalRow = $this->translator->translate('General_Total');
+        return $this->getUrlSparkline(
+            'getEvolutionGraph',
+            array('columns'      => array('nb_visits'),
+                  'rows'         => array(self::getTranslatedReferrerTypeLabel($referrerType), $totalRow),
+                  'typeReferrer' => $referrerType)
+        );
+    }
+
+    /**
+     * Returns an array containing the number of distinct referrers for each
+     * referrer type.
+     *
+     * @param bool|string $date The date to use when getting metrics. If false, the
+     *                           date query param is used.
+     * @return array The metrics.
+     */
+    private function getDistinctReferrersMetrics($date = false)
+    {
+        $propertyToAccessorMapping = array(
+            'numberDistinctSearchEngines' => 'getNumberOfDistinctSearchEngines',
+            'numberDistinctKeywords'      => 'getNumberOfDistinctKeywords',
+            'numberDistinctWebsites'      => 'getNumberOfDistinctWebsites',
+            'numberDistinctWebsitesUrls'  => 'getNumberOfDistinctWebsitesUrls',
+            'numberDistinctCampaigns'     => 'getNumberOfDistinctCampaigns',
+        );
+
+        $result = array();
+        foreach ($propertyToAccessorMapping as $property => $method) {
+            $result[$property] = $this->getNumericValue('Referrers.' . $method, $date);
+        }
+        return $result;
+    }
+
+    /**
+     * Utility method that calculates evolution values for a set of current & past values
+     * and sets properties on a View w/ HTML that displays the evolution percents.
+     *
+     * @param View $view The view to set properties on.
+     * @param string $date The date of the current values.
+     * @param array $currentValues Array mapping view property names w/ present values.
+     * @param string $lastPeriodDate The date of the period in the past.
+     * @param array $previousValues Array mapping view property names w/ past values. Keys
+     *                              in this array should be the same as keys in $currentValues.
+     */
+    private function addEvolutionPropertiesToView($view, $date, $currentValues, $lastPeriodDate, $previousValues)
+    {
+        foreach ($previousValues as $name => $pastValue) {
+            $currentValue = $currentValues[$name];
+            $evolutionName = $name . 'Evolution';
+
+            $view->$evolutionName = $this->getEvolutionHtml($date, $currentValue, $lastPeriodDate, $pastValue);
+        }
     }
 }

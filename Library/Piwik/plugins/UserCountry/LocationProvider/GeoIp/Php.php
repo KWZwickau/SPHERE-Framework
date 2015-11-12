@@ -188,29 +188,6 @@ class Php extends GeoIp
     }
 
     /**
-     * Returns a GeoIP instance. Creates it if necessary.
-     *
-     * @param string $key 'loc', 'isp' or 'org'. Determines the type of GeoIP database
-     *                    to load.
-     * @return object|false
-     */
-    private function getGeoIpInstance($key)
-    {
-        if (empty($this->geoIpCache[$key])) {
-            // make sure region names are loaded & saved first
-            parent::getRegionNames();
-            require_once PIWIK_INCLUDE_PATH . '/libs/MaxMindGeoIP/geoipcity.inc';
-
-            $pathToDb = self::getPathToGeoIpDatabase($this->customDbNames[$key]);
-            if ($pathToDb !== false) {
-                $this->geoIpCache[$key] = geoip_open($pathToDb, GEOIP_STANDARD); // TODO support shared memory
-            }
-        }
-
-        return empty($this->geoIpCache[$key]) ? false : $this->geoIpCache[$key];
-    }
-
-    /**
      * Returns true if this location provider is available. Piwik ships w/ the MaxMind
      * PHP library, so this provider is available if a location GeoIP database can be found.
      *
@@ -378,6 +355,29 @@ class Php extends GeoIp
                      'install_docs'  => $installDocs,
                      'extra_message' => $extraMessage,
                      'order'         => 2);
+    }
+
+    /**
+     * Returns a GeoIP instance. Creates it if necessary.
+     *
+     * @param string $key 'loc', 'isp' or 'org'. Determines the type of GeoIP database
+     *                    to load.
+     * @return object|false
+     */
+    private function getGeoIpInstance($key)
+    {
+        if (empty($this->geoIpCache[$key])) {
+            // make sure region names are loaded & saved first
+            parent::getRegionNames();
+            require_once PIWIK_INCLUDE_PATH . '/libs/MaxMindGeoIP/geoipcity.inc';
+
+            $pathToDb = self::getPathToGeoIpDatabase($this->customDbNames[$key]);
+            if ($pathToDb !== false) {
+                $this->geoIpCache[$key] = geoip_open($pathToDb, GEOIP_STANDARD); // TODO support shared memory
+            }
+        }
+
+        return empty($this->geoIpCache[$key]) ? false : $this->geoIpCache[$key];
     }
 }
 

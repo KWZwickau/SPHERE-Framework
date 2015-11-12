@@ -82,26 +82,6 @@ class Zend_Mail_Storage_Folder implements RecursiveIterator
     }
 
     /**
-     * implements Iterator::current()
-     *
-     * @return Zend_Mail_Storage_Folder current folder
-     */
-    public function current()
-    {
-        return current($this->_folders);
-    }
-
-    /**
-     * check if folder has no subfolder
-     *
-     * @return bool true if no subfolders
-     */
-    public function isLeaf()
-    {
-        return empty($this->_folders);
-    }
-
-    /**
      * implements RecursiveIterator::getChildren()
      *
      * @return Zend_Mail_Storage_Folder same as self::current()
@@ -139,6 +119,16 @@ class Zend_Mail_Storage_Folder implements RecursiveIterator
     public function key()
     {
         return key($this->_folders);
+    }
+
+    /**
+     * implements Iterator::current()
+     *
+     * @return Zend_Mail_Storage_Folder current folder
+     */
+    public function current()
+    {
+        return current($this->_folders);
     }
 
     /**
@@ -205,16 +195,6 @@ class Zend_Mail_Storage_Folder implements RecursiveIterator
     }
 
     /**
-     * get global name
-     *
-     * @return string global name
-     */
-    public function getGlobalName()
-    {
-        return $this->_globalName;
-    }
-
-    /**
      * get local name
      *
      * @return string local name
@@ -225,6 +205,16 @@ class Zend_Mail_Storage_Folder implements RecursiveIterator
     }
 
     /**
+     * get global name
+     *
+     * @return string global name
+     */
+    public function getGlobalName()
+    {
+        return $this->_globalName;
+    }
+
+    /**
      * is this folder selectable?
      *
      * @return bool selectable
@@ -232,5 +222,15 @@ class Zend_Mail_Storage_Folder implements RecursiveIterator
     public function isSelectable()
     {
         return $this->_selectable;
+    }
+
+    /**
+     * check if folder has no subfolder
+     *
+     * @return bool true if no subfolders
+     */
+    public function isLeaf()
+    {
+        return empty($this->_folders);
     }
 }

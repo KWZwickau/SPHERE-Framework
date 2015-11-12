@@ -15,6 +15,12 @@ use Piwik\Plugins\Actions\Actions;
 
 abstract class SiteSearchBase extends Base
 {
+    protected function init()
+    {
+        parent::init();
+        $this->category = 'Actions_SubmenuSitesearch';
+    }
+
     public function isEnabled()
     {
         $idSites = Common::getRequestVar('idSites', '', 'string');
@@ -42,12 +48,6 @@ abstract class SiteSearchBase extends Base
         if (!empty($report)) {
             $availableReports[] = $report;
         }
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->category = 'Actions_SubmenuSitesearch';
     }
 
     protected function addSiteSearchDisplayProperties(ViewDataTable $view)

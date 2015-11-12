@@ -8,8 +8,8 @@
 
 namespace Piwik\Plugins\SegmentEditor\Services;
 
-use Piwik\Cache\Transient as TransientCache;
 use Piwik\Plugins\SegmentEditor\Model;
+use Piwik\Cache\Transient as TransientCache;
 
 
 /**

@@ -17,6 +17,14 @@ use Piwik\Updates;
 
 class Updates_2_9_0_b1 extends Updates
 {
+    public function getMigrationQueries(Updater $updater)
+    {
+        $sql = array();
+        $sql = self::updateBrowserEngine($sql);
+
+        return $sql;
+    }
+
     public function doUpdate(Updater $updater)
     {
         $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
@@ -27,14 +35,6 @@ class Updates_2_9_0_b1 extends Updates
             Manager::getInstance()->activatePlugin('TestRunner');
         } catch (\Exception $e) {
         }
-    }
-
-    public function getMigrationQueries(Updater $updater)
-    {
-        $sql = array();
-        $sql = self::updateBrowserEngine($sql);
-
-        return $sql;
     }
 
     private static function updateBrowserEngine($sql)

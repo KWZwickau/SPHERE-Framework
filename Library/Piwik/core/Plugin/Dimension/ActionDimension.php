@@ -8,18 +8,18 @@
  */
 namespace Piwik\Plugin\Dimension;
 
-use Exception;
-use Piwik\Cache as PiwikCache;
 use Piwik\CacheId;
+use Piwik\Cache as PiwikCache;
 use Piwik\Columns\Dimension;
-use Piwik\Common;
-use Piwik\Db;
-use Piwik\Plugin;
 use Piwik\Plugin\Manager as PluginManager;
 use Piwik\Plugin\Segment;
+use Piwik\Common;
+use Piwik\Plugin;
+use Piwik\Db;
 use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Exception;
 
 /**
  * Defines a new action dimension that records any information during tracking for each action.
@@ -41,50 +41,6 @@ abstract class ActionDimension extends Dimension
     private $tableName = 'log_link_visit_action';
 
     /**
-     * Get all action dimensions that are defined by all activated plugins.
-     * @return ActionDimension[]
-     * @ignore
-     */
-    public static function getAllDimensions()
-    {
-        $cacheId = CacheId::pluginAware('ActionDimensions');
-        $cache   = PiwikCache::getTransientCache();
-
-        if (!$cache->contains($cacheId)) {
-            $plugins   = PluginManager::getInstance()->getPluginsLoadedAndActivated();
-            $instances = array();
-
-            foreach ($plugins as $plugin) {
-                foreach (self::getDimensions($plugin) as $instance) {
-                    $instances[] = $instance;
-                }
-            }
-
-            $cache->save($cacheId, $instances);
-        }
-
-        return $cache->fetch($cacheId);
-    }
-
-    /**
-     * Get all action dimensions that are defined by the given plugin.
-     * @param Plugin $plugin
-     * @return ActionDimension[]
-     * @ignore
-     */
-    public static function getDimensions(Plugin $plugin)
-    {
-        $dimensions = $plugin->findMultipleComponents('Columns', '\\Piwik\\Plugin\\Dimension\\ActionDimension');
-        $instances  = array();
-
-        foreach ($dimensions as $dimension) {
-            $instances[] = new $dimension();
-        }
-
-        return $instances;
-    }
-
-    /**
      * Installs the action dimension in case it is not installed yet. The installation is already implemented based on
      * the {@link $columnName} and {@link $columnType}. If you want to perform additional actions beside adding the
      * column to the database - for instance adding an index - you can overwrite this method. We recommend to call
@@ -96,22 +52,22 @@ abstract class ActionDimension extends Dimension
      *
      * Example:
      * ```
-    * public function install()
-    * {
-        * $changes = parent::install();
-        * $changes['log_link_visit_action'][] = "ADD INDEX index_idsite_servertime ( idsite, server_time )";
- *
-* return $changes;
-    * }
-    * ```
+    public function install()
+    {
+        $changes = parent::install();
+        $changes['log_link_visit_action'][] = "ADD INDEX index_idsite_servertime ( idsite, server_time )";
+
+        return $changes;
+    }
+    ```
      *
      * @return array An array containing the table name as key and an array of MySQL alter table statements that should
      *               be executed on the given table. Example:
      * ```
-    * array(
-        * 'log_link_visit_action' => array("ADD COLUMN `$this->columnName` $this->columnType", "ADD INDEX ...")
-    * );
-    * ```
+    array(
+        'log_link_visit_action' => array("ADD COLUMN `$this->columnName` $this->columnType", "ADD INDEX ...")
+    );
+    ```
      * @api
      */
     public function install()
@@ -137,10 +93,10 @@ abstract class ActionDimension extends Dimension
      * @return array An array containing the table name as key and an array of MySQL alter table statements that should
      *               be executed on the given table. Example:
      * ```
-    * array(
-    * 'log_link_visit_action' => array("MODIFY COLUMN `$this->columnName` $this->columnType", "DROP COLUMN ...")
-    * );
-    * ```
+    array(
+    'log_link_visit_action' => array("MODIFY COLUMN `$this->columnName` $this->columnType", "DROP COLUMN ...")
+    );
+    ```
      * @ignore
      */
     public function update()
@@ -250,5 +206,49 @@ abstract class ActionDimension extends Dimension
         }
 
         parent::addSegment($segment);
+    }
+
+    /**
+     * Get all action dimensions that are defined by all activated plugins.
+     * @return ActionDimension[]
+     * @ignore
+     */
+    public static function getAllDimensions()
+    {
+        $cacheId = CacheId::pluginAware('ActionDimensions');
+        $cache   = PiwikCache::getTransientCache();
+
+        if (!$cache->contains($cacheId)) {
+            $plugins   = PluginManager::getInstance()->getPluginsLoadedAndActivated();
+            $instances = array();
+
+            foreach ($plugins as $plugin) {
+                foreach (self::getDimensions($plugin) as $instance) {
+                    $instances[] = $instance;
+                }
+            }
+
+            $cache->save($cacheId, $instances);
+        }
+
+        return $cache->fetch($cacheId);
+    }
+
+    /**
+     * Get all action dimensions that are defined by the given plugin.
+     * @param Plugin $plugin
+     * @return ActionDimension[]
+     * @ignore
+     */
+    public static function getDimensions(Plugin $plugin)
+    {
+        $dimensions = $plugin->findMultipleComponents('Columns', '\\Piwik\\Plugin\\Dimension\\ActionDimension');
+        $instances  = array();
+
+        foreach ($dimensions as $dimension) {
+            $instances[] = new $dimension();
+        }
+
+        return $instances;
     }
 }

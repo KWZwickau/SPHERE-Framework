@@ -20,6 +20,29 @@ use Piwik\SettingsServer;
 class BatchInsert
 {
     /**
+     * Performs a batch insert into a specific table by iterating through the data
+     *
+     * NOTE: you should use tableInsertBatch() which will fallback to this function if LOAD DATA INFILE not available
+     *
+     * @param string $tableName PREFIXED table name! you must call Common::prefixTable() before passing the table name
+     * @param array $fields array of unquoted field names
+     * @param array $values array of data to be inserted
+     * @param bool $ignoreWhenDuplicate Ignore new rows that contain unique key values that duplicate old rows
+     */
+    public static function tableInsertBatchIterate($tableName, $fields, $values, $ignoreWhenDuplicate = true)
+    {
+        $fieldList = '(' . join(',', $fields) . ')';
+        $ignore    = $ignoreWhenDuplicate ? 'IGNORE' : '';
+
+        foreach ($values as $row) {
+            $query = "INSERT $ignore INTO " . $tableName . "
+					  $fieldList
+					  VALUES (" . Common::getSqlStringFieldsArray($row) . ")";
+            Db::query($query, $row);
+        }
+    }
+
+    /**
      * Performs a batch insert into a specific table using either LOAD DATA INFILE or plain INSERTs,
      * as a fallback. On MySQL, LOAD DATA INFILE is 20x faster than a series of plain INSERTs.
      *
@@ -78,56 +101,9 @@ class BatchInsert
         if(file_exists($filePath)){
             @unlink($filePath);
         }
-
+        
         self::tableInsertBatchIterate($tableName, $fields, $values);
         return false;
-    }
-
-    /**
-     * Create CSV (or other delimited) files
-     *
-     * @param string $filePath filename to create
-     * @param array $fileSpec File specifications (delimiter, line terminator, etc)
-     * @param array $rows Array of array corresponding to rows of values
-     * @throws Exception  if unable to create or write to file
-     */
-    protected static function createCSVFile($filePath, $fileSpec, $rows)
-    {
-        // Set up CSV delimiters, quotes, etc
-        $delim = $fileSpec['delim'];
-        $quote = $fileSpec['quote'];
-        $eol   = $fileSpec['eol'];
-        $null  = $fileSpec['null'];
-        $escapespecial_cb = $fileSpec['escapespecial_cb'];
-
-        $fp = @fopen($filePath, 'wb');
-        if (!$fp) {
-            throw new Exception('Error creating the tmp file ' . $filePath . ', please check that the webserver has write permission to write this file.');
-        }
-
-        foreach ($rows as $row) {
-            $output = '';
-            foreach ($row as $value) {
-                if (!isset($value) || is_null($value) || $value === false) {
-                    $output .= $null . $delim;
-                } else {
-                    $output .= $quote . $escapespecial_cb($value) . $quote . $delim;
-                }
-            }
-
-            // Replace delim with eol
-            $output = substr_replace($output, $eol, -1);
-
-            $ret = fwrite($fp, $output);
-            if (!$ret) {
-                fclose($fp);
-                throw new Exception('Error writing to the tmp file ' . $filePath);
-            }
-        }
-
-        fclose($fp);
-
-        @chmod($filePath, 0777);
     }
 
     /**
@@ -229,25 +205,49 @@ class BatchInsert
     }
 
     /**
-     * Performs a batch insert into a specific table by iterating through the data
+     * Create CSV (or other delimited) files
      *
-     * NOTE: you should use tableInsertBatch() which will fallback to this function if LOAD DATA INFILE not available
-     *
-     * @param string $tableName PREFIXED table name! you must call Common::prefixTable() before passing the table name
-     * @param array $fields array of unquoted field names
-     * @param array $values array of data to be inserted
-     * @param bool $ignoreWhenDuplicate Ignore new rows that contain unique key values that duplicate old rows
+     * @param string $filePath filename to create
+     * @param array $fileSpec File specifications (delimiter, line terminator, etc)
+     * @param array $rows Array of array corresponding to rows of values
+     * @throws Exception  if unable to create or write to file
      */
-    public static function tableInsertBatchIterate($tableName, $fields, $values, $ignoreWhenDuplicate = true)
+    protected static function createCSVFile($filePath, $fileSpec, $rows)
     {
-        $fieldList = '(' . join(',', $fields) . ')';
-        $ignore    = $ignoreWhenDuplicate ? 'IGNORE' : '';
+        // Set up CSV delimiters, quotes, etc
+        $delim = $fileSpec['delim'];
+        $quote = $fileSpec['quote'];
+        $eol   = $fileSpec['eol'];
+        $null  = $fileSpec['null'];
+        $escapespecial_cb = $fileSpec['escapespecial_cb'];
 
-        foreach ($values as $row) {
-            $query = "INSERT $ignore INTO " . $tableName . "
-					  $fieldList
-					  VALUES (" . Common::getSqlStringFieldsArray($row) . ")";
-            Db::query($query, $row);
+        $fp = @fopen($filePath, 'wb');
+        if (!$fp) {
+            throw new Exception('Error creating the tmp file ' . $filePath . ', please check that the webserver has write permission to write this file.');
         }
+
+        foreach ($rows as $row) {
+            $output = '';
+            foreach ($row as $value) {
+                if (!isset($value) || is_null($value) || $value === false) {
+                    $output .= $null . $delim;
+                } else {
+                    $output .= $quote . $escapespecial_cb($value) . $quote . $delim;
+                }
+            }
+
+            // Replace delim with eol
+            $output = substr_replace($output, $eol, -1);
+
+            $ret = fwrite($fp, $output);
+            if (!$ret) {
+                fclose($fp);
+                throw new Exception('Error writing to the tmp file ' . $filePath);
+            }
+        }
+
+        fclose($fp);
+
+        @chmod($filePath, 0777);
     }
 }

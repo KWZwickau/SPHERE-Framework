@@ -62,6 +62,20 @@ class Pattern extends BaseFilter
     }
 
     /**
+     * Performs case insensitive match
+     *
+     * @param string $patternQuoted
+     * @param string $string
+     * @param bool $invertedMatch
+     * @return int
+     * @ignore
+     */
+    public static function match($patternQuoted, $string, $invertedMatch = false)
+    {
+        return preg_match($patternQuoted . "i", $string) == 1 ^ $invertedMatch;
+    }
+
+    /**
      * See {@link Pattern}.
      *
      * @param DataTable $table
@@ -81,20 +95,6 @@ class Pattern extends BaseFilter
                 $table->deleteRow($key);
             }
         }
-    }
-
-    /**
-     * Performs case insensitive match
-     *
-     * @param string $patternQuoted
-     * @param string $string
-     * @param bool $invertedMatch
-     * @return int
-     * @ignore
-     */
-    public static function match($patternQuoted, $string, $invertedMatch = false)
-    {
-        return preg_match($patternQuoted . "i", $string) == 1 ^ $invertedMatch;
     }
 
     /**

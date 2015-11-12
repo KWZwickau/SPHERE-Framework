@@ -17,13 +17,6 @@ use Piwik\Updates;
  */
 class Updates_0_4_2 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
-    // when restoring (possibly) previousy dropped columns, ignore mysql code error 1060: duplicate column
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -35,5 +28,11 @@ class Updates_0_4_2 extends Updates
 				ADD `config_gears` TINYINT(1) NOT NULL AFTER  `config_windowsmedia`,
 				ADD `config_silverlight` TINYINT(1) NOT NULL AFTER `config_gears`'  => 1060,
         );
+    }
+
+    // when restoring (possibly) previousy dropped columns, ignore mysql code error 1060: duplicate column
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

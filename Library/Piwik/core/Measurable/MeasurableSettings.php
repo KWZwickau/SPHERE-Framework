@@ -9,11 +9,11 @@
 namespace Piwik\Measurable;
 
 use Piwik\Db;
-use Piwik\Measurable\Settings\Storage;
-use Piwik\Measurable\Type\TypeManager;
 use Piwik\Piwik;
 use Piwik\Plugin\Settings;
+use Piwik\Measurable\Settings\Storage;
 use Piwik\Settings\Setting;
+use Piwik\Measurable\Type\TypeManager;
 
 class MeasurableSettings extends Settings
 {

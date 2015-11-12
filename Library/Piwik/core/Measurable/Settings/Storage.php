@@ -9,8 +9,8 @@
 
 namespace Piwik\Measurable\Settings;
 
-use Piwik\Common;
 use Piwik\Db;
+use Piwik\Common;
 use Piwik\Settings\Setting;
 
 /**
@@ -31,6 +31,15 @@ class Storage extends \Piwik\Settings\Storage
     {
         $this->db     = $db;
         $this->idSite = $idSite;
+    }
+
+    protected function deleteSettingsFromStorage()
+    {
+        $table = $this->getTableName();
+        $sql   = "DELETE FROM $table WHERE `idsite` = ?";
+        $bind  = array($this->idSite);
+
+        $this->db->query($sql, $bind);
     }
 
     public function deleteValue(Setting $setting)
@@ -73,20 +82,6 @@ class Storage extends \Piwik\Settings\Storage
         }
     }
 
-    protected function deleteSettingsFromStorage()
-    {
-        $table = $this->getTableName();
-        $sql   = "DELETE FROM $table WHERE `idsite` = ?";
-        $bind  = array($this->idSite);
-
-        $this->db->query($sql, $bind);
-    }
-
-    private function getTableName()
-    {
-        return Common::prefixTable('site_setting');
-    }
-
     protected function loadSettings()
     {
         $sql  = "SELECT `setting_name`, `setting_value` FROM " . $this->getTableName() . " WHERE idsite = ?";
@@ -100,5 +95,10 @@ class Storage extends \Piwik\Settings\Storage
         }
 
         return $flat;
+    }
+
+    private function getTableName()
+    {
+        return Common::prefixTable('site_setting');
     }
 }

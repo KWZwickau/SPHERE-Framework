@@ -16,6 +16,11 @@ abstract class Base extends \Piwik\Plugin\Report
 {
     protected $orderGoal = 50;
 
+    protected function init()
+    {
+        $this->category = 'Goals_Goals';
+    }
+
     protected function addReportMetadataForEachGoal(&$availableReports, $infos, $goalNameFormatter)
     {
         $idSite = $this->getIdSiteFromInfos($infos);
@@ -54,10 +59,5 @@ abstract class Base extends \Piwik\Plugin\Report
         }
 
         return API::getInstance()->getGoals($idSite);
-    }
-
-    protected function init()
-    {
-        $this->category = 'Goals_Goals';
     }
 }

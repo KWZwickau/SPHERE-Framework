@@ -20,27 +20,6 @@ class Get extends Report
      */
     private $reportsToMerge = array();
 
-    public function getMetrics()
-    {
-        $metrics = array();
-        foreach ($this->reportsToMerge as $report) {
-            $metrics = array_merge($metrics, $report->getMetrics());
-        }
-        return $metrics;
-    }
-
-    public function getProcessedMetrics()
-    {
-        $processedMetrics = array();
-        foreach ($this->reportsToMerge as $report) {
-            $reportMetrics = $report->getProcessedMetrics();
-            if (is_array($reportMetrics)) {
-                $processedMetrics = array_merge($processedMetrics, $reportMetrics);
-            }
-        }
-        return $processedMetrics;
-    }
-
     protected function init()
     {
         parent::init();
@@ -73,6 +52,27 @@ class Get extends Report
         }
 
         $this->order = 6;
+    }
+
+    public function getMetrics()
+    {
+        $metrics = array();
+        foreach ($this->reportsToMerge as $report) {
+            $metrics = array_merge($metrics, $report->getMetrics());
+        }
+        return $metrics;
+    }
+
+    public function getProcessedMetrics()
+    {
+        $processedMetrics = array();
+        foreach ($this->reportsToMerge as $report) {
+            $reportMetrics = $report->getProcessedMetrics();
+            if (is_array($reportMetrics)) {
+                $processedMetrics = array_merge($processedMetrics, $reportMetrics);
+            }
+        }
+        return $processedMetrics;
     }
 
     /**

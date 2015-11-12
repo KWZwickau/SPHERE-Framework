@@ -45,23 +45,6 @@ class DistributedList
     }
 
     /**
-     * Adds one or more items to the list in the option table.
-     *
-     * @param string|array $item
-     */
-    public function add($item)
-    {
-        $allItems = $this->getAll();
-        if (is_array($item)) {
-            $allItems = array_merge($allItems, $item);
-        } else {
-            $allItems[] = $item;
-        }
-
-        $this->setAll($allItems);
-    }
-
-    /**
      * Queries the option table and returns all items in this list.
      *
      * @return array
@@ -85,21 +68,6 @@ class DistributedList
         return $result;
     }
 
-    protected function getListOptionValue()
-    {
-        Option::clearCachedOption($this->optionName);
-        $array = Option::get($this->optionName);
-
-        $result = array();
-        if ($array
-            && ($array = unserialize($array))
-            && count($array)
-        ) {
-            $result = $array;
-        }
-        return $result;
-    }
-
     /**
      * Sets the contents of the list in the option table.
      *
@@ -116,6 +84,23 @@ class DistributedList
         }
 
         Option::set($this->optionName, serialize($items));
+    }
+
+    /**
+     * Adds one or more items to the list in the option table.
+     *
+     * @param string|array $item
+     */
+    public function add($item)
+    {
+        $allItems = $this->getAll();
+        if (is_array($item)) {
+            $allItems = array_merge($allItems, $item);
+        } else {
+            $allItems[] = $item;
+        }
+
+        $this->setAll($allItems);
     }
 
     /**
@@ -166,5 +151,20 @@ class DistributedList
         }
 
         $this->setAll(array_values($allItems));
+    }
+
+    protected function getListOptionValue()
+    {
+        Option::clearCachedOption($this->optionName);
+        $array = Option::get($this->optionName);
+
+        $result = array();
+        if ($array
+            && ($array = unserialize($array))
+            && count($array)
+        ) {
+            $result = $array;
+        }
+        return $result;
     }
 }

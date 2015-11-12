@@ -63,6 +63,11 @@
  */
 class HTML_QuickForm2_Element_Date extends HTML_QuickForm2_Container_Group
 {
+    public function getType()
+    {
+        return 'date';
+    }
+
    /**
     * Various options to control the element's display.
     * @var      array
@@ -77,6 +82,245 @@ class HTML_QuickForm2_Element_Date extends HTML_QuickForm2_Container_Group
         'emptyOptionText'  => '&nbsp;',
         'optionIncrement'  => array('i' => 1, 's' => 1)
         );
+
+   /**
+    * Class constructor
+    * 
+    * The following keys may appear in $data array:
+    * - 'language': date language
+    * - 'format': Format of the date, based on PHP's date() function.
+    *   The following characters are currently recognised in format string:
+    *   <pre>  
+    *       D => Short names of days
+    *       l => Long names of days
+    *       d => Day numbers
+    *       M => Short names of months
+    *       F => Long names of months
+    *       m => Month numbers
+    *       Y => Four digit year
+    *       y => Two digit year
+    *       h => 12 hour format
+    *       H => 23 hour  format
+    *       i => Minutes
+    *       s => Seconds
+    *       a => am/pm
+    *       A => AM/PM
+    *   </pre>
+    * - 'minYear': Minimum year in year select
+    * - 'maxYear': Maximum year in year select
+    * - 'addEmptyOption': Should an empty option be added to the top of
+    *    each select box?
+    * - 'emptyOptionValue': The value passed by the empty option.
+    * - 'emptyOptionText': The text displayed for the empty option.
+    * - 'optionIncrement': Step to increase the option values by (works for 'i' and 's')
+    *
+    * @param    string  Element name
+    * @param    mixed   Attributes (either a string or an array)
+    * @param    array   Element data (label, options and data used for element creation)
+    */
+    public function __construct($name = null, $attributes = null, $data = null)
+    {
+        parent::__construct($name, $attributes, $data);
+
+        $locale =& $this->locale[$this->data['language']];
+        $backslash = false;
+        $separators = array();
+        $separator =  '';
+
+        for ($i = 0, $length = strlen($this->data['format']); $i < $length; $i++) {
+            $sign = $this->data['format']{$i};
+            if ($backslash) {
+                $backslash  = false;
+                $separator .= $sign;
+            } else {
+                $loadSelect = true;
+                switch ($sign) {
+                    case 'D':
+                        // Sunday is 0 like with 'w' in date()
+                        $options = $locale['weekdays_short'];
+                        break;
+                    case 'l':
+                        $options = $locale['weekdays_long'];
+                        break;
+                    case 'd':
+                        $options = $this->createOptionList(1, 31);
+                        break;
+                    case 'M':
+                        $options = $locale['months_short'];
+                        array_unshift($options , '');
+                        unset($options[0]);
+                        break;
+                    case 'm':
+                        $options = $this->createOptionList(1, 12);
+                        break;
+                    case 'F':
+                        $options = $locale['months_long'];
+                        array_unshift($options , '');
+                        unset($options[0]);
+                        break;
+                    case 'Y':
+                        $options = $this->createOptionList(
+                            $this->data['minYear'],
+                            $this->data['maxYear'],
+                            $this->data['minYear'] > $this->data['maxYear']? -1: 1
+                        );
+                        break;
+                    case 'y':
+                        $options = $this->createOptionList(
+                            $this->data['minYear'],
+                            $this->data['maxYear'],
+                            $this->data['minYear'] > $this->data['maxYear']? -1: 1
+                        );
+                        array_walk($options, create_function('&$v,$k','$v = substr($v,-2);'));
+                        break;
+                    case 'h':
+                        $options = $this->createOptionList(1, 12);
+                        break;
+                    case 'g':
+                        $options = $this->createOptionList(1, 12);
+                        array_walk($options, create_function('&$v,$k', '$v = intval($v);'));
+                        break;
+                    case 'H':
+                        $options = $this->createOptionList(0, 23);
+                        break;
+                    case 'i':
+                        $options = $this->createOptionList(0, 59, $this->data['optionIncrement']['i']);
+                        break;
+                    case 's':
+                        $options = $this->createOptionList(0, 59, $this->data['optionIncrement']['s']);
+                        break;
+                    case 'a':
+                        $options = array('am' => 'am', 'pm' => 'pm');
+                        break;
+                    case 'A':
+                        $options = array('AM' => 'AM', 'PM' => 'PM');
+                        break;
+                    case 'W':
+                        $options = $this->createOptionList(1, 53);
+                        break;
+                    case '\\':
+                        $backslash  = true;
+                        $loadSelect = false;
+                        break;
+                    default:
+                        $separator .= (' ' == $sign? '&nbsp;': $sign);
+                        $loadSelect = false;
+                }
+
+                if ($loadSelect) {
+                    if (0 < count($this)) {
+                        $separators[] = $separator;
+                    }
+                    $separator = '';
+                    // Should we add an empty option to the top of the select?
+                    if (!is_array($this->data['addEmptyOption']) && $this->data['addEmptyOption'] ||
+                        is_array($this->data['addEmptyOption']) && !empty($this->data['addEmptyOption'][$sign])) {
+
+                        // Using '+' array operator to preserve the keys
+                        if (is_array($this->data['emptyOptionText']) && !empty($this->data['emptyOptionText'][$sign])) {
+                            $options = array($this->data['emptyOptionValue'] => $this->data['emptyOptionText'][$sign]) + $options;
+                        } else {
+                            $options = array($this->data['emptyOptionValue'] => $this->data['emptyOptionText']) + $options;
+                        }
+                    }
+                    $this->addSelect($sign, $this->getAttributes())->loadOptions($options);
+                }
+            }
+        }
+        $separators[] = $separator . ($backslash? '\\': '');
+        $this->setSeparator($separators);
+    }
+
+   /**
+    * Creates an option list containing the numbers from the start number to the end, inclusive
+    *
+    * @param    int     The start number
+    * @param    int     The end number
+    * @param    int     Increment by this value
+    * @return   array   An array of numeric options.
+    */
+    protected function createOptionList($start, $end, $step = 1)
+    {
+        for ($i = $start, $options = array(); $start > $end? $i >= $end: $i <= $end; $i += $step) {
+            $options[$i] = sprintf('%02d', $i);
+        }
+        return $options;
+    }
+
+   /**
+    * Trims leading zeros from the (numeric) string
+    *
+    * @param    string  A numeric string, possibly with leading zeros
+    * @return   string  String with leading zeros removed
+    */
+    protected function trimLeadingZeros($str)
+    {
+        if (0 == strcmp($str, $this->data['emptyOptionValue'])) {
+            return $str;
+        }
+        $trimmed = ltrim($str, '0');
+        return strlen($trimmed)? $trimmed: '0';
+    }
+
+
+   /**
+    * Tries to convert the given value to a usable date before setting the
+    * element value
+    * @param    int|string|array    A timestamp, a string compatible with strtotime()
+    *                               or an array that fits the element names
+    */
+    public function setValue($value)
+    {
+        if (empty($value)) {
+            $value = array();
+        } elseif (is_scalar($value)) {
+            if (!is_numeric($value)) {
+                $value = strtotime($value);
+            }
+            // might be a unix epoch, then we fill all possible values
+            $arr = explode('-', date('w-j-n-Y-g-G-i-s-a-A-W', (int)$value));
+            $value = array(
+                'D' => $arr[0],
+                'l' => $arr[0],
+                'd' => $arr[1],
+                'M' => $arr[2],
+                'm' => $arr[2],
+                'F' => $arr[2],
+                'Y' => $arr[3],
+                'y' => $arr[3],
+                'h' => $arr[4],
+                'g' => $arr[4],
+                'H' => $arr[5],
+                'i' => $this->trimLeadingZeros($arr[6]),
+                's' => $this->trimLeadingZeros($arr[7]),
+                'a' => $arr[8],
+                'A' => $arr[9],
+                'W' => $this->trimLeadingZeros($arr[10])
+            );
+        } else {
+            $value = array_map(array($this, 'trimLeadingZeros'), $value);
+        }
+        return parent::setValue($value);
+    }
+
+   /**
+    * Called when the element needs to update its value from form's data sources
+    *
+    * Since the date element also accepts a timestamp as value, the default
+    * group behavior is changed.
+    */
+    public function updateValue()
+    {
+        $name = $this->getName();
+        foreach ($this->getDataSources() as $ds) {
+            if (null !== ($value = $ds->getValue($name))) {
+                $this->setValue($value);
+                return;
+            }
+        }
+        parent::updateValue();
+    }
+
    /**
     * Options in different languages
     *
@@ -255,247 +499,5 @@ class HTML_QuickForm2_Element_Date extends HTML_QuickForm2_Container_Group
             'months_long'   => array ('&#921;&#945;&#957;&#959;&#965;&#940;&#961;&#953;&#959;&#962;', '&#934;&#949;&#946;&#961;&#959;&#965;&#940;&#961;&#953;&#959;&#962;', '&#924;&#940;&#961;&#964;&#953;&#959;&#962;', '&#913;&#960;&#961;&#943;&#955;&#953;&#959;&#962;', '&#924;&#940;&#970;&#959;&#962;', '&#921;&#959;&#973;&#957;&#953;&#959;&#962;', 'Io&#973;&#955;&#953;&#959;&#962;', '&#913;&#973;&#947;&#959;&#965;&#963;&#964;&#959;&#962;', '&#931;&#949;&#960;&#964;&#941;&#956;&#946;&#961;&#953;&#959;&#962;', '&#927;&#954;&#964;&#974;&#946;&#961;&#953;&#959;&#962;', '&#925;&#959;&#941;&#956;&#946;&#961;&#953;&#959;&#962;', '&#916;&#949;&#954;&#941;&#956;&#946;&#961;&#953;&#959;&#962;')
         )
     );
-
-   /**
-    * Class constructor
-    *
-    * The following keys may appear in $data array:
-    * - 'language': date language
-    * - 'format': Format of the date, based on PHP's date() function.
-    *   The following characters are currently recognised in format string:
-    *   <pre>
-    *       D => Short names of days
-    *       l => Long names of days
-    *       d => Day numbers
-    *       M => Short names of months
-    *       F => Long names of months
-    *       m => Month numbers
-    *       Y => Four digit year
-    *       y => Two digit year
-    *       h => 12 hour format
-    *       H => 23 hour  format
-    *       i => Minutes
-    *       s => Seconds
-    *       a => am/pm
-    *       A => AM/PM
-    *   </pre>
-    * - 'minYear': Minimum year in year select
-    * - 'maxYear': Maximum year in year select
-    * - 'addEmptyOption': Should an empty option be added to the top of
-    *    each select box?
-    * - 'emptyOptionValue': The value passed by the empty option.
-    * - 'emptyOptionText': The text displayed for the empty option.
-    * - 'optionIncrement': Step to increase the option values by (works for 'i' and 's')
-    *
-    * @param    string  Element name
-    * @param    mixed   Attributes (either a string or an array)
-    * @param    array   Element data (label, options and data used for element creation)
-    */
-    public function __construct($name = null, $attributes = null, $data = null)
-    {
-        parent::__construct($name, $attributes, $data);
-
-        $locale =& $this->locale[$this->data['language']];
-        $backslash = false;
-        $separators = array();
-        $separator =  '';
-
-        for ($i = 0, $length = strlen($this->data['format']); $i < $length; $i++) {
-            $sign = $this->data['format']{$i};
-            if ($backslash) {
-                $backslash  = false;
-                $separator .= $sign;
-            } else {
-                $loadSelect = true;
-                switch ($sign) {
-                    case 'D':
-                        // Sunday is 0 like with 'w' in date()
-                        $options = $locale['weekdays_short'];
-                        break;
-                    case 'l':
-                        $options = $locale['weekdays_long'];
-                        break;
-                    case 'd':
-                        $options = $this->createOptionList(1, 31);
-                        break;
-                    case 'M':
-                        $options = $locale['months_short'];
-                        array_unshift($options , '');
-                        unset($options[0]);
-                        break;
-                    case 'm':
-                        $options = $this->createOptionList(1, 12);
-                        break;
-                    case 'F':
-                        $options = $locale['months_long'];
-                        array_unshift($options , '');
-                        unset($options[0]);
-                        break;
-                    case 'Y':
-                        $options = $this->createOptionList(
-                            $this->data['minYear'],
-                            $this->data['maxYear'],
-                            $this->data['minYear'] > $this->data['maxYear']? -1: 1
-                        );
-                        break;
-                    case 'y':
-                        $options = $this->createOptionList(
-                            $this->data['minYear'],
-                            $this->data['maxYear'],
-                            $this->data['minYear'] > $this->data['maxYear']? -1: 1
-                        );
-                        array_walk($options, create_function('&$v,$k','$v = substr($v,-2);'));
-                        break;
-                    case 'h':
-                        $options = $this->createOptionList(1, 12);
-                        break;
-                    case 'g':
-                        $options = $this->createOptionList(1, 12);
-                        array_walk($options, create_function('&$v,$k', '$v = intval($v);'));
-                        break;
-                    case 'H':
-                        $options = $this->createOptionList(0, 23);
-                        break;
-                    case 'i':
-                        $options = $this->createOptionList(0, 59, $this->data['optionIncrement']['i']);
-                        break;
-                    case 's':
-                        $options = $this->createOptionList(0, 59, $this->data['optionIncrement']['s']);
-                        break;
-                    case 'a':
-                        $options = array('am' => 'am', 'pm' => 'pm');
-                        break;
-                    case 'A':
-                        $options = array('AM' => 'AM', 'PM' => 'PM');
-                        break;
-                    case 'W':
-                        $options = $this->createOptionList(1, 53);
-                        break;
-                    case '\\':
-                        $backslash  = true;
-                        $loadSelect = false;
-                        break;
-                    default:
-                        $separator .= (' ' == $sign? '&nbsp;': $sign);
-                        $loadSelect = false;
-                }
-
-                if ($loadSelect) {
-                    if (0 < count($this)) {
-                        $separators[] = $separator;
-                    }
-                    $separator = '';
-                    // Should we add an empty option to the top of the select?
-                    if (!is_array($this->data['addEmptyOption']) && $this->data['addEmptyOption'] ||
-                        is_array($this->data['addEmptyOption']) && !empty($this->data['addEmptyOption'][$sign])) {
-
-                        // Using '+' array operator to preserve the keys
-                        if (is_array($this->data['emptyOptionText']) && !empty($this->data['emptyOptionText'][$sign])) {
-                            $options = array($this->data['emptyOptionValue'] => $this->data['emptyOptionText'][$sign]) + $options;
-                        } else {
-                            $options = array($this->data['emptyOptionValue'] => $this->data['emptyOptionText']) + $options;
-                        }
-                    }
-                    $this->addSelect($sign, $this->getAttributes())->loadOptions($options);
-                }
-            }
-        }
-        $separators[] = $separator . ($backslash? '\\': '');
-        $this->setSeparator($separators);
-    }
-
-   /**
-    * Creates an option list containing the numbers from the start number to the end, inclusive
-    *
-    * @param    int     The start number
-    * @param    int     The end number
-    * @param    int     Increment by this value
-    * @return   array   An array of numeric options.
-    */
-    protected function createOptionList($start, $end, $step = 1)
-    {
-        for ($i = $start, $options = array(); $start > $end? $i >= $end: $i <= $end; $i += $step) {
-            $options[$i] = sprintf('%02d', $i);
-        }
-        return $options;
-    }
-
-    public function getType()
-    {
-        return 'date';
-    }
-
-   /**
-    * Called when the element needs to update its value from form's data sources
-    *
-    * Since the date element also accepts a timestamp as value, the default
-    * group behavior is changed.
-    */
-    public function updateValue()
-    {
-        $name = $this->getName();
-        foreach ($this->getDataSources() as $ds) {
-            if (null !== ($value = $ds->getValue($name))) {
-                $this->setValue($value);
-                return;
-            }
-        }
-        parent::updateValue();
-    }
-
-   /**
-    * Tries to convert the given value to a usable date before setting the
-    * element value
-    * @param    int|string|array    A timestamp, a string compatible with strtotime()
-    *                               or an array that fits the element names
-    */
-    public function setValue($value)
-    {
-        if (empty($value)) {
-            $value = array();
-        } elseif (is_scalar($value)) {
-            if (!is_numeric($value)) {
-                $value = strtotime($value);
-            }
-            // might be a unix epoch, then we fill all possible values
-            $arr = explode('-', date('w-j-n-Y-g-G-i-s-a-A-W', (int)$value));
-            $value = array(
-                'D' => $arr[0],
-                'l' => $arr[0],
-                'd' => $arr[1],
-                'M' => $arr[2],
-                'm' => $arr[2],
-                'F' => $arr[2],
-                'Y' => $arr[3],
-                'y' => $arr[3],
-                'h' => $arr[4],
-                'g' => $arr[4],
-                'H' => $arr[5],
-                'i' => $this->trimLeadingZeros($arr[6]),
-                's' => $this->trimLeadingZeros($arr[7]),
-                'a' => $arr[8],
-                'A' => $arr[9],
-                'W' => $this->trimLeadingZeros($arr[10])
-            );
-        } else {
-            $value = array_map(array($this, 'trimLeadingZeros'), $value);
-        }
-        return parent::setValue($value);
-    }
-
-   /**
-    * Trims leading zeros from the (numeric) string
-    *
-    * @param    string  A numeric string, possibly with leading zeros
-    * @return   string  String with leading zeros removed
-    */
-    protected function trimLeadingZeros($str)
-    {
-        if (0 == strcmp($str, $this->data['emptyOptionValue'])) {
-            return $str;
-        }
-        $trimmed = ltrim($str, '0');
-        return strlen($trimmed)? $trimmed: '0';
-    }
 }
 ?>

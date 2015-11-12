@@ -22,6 +22,15 @@ use Piwik\Updates;
  */
 class Updates_2_0_4_b5 extends Updates
 {
+    public function getMigrationQueries(Updater $updater)
+    {
+        return array(
+            // ignore existing column name error (1060)
+            'ALTER TABLE ' . Common::prefixTable('user')
+            . " ADD COLUMN `superuser_access` tinyint(2) unsigned NOT NULL DEFAULT '0' AFTER token_auth" => 1060,
+        );
+    }
+
     public function doUpdate(Updater $updater)
     {
         $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
@@ -31,15 +40,6 @@ class Updates_2_0_4_b5 extends Updates
         } catch (\Exception $e) {
             throw new UpdaterErrorException($e->getMessage());
         }
-    }
-
-    public function getMigrationQueries(Updater $updater)
-    {
-        return array(
-            // ignore existing column name error (1060)
-            'ALTER TABLE ' . Common::prefixTable('user')
-            . " ADD COLUMN `superuser_access` tinyint(2) unsigned NOT NULL DEFAULT '0' AFTER token_auth" => 1060,
-        );
     }
 
     private static function migrateConfigSuperUserToDb()

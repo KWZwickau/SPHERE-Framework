@@ -29,24 +29,6 @@ class SafeDecodeLabel extends BaseFilter
     }
 
     /**
-     * Decodes all columns of the given data table
-     *
-     * @param DataTable $table
-     */
-    public function filter($table)
-    {
-        foreach ($table->getRows() as $row) {
-            $value = $row->getColumn($this->columnToDecode);
-            if ($value !== false) {
-                $value = self::decodeLabelSafe($value);
-                $row->setColumn($this->columnToDecode, $value);
-
-                $this->filterSubTable($row);
-            }
-        }
-    }
-
-    /**
      * Decodes the given value
      *
      * @param string $value
@@ -68,5 +50,23 @@ class SafeDecodeLabel extends BaseFilter
         $value = htmlspecialchars($value, $style, 'UTF-8');
 
         return $value;
+    }
+
+    /**
+     * Decodes all columns of the given data table
+     *
+     * @param DataTable $table
+     */
+    public function filter($table)
+    {
+        foreach ($table->getRows() as $row) {
+            $value = $row->getColumn($this->columnToDecode);
+            if ($value !== false) {
+                $value = self::decodeLabelSafe($value);
+                $row->setColumn($this->columnToDecode, $value);
+
+                $this->filterSubTable($row);
+            }
+        }
     }
 }

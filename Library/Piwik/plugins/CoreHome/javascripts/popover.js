@@ -5,22 +5,19 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-var Piwik_Popover = (function ()
-{
+var Piwik_Popover = (function () {
 
     var container = false;
     var isOpen = false;
     var closeCallback = false;
 
-    var createContainer = function ()
-    {
+    var createContainer = function () {
         if (container === false) {
             container = $(document.createElement('div')).attr('id', 'Piwik_Popover');
         }
     };
 
-    var openPopover = function (title, dialogClass)
-    {
+    var openPopover = function (title, dialogClass) {
         createContainer();
 
         var options =
@@ -31,19 +28,16 @@ var Piwik_Popover = (function ()
             position: ['center', 'center'],
             resizable: false,
             autoOpen: true,
-            open: function (event, ui)
-            {
+            open: function (event, ui) {
                 if (dialogClass) {
                     $(this).parent().addClass(dialogClass).attr('style', '');
                 }
 
-                $('.ui-widget-overlay').on('click.popover', function ()
-                {
+                $('.ui-widget-overlay').on('click.popover', function () {
                     container.dialog('close');
                 });
             },
-            close: function (event, ui)
-            {
+            close: function (event, ui) {
                 container.find('div.jqplot-target').trigger('piwikDestroyPlot');
                 container[0].innerHTML = ''; // IE8 fix
                 container.dialog('destroy').remove();
@@ -62,16 +56,14 @@ var Piwik_Popover = (function ()
         container.dialog(options);
 
         // override the undocumented _title function to ensure that the title attribute is not escaped (according to jQueryUI bug #6016)
-        container.data("uiDialog")._title = function (title)
-        {
-            title.html(this.options.title);
+        container.data( "uiDialog" )._title = function(title) {
+            title.html( this.options.title );
         };
 
         isOpen = true;
     };
 
-    var centerPopover = function ()
-    {
+    var centerPopover = function () {
         if (container !== false) {
             container.dialog({position: ['center', 'center']});
         }
@@ -87,8 +79,7 @@ var Piwik_Popover = (function ()
          * @param {int}    [height]           height of the popover in px (optional)
          * @param {string} [dialogClass]      css class to add to dialog
          */
-        showLoading: function (popoverName, popoverSubject, height, dialogClass)
-        {
+        showLoading: function (popoverName, popoverSubject, height, dialogClass) {
             var loading = $(document.createElement('div')).addClass('Piwik_Popover_Loading');
 
             var loadingMessage = popoverSubject ? translations.General_LoadingPopoverFor :
@@ -136,8 +127,7 @@ var Piwik_Popover = (function ()
          *
          * @param {string} helpUrl
          */
-        addHelpButton: function (helpUrl)
-        {
+        addHelpButton: function (helpUrl) {
             if (!isOpen) {
                 return;
             }
@@ -151,14 +141,12 @@ var Piwik_Popover = (function ()
         },
 
         /** Set the title of the popover */
-        setTitle: function (titleHtml)
-        {
+        setTitle: function (titleHtml) {
             container.dialog('option', 'title', titleHtml);
         },
 
         /** Set inner HTML of the popover */
-        setContent: function (html)
-        {
+        setContent: function (html) {
             if (typeof closeCallback == 'function') {
                 closeCallback();
                 closeCallback = false;
@@ -176,8 +164,7 @@ var Piwik_Popover = (function ()
          * @param {string}  [message]
          * @param {string}  [backLabel]
          */
-        showError: function (title, message, backLabel)
-        {
+        showError: function (title, message, backLabel) {
             var error = $(document.createElement('div')).addClass('Piwik_Popover_Error');
 
             var p = $(document.createElement('p')).addClass('Piwik_Popover_Error_Title');
@@ -190,8 +177,7 @@ var Piwik_Popover = (function ()
 
             if (backLabel) {
                 var back = $(document.createElement('a')).addClass('Piwik_Popover_Error_Back');
-                back.attr('href', '#').click(function ()
-                {
+                back.attr('href', '#').click(function () {
                     history.back();
                     return false;
                 });
@@ -210,14 +196,12 @@ var Piwik_Popover = (function ()
          *
          * @param {function}  callback
          */
-        onClose: function (callback)
-        {
+        onClose: function (callback) {
             closeCallback = callback;
         },
 
         /** Close the popover */
-        close: function ()
-        {
+        close: function () {
             if (isOpen) {
                 container.dialog('close');
             }
@@ -234,11 +218,9 @@ var Piwik_Popover = (function ()
          * @param {string} loadingName
          * @param {string} [dialogClass]      css class to add to dialog
          */
-        createPopupAndLoadUrl: function (url, loadingName, dialogClass)
-        {
+        createPopupAndLoadUrl: function (url, loadingName, dialogClass) {
             // make sure the minimum top position of the popover is 15px
-            var ensureMinimumTop = function ()
-            {
+            var ensureMinimumTop = function () {
                 var popoverContainer = $('#Piwik_Popover').parent();
                 if (popoverContainer.position().top < 106) {
                     popoverContainer.css('top', '15px');
@@ -249,10 +231,8 @@ var Piwik_Popover = (function ()
             var box = Piwik_Popover.showLoading(loadingName, null, null, dialogClass);
             ensureMinimumTop();
 
-            var callback = function (html)
-            {
-                function setPopoverTitleIfOneFoundInContainer()
-                {
+            var callback = function (html) {
+                function setPopoverTitleIfOneFoundInContainer() {
                     var title = $('h1,h2', container);
                     if (title.length == 1) {
                         Piwik_Popover.setTitle(title.text());

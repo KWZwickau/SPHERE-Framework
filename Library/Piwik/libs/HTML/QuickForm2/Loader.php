@@ -1,6 +1,6 @@
 <?php
 /**
- * Class with static methods for loading classes and files
+ * Class with static methods for loading classes and files 
  *
  * PHP version 5
  *
@@ -50,7 +50,7 @@
 require_once dirname(__FILE__) . '/Exception.php';
 
 /**
- * Class with static methods for loading classes and files
+ * Class with static methods for loading classes and files 
  *
  * @category   HTML
  * @package    HTML_QuickForm2
@@ -60,42 +60,17 @@ require_once dirname(__FILE__) . '/Exception.php';
  */
 class HTML_QuickForm2_Loader
 {
-    /**
-     * Loading of HTML_QuickForm2_* classes suitable for SPL autoload mechanism
-     *
-     * This method will only try to load a class if its name starts with
-     * HTML_QuickForm2. Register with the following:
-     * <code>
-     * spl_autoload_register(array('HTML_QuickForm2_Loader', 'autoload'));
-     * </code>
-     *
-     * @param    string  Class name
-     * @return   bool    Whether class loaded successfully
-     */
-    public static function autoload($class)
-    {
-        if (0 !== strpos($class, 'HTML_QuickForm2')) {
-            return false;
-        }
-        try {
-            @self::loadClass($class);
-            return true;
-        } catch (Exception $e) {
-            return false;
-        }
-    }
-
-    /**
-     * Tries to load a given class
-     *
-     * If no $includeFile was provided, $className will be used with underscores
-     * replaced with path separators and '.php' extension appended
-     *
-     * @param    string  Class name to load
-     * @param    string  Name of the file (supposedly) containing the given class
-     * @throws   HTML_QuickForm2_NotFoundException   If the file either can't be
-     *               loaded or doesn't contain the given class
-     */
+   /**
+    * Tries to load a given class
+    *
+    * If no $includeFile was provided, $className will be used with underscores
+    * replaced with path separators and '.php' extension appended
+    *
+    * @param    string  Class name to load
+    * @param    string  Name of the file (supposedly) containing the given class
+    * @throws   HTML_QuickForm2_NotFoundException   If the file either can't be
+    *               loaded or doesn't contain the given class
+    */
     public static function loadClass($className, $includeFile = null)
     {
         if (class_exists($className, false) || interface_exists($className, false)) {
@@ -122,12 +97,12 @@ class HTML_QuickForm2_Loader
         }
     }
 
-    /**
-     * Checks whether the file exists in the include path
-     *
-     * @param    string  file name
-     * @return   bool
-     */
+   /**
+    * Checks whether the file exists in the include path
+    *
+    * @param    string  file name
+    * @return   bool
+    */
     public static function fileExists($fileName)
     {
         $fp = @fopen($fileName, 'r', true);
@@ -137,6 +112,30 @@ class HTML_QuickForm2_Loader
         }
         return false;
     }
-}
 
+   /**
+    * Loading of HTML_QuickForm2_* classes suitable for SPL autoload mechanism
+    *
+    * This method will only try to load a class if its name starts with
+    * HTML_QuickForm2. Register with the following:
+    * <code>
+    * spl_autoload_register(array('HTML_QuickForm2_Loader', 'autoload'));
+    * </code>
+    *
+    * @param    string  Class name
+    * @return   bool    Whether class loaded successfully
+    */
+    public static function autoload($class)
+    {
+        if (0 !== strpos($class, 'HTML_QuickForm2')) {
+            return false;
+        }
+        try {
+            @self::loadClass($class);
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+}
 ?>

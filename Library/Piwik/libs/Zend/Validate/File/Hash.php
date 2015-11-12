@@ -115,10 +115,10 @@ class Zend_Validate_File_Hash extends Zend_Validate_Abstract
     {
         if (is_string($options)) {
             $options = array($options);
-        } else {if (!is_array($options)) {
+        } else if (!is_array($options)) {
             // require_once 'Zend/Validate/Exception.php';
             throw new Zend_Validate_Exception("False parameter given");
-        }}
+        }
 
         $known = hash_algos();
         if (!isset($options['algorithm'])) {

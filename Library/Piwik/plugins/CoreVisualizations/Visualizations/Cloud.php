@@ -151,6 +151,24 @@ class Cloud extends Visualization
     }
 
     /**
+     * Get the class range using a percentage
+     *
+     * @param $percent
+     *
+     * @return int class
+     */
+    protected function getClassFromPercent($percent)
+    {
+        $mapping = array(95, 70, 50, 30, 15, 5, 0);
+        foreach ($mapping as $key => $value) {
+            if ($percent >= $value) {
+                return $key;
+            }
+        }
+        return 0;
+    }
+
+    /**
      * @param $word
      * @return string
      */
@@ -173,23 +191,5 @@ class Cloud extends Visualization
         $percent = ($popularity / $maxValue) * 100;
 
         return $percent;
-    }
-
-    /**
-     * Get the class range using a percentage
-     *
-     * @param $percent
-     *
-     * @return int class
-     */
-    protected function getClassFromPercent($percent)
-    {
-        $mapping = array(95, 70, 50, 30, 15, 5, 0);
-        foreach ($mapping as $key => $value) {
-            if ($percent >= $value) {
-                return $key;
-            }
-        }
-        return 0;
     }
 }

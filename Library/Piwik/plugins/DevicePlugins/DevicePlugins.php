@@ -24,7 +24,7 @@ class DevicePlugins extends \Piwik\Plugin
     {
         return array(
             'Metrics.getDefaultMetricTranslations' => 'addMetricTranslations',
-            'Live.getAllVisitorDetails' => 'extendVisitorDetails',
+            'Live.getAllVisitorDetails'            => 'extendVisitorDetails',
             'Request.getRenamedModuleAndAction' => 'renameUserSettingsModuleAndAction',
         );
     }
@@ -33,8 +33,8 @@ class DevicePlugins extends \Piwik\Plugin
     {
         $instance = new Visitor($details);
 
-        $visitor['plugins'] = $instance->getPlugins();
-        $visitor['pluginsIcons'] = $instance->getPluginIcons();
+        $visitor['plugins']                  = $instance->getPlugins();
+        $visitor['pluginsIcons']             = $instance->getPluginIcons();
     }
 
     public function addMetricTranslations(&$translations)

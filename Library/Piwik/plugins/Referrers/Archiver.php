@@ -71,18 +71,6 @@ class Archiver extends \Piwik\Plugin\Archiver
         );
     }
 
-    /**
-     * @param $fields
-     */
-    private function aggregateFromVisits($fields)
-    {
-        $query = $this->getLogAggregator()->queryVisitsByDimension($fields);
-        while ($row = $query->fetch()) {
-            $this->makeReferrerTypeNonEmpty($row);
-            $this->aggregateVisitRow($row);
-        }
-    }
-
     protected function makeReferrerTypeNonEmpty(&$row)
     {
         if (empty($row['referer_type'])) {
@@ -272,6 +260,18 @@ class Archiver extends \Piwik\Plugin\Archiver
                 $countValue = $nameToCount[$nameTableToUse]['level0'];
             }
             $this->getProcessor()->insertNumericRecord($name, $countValue);
+        }
+    }
+
+    /**
+     * @param $fields
+     */
+    private function aggregateFromVisits($fields)
+    {
+        $query = $this->getLogAggregator()->queryVisitsByDimension($fields);
+        while ($row = $query->fetch()) {
+            $this->makeReferrerTypeNonEmpty($row);
+            $this->aggregateVisitRow($row);
         }
     }
 }

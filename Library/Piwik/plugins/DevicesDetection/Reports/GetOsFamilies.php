@@ -14,6 +14,16 @@ use Piwik\Plugins\DevicesDetection\Columns\Os;
 
 class GetOsFamilies extends Base
 {
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new Os();
+        $this->name          = Piwik::translate('DevicesDetection_OperatingSystemFamilies');
+        $this->documentation = ''; // TODO
+        $this->order = 3;
+        $this->widgetTitle  = 'DevicesDetection_OperatingSystemFamilies';
+    }
+
     public function configureView(ViewDataTable $view)
     {
         $view->config->title = $this->name;
@@ -27,16 +37,6 @@ class GetOsFamilies extends Base
         return array(
             self::factory('DevicesDetection', 'getOsVersions'),
         );
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension     = new Os();
-        $this->name          = Piwik::translate('DevicesDetection_OperatingSystemFamilies');
-        $this->documentation = ''; // TODO
-        $this->order = 3;
-        $this->widgetTitle  = 'DevicesDetection_OperatingSystemFamilies';
     }
 
 }

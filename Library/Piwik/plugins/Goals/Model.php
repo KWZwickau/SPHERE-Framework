@@ -21,24 +21,6 @@ class Model
         $this->table = Common::prefixTable(self::$rawPrefix);
     }
 
-    public function createGoalForSite($idSite, $goal)
-    {
-        $db     = $this->getDb();
-        $goalId = $this->getNextIdGoal($idSite);
-
-        $goal['idgoal'] = $goalId;
-        $goal['idsite'] = $idSite;
-
-        $db->insert($this->table, $goal);
-
-        return $goalId;
-    }
-
-    private function getDb()
-    {
-        return Db::get();
-    }
-
     private function getNextIdGoal($idSite)
     {
         $db     = $this->getDb();
@@ -52,7 +34,18 @@ class Model
         return $idGoal;
     }
 
-    // actually this should be in a log_conversion model
+    public function createGoalForSite($idSite, $goal)
+    {
+        $db     = $this->getDb();
+        $goalId = $this->getNextIdGoal($idSite);
+
+        $goal['idgoal'] = $goalId;
+        $goal['idsite'] = $idSite;
+
+        $db->insert($this->table, $goal);
+
+        return $goalId;
+    }
 
     public function updateGoal($idSite, $idGoal, $goal)
     {
@@ -63,6 +56,7 @@ class Model
         $db->update($this->table, $goal, "idsite = '$idSite' AND idgoal = '$idGoal'");
     }
 
+    // actually this should be in a log_conversion model
     public function deleteGoalConversions($idSite, $idGoal)
     {
         $table = Common::prefixTable("log_conversion");
@@ -92,5 +86,10 @@ class Model
         $bind  = array($idSite, $idGoal);
 
         Db::query($query, $bind);
+    }
+
+    private function getDb()
+    {
+        return Db::get();
     }
 }

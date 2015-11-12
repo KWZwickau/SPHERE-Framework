@@ -188,6 +188,47 @@ class Zend_Session extends Zend_Session_Abstract
     {
     }
 
+
+    /**
+     * setOptions - set both the class specified
+     *
+     * @param  array $userOptions - pass-by-keyword style array of <option name, option value> pairs
+     * @throws Zend_Session_Exception
+     * @return void
+     */
+    public static function setOptions(array $userOptions = array())
+    {
+        // set default options on first run only (before applying user settings)
+        if (!self::$_defaultOptionsSet) {
+            foreach (self::$_defaultOptions as $defaultOptionName => $defaultOptionValue) {
+                if (isset(self::$_defaultOptions[$defaultOptionName])) {
+                    @ini_set("session.$defaultOptionName", $defaultOptionValue);
+                }
+            }
+
+            self::$_defaultOptionsSet = true;
+        }
+
+        // set the options the user has requested to set
+        foreach ($userOptions as $userOptionName => $userOptionValue) {
+
+            $userOptionName = strtolower($userOptionName);
+
+            // set the ini based values
+            if (array_key_exists($userOptionName, self::$_defaultOptions)) {
+                @ini_set("session.$userOptionName", $userOptionValue);
+            }
+            elseif (isset(self::$_localOptions[$userOptionName])) {
+                self::${self::$_localOptions[$userOptionName]} = $userOptionValue;
+            }
+            else {
+                /** @see Zend_Session_Exception */
+                // require_once 'Zend/Session/Exception.php';
+                throw new Zend_Session_Exception("Unknown option: $userOptionName = $userOptionValue");
+            }
+        }
+    }
+
     /**
      * getOptions()
      *
@@ -215,16 +256,6 @@ class Zend_Session extends Zend_Session_Abstract
     }
 
     /**
-     * getSaveHandler() - Get the session Save Handler
-     *
-     * @return Zend_Session_SaveHandler_Interface
-     */
-    public static function getSaveHandler()
-    {
-        return self::$_saveHandler;
-    }
-
-    /**
      * setSaveHandler() - Session Save Handler assignment
      *
      * @param Zend_Session_SaveHandler_Interface $interface
@@ -248,48 +279,17 @@ class Zend_Session extends Zend_Session_Abstract
             );
     }
 
-    /**
-     * rememberMe() - Write a persistent cookie that expires after a number of seconds in the future. If no number of
-     * seconds is specified, then this defaults to self::$_rememberMeSeconds.  Due to clock errors on end users' systems,
-     * large values are recommended to avoid undesirable expiration of session cookies.
-     *
-     * @param int $seconds OPTIONAL specifies TTL for cookie in seconds from present time
-     * @return void
-     */
-    public static function rememberMe($seconds = null)
-    {
-        $seconds = (int) $seconds;
-        $seconds = ($seconds > 0) ? $seconds : self::$_rememberMeSeconds;
-
-        self::rememberUntil($seconds);
-    }
 
     /**
-     * rememberUntil() - This method does the work of changing the state of the session cookie and making
-     * sure that it gets resent to the browser via regenerateId()
+     * getSaveHandler() - Get the session Save Handler
      *
-     * @param int $seconds
-     * @return void
+     * @return Zend_Session_SaveHandler_Interface
      */
-    public static function rememberUntil($seconds = 0)
+    public static function getSaveHandler()
     {
-        if (self::$_unitTestEnabled) {
-            self::regenerateId();
-            return;
-        }
-
-        $cookieParams = session_get_cookie_params();
-
-        session_set_cookie_params(
-            $seconds,
-            $cookieParams['path'],
-            $cookieParams['domain'],
-            $cookieParams['secure']
-            );
-
-        // normally "rememberMe()" represents a security context change, so should use new session id
-        self::regenerateId();
+        return self::$_saveHandler;
     }
+
 
     /**
      * regenerateId() - Regenerate the session id.  Best practice is to call this after
@@ -318,6 +318,24 @@ class Zend_Session extends Zend_Session_Abstract
         }
     }
 
+
+    /**
+     * rememberMe() - Write a persistent cookie that expires after a number of seconds in the future. If no number of
+     * seconds is specified, then this defaults to self::$_rememberMeSeconds.  Due to clock errors on end users' systems,
+     * large values are recommended to avoid undesirable expiration of session cookies.
+     *
+     * @param int $seconds OPTIONAL specifies TTL for cookie in seconds from present time
+     * @return void
+     */
+    public static function rememberMe($seconds = null)
+    {
+        $seconds = (int) $seconds;
+        $seconds = ($seconds > 0) ? $seconds : self::$_rememberMeSeconds;
+
+        self::rememberUntil($seconds);
+    }
+
+
     /**
      * forgetMe() - Write a volatile session cookie, removing any persistent cookie that may have existed. The session
      * would end upon, for example, termination of a web browser program.
@@ -328,6 +346,35 @@ class Zend_Session extends Zend_Session_Abstract
     {
         self::rememberUntil(0);
     }
+
+
+    /**
+     * rememberUntil() - This method does the work of changing the state of the session cookie and making
+     * sure that it gets resent to the browser via regenerateId()
+     *
+     * @param int $seconds
+     * @return void
+     */
+    public static function rememberUntil($seconds = 0)
+    {
+        if (self::$_unitTestEnabled) {
+            self::regenerateId();
+            return;
+        }
+
+        $cookieParams = session_get_cookie_params();
+
+        session_set_cookie_params(
+            $seconds,
+            $cookieParams['path'],
+            $cookieParams['domain'],
+            $cookieParams['secure']
+            );
+
+        // normally "rememberMe()" represents a security context change, so should use new session id
+        self::regenerateId();
+    }
+
 
     /**
      * sessionExists() - whether or not a session exists for the current request
@@ -347,6 +394,7 @@ class Zend_Session extends Zend_Session_Abstract
         return false;
     }
 
+
     /**
      * Whether or not session has been destroyed via session_destroy()
      *
@@ -356,6 +404,7 @@ class Zend_Session extends Zend_Session_Abstract
     {
         return self::$_destroyed;
     }
+
 
     /**
      * start() - Start the session.
@@ -450,67 +499,6 @@ class Zend_Session extends Zend_Session_Abstract
         self::_processStartupMetadataGlobal();
     }
 
-    /**
-     * setOptions - set both the class specified
-     *
-     * @param  array $userOptions - pass-by-keyword style array of <option name, option value> pairs
-     * @throws Zend_Session_Exception
-     * @return void
-     */
-    public static function setOptions(array $userOptions = array())
-    {
-        // set default options on first run only (before applying user settings)
-        if (!self::$_defaultOptionsSet) {
-            foreach (self::$_defaultOptions as $defaultOptionName => $defaultOptionValue) {
-                if (isset(self::$_defaultOptions[$defaultOptionName])) {
-                    @ini_set("session.$defaultOptionName", $defaultOptionValue);
-                }
-            }
-
-            self::$_defaultOptionsSet = true;
-        }
-
-        // set the options the user has requested to set
-        foreach ($userOptions as $userOptionName => $userOptionValue) {
-
-            $userOptionName = strtolower($userOptionName);
-
-            // set the ini based values
-            if (array_key_exists($userOptionName, self::$_defaultOptions)) {
-                @ini_set("session.$userOptionName", $userOptionValue);
-            }
-            elseif (isset(self::$_localOptions[$userOptionName])) {
-                self::${self::$_localOptions[$userOptionName]} = $userOptionValue;
-            }
-            else {
-                /** @see Zend_Session_Exception */
-                // require_once 'Zend/Session/Exception.php';
-                throw new Zend_Session_Exception("Unknown option: $userOptionName = $userOptionValue");
-            }
-        }
-    }
-
-    /**
-     * _processValidator() - internal function that is called in the existence of VALID metadata
-     *
-     * @throws Zend_Session_Exception
-     * @return void
-     */
-    private static function _processValidators()
-    {
-        foreach ($_SESSION['__ZF']['VALID'] as $validator_name => $valid_data) {
-            if (!class_exists($validator_name)) {
-                // require_once 'Zend/Loader.php';
-                Zend_Loader::loadClass($validator_name);
-            }
-            $validator = new $validator_name;
-            if ($validator->validate() === false) {
-                /** @see Zend_Session_Exception */
-                // require_once 'Zend/Session/Exception.php';
-                throw new Zend_Session_Exception("This session is not valid according to {$validator_name}.");
-            }
-        }
-    }
 
     /**
      * _processGlobalMetadata() - this method initizes the sessions GLOBAL
@@ -588,6 +576,7 @@ class Zend_Session extends Zend_Session_Abstract
         }
     }
 
+
     /**
      * isStarted() - convenience method to determine if the session is already started.
      *
@@ -597,6 +586,7 @@ class Zend_Session extends Zend_Session_Abstract
     {
         return self::$_sessionStarted;
     }
+
 
     /**
      * isRegenerated() - convenience method to determine if session_regenerate_id()
@@ -609,6 +599,7 @@ class Zend_Session extends Zend_Session_Abstract
         return ( (self::$_regenerateIdState > 0) ? true : false );
     }
 
+
     /**
      * getId() - get the current session id
      *
@@ -618,6 +609,7 @@ class Zend_Session extends Zend_Session_Abstract
     {
         return session_id();
     }
+
 
     /**
      * setId() - set an id to a user specified id
@@ -650,6 +642,7 @@ class Zend_Session extends Zend_Session_Abstract
         session_id($id);
     }
 
+
     /**
      * registerValidator() - register a validator that will attempt to validate this session for
      * every future request
@@ -662,6 +655,7 @@ class Zend_Session extends Zend_Session_Abstract
         $validator->setup();
     }
 
+
     /**
      * stop() - Disable write access.  Optionally disable read (not implemented).
      *
@@ -671,6 +665,7 @@ class Zend_Session extends Zend_Session_Abstract
     {
         parent::$_writable = false;
     }
+
 
     /**
      * writeClose() - Shutdown the sesssion, close writing and detach $_SESSION from the back-end storage mechanism.
@@ -696,6 +691,7 @@ class Zend_Session extends Zend_Session_Abstract
         session_write_close();
         self::$_writeClosed = true;
     }
+
 
     /**
      * destroy() - This is used to destroy session data, and optionally, the session cookie itself
@@ -725,6 +721,7 @@ class Zend_Session extends Zend_Session_Abstract
             self::expireSessionCookie();
         }
     }
+
 
     /**
      * expireSessionCookie() - Sends an expired session id cookie, causing the client to delete the session cookie
@@ -756,6 +753,30 @@ class Zend_Session extends Zend_Session_Abstract
                 );
         }
     }
+
+
+    /**
+     * _processValidator() - internal function that is called in the existence of VALID metadata
+     *
+     * @throws Zend_Session_Exception
+     * @return void
+     */
+    private static function _processValidators()
+    {
+        foreach ($_SESSION['__ZF']['VALID'] as $validator_name => $valid_data) {
+            if (!class_exists($validator_name)) {
+                // require_once 'Zend/Loader.php';
+                Zend_Loader::loadClass($validator_name);
+            }
+            $validator = new $validator_name;
+            if ($validator->validate() === false) {
+                /** @see Zend_Session_Exception */
+                // require_once 'Zend/Session/Exception.php';
+                throw new Zend_Session_Exception("This session is not valid according to {$validator_name}.");
+            }
+        }
+    }
+
 
     /**
      * namespaceIsset() - check to see if a namespace is set

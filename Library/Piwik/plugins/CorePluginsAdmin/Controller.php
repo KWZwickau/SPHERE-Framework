@@ -79,48 +79,6 @@ class Controller extends Plugin\ControllerAdmin
         return $view->render();
     }
 
-    private function dieIfMarketplaceIsDisabled()
-    {
-        if (!CorePluginsAdmin::isMarketplaceEnabled()) {
-            throw new \Exception('The Marketplace feature has been disabled.
-            You may enable the Marketplace by changing the config entry "enable_marketplace" to 1.
-            Please contact your Piwik admins with your request so they can assist.');
-        }
-
-        $this->dieIfPluginsAdminIsDisabled();
-    }
-
-    private function dieIfPluginsAdminIsDisabled()
-    {
-        if (!CorePluginsAdmin::isPluginsAdminEnabled()) {
-            throw new \Exception('Enabling, disabling and uninstalling plugins has been disabled by Piwik admins.
-            Please contact your Piwik admins with your request so they can assist you.');
-        }
-    }
-
-    protected function configureView($template)
-    {
-        Piwik::checkUserIsNotAnonymous();
-
-        $view = new View($template);
-        $this->setBasicVariablesView($view);
-
-        // If user can manage plugins+themes, display a warning if config not writable
-        if (CorePluginsAdmin::isPluginsAdminEnabled()) {
-            $this->displayWarningIfConfigFileNotWritable();
-        }
-
-        $view->errorMessage = '';
-
-        return $view;
-    }
-
-    public function updatePlugin()
-    {
-        $view = $this->createUpdateOrInstallView('updatePlugin', static::UPDATE_NONCE);
-        return $view->render();
-    }
-
     private function createUpdateOrInstallView($template, $nonceName)
     {
         static::dieIfMarketplaceIsDisabled();
@@ -152,28 +110,10 @@ class Controller extends Plugin\ControllerAdmin
         return $view;
     }
 
-    protected function initPluginModification($nonceName)
+    public function updatePlugin()
     {
-        Piwik::checkUserHasSuperUserAccess();
-
-        $nonce = Common::getRequestVar('nonce', null, 'string');
-
-        if (!Nonce::verifyNonce($nonceName, $nonce)) {
-            throw new \Exception($this->translator->translate('General_ExceptionNonceMismatch'));
-        }
-
-        Nonce::discardNonce($nonceName);
-
-        $pluginName = Common::getRequestVar('pluginName', null, 'string');
-
-        return $pluginName;
-    }
-
-    protected function redirectAfterModification($redirectAfter)
-    {
-        if ($redirectAfter) {
-            Url::redirectToReferrer();
-        }
+        $view = $this->createUpdateOrInstallView('updatePlugin', static::UPDATE_NONCE);
+        return $view->render();
     }
 
     public function installPlugin()
@@ -276,10 +216,23 @@ class Controller extends Plugin\ControllerAdmin
         $this->redirectToIndex('CorePluginsAdmin', 'marketplace', null, null, null, array('mode' => 'user'));
     }
 
-    public function plugins()
+    private function dieIfMarketplaceIsDisabled()
     {
-        $view = $this->createPluginsOrThemesView('plugins', $themesOnly = false);
-        return $view->render();
+        if (!CorePluginsAdmin::isMarketplaceEnabled()) {
+            throw new \Exception('The Marketplace feature has been disabled.
+            You may enable the Marketplace by changing the config entry "enable_marketplace" to 1.
+            Please contact your Piwik admins with your request so they can assist.');
+        }
+
+        $this->dieIfPluginsAdminIsDisabled();
+    }
+
+    private function dieIfPluginsAdminIsDisabled()
+    {
+        if (!CorePluginsAdmin::isPluginsAdminEnabled()) {
+            throw new \Exception('Enabling, disabling and uninstalling plugins has been disabled by Piwik admins.
+            Please contact your Piwik admins with your request so they can assist you.');
+        }
     }
 
     private function createPluginsOrThemesView($template, $themesOnly)
@@ -317,6 +270,35 @@ class Controller extends Plugin\ControllerAdmin
                 // curl exec connection error (ie. server not connected to internet)
             }
         }
+
+        return $view;
+    }
+
+    public function plugins()
+    {
+        $view = $this->createPluginsOrThemesView('plugins', $themesOnly = false);
+        return $view->render();
+    }
+
+    public function themes()
+    {
+        $view = $this->createPluginsOrThemesView('themes', $themesOnly = true);
+        return $view->render();
+    }
+
+    protected function configureView($template)
+    {
+        Piwik::checkUserIsNotAnonymous();
+
+        $view = new View($template);
+        $this->setBasicVariablesView($view);
+
+        // If user can manage plugins+themes, display a warning if config not writable
+        if (CorePluginsAdmin::isPluginsAdminEnabled()) {
+            $this->displayWarningIfConfigFileNotWritable();
+        }
+
+        $view->errorMessage = '';
 
         return $view;
     }
@@ -378,17 +360,6 @@ class Controller extends Plugin\ControllerAdmin
         return $pluginsFiltered;
     }
 
-    private function getPluginNamesHavingSettingsForCurrentUser()
-    {
-        return SettingsManager::getPluginNamesHavingSystemSettings();
-    }
-
-    public function themes()
-    {
-        $view = $this->createPluginsOrThemesView('themes', $themesOnly = true);
-        return $view->render();
-    }
-
     public function safemode($lastError = array())
     {
         $this->tryToRepairPiwik();
@@ -443,15 +414,6 @@ class Controller extends Plugin\ControllerAdmin
         }
 
         return $view->render();
-    }
-
-    private function tryToRepairPiwik()
-    {
-        // in case any opcaches etc were not cleared after an update for instance. Might prevent from getting the
-        // error again
-        try {
-            Filesystem::deleteAllCacheOnUpdate();
-        } catch (Exception $e) {}
     }
 
     public function activate($redirectAfter = true)
@@ -519,6 +481,44 @@ class Controller extends Plugin\ControllerAdmin
         }
 
         $this->redirectAfterModification($redirectAfter);
+    }
+
+    protected function initPluginModification($nonceName)
+    {
+        Piwik::checkUserHasSuperUserAccess();
+
+        $nonce = Common::getRequestVar('nonce', null, 'string');
+
+        if (!Nonce::verifyNonce($nonceName, $nonce)) {
+            throw new \Exception($this->translator->translate('General_ExceptionNonceMismatch'));
+        }
+
+        Nonce::discardNonce($nonceName);
+
+        $pluginName = Common::getRequestVar('pluginName', null, 'string');
+
+        return $pluginName;
+    }
+
+    protected function redirectAfterModification($redirectAfter)
+    {
+        if ($redirectAfter) {
+            Url::redirectToReferrer();
+        }
+    }
+
+    private function getPluginNamesHavingSettingsForCurrentUser()
+    {
+        return SettingsManager::getPluginNamesHavingSystemSettings();
+    }
+
+    private function tryToRepairPiwik()
+    {
+        // in case any opcaches etc were not cleared after an update for instance. Might prevent from getting the
+        // error again
+        try {
+            Filesystem::deleteAllCacheOnUpdate();
+        } catch (Exception $e) {}
     }
 
 }

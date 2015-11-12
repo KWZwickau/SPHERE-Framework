@@ -16,11 +16,6 @@ class IdGoal extends ConversionDimension
 {
     protected $columnName = 'idgoal';
 
-    public function getName()
-    {
-        return Piwik::translate('General_VisitConvertedGoalId');
-    }
-
     protected function configureSegments()
     {
         $segment = new Segment();
@@ -29,5 +24,10 @@ class IdGoal extends ConversionDimension
         $segment->setSegment('visitConvertedGoalId');
         $segment->setAcceptedValues('1, 2, 3, etc.');
         $this->addSegment($segment);
+    }
+
+    public function getName()
+    {
+        return Piwik::translate('General_VisitConvertedGoalId');
     }
 }

@@ -17,12 +17,6 @@ use Piwik\Updates;
  */
 class Updates_2_0_a7 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        // add tag & level columns to logger_message table
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -33,5 +27,11 @@ class Updates_2_0_a7 extends Updates
             'ALTER TABLE ' . Common::prefixTable('logger_message')
             . " ADD COLUMN level TINYINT AFTER timestamp"               => 1060,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        // add tag & level columns to logger_message table
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

@@ -45,7 +45,7 @@ class Revenue extends GoalSpecificProcessedMetric
         $mappingFromNameToIdGoal = Metrics::getMappingFromNameToIdGoal();
 
         $goalMetrics = $this->getGoalMetrics($row);
-        return (float)$this->getMetric($goalMetrics, 'revenue', $mappingFromNameToIdGoal);
+        return (float) $this->getMetric($goalMetrics, 'revenue', $mappingFromNameToIdGoal);
     }
 
     public function format($value, Formatter $formatter)

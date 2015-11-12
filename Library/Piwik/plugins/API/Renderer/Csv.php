@@ -10,8 +10,8 @@ namespace Piwik\Plugins\API\Renderer;
 
 use Piwik\API\ApiRenderer;
 use Piwik\Common;
-use Piwik\DataTable;
 use Piwik\DataTable\Renderer;
+use Piwik\DataTable;
 use Piwik\ProxyHttp;
 
 class Csv extends ApiRenderer
@@ -27,11 +27,6 @@ class Csv extends ApiRenderer
     {
         Common::sendHeader('Content-Type: text/html; charset=utf-8', true);
         return 'Error: ' . $message;
-    }
-
-    public function renderArray($array)
-    {
-        return $this->renderDataTable($array);
     }
 
     public function renderDataTable($dataTable)
@@ -50,6 +45,11 @@ class Csv extends ApiRenderer
         $tableRenderer->setTranslateColumnNames(Common::getRequestVar('translateColumnNames', false, 'int', $this->request));
 
         return $tableRenderer->render();
+    }
+
+    public function renderArray($array)
+    {
+        return $this->renderDataTable($array);
     }
 
     public function sendHeader()

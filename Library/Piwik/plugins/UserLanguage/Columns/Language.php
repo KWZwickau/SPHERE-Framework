@@ -38,7 +38,7 @@ class Language extends VisitDimension
 
     /**
      * For better privacy we store only the main language code, instead of the whole browser language string.
-     *
+     * 
      * @param $acceptLanguagesString
      * @return string
      */

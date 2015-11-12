@@ -19,17 +19,14 @@
  *     first arg::<strong>second arg</strong>::{{ unsafeDataThatWillBeSanitized }}
  * </span>
  */
-(function ()
-{
+(function () {
     angular.module('piwikApp.directive').directive('piwikTranslate', piwikTranslate);
 
-    function piwikTranslate()
-    {
+    function piwikTranslate() {
         return {
             priority: 1,
             restrict: 'A',
-            compile: function (element, attrs)
-            {
+            compile: function(element, attrs) {
                 var parts = element.html().split('::'),
                     translated = _pk_translate(attrs.piwikTranslate, parts);
                 element.html(translated);

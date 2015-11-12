@@ -30,27 +30,10 @@ class API extends \Piwik\Plugin\API
     }
 
     /**
-     * Gets the year of an archive table from its name.
-     *
-     * @param string $tableName
-     *
-     * @return string  the year
-     * @ignore
-     */
-    public static function getArchiveTableYear($tableName)
-    {
-        if (preg_match("/archive_(?:numeric|blob)_([0-9]+)_/", $tableName, $matches) === 0) {
-            return '';
-        }
-
-        return $matches[1];
-    }
-
-    /**
      * Gets some general information about this Piwik installation, including the count of
      * websites tracked, the count of users and the total space used by the database.
      *
-     *
+     * 
      * @return array Contains the website count, user count and total space used by the database.
      */
     public function getGeneralInformation()
@@ -105,13 +88,13 @@ class API extends \Piwik\Plugin\API
         foreach ($this->metadataProvider->getAllTablesStatus() as $status) {
             if ($this->isNumericArchiveTable($status['Name'])) {
                 $rowToAddTo = & $rows['metric_data'];
-            } else {if ($this->isBlobArchiveTable($status['Name'])) {
+            } else if ($this->isBlobArchiveTable($status['Name'])) {
                 $rowToAddTo = & $rows['report_data'];
-            } else {if ($this->isTrackerTable($status['Name'])) {
+            } else if ($this->isTrackerTable($status['Name'])) {
                 $rowToAddTo = & $rows['tracker_data'];
             } else {
                 $rowToAddTo = & $rows['other_data'];
-            }}}
+            }
 
             $rowToAddTo['data_size'] += $status['Data_length'];
             $rowToAddTo['index_size'] += $status['Index_length'];
@@ -119,24 +102,6 @@ class API extends \Piwik\Plugin\API
         }
 
         return DataTable::makeFromIndexedArray($rows);
-    }
-
-    /** Returns true if $name is the name of a numeric archive table, false if otherwise. */
-    private function isNumericArchiveTable($name)
-    {
-        return strpos($name, Common::prefixTable('archive_numeric_')) === 0;
-    }
-
-    /** Returns true if $name is the name of a blob archive table, false if otherwise. */
-    private function isBlobArchiveTable($name)
-    {
-        return strpos($name, Common::prefixTable('archive_blob_')) === 0;
-    }
-
-    /** Returns true if $name is the name of a log table, false if otherwise. */
-    private function isTrackerTable($name)
-    {
-        return strpos($name, Common::prefixTable('log_')) === 0;
     }
 
     /**
@@ -151,23 +116,15 @@ class API extends \Piwik\Plugin\API
     }
 
     /**
-     * Returns a datatable representation of a set of table statuses.
+     * Returns a datatable describing how much space is taken up by each numeric
+     * archive table.
      *
-     * @param array $statuses The table statuses to summarize.
-     * @return DataTable
+     * @return DataTable A datatable with three columns: 'data_size', 'index_size', 'row_count'.
      */
-    private function getTablesSummary($statuses)
+    public function getMetricDataSummary()
     {
-        $dataTable = new DataTable();
-        foreach ($statuses as $status) {
-            $dataTable->addRowFromSimpleArray(array(
-                                                   'label'      => $status['Name'],
-                                                   'data_size'  => $status['Data_length'],
-                                                   'index_size' => $status['Index_length'],
-                                                   'row_count'  => $status['Rows']
-                                              ));
-        }
-        return $dataTable;
+        Piwik::checkUserHasSuperUserAccess();
+        return $this->getTablesSummary($this->metadataProvider->getAllNumericArchiveStatus());
     }
 
     /**
@@ -188,15 +145,15 @@ class API extends \Piwik\Plugin\API
     }
 
     /**
-     * Returns a datatable describing how much space is taken up by each numeric
+     * Returns a datatable describing how much space is taken up by each blob
      * archive table.
      *
      * @return DataTable A datatable with three columns: 'data_size', 'index_size', 'row_count'.
      */
-    public function getMetricDataSummary()
+    public function getReportDataSummary()
     {
         Piwik::checkUserHasSuperUserAccess();
-        return $this->getTablesSummary($this->metadataProvider->getAllNumericArchiveStatus());
+        return $this->getTablesSummary($this->metadataProvider->getAllBlobArchiveStatus());
     }
 
     /**
@@ -214,18 +171,6 @@ class API extends \Piwik\Plugin\API
         $dataTable->filter('GroupBy', array('label', __NAMESPACE__ . '\API::getArchiveTableYear'));
 
         return $dataTable;
-    }
-
-    /**
-     * Returns a datatable describing how much space is taken up by each blob
-     * archive table.
-     *
-     * @return DataTable A datatable with three columns: 'data_size', 'index_size', 'row_count'.
-     */
-    public function getReportDataSummary()
-    {
-        Piwik::checkUserHasSuperUserAccess();
-        return $this->getTablesSummary($this->metadataProvider->getAllBlobArchiveStatus());
     }
 
     /**
@@ -272,5 +217,60 @@ class API extends \Piwik\Plugin\API
     {
         Piwik::checkUserHasSuperUserAccess();
         return $this->metadataProvider->getRowCountsAndSizeByMetricName($forceCache);
+    }
+
+    /**
+     * Returns a datatable representation of a set of table statuses.
+     *
+     * @param array $statuses The table statuses to summarize.
+     * @return DataTable
+     */
+    private function getTablesSummary($statuses)
+    {
+        $dataTable = new DataTable();
+        foreach ($statuses as $status) {
+            $dataTable->addRowFromSimpleArray(array(
+                                                   'label'      => $status['Name'],
+                                                   'data_size'  => $status['Data_length'],
+                                                   'index_size' => $status['Index_length'],
+                                                   'row_count'  => $status['Rows']
+                                              ));
+        }
+        return $dataTable;
+    }
+
+    /** Returns true if $name is the name of a numeric archive table, false if otherwise. */
+    private function isNumericArchiveTable($name)
+    {
+        return strpos($name, Common::prefixTable('archive_numeric_')) === 0;
+    }
+
+    /** Returns true if $name is the name of a blob archive table, false if otherwise. */
+    private function isBlobArchiveTable($name)
+    {
+        return strpos($name, Common::prefixTable('archive_blob_')) === 0;
+    }
+
+    /** Returns true if $name is the name of a log table, false if otherwise. */
+    private function isTrackerTable($name)
+    {
+        return strpos($name, Common::prefixTable('log_')) === 0;
+    }
+
+    /**
+     * Gets the year of an archive table from its name.
+     *
+     * @param string $tableName
+     *
+     * @return string  the year
+     * @ignore
+     */
+    public static function getArchiveTableYear($tableName)
+    {
+        if (preg_match("/archive_(?:numeric|blob)_([0-9]+)_/", $tableName, $matches) === 0) {
+            return '';
+        }
+
+        return $matches[1];
     }
 }

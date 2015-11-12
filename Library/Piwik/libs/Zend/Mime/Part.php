@@ -83,20 +83,6 @@ class Zend_Mime_Part {
     }
 
     /**
-     * Get the Content of the current Mime Part in the given encoding.
-     *
-     * @return String
-     */
-    public function getContent($EOL = Zend_Mime::LINEEND)
-    {
-        if ($this->_isStream) {
-            return stream_get_contents($this->getEncodedStream());
-        } else {
-            return Zend_Mime::encode($this->_content, $this->encoding, $EOL);
-        }
-    }
-
-    /**
      * if this was created with a stream, return a filtered stream for
      * reading the content. very useful for large file attachments.
      *
@@ -148,6 +134,20 @@ class Zend_Mime_Part {
     }
 
     /**
+     * Get the Content of the current Mime Part in the given encoding.
+     *
+     * @return String
+     */
+    public function getContent($EOL = Zend_Mime::LINEEND)
+    {
+        if ($this->_isStream) {
+            return stream_get_contents($this->getEncodedStream());
+        } else {
+            return Zend_Mime::encode($this->_content, $this->encoding, $EOL);
+        }
+    }
+    
+    /**
      * Get the RAW unencoded content from this part
      * @return string
      */
@@ -158,21 +158,6 @@ class Zend_Mime_Part {
         } else {
             return $this->_content;
         }
-    }
-
-    /**
-     * Return the headers for this part as a string
-     *
-     * @return String
-     */
-    public function getHeaders($EOL = Zend_Mime::LINEEND)
-    {
-        $res = '';
-        foreach ($this->getHeadersArray($EOL) as $header) {
-            $res .= $header[0] . ': ' . $header[1] . $EOL;
-        }
-
-        return $res;
     }
 
     /**
@@ -226,5 +211,20 @@ class Zend_Mime_Part {
         }
 
         return $headers;
+    }
+
+    /**
+     * Return the headers for this part as a string
+     *
+     * @return String
+     */
+    public function getHeaders($EOL = Zend_Mime::LINEEND)
+    {
+        $res = '';
+        foreach ($this->getHeadersArray($EOL) as $header) {
+            $res .= $header[0] . ': ' . $header[1] . $EOL;
+        }
+
+        return $res;
     }
 }

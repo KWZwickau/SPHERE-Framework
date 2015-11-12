@@ -53,16 +53,6 @@ class AliasResolver implements DefinitionResolver
         return $this->container->get($definition->getTargetEntryName());
     }
 
-    private function assertIsAliasDefinition(Definition $definition)
-    {
-        if (!$definition instanceof AliasDefinition) {
-            throw new \InvalidArgumentException(sprintf(
-                'This definition resolver is only compatible with AliasDefinition objects, %s given',
-                get_class($definition)
-            ));
-        }
-    }
-
     /**
      * @param AliasDefinition $definition
      *
@@ -73,5 +63,15 @@ class AliasResolver implements DefinitionResolver
         $this->assertIsAliasDefinition($definition);
 
         return $this->container->has($definition->getTargetEntryName());
+    }
+
+    private function assertIsAliasDefinition(Definition $definition)
+    {
+        if (!$definition instanceof AliasDefinition) {
+            throw new \InvalidArgumentException(sprintf(
+                'This definition resolver is only compatible with AliasDefinition objects, %s given',
+                get_class($definition)
+            ));
+        }
     }
 }

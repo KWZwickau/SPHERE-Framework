@@ -37,14 +37,14 @@ class ReturningMetric extends ProcessedMetric
         $this->wrapped = $wrapped;
     }
 
-    public function getTranslatedName()
-    {
-        return Piwik::translate(self::$translations[$this->getName()]);
-    }
-
     public function getName()
     {
         return $this->wrapped->getName() . '_returning';
+    }
+
+    public function getTranslatedName()
+    {
+        return Piwik::translate(self::$translations[$this->getName()]);
     }
 
     public function format($value, Formatter $formatter)

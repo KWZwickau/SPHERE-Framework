@@ -54,6 +54,22 @@ class Evolution extends JqplotGraph
         $this->config->custom_parameters['columns'] = $this->config->columns_to_display;
     }
 
+    public function afterAllFiltersAreApplied()
+    {
+        parent::afterAllFiltersAreApplied();
+
+        if (false === $this->config->x_axis_step_size) {
+            $rowCount = $this->dataTable->getRowsCount();
+
+            $this->config->x_axis_step_size = $this->getDefaultXAxisStepSize($rowCount);
+        }
+    }
+
+    protected function makeDataGenerator($properties)
+    {
+        return JqplotDataGenerator::factory('evolution', $properties);
+    }
+
     /**
      * Based on the period, date and evolution_{$period}_last_n query parameters,
      * calculates the date range this evolution chart will display data for.
@@ -90,27 +106,6 @@ class Evolution extends JqplotGraph
     }
 
     /**
-     * Returns the default last N number of dates to display for a given period.
-     *
-     * @param string $period 'day', 'week', 'month' or 'year'
-     * @return int
-     */
-    public static function getDefaultLastN($period)
-    {
-        switch ($period) {
-            case 'week':
-                return 26;
-            case 'month':
-                return 24;
-            case 'year':
-                return 5;
-            case 'day':
-            default:
-                return 30;
-        }
-    }
-
-    /**
      * Returns the entire date range and lastN value for the current request, based on
      * a period type and end date.
      *
@@ -138,6 +133,27 @@ class Evolution extends JqplotGraph
     }
 
     /**
+     * Returns the default last N number of dates to display for a given period.
+     *
+     * @param string $period 'day', 'week', 'month' or 'year'
+     * @return int
+     */
+    public static function getDefaultLastN($period)
+    {
+        switch ($period) {
+            case 'week':
+                return 26;
+            case 'month':
+                return 24;
+            case 'year':
+                return 5;
+            case 'day':
+            default:
+                return 30;
+        }
+    }
+
+    /**
      * Returns the query parameter that stores the lastN number of periods to get for
      * the evolution graph.
      *
@@ -147,17 +163,6 @@ class Evolution extends JqplotGraph
     public static function getLastNParamName($period)
     {
         return "evolution_{$period}_last_n";
-    }
-
-    public function afterAllFiltersAreApplied()
-    {
-        parent::afterAllFiltersAreApplied();
-
-        if (false === $this->config->x_axis_step_size) {
-            $rowCount = $this->dataTable->getRowsCount();
-
-            $this->config->x_axis_step_size = $this->getDefaultXAxisStepSize($rowCount);
-        }
     }
 
     public function getDefaultXAxisStepSize($countGraphElements)
@@ -191,10 +196,5 @@ class Evolution extends JqplotGraph
         $paddedCount = $countGraphElements + 2; // pad count so last label won't be cut off
 
         return ceil($paddedCount / $steps);
-    }
-
-    protected function makeDataGenerator($properties)
-    {
-        return JqplotDataGenerator::factory('evolution', $properties);
     }
 }

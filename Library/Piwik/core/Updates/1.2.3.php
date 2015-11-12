@@ -18,11 +18,6 @@ use Piwik\Updates;
  */
 class Updates_1_2_3 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -36,5 +31,10 @@ class Updates_1_2_3 extends Updates
 				ADD INDEX index_idsite_config_datetime (idsite, config_id, visit_last_action_time),
 				ADD INDEX index_idsite_datetime (idsite, visit_last_action_time)' => array(1061, 1091),
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

@@ -82,12 +82,6 @@ class ArchivePurger
         $this->logger = $logger ?: StaticContainer::get('Psr\Log\LoggerInterface');
     }
 
-    private static function getDefaultCustomRangeToPurgeAgeThreshold()
-    {
-        $daysRangesValid = Config::getInstance()->General['purge_date_range_archives_after_X_days'];
-        return Date::factory('today')->subDay($daysRangesValid)->getDateTime();
-    }
-
     /**
      * Purge all invalidate archives for whom there are newer, valid archives from the archive
      * table that stores data for `$date`.
@@ -128,26 +122,6 @@ class ArchivePurger
     }
 
     /**
-     * Deletes by batches Archive IDs in the specified month,
-     *
-     * @param Date $date
-     * @param $idArchivesToDelete
-     * @return int Number of rows deleted from both numeric + blob table.
-     */
-    protected function deleteArchiveIds(Date $date, $idArchivesToDelete)
-    {
-        $batches      = array_chunk($idArchivesToDelete, 1000);
-        $numericTable = ArchiveTableCreator::getNumericTable($date);
-        $blobTable    = ArchiveTableCreator::getBlobTable($date);
-
-        $deletedCount = 0;
-        foreach ($batches as $idsToDelete) {
-            $deletedCount += $this->model->deleteArchiveIds($numericTable, $blobTable, $idsToDelete);
-        }
-        return $deletedCount;
-    }
-
-    /**
      * Removes the outdated archives for the given month.
      * (meaning they are marked with a done flag of ArchiveWriter::DONE_OK_TEMPORARY or ArchiveWriter::DONE_ERROR)
      *
@@ -178,24 +152,6 @@ class ArchivePurger
         ));
 
         return $deletedRowCount;
-    }
-
-    /**
-     * Returns a timestamp indicating outdated archives older than this timestamp (processed before) can be purged.
-     *
-     * @return int|bool  Outdated archives older than this timestamp should be purged
-     */
-    protected function getOldestTemporaryArchiveToKeepThreshold()
-    {
-        $temporaryArchivingTimeout = Rules::getTodayArchiveTimeToLive();
-        if (Rules::isBrowserTriggerEnabled()) {
-            // If Browser Archiving is enabled, it is likely there are many more temporary archives
-            // We delete more often which is safe, since reports are re-processed on demand
-            return Date::factory($this->now - 2 * $temporaryArchivingTimeout)->getDateTime();
-        }
-
-        // If cron core:archive command is building the reports, we should keep all temporary reports from today
-        return $this->yesterday->getDateTime();
     }
 
     protected function getOutdatedArchiveIds(Date $date, $purgeArchivesOlderThan)
@@ -238,6 +194,50 @@ class ArchivePurger
         $this->logger->debug("  [ purged archives older than {threshold} ]", array('threshold' => $this->purgeCustomRangesOlderThan));
 
         return $deletedCount;
+    }
+
+    /**
+     * Deletes by batches Archive IDs in the specified month,
+     *
+     * @param Date $date
+     * @param $idArchivesToDelete
+     * @return int Number of rows deleted from both numeric + blob table.
+     */
+    protected function deleteArchiveIds(Date $date, $idArchivesToDelete)
+    {
+        $batches      = array_chunk($idArchivesToDelete, 1000);
+        $numericTable = ArchiveTableCreator::getNumericTable($date);
+        $blobTable    = ArchiveTableCreator::getBlobTable($date);
+
+        $deletedCount = 0;
+        foreach ($batches as $idsToDelete) {
+            $deletedCount += $this->model->deleteArchiveIds($numericTable, $blobTable, $idsToDelete);
+        }
+        return $deletedCount;
+    }
+
+    /**
+     * Returns a timestamp indicating outdated archives older than this timestamp (processed before) can be purged.
+     *
+     * @return int|bool  Outdated archives older than this timestamp should be purged
+     */
+    protected function getOldestTemporaryArchiveToKeepThreshold()
+    {
+        $temporaryArchivingTimeout = Rules::getTodayArchiveTimeToLive();
+        if (Rules::isBrowserTriggerEnabled()) {
+            // If Browser Archiving is enabled, it is likely there are many more temporary archives
+            // We delete more often which is safe, since reports are re-processed on demand
+            return Date::factory($this->now - 2 * $temporaryArchivingTimeout)->getDateTime();
+        }
+
+        // If cron core:archive command is building the reports, we should keep all temporary reports from today
+        return $this->yesterday->getDateTime();
+    }
+
+    private static function getDefaultCustomRangeToPurgeAgeThreshold()
+    {
+        $daysRangesValid = Config::getInstance()->General['purge_date_range_archives_after_X_days'];
+        return Date::factory('today')->subDay($daysRangesValid)->getDateTime();
     }
 
     /**

@@ -22,9 +22,31 @@ class Visitor
         $this->details = $details;
     }
 
+    public function getReferrerType()
+    {
+        try {
+            $referrerType = getReferrerTypeFromShortName($this->details['referer_type']);
+        } catch (\Exception $e) {
+            $referrerType = '';
+        }
+
+        return $referrerType;
+    }
+
     public function getReferrerTypeName()
     {
         return getReferrerTypeLabel($this->details['referer_type']);
+    }
+
+    public function getKeyword()
+    {
+        $keyword = $this->details['referer_keyword'];
+        
+        if ($this->getReferrerType() == 'search') {
+            $keyword = API::getCleanKeyword($keyword);
+        }
+
+        return urldecode($keyword);
     }
 
     public function getReferrerUrl()
@@ -55,33 +77,6 @@ class Visitor
         return null;
     }
 
-    public function getReferrerType()
-    {
-        try {
-            $referrerType = getReferrerTypeFromShortName($this->details['referer_type']);
-        } catch (\Exception $e) {
-            $referrerType = '';
-        }
-
-        return $referrerType;
-    }
-
-    public function getReferrerName()
-    {
-        return urldecode($this->details['referer_name']);
-    }
-
-    public function getKeyword()
-    {
-        $keyword = $this->details['referer_keyword'];
-
-        if ($this->getReferrerType() == 'search') {
-            $keyword = API::getCleanKeyword($keyword);
-        }
-
-        return urldecode($keyword);
-    }
-
     public function getKeywordPosition()
     {
         if ($this->getReferrerType() == 'search'
@@ -103,16 +98,9 @@ class Visitor
         return null;
     }
 
-    public function getSearchEngineIcon()
+    public function getReferrerName()
     {
-        $searchEngineUrl = $this->getSearchEngineUrl();
-
-        if (!is_null($searchEngineUrl)) {
-
-            return getSearchEngineLogoFromUrl($searchEngineUrl);
-        }
-
-        return null;
+        return urldecode($this->details['referer_name']);
     }
 
     public function getSearchEngineUrl()
@@ -122,6 +110,18 @@ class Visitor
         ) {
 
             return getSearchEngineUrlFromName($this->details['referer_name']);
+        }
+
+        return null;
+    }
+
+    public function getSearchEngineIcon()
+    {
+        $searchEngineUrl = $this->getSearchEngineUrl();
+
+        if (!is_null($searchEngineUrl)) {
+
+            return getSearchEngineLogoFromUrl($searchEngineUrl);
         }
 
         return null;

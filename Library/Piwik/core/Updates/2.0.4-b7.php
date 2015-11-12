@@ -12,9 +12,9 @@ namespace Piwik\Updates;
 use Piwik\Option;
 use Piwik\Plugins\MobileMessaging\MobileMessaging;
 use Piwik\Plugins\UsersManager\API as UsersManagerApi;
-use Piwik\Updater;
 use Piwik\UpdaterErrorException;
 use Piwik\Updates;
+use Piwik\Updater;
 
 /**
  */

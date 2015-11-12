@@ -118,6 +118,27 @@ class Zend_Cache_Frontend_Class extends Zend_Cache_Core
     }
 
     /**
+     * Set a specific life time
+     *
+     * @param  int $specificLifetime
+     * @return void
+     */
+    public function setSpecificLifetime($specificLifetime = false)
+    {
+        $this->_specificLifetime = $specificLifetime;
+    }
+
+    /**
+     * Set the priority (used by some particular backends)
+     *
+     * @param int $priority integer between 0 (very low priority) and 10 (maximum priority)
+     */
+    public function setPriority($priority)
+    {
+        $this->_priority = $priority;
+    }
+
+    /**
      * Public frontend to set an option
      *
      * Just a wrapper to get a specific behaviour for cached_entity
@@ -157,27 +178,6 @@ class Zend_Cache_Frontend_Class extends Zend_Cache_Core
             $ro = new ReflectionObject($this->_cachedEntity);
             $this->_cachedEntityLabel = $ro->getName();
         }
-    }
-
-    /**
-     * Set a specific life time
-     *
-     * @param  int $specificLifetime
-     * @return void
-     */
-    public function setSpecificLifetime($specificLifetime = false)
-    {
-        $this->_specificLifetime = $specificLifetime;
-    }
-
-    /**
-     * Set the priority (used by some particular backends)
-     *
-     * @param int $priority integer between 0 (very low priority) and 10 (maximum priority)
-     */
-    public function setPriority($priority)
-    {
-        $this->_priority = $priority;
     }
 
     /**

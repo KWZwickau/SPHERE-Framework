@@ -76,99 +76,6 @@ class Twig_Error extends Exception
         $this->updateRepr();
     }
 
-    protected function guessTemplateInfo()
-    {
-        $template = null;
-        $templateClass = null;
-
-        if (PHP_VERSION_ID >= 50306) {
-            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS | DEBUG_BACKTRACE_PROVIDE_OBJECT);
-        } else {
-            $backtrace = debug_backtrace();
-        }
-
-        foreach ($backtrace as $trace) {
-            if (isset($trace['object']) && $trace['object'] instanceof Twig_Template && 'Twig_Template' !== get_class($trace['object'])) {
-                $currentClass = get_class($trace['object']);
-                $isEmbedContainer = 0 === strpos($templateClass, $currentClass);
-                if (null === $this->filename || ($this->filename == $trace['object']->getTemplateName() && !$isEmbedContainer)) {
-                    $template = $trace['object'];
-                    $templateClass = get_class($trace['object']);
-                }
-            }
-        }
-
-        // update template filename
-        if (null !== $template && null === $this->filename) {
-            $this->filename = $template->getTemplateName();
-        }
-
-        if (null === $template || $this->lineno > -1) {
-            return;
-        }
-
-        $r = new ReflectionObject($template);
-        $file = $r->getFileName();
-
-        // hhvm has a bug where eval'ed files comes out as the current directory
-        if (is_dir($file)) {
-            $file = '';
-        }
-
-        $exceptions = array($e = $this);
-        while (($e instanceof self || method_exists($e, 'getPrevious')) && $e = $e->getPrevious()) {
-            $exceptions[] = $e;
-        }
-
-        while ($e = array_pop($exceptions)) {
-            $traces = $e->getTrace();
-            array_unshift($traces, array('file' => $e->getFile(), 'line' => $e->getLine()));
-
-            while ($trace = array_shift($traces)) {
-                if (!isset($trace['file']) || !isset($trace['line']) || $file != $trace['file']) {
-                    continue;
-                }
-
-                foreach ($template->getDebugInfo() as $codeLine => $templateLine) {
-                    if ($codeLine <= $trace['line']) {
-                        // update template line
-                        $this->lineno = $templateLine;
-
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
-    protected function updateRepr()
-    {
-        $this->message = $this->rawMessage;
-
-        $dot = false;
-        if ('.' === substr($this->message, -1)) {
-            $this->message = substr($this->message, 0, -1);
-            $dot = true;
-        }
-
-        if ($this->filename) {
-            if (is_string($this->filename) || (is_object($this->filename) && method_exists($this->filename, '__toString'))) {
-                $filename = sprintf('"%s"', $this->filename);
-            } else {
-                $filename = json_encode($this->filename);
-            }
-            $this->message .= sprintf(' in %s', $filename);
-        }
-
-        if ($this->lineno && $this->lineno >= 0) {
-            $this->message .= sprintf(' at line %d', $this->lineno);
-        }
-
-        if ($dot) {
-            $this->message .= '.';
-        }
-    }
-
     /**
      * Gets the raw message.
      *
@@ -246,5 +153,98 @@ class Twig_Error extends Exception
         }
 
         throw new BadMethodCallException(sprintf('Method "Twig_Error::%s()" does not exist.', $method));
+    }
+
+    protected function updateRepr()
+    {
+        $this->message = $this->rawMessage;
+
+        $dot = false;
+        if ('.' === substr($this->message, -1)) {
+            $this->message = substr($this->message, 0, -1);
+            $dot = true;
+        }
+
+        if ($this->filename) {
+            if (is_string($this->filename) || (is_object($this->filename) && method_exists($this->filename, '__toString'))) {
+                $filename = sprintf('"%s"', $this->filename);
+            } else {
+                $filename = json_encode($this->filename);
+            }
+            $this->message .= sprintf(' in %s', $filename);
+        }
+
+        if ($this->lineno && $this->lineno >= 0) {
+            $this->message .= sprintf(' at line %d', $this->lineno);
+        }
+
+        if ($dot) {
+            $this->message .= '.';
+        }
+    }
+
+    protected function guessTemplateInfo()
+    {
+        $template = null;
+        $templateClass = null;
+
+        if (PHP_VERSION_ID >= 50306) {
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS | DEBUG_BACKTRACE_PROVIDE_OBJECT);
+        } else {
+            $backtrace = debug_backtrace();
+        }
+
+        foreach ($backtrace as $trace) {
+            if (isset($trace['object']) && $trace['object'] instanceof Twig_Template && 'Twig_Template' !== get_class($trace['object'])) {
+                $currentClass = get_class($trace['object']);
+                $isEmbedContainer = 0 === strpos($templateClass, $currentClass);
+                if (null === $this->filename || ($this->filename == $trace['object']->getTemplateName() && !$isEmbedContainer)) {
+                    $template = $trace['object'];
+                    $templateClass = get_class($trace['object']);
+                }
+            }
+        }
+
+        // update template filename
+        if (null !== $template && null === $this->filename) {
+            $this->filename = $template->getTemplateName();
+        }
+
+        if (null === $template || $this->lineno > -1) {
+            return;
+        }
+
+        $r = new ReflectionObject($template);
+        $file = $r->getFileName();
+
+        // hhvm has a bug where eval'ed files comes out as the current directory
+        if (is_dir($file)) {
+            $file = '';
+        }
+
+        $exceptions = array($e = $this);
+        while (($e instanceof self || method_exists($e, 'getPrevious')) && $e = $e->getPrevious()) {
+            $exceptions[] = $e;
+        }
+
+        while ($e = array_pop($exceptions)) {
+            $traces = $e->getTrace();
+            array_unshift($traces, array('file' => $e->getFile(), 'line' => $e->getLine()));
+
+            while ($trace = array_shift($traces)) {
+                if (!isset($trace['file']) || !isset($trace['line']) || $file != $trace['file']) {
+                    continue;
+                }
+
+                foreach ($template->getDebugInfo() as $codeLine => $templateLine) {
+                    if ($codeLine <= $trace['line']) {
+                        // update template line
+                        $this->lineno = $templateLine;
+
+                        return;
+                    }
+                }
+            }
+        }
     }
 }

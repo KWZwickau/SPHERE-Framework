@@ -17,14 +17,6 @@ use Piwik\Updates;
  */
 class Updates_1_7_b1 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        try {
-            $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-        } catch (\Exception $e) {
-        }
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -33,5 +25,13 @@ class Updates_1_7_b1 extends Updates
             'UPDATE `' . Common::prefixTable('pdf') . '`
 		    	SET `aggregate_reports_format` = 1' => false,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        try {
+            $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
+        } catch (\Exception $e) {
+        }
     }
 }

@@ -45,16 +45,16 @@ class Visitor
         return VisitGoalBuyer::getVisitEcommerceStatusFromId($this->details['visit_goal_buyer']);
     }
 
+    function isVisitorGoalConverted()
+    {
+        return $this->details['visit_goal_converted'];
+    }
+
     function getVisitorGoalConvertedIcon()
     {
         return $this->isVisitorGoalConverted()
             ? "plugins/Morpheus/images/goal.png"
             : null;
-    }
-
-    function isVisitorGoalConverted()
-    {
-        return $this->details['visit_goal_converted'];
     }
 
     function getDaysSinceFirstVisit()
@@ -67,6 +67,16 @@ class Visitor
         return $this->details['visitor_days_since_order'];
     }
 
+    function getVisitorReturning()
+    {
+        $type = $this->details['visitor_returning'];
+        return $type == 2
+            ? 'returningCustomer'
+            : ($type == 1
+                ? 'returning'
+                : 'new');
+    }
+
     function getVisitorReturningIcon()
     {
         $type = $this->getVisitorReturning();
@@ -76,16 +86,6 @@ class Visitor
             return "plugins/Live/images/returningVisitor.gif";
         }
         return null;
-    }
-
-    function getVisitorReturning()
-    {
-        $type = $this->details['visitor_returning'];
-        return $type == 2
-            ? 'returningCustomer'
-            : ($type == 1
-                ? 'returning'
-                : 'new');
     }
 
     function getVisitCount()

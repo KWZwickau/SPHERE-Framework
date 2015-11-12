@@ -47,14 +47,65 @@ class IPUtils
                     $ipString = substr($ipString, 0, $posColon);
                 }
                 // else: Dotted quad IPv6 address, A:B:C:D:E:F:G.H.I.J
-            } else {if (strpos($ipString, ':') === $posColon) {
+            } else if (strpos($ipString, ':') === $posColon) {
                 $ipString = substr($ipString, 0, $posColon);
-            }}
+            }
             // else: IPv6 address, A:B:C:D:E:F:G:H
         }
         // else: IPv4 address, A.B.C.D
 
         return $ipString;
+    }
+
+    /**
+     * Sanitize human-readable (user-supplied) IP address range.
+     *
+     * Accepts the following formats for $ipRange:
+     * - single IPv4 address, e.g., 127.0.0.1
+     * - single IPv6 address, e.g., ::1/128
+     * - IPv4 block using CIDR notation, e.g., 192.168.0.0/22 represents the IPv4 addresses from 192.168.0.0 to 192.168.3.255
+     * - IPv6 block using CIDR notation, e.g., 2001:DB8::/48 represents the IPv6 addresses from 2001:DB8:0:0:0:0:0:0 to 2001:DB8:0:FFFF:FFFF:FFFF:FFFF:FFFF
+     * - wildcards, e.g., 192.168.0.*
+     *
+     * @param string $ipRangeString IP address range
+     * @return string|null  IP address range in CIDR notation OR null on failure
+     */
+    public static function sanitizeIpRange($ipRangeString)
+    {
+        $ipRangeString = trim($ipRangeString);
+        if (empty($ipRangeString)) {
+            return null;
+        }
+
+        // IPv4 address with wildcards '*'
+        if (strpos($ipRangeString, '*') !== false) {
+            if (preg_match('~(^|\.)\*\.\d+(\.|$)~D', $ipRangeString)) {
+                return null;
+            }
+
+            $bits = 32 - 8 * substr_count($ipRangeString, '*');
+            $ipRangeString = str_replace('*', '0', $ipRangeString);
+        }
+
+        // CIDR
+        if (($pos = strpos($ipRangeString, '/')) !== false) {
+            $bits = substr($ipRangeString, $pos + 1);
+            $ipRangeString = substr($ipRangeString, 0, $pos);
+        }
+
+        // single IP
+        if (($ip = @inet_pton($ipRangeString)) === false)
+            return null;
+
+        $maxbits = strlen($ip) * 8;
+        if (!isset($bits))
+            $bits = $maxbits;
+
+        if ($bits < 0 || $bits > $maxbits) {
+            return null;
+        }
+
+        return "$ipRangeString/$bits";
     }
 
     /**
@@ -123,56 +174,5 @@ class IPUtils
         }
 
         return array($low, $high);
-    }
-
-    /**
-     * Sanitize human-readable (user-supplied) IP address range.
-     *
-     * Accepts the following formats for $ipRange:
-     * - single IPv4 address, e.g., 127.0.0.1
-     * - single IPv6 address, e.g., ::1/128
-     * - IPv4 block using CIDR notation, e.g., 192.168.0.0/22 represents the IPv4 addresses from 192.168.0.0 to 192.168.3.255
-     * - IPv6 block using CIDR notation, e.g., 2001:DB8::/48 represents the IPv6 addresses from 2001:DB8:0:0:0:0:0:0 to 2001:DB8:0:FFFF:FFFF:FFFF:FFFF:FFFF
-     * - wildcards, e.g., 192.168.0.*
-     *
-     * @param string $ipRangeString IP address range
-     * @return string|null  IP address range in CIDR notation OR null on failure
-     */
-    public static function sanitizeIpRange($ipRangeString)
-    {
-        $ipRangeString = trim($ipRangeString);
-        if (empty($ipRangeString)) {
-            return null;
-        }
-
-        // IPv4 address with wildcards '*'
-        if (strpos($ipRangeString, '*') !== false) {
-            if (preg_match('~(^|\.)\*\.\d+(\.|$)~D', $ipRangeString)) {
-                return null;
-            }
-
-            $bits = 32 - 8 * substr_count($ipRangeString, '*');
-            $ipRangeString = str_replace('*', '0', $ipRangeString);
-        }
-
-        // CIDR
-        if (($pos = strpos($ipRangeString, '/')) !== false) {
-            $bits = substr($ipRangeString, $pos + 1);
-            $ipRangeString = substr($ipRangeString, 0, $pos);
-        }
-
-        // single IP
-        if (($ip = @inet_pton($ipRangeString)) === false)
-            {return null;}
-
-        $maxbits = strlen($ip) * 8;
-        if (!isset($bits))
-            {$bits = $maxbits;}
-
-        if ($bits < 0 || $bits > $maxbits) {
-            return null;
-        }
-
-        return "$ipRangeString/$bits";
     }
 }

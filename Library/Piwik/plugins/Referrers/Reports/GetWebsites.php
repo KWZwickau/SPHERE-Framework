@@ -15,6 +15,19 @@ use Piwik\Plugins\Referrers\Columns\Website;
 
 class GetWebsites extends Base
 {
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new Website();
+        $this->name          = Piwik::translate('CorePluginsAdmin_Websites');
+        $this->documentation = Piwik::translate('Referrers_WebsitesReportDocumentation', '<br />');
+        $this->recursiveLabelSeparator = '/';
+        $this->actionToLoadSubTables = 'getUrlsFromWebsiteId';
+        $this->hasGoalMetrics = true;
+        $this->order = 5;
+        $this->widgetTitle  = 'Referrers_WidgetExternalWebsites';
+    }
+
     public function configureView(ViewDataTable $view)
     {
         $view->config->show_exclude_low_population = false;
@@ -27,19 +40,6 @@ class GetWebsites extends Base
         }
 
         $view->config->show_pivot_by_subtable = false;
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension     = new Website();
-        $this->name          = Piwik::translate('CorePluginsAdmin_Websites');
-        $this->documentation = Piwik::translate('Referrers_WebsitesReportDocumentation', '<br />');
-        $this->recursiveLabelSeparator = '/';
-        $this->actionToLoadSubTables = 'getUrlsFromWebsiteId';
-        $this->hasGoalMetrics = true;
-        $this->order = 5;
-        $this->widgetTitle  = 'Referrers_WidgetExternalWebsites';
     }
 
 }

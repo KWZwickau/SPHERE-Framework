@@ -23,13 +23,6 @@ require_once PIWIK_INCLUDE_PATH . '/plugins/Resolution/functions.php';
  */
 class API extends \Piwik\Plugin\API
 {
-    public function getResolution($idSite, $period, $date, $segment = false)
-    {
-        $dataTable = $this->getDataTable(Archiver::RESOLUTION_RECORD_NAME, $idSite, $period, $date, $segment);
-        $dataTable->filter('AddSegmentValue');
-        return $dataTable;
-    }
-
     protected function getDataTable($name, $idSite, $period, $date, $segment)
     {
         Piwik::checkUserHasViewAccess($idSite);
@@ -37,6 +30,13 @@ class API extends \Piwik\Plugin\API
         $dataTable = $archive->getDataTable($name);
         $dataTable->queueFilter('ReplaceColumnNames');
         $dataTable->queueFilter('ReplaceSummaryRowLabel');
+        return $dataTable;
+    }
+
+    public function getResolution($idSite, $period, $date, $segment = false)
+    {
+        $dataTable = $this->getDataTable(Archiver::RESOLUTION_RECORD_NAME, $idSite, $period, $date, $segment);
+        $dataTable->filter('AddSegmentValue');
         return $dataTable;
     }
 

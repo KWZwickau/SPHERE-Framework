@@ -43,15 +43,6 @@ class API extends \Piwik\Plugin\API
         return $dataTable;
     }
 
-    protected function getDataTable($name, $idSite, $period, $date, $segment)
-    {
-        Piwik::checkUserHasViewAccess($idSite);
-        $archive = Archive::build($idSite, $period, $date, $segment);
-        $dataTable = $archive->getDataTable($name);
-        $dataTable->queueFilter('ReplaceColumnNames');
-        return $dataTable;
-    }
-
     public function getContinent($idSite, $period, $date, $segment = false)
     {
         $dataTable = $this->getDataTable(Archiver::COUNTRY_RECORD_NAME, $idSite, $period, $date, $segment);
@@ -205,6 +196,15 @@ class API extends \Piwik\Plugin\API
         }
         $location['ip'] = $ip;
         return $location;
+    }
+
+    protected function getDataTable($name, $idSite, $period, $date, $segment)
+    {
+        Piwik::checkUserHasViewAccess($idSite);
+        $archive = Archive::build($idSite, $period, $date, $segment);
+        $dataTable = $archive->getDataTable($name);
+        $dataTable->queueFilter('ReplaceColumnNames');
+        return $dataTable;
     }
 
     public function getNumberOfDistinctCountries($idSite, $period, $date, $segment = false)

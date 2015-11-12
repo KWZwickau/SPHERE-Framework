@@ -8,22 +8,19 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-(function ($, require)
-{
+(function ($, require) {
 
     var exports = require('piwik/UI'),
         JqplotGraphDataTable = exports.JqplotGraphDataTable,
         JqplotGraphDataTablePrototype = JqplotGraphDataTable.prototype;
 
-    exports.JqplotEvolutionGraphDataTable = function (element)
-    {
+    exports.JqplotEvolutionGraphDataTable = function (element) {
         JqplotGraphDataTable.call(this, element);
     };
 
     $.extend(exports.JqplotEvolutionGraphDataTable.prototype, JqplotGraphDataTablePrototype, {
 
-        _setJqplotParameters: function (params)
-        {
+        _setJqplotParameters: function (params) {
             JqplotGraphDataTablePrototype._setJqplotParameters.call(this, params);
 
             var defaultParams = {
@@ -77,21 +74,18 @@
             this.jqplotParams = $.extend(true, {}, defaultParams, this.jqplotParams, overrideParams);
         },
 
-        _bindEvents: function ()
-        {
+        _bindEvents: function () {
             JqplotGraphDataTablePrototype._bindEvents.call(this);
 
             var self = this;
             var lastTick = false;
 
             $('#' + this.targetDivId)
-                .on('jqplotMouseLeave', function (e, s, i, d)
-                {
+                .on('jqplotMouseLeave', function (e, s, i, d) {
                     $(this).css('cursor', 'default');
                     JqplotGraphDataTablePrototype._destroyDataPointTooltip.call(this, $(this));
                 })
-                .on('jqplotClick', function (e, s, i, d)
-                {
+                .on('jqplotClick', function (e, s, i, d) {
                     if (lastTick !== false && typeof self.jqplotParams.axes.xaxis.onclick != 'undefined'
                         && typeof self.jqplotParams.axes.xaxis.onclick[lastTick] == 'string') {
                         var url = self.jqplotParams.axes.xaxis.onclick[lastTick];
@@ -102,7 +96,7 @@
                             var idGoal = broadcast.getValueFromHash('idGoal');
                             var idSite = broadcast.getValueFromUrl('idSite', url);
                             var period = broadcast.getValueFromUrl('period', url);
-                            var date = broadcast.getValueFromUrl('date', url);
+                            var date   = broadcast.getValueFromUrl('date', url);
 
                             if (module && action) {
                                 url += '#module=' + module + '&action=' + action;
@@ -128,8 +122,7 @@
                         piwikHelper.redirectToUrl(url);
                     }
                 })
-                .on('jqplotPiwikTickOver', function (e, tick)
-                {
+                .on('jqplotPiwikTickOver', function (e, tick) {
                     lastTick = tick;
                     var label;
                     if (typeof self.jqplotParams.axes.xaxis.labels != 'undefined') {
@@ -144,11 +137,11 @@
                         var series = self.jqplotParams.series[d].label;
                         text.push('<strong>' + value + '</strong> ' + piwikHelper.htmlEntities(series));
                     }
-                    var content = '<h3>' + piwikHelper.htmlEntities(label) + '</h3>' + text.join('<br />');
+                    var content = '<h3>'+piwikHelper.htmlEntities(label)+'</h3>'+text.join('<br />');
 
                     $(this).tooltip({
-                        track: true,
-                        items: 'div',
+                        track:   true,
+                        items:   'div',
                         content: content,
                         show: false,
                         hide: false
@@ -162,13 +155,11 @@
             this.setYTicks();
         },
 
-        _destroyDataPointTooltip: function ()
-        {
+        _destroyDataPointTooltip: function () {
             // do nothing, tooltips are destroyed in the jqplotMouseLeave event
         },
 
-        render: function ()
-        {
+        render: function () {
             JqplotGraphDataTablePrototype.render.call(this);
         }
     });

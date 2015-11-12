@@ -60,32 +60,6 @@ class IniReader
     }
 
     /**
-     * @param string $filename
-     * @return bool|string Returns false if failure.
-     */
-    private function getFileContent($filename)
-    {
-        if (function_exists('file_get_contents')) {
-            return file_get_contents($filename);
-        } elseif (function_exists('file')) {
-            $ini = file($filename);
-            if ($ini !== false) {
-                return implode("\n", $ini);
-            }
-        } elseif (function_exists('fopen') && function_exists('fread')) {
-            $handle = fopen($filename, 'r');
-            if (!$handle) {
-                return false;
-            }
-            $ini = fread($handle, filesize($filename));
-            fclose($handle);
-            return $ini;
-        }
-
-        return false;
-    }
-
-    /**
      * Reads a INI configuration string and returns it as an array.
      *
      * The array returned is multidimensional, indexed by section names:
@@ -141,61 +115,6 @@ class IniReader
         $array = $this->decode($array, $rawValues);
 
         return $array;
-    }
-
-    /**
-     * We have to decode values manually because parse_ini_file() has a poor implementation.
-     *
-     * @param mixed $value    The array decoded by `parse_ini_file`
-     * @param mixed $rawValue The same array but with raw strings, so that we can re-decode manually
-     *                        and override the poor job of `parse_ini_file`
-     * @return mixed
-     */
-    private function decode($value, $rawValue)
-    {
-        if (is_array($value)) {
-            foreach ($value as $i => &$subValue) {
-                $subValue = $this->decode($subValue, $rawValue[$i]);
-            }
-            return $value;
-        }
-
-        if (! is_string($value)) {
-            return $value;
-        }
-
-        $value = $this->decodeBoolean($value, $rawValue);
-        $value = $this->decodeNull($value, $rawValue);
-
-        if (is_numeric($value) && $this->noLossWhenCastToInt($value)) {
-            return $value + 0;
-        }
-
-        return $value;
-    }
-
-    private function decodeBoolean($value, $rawValue)
-    {
-        if ($value === '1' && ($rawValue === 'true' || $rawValue === 'yes' || $rawValue === 'on')) {
-            return true;
-        }
-        if ($value === '' && ($rawValue === 'false' || $rawValue === 'no' || $rawValue === 'off')) {
-            return false;
-        }
-        return $value;
-    }
-
-    private function decodeNull($value, $rawValue)
-    {
-        if ($value === '' && $rawValue === 'null') {
-            return null;
-        }
-        return $value;
-    }
-
-    private function noLossWhenCastToInt($value)
-    {
-        return (string) ($value + 0) === $value;
     }
 
     /**
@@ -303,5 +222,86 @@ class IniReader
         $finalResult = $result + $globals;
 
         return $this->decode($finalResult, $finalResult);
+    }
+
+    /**
+     * @param string $filename
+     * @return bool|string Returns false if failure.
+     */
+    private function getFileContent($filename)
+    {
+        if (function_exists('file_get_contents')) {
+            return file_get_contents($filename);
+        } elseif (function_exists('file')) {
+            $ini = file($filename);
+            if ($ini !== false) {
+                return implode("\n", $ini);
+            }
+        } elseif (function_exists('fopen') && function_exists('fread')) {
+            $handle = fopen($filename, 'r');
+            if (!$handle) {
+                return false;
+            }
+            $ini = fread($handle, filesize($filename));
+            fclose($handle);
+            return $ini;
+        }
+
+        return false;
+    }
+
+    /**
+     * We have to decode values manually because parse_ini_file() has a poor implementation.
+     *
+     * @param mixed $value    The array decoded by `parse_ini_file`
+     * @param mixed $rawValue The same array but with raw strings, so that we can re-decode manually
+     *                        and override the poor job of `parse_ini_file`
+     * @return mixed
+     */
+    private function decode($value, $rawValue)
+    {
+        if (is_array($value)) {
+            foreach ($value as $i => &$subValue) {
+                $subValue = $this->decode($subValue, $rawValue[$i]);
+            }
+            return $value;
+        }
+
+        if (! is_string($value)) {
+            return $value;
+        }
+
+        $value = $this->decodeBoolean($value, $rawValue);
+        $value = $this->decodeNull($value, $rawValue);
+
+        if (is_numeric($value) && $this->noLossWhenCastToInt($value)) {
+            return $value + 0;
+        }
+
+        return $value;
+    }
+
+    private function decodeBoolean($value, $rawValue)
+    {
+        if ($value === '1' && ($rawValue === 'true' || $rawValue === 'yes' || $rawValue === 'on')) {
+            return true;
+        }
+        if ($value === '' && ($rawValue === 'false' || $rawValue === 'no' || $rawValue === 'off')) {
+            return false;
+        }
+        return $value;
+    }
+
+    private function decodeNull($value, $rawValue)
+    {
+        if ($value === '' && $rawValue === 'null') {
+            return null;
+        }
+        return $value;
+    }
+
+    private function noLossWhenCastToInt($value)
+    {
+        return (string) ($value + 0) === $value;
     }
 }

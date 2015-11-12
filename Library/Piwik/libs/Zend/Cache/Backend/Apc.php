@@ -44,7 +44,7 @@ class Zend_Cache_Backend_Apc extends Zend_Cache_Backend implements Zend_Cache_Ba
      * Log message
      */
     const TAGS_UNSUPPORTED_BY_CLEAN_OF_APC_BACKEND = 'Zend_Cache_Backend_Apc::clean() : tags are unsupported by the Apc backend';
-    const TAGS_UNSUPPORTED_BY_SAVE_OF_APC_BACKEND = 'Zend_Cache_Backend_Apc::save() : tags are unsupported by the Apc backend';
+    const TAGS_UNSUPPORTED_BY_SAVE_OF_APC_BACKEND =  'Zend_Cache_Backend_Apc::save() : tags are unsupported by the Apc backend';
 
     /**
      * Constructor
@@ -66,7 +66,7 @@ class Zend_Cache_Backend_Apc extends Zend_Cache_Backend implements Zend_Cache_Ba
      *
      * WARNING $doNotTestCacheValidity=true is unsupported by the Apc backend
      *
-     * @param  string $id cache id
+     * @param  string  $id                     cache id
      * @param  boolean $doNotTestCacheValidity if set to true, the cache validity won't be tested
      * @return string cached datas (or false)
      */
@@ -138,7 +138,7 @@ class Zend_Cache_Backend_Apc extends Zend_Cache_Backend implements Zend_Cache_Ba
      * 'matchingAnyTag' => unsupported
      *
      * @param  string $mode clean mode
-     * @param  array $tags array of tags
+     * @param  array  $tags array of tags
      * @throws Zend_Cache_Exception
      * @return boolean true if no problem
      */
@@ -184,8 +184,8 @@ class Zend_Cache_Backend_Apc extends Zend_Cache_Backend implements Zend_Cache_Ba
     public function getFillingPercentage()
     {
         $mem = apc_sma_info(true);
-        $memSize = $mem['num_seg'] * $mem['seg_size'];
-        $memAvailable = $mem['avail_mem'];
+        $memSize    = $mem['num_seg'] * $mem['seg_size'];
+        $memAvailable= $mem['avail_mem'];
         $memUsed = $memSize - $memAvailable;
         if ($memSize == 0) {
             Zend_Cache::throwException('can\'t get apc memory size');
@@ -193,7 +193,7 @@ class Zend_Cache_Backend_Apc extends Zend_Cache_Backend implements Zend_Cache_Ba
         if ($memUsed > $memSize) {
             return 100;
         }
-        return ((int)(100. * ($memUsed / $memSize)));
+        return ((int) (100. * ($memUsed / $memSize)));
     }
 
     /**
@@ -317,7 +317,7 @@ class Zend_Cache_Backend_Apc extends Zend_Cache_Backend implements Zend_Cache_Ba
             }
             $lifetime = $tmp[2];
             $newLifetime = $lifetime - (time() - $mtime) + $extraLifetime;
-            if ($newLifetime <= 0) {
+            if ($newLifetime <=0) {
                 return false;
             }
             apc_store($id, array($data, time(), $newLifetime), $newLifetime);

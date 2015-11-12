@@ -62,7 +62,7 @@ class Sparkline extends Object {
                                    $this->graphAreaPx[0][1]),
                              array($this->graphAreaPx[1][0] + $x - 1,
                                    $this->graphAreaPx[1][1] + $y - 1));
-
+    
     $this->imageHandle = $this->CreateImageHandle($x, $y);
 
     // load default colors; set all color handles
@@ -79,22 +79,55 @@ class Sparkline extends Object {
   ////////////////////////////////////////////////////////////////////////////
   // color, drawing setup functions
   //
+  function SetColor($name, $r, $g, $b) {
+    $this->Debug("Sparkline :: SetColor('$name', $r, $g, $b)", DEBUG_SET);
+    $name = strtolower($name);
+    $this->colorList[$name] = array('rgb' => array($r, $g, $b));
+  }
 
-  function CreateImageHandle($x, $y) {
-    $this->Debug("Sparkline :: CreateImageHandle($x, $y)", DEBUG_CALLS);
-
-    $handle = @imagecreatetruecolor($x, $y);
-    if (!is_resource($handle)) {
-      $handle = @imagecreate($x, $y);
-      $this->Debug('imagecreatetruecolor unavailable', DEBUG_WARNING);
+  function SetColorHandle($name, $handle) {
+    $this->Debug("Sparkline :: SetColorHandle('$name', $handle)", DEBUG_SET);
+    $name = strtolower($name);
+    if (array_key_exists($name, $this->colorList)) {
+      $this->colorList[$name]['handle'] = $handle;
+      return true;
     }
+    return false;
+  }
 
-    if (!is_resource($handle)) {
-      $this->Debug('imagecreate unavailable', DEBUG_WARNING);
-      $this->Error('could not create image; GD imagecreate functions unavailable');
+  function SetColorHex($name, $r, $g, $b) {
+    $this->Debug("Sparkline :: SetColorHex('$name', $r, $g, $b)", DEBUG_SET);
+    $this->SetColor($name, hexdec($r), hexdec($g), hexdec($b));
+  }
+
+  function SetColorHtml($name, $rgb) {
+    $this->Debug("Sparkline :: SetColorHtml('$name', '$rgb')", DEBUG_SET);
+    $rgb = trim($rgb, '#');
+    $this->SetColor($name, hexdec(substr($rgb, 0, 2)), hexdec(substr($rgb, 2, 2)), hexdec(substr($rgb, 4, 2)));
+  }
+
+  function SetColorBackground($name) {
+    $this->Debug("Sparkline :: SetColorBackground('$name')", DEBUG_SET);
+    $this->colorBackground = $name;
+  }
+
+  function GetColor($name) {
+    $name = strtolower($name);
+    if (array_key_exists($name, $this->colorList)) {
+      return $this->colorList[$name]['rgb'];
+    } else {
+      return false;
     }
+  }
 
-    return $handle;
+  function GetColorHandle($name) {
+    $name = strtolower($name);
+    if (array_key_exists($name, $this->colorList)) {
+      return $this->colorList[$name]['handle'];
+    } else {
+      $this->Debug("Sparkline :: GetColorHandle color '$name' not set", DEBUG_WARNING);
+      return false;
+    }
   }
 
   function SetColorDefaults() {
@@ -123,71 +156,14 @@ class Sparkline extends Object {
     }
   }
 
-  function SetColorHtml($name, $rgb) {
-    $this->Debug("Sparkline :: SetColorHtml('$name', '$rgb')", DEBUG_SET);
-    $rgb = trim($rgb, '#');
-    $this->SetColor($name, hexdec(substr($rgb, 0, 2)), hexdec(substr($rgb, 2, 2)), hexdec(substr($rgb, 4, 2)));
-  }
-
-  function SetColor($name, $r, $g, $b) {
-    $this->Debug("Sparkline :: SetColor('$name', $r, $g, $b)", DEBUG_SET);
-    $name = strtolower($name);
-    $this->colorList[$name] = array('rgb' => array($r, $g, $b));
-  }
-
-  function SetColorHandle($name, $handle) {
-    $this->Debug("Sparkline :: SetColorHandle('$name', $handle)", DEBUG_SET);
-    $name = strtolower($name);
-    if (array_key_exists($name, $this->colorList)) {
-      $this->colorList[$name]['handle'] = $handle;
-      return true;
-    }
-    return false;
-  }
-
-  function DrawColorAllocate($color, $handle = false) {
-    $this->Debug("Sparkline :: DrawColorAllocate('$color')", DEBUG_DRAW);
-    if (!$this->IsError() &&
-        $colorRGB = $this->GetColor($color)) {
-      if ($handle === false) {$handle = $this->imageHandle;}
-      return imagecolorallocate($handle,
-                                $colorRGB[0],
-                                $colorRGB[1],
-                                $colorRGB[2]);
-    }
-  }
-
-  function GetColor($name) {
-    $name = strtolower($name);
-    if (array_key_exists($name, $this->colorList)) {
-      return $this->colorList[$name]['rgb'];
-    } else {
-      return false;
-    }
-  }
-
-  function SetColorHex($name, $r, $g, $b) {
-    $this->Debug("Sparkline :: SetColorHex('$name', $r, $g, $b)", DEBUG_SET);
-    $this->SetColor($name, hexdec($r), hexdec($g), hexdec($b));
-  }
-
-  function SetColorBackground($name) {
-    $this->Debug("Sparkline :: SetColorBackground('$name')", DEBUG_SET);
-    $this->colorBackground = $name;
-  }
-
-  function GetLineSize() {
-    return($this->lineSize);
-  }
-
   function SetLineSize($size) {
     $this->Debug("Sparkline :: SetLineSize($size)", DEBUG_CALLS);
     $this->lineSize = $size;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  // canvas setup
-  //
+  function GetLineSize() {
+    return($this->lineSize);
+  }
 
   function SetPadding($T, $R = null, $B = null, $L = null) {
     $this->Debug("Sparkline :: SetPadding($T, $R, $B, $L)", DEBUG_CALLS);
@@ -207,24 +183,115 @@ class Sparkline extends Object {
   }
 
   ////////////////////////////////////////////////////////////////////////////
+  // canvas setup
+  //
+  function CreateImageHandle($x, $y) {
+    $this->Debug("Sparkline :: CreateImageHandle($x, $y)", DEBUG_CALLS);
+
+    $handle = @imagecreatetruecolor($x, $y);
+    if (!is_resource($handle)) {
+      $handle = @imagecreate($x, $y);
+      $this->Debug('imagecreatetruecolor unavailable', DEBUG_WARNING);
+    }
+
+    if (!is_resource($handle)) {
+      $this->Debug('imagecreate unavailable', DEBUG_WARNING);
+      $this->Error('could not create image; GD imagecreate functions unavailable');
+    }
+
+    return $handle;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
   // drawing primitives
   //
-  // NB: all drawing primitives use the coordinate system where (0,0)
-  //     corresponds to the bottom left of the image, unlike y-inverted
+  // NB: all drawing primitives use the coordinate system where (0,0) 
+  //     corresponds to the bottom left of the image, unlike y-inverted 
   //     PHP gd functions
   //
-
   function DrawBackground($handle = false) {
     $this->Debug("Sparkline :: DrawBackground()", DEBUG_DRAW);
 
     if (!$this->IsError()) {
-      if ($handle === false) {$handle = $this->imageHandle;}
-      return $this->DrawRectangleFilled(0,
-                                        0,
+      if ($handle === false) $handle = $this->imageHandle;
+      return $this->DrawRectangleFilled(0, 
+                                        0, 
                                         imagesx($handle) - 1,
                                         imagesy($handle) - 1,
                                         $this->colorBackground,
                                         $handle);
+    }
+  }
+
+  function DrawColorAllocate($color, $handle = false) {
+    $this->Debug("Sparkline :: DrawColorAllocate('$color')", DEBUG_DRAW);
+    if (!$this->IsError() &&
+        $colorRGB = $this->GetColor($color)) {
+      if ($handle === false) $handle = $this->imageHandle;
+      return imagecolorallocate($handle,
+                                $colorRGB[0], 
+                                $colorRGB[1], 
+                                $colorRGB[2]);
+    }
+  }
+
+  function DrawFill($x, $y, $color, $handle = false) {
+    $this->Debug("Sparkline :: DrawFill($x, $y, '$color')", DEBUG_DRAW);
+
+    if (!$this->IsError() &&
+        $colorHandle = $this->GetColorHandle($color)) {
+      if ($handle === false) $handle = $this->imageHandle;
+      return imagefill($handle,
+                       $x, 
+                       $this->TxGDYToSLY($y, $handle), 
+                       $colorHandle);
+    }
+  }
+
+  function DrawLine($x1, $y1, $x2, $y2, $color, $thickness = 1, $handle = false) {
+    $this->Debug("Sparkline :: DrawLine($x1, $y1, $x2, $y2, '$color', $thickness)", DEBUG_DRAW);
+
+    if (!$this->IsError() &&
+        $colorHandle = $this->GetColorHandle($color)) {
+      if ($handle === false) $handle = $this->imageHandle;
+
+      imagesetthickness($handle, $thickness);
+      $result = imageline($handle, 
+                          $x1,
+                          $this->TxGDYToSLY($y1, $handle),
+                          $x2,
+                          $this->TxGDYToSLY($y2, $handle),
+                          $colorHandle);
+      imagesetthickness($handle, 1);
+      return $result;
+    }
+  }
+
+  function DrawPoint($x, $y, $color, $handle = false) {
+    $this->Debug("Sparkline :: DrawPoint($x, $y, '$color')", DEBUG_DRAW);
+
+    if (!$this->IsError() &&
+        $colorHandle = $this->GetColorHandle($color)) {
+      if ($handle === false) $handle = $this->imageHandle;
+      return imagesetpixel($handle, 
+                           $x, 
+                           $this->TxGDYToSLY($y, $handle), 
+                           $colorHandle);
+    }
+  }
+
+  function DrawRectangle($x1, $y1, $x2, $y2, $color, $handle = false) {
+    $this->Debug("Sparkline :: DrawRectangle($x1, $y1, $x2, $y2 '$color')", DEBUG_DRAW);
+
+    if (!$this->IsError() &&
+        $colorHandle = $this->GetColorHandle($color)) {
+      if ($handle === false) $handle = $this->imageHandle;
+      return imagerectangle($handle, 
+                            $x1, 
+                            $this->TxGDYToSLY($y1, $handle), 
+                            $x2, 
+                            $this->TxGDYToSLY($y2, $handle), 
+                            $colorHandle);
     }
   }
 
@@ -241,8 +308,8 @@ class Sparkline extends Object {
         $y2 = $yt;
       }
 
-      if ($handle === false) {$handle = $this->imageHandle;}
-      return imagefilledrectangle($handle,
+      if ($handle === false) $handle = $this->imageHandle;
+      return imagefilledrectangle($handle, 
                                   $x1,
                                   $this->TxGDYToSLY($y1, $handle),
                                   $x2,
@@ -251,87 +318,13 @@ class Sparkline extends Object {
     }
   }
 
-  function GetColorHandle($name) {
-    $name = strtolower($name);
-    if (array_key_exists($name, $this->colorList)) {
-      return $this->colorList[$name]['handle'];
-    } else {
-      $this->Debug("Sparkline :: GetColorHandle color '$name' not set", DEBUG_WARNING);
-      return false;
-    }
-  }
-
-  function TxGDYToSLY($gdY, $handle) {
-    return imagesy($handle) - 1 - $gdY;
-  }
-
-  function DrawFill($x, $y, $color, $handle = false) {
-    $this->Debug("Sparkline :: DrawFill($x, $y, '$color')", DEBUG_DRAW);
-
-    if (!$this->IsError() &&
-        $colorHandle = $this->GetColorHandle($color)) {
-      if ($handle === false) {$handle = $this->imageHandle;}
-      return imagefill($handle,
-                       $x,
-                       $this->TxGDYToSLY($y, $handle),
-                       $colorHandle);
-    }
-  }
-
-  function DrawLine($x1, $y1, $x2, $y2, $color, $thickness = 1, $handle = false) {
-    $this->Debug("Sparkline :: DrawLine($x1, $y1, $x2, $y2, '$color', $thickness)", DEBUG_DRAW);
-
-    if (!$this->IsError() &&
-        $colorHandle = $this->GetColorHandle($color)) {
-      if ($handle === false) {$handle = $this->imageHandle;}
-
-      imagesetthickness($handle, $thickness);
-      $result = imageline($handle,
-                          $x1,
-                          $this->TxGDYToSLY($y1, $handle),
-                          $x2,
-                          $this->TxGDYToSLY($y2, $handle),
-                          $colorHandle);
-      imagesetthickness($handle, 1);
-      return $result;
-    }
-  }
-
-  function DrawPoint($x, $y, $color, $handle = false) {
-    $this->Debug("Sparkline :: DrawPoint($x, $y, '$color')", DEBUG_DRAW);
-
-    if (!$this->IsError() &&
-        $colorHandle = $this->GetColorHandle($color)) {
-      if ($handle === false) {$handle = $this->imageHandle;}
-      return imagesetpixel($handle,
-                           $x,
-                           $this->TxGDYToSLY($y, $handle),
-                           $colorHandle);
-    }
-  }
-
-  function DrawRectangle($x1, $y1, $x2, $y2, $color, $handle = false) {
-    $this->Debug("Sparkline :: DrawRectangle($x1, $y1, $x2, $y2 '$color')", DEBUG_DRAW);
-
-    if (!$this->IsError() &&
-        $colorHandle = $this->GetColorHandle($color)) {
-      if ($handle === false) {$handle = $this->imageHandle;}
-      return imagerectangle($handle,
-                            $x1,
-                            $this->TxGDYToSLY($y1, $handle),
-                            $x2,
-                            $this->TxGDYToSLY($y2, $handle),
-                            $colorHandle);
-    }
-  }
-
   function DrawCircleFilled($x, $y, $diameter, $color, $handle = false) {
     $this->Debug("Sparkline :: DrawCircleFilled($x, $y, $diameter, '$color')", DEBUG_DRAW);
 
     if (!$this->IsError() &&
         $colorHandle = $this->GetColorHandle($color)) {
-      if ($handle === false) {$handle = $this->imageHandle;}
-      return imagefilledellipse($handle,
+      if ($handle === false) $handle = $this->imageHandle;
+      return imagefilledellipse($handle, 
                                 $x,
                                 $this->TxGDYToSLY($y, $handle),
                                 $diameter,
@@ -340,12 +333,29 @@ class Sparkline extends Object {
     }
   }
 
+  function DrawText($string, $x, $y, $color, $font = FONT_1, $handle = false) {
+    $this->Debug("Sparkline :: DrawText('$string', $x, $y, '$color', $font)", DEBUG_DRAW);
+      
+    if (!$this->IsError() &&
+        $colorHandle = $this->GetColorHandle($color)) {
+      // adjust for font height so x,y corresponds to bottom left of font
+      //
+      if ($handle === false) $handle = $this->imageHandle;
+      return imagestring($handle, 
+                         $font, 
+                         $x,
+                         $this->TxGDYToSLY($y + imagefontheight($font), $handle),
+                         $string,
+                         $colorHandle);
+    }
+  }
+
   function DrawTextRelative($string, $x, $y, $color, $position, $padding = 2, $font = FONT_1, $handle = false) {
     $this->Debug("Sparkline :: DrawTextRelative('$string', $x, $y, '$color', $position, $font, $padding)", DEBUG_DRAW);
-
+      
     if (!empty($string) && !$this->IsError() &&
         $colorHandle = $this->GetColorHandle($color)) {
-      if ($handle === false) {$handle = $this->imageHandle;}
+      if ($handle === false) $handle = $this->imageHandle;
 
       // rendered text width, height
       //
@@ -359,17 +369,17 @@ class Sparkline extends Object {
         $x = $x - round($textWidth / 2);
         $y = $y + $padding;
         break;
-
+        
       case TEXT_RIGHT:
         $x = $x + $padding;
         $y = $y - round($textHeight / 2);
         break;
-
+        
       case TEXT_BOTTOM:
         $x = $x - round($textWidth / 2);
         $y = $y - $padding - $textHeight;
         break;
-
+        
       case TEXT_LEFT:
       default:
         $x = $x - $padding - $textWidth;
@@ -394,42 +404,6 @@ class Sparkline extends Object {
     }
   }
 
-  function GetImageHeight() {
-    return $this->imageY;
-  }
-
-  ////////////////////////////////////////////////////////////////////////////
-  // coordinate system functions
-  //   world coordinates are referenced as points or pt
-  //   graph coordinates are referenced as pixels or px
-  //   sparkline inverts GD Y pixel coordinates; the bottom left of the
-  //     image rendering area is px(0,0)
-  //   all coordinate transformation functions are prefixed with Tx
-  //   all coordinate transformation functions depend on a valid image handle
-  //     and will only return valid results after all Set* calls are performed
-  //
-
-  function GetImageWidth() {
-    return $this->imageX;
-  }
-
-  function DrawText($string, $x, $y, $color, $font = FONT_1, $handle = false) {
-    $this->Debug("Sparkline :: DrawText('$string', $x, $y, '$color', $font)", DEBUG_DRAW);
-
-    if (!$this->IsError() &&
-        $colorHandle = $this->GetColorHandle($color)) {
-      // adjust for font height so x,y corresponds to bottom left of font
-      //
-      if ($handle === false) {$handle = $this->imageHandle;}
-      return imagestring($handle,
-                         $font,
-                         $x,
-                         $this->TxGDYToSLY($y + imagefontheight($font), $handle),
-                         $string,
-                         $colorHandle);
-    }
-  }
-
   function DrawImageCopyResampled($dhandle, $shandle, $dx, $dy, $sx, $sy, $dw, $dh, $sw, $sh) {
     $this->Debug("Sparkline :: DrawImageCopyResampled($dhhandle, $shandle, $dx, $dy, $sx, $sy, $dw, $dh, $sw, $sh)", DEBUG_DRAW);
     if (!$this->IsError()) {
@@ -440,6 +414,20 @@ class Sparkline extends Object {
                                 $dw, $dh,  // dest w, h
                                 $sw, $sh); // src  w, h
     }
+  }
+  
+  ////////////////////////////////////////////////////////////////////////////
+  // coordinate system functions
+  //   world coordinates are referenced as points or pt
+  //   graph coordinates are referenced as pixels or px
+  //   sparkline inverts GD Y pixel coordinates; the bottom left of the 
+  //     image rendering area is px(0,0)
+  //   all coordinate transformation functions are prefixed with Tx
+  //   all coordinate transformation functions depend on a valid image handle
+  //     and will only return valid results after all Set* calls are performed
+  //
+  function TxGDYToSLY($gdY, $handle) {
+    return imagesy($handle) - 1 - $gdY;
   }
 
   function TxPxToPt($pxX, $pxY, $handle) {
@@ -458,24 +446,27 @@ class Sparkline extends Object {
     return $this->graphAreaPx[1][1] - $this->graphAreaPx[0][1];
   }
 
+  function GetImageWidth() {
+    return $this->imageX;
+  }
+
+  function GetImageHeight() {
+    return $this->imageY;
+  }
+
   ////////////////////////////////////////////////////////////////////////////
   // image output
   //
-
-  function OutputToFile($file) {
-    $this->Output($file);
-  }
-
   function Output($file = '') {
     $this->Debug("Sparkline :: Output($file)", DEBUG_CALLS);
 
     if ($this->IsError()) {
       $colorError = imagecolorallocate($this->imageHandle, 0xFF, 0x00, 0x00);
-      imagestring($this->imageHandle,
-                  1,
-                  ($this->imageX / 2) - (5 * imagefontwidth(1) / 2),
-                  ($this->imageY / 2) - (imagefontheight(1) / 2),
-                  "ERROR",
+      imagestring($this->imageHandle, 
+                  1, 
+                  ($this->imageX / 2) - (5 * imagefontwidth(1) / 2), 
+                  ($this->imageY / 2) - (imagefontheight(1) / 2), 
+                  "ERROR", 
                   $colorError);
     }
 
@@ -487,6 +478,10 @@ class Sparkline extends Object {
     }
 
     $this->Debug('Sparkline :: Output - total execution time: ' . round($this->microTimer() - $this->startTime, 4) . ' seconds', DEBUG_STATS);
+  }
+
+  function OutputToFile($file) {
+    $this->Output($file);
   }
 
   function OutputToDataURI() {

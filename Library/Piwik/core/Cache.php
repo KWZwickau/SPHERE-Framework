@@ -14,13 +14,6 @@ use Piwik\Container\StaticContainer;
 class Cache
 {
 
-    public static function flushAll()
-    {
-        self::getLazyCache()->flushAll();
-        self::getTransientCache()->flushAll();
-        self::getEagerCache()->flushAll();
-    }
-
     /**
      * This can be considered as the default cache to use in case you don't know which one to pick. It does not support
      * the caching of any objects though. Only boolean, numbers, strings and arrays are supported. Whenever you request
@@ -61,6 +54,13 @@ class Cache
     public static function getEagerCache()
     {
         return StaticContainer::get('Piwik\Cache\Eager');
+    }
+
+    public static function flushAll()
+    {
+        self::getLazyCache()->flushAll();
+        self::getTransientCache()->flushAll();
+        self::getEagerCache()->flushAll();
     }
 
     /**

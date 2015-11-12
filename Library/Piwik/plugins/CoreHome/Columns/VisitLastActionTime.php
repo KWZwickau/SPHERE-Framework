@@ -10,9 +10,9 @@ namespace Piwik\Plugins\CoreHome\Columns;
 
 use Piwik\Date;
 use Piwik\Plugin\Dimension\VisitDimension;
-use Piwik\Tracker;
 use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
+use Piwik\Tracker;
 use Piwik\Tracker\Visitor;
 
 /**
@@ -38,9 +38,9 @@ class VisitLastActionTime extends VisitDimension
      * @param Action|null $action
      * @return mixed
      */
-    public function onExistingVisit(Request $request, Visitor $visitor, $action)
+    public function onNewVisit(Request $request, Visitor $visitor, $action)
     {
-        return $this->onNewVisit($request, $visitor, $action);
+        return Date::getDatetimeFromTimestamp($request->getCurrentTimestamp());
     }
 
     /**
@@ -49,8 +49,8 @@ class VisitLastActionTime extends VisitDimension
      * @param Action|null $action
      * @return mixed
      */
-    public function onNewVisit(Request $request, Visitor $visitor, $action)
+    public function onExistingVisit(Request $request, Visitor $visitor, $action)
     {
-        return Date::getDatetimeFromTimestamp($request->getCurrentTimestamp());
+        return $this->onNewVisit($request, $visitor, $action);
     }
 }

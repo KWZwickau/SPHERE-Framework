@@ -46,32 +46,6 @@ class Storage implements StorageInterface
         Option::set($this->getOptionKey(), serialize($this->settingsValues));
     }
 
-    private function loadSettingsIfNotDoneYet()
-    {
-        if ($this->settingValuesLoaded) {
-            return;
-        }
-
-        $this->settingValuesLoaded = true;
-        $this->settingsValues = $this->loadSettings();
-    }
-
-    protected function loadSettings()
-    {
-        $values = Option::get($this->getOptionKey());
-
-        if (!empty($values)) {
-            return unserialize($values);
-        }
-
-        return array();
-    }
-
-    public function getOptionKey()
-    {
-        return 'Plugin_' . $this->pluginName . '_Settings';
-    }
-
     /**
      * Removes all settings for this plugin from the database. Useful when uninstalling
      * a plugin.
@@ -144,5 +118,31 @@ class Storage implements StorageInterface
         if (array_key_exists($key, $this->settingsValues)) {
             unset($this->settingsValues[$key]);
         }
+    }
+
+    public function getOptionKey()
+    {
+        return 'Plugin_' . $this->pluginName . '_Settings';
+    }
+
+    private function loadSettingsIfNotDoneYet()
+    {
+        if ($this->settingValuesLoaded) {
+            return;
+        }
+
+        $this->settingValuesLoaded = true;
+        $this->settingsValues = $this->loadSettings();
+    }
+
+    protected function loadSettings()
+    {
+        $values = Option::get($this->getOptionKey());
+
+        if (!empty($values)) {
+            return unserialize($values);
+        }
+
+        return array();
     }
 }

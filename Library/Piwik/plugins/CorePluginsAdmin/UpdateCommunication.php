@@ -99,15 +99,57 @@ class UpdateCommunication
         }
     }
 
-    protected function getPluginsHavingUpdate()
+    protected function sendNotifications($pluginsToBeNotified)
     {
-        $marketplace         = new Marketplace();
-        $pluginsHavingUpdate = $marketplace->getPluginsHavingUpdate($themesOnly = false);
-        $themesHavingUpdate  = $marketplace->getPluginsHavingUpdate($themesOnly = true);
+        $hasThemeUpdate  = false;
+        $hasPluginUpdate = false;
 
-        $plugins = array_merge($pluginsHavingUpdate, $themesHavingUpdate);
+        foreach ($pluginsToBeNotified as $plugin) {
+            $hasThemeUpdate  = $hasThemeUpdate || $plugin['isTheme'];
+            $hasPluginUpdate = $hasPluginUpdate || !$plugin['isTheme'];
+        }
 
-        return $plugins;
+        $subject = Piwik::translate('CoreUpdater_NotificationSubjectAvailablePluginUpdate');
+        $message = $this->buildNotificationMessage($pluginsToBeNotified, $hasThemeUpdate, $hasPluginUpdate);
+
+        $this->sendEmailNotification($subject, $message);
+    }
+
+    /**
+     * Send an email notification to all super users.
+     *
+     * @param $subject
+     * @param $message
+     */
+    protected function sendEmailNotification($subject, $message)
+    {
+        $superUsers = UsersManagerApi::getInstance()->getUsersHavingSuperUserAccess();
+
+        foreach ($superUsers as $superUser) {
+            $mail = new Mail();
+            $mail->setDefaultFromPiwik();
+            $mail->addTo($superUser['email']);
+            $mail->setSubject($subject);
+            $mail->setBodyText($message);
+            $mail->send();
+        }
+    }
+
+    protected function setHasLatestUpdateNotificationReceived($plugin)
+    {
+        $latestVersion = $this->getLatestVersion($plugin);
+
+        Option::set($this->getNotificationSentOptionName($plugin), $latestVersion);
+    }
+
+    protected function getLatestVersionSent($plugin)
+    {
+        return Option::get($this->getNotificationSentOptionName($plugin));
+    }
+
+    protected function getLatestVersion($plugin)
+    {
+        return $plugin['latestVersion'];
     }
 
     protected function hasNotificationAlreadyReceived($plugin)
@@ -124,42 +166,20 @@ class UpdateCommunication
         return false;
     }
 
-    protected function getLatestVersion($plugin)
-    {
-        return $plugin['latestVersion'];
-    }
-
-    protected function getLatestVersionSent($plugin)
-    {
-        return Option::get($this->getNotificationSentOptionName($plugin));
-    }
-
     protected function getNotificationSentOptionName($plugin)
     {
         return 'last_update_communication_sent_plugin_' . $plugin['name'];
     }
 
-    protected function setHasLatestUpdateNotificationReceived($plugin)
+    protected function getPluginsHavingUpdate()
     {
-        $latestVersion = $this->getLatestVersion($plugin);
+        $marketplace         = new Marketplace();
+        $pluginsHavingUpdate = $marketplace->getPluginsHavingUpdate($themesOnly = false);
+        $themesHavingUpdate  = $marketplace->getPluginsHavingUpdate($themesOnly = true);
 
-        Option::set($this->getNotificationSentOptionName($plugin), $latestVersion);
-    }
+        $plugins = array_merge($pluginsHavingUpdate, $themesHavingUpdate);
 
-    protected function sendNotifications($pluginsToBeNotified)
-    {
-        $hasThemeUpdate  = false;
-        $hasPluginUpdate = false;
-
-        foreach ($pluginsToBeNotified as $plugin) {
-            $hasThemeUpdate  = $hasThemeUpdate || $plugin['isTheme'];
-            $hasPluginUpdate = $hasPluginUpdate || !$plugin['isTheme'];
-        }
-
-        $subject = Piwik::translate('CoreUpdater_NotificationSubjectAvailablePluginUpdate');
-        $message = $this->buildNotificationMessage($pluginsToBeNotified, $hasThemeUpdate, $hasPluginUpdate);
-
-        $this->sendEmailNotification($subject, $message);
+        return $plugins;
     }
 
     protected function buildNotificationMessage($pluginsToBeNotified, $hasThemeUpdate, $hasPluginUpdate)
@@ -195,25 +215,5 @@ class UpdateCommunication
         $message .= Piwik::translate('Installation_HappyAnalysing');
 
         return $message;
-    }
-
-    /**
-     * Send an email notification to all super users.
-     *
-     * @param $subject
-     * @param $message
-     */
-    protected function sendEmailNotification($subject, $message)
-    {
-        $superUsers = UsersManagerApi::getInstance()->getUsersHavingSuperUserAccess();
-
-        foreach ($superUsers as $superUser) {
-            $mail = new Mail();
-            $mail->setDefaultFromPiwik();
-            $mail->addTo($superUser['email']);
-            $mail->setSubject($subject);
-            $mail->setBodyText($message);
-            $mail->send();
-        }
     }
 }

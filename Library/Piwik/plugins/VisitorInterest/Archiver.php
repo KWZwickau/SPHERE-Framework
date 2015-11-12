@@ -89,9 +89,9 @@ class Archiver extends \Piwik\Plugin\Archiver
         // these prefixes are prepended to the 'SELECT as' parts of each SELECT expression. detecting
         // these prefixes allows us to get all the data in one query.
         $prefixes = array(
-            self::TIME_SPENT_RECORD_NAME => 'tg',
-            self::PAGES_VIEWED_RECORD_NAME => 'pg',
-            self::VISITS_COUNT_RECORD_NAME => 'vbvn',
+            self::TIME_SPENT_RECORD_NAME      => 'tg',
+            self::PAGES_VIEWED_RECORD_NAME    => 'pg',
+            self::VISITS_COUNT_RECORD_NAME    => 'vbvn',
             self::DAYS_SINCE_LAST_RECORD_NAME => 'dslv',
         );
 
@@ -107,8 +107,7 @@ class Archiver extends \Piwik\Plugin\Archiver
             'visitor_count_visits', self::$visitNumberGap, 'log_visit', $prefixes[self::VISITS_COUNT_RECORD_NAME]
         ));
         $selects = array_merge($selects, LogAggregator::getSelectsFromRangedColumn(
-            'visitor_days_since_last', self::$daysSinceLastVisitGap, 'log_visit',
-            $prefixes[self::DAYS_SINCE_LAST_RECORD_NAME],
+            'visitor_days_since_last', self::$daysSinceLastVisitGap, 'log_visit', $prefixes[self::DAYS_SINCE_LAST_RECORD_NAME],
             $restrictToReturningVisitors = true
         ));
 
@@ -119,28 +118,6 @@ class Archiver extends \Piwik\Plugin\Archiver
             $dataTable = DataTable::makeFromIndexedArray($cleanRow);
             $this->getProcessor()->insertBlobRecord($recordName, $dataTable->getSerialized());
         }
-    }
-
-    /**
-     * Transforms and returns the set of ranges used to calculate the 'visits by total time'
-     * report from ranges in minutes to equivalent ranges in seconds.
-     */
-    protected static function getSecondsGap()
-    {
-        $secondsGap = array();
-        foreach (self::$timeGap as $gap) {
-            if (count($gap) == 3 && $gap[2] == 's') // if the units are already in seconds, just assign them
-            {
-                $secondsGap[] = array($gap[0], $gap[1]);
-            } else {
-                if (count($gap) == 2) {
-                    $secondsGap[] = array($gap[0] * 60, $gap[1] * 60);
-                } else {
-                    $secondsGap[] = array($gap[0] * 60);
-                }
-            }
-        }
-        return $secondsGap;
     }
 
     public function aggregateMultipleReports()
@@ -160,6 +137,26 @@ class Archiver extends \Piwik\Plugin\Archiver
             $columnsAggregationOperation,
             $columnsToRenameAfterAggregation = null,
             $countRowsRecursive = array());
+    }
+
+    /**
+     * Transforms and returns the set of ranges used to calculate the 'visits by total time'
+     * report from ranges in minutes to equivalent ranges in seconds.
+     */
+    protected static function getSecondsGap()
+    {
+        $secondsGap = array();
+        foreach (self::$timeGap as $gap) {
+            if (count($gap) == 3 && $gap[2] == 's') // if the units are already in seconds, just assign them
+            {
+                $secondsGap[] = array($gap[0], $gap[1]);
+            } else if (count($gap) == 2) {
+                $secondsGap[] = array($gap[0] * 60, $gap[1] * 60);
+            } else {
+                $secondsGap[] = array($gap[0] * 60);
+            }
+        }
+        return $secondsGap;
     }
 
 }

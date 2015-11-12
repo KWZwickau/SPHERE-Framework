@@ -35,16 +35,16 @@ class Parameters
      */
     private $segment;
 
+    public function getSegment()
+    {
+        return $this->segment;
+    }
+
     public function __construct($idSites, $periods, Segment $segment)
     {
         $this->idSites = $idSites;
         $this->periods = $periods;
         $this->segment = $segment;
-    }
-
-    public function getSegment()
-    {
-        return $this->segment;
     }
 
     public function getPeriods()

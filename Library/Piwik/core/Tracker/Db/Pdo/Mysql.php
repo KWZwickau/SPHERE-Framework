@@ -135,41 +135,6 @@ class Mysql extends Db
     }
 
     /**
-     * Executes a query, using optional bound parameters.
-     *
-     * @param string $query Query
-     * @param array|string $parameters Parameters to bind array('idsite'=> 1)
-     * @return PDOStatement|bool  PDOStatement or false if failed
-     * @throws DbException if an exception occured
-     */
-    public function query($query, $parameters = array())
-    {
-        if (is_null($this->connection)) {
-            return false;
-        }
-
-        try {
-            if (self::$profiling) {
-                $timer = $this->initProfiler();
-            }
-
-            if (!is_array($parameters)) {
-                $parameters = array($parameters);
-            }
-            $sth = $this->connection->prepare($query);
-            $sth->execute($parameters);
-
-            if (self::$profiling && isset($timer)) {
-                $this->recordQueryProfile($query, $timer);
-            }
-            return $sth;
-        } catch (PDOException $e) {
-            $message = $e->getMessage() . " In query: $query Parameters: " . var_export($parameters, true);
-            throw new DbException("Error query: " . $message, (int) $e->getCode());
-        }
-    }
-
-    /**
      * Fetches the first column of all SQL result rows as an array.
      *
      * @param string $sql An SQL SELECT statement.
@@ -210,6 +175,41 @@ class Mysql extends Db
             return $sth->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             throw new DbException("Error query: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Executes a query, using optional bound parameters.
+     *
+     * @param string $query Query
+     * @param array|string $parameters Parameters to bind array('idsite'=> 1)
+     * @return PDOStatement|bool  PDOStatement or false if failed
+     * @throws DbException if an exception occured
+     */
+    public function query($query, $parameters = array())
+    {
+        if (is_null($this->connection)) {
+            return false;
+        }
+
+        try {
+            if (self::$profiling) {
+                $timer = $this->initProfiler();
+            }
+
+            if (!is_array($parameters)) {
+                $parameters = array($parameters);
+            }
+            $sth = $this->connection->prepare($query);
+            $sth->execute($parameters);
+
+            if (self::$profiling && isset($timer)) {
+                $this->recordQueryProfile($query, $timer);
+            }
+            return $sth;
+        } catch (PDOException $e) {
+            $message = $e->getMessage() . " In query: $query Parameters: " . var_export($parameters, true);
+            throw new DbException("Error query: " . $message, (int) $e->getCode());
         }
     }
 

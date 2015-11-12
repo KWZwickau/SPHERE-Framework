@@ -43,25 +43,6 @@ class Controller extends \Piwik\Plugin\Controller
         return $this->indexEvent(__FUNCTION__);
     }
 
-    protected function indexEvent($controllerMethod)
-    {
-        $count = 1;
-        $apiMethod = str_replace('index', 'get', $controllerMethod, $count);
-        $events = new Events;
-        $title = $events->getReportTitleTranslation($apiMethod);
-
-        if (method_exists($this, $apiMethod)) {
-            $content = $this->$apiMethod();
-        } else {
-            $content = $this->renderReport($apiMethod);
-        }
-
-        return View::singleReport(
-            $title,
-            $content
-        );
-    }
-
     public function indexAction()
     {
         return $this->indexEvent(__FUNCTION__);
@@ -100,5 +81,24 @@ class Controller extends \Piwik\Plugin\Controller
     public function getCategoryFromNameId()
     {
         return $this->renderReport(__FUNCTION__);
+    }
+
+    protected function indexEvent($controllerMethod)
+    {
+        $count = 1;
+        $apiMethod = str_replace('index', 'get', $controllerMethod, $count);
+        $events = new Events;
+        $title = $events->getReportTitleTranslation($apiMethod);
+
+        if (method_exists($this, $apiMethod)) {
+            $content = $this->$apiMethod();
+        } else {
+            $content = $this->renderReport($apiMethod);
+        }
+
+        return View::singleReport(
+            $title,
+            $content
+        );
     }
 }

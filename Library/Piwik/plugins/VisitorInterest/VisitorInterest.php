@@ -18,11 +18,6 @@ use Piwik\Plugins\CoreVisualizations\Visualizations\Graph;
 class VisitorInterest extends \Piwik\Plugin
 {
 
-   public static function footerVisitsFrequency(&$out)
-    {
-        $out .= FrontController::getInstance()->fetchDispatch('VisitorInterest', 'index');
-    }
-
     /**
      * @see Piwik\Plugin::registerEvents
      */
@@ -36,6 +31,11 @@ class VisitorInterest extends \Piwik\Plugin
     function postLoad()
     {
         Piwik::addAction('Template.footerVisitsFrequency', array('Piwik\Plugins\VisitorInterest\VisitorInterest', 'footerVisitsFrequency'));
+    }
+
+   public static function footerVisitsFrequency(&$out)
+    {
+        $out .= FrontController::getInstance()->fetchDispatch('VisitorInterest', 'index');
     }
 
     public function extendVisitorDetails(&$visitor, $details)

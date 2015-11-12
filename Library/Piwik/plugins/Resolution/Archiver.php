@@ -30,28 +30,6 @@ class Archiver extends \Piwik\Plugin\Archiver
         $this->aggregateByConfiguration();
     }
 
-    protected function aggregateByResolution()
-    {
-        $table = $this->getLogAggregator()->getMetricsFromVisitByDimension(self::RESOLUTION_DIMENSION)->asDataTable();
-        $table->filter('ColumnCallbackDeleteRow', array('label', function ($value) {
-            return strlen($value) <= 5;
-        }));
-        $this->insertTable(self::RESOLUTION_RECORD_NAME, $table);
-        return $table;
-    }
-
-    protected function insertTable($recordName, DataTable $table)
-    {
-        $report = $table->getSerialized($this->maximumRows, null, Metrics::INDEX_NB_VISITS);
-        return $this->getProcessor()->insertBlobRecord($recordName, $report);
-    }
-
-    protected function aggregateByConfiguration()
-    {
-        $metrics = $this->getLogAggregator()->getMetricsFromVisitByDimension(self::CONFIGURATION_DIMENSION)->asDataTable();
-        $this->insertTable(self::CONFIGURATION_RECORD_NAME, $metrics);
-    }
-
     /**
      * Period archiving: simply sums up daily archives
      */
@@ -70,6 +48,28 @@ class Archiver extends \Piwik\Plugin\Archiver
             $columnsAggregationOperation,
             $columnsToRenameAfterAggregation = null,
             $countRowsRecursive = array());
+    }
+
+    protected function aggregateByConfiguration()
+    {
+        $metrics = $this->getLogAggregator()->getMetricsFromVisitByDimension(self::CONFIGURATION_DIMENSION)->asDataTable();
+        $this->insertTable(self::CONFIGURATION_RECORD_NAME, $metrics);
+    }
+
+    protected function aggregateByResolution()
+    {
+        $table = $this->getLogAggregator()->getMetricsFromVisitByDimension(self::RESOLUTION_DIMENSION)->asDataTable();
+        $table->filter('ColumnCallbackDeleteRow', array('label', function ($value) {
+            return strlen($value) <= 5;
+        }));
+        $this->insertTable(self::RESOLUTION_RECORD_NAME, $table);
+        return $table;
+    }
+
+    protected function insertTable($recordName, DataTable $table)
+    {
+        $report = $table->getSerialized($this->maximumRows, null, Metrics::INDEX_NB_VISITS);
+        return $this->getProcessor()->insertBlobRecord($recordName, $report);
     }
 
 }

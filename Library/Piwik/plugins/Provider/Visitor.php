@@ -21,17 +21,17 @@ class Visitor
         $this->details = $details;
     }
 
-    public function getProviderName()
-    {
-        return getPrettyProviderName($this->getProvider());
-    }
-
     public function getProvider()
     {
         if (isset($this->details['location_provider'])) {
             return $this->details['location_provider'];
         }
         return Piwik::translate('General_Unknown');
+    }
+
+    public function getProviderName()
+    {
+        return getPrettyProviderName($this->getProvider());
     }
 
     public function getProviderUrl()

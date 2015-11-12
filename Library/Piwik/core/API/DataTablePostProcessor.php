@@ -76,14 +76,14 @@ class DataTablePostProcessor
         $this->setFormatter(new Formatter());
     }
 
-    public function setRequest($request)
-    {
-        $this->request = $request;
-    }
-
     public function setFormatter(Formatter $formatter)
     {
         $this->formatter = $formatter;
+    }
+
+    public function setRequest($request)
+    {
+        $this->request = $request;
     }
 
     public function setCallbackBeforeGenericFilters($callbackBeforeGenericFilters)
@@ -132,6 +132,14 @@ class DataTablePostProcessor
         return $dataTable;
     }
 
+    private function convertSegmentValueToSegment(DataTableInterface $dataTable)
+    {
+        $dataTable->filter('AddSegmentBySegmentValue', array($this->report));
+        $dataTable->filter('ColumnCallbackDeleteMetadata', array('segmentValue'));
+
+        return $dataTable;
+    }
+
     /**
      * @param DataTableInterface $dataTable
      * @return DataTableInterface
@@ -154,24 +162,6 @@ class DataTablePostProcessor
         return $dataTable;
     }
 
-    public function applyComputeProcessedMetrics(DataTableInterface $dataTable)
-    {
-        $dataTable->filter(array($this, 'computeProcessedMetrics'));
-    }
-
-    /**
-     * @param DataTableInterface $dataTable
-     * @return DataTableInterface
-     */
-    public function applyTotalsCalculator($dataTable)
-    {
-        if (1 == Common::getRequestVar('totals', '1', 'integer', $this->request)) {
-            $calculator = new ReportTotalsCalculator($this->apiModule, $this->apiMethod, $this->request, $this->report);
-            $dataTable  = $calculator->calculate($dataTable);
-        }
-        return $dataTable;
-    }
-
     /**
      * @param DataTableInterface $dataTable
      * @return DataTable|DataTableInterface|DataTable\Map
@@ -190,6 +180,19 @@ class DataTablePostProcessor
             }
 
             $dataTable = $flattener->flatten($dataTable, $recursiveLabelSeparator);
+        }
+        return $dataTable;
+    }
+
+    /**
+     * @param DataTableInterface $dataTable
+     * @return DataTableInterface
+     */
+    public function applyTotalsCalculator($dataTable)
+    {
+        if (1 == Common::getRequestVar('totals', '1', 'integer', $this->request)) {
+            $calculator = new ReportTotalsCalculator($this->apiModule, $this->apiMethod, $this->request, $this->report);
+            $dataTable  = $calculator->calculate($dataTable);
         }
         return $dataTable;
     }
@@ -262,79 +265,6 @@ class DataTablePostProcessor
         return $dataTable;
     }
 
-    public function computeProcessedMetrics(DataTable $dataTable)
-    {
-        if ($dataTable->getMetadata(self::PROCESSED_METRICS_COMPUTED_FLAG)) {
-            return;
-        }
-
-        /** @var ProcessedMetric[] $processedMetrics */
-        $processedMetrics = Report::getProcessedMetricsForTable($dataTable, $this->report);
-        if (empty($processedMetrics)) {
-            return;
-        }
-
-        $dataTable->setMetadata(self::PROCESSED_METRICS_COMPUTED_FLAG, true);
-
-        foreach ($processedMetrics as $name => $processedMetric) {
-            if (!$processedMetric->beforeCompute($this->report, $dataTable)) {
-                continue;
-            }
-
-            foreach ($dataTable->getRows() as $row) {
-                if ($row->getColumn($name) === false) { // only compute the metric if it has not been computed already
-                    $computedValue = $processedMetric->compute($row);
-                    if ($computedValue !== false) {
-                        $row->addColumn($name, $computedValue);
-                    }
-
-                    $subtable = $row->getSubtable();
-                    if (!empty($subtable)) {
-                        $this->computeProcessedMetrics($subtable);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Returns the value for the label query parameter which can be either a string
-     * (ie, label=...) or array (ie, label[]=...).
-     *
-     * @param array $request
-     * @return array
-     */
-    public static function getLabelFromRequest($request)
-    {
-        $label = Common::getRequestVar('label', array(), 'array', $request);
-        if (empty($label)) {
-            $label = Common::getRequestVar('label', '', 'string', $request);
-            if (!empty($label)) {
-                $label = array($label);
-            }
-        }
-
-        $label = self::unsanitizeLabelParameter($label);
-        return $label;
-    }
-
-    public static function unsanitizeLabelParameter($label)
-    {
-        // this is needed because Proxy uses Common::getRequestVar which in turn
-        // uses Common::sanitizeInputValue. This causes the > that separates recursive labels
-        // to become &gt; and we need to undo that here.
-        $label = str_replace( htmlentities('>'), '>', $label);
-        return $label;
-    }
-
-    private function convertSegmentValueToSegment(DataTableInterface $dataTable)
-    {
-        $dataTable->filter('AddSegmentBySegmentValue', array($this->report));
-        $dataTable->filter('ColumnCallbackDeleteMetadata', array('segmentValue'));
-
-        return $dataTable;
-    }
-
     /**
      * @param DataTableInterface $dataTable
      * @return DataTableInterface
@@ -363,9 +293,9 @@ class DataTablePostProcessor
             || !empty($showColumns)
         ) {
             $dataTable->filter('ColumnDelete', array($hideColumns, $showColumns));
-        } else {if ($showRawMetrics !== 1) {
+        } else if ($showRawMetrics !== 1) {
             $this->removeTemporaryMetrics($dataTable);
-        }}
+        }
 
         return $dataTable;
     }
@@ -432,5 +362,75 @@ class DataTablePostProcessor
 
         $dataTable->filter(array($this->formatter, 'formatMetrics'), array($this->report, $metricsToFormat));
         return $dataTable;
+    }
+
+    /**
+     * Returns the value for the label query parameter which can be either a string
+     * (ie, label=...) or array (ie, label[]=...).
+     *
+     * @param array $request
+     * @return array
+     */
+    public static function getLabelFromRequest($request)
+    {
+        $label = Common::getRequestVar('label', array(), 'array', $request);
+        if (empty($label)) {
+            $label = Common::getRequestVar('label', '', 'string', $request);
+            if (!empty($label)) {
+                $label = array($label);
+            }
+        }
+
+        $label = self::unsanitizeLabelParameter($label);
+        return $label;
+    }
+
+    public static function unsanitizeLabelParameter($label)
+    {
+        // this is needed because Proxy uses Common::getRequestVar which in turn
+        // uses Common::sanitizeInputValue. This causes the > that separates recursive labels
+        // to become &gt; and we need to undo that here.
+        $label = str_replace( htmlentities('>'), '>', $label);
+        return $label;
+    }
+
+    public function computeProcessedMetrics(DataTable $dataTable)
+    {
+        if ($dataTable->getMetadata(self::PROCESSED_METRICS_COMPUTED_FLAG)) {
+            return;
+        }
+
+        /** @var ProcessedMetric[] $processedMetrics */
+        $processedMetrics = Report::getProcessedMetricsForTable($dataTable, $this->report);
+        if (empty($processedMetrics)) {
+            return;
+        }
+
+        $dataTable->setMetadata(self::PROCESSED_METRICS_COMPUTED_FLAG, true);
+
+        foreach ($processedMetrics as $name => $processedMetric) {
+            if (!$processedMetric->beforeCompute($this->report, $dataTable)) {
+                continue;
+            }
+
+            foreach ($dataTable->getRows() as $row) {
+                if ($row->getColumn($name) === false) { // only compute the metric if it has not been computed already
+                    $computedValue = $processedMetric->compute($row);
+                    if ($computedValue !== false) {
+                        $row->addColumn($name, $computedValue);
+                    }
+
+                    $subtable = $row->getSubtable();
+                    if (!empty($subtable)) {
+                        $this->computeProcessedMetrics($subtable);
+                    }
+                }
+            }
+        }
+    }
+
+    public function applyComputeProcessedMetrics(DataTableInterface $dataTable)
+    {
+        $dataTable->filter(array($this, 'computeProcessedMetrics'));
     }
 }

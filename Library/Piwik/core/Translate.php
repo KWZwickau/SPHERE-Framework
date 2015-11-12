@@ -38,10 +38,19 @@ class Translate
         self::loadAllTranslations();
     }
 
-    public static function loadAllTranslations()
+    /**
+     * @deprecated
+     */
+    public static function unloadEnglishTranslation()
     {
-        self::loadCoreTranslation();
-        Manager::getInstance()->loadPluginTranslations();
+        self::reset();
+    }
+
+    /**
+     * @deprecated
+     */
+    public static function reloadLanguage($language = false)
+    {
     }
 
     /**
@@ -53,35 +62,6 @@ class Translate
     public static function loadCoreTranslation($language = false)
     {
         self::getTranslator()->addDirectory(PIWIK_INCLUDE_PATH . '/lang');
-    }
-
-    /**
-     * @return Translator
-     */
-    private static function getTranslator()
-    {
-        return StaticContainer::get('Piwik\Translation\Translator');
-    }
-
-    /**
-     * @deprecated
-     */
-    public static function unloadEnglishTranslation()
-    {
-        self::reset();
-    }
-
-    /** Reset the cached language to load. Used in tests. */
-    public static function reset()
-    {
-        self::getTranslator()->reset();
-    }
-
-    /**
-     * @deprecated
-     */
-    public static function reloadLanguage($language = false)
-    {
     }
 
     /**
@@ -98,6 +78,12 @@ class Translate
     public static function getLanguageToLoad()
     {
         return self::getTranslator()->getCurrentLanguage();
+    }
+
+    /** Reset the cached language to load. Used in tests. */
+    public static function reset()
+    {
+        self::getTranslator()->reset();
     }
 
     /**
@@ -125,5 +111,19 @@ class Translate
     public static function findTranslationKeyForTranslation($translation)
     {
         return self::getTranslator()->findTranslationKeyForTranslation($translation);
+    }
+
+    /**
+     * @return Translator
+     */
+    private static function getTranslator()
+    {
+        return StaticContainer::get('Piwik\Translation\Translator');
+    }
+
+    public static function loadAllTranslations()
+    {
+        self::loadCoreTranslation();
+        Manager::getInstance()->loadPluginTranslations();
     }
 }

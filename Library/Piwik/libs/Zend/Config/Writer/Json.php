@@ -45,6 +45,16 @@ class Zend_Config_Writer_Json extends Zend_Config_Writer_FileAbstract
     protected $_prettyPrint = false;
 
     /**
+     * Get prettyPrint flag
+     *
+     * @return the prettyPrint flag
+     */
+    public function prettyPrint()
+    {
+        return $this->_prettyPrint;
+    }
+
+    /**
      * Set prettyPrint flag
      *
      * @param  bool $prettyPrint PrettyPrint flag
@@ -92,15 +102,5 @@ class Zend_Config_Writer_Json extends Zend_Config_Writer_FileAbstract
              $out = Zend_Json::prettyPrint($out);
         }
         return $out;
-    }
-
-    /**
-     * Get prettyPrint flag
-     *
-     * @return the prettyPrint flag
-     */
-    public function prettyPrint()
-    {
-        return $this->_prettyPrint;
     }
 }

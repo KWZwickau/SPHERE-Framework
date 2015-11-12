@@ -8,8 +8,8 @@
  */
 namespace Piwik\DataTable\Filter;
 
-use Piwik\DataTable;
 use Piwik\DataTable\BaseFilter;
+use Piwik\DataTable;
 
 /**
  * Deletes rows that do not contain a column that matches a regex pattern and do not contain a

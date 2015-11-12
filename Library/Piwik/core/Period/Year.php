@@ -53,24 +53,6 @@ class Year extends Period
     }
 
     /**
-     * Returns the current period as a string
-     *
-     * @param string $format
-     * @return array
-     */
-    public function toString($format = 'ignored')
-    {
-        $this->generate();
-
-        $stringMonth = array();
-        foreach ($this->subperiods as $month) {
-            $stringMonth[] = $month->getDateStart()->toString("Y") . "-" . $month->getDateStart()->toString("m") . "-01";
-        }
-
-        return $stringMonth;
-    }
-
-    /**
      * Generates the subperiods (one for each month of the year)
      */
     protected function generate()
@@ -88,6 +70,24 @@ class Year extends Period
                 )
             );
         }
+    }
+
+    /**
+     * Returns the current period as a string
+     *
+     * @param string $format
+     * @return array
+     */
+    public function toString($format = 'ignored')
+    {
+        $this->generate();
+
+        $stringMonth = array();
+        foreach ($this->subperiods as $month) {
+            $stringMonth[] = $month->getDateStart()->toString("Y") . "-" . $month->getDateStart()->toString("m") . "-01";
+        }
+
+        return $stringMonth;
     }
 
     public function getImmediateChildPeriodLabel()

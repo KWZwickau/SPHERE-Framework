@@ -305,6 +305,18 @@ abstract class Zend_Db_Adapter_Abstract
     }
 
     /**
+     * Returns the underlying database connection object or resource.
+     * If not presently connected, this initiates the connection.
+     *
+     * @return object|resource|null
+     */
+    public function getConnection()
+    {
+        $this->_connect();
+        return $this->_connection;
+    }
+
+    /**
      * Returns the configuration variables in this adapter.
      *
      * @return array
@@ -312,16 +324,6 @@ abstract class Zend_Db_Adapter_Abstract
     public function getConfig()
     {
         return $this->_config;
-    }
-
-    /**
-     * Returns the profiler for this adapter.
-     *
-     * @return Zend_Db_Profiler
-     */
-    public function getProfiler()
-    {
-        return $this->_profiler;
     }
 
     /**
@@ -361,7 +363,7 @@ abstract class Zend_Db_Adapter_Abstract
         if ($profilerIsObject = is_object($profiler)) {
             if ($profiler instanceof Zend_Db_Profiler) {
                 $profilerInstance = $profiler;
-            } else {if ($profiler instanceof Zend_Config) {
+            } else if ($profiler instanceof Zend_Config) {
                 $profiler = $profiler->toArray();
             } else {
                 /**
@@ -370,7 +372,7 @@ abstract class Zend_Db_Adapter_Abstract
                 // require_once 'Zend/Db/Profiler/Exception.php';
                 throw new Zend_Db_Profiler_Exception('Profiler argument must be an instance of either Zend_Db_Profiler'
                     . ' or Zend_Config when provided as an object');
-            }}
+            }
         }
 
         if (is_array($profiler)) {
@@ -383,9 +385,9 @@ abstract class Zend_Db_Adapter_Abstract
             if (isset($profiler['instance'])) {
                 $profilerInstance = $profiler['instance'];
             }
-        } else {if (!$profilerIsObject) {
+        } else if (!$profilerIsObject) {
             $enabled = (bool) $profiler;
-        }}
+        }
 
         if ($profilerInstance === null) {
             if (!class_exists($profilerClass)) {
@@ -411,6 +413,17 @@ abstract class Zend_Db_Adapter_Abstract
         return $this;
     }
 
+
+    /**
+     * Returns the profiler for this adapter.
+     *
+     * @return Zend_Db_Profiler
+     */
+    public function getProfiler()
+    {
+        return $this->_profiler;
+    }
+
     /**
      * Get the default statement class.
      *
@@ -433,6 +446,44 @@ abstract class Zend_Db_Adapter_Abstract
     }
 
     /**
+     * Prepares and executes an SQL statement with bound data.
+     *
+     * @param  mixed  $sql  The SQL statement with placeholders.
+     *                      May be a string or Zend_Db_Select.
+     * @param  mixed  $bind An array of data to bind to the placeholders.
+     * @return Zend_Db_Statement_Interface
+     */
+    public function query($sql, $bind = array())
+    {
+        // connect to the database if needed
+        $this->_connect();
+
+        // is the $sql a Zend_Db_Select object?
+        if ($sql instanceof Zend_Db_Select) {
+            if (empty($bind)) {
+                $bind = $sql->getBind();
+            }
+
+            $sql = $sql->assemble();
+        }
+
+        // make sure $bind to an array;
+        // don't use (array) typecasting because
+        // because $bind may be a Zend_Db_Expr object
+        if (!is_array($bind)) {
+            $bind = array($bind);
+        }
+
+        // prepare and execute the statement with profiling
+        $stmt = $this->prepare($sql);
+        $stmt->execute($bind);
+
+        // return the results embedded in the prepared statement object
+        $stmt->setFetchMode($this->_fetchMode);
+        return $stmt;
+    }
+
+    /**
      * Leave autocommit mode and begin a transaction.
      *
      * @return Zend_Db_Adapter_Abstract
@@ -445,18 +496,6 @@ abstract class Zend_Db_Adapter_Abstract
         $this->_profiler->queryEnd($q);
         return $this;
     }
-
-    /**
-     * Creates a connection to the database.
-     *
-     * @return void
-     */
-    abstract protected function _connect();
-
-    /**
-     * Begin a transaction.
-     */
-    abstract protected function _beginTransaction();
 
     /**
      * Commit a transaction and return to autocommit mode.
@@ -473,11 +512,6 @@ abstract class Zend_Db_Adapter_Abstract
     }
 
     /**
-     * Commit a transaction.
-     */
-    abstract protected function _commit();
-
-    /**
      * Roll back a transaction and return to autocommit mode.
      *
      * @return Zend_Db_Adapter_Abstract
@@ -490,11 +524,6 @@ abstract class Zend_Db_Adapter_Abstract
         $this->_profiler->queryEnd($q);
         return $this;
     }
-
-    /**
-     * Roll-back a transaction.
-     */
-    abstract protected function _rollBack();
 
     /**
      * Inserts a table row with specified data.
@@ -547,155 +576,6 @@ abstract class Zend_Db_Adapter_Abstract
         $result = $stmt->rowCount();
         return $result;
     }
-
-    /**
-     * Quotes an identifier.
-     *
-     * Accepts a string representing a qualified indentifier. For Example:
-     * <code>
-     * $adapter->quoteIdentifier('myschema.mytable')
-     * </code>
-     * Returns: "myschema"."mytable"
-     *
-     * Or, an array of one or more identifiers that may form a qualified identifier:
-     * <code>
-     * $adapter->quoteIdentifier(array('myschema','my.table'))
-     * </code>
-     * Returns: "myschema"."my.table"
-     *
-     * The actual quote character surrounding the identifiers may vary depending on
-     * the adapter.
-     *
-     * @param string|array|Zend_Db_Expr $ident The identifier.
-     * @param boolean $auto If true, heed the AUTO_QUOTE_IDENTIFIERS config option.
-     * @return string The quoted identifier.
-     */
-    public function quoteIdentifier($ident, $auto=false)
-    {
-        return $this->_quoteIdentifierAs($ident, null, $auto);
-    }
-
-    /**
-     * Quote an identifier and an optional alias.
-     *
-     * @param string|array|Zend_Db_Expr $ident The identifier or expression.
-     * @param string $alias An optional alias.
-     * @param boolean $auto If true, heed the AUTO_QUOTE_IDENTIFIERS config option.
-     * @param string $as The string to add between the identifier/expression and the alias.
-     * @return string The quoted identifier and alias.
-     */
-    protected function _quoteIdentifierAs($ident, $alias = null, $auto = false, $as = ' AS ')
-    {
-        if ($ident instanceof Zend_Db_Expr) {
-            $quoted = $ident->__toString();
-        } elseif ($ident instanceof Zend_Db_Select) {
-            $quoted = '(' . $ident->assemble() . ')';
-        } else {
-            if (is_string($ident)) {
-                $ident = explode('.', $ident);
-            }
-            if (is_array($ident)) {
-                $segments = array();
-                foreach ($ident as $segment) {
-                    if ($segment instanceof Zend_Db_Expr) {
-                        $segments[] = $segment->__toString();
-                    } else {
-                        $segments[] = $this->_quoteIdentifier($segment, $auto);
-                    }
-                }
-                if ($alias !== null && end($ident) == $alias) {
-                    $alias = null;
-                }
-                $quoted = implode('.', $segments);
-            } else {
-                $quoted = $this->_quoteIdentifier($ident, $auto);
-            }
-        }
-        if ($alias !== null) {
-            $quoted .= $as . $this->_quoteIdentifier($alias, $auto);
-        }
-        return $quoted;
-    }
-
-    /**
-     * Quote an identifier.
-     *
-     * @param  string $value The identifier or expression.
-     * @param boolean $auto If true, heed the AUTO_QUOTE_IDENTIFIERS config option.
-     * @return string        The quoted identifier and alias.
-     */
-    protected function _quoteIdentifier($value, $auto=false)
-    {
-        if ($auto === false || $this->_autoQuoteIdentifiers === true) {
-            $q = $this->getQuoteIdentifierSymbol();
-            return ($q . str_replace("$q", "$q$q", $value) . $q);
-        }
-        return $value;
-    }
-
-    /**
-     * Returns the symbol the adapter uses for delimited identifiers.
-     *
-     * @return string
-     */
-    public function getQuoteIdentifierSymbol()
-    {
-        return '"';
-    }
-
-    /**
-     * Check if the adapter supports real SQL parameters.
-     *
-     * @param string $type 'positional' or 'named'
-     * @return bool
-     */
-    abstract public function supportsParameters($type);
-
-    /**
-     * Prepares and executes an SQL statement with bound data.
-     *
-     * @param  mixed  $sql  The SQL statement with placeholders.
-     *                      May be a string or Zend_Db_Select.
-     * @param  mixed  $bind An array of data to bind to the placeholders.
-     * @return Zend_Db_Statement_Interface
-     */
-    public function query($sql, $bind = array())
-    {
-        // connect to the database if needed
-        $this->_connect();
-
-        // is the $sql a Zend_Db_Select object?
-        if ($sql instanceof Zend_Db_Select) {
-            if (empty($bind)) {
-                $bind = $sql->getBind();
-            }
-
-            $sql = $sql->assemble();
-        }
-
-        // make sure $bind to an array;
-        // don't use (array) typecasting because
-        // because $bind may be a Zend_Db_Expr object
-        if (!is_array($bind)) {
-            $bind = array($bind);
-        }
-
-        // prepare and execute the statement with profiling
-        $stmt = $this->prepare($sql);
-        $stmt->execute($bind);
-
-        // return the results embedded in the prepared statement object
-        $stmt->setFetchMode($this->_fetchMode);
-        return $stmt;
-    }
-
-    /**
-     * Prepare a statement and return a PDOStatement-like object.
-     *
-     * @param string|Zend_Db_Select $sql SQL query
-     * @return Zend_Db_Statement|PDOStatement
-     */
-    abstract public function prepare($sql);
 
     /**
      * Updates table rows with specified data based on a WHERE clause.
@@ -760,6 +640,32 @@ abstract class Zend_Db_Adapter_Abstract
     }
 
     /**
+     * Deletes table rows based on a WHERE clause.
+     *
+     * @param  mixed        $table The table to update.
+     * @param  mixed        $where DELETE WHERE clause(s).
+     * @return int          The number of affected rows.
+     */
+    public function delete($table, $where = '')
+    {
+        $where = $this->_whereExpr($where);
+
+        /**
+         * Build the DELETE statement
+         */
+        $sql = "DELETE FROM "
+             . $this->quoteIdentifier($table, true)
+             . (($where) ? " WHERE $where" : '');
+
+        /**
+         * Execute the statement and return the number of affected rows
+         */
+        $stmt = $this->query($sql);
+        $result = $stmt->rowCount();
+        return $result;
+    }
+
+    /**
      * Convert an array, string, or Zend_Db_Expr object
      * into a string to put in a WHERE clause.
      *
@@ -794,142 +700,6 @@ abstract class Zend_Db_Adapter_Abstract
     }
 
     /**
-     * Quotes a value and places into a piece of text at a placeholder.
-     *
-     * The placeholder is a question-mark; all placeholders will be replaced
-     * with the quoted value.   For example:
-     *
-     * <code>
-     * $text = "WHERE date < ?";
-     * $date = "2005-01-02";
-     * $safe = $sql->quoteInto($text, $date);
-     * // $safe = "WHERE date < '2005-01-02'"
-     * </code>
-     *
-     * @param string  $text  The text with a placeholder.
-     * @param mixed   $value The value to quote.
-     * @param string  $type  OPTIONAL SQL datatype
-     * @param integer $count OPTIONAL count of placeholders to replace
-     * @return string An SQL-safe quoted value placed into the original text.
-     */
-    public function quoteInto($text, $value, $type = null, $count = null)
-    {
-        if ($count === null) {
-            return str_replace('?', $this->quote($value, $type), $text);
-        } else {
-            while ($count > 0) {
-                if (strpos($text, '?') !== false) {
-                    $text = substr_replace($text, $this->quote($value, $type), strpos($text, '?'), 1);
-                }
-                --$count;
-            }
-            return $text;
-        }
-    }
-
-    /**
-     * Safely quotes a value for an SQL statement.
-     *
-     * If an array is passed as the value, the array values are quoted
-     * and then returned as a comma-separated string.
-     *
-     * @param mixed $value The value to quote.
-     * @param mixed $type  OPTIONAL the SQL datatype name, or constant, or null.
-     * @return mixed An SQL-safe quoted value (or string of separated values).
-     */
-    public function quote($value, $type = null)
-    {
-        $this->_connect();
-
-        if ($value instanceof Zend_Db_Select) {
-            return '(' . $value->assemble() . ')';
-        }
-
-        if ($value instanceof Zend_Db_Expr) {
-            return $value->__toString();
-        }
-
-        if (is_array($value)) {
-            foreach ($value as &$val) {
-                $val = $this->quote($val, $type);
-            }
-            return implode(', ', $value);
-        }
-
-        if ($type !== null && array_key_exists($type = strtoupper($type), $this->_numericDataTypes)) {
-            $quotedValue = '0';
-            switch ($this->_numericDataTypes[$type]) {
-                case Zend_Db::INT_TYPE: // 32-bit integer
-                    $quotedValue = (string) intval($value);
-                    break;
-                case Zend_Db::BIGINT_TYPE: // 64-bit integer
-                    // ANSI SQL-style hex literals (e.g. x'[\dA-F]+')
-                    // are not supported here, because these are string
-                    // literals, not numeric literals.
-                    if (preg_match('/^(
-                          [+-]?                  # optional sign
-                          (?:
-                            0[Xx][\da-fA-F]+     # ODBC-style hexadecimal
-                            |\d+                 # decimal or octal, or MySQL ZEROFILL decimal
-                            (?:[eE][+-]?\d+)?    # optional exponent on decimals or octals
-                          )
-                        )/x',
-                        (string) $value, $matches)) {
-                        $quotedValue = $matches[1];
-                    }
-                    break;
-                case Zend_Db::FLOAT_TYPE: // float or decimal
-                    $quotedValue = sprintf('%F', $value);
-            }
-            return $quotedValue;
-        }
-
-        return $this->_quote($value);
-    }
-
-    /**
-     * Quote a raw string.
-     *
-     * @param string $value     Raw string
-     * @return string           Quoted string
-     */
-    protected function _quote($value)
-    {
-        if (is_int($value)) {
-            return $value;
-        } elseif (is_float($value)) {
-            return sprintf('%F', $value);
-        }
-        return "'" . addcslashes($value, "\000\n\r\\'\"\032") . "'";
-    }
-
-    /**
-     * Deletes table rows based on a WHERE clause.
-     *
-     * @param  mixed        $table The table to update.
-     * @param  mixed        $where DELETE WHERE clause(s).
-     * @return int          The number of affected rows.
-     */
-    public function delete($table, $where = '')
-    {
-        $where = $this->_whereExpr($where);
-
-        /**
-         * Build the DELETE statement
-         */
-        $sql = "DELETE FROM "
-             . $this->quoteIdentifier($table, true)
-             . (($where) ? " WHERE $where" : '');
-
-        /**
-         * Execute the statement and return the number of affected rows
-         */
-        $stmt = $this->query($sql);
-        $result = $stmt->rowCount();
-        return $result;
-    }
-
-    /**
      * Creates and returns a new Zend_Db_Select object for this adapter.
      *
      * @return Zend_Db_Select
@@ -948,15 +718,6 @@ abstract class Zend_Db_Adapter_Abstract
     {
         return $this->_fetchMode;
     }
-
-    /**
-     * Set the fetch mode.
-     *
-     * @param integer $mode
-     * @return void
-     * @throws Zend_Db_Adapter_Exception
-     */
-    abstract public function setFetchMode($mode);
 
     /**
      * Fetches all SQL result rows as a sequential array.
@@ -1069,6 +830,143 @@ abstract class Zend_Db_Adapter_Abstract
     }
 
     /**
+     * Quote a raw string.
+     *
+     * @param string $value     Raw string
+     * @return string           Quoted string
+     */
+    protected function _quote($value)
+    {
+        if (is_int($value)) {
+            return $value;
+        } elseif (is_float($value)) {
+            return sprintf('%F', $value);
+        }
+        return "'" . addcslashes($value, "\000\n\r\\'\"\032") . "'";
+    }
+
+    /**
+     * Safely quotes a value for an SQL statement.
+     *
+     * If an array is passed as the value, the array values are quoted
+     * and then returned as a comma-separated string.
+     *
+     * @param mixed $value The value to quote.
+     * @param mixed $type  OPTIONAL the SQL datatype name, or constant, or null.
+     * @return mixed An SQL-safe quoted value (or string of separated values).
+     */
+    public function quote($value, $type = null)
+    {
+        $this->_connect();
+
+        if ($value instanceof Zend_Db_Select) {
+            return '(' . $value->assemble() . ')';
+        }
+
+        if ($value instanceof Zend_Db_Expr) {
+            return $value->__toString();
+        }
+
+        if (is_array($value)) {
+            foreach ($value as &$val) {
+                $val = $this->quote($val, $type);
+            }
+            return implode(', ', $value);
+        }
+
+        if ($type !== null && array_key_exists($type = strtoupper($type), $this->_numericDataTypes)) {
+            $quotedValue = '0';
+            switch ($this->_numericDataTypes[$type]) {
+                case Zend_Db::INT_TYPE: // 32-bit integer
+                    $quotedValue = (string) intval($value);
+                    break;
+                case Zend_Db::BIGINT_TYPE: // 64-bit integer
+                    // ANSI SQL-style hex literals (e.g. x'[\dA-F]+')
+                    // are not supported here, because these are string
+                    // literals, not numeric literals.
+                    if (preg_match('/^(
+                          [+-]?                  # optional sign
+                          (?:
+                            0[Xx][\da-fA-F]+     # ODBC-style hexadecimal
+                            |\d+                 # decimal or octal, or MySQL ZEROFILL decimal
+                            (?:[eE][+-]?\d+)?    # optional exponent on decimals or octals
+                          )
+                        )/x',
+                        (string) $value, $matches)) {
+                        $quotedValue = $matches[1];
+                    }
+                    break;
+                case Zend_Db::FLOAT_TYPE: // float or decimal
+                    $quotedValue = sprintf('%F', $value);
+            }
+            return $quotedValue;
+        }
+
+        return $this->_quote($value);
+    }
+
+    /**
+     * Quotes a value and places into a piece of text at a placeholder.
+     *
+     * The placeholder is a question-mark; all placeholders will be replaced
+     * with the quoted value.   For example:
+     *
+     * <code>
+     * $text = "WHERE date < ?";
+     * $date = "2005-01-02";
+     * $safe = $sql->quoteInto($text, $date);
+     * // $safe = "WHERE date < '2005-01-02'"
+     * </code>
+     *
+     * @param string  $text  The text with a placeholder.
+     * @param mixed   $value The value to quote.
+     * @param string  $type  OPTIONAL SQL datatype
+     * @param integer $count OPTIONAL count of placeholders to replace
+     * @return string An SQL-safe quoted value placed into the original text.
+     */
+    public function quoteInto($text, $value, $type = null, $count = null)
+    {
+        if ($count === null) {
+            return str_replace('?', $this->quote($value, $type), $text);
+        } else {
+            while ($count > 0) {
+                if (strpos($text, '?') !== false) {
+                    $text = substr_replace($text, $this->quote($value, $type), strpos($text, '?'), 1);
+                }
+                --$count;
+            }
+            return $text;
+        }
+    }
+
+    /**
+     * Quotes an identifier.
+     *
+     * Accepts a string representing a qualified indentifier. For Example:
+     * <code>
+     * $adapter->quoteIdentifier('myschema.mytable')
+     * </code>
+     * Returns: "myschema"."mytable"
+     *
+     * Or, an array of one or more identifiers that may form a qualified identifier:
+     * <code>
+     * $adapter->quoteIdentifier(array('myschema','my.table'))
+     * </code>
+     * Returns: "myschema"."my.table"
+     *
+     * The actual quote character surrounding the identifiers may vary depending on
+     * the adapter.
+     *
+     * @param string|array|Zend_Db_Expr $ident The identifier.
+     * @param boolean $auto If true, heed the AUTO_QUOTE_IDENTIFIERS config option.
+     * @return string The quoted identifier.
+     */
+    public function quoteIdentifier($ident, $auto=false)
+    {
+        return $this->_quoteIdentifierAs($ident, null, $auto);
+    }
+
+    /**
      * Quote a column identifier and alias.
      *
      * @param string|array|Zend_Db_Expr $ident The identifier or expression.
@@ -1082,10 +980,6 @@ abstract class Zend_Db_Adapter_Abstract
     }
 
     /**
-     * Abstract Methods
-     */
-
-    /**
      * Quote a table identifier and alias.
      *
      * @param string|array|Zend_Db_Expr $ident The identifier or expression.
@@ -1096,6 +990,74 @@ abstract class Zend_Db_Adapter_Abstract
     public function quoteTableAs($ident, $alias = null, $auto = false)
     {
         return $this->_quoteIdentifierAs($ident, $alias, $auto);
+    }
+
+    /**
+     * Quote an identifier and an optional alias.
+     *
+     * @param string|array|Zend_Db_Expr $ident The identifier or expression.
+     * @param string $alias An optional alias.
+     * @param boolean $auto If true, heed the AUTO_QUOTE_IDENTIFIERS config option.
+     * @param string $as The string to add between the identifier/expression and the alias.
+     * @return string The quoted identifier and alias.
+     */
+    protected function _quoteIdentifierAs($ident, $alias = null, $auto = false, $as = ' AS ')
+    {
+        if ($ident instanceof Zend_Db_Expr) {
+            $quoted = $ident->__toString();
+        } elseif ($ident instanceof Zend_Db_Select) {
+            $quoted = '(' . $ident->assemble() . ')';
+        } else {
+            if (is_string($ident)) {
+                $ident = explode('.', $ident);
+            }
+            if (is_array($ident)) {
+                $segments = array();
+                foreach ($ident as $segment) {
+                    if ($segment instanceof Zend_Db_Expr) {
+                        $segments[] = $segment->__toString();
+                    } else {
+                        $segments[] = $this->_quoteIdentifier($segment, $auto);
+                    }
+                }
+                if ($alias !== null && end($ident) == $alias) {
+                    $alias = null;
+                }
+                $quoted = implode('.', $segments);
+            } else {
+                $quoted = $this->_quoteIdentifier($ident, $auto);
+            }
+        }
+        if ($alias !== null) {
+            $quoted .= $as . $this->_quoteIdentifier($alias, $auto);
+        }
+        return $quoted;
+    }
+
+    /**
+     * Quote an identifier.
+     *
+     * @param  string $value The identifier or expression.
+     * @param boolean $auto If true, heed the AUTO_QUOTE_IDENTIFIERS config option.
+     * @return string        The quoted identifier and alias.
+     */
+    protected function _quoteIdentifier($value, $auto=false)
+    {
+        if ($auto === false || $this->_autoQuoteIdentifiers === true) {
+            $q = $this->getQuoteIdentifierSymbol();
+            return ($q . str_replace("$q", "$q$q", $value) . $q);
+        }
+        return $value;
+    }
+
+    /**
+     * Returns the symbol the adapter uses for delimited identifiers.
+     *
+     * @return string
+     */
+    public function getQuoteIdentifierSymbol()
+    {
+        return '"';
     }
 
     /**
@@ -1183,16 +1145,8 @@ abstract class Zend_Db_Adapter_Abstract
     }
 
     /**
-     * Returns the underlying database connection object or resource.
-     * If not presently connected, this initiates the connection.
-     *
-     * @return object|resource|null
+     * Abstract Methods
      */
-    public function getConnection()
-    {
-        $this->_connect();
-        return $this->_connection;
-    }
 
     /**
      * Returns a list of the tables in the database.
@@ -1231,6 +1185,13 @@ abstract class Zend_Db_Adapter_Abstract
     abstract public function describeTable($tableName, $schemaName = null);
 
     /**
+     * Creates a connection to the database.
+     *
+     * @return void
+     */
+    abstract protected function _connect();
+
+    /**
      * Test if a connection is active
      *
      * @return boolean
@@ -1243,6 +1204,14 @@ abstract class Zend_Db_Adapter_Abstract
      * @return void
      */
     abstract public function closeConnection();
+
+    /**
+     * Prepare a statement and return a PDOStatement-like object.
+     *
+     * @param string|Zend_Db_Select $sql SQL query
+     * @return Zend_Db_Statement|PDOStatement
+     */
+    abstract public function prepare($sql);
 
     /**
      * Gets the last ID generated automatically by an IDENTITY/AUTOINCREMENT column.
@@ -1261,6 +1230,30 @@ abstract class Zend_Db_Adapter_Abstract
     abstract public function lastInsertId($tableName = null, $primaryKey = null);
 
     /**
+     * Begin a transaction.
+     */
+    abstract protected function _beginTransaction();
+
+    /**
+     * Commit a transaction.
+     */
+    abstract protected function _commit();
+
+    /**
+     * Roll-back a transaction.
+     */
+    abstract protected function _rollBack();
+
+    /**
+     * Set the fetch mode.
+     *
+     * @param integer $mode
+     * @return void
+     * @throws Zend_Db_Adapter_Exception
+     */
+    abstract public function setFetchMode($mode);
+
+    /**
      * Adds an adapter-specific LIMIT clause to the SELECT statement.
      *
      * @param mixed $sql
@@ -1269,6 +1262,14 @@ abstract class Zend_Db_Adapter_Abstract
      * @return string
      */
     abstract public function limit($sql, $count, $offset = 0);
+
+    /**
+     * Check if the adapter supports real SQL parameters.
+     *
+     * @param string $type 'positional' or 'named'
+     * @return bool
+     */
+    abstract public function supportsParameters($type);
 
     /**
      * Retrieve server version in PHP style

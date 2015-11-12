@@ -18,14 +18,14 @@ use Piwik\Http;
 use Piwik\Log;
 use Piwik\Option;
 use Piwik\Piwik;
-use Piwik\Plugins\UserCountry\LocationProvider;
-use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
 use Piwik\Plugins\UserCountry\LocationProvider\GeoIp\Php;
-use Piwik\Scheduler\Schedule\Monthly;
-use Piwik\Scheduler\Schedule\Weekly;
+use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
+use Piwik\Plugins\UserCountry\LocationProvider;
 use Piwik\Scheduler\Scheduler;
 use Piwik\Scheduler\Task;
 use Piwik\Scheduler\Timetable;
+use Piwik\Scheduler\Schedule\Monthly;
+use Piwik\Scheduler\Schedule\Weekly;
 use Piwik\Unzip;
 
 /**
@@ -80,145 +80,6 @@ class GeoIPAutoUpdater extends Task
         }
 
         parent::__construct($this, 'update', null, $schedulePeriod, Task::LOWEST_PRIORITY);
-    }
-
-    /**
-     * Returns the configured update period, either 'week' or 'month'. Defaults to
-     * 'month'.
-     *
-     * @return string
-     */
-    public static function getSchedulePeriod()
-    {
-        $period = Option::get(self::SCHEDULE_PERIOD_OPTION_NAME);
-        if ($period === false) {
-            $period = self::SCHEDULE_PERIOD_MONTHLY;
-        }
-        return $period;
-    }
-
-    /**
-     * Sets the options used by this class based on query parameter values.
-     *
-     * See setUpdaterOptions for query params used.
-     */
-    public static function setUpdaterOptionsFromUrl()
-    {
-        $options = array(
-            'loc'    => Common::getRequestVar('loc_db', false, 'string'),
-            'isp'    => Common::getRequestVar('isp_db', false, 'string'),
-            'org'    => Common::getRequestVar('org_db', false, 'string'),
-            'period' => Common::getRequestVar('period', false, 'string'),
-        );
-
-        foreach (self::$urlOptions as $optionKey => $optionName) {
-            $options[$optionKey] = Common::unsanitizeInputValue($options[$optionKey]); // URLs should not be sanitized
-        }
-
-        self::setUpdaterOptions($options);
-    }
-
-    /**
-     * Sets the options used by this class based on the elements in $options.
-     *
-     * The following elements of $options are used:
-     *   'loc' - URL for location database.
-     *   'isp' - URL for ISP database.
-     *   'org' - URL for Organization database.
-     *   'period' - 'weekly' or 'monthly'. When to run the updates.
-     *
-     * @param array $options
-     * @throws Exception
-     */
-    public static function setUpdaterOptions($options)
-    {
-        // set url options
-        foreach (self::$urlOptions as $optionKey => $optionName) {
-            if (!isset($options[$optionKey])) {
-                continue;
-            }
-
-            $url = $options[$optionKey];
-            $url = self::removeDateFromUrl($url);
-
-            Option::set($optionName, $url);
-        }
-
-        // set period option
-        if (!empty($options['period'])) {
-            $period = $options['period'];
-
-            if ($period != self::SCHEDULE_PERIOD_MONTHLY
-                && $period != self::SCHEDULE_PERIOD_WEEKLY
-            ) {
-                throw new Exception(Piwik::translate(
-                    'UserCountry_InvalidGeoIPUpdatePeriod',
-                    array("'$period'", "'" . self::SCHEDULE_PERIOD_MONTHLY . "', '" . self::SCHEDULE_PERIOD_WEEKLY . "'")
-                ));
-            }
-
-            Option::set(self::SCHEDULE_PERIOD_OPTION_NAME, $period);
-
-            /** @var Scheduler $scheduler */
-            $scheduler = StaticContainer::getContainer()->get('Piwik\Scheduler\Scheduler');
-
-            $scheduler->rescheduleTask(new GeoIPAutoUpdater());
-        }
-    }
-
-    /**
-     * Removes the &date=... query parameter if present in the URL. This query parameter
-     * is in MaxMind URLs by default and will force the download of an old database.
-     *
-     * @param string $url
-     * @return string
-     */
-    private static function removeDateFromUrl($url)
-    {
-        return preg_replace("/&date=[^&#]*/", '', $url);
-    }
-
-    /**
-     * Returns true if the auto-updater is setup to update at least one type of
-     * database. False if otherwise.
-     *
-     * @return bool
-     */
-    public static function isUpdaterSetup()
-    {
-        if (Option::get(self::LOC_URL_OPTION_NAME) !== false
-            || Option::get(self::ISP_URL_OPTION_NAME) !== false
-            || Option::get(self::ORG_URL_OPTION_NAME) !== false
-        ) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Returns the confiured URL (if any) for a type of database.
-     *
-     * @param string $key 'loc', 'isp' or 'org'
-     * @throws Exception
-     * @return string|false
-     */
-    public static function getConfiguredUrl($key)
-    {
-        if (empty(self::$urlOptions[$key])) {
-            throw new Exception("Invalid key $key");
-        }
-        $url = Option::get(self::$urlOptions[$key]);
-        return $url;
-    }
-
-    /**
-     * Performs a GeoIP database update.
-     */
-    public static function performUpdate()
-    {
-        $instance = new GeoIPAutoUpdater();
-        $instance->update();
     }
 
     /**
@@ -305,46 +166,6 @@ class GeoIPAutoUpdater extends Task
     }
 
     /**
-     * Returns the extension of a URL used to update a GeoIP database, if it can be found.
-     */
-    public static function getGeoIPUrlExtension($url)
-    {
-        // check for &suffix= query param that is special to MaxMind URLs
-        if (preg_match('/suffix=([^&]+)/', $url, $matches)) {
-            $ext = $matches[1];
-        } else {
-            // use basename of url
-            $filenameParts = explode('.', basename($url), 2);
-            if (count($filenameParts) > 1) {
-                $ext = end($filenameParts);
-            } else {
-                $ext = reset($filenameParts);
-            }
-        }
-
-        self::checkForSupportedArchiveType($ext);
-
-        return $ext;
-    }
-
-    /**
-     * Avoid downloading archive types we don't support. No point in downloading it,
-     * if we can't unzip it...
-     *
-     * @param string $ext The URL file's extension.
-     * @throws \Exception
-     */
-    private static function checkForSupportedArchiveType($ext)
-    {
-        if ($ext != 'tar.gz'
-            && $ext != 'gz'
-            && $ext != 'dat.gz'
-        ) {
-            throw new \Exception(Piwik::translate('UserCountry_UnsupportedArchiveType', "'$ext'"));
-        }
-    }
-
-    /**
      * Unzips a downloaded GeoIP database. Only unzips .gz & .tar.gz files.
      *
      * @param string $path Path to zipped file.
@@ -396,7 +217,7 @@ class GeoIPAutoUpdater extends Task
             $fd = fopen($outputPath, 'wb');
             fwrite($fd, $unzipped);
             fclose($fd);
-        } else {if (substr($path, -3, 3) == '.gz') {
+        } else if (substr($path, -3, 3) == '.gz') {
             $unzip = Unzip::factory('gz', $path);
             $success = $unzip->extract($outputPath);
 
@@ -407,7 +228,7 @@ class GeoIPAutoUpdater extends Task
         } else {
             $ext = end(explode(basename($path), '.', 2));
             throw new Exception(Piwik::translate('UserCountry_UnsupportedArchiveType', "'$ext'"));
-        }}
+        }
 
         try {
             // test that the new archive is a valid GeoIP database
@@ -461,6 +282,211 @@ class GeoIPAutoUpdater extends Task
             unlink($path);
 
             throw $ex;
+        }
+    }
+
+    /**
+     * Sets the options used by this class based on query parameter values.
+     *
+     * See setUpdaterOptions for query params used.
+     */
+    public static function setUpdaterOptionsFromUrl()
+    {
+        $options = array(
+            'loc'    => Common::getRequestVar('loc_db', false, 'string'),
+            'isp'    => Common::getRequestVar('isp_db', false, 'string'),
+            'org'    => Common::getRequestVar('org_db', false, 'string'),
+            'period' => Common::getRequestVar('period', false, 'string'),
+        );
+
+        foreach (self::$urlOptions as $optionKey => $optionName) {
+            $options[$optionKey] = Common::unsanitizeInputValue($options[$optionKey]); // URLs should not be sanitized
+        }
+
+        self::setUpdaterOptions($options);
+    }
+
+    /**
+     * Sets the options used by this class based on the elements in $options.
+     *
+     * The following elements of $options are used:
+     *   'loc' - URL for location database.
+     *   'isp' - URL for ISP database.
+     *   'org' - URL for Organization database.
+     *   'period' - 'weekly' or 'monthly'. When to run the updates.
+     *
+     * @param array $options
+     * @throws Exception
+     */
+    public static function setUpdaterOptions($options)
+    {
+        // set url options
+        foreach (self::$urlOptions as $optionKey => $optionName) {
+            if (!isset($options[$optionKey])) {
+                continue;
+            }
+
+            $url = $options[$optionKey];
+            $url = self::removeDateFromUrl($url);
+
+            Option::set($optionName, $url);
+        }
+
+        // set period option
+        if (!empty($options['period'])) {
+            $period = $options['period'];
+
+            if ($period != self::SCHEDULE_PERIOD_MONTHLY
+                && $period != self::SCHEDULE_PERIOD_WEEKLY
+            ) {
+                throw new Exception(Piwik::translate(
+                    'UserCountry_InvalidGeoIPUpdatePeriod',
+                    array("'$period'", "'" . self::SCHEDULE_PERIOD_MONTHLY . "', '" . self::SCHEDULE_PERIOD_WEEKLY . "'")
+                ));
+            }
+
+            Option::set(self::SCHEDULE_PERIOD_OPTION_NAME, $period);
+
+            /** @var Scheduler $scheduler */
+            $scheduler = StaticContainer::getContainer()->get('Piwik\Scheduler\Scheduler');
+
+            $scheduler->rescheduleTask(new GeoIPAutoUpdater());
+        }
+    }
+
+    /**
+     * Returns true if the auto-updater is setup to update at least one type of
+     * database. False if otherwise.
+     *
+     * @return bool
+     */
+    public static function isUpdaterSetup()
+    {
+        if (Option::get(self::LOC_URL_OPTION_NAME) !== false
+            || Option::get(self::ISP_URL_OPTION_NAME) !== false
+            || Option::get(self::ORG_URL_OPTION_NAME) !== false
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Retrieves the URLs used to update various GeoIP database files.
+     *
+     * @return array
+     */
+    public static function getConfiguredUrls()
+    {
+        $result = array();
+        foreach (self::$urlOptions as $key => $optionName) {
+            $result[$key] = Option::get($optionName);
+        }
+        return $result;
+    }
+
+    /**
+     * Returns the confiured URL (if any) for a type of database.
+     *
+     * @param string $key 'loc', 'isp' or 'org'
+     * @throws Exception
+     * @return string|false
+     */
+    public static function getConfiguredUrl($key)
+    {
+        if (empty(self::$urlOptions[$key])) {
+            throw new Exception("Invalid key $key");
+        }
+        $url = Option::get(self::$urlOptions[$key]);
+        return $url;
+    }
+
+    /**
+     * Performs a GeoIP database update.
+     */
+    public static function performUpdate()
+    {
+        $instance = new GeoIPAutoUpdater();
+        $instance->update();
+    }
+
+    /**
+     * Returns the configured update period, either 'week' or 'month'. Defaults to
+     * 'month'.
+     *
+     * @return string
+     */
+    public static function getSchedulePeriod()
+    {
+        $period = Option::get(self::SCHEDULE_PERIOD_OPTION_NAME);
+        if ($period === false) {
+            $period = self::SCHEDULE_PERIOD_MONTHLY;
+        }
+        return $period;
+    }
+
+    /**
+     * Returns an array of strings for GeoIP databases that have update URLs configured, but
+     * are not present in the misc directory. Each string is a key describing the type of
+     * database (ie, 'loc', 'isp' or 'org').
+     *
+     * @return array
+     */
+    public static function getMissingDatabases()
+    {
+        $result = array();
+        foreach (self::getConfiguredUrls() as $key => $url) {
+            if (!empty($url)) {
+                // if a database of the type does not exist, but there's a url to update, then
+                // a database is missing
+                $path = GeoIp::getPathToGeoIpDatabase(
+                    GeoIp::$dbNames[$key]);
+                if ($path === false) {
+                    $result[] = $key;
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Returns the extension of a URL used to update a GeoIP database, if it can be found.
+     */
+    public static function getGeoIPUrlExtension($url)
+    {
+        // check for &suffix= query param that is special to MaxMind URLs
+        if (preg_match('/suffix=([^&]+)/', $url, $matches)) {
+            $ext = $matches[1];
+        } else {
+            // use basename of url
+            $filenameParts = explode('.', basename($url), 2);
+            if (count($filenameParts) > 1) {
+                $ext = end($filenameParts);
+            } else {
+                $ext = reset($filenameParts);
+            }
+        }
+
+        self::checkForSupportedArchiveType($ext);
+
+        return $ext;
+    }
+
+    /**
+     * Avoid downloading archive types we don't support. No point in downloading it,
+     * if we can't unzip it...
+     *
+     * @param string $ext The URL file's extension.
+     * @throws \Exception
+     */
+    private static function checkForSupportedArchiveType($ext)
+    {
+        if ($ext != 'tar.gz'
+            && $ext != 'gz'
+            && $ext != 'dat.gz'
+        ) {
+            throw new \Exception(Piwik::translate('UserCountry_UnsupportedArchiveType', "'$ext'"));
         }
     }
 
@@ -562,44 +588,6 @@ class GeoIPAutoUpdater extends Task
     }
 
     /**
-     * Returns an array of strings for GeoIP databases that have update URLs configured, but
-     * are not present in the misc directory. Each string is a key describing the type of
-     * database (ie, 'loc', 'isp' or 'org').
-     *
-     * @return array
-     */
-    public static function getMissingDatabases()
-    {
-        $result = array();
-        foreach (self::getConfiguredUrls() as $key => $url) {
-            if (!empty($url)) {
-                // if a database of the type does not exist, but there's a url to update, then
-                // a database is missing
-                $path = GeoIp::getPathToGeoIpDatabase(
-                    GeoIp::$dbNames[$key]);
-                if ($path === false) {
-                    $result[] = $key;
-                }
-            }
-        }
-        return $result;
-    }
-
-    /**
-     * Retrieves the URLs used to update various GeoIP database files.
-     *
-     * @return array
-     */
-    public static function getConfiguredUrls()
-    {
-        $result = array();
-        foreach (self::$urlOptions as $key => $optionName) {
-            $result[$key] = Option::get($optionName);
-        }
-        return $result;
-    }
-
-    /**
      * Custom PHP error handler used to catch any PHP errors that occur when
      * testing a downloaded GeoIP file.
      *
@@ -629,6 +617,18 @@ class GeoIPAutoUpdater extends Task
     {
         $timestamp = Option::get(self::LAST_RUN_TIME_OPTION_NAME);
         return $timestamp === false ? false : Date::factory((int)$timestamp);
+    }
+
+    /**
+     * Removes the &date=... query parameter if present in the URL. This query parameter
+     * is in MaxMind URLs by default and will force the download of an old database.
+     *
+     * @param string $url
+     * @return string
+     */
+    private static function removeDateFromUrl($url)
+    {
+        return preg_replace("/&date=[^&#]*/", '', $url);
     }
 
     /**
@@ -685,9 +685,9 @@ class GeoIPAutoUpdater extends Task
 
         if ($updaterPeriod == self::SCHEDULE_PERIOD_WEEKLY) {
             return Date::factory($rescheduledTime)->subWeek(1);
-        } else {if ($updaterPeriod == self::SCHEDULE_PERIOD_MONTHLY) {
+        } else if ($updaterPeriod == self::SCHEDULE_PERIOD_MONTHLY) {
             return Date::factory($rescheduledTime)->subMonth(1);
-        }}
+        }
         throw new Exception("Unknown GeoIP updater period found in database: %s", $updaterPeriod);
     }
 }

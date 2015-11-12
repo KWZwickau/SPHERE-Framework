@@ -10,14 +10,23 @@ namespace Piwik\Plugins\Referrers\Columns;
 
 use Piwik\Piwik;
 use Piwik\Plugins\Referrers\Segment;
-use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Action;
 
 class Keyword extends Base
 {
     protected $columnName = 'referer_keyword';
     protected $columnType = 'VARCHAR(255) NULL';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('referrerKeyword');
+        $segment->setName('General_ColumnKeyword');
+        $segment->setAcceptedValues('Encoded%20Keyword, keyword');
+        $this->addSegment($segment);
+    }
 
     public function getName()
     {
@@ -50,14 +59,5 @@ class Keyword extends Base
     public function onAnyGoalConversion(Request $request, Visitor $visitor, $action)
     {
         return $this->getValueForRecordGoal($request, $visitor);
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('referrerKeyword');
-        $segment->setName('General_ColumnKeyword');
-        $segment->setAcceptedValues('Encoded%20Keyword, keyword');
-        $this->addSegment($segment);
     }
 }

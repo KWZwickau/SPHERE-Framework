@@ -9,9 +9,9 @@
 namespace Piwik\DataTable\Renderer;
 
 use Piwik\Common;
-use Piwik\DataTable;
 use Piwik\DataTable\Renderer;
 use Piwik\DataTable\Simple;
+use Piwik\DataTable;
 use Piwik\Date;
 use Piwik\Period;
 use Piwik\Period\Range;
@@ -31,39 +31,44 @@ use Piwik\ProxyHttp;
 class Csv extends Renderer
 {
     /**
-     * This string is also hardcoded in archive,sh
-     */
-    const NO_DATA_AVAILABLE = 'No data available';
-    /**
      * Column separator
      *
      * @var string
      */
     public $separator = ",";
+
     /**
      * Line end
      *
      * @var string
      */
     public $lineEnd = "\n";
+
     /**
      * 'metadata' columns will be exported, prefixed by 'metadata_'
      *
      * @var bool
      */
     public $exportMetadata = true;
+
     /**
      * Converts the content to unicode so that UTF8 characters (eg. chinese) can be imported in Excel
      *
      * @var bool
      */
     public $convertToUnicode = true;
+
     /**
      * idSubtable will be exported in a column called 'idsubdatatable'
      *
      * @var bool
      */
     public $exportIdSubtable = true;
+
+    /**
+     * This string is also hardcoded in archive,sh
+     */
+    const NO_DATA_AVAILABLE = 'No data available';
 
     /**
      * Computes the dataTable output and returns the string/binary
@@ -81,6 +86,26 @@ class Csv extends Renderer
 
         $str = $this->convertToUnicode($str);
         return $str;
+    }
+
+    /**
+     * Enables / Disables unicode converting
+     *
+     * @param $bool
+     */
+    public function setConvertToUnicode($bool)
+    {
+        $this->convertToUnicode = $bool;
+    }
+
+    /**
+     * Sets the column separator
+     *
+     * @param $separator
+     */
+    public function setSeparator($separator)
+    {
+        $this->separator = $separator;
     }
 
     /**
@@ -142,6 +167,45 @@ class Csv extends Renderer
     }
 
     /**
+     * Converts the output of the given simple data table
+     *
+     * @param DataTable|Simple $table
+     * @param array $allColumns
+     * @return string
+     */
+    protected function renderDataTable($table, &$allColumns = array())
+    {
+        if ($table instanceof Simple) {
+            $row = $table->getFirstRow();
+            if ($row !== false) {
+                $columnNameToValue = $row->getColumns();
+                if (count($columnNameToValue) == 1) {
+                    // simple tables should only have one column, the value
+                    $allColumns['value'] = true;
+
+                    $value = array_values($columnNameToValue);
+                    $str = 'value' . $this->lineEnd . $this->formatValue($value[0]);
+                    return $str;
+                }
+            }
+        }
+
+        $csv = $this->makeArrayFromDataTable($table, $allColumns);
+
+        // now we make sure that all the rows in the CSV array have all the columns
+        foreach ($csv as &$row) {
+            foreach ($allColumns as $columnName => $true) {
+                if (!isset($row[$columnName])) {
+                    $row[$columnName] = '';
+                }
+            }
+        }
+
+        $str = $this->buildCsvString($allColumns, $csv);
+        return $str;
+    }
+
+    /**
      * Returns the CSV header line for a set of metrics. Will translate columns if desired.
      *
      * @param array $columnMetrics
@@ -193,88 +257,36 @@ class Csv extends Renderer
     }
 
     /**
-     * Converts the output of the given simple data table
-     *
-     * @param DataTable|Simple $table
-     * @param array $allColumns
-     * @return string
+     * Sends the http headers for csv file
      */
-    protected function renderDataTable($table, &$allColumns = array())
+    protected function renderHeader()
     {
-        if ($table instanceof Simple) {
-            $row = $table->getFirstRow();
-            if ($row !== false) {
-                $columnNameToValue = $row->getColumns();
-                if (count($columnNameToValue) == 1) {
-                    // simple tables should only have one column, the value
-                    $allColumns['value'] = true;
+        $fileName = 'Piwik ' . Piwik::translate('General_Export');
 
-                    $value = array_values($columnNameToValue);
-                    $str = 'value' . $this->lineEnd . $this->formatValue($value[0]);
-                    return $str;
-                }
+        $period = Common::getRequestVar('period', false);
+        $date = Common::getRequestVar('date', false);
+        if ($period || $date) {
+            // in test cases, there are no request params set
+
+            if ($period == 'range') {
+                $period = new Range($period, $date);
+            } elseif (strpos($date, ',') !== false) {
+                $period = new Range('range', $date);
+            } else {
+                $period = Period\Factory::build($period, Date::factory($date));
             }
+
+            $prettyDate = $period->getLocalizedLongString();
+
+            $meta = $this->getApiMetaData();
+
+            $fileName .= ' _ ' . $meta['name']
+                . ' _ ' . $prettyDate . '.csv';
         }
 
-        $csv = $this->makeArrayFromDataTable($table, $allColumns);
-
-        // now we make sure that all the rows in the CSV array have all the columns
-        foreach ($csv as &$row) {
-            foreach ($allColumns as $columnName => $true) {
-                if (!isset($row[$columnName])) {
-                    $row[$columnName] = '';
-                }
-            }
-        }
-
-        $str = $this->buildCsvString($allColumns, $csv);
-        return $str;
-    }
-
-    /**
-     * @param $table
-     * @param $allColumns
-     * @return array of csv data
-     */
-    private function makeArrayFromDataTable($table, &$allColumns)
-    {
-        $csv = array();
-        foreach ($table->getRows() as $row) {
-            $csvRow = $this->flattenColumnArray($row->getColumns());
-
-            if ($this->exportMetadata) {
-                $metadata = $row->getMetadata();
-                foreach ($metadata as $name => $value) {
-                    if ($name == 'idsubdatatable_in_db') {
-                        continue;
-                    }
-                    //if a metadata and a column have the same name make sure they dont overwrite
-                    if ($this->translateColumnNames) {
-                        $name = Piwik::translate('General_Metadata') . ': ' . $name;
-                    } else {
-                        $name = 'metadata_' . $name;
-                    }
-
-                    $csvRow[$name] = $value;
-                }
-            }
-
-            foreach ($csvRow as $name => $value) {
-                $allColumns[$name] = true;
-            }
-
-            if ($this->exportIdSubtable) {
-                $idsubdatatable = $row->getIdSubDataTable();
-                if ($idsubdatatable !== false
-                    && $this->hideIdSubDatatable === false
-                ) {
-                    $csvRow['idsubdatatable'] = $idsubdatatable;
-                }
-            }
-
-            $csv[] = $csvRow;
-        }
-        return $csv;
+        // silent fail otherwise unit tests fail
+        Common::sendHeader('Content-Disposition: attachment; filename="' . $fileName . '"', true);
+        ProxyHttp::overrideCacheControlHeaders();
     }
 
     /**
@@ -295,8 +307,7 @@ class Csv extends Renderer
                     && is_array(reset($value))
                 ) {
                     foreach ($value as $level1Key => $level1Value) {
-                        $inner = $name == 'goals' ? Piwik::translate('Goals_GoalX',
-                            $level1Key) : $name . ' ' . $level1Key;
+                        $inner = $name == 'goals' ? Piwik::translate('Goals_GoalX', $level1Key) : $name . ' ' . $level1Key;
                         $columnNameTemplate = '%s (' . $inner . ')';
 
                         $this->flattenColumnArray($level1Value, $csvRow, $columnNameTemplate);
@@ -357,36 +368,49 @@ class Csv extends Renderer
     }
 
     /**
-     * Sends the http headers for csv file
+     * @param $table
+     * @param $allColumns
+     * @return array of csv data
      */
-    protected function renderHeader()
+    private function makeArrayFromDataTable($table, &$allColumns)
     {
-        $fileName = 'Piwik ' . Piwik::translate('General_Export');
+        $csv = array();
+        foreach ($table->getRows() as $row) {
+            $csvRow = $this->flattenColumnArray($row->getColumns());
 
-        $period = Common::getRequestVar('period', false);
-        $date = Common::getRequestVar('date', false);
-        if ($period || $date) {
-            // in test cases, there are no request params set
+            if ($this->exportMetadata) {
+                $metadata = $row->getMetadata();
+                foreach ($metadata as $name => $value) {
+                    if ($name == 'idsubdatatable_in_db') {
+                        continue;
+                    }
+                    //if a metadata and a column have the same name make sure they dont overwrite
+                    if ($this->translateColumnNames) {
+                        $name = Piwik::translate('General_Metadata') . ': ' . $name;
+                    } else {
+                        $name = 'metadata_' . $name;
+                    }
 
-            if ($period == 'range') {
-                $period = new Range($period, $date);
-            } elseif (strpos($date, ',') !== false) {
-                $period = new Range('range', $date);
-            } else {
-                $period = Period\Factory::build($period, Date::factory($date));
+                    $csvRow[$name] = $value;
+                }
             }
 
-            $prettyDate = $period->getLocalizedLongString();
+            foreach ($csvRow as $name => $value) {
+                $allColumns[$name] = true;
+            }
 
-            $meta = $this->getApiMetaData();
+            if ($this->exportIdSubtable) {
+                $idsubdatatable = $row->getIdSubDataTable();
+                if ($idsubdatatable !== false
+                    && $this->hideIdSubDatatable === false
+                ) {
+                    $csvRow['idsubdatatable'] = $idsubdatatable;
+                }
+            }
 
-            $fileName .= ' _ ' . $meta['name']
-                . ' _ ' . $prettyDate . '.csv';
+            $csv[] = $csvRow;
         }
-
-        // silent fail otherwise unit tests fail
-        Common::sendHeader('Content-Disposition: attachment; filename="' . $fileName . '"', true);
-        ProxyHttp::overrideCacheControlHeaders();
+        return $csv;
     }
 
     /**
@@ -401,25 +425,5 @@ class Csv extends Renderer
             $str = chr(255) . chr(254) . mb_convert_encoding($str, 'UTF-16LE', 'UTF-8');
         }
         return $str;
-    }
-
-    /**
-     * Enables / Disables unicode converting
-     *
-     * @param $bool
-     */
-    public function setConvertToUnicode($bool)
-    {
-        $this->convertToUnicode = $bool;
-    }
-
-    /**
-     * Sets the column separator
-     *
-     * @param $separator
-     */
-    public function setSeparator($separator)
-    {
-        $this->separator = $separator;
     }
 }

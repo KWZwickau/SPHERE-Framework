@@ -52,11 +52,6 @@ class Sequence
         $this->table = $this->getTableName($tablePrefix);
     }
 
-    private function getTableName($prefix)
-    {
-        return ($prefix !== null) ? $prefix . self::TABLE_NAME : Common::prefixTable(self::TABLE_NAME);
-    }
-
     /**
      * Creates / initializes a new sequence.
      *
@@ -123,5 +118,10 @@ class Sequence
         if (!empty($id) || '0' === $id || 0 === $id) {
             return (int) $id;
         }
+    }
+
+    private function getTableName($prefix)
+    {
+        return ($prefix !== null) ? $prefix . self::TABLE_NAME : Common::prefixTable(self::TABLE_NAME);
     }
 }

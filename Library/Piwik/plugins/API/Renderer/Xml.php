@@ -10,8 +10,8 @@ namespace Piwik\Plugins\API\Renderer;
 
 use Piwik\API\ApiRenderer;
 use Piwik\Common;
-use Piwik\DataTable;
 use Piwik\DataTable\Renderer;
+use Piwik\DataTable;
 
 class Xml extends ApiRenderer
 {

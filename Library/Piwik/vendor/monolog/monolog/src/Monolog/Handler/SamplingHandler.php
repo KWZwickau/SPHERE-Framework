@@ -52,6 +52,11 @@ class SamplingHandler extends AbstractHandler
         }
     }
 
+    public function isHandling(array $record)
+    {
+        return $this->handler->isHandling($record);
+    }
+
     public function handle(array $record)
     {
         if ($this->isHandling($record) && mt_rand(1, $this->factor) === 1) {
@@ -73,10 +78,5 @@ class SamplingHandler extends AbstractHandler
         }
 
         return false === $this->bubble;
-    }
-
-    public function isHandling(array $record)
-    {
-        return $this->handler->isHandling($record);
     }
 }

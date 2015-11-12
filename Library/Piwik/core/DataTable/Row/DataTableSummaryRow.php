@@ -40,6 +40,17 @@ class DataTableSummaryRow extends Row
     }
 
     /**
+     * Reset this row to an empty one and sums the associated subtable again.
+     */
+    public function recalculate()
+    {
+        $subTable = $this->getSubtable();
+        if ($subTable) {
+            $this->sumTable($subTable);
+        }
+    }
+
+    /**
      * Sums a tables row with this one.
      *
      * @param DataTable $table
@@ -57,17 +68,6 @@ class DataTableSummaryRow extends Row
 
         if ($summaryRow) {
             $this->sumRow($summaryRow, $enableCopyMetadata, $metadata);
-        }
-    }
-
-    /**
-     * Reset this row to an empty one and sums the associated subtable again.
-     */
-    public function recalculate()
-    {
-        $subTable = $this->getSubtable();
-        if ($subTable) {
-            $this->sumTable($subTable);
         }
     }
 }

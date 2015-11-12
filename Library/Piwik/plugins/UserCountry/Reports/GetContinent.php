@@ -14,17 +14,6 @@ use Piwik\Plugins\UserCountry\Columns\Continent;
 
 class GetContinent extends Base
 {
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->show_exclude_low_population = false;
-        $view->config->show_search = false;
-        $view->config->show_offset_information = false;
-        $view->config->show_pagination_control = false;
-        $view->config->show_limit_control = false;
-        $view->config->documentation = $this->documentation;
-        $view->config->addTranslation('label', $this->dimension->getName());
-    }
-
     protected function init()
     {
         parent::init();
@@ -36,6 +25,17 @@ class GetContinent extends Base
         $this->order = 6;
         $this->widgetTitle = Piwik::translate('UserCountry_WidgetLocation')
                            . ' (' . Piwik::translate('UserCountry_Continent') . ')';
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->show_exclude_low_population = false;
+        $view->config->show_search = false;
+        $view->config->show_offset_information = false;
+        $view->config->show_pagination_control = false;
+        $view->config->show_limit_control = false;
+        $view->config->documentation = $this->documentation;
+        $view->config->addTranslation('label', $this->dimension->getName());
     }
 
 }

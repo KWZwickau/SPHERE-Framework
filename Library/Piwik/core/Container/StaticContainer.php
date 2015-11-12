@@ -31,14 +31,21 @@ class StaticContainer
      */
     private static $definitions = array();
 
+    /**
+     * @return Container
+     */
+    public static function getContainer()
+    {
+        if (empty(self::$containerStack)) {
+            throw new ContainerDoesNotExistException("The root container has not been created yet.");
+        }
+
+        return end(self::$containerStack);
+    }
+
     public static function clearContainer()
     {
         self::pop();
-    }
-
-    public static function pop()
-    {
-        array_pop(self::$containerStack);
     }
 
     /**
@@ -49,6 +56,11 @@ class StaticContainer
     public static function push(Container $container)
     {
         self::$containerStack[] = $container;
+    }
+
+    public static function pop()
+    {
+        array_pop(self::$containerStack);
     }
 
     public static function addDefinitions(array $definitions)
@@ -66,18 +78,6 @@ class StaticContainer
     public static function get($name)
     {
         return self::getContainer()->get($name);
-    }
-
-    /**
-     * @return Container
-     */
-    public static function getContainer()
-    {
-        if (empty(self::$containerStack)) {
-            throw new ContainerDoesNotExistException("The root container has not been created yet.");
-        }
-
-        return end(self::$containerStack);
     }
 
     public static function getDefinitions()

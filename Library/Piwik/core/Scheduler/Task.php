@@ -113,13 +113,34 @@ class Task
     }
 
     /**
-     * Returns the time in milliseconds when this task will be executed next.
+     * Returns the name of the class that contains the method to execute.
      *
-     * @return int
+     * @return string
      */
-    public function getRescheduledTime()
+    public function getClassName()
     {
-        return $this->getScheduledTime()->getRescheduledTime();
+        return $this->className;
+    }
+
+    /**
+     * Returns the name of the method that will be executed.
+     *
+     * @return string
+     */
+    public function getMethodName()
+    {
+        return $this->methodName;
+    }
+
+    /**
+     * Returns the value that will be passed to the method when executed, or `null` if
+     * no value will be supplied.
+     *
+     * @return string|null
+     */
+    public function getMethodParameter()
+    {
+        return $this->methodParameter;
     }
 
     /**
@@ -131,6 +152,16 @@ class Task
     public function getScheduledTime()
     {
         return $this->scheduledTime;
+    }
+
+    /**
+     * Returns the time in milliseconds when this task will be executed next.
+     *
+     * @return int
+     */
+    public function getRescheduledTime()
+    {
+        return $this->getScheduledTime()->getRescheduledTime();
     }
 
     /**
@@ -165,36 +196,5 @@ class Task
     public static function getTaskName($className, $methodName, $methodParameter = null)
     {
         return $className . '.' . $methodName . ($methodParameter == null ? '' : '_' . $methodParameter);
-    }
-
-    /**
-     * Returns the name of the class that contains the method to execute.
-     *
-     * @return string
-     */
-    public function getClassName()
-    {
-        return $this->className;
-    }
-
-    /**
-     * Returns the name of the method that will be executed.
-     *
-     * @return string
-     */
-    public function getMethodName()
-    {
-        return $this->methodName;
-    }
-
-    /**
-     * Returns the value that will be passed to the method when executed, or `null` if
-     * no value will be supplied.
-     *
-     * @return string|null
-     */
-    public function getMethodParameter()
-    {
-        return $this->methodParameter;
     }
 }

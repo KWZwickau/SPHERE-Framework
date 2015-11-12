@@ -10,9 +10,9 @@
 namespace Piwik\Plugins\Events\Actions;
 
 use Piwik\Common;
-use Piwik\Tracker;
 use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
+use Piwik\Tracker;
 
 /**
  * An Event is composed of a URL, a Category name, an Action name, and optionally a Name and Value.
@@ -53,29 +53,6 @@ class ActionEvent extends Action
         return $this->request->getParam('e_n');
     }
 
-    public function getIdActionUrlForEntryAndExitIds()
-    {
-        return false;
-    }
-
-    public function getIdActionNameForEntryAndExitIds()
-    {
-        return false;
-    }
-
-    // Do not track this Event URL as Entry/Exit Page URL (leave the existing entry/exit)
-
-    public function writeDebugInfo()
-    {
-        $write = parent::writeDebugInfo();
-        if ($write) {
-            Common::printDebug("Event Value = " . $this->getCustomFloatValue());
-        }
-        return $write;
-    }
-
-    // Do not track this Event Name as Entry/Exit Page Title (leave the existing entry/exit)
-
     public function getCustomFloatValue()
     {
         return $this->eventValue;
@@ -86,5 +63,26 @@ class ActionEvent extends Action
         return array(
             'idaction_url' => $this->getUrlAndType()
         );
+    }
+
+    // Do not track this Event URL as Entry/Exit Page URL (leave the existing entry/exit)
+    public function getIdActionUrlForEntryAndExitIds()
+    {
+        return false;
+    }
+
+    // Do not track this Event Name as Entry/Exit Page Title (leave the existing entry/exit)
+    public function getIdActionNameForEntryAndExitIds()
+    {
+        return false;
+    }
+
+    public function writeDebugInfo()
+    {
+        $write = parent::writeDebugInfo();
+        if ($write) {
+            Common::printDebug("Event Value = " . $this->getCustomFloatValue());
+        }
+        return $write;
     }
 }

@@ -49,6 +49,17 @@ class ClassNameProcessor
         return $name;
     }
 
+    private function getClassNameThatIsLogging($backtrace)
+    {
+        foreach ($backtrace as $line) {
+            if (isset($line['class'])) {
+                return $line['class'];
+            }
+        }
+
+        return '';
+    }
+
     private function getBacktrace()
     {
         if (version_compare(phpversion(), '5.3.6', '>=')) {
@@ -66,16 +77,5 @@ class ClassNameProcessor
         });
 
         return $backtrace;
-    }
-
-    private function getClassNameThatIsLogging($backtrace)
-    {
-        foreach ($backtrace as $line) {
-            if (isset($line['class'])) {
-                return $line['class'];
-            }
-        }
-
-        return '';
     }
 }

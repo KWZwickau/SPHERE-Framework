@@ -10,8 +10,8 @@
 namespace DI\Definition\Resolver;
 
 use DI\Definition\DecoratorDefinition;
-use DI\Definition\Definition;
 use DI\Definition\Exception\DefinitionException;
+use DI\Definition\Definition;
 use Interop\Container\ContainerInterface;
 
 /**
@@ -85,16 +85,6 @@ class DecoratorResolver implements DefinitionResolver
         return call_user_func($callable, $decorated, $this->container);
     }
 
-    private function assertIsDecoratorDefinition(Definition $definition)
-    {
-        if (!$definition instanceof DecoratorDefinition) {
-            throw new \InvalidArgumentException(sprintf(
-                'This definition resolver is only compatible with DecoratorDefinition objects, %s given',
-                get_class($definition)
-            ));
-        }
-    }
-
     /**
      * {@inheritdoc}
      */
@@ -103,5 +93,15 @@ class DecoratorResolver implements DefinitionResolver
         $this->assertIsDecoratorDefinition($definition);
 
         return true;
+    }
+
+    private function assertIsDecoratorDefinition(Definition $definition)
+    {
+        if (!$definition instanceof DecoratorDefinition) {
+            throw new \InvalidArgumentException(sprintf(
+                'This definition resolver is only compatible with DecoratorDefinition objects, %s given',
+                get_class($definition)
+            ));
+        }
     }
 }

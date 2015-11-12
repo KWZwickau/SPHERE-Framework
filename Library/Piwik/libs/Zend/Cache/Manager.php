@@ -142,36 +142,6 @@ class Zend_Cache_Manager
     }
 
     /**
-     * Check if the named configuration template
-     *
-     * @param  string $name
-     * @return bool
-     */
-    public function hasCacheTemplate($name)
-    {
-        if (isset($this->_optionTemplates[$name])) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Fetch all available caches
-     *
-     * @return array An array of all available caches with it's names as key
-     */
-    public function getCaches()
-    {
-        $caches = $this->_caches;
-        foreach ($this->_optionTemplates as $name => $tmp) {
-            if (!isset($caches[$name])) {
-                $caches[$name] = $this->getCache($name);
-            }
-        }
-        return $caches;
-    }
-
-    /**
      * Fetch the named cache object, or instantiate and return a cache object
      * using a named configuration template
      *
@@ -207,6 +177,22 @@ class Zend_Cache_Manager
     }
 
     /**
+     * Fetch all available caches
+     *
+     * @return array An array of all available caches with it's names as key
+     */
+    public function getCaches()
+    {
+        $caches = $this->_caches;
+        foreach ($this->_optionTemplates as $name => $tmp) {
+            if (!isset($caches[$name])) {
+                $caches[$name] = $this->getCache($name);
+            }
+        }
+        return $caches;
+    }
+
+    /**
      * Set a named configuration template from which a cache object can later
      * be lazy loaded
      *
@@ -225,6 +211,20 @@ class Zend_Cache_Manager
         }
         $this->_optionTemplates[$name] = $options;
         return $this;
+    }
+
+    /**
+     * Check if the named configuration template
+     *
+     * @param  string $name
+     * @return bool
+     */
+    public function hasCacheTemplate($name)
+    {
+        if (isset($this->_optionTemplates[$name])) {
+            return true;
+        }
+        return false;
     }
 
     /**

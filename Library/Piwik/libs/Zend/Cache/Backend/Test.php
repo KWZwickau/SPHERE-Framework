@@ -79,22 +79,6 @@ class Zend_Cache_Backend_Test extends Zend_Cache_Backend implements Zend_Cache_B
     }
 
     /**
-     * Add an event to the log array
-     *
-     * @param  string $methodName MethodName
-     * @param  array  $args       Arguments
-     * @return void
-     */
-    private function _addLog($methodName, $args)
-    {
-        $this->_log[$this->_index] = array(
-            'methodName' => $methodName,
-            'args' => $args
-        );
-        $this->_index = $this->_index + 1;
-    }
-
-    /**
      * Set the frontend directives
      *
      * @param  array $directives assoc of directives
@@ -408,6 +392,22 @@ class Zend_Cache_Backend_Test extends Zend_Cache_Backend implements Zend_Cache_B
             'infinite_lifetime'  => true,
             'get_list'           => true
         );
+    }
+
+    /**
+     * Add an event to the log array
+     *
+     * @param  string $methodName MethodName
+     * @param  array  $args       Arguments
+     * @return void
+     */
+    private function _addLog($methodName, $args)
+    {
+        $this->_log[$this->_index] = array(
+            'methodName' => $methodName,
+            'args' => $args
+        );
+        $this->_index = $this->_index + 1;
     }
 
 }

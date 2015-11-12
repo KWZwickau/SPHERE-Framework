@@ -70,6 +70,18 @@ class Zend_Mail_Storage_Imap extends Zend_Mail_Storage_Abstract
     // such optimizations. Especially the various fetch calls could be combined to one cache call
 
     /**
+     * protocol handler
+     * @var null|Zend_Mail_Protocol_Imap
+     */
+    protected $_protocol;
+
+    /**
+     * name of current folder
+     * @var string
+     */
+    protected $_currentFolder = '';
+
+    /**
      * imap flags to constants translation
      * @var array
      */
@@ -79,6 +91,7 @@ class Zend_Mail_Storage_Imap extends Zend_Mail_Storage_Abstract
                                           '\Deleted'  => Zend_Mail_Storage::FLAG_DELETED,
                                           '\Draft'    => Zend_Mail_Storage::FLAG_DRAFT,
                                           '\Flagged'  => Zend_Mail_Storage::FLAG_FLAGGED);
+
     /**
      * map flags to search criterias
      * @var array
@@ -89,16 +102,123 @@ class Zend_Mail_Storage_Imap extends Zend_Mail_Storage_Abstract
                                            '\Deleted'  => 'DELETED',
                                            '\Draft'    => 'DRAFT',
                                            '\Flagged'  => 'FLAGGED');
+
     /**
-     * protocol handler
-     * @var null|Zend_Mail_Protocol_Imap
+     * Count messages all messages in current box
+     *
+     * @return int number of messages
+     * @throws Zend_Mail_Storage_Exception
+     * @throws Zend_Mail_Protocol_Exception
      */
-    protected $_protocol;
+    public function countMessages($flags = null)
+    {
+        if (!$this->_currentFolder) {
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception('No selected folder to count');
+        }
+
+        if ($flags === null) {
+            return count($this->_protocol->search(array('ALL')));
+        }
+
+        $params = array();
+        foreach ((array)$flags as $flag) {
+            if (isset(self::$_searchFlags[$flag])) {
+                $params[] = self::$_searchFlags[$flag];
+            } else {
+                $params[] = 'KEYWORD';
+                $params[] = $this->_protocol->escapeString($flag);
+            }
+        }
+        return count($this->_protocol->search($params));
+    }
+
     /**
-     * name of current folder
-     * @var string
+     * get a list of messages with number and size
+     *
+     * @param int $id number of message
+     * @return int|array size of given message of list with all messages as array(num => size)
+     * @throws Zend_Mail_Protocol_Exception
      */
-    protected $_currentFolder = '';
+    public function getSize($id = 0)
+    {
+        if ($id) {
+            return $this->_protocol->fetch('RFC822.SIZE', $id);
+        }
+        return $this->_protocol->fetch('RFC822.SIZE', 1, INF);
+    }
+
+    /**
+     * Fetch a message
+     *
+     * @param int $id number of message
+     * @return Zend_Mail_Message
+     * @throws Zend_Mail_Protocol_Exception
+     */
+    public function getMessage($id)
+    {
+        $data = $this->_protocol->fetch(array('FLAGS', 'RFC822.HEADER'), $id);
+        $header = $data['RFC822.HEADER'];
+
+        $flags = array();
+        foreach ($data['FLAGS'] as $flag) {
+            $flags[] = isset(self::$_knownFlags[$flag]) ? self::$_knownFlags[$flag] : $flag;
+        }
+
+        return new $this->_messageClass(array('handler' => $this, 'id' => $id, 'headers' => $header, 'flags' => $flags));
+    }
+
+    /*
+     * Get raw header of message or part
+     *
+     * @param  int               $id       number of message
+     * @param  null|array|string $part     path to part or null for messsage header
+     * @param  int               $topLines include this many lines with header (after an empty line)
+     * @param  int $topLines include this many lines with header (after an empty line)
+     * @return string raw header
+     * @throws Zend_Mail_Protocol_Exception
+     * @throws Zend_Mail_Storage_Exception
+     */
+    public function getRawHeader($id, $part = null, $topLines = 0)
+    {
+        if ($part !== null) {
+            // TODO: implement
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception('not implemented');
+        }
+
+        // TODO: toplines
+        return $this->_protocol->fetch('RFC822.HEADER', $id);
+    }
+
+    /*
+     * Get raw content of message or part
+     *
+     * @param  int               $id   number of message
+     * @param  null|array|string $part path to part or null for messsage content
+     * @return string raw content
+     * @throws Zend_Mail_Protocol_Exception
+     * @throws Zend_Mail_Storage_Exception
+     */
+    public function getRawContent($id, $part = null)
+    {
+        if ($part !== null) {
+            // TODO: implement
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception('not implemented');
+        }
+
+        return $this->_protocol->fetch('RFC822.TEXT', $id);
+    }
 
     /**
      * create instance with parameters
@@ -162,148 +282,6 @@ class Zend_Mail_Storage_Imap extends Zend_Mail_Storage_Abstract
     }
 
     /**
-     * select given folder
-     *
-     * folder must be selectable!
-     *
-     * @param  Zend_Mail_Storage_Folder|string $globalName global name of folder or instance for subfolder
-     * @return null
-     * @throws Zend_Mail_Storage_Exception
-     * @throws Zend_Mail_Protocol_Exception
-     */
-    public function selectFolder($globalName)
-    {
-        $this->_currentFolder = $globalName;
-        if (!$this->_protocol->select($this->_currentFolder)) {
-            $this->_currentFolder = '';
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception('cannot change folder, maybe it does not exist');
-        }
-    }
-
-    /**
-     * Count messages all messages in current box
-     *
-     * @return int number of messages
-     * @throws Zend_Mail_Storage_Exception
-     * @throws Zend_Mail_Protocol_Exception
-     */
-    public function countMessages($flags = null)
-    {
-        if (!$this->_currentFolder) {
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception('No selected folder to count');
-        }
-
-        if ($flags === null) {
-            return count($this->_protocol->search(array('ALL')));
-        }
-
-        $params = array();
-        foreach ((array)$flags as $flag) {
-            if (isset(self::$_searchFlags[$flag])) {
-                $params[] = self::$_searchFlags[$flag];
-            } else {
-                $params[] = 'KEYWORD';
-                $params[] = $this->_protocol->escapeString($flag);
-            }
-        }
-        return count($this->_protocol->search($params));
-    }
-
-    /*
-     * Get raw header of message or part
-     *
-     * @param  int               $id       number of message
-     * @param  null|array|string $part     path to part or null for messsage header
-     * @param  int               $topLines include this many lines with header (after an empty line)
-     * @param  int $topLines include this many lines with header (after an empty line)
-     * @return string raw header
-     * @throws Zend_Mail_Protocol_Exception
-     * @throws Zend_Mail_Storage_Exception
-     */
-
-    /**
-     * get a list of messages with number and size
-     *
-     * @param int $id number of message
-     * @return int|array size of given message of list with all messages as array(num => size)
-     * @throws Zend_Mail_Protocol_Exception
-     */
-    public function getSize($id = 0)
-    {
-        if ($id) {
-            return $this->_protocol->fetch('RFC822.SIZE', $id);
-        }
-        return $this->_protocol->fetch('RFC822.SIZE', 1, INF);
-    }
-
-    /*
-     * Get raw content of message or part
-     *
-     * @param  int               $id   number of message
-     * @param  null|array|string $part path to part or null for messsage content
-     * @return string raw content
-     * @throws Zend_Mail_Protocol_Exception
-     * @throws Zend_Mail_Storage_Exception
-     */
-
-    /**
-     * Fetch a message
-     *
-     * @param int $id number of message
-     * @return Zend_Mail_Message
-     * @throws Zend_Mail_Protocol_Exception
-     */
-    public function getMessage($id)
-    {
-        $data = $this->_protocol->fetch(array('FLAGS', 'RFC822.HEADER'), $id);
-        $header = $data['RFC822.HEADER'];
-
-        $flags = array();
-        foreach ($data['FLAGS'] as $flag) {
-            $flags[] = isset(self::$_knownFlags[$flag]) ? self::$_knownFlags[$flag] : $flag;
-        }
-
-        return new $this->_messageClass(array('handler' => $this, 'id' => $id, 'headers' => $header, 'flags' => $flags));
-    }
-
-    public function getRawHeader($id, $part = null, $topLines = 0)
-    {
-        if ($part !== null) {
-            // TODO: implement
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception('not implemented');
-        }
-
-        // TODO: toplines
-        return $this->_protocol->fetch('RFC822.HEADER', $id);
-    }
-
-    public function getRawContent($id, $part = null)
-    {
-        if ($part !== null) {
-            // TODO: implement
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception('not implemented');
-        }
-
-        return $this->_protocol->fetch('RFC822.TEXT', $id);
-    }
-
-    /**
      * Close resource for mail lib. If you need to control, when the resource
      * is closed. Otherwise the destructor would call this.
      *
@@ -333,6 +311,52 @@ class Zend_Mail_Storage_Imap extends Zend_Mail_Storage_Abstract
     }
 
     /**
+     * Remove a message from server. If you're doing that from a web enviroment
+     * you should be careful and use a uniqueid as parameter if possible to
+     * identify the message.
+     *
+     * @param   int $id number of message
+     * @return  null
+     * @throws  Zend_Mail_Storage_Exception
+     */
+    public function removeMessage($id)
+    {
+        if (!$this->_protocol->store(array(Zend_Mail_Storage::FLAG_DELETED), $id, null, '+')) {
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception('cannot set deleted flag');
+        }
+        // TODO: expunge here or at close? we can handle an error here better and are more fail safe
+        if (!$this->_protocol->expunge()) {
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception('message marked as deleted, but could not expunge');
+        }
+    }
+
+    /**
+     * get unique id for one or all messages
+     *
+     * if storage does not support unique ids it's the same as the message number
+     *
+     * @param int|null $id message number
+     * @return array|string message number for given message or all messages as array
+     * @throws Zend_Mail_Storage_Exception
+     */
+    public function getUniqueId($id = null)
+    {
+        if ($id) {
+            return $this->_protocol->fetch('UID', $id);
+        }
+
+        return $this->_protocol->fetch('UID', 1, INF);
+    }
+
+    /**
      * get a message number from a unique id
      *
      * I.e. if you have a webmailer that supports deleting messages you should use unique ids
@@ -359,23 +383,6 @@ class Zend_Mail_Storage_Imap extends Zend_Mail_Storage_Abstract
         throw new Zend_Mail_Storage_Exception('unique id not found');
     }
 
-    /**
-     * get unique id for one or all messages
-     *
-     * if storage does not support unique ids it's the same as the message number
-     *
-     * @param int|null $id message number
-     * @return array|string message number for given message or all messages as array
-     * @throws Zend_Mail_Storage_Exception
-     */
-    public function getUniqueId($id = null)
-    {
-        if ($id) {
-            return $this->_protocol->fetch('UID', $id);
-        }
-
-        return $this->_protocol->fetch('UID', 1, INF);
-    }
 
     /**
      * get root folder or given folder
@@ -421,10 +428,10 @@ class Zend_Mail_Storage_Imap extends Zend_Mail_Storage_Abstract
                     array_push($folderStack, $parentFolder);
                     $parentFolder = $folder;
                     break;
-                } else {if ($stack) {
+                } else if ($stack) {
                     $parent = array_pop($stack);
                     $parentFolder = array_pop($folderStack);
-                }}
+                }
             } while ($stack);
             if (!$stack) {
                 /**
@@ -437,6 +444,30 @@ class Zend_Mail_Storage_Imap extends Zend_Mail_Storage_Abstract
 
         return $root;
     }
+
+    /**
+     * select given folder
+     *
+     * folder must be selectable!
+     *
+     * @param  Zend_Mail_Storage_Folder|string $globalName global name of folder or instance for subfolder
+     * @return null
+     * @throws Zend_Mail_Storage_Exception
+     * @throws Zend_Mail_Protocol_Exception
+     */
+    public function selectFolder($globalName)
+    {
+        $this->_currentFolder = $globalName;
+        if (!$this->_protocol->select($this->_currentFolder)) {
+            $this->_currentFolder = '';
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception('cannot change folder, maybe it does not exist');
+        }
+    }
+
 
     /**
      * get Zend_Mail_Storage_Folder instance for current folder
@@ -465,11 +496,11 @@ class Zend_Mail_Storage_Imap extends Zend_Mail_Storage_Abstract
         // TODO: we assume / as the hierarchy delim - need to get that from the folder class!
         if ($parentFolder instanceof Zend_Mail_Storage_Folder) {
             $folder = $parentFolder->getGlobalName() . '/' . $name;
-        } else {if ($parentFolder != null) {
+        } else if ($parentFolder != null) {
             $folder = $parentFolder . '/' . $name;
         } else {
             $folder = $name;
-        }}
+        }
 
         if (!$this->_protocol->create($folder)) {
             /**
@@ -527,7 +558,15 @@ class Zend_Mail_Storage_Imap extends Zend_Mail_Storage_Abstract
         }
     }
 
-
+    /**
+     * append a new message to mail storage
+     *
+     * @param  string                                     $message message as string or instance of message class
+     * @param  null|string|Zend_Mail_Storage_Folder       $folder  folder for new message, else current folder is taken
+     * @param  null|array                                 $flags   set flags for new message, else a default set is used
+     * @throws Zend_Mail_Storage_Exception
+     */
+     // not yet * @param string|Zend_Mail_Message|Zend_Mime_Message $message message as string or instance of message class
     public function appendMessage($message, $folder = null, $flags = null)
     {
         if ($folder === null) {
@@ -546,30 +585,6 @@ class Zend_Mail_Storage_Imap extends Zend_Mail_Storage_Abstract
             // require_once 'Zend/Mail/Storage/Exception.php';
             throw new Zend_Mail_Storage_Exception('cannot create message, please check if the folder exists and your flags');
         }
-    }
-
-    /**
-     * append a new message to mail storage
-     *
-     * @param  string                                     $message message as string or instance of message class
-     * @param  null|string|Zend_Mail_Storage_Folder       $folder  folder for new message, else current folder is taken
-     * @param  null|array                                 $flags   set flags for new message, else a default set is used
-     * @throws Zend_Mail_Storage_Exception
-     */
-     // not yet * @param string|Zend_Mail_Message|Zend_Mime_Message $message message as string or instance of message class
-    /**
-     * move an existing message
-     *
-     * NOTE: imap has no native move command, thus it's emulated with copy and delete
-     *
-     * @param  int                             $id     number of message
-     * @param  string|Zend_Mail_Storage_Folder $folder name or instance of targer folder
-     * @return null
-     * @throws Zend_Mail_Storage_Exception
-     */
-    public function moveMessage($id, $folder) {
-        $this->copyMessage($id, $folder);
-        $this->removeMessage($id);
     }
 
     /**
@@ -592,31 +607,18 @@ class Zend_Mail_Storage_Imap extends Zend_Mail_Storage_Abstract
     }
 
     /**
-     * Remove a message from server. If you're doing that from a web enviroment
-     * you should be careful and use a uniqueid as parameter if possible to
-     * identify the message.
+     * move an existing message
      *
-     * @param   int $id number of message
-     * @return  null
-     * @throws  Zend_Mail_Storage_Exception
+     * NOTE: imap has no native move command, thus it's emulated with copy and delete
+     *
+     * @param  int                             $id     number of message
+     * @param  string|Zend_Mail_Storage_Folder $folder name or instance of targer folder
+     * @return null
+     * @throws Zend_Mail_Storage_Exception
      */
-    public function removeMessage($id)
-    {
-        if (!$this->_protocol->store(array(Zend_Mail_Storage::FLAG_DELETED), $id, null, '+')) {
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception('cannot set deleted flag');
-        }
-        // TODO: expunge here or at close? we can handle an error here better and are more fail safe
-        if (!$this->_protocol->expunge()) {
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception('message marked as deleted, but could not expunge');
-        }
+    public function moveMessage($id, $folder) {
+        $this->copyMessage($id, $folder);
+        $this->removeMessage($id);
     }
 
     /**

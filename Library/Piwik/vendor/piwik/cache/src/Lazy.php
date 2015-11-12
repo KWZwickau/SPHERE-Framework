@@ -37,43 +37,6 @@ class Lazy implements Cache
         return $this->backend->doFetch($id);
     }
 
-    private function getCompletedCacheIdIfValid($id)
-    {
-        $this->checkId($id);
-        return $this->generateCacheId($id);
-    }
-
-    private function checkId($id)
-    {
-        if (empty($id)) {
-            throw new \InvalidArgumentException('Empty cache id given');
-        }
-
-        if (!$this->isValidId($id)) {
-            throw new \InvalidArgumentException("Invalid cache id request $id");
-        }
-    }
-
-    /**
-     * Returns true if the string is a valid id.
-     *
-     * Id that start with a-Z or 0-9 and contain a-Z, 0-9, underscore(_), dash(-), and dot(.) will be accepted.
-     * Id beginning with anything but a-Z or 0-9 will be rejected (including .htaccess for example).
-     * Id containing anything other than above mentioned will also be rejected (file names with spaces won't be accepted).
-     *
-     * @param string $id
-     * @return bool
-     */
-    private function isValidId($id)
-    {
-        return (0 !== preg_match('/(^[a-zA-Z0-9]+([a-zA-Z_0-9.-]*))$/D', $id));
-    }
-
-    private function generateCacheId($id)
-    {
-        return sprintf('piwikcache_%s', $id);
-    }
-
     /**
      * {@inheritdoc}
      */
@@ -122,5 +85,42 @@ class Lazy implements Cache
     public function flushAll()
     {
         return $this->backend->doFlush();
+    }
+
+    private function getCompletedCacheIdIfValid($id)
+    {
+        $this->checkId($id);
+        return $this->generateCacheId($id);
+    }
+
+    private function generateCacheId($id)
+    {
+        return sprintf('piwikcache_%s', $id);
+    }
+
+    private function checkId($id)
+    {
+        if (empty($id)) {
+            throw new \InvalidArgumentException('Empty cache id given');
+        }
+
+        if (!$this->isValidId($id)) {
+            throw new \InvalidArgumentException("Invalid cache id request $id");
+        }
+    }
+
+    /**
+     * Returns true if the string is a valid id.
+     *
+     * Id that start with a-Z or 0-9 and contain a-Z, 0-9, underscore(_), dash(-), and dot(.) will be accepted.
+     * Id beginning with anything but a-Z or 0-9 will be rejected (including .htaccess for example).
+     * Id containing anything other than above mentioned will also be rejected (file names with spaces won't be accepted).
+     *
+     * @param string $id
+     * @return bool
+     */
+    private function isValidId($id)
+    {
+        return (0 !== preg_match('/(^[a-zA-Z0-9]+([a-zA-Z_0-9.-]*))$/D', $id));
     }
 }

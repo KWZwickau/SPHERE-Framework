@@ -30,12 +30,13 @@ class Common
 
     // Flag used with htmlspecialchar. See php.net/htmlspecialchars.
     const HTML_ENCODING_QUOTE_STYLE = ENT_QUOTES;
-    const LANGUAGE_CODE_INVALID = 'xx';
+
+    public static $isCliMode = null;
 
     /*
      * Database
      */
-    public static $isCliMode = null;
+    const LANGUAGE_CODE_INVALID = 'xx';
 
     /**
      * Hashes a string into an integer which should be very low collision risks
@@ -46,21 +47,6 @@ class Common
     {
         $stringHash = substr(md5($string), 0, 8);
         return base_convert($stringHash, 16, 10);
-    }
-
-    /**
-     * Returns an array containing the prefixed table names of every passed argument.
-     *
-     * @param string ... The table names to prefix, ie "log_visit"
-     * @return array The prefixed names in an array.
-     */
-    public static function prefixTables()
-    {
-        $result = array();
-        foreach (func_get_args() as $table) {
-            $result[] = self::prefixTable($table);
-        }
-        return $result;
     }
 
     /**
@@ -77,6 +63,21 @@ class Common
     {
         $prefix = Config::getInstance()->database['tables_prefix'];
         return $prefix . $table;
+    }
+
+    /**
+     * Returns an array containing the prefixed table names of every passed argument.
+     *
+     * @param string ... The table names to prefix, ie "log_visit"
+     * @return array The prefixed names in an array.
+     */
+    public static function prefixTables()
+    {
+        $result = array();
+        foreach (func_get_args() as $table) {
+            $result[] = self::prefixTable($table);
+        }
+        return $result;
     }
 
     /**
@@ -118,23 +119,6 @@ class Common
     }
 
     /**
-     * Returns true if the current request is a console command, eg.
-     * ./console xx:yy
-     * or
-     * php console xx:yy
-     *
-     * @return bool
-     */
-    public static function isRunningConsoleCommand()
-    {
-        $searched = 'console';
-        $consolePos = strpos($_SERVER['SCRIPT_NAME'], $searched);
-        $expectedConsolePos = strlen($_SERVER['SCRIPT_NAME']) - strlen($searched);
-        $isScriptIsConsole = ($consolePos === $expectedConsolePos);
-        return self::isPhpCliMode() && $isScriptIsConsole;
-    }
-
-    /**
      * Returns true if PHP was invoked from command-line interface (shell)
      *
      * @since added in 0.4.4
@@ -149,11 +133,11 @@ class Common
         if(PHP_SAPI == 'cli'){
             return true;
         }
-
+        
         if(self::isPhpCgiType() && (!isset($_SERVER['REMOTE_ADDR']) || empty($_SERVER['REMOTE_ADDR']))){
             return true;
         }
-
+        
         return false;
     }
 
@@ -168,6 +152,23 @@ class Common
         $sapiType = php_sapi_name();
 
         return substr($sapiType, 0, 3) === 'cgi';
+    }
+
+    /**
+     * Returns true if the current request is a console command, eg.
+     * ./console xx:yy
+     * or
+     * php console xx:yy
+     *
+     * @return bool
+     */
+    public static function isRunningConsoleCommand()
+    {
+        $searched = 'console';
+        $consolePos = strpos($_SERVER['SCRIPT_NAME'], $searched);
+        $expectedConsolePos = strlen($_SERVER['SCRIPT_NAME']) - strlen($searched);
+        $isScriptIsConsole = ($consolePos === $expectedConsolePos);
+        return self::isPhpCliMode() && $isScriptIsConsole;
     }
 
     /*
@@ -239,6 +240,65 @@ class Common
      */
 
     /**
+     * Sanitizes a string to help avoid XSS vulnerabilities.
+     *
+     * This function is automatically called when {@link getRequestVar()} is called,
+     * so you should not normally have to use it.
+     *
+     * This function should be used when outputting data that isn't escaped and was
+     * obtained from the user (for example when using the `|raw` twig filter on goal names).
+     *
+     * _NOTE: Sanitized input should not be used directly in an SQL query; SQL placeholders
+     * should still be used._
+     *
+     * **Implementation Details**
+     *
+     * - [htmlspecialchars](http://php.net/manual/en/function.htmlspecialchars.php) is used to escape text.
+     * - Single quotes are not escaped so **Piwik's amazing community** will still be
+     *   **Piwik's amazing community**.
+     * - Use of the `magic_quotes` setting will not break this method.
+     * - Boolean, numeric and null values are not modified.
+     *
+     * @param mixed $value The variable to be sanitized. If an array is supplied, the contents
+     *                     of the array will be sanitized recursively. The keys of the array
+     *                     will also be sanitized.
+     * @param bool $alreadyStripslashed Implementation detail, ignore.
+     * @throws Exception If `$value` is of an incorrect type.
+     * @return mixed  The sanitized value.
+     * @api
+     */
+    public static function sanitizeInputValues($value, $alreadyStripslashed = false)
+    {
+        if (is_numeric($value)) {
+            return $value;
+        } elseif (is_string($value)) {
+            $value = self::sanitizeString($value);
+
+            if (!$alreadyStripslashed) {
+                // a JSON array was already stripslashed, don't do it again for each value
+
+                $value = self::undoMagicQuotes($value);
+            }
+        } elseif (is_array($value)) {
+            foreach (array_keys($value) as $key) {
+                $newKey = $key;
+                $newKey = self::sanitizeInputValues($newKey, $alreadyStripslashed);
+                if ($key != $newKey) {
+                    $value[$newKey] = $value[$key];
+                    unset($value[$key]);
+                }
+
+                $value[$newKey] = self::sanitizeInputValues($value[$newKey], $alreadyStripslashed);
+            }
+        } elseif (!is_null($value)
+            && !is_bool($value)
+        ) {
+            throw new Exception("The value to escape has not a supported type. Value = " . var_export($value, true));
+        }
+        return $value;
+    }
+
+    /**
      * Sanitize a single input value and removes line breaks, tabs and null characters.
      *
      * @param string $value
@@ -249,15 +309,6 @@ class Common
         $value = self::sanitizeLineBreaks($value);
         $value = self::sanitizeString($value);
         return $value;
-    }
-
-    /**
-     * @param string $value
-     * @return string Line breaks and line carriage removed
-     */
-    public static function sanitizeLineBreaks($value)
-    {
-        return str_replace(array("\n", "\r"), '', $value);
     }
 
     /**
@@ -289,12 +340,15 @@ class Common
     }
 
     /**
+     * Unsanitizes a single input value and returns the result.
+     *
      * @param string $value
-     * @return string Null bytes removed
+     * @return string  unsanitized input
+     * @api
      */
-    public static function sanitizeNullBytes($value)
+    public static function unsanitizeInputValue($value)
     {
-        return str_replace(array("\0"), '', $value);
+        return htmlspecialchars_decode($value, self::HTML_ENCODING_QUOTE_STYLE);
     }
 
     /**
@@ -325,15 +379,42 @@ class Common
     }
 
     /**
-     * Unsanitizes a single input value and returns the result.
+     * Undo the damage caused by magic_quotes; deprecated in php 5.3 but not removed until php 5.4
      *
-     * @param string $value
-     * @return string  unsanitized input
-     * @api
+     * @param string
+     * @return string  modified or not
      */
-    public static function unsanitizeInputValue($value)
+    private static function undoMagicQuotes($value)
     {
-        return htmlspecialchars_decode($value, self::HTML_ENCODING_QUOTE_STYLE);
+        static $shouldUndo;
+
+        if (!isset($shouldUndo)) {
+            $shouldUndo = version_compare(PHP_VERSION, '5.4', '<') && get_magic_quotes_gpc();
+        }
+
+        if ($shouldUndo) {
+            $value = stripslashes($value);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param string $value
+     * @return string Line breaks and line carriage removed
+     */
+    public static function sanitizeLineBreaks($value)
+    {
+        return str_replace(array("\n", "\r"), '', $value);
+    }
+
+    /**
+     * @param string $value
+     * @return string Null bytes removed
+     */
+    public static function sanitizeNullBytes($value)
+    {
+        return str_replace(array("\0"), '', $value);
     }
 
     /**
@@ -445,105 +526,9 @@ class Common
         return $value;
     }
 
-    /**
-     * Sanitizes a string to help avoid XSS vulnerabilities.
-     *
-     * This function is automatically called when {@link getRequestVar()} is called,
-     * so you should not normally have to use it.
-     *
-     * This function should be used when outputting data that isn't escaped and was
-     * obtained from the user (for example when using the `|raw` twig filter on goal names).
-     *
-     * _NOTE: Sanitized input should not be used directly in an SQL query; SQL placeholders
-     * should still be used._
-     *
-     * **Implementation Details**
-     *
-     * - [htmlspecialchars](http://php.net/manual/en/function.htmlspecialchars.php) is used to escape text.
-     * - Single quotes are not escaped so **Piwik's amazing community** will still be
-     *   **Piwik's amazing community**.
-     * - Use of the `magic_quotes` setting will not break this method.
-     * - Boolean, numeric and null values are not modified.
-     *
-     * @param mixed $value The variable to be sanitized. If an array is supplied, the contents
-     *                     of the array will be sanitized recursively. The keys of the array
-     *                     will also be sanitized.
-     * @param bool $alreadyStripslashed Implementation detail, ignore.
-     * @throws Exception If `$value` is of an incorrect type.
-     * @return mixed  The sanitized value.
-     * @api
-     */
-    public static function sanitizeInputValues($value, $alreadyStripslashed = false)
-    {
-        if (is_numeric($value)) {
-            return $value;
-        } elseif (is_string($value)) {
-            $value = self::sanitizeString($value);
-
-            if (!$alreadyStripslashed) {
-                // a JSON array was already stripslashed, don't do it again for each value
-
-                $value = self::undoMagicQuotes($value);
-            }
-        } elseif (is_array($value)) {
-            foreach (array_keys($value) as $key) {
-                $newKey = $key;
-                $newKey = self::sanitizeInputValues($newKey, $alreadyStripslashed);
-                if ($key != $newKey) {
-                    $value[$newKey] = $value[$key];
-                    unset($value[$key]);
-                }
-
-                $value[$newKey] = self::sanitizeInputValues($value[$newKey], $alreadyStripslashed);
-            }
-        } elseif (!is_null($value)
-            && !is_bool($value)
-        ) {
-            throw new Exception("The value to escape has not a supported type. Value = " . var_export($value, true));
-        }
-        return $value;
-    }
-
-    /**
-     * Undo the damage caused by magic_quotes; deprecated in php 5.3 but not removed until php 5.4
-     *
-     * @param string
-     * @return string  modified or not
-     */
-    private static function undoMagicQuotes($value)
-    {
-        static $shouldUndo;
-
-        if (!isset($shouldUndo)) {
-            $shouldUndo = version_compare(PHP_VERSION, '5.4', '<') && get_magic_quotes_gpc();
-        }
-
-        if ($shouldUndo) {
-            $value = stripslashes($value);
-        }
-
-        return $value;
-    }
-
     /*
      * Generating unique strings
      */
-
-    /**
-     * Force the separator for decimal point to be a dot. See https://github.com/piwik/piwik/issues/6435
-     * If for instance a German locale is used it would be a comma otherwise.
-     *
-     * @param  float|string $value
-     * @return string
-     */
-    public static function forceDotAsSeparatorForDecimalPoint($value)
-    {
-        if (null === $value || false === $value) {
-            return $value;
-        }
-
-        return str_replace(',', '.', $value);
-    }
 
     /**
      * Returns a 32 characters long uniq ID
@@ -586,10 +571,6 @@ class Common
         return md5($str, $raw_output);
     }
 
-    /*
-     * Conversions
-     */
-
     /**
      * Generate random string.
      * Do not use for security related purposes (the string is not truly random).
@@ -615,18 +596,22 @@ class Common
         return str_shuffle($str);
     }
 
+    /*
+     * Conversions
+     */
+
     /**
-     * Converts a User ID string to the Visitor ID Binary representation.
+     * Convert hexadecimal representation into binary data.
+     * !! Will emit warning if input string is not hex!!
      *
-     * @param $userId
+     * @see http://php.net/bin2hex
+     *
+     * @param string $str Hexadecimal representation
      * @return string
      */
-    public static function convertUserIdToVisitorIdBin($userId)
+    public static function hex2bin($str)
     {
-        require_once PIWIK_INCLUDE_PATH . '/libs/PiwikTracker/PiwikTracker.php';
-        $userIdHashed = \PiwikTracker::getUserIdHashed($userId);
-
-        return self::convertVisitorIdToBin($userIdHashed);
+        return pack("H*", $str);
     }
 
     /**
@@ -654,17 +639,17 @@ class Common
     }
 
     /**
-     * Convert hexadecimal representation into binary data.
-     * !! Will emit warning if input string is not hex!!
+     * Converts a User ID string to the Visitor ID Binary representation.
      *
-     * @see http://php.net/bin2hex
-     *
-     * @param string $str Hexadecimal representation
+     * @param $userId
      * @return string
      */
-    public static function hex2bin($str)
+    public static function convertUserIdToVisitorIdBin($userId)
     {
-        return pack("H*", $str);
+        require_once PIWIK_INCLUDE_PATH . '/libs/PiwikTracker/PiwikTracker.php';
+        $userIdHashed = \PiwikTracker::getUserIdHashed($userId);
+
+        return self::convertVisitorIdToBin($userIdHashed);
     }
 
     /**
@@ -740,10 +725,6 @@ class Common
         return $lastCharacters === $needle;
     }
 
-    /*
-     * DataFiles
-     */
-
     /**
      * Returns the list of parent classes for the given class.
      *
@@ -756,6 +737,10 @@ class Common
 
         return array_reverse($classes);
     }
+
+    /*
+     * DataFiles
+     */
 
     /**
      * Returns list of continent codes
@@ -831,6 +816,32 @@ class Common
     }
 
     /**
+     * Returns list of search engines by URL
+     *
+     * @see core/DataFiles/SearchEngines.php
+     *
+     * @return array  Array of ( URL => array( searchEngineName, keywordParameter, path, charset ) )
+     */
+    public static function getSearchEngineUrls()
+    {
+        $cacheId = 'Common.getSearchEngineUrls';
+        $cache = Cache::getTransientCache();
+        $searchEngines = $cache->fetch($cacheId);
+
+        if (empty($searchEngines)) {
+            require_once PIWIK_INCLUDE_PATH . '/core/DataFiles/SearchEngines.php';
+
+            $searchEngines = $GLOBALS['Piwik_SearchEngines'];
+
+            Piwik::postEvent('Referrer.addSearchEngineUrls', array(&$searchEngines));
+
+            $cache->save($cacheId, $searchEngines);
+        }
+
+        return $searchEngines;
+    }
+
+    /**
      * Returns list of search engines by name
      *
      * @see core/DataFiles/SearchEngines.php
@@ -859,32 +870,6 @@ class Common
     }
 
     /**
-     * Returns list of search engines by URL
-     *
-     * @see core/DataFiles/SearchEngines.php
-     *
-     * @return array  Array of ( URL => array( searchEngineName, keywordParameter, path, charset ) )
-     */
-    public static function getSearchEngineUrls()
-    {
-        $cacheId = 'Common.getSearchEngineUrls';
-        $cache = Cache::getTransientCache();
-        $searchEngines = $cache->fetch($cacheId);
-
-        if (empty($searchEngines)) {
-            require_once PIWIK_INCLUDE_PATH . '/core/DataFiles/SearchEngines.php';
-
-            $searchEngines = $GLOBALS['Piwik_SearchEngines'];
-
-            Piwik::postEvent('Referrer.addSearchEngineUrls', array(&$searchEngines));
-
-            $cache->save($cacheId, $searchEngines);
-        }
-
-        return $searchEngines;
-    }
-
-    /**
      * Returns list of social networks by URL
      *
      * @see core/DataFiles/Socials.php
@@ -910,10 +895,6 @@ class Common
         return $socialUrls;
     }
 
-    /*
-     * Language, country, continent
-     */
-
     /**
      * Returns list of provider names
      *
@@ -928,6 +909,10 @@ class Common
         $providers = $GLOBALS['Piwik_ProviderNames'];
         return $providers;
     }
+
+    /*
+     * Language, country, continent
+     */
 
     /**
      * Returns the browser language code, eg. "en-gb,en;q=0.5"
@@ -1060,26 +1045,6 @@ class Common
     }
 
     /**
-     * @param $validLanguages
-     * @return array
-     */
-    protected static function checkValidLanguagesIsSet($validLanguages)
-    {
-        /** @var LanguageDataProvider $dataProvider */
-        $dataProvider = StaticContainer::get('Piwik\Intl\Data\Provider\LanguageDataProvider');
-
-        if (empty($validLanguages)) {
-            $validLanguages = array_keys($dataProvider->getLanguageList());
-            return $validLanguages;
-        }
-        return $validLanguages;
-    }
-
-    /*
-     * Campaign
-     */
-
-    /**
      * Returns the language and region string, based only on the Browser 'accepted language' information.
      * * The language tag is defined by ISO 639-1
      * * The region tag is defined by ISO 3166-1
@@ -1121,10 +1086,6 @@ class Common
         return self::LANGUAGE_CODE_INVALID;
     }
 
-    /*
-     * Referrer
-     */
-
     /**
      * Returns the continent of a given country
      *
@@ -1141,6 +1102,10 @@ class Common
 
         return isset($countryList[$country]) ? $countryList[$country] : 'unk';
     }
+
+    /*
+     * Campaign
+     */
 
     /**
      * Returns the list of Campaign parameter names that will be read to classify
@@ -1170,6 +1135,10 @@ class Common
         return $return;
     }
 
+    /*
+     * Referrer
+     */
+
     /**
      * Returns a string with a comma separated list of placeholders for use in an SQL query. Used mainly
      * to fill the `IN (...)` part of a query.
@@ -1191,6 +1160,36 @@ class Common
             return "''";
         }
         return '?' . str_repeat(',?', $count - 1);
+    }
+
+    /**
+     * Force the separator for decimal point to be a dot. See https://github.com/piwik/piwik/issues/6435
+     * If for instance a German locale is used it would be a comma otherwise.
+     *
+     * @param  float|string $value
+     * @return string
+     */
+    public static function forceDotAsSeparatorForDecimalPoint($value)
+    {
+        if (null === $value || false === $value) {
+            return $value;
+        }
+
+        return str_replace(',', '.', $value);
+    }
+
+    /**
+     * Sets outgoing header.
+     *
+     * @param string $header The header.
+     * @param bool $replace Whether to replace existing or not.
+     */
+    public static function sendHeader($header, $replace = true)
+    {
+        // don't send header in CLI mode
+        if (!Common::isPhpCliMode() and !headers_sent()) {
+            header($header, $replace);
+        }
     }
 
     /**
@@ -1235,20 +1234,6 @@ class Common
 
         $message = $messages[$code];
         Common::sendHeader($key . ' ' . $code . ' ' . $message);
-    }
-
-    /**
-     * Sets outgoing header.
-     *
-     * @param string $header The header.
-     * @param bool $replace Whether to replace existing or not.
-     */
-    public static function sendHeader($header, $replace = true)
-    {
-        // don't send header in CLI mode
-        if (!Common::isPhpCliMode() and !headers_sent()) {
-            header($header, $replace);
-        }
     }
 
     /**
@@ -1320,5 +1305,21 @@ class Common
     {
         return isset($_SERVER['HTTP_X_REQUESTED_WITH'])
             && (strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+    }
+
+    /**
+     * @param $validLanguages
+     * @return array
+     */
+    protected static function checkValidLanguagesIsSet($validLanguages)
+    {
+        /** @var LanguageDataProvider $dataProvider */
+        $dataProvider = StaticContainer::get('Piwik\Intl\Data\Provider\LanguageDataProvider');
+
+        if (empty($validLanguages)) {
+            $validLanguages = array_keys($dataProvider->getLanguageList());
+            return $validLanguages;
+        }
+        return $validLanguages;
     }
 }

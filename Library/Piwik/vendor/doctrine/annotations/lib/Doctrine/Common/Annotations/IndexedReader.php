@@ -108,7 +108,7 @@ class IndexedReader implements Reader
      * Proxies all methods to the delegate.
      *
      * @param string $method
-     * @param array $args
+     * @param array  $args
      *
      * @return mixed
      */

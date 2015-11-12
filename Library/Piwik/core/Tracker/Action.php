@@ -75,12 +75,6 @@ abstract class Action
      */
     private $rawActionUrl;
 
-    public function __construct($type, Request $request)
-    {
-        $this->actionType = $type;
-        $this->request    = $request;
-    }
-
     /**
      * Makes the correct Action object based on the request.
      *
@@ -113,6 +107,22 @@ abstract class Action
         return new ActionPageview($request);
     }
 
+    private static function getPriority(Action $actionType)
+    {
+        $key = array_search($actionType->getActionType(), self::$factoryPriority);
+
+        if (false === $key) {
+            return -1;
+        }
+
+        return $key;
+    }
+
+    public static function shouldHandle(Request $request)
+    {
+        return false;
+    }
+
     private static function getAllActions(Request $request)
     {
         static $actions;
@@ -133,25 +143,20 @@ abstract class Action
         return $instances;
     }
 
-    public static function shouldHandle(Request $request)
+    public function __construct($type, Request $request)
     {
-        return false;
+        $this->actionType = $type;
+        $this->request    = $request;
     }
 
-    private static function getPriority(Action $actionType)
+    /**
+     * Returns URL of the page currently being tracked, or the file being downloaded, or the outlink being clicked
+     *
+     * @return string
+     */
+    public function getActionUrl()
     {
-        $key = array_search($actionType->getActionType(), self::$factoryPriority);
-
-        if (false === $key) {
-            return -1;
-        }
-
-        return $key;
-    }
-
-    public function getActionType()
-    {
-        return $this->actionType;
+        return $this->actionUrl;
     }
 
     /**
@@ -162,9 +167,65 @@ abstract class Action
         return $this->rawActionUrl;
     }
 
-    public function getIdActionUrlForEntryAndExitIds()
+    public function getActionName()
     {
-        return $this->getIdActionUrl();
+        return $this->actionName;
+    }
+
+    public function getActionType()
+    {
+        return $this->actionType;
+    }
+
+    public function getCustomVariables()
+    {
+        return $this->request->getCustomVariables($scope = 'page');
+    }
+
+    // custom_float column
+    public function getCustomFloatValue()
+    {
+        return false;
+    }
+
+    protected function setActionName($name)
+    {
+        $this->actionName = PageUrl::cleanupString((string)$name);
+    }
+
+    protected function setActionUrl($url)
+    {
+        $this->rawActionUrl = PageUrl::getUrlIfLookValid($url);
+        $url = PageUrl::excludeQueryParametersFromUrl($url, $this->request->getIdSite());
+
+        $this->actionUrl = PageUrl::getUrlIfLookValid($url);
+
+        if ($url != $this->rawActionUrl) {
+            Common::printDebug(' Before was "' . $this->rawActionUrl . '"');
+            Common::printDebug(' After is "' . $url . '"');
+        }
+    }
+
+    protected function setActionUrlWithoutExcludingParameters($url)
+    {
+        $url = PageUrl::getUrlIfLookValid($url);
+        $this->rawActionUrl = $url;
+        $this->actionUrl = $url;
+    }
+
+    abstract protected function getActionsToLookup();
+
+    protected function getUrlAndType()
+    {
+        $url = $this->getActionUrl();
+
+        if (!empty($url)) {
+            // normalize urls by stripping protocol and www
+            $url = PageUrl::normalizeUrl($url);
+            return array($url['url'], self::TYPE_PAGE_URL, $url['prefixId']);
+        }
+
+        return false;
     }
 
     public function getIdActionUrl()
@@ -174,12 +235,15 @@ abstract class Action
         return (int)$idUrl;
     }
 
+    public function getIdActionUrlForEntryAndExitIds()
+    {
+        return $this->getIdActionUrl();
+    }
+
     public function getIdActionNameForEntryAndExitIds()
     {
         return $this->getIdActionName();
     }
-
-    // custom_float column
 
     public function getIdActionName()
     {
@@ -198,6 +262,72 @@ abstract class Action
     public function getIdLinkVisitAction()
     {
         return $this->idLinkVisitAction;
+    }
+
+    public static function getTypeAsString($type)
+    {
+        $class     = new \ReflectionClass("\\Piwik\\Tracker\\Action");
+        $constants = $class->getConstants();
+
+        $typeId = array_search($type, $constants);
+
+        if (false === $typeId) {
+            throw new Exception("Unexpected action type " . $type);
+        }
+
+        return str_replace('TYPE_', '', $typeId);
+    }
+
+    /**
+     * Loads the idaction of the current action name and the current action url.
+     * These idactions are used in the visitor logging table to link the visit information
+     * (entry action, exit action) to the actions.
+     * These idactions are also used in the table that links the visits and their actions.
+     *
+     * The methods takes care of creating a new record(s) in the action table if the existing
+     * action name and action url doesn't exist yet.
+     */
+    public function loadIdsFromLogActionTable()
+    {
+        if (!empty($this->actionIdsCached)) {
+            return;
+        }
+
+        /** @var ActionDimension[] $dimensions */
+        $dimensions = ActionDimension::getAllDimensions();
+        $actions    = $this->getActionsToLookup();
+
+        foreach ($dimensions as $dimension) {
+            $value = $dimension->onLookupAction($this->request, $this);
+
+            if (false !== $value) {
+                if (is_float($value)) {
+                    $value = Common::forceDotAsSeparatorForDecimalPoint($value);
+                }
+
+                $field = $dimension->getColumnName();
+
+                if (empty($field)) {
+                    $dimensionClass = get_class($dimension);
+                    throw new Exception('Dimension ' . $dimensionClass . ' does not define a field name');
+                }
+
+                $actionId        = $dimension->getActionId();
+                $actions[$field] = array($value, $actionId);
+                Common::printDebug("$field = $value");
+            }
+        }
+
+        $actions = array_filter($actions, 'count');
+
+        if (empty($actions)) {
+            return;
+        }
+
+        $loadedActionIds = TableLogAction::loadIdsAction($actions);
+
+        $this->actionIdsCached = $loadedActionIds;
+        return $this->actionIdsCached;
     }
 
     /**
@@ -279,85 +409,6 @@ abstract class Action
         Piwik::postEvent('Tracker.recordAction', array($trackerAction = $this, $visitAction));
     }
 
-    /**
-     * Loads the idaction of the current action name and the current action url.
-     * These idactions are used in the visitor logging table to link the visit information
-     * (entry action, exit action) to the actions.
-     * These idactions are also used in the table that links the visits and their actions.
-     *
-     * The methods takes care of creating a new record(s) in the action table if the existing
-     * action name and action url doesn't exist yet.
-     */
-    public function loadIdsFromLogActionTable()
-    {
-        if (!empty($this->actionIdsCached)) {
-            return;
-        }
-
-        /** @var ActionDimension[] $dimensions */
-        $dimensions = ActionDimension::getAllDimensions();
-        $actions    = $this->getActionsToLookup();
-
-        foreach ($dimensions as $dimension) {
-            $value = $dimension->onLookupAction($this->request, $this);
-
-            if (false !== $value) {
-                if (is_float($value)) {
-                    $value = Common::forceDotAsSeparatorForDecimalPoint($value);
-                }
-
-                $field = $dimension->getColumnName();
-
-                if (empty($field)) {
-                    $dimensionClass = get_class($dimension);
-                    throw new Exception('Dimension ' . $dimensionClass . ' does not define a field name');
-                }
-
-                $actionId        = $dimension->getActionId();
-                $actions[$field] = array($value, $actionId);
-                Common::printDebug("$field = $value");
-            }
-        }
-
-        $actions = array_filter($actions, 'count');
-
-        if (empty($actions)) {
-            return;
-        }
-
-        $loadedActionIds = TableLogAction::loadIdsAction($actions);
-
-        $this->actionIdsCached = $loadedActionIds;
-        return $this->actionIdsCached;
-    }
-
-    abstract protected function getActionsToLookup();
-
-    /**
-     * @return bool
-     */
-    private function isActionHasActionName()
-    {
-        $types = array(self::TYPE_PAGE_TITLE, self::TYPE_PAGE_URL, self::TYPE_SITE_SEARCH);
-
-        return in_array($this->getActionType(), $types);
-    }
-
-    public function getCustomFloatValue()
-    {
-        return false;
-    }
-
-    public function getCustomVariables()
-    {
-        return $this->request->getCustomVariables($scope = 'page');
-    }
-
-    private function getModel()
-    {
-        return new Model();
-    }
-
     public function writeDebugInfo()
     {
         $type = self::getTypeAsString($this->getActionType());
@@ -371,70 +422,18 @@ abstract class Action
         return true;
     }
 
-    public static function getTypeAsString($type)
+    private function getModel()
     {
-        $class     = new \ReflectionClass("\\Piwik\\Tracker\\Action");
-        $constants = $class->getConstants();
-
-        $typeId = array_search($type, $constants);
-
-        if (false === $typeId) {
-            throw new Exception("Unexpected action type " . $type);
-        }
-
-        return str_replace('TYPE_', '', $typeId);
-    }
-
-    public function getActionName()
-    {
-        return $this->actionName;
-    }
-
-    protected function setActionName($name)
-    {
-        $this->actionName = PageUrl::cleanupString((string)$name);
-    }
-
-    protected function setActionUrlWithoutExcludingParameters($url)
-    {
-        $url = PageUrl::getUrlIfLookValid($url);
-        $this->rawActionUrl = $url;
-        $this->actionUrl = $url;
-    }
-
-    protected function getUrlAndType()
-    {
-        $url = $this->getActionUrl();
-
-        if (!empty($url)) {
-            // normalize urls by stripping protocol and www
-            $url = PageUrl::normalizeUrl($url);
-            return array($url['url'], self::TYPE_PAGE_URL, $url['prefixId']);
-        }
-
-        return false;
+        return new Model();
     }
 
     /**
-     * Returns URL of the page currently being tracked, or the file being downloaded, or the outlink being clicked
-     *
-     * @return string
+     * @return bool
      */
-    public function getActionUrl()
+    private function isActionHasActionName()
     {
-        return $this->actionUrl;
-    }
+        $types = array(self::TYPE_PAGE_TITLE, self::TYPE_PAGE_URL, self::TYPE_SITE_SEARCH);
 
-    protected function setActionUrl($url)
-    {
-        $this->rawActionUrl = PageUrl::getUrlIfLookValid($url);
-        $url = PageUrl::excludeQueryParametersFromUrl($url, $this->request->getIdSite());
-
-        $this->actionUrl = PageUrl::getUrlIfLookValid($url);
-
-        if ($url != $this->rawActionUrl) {
-            Common::printDebug(' Before was "' . $this->rawActionUrl . '"');
-            Common::printDebug(' After is "' . $url . '"');
-        }
+        return in_array($this->getActionType(), $types);
     }
 }

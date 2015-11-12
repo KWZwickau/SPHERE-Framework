@@ -9,14 +9,23 @@
 namespace Piwik\Plugins\Referrers\Columns;
 
 use Piwik\Plugins\Referrers\Segment;
-use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Action;
 
 class ReferrerName extends Base
 {
     protected $columnName = 'referer_name';
     protected $columnType = 'VARCHAR(70) NULL';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('referrerName');
+        $segment->setName('Referrers_ReferrerName');
+        $segment->setAcceptedValues('twitter.com, www.facebook.com, Bing, Google, Yahoo, CampaignName');
+        $this->addSegment($segment);
+    }
 
     /**
      * @param Request $request
@@ -45,14 +54,5 @@ class ReferrerName extends Base
     public function onAnyGoalConversion(Request $request, Visitor $visitor, $action)
     {
         return $this->getValueForRecordGoal($request, $visitor);
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('referrerName');
-        $segment->setName('Referrers_ReferrerName');
-        $segment->setAcceptedValues('twitter.com, www.facebook.com, Bing, Google, Yahoo, CampaignName');
-        $this->addSegment($segment);
     }
 }

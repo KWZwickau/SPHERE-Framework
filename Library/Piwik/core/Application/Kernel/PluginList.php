@@ -65,6 +65,19 @@ class PluginList
     }
 
     /**
+     * Returns the list of plugins that are bundled with Piwik.
+     *
+     * @return string[]
+     */
+    public function getPluginsBundledWithPiwik()
+    {
+        $pathGlobal = $this->settings->getPathGlobal();
+
+        $section = $this->settings->getIniFileChain()->getFrom($pathGlobal, 'Plugins');
+        return $section['Plugins'];
+    }
+
+    /**
      * Returns the plugins bundled with core package that are disabled by default.
      *
      * @return string[]
@@ -103,18 +116,5 @@ class PluginList
         $sorted = array_merge($defaultPluginsLoadedFirst, $otherPluginsToLoadAfterDefaultPlugins);
 
         return $sorted;
-    }
-
-    /**
-     * Returns the list of plugins that are bundled with Piwik.
-     *
-     * @return string[]
-     */
-    public function getPluginsBundledWithPiwik()
-    {
-        $pathGlobal = $this->settings->getPathGlobal();
-
-        $section = $this->settings->getIniFileChain()->getFrom($pathGlobal, 'Plugins');
-        return $section['Plugins'];
     }
 }

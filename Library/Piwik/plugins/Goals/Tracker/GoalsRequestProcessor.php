@@ -77,12 +77,6 @@ class GoalsRequestProcessor extends RequestProcessor
         return false;
     }
 
-    private function isManualGoalConversion(Request $request)
-    {
-        $idGoal = $request->getParam('idgoal');
-        return $idGoal > 0;
-    }
-
     public function afterRequestProcessed(VisitProperties $visitProperties, Request $request)
     {
         $goalsConverted = $request->getMetadata('Goals', 'goalsConverted');
@@ -132,5 +126,11 @@ class GoalsRequestProcessor extends RequestProcessor
         if (!empty($goalsConverted)) {
             $this->goalManager->recordGoals($visitProperties, $request);
         }
+    }
+
+    private function isManualGoalConversion(Request $request)
+    {
+        $idGoal = $request->getParam('idgoal');
+        return $idGoal > 0;
     }
 }

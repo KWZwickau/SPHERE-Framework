@@ -8,8 +8,8 @@
  */
 namespace Piwik\Plugins\CoreAdminHome;
 
-use Piwik\Archive\ArchivePurger;
 use Piwik\ArchiveProcessor\Rules;
+use Piwik\Archive\ArchivePurger;
 use Piwik\DataAccess\ArchiveTableCreator;
 use Piwik\Date;
 use Piwik\Db;
@@ -94,20 +94,6 @@ class Tasks extends \Piwik\Plugin\Tasks
         return true;
     }
 
-    /**
-     * we should only purge outdated & custom range archives if we know cron archiving has just run,
-     * or if browser triggered archiving is enabled. if cron archiving has run, then we know the latest
-     * archives are in the database, and we can remove temporary ones. if browser triggered archiving is
-     * enabled, then we know any archives that are wrongly purged, can be re-archived on demand.
-     * this prevents some situations where "no data" is displayed for reports that should have data.
-     *
-     * @return bool
-     */
-    private function willPurgingCausePotentialProblemInUI()
-    {
-        return !Rules::isRequestAuthorizedToArchive();
-    }
-
     public function purgeInvalidatedArchives()
     {
         $archivesToPurge = new ArchivesToPurgeDistributedList();
@@ -142,5 +128,19 @@ class Tasks extends \Piwik\Plugin\Tasks
         }
 
         Option::set(ReferrerSpamFilter::OPTION_STORAGE_NAME, serialize($list));
+    }
+
+    /**
+     * we should only purge outdated & custom range archives if we know cron archiving has just run,
+     * or if browser triggered archiving is enabled. if cron archiving has run, then we know the latest
+     * archives are in the database, and we can remove temporary ones. if browser triggered archiving is
+     * enabled, then we know any archives that are wrongly purged, can be re-archived on demand.
+     * this prevents some situations where "no data" is displayed for reports that should have data.
+     *
+     * @return bool
+     */
+    private function willPurgingCausePotentialProblemInUI()
+    {
+        return !Rules::isRequestAuthorizedToArchive();
     }
 }

@@ -35,12 +35,7 @@ class Zend_Validate_Alnum extends Zend_Validate_Abstract
     const INVALID      = 'alnumInvalid';
     const NOT_ALNUM    = 'notAlnum';
     const STRING_EMPTY = 'alnumStringEmpty';
-    /**
-     * Alphanumeric filter used for validation
-     *
-     * @var Zend_Filter_Alnum
-     */
-    protected static $_filter = null;
+
     /**
      * Whether to allow white space characters; off by default
      *
@@ -48,6 +43,14 @@ class Zend_Validate_Alnum extends Zend_Validate_Abstract
      * @deprecated
      */
     public $allowWhiteSpace;
+
+    /**
+     * Alphanumeric filter used for validation
+     *
+     * @var Zend_Filter_Alnum
+     */
+    protected static $_filter = null;
+
     /**
      * Validation failure message template definitions
      *

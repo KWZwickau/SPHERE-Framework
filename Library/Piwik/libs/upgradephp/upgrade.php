@@ -20,13 +20,13 @@
  * script execution on setups where the native functions already exist. It
  * is meant as quick drop-in solution. It spares you from rewriting code or
  * using cumbersome workarounds instead of the more powerful v5 functions.
- *
+ * 
  * It cannot mirror PHP5s extended OO-semantics and functionality into PHP4
  * however. A few features are added here that weren't part of PHP yet. And
  * some other function collections are separated out into the ext/ directory.
  * It doesn't produce many custom error messages (YAGNI), and instead leaves
  * reporting to invoked functions or for native PHP execution.
- *
+ * 
  * And further this is PUBLIC DOMAIN (no copyright, no license, no warranty)
  * so therefore compatible to ALL open source licenses. You could rip this
  * paragraph out to republish this instead only under more restrictive terms
@@ -143,11 +143,11 @@ if(function_exists('parse_ini_file')) {
 
 		if(function_exists('file_get_contents')) {
 			$ini = file_get_contents($filename);
-		} else {if(function_exists('file')) {
+		} else if(function_exists('file')) {
 			if($ini = file($filename)) {
 				$ini = implode("\n", $ini);
 			}
-		} else {if(function_exists('fopen') && function_exists('fread')) {
+		} else if(function_exists('fopen') && function_exists('fread')) {
 			$handle = fopen($filename, 'r');
 			if(!$handle) {
 				return false;
@@ -156,7 +156,7 @@ if(function_exists('parse_ini_file')) {
 			fclose($handle);
 		} else {
 			return false;
-		}}}
+		}
 
 		if($ini === false) {
 			return false;
@@ -259,7 +259,7 @@ if(function_exists('glob')) {
 	function _glob($pattern, $flags = 0) {
 		return glob($pattern, $flags);
 	}
-} else {if(function_exists('opendir') && function_exists('readdir')) {
+} else if(function_exists('opendir') && function_exists('readdir')) {
 	// we can't redefine glob() if it has been disabled
 	function _glob($pattern, $flags = 0) {
 		$path = dirname($pattern);
@@ -271,7 +271,7 @@ if(function_exists('glob')) {
 						&& fnmatch($filePattern, $file)
 						&& (!($flags & GLOB_ONLYDIR) || is_dir("$path/$file"))) {
 					$matches[] = "$path/$file" . ($flags & GLOB_MARK ? '/' : '');
-				}
+				}	
 			}
 			closedir($handle);
 			if(!($flags & GLOB_NOSORT)) {
@@ -285,7 +285,7 @@ if(function_exists('glob')) {
 	function _glob($pattern, $flags = 0) {
 		return false;
 	}
-}}
+}
 
 /**
  * Reads entire file into a string.
@@ -362,7 +362,7 @@ function _safe_serialize( $value )
 		{
 			$out .= _safe_serialize($k) . _safe_serialize($v);
 		}
-
+		
 		return 'a:'.count($value).':{'.$out.'}';
 	}
 
@@ -436,32 +436,32 @@ function _safe_unserialize($str)
 		{
 			$str = substr($str, 1);
 		}
-		else {if($type == 'N' && $str[1] == ';')
+		else if($type == 'N' && $str[1] == ';')
 		{
 			$value = null;
 			$str = substr($str, 2);
 		}
-		else {if($type == 'b' && preg_match('/^b:([01]);/', $str, $matches))
+		else if($type == 'b' && preg_match('/^b:([01]);/', $str, $matches))
 		{
 			$value = $matches[1] == '1' ? true : false;
 			$str = substr($str, 4);
 		}
-		else {if($type == 'i' && preg_match('/^i:(-?[0-9]+);(.*)/s', $str, $matches))
+		else if($type == 'i' && preg_match('/^i:(-?[0-9]+);(.*)/s', $str, $matches))
 		{
 			$value = (int)$matches[1];
 			$str = $matches[2];
 		}
-		else {if($type == 'd' && preg_match('/^d:(-?[0-9]+\.?[0-9]*(E[+-][0-9]+)?);(.*)/s', $str, $matches))
+		else if($type == 'd' && preg_match('/^d:(-?[0-9]+\.?[0-9]*(E[+-][0-9]+)?);(.*)/s', $str, $matches))
 		{
 			$value = (float)$matches[1];
 			$str = $matches[3];
 		}
-		else {if($type == 's' && preg_match('/^s:([0-9]+):"(.*)/s', $str, $matches) && substr($matches[2], (int)$matches[1], 2) == '";')
+		else if($type == 's' && preg_match('/^s:([0-9]+):"(.*)/s', $str, $matches) && substr($matches[2], (int)$matches[1], 2) == '";')
 		{
 			$value = substr($matches[2], 0, (int)$matches[1]);
 			$str = substr($matches[2], (int)$matches[1] + 2);
 		}
-		else {if($type == 'a' && preg_match('/^a:([0-9]+):{(.*)/s', $str, $matches) && $matches[1] < MAX_SERIALIZED_ARRAY_LENGTH)
+		else if($type == 'a' && preg_match('/^a:([0-9]+):{(.*)/s', $str, $matches) && $matches[1] < MAX_SERIALIZED_ARRAY_LENGTH)
 		{
 			$expectedLength = (int)$matches[1];
 			$str = $matches[2];
@@ -470,7 +470,7 @@ function _safe_unserialize($str)
 		{
 			// object or unknown/malformed type
 			return false;
-		}}}}}}}
+		}
 
 		switch($state)
 		{

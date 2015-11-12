@@ -9,27 +9,15 @@
 
 namespace Piwik\Tracker;
 
-use Piwik\Cache as PiwikCache;
 use Piwik\Settings\Storage;
 use Piwik\Tracker;
+use Piwik\Cache as PiwikCache;
 
 /**
  * Loads settings from tracker cache instead of database. If not yet present in tracker cache will cache it.
  */
 class SettingsStorage extends Storage
 {
-    public function save()
-    {
-        parent::save();
-        self::clearCache();
-    }
-
-    public static function clearCache()
-    {
-        Cache::deleteTrackerCache();
-        self::buildCache()->flushAll();
-    }
-
     protected function loadSettings()
     {
         $cacheId = $this->getOptionKey();
@@ -46,9 +34,21 @@ class SettingsStorage extends Storage
         return $settings;
     }
 
+    public function save()
+    {
+        parent::save();
+        self::clearCache();
+    }
+
     private function getCache()
     {
         return self::buildCache($this->getOptionKey());
+    }
+
+    public static function clearCache()
+    {
+        Cache::deleteTrackerCache();
+        self::buildCache()->flushAll();
     }
 
     private static function buildCache()

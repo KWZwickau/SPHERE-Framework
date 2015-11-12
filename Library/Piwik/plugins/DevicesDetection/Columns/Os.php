@@ -10,15 +10,24 @@ namespace Piwik\Plugins\DevicesDetection\Columns;
 
 use Piwik\Piwik;
 use Piwik\Plugins\DevicesDetection\Segment;
-use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Settings;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Action;
 
 class Os extends Base
 {
     protected $columnName = 'config_os';
     protected $columnType = 'CHAR(3) NOT NULL';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('operatingSystemCode');
+        $segment->setName('DevicesDetection_ColumnOperatingSystem');
+        $segment->setAcceptedValues('WIN, MAC, LIN, AND, IPD, etc.');
+        $this->addSegment($segment);
+    }
 
     public function getName()
     {
@@ -44,14 +53,5 @@ class Os extends Base
         }
 
         return $os;
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('operatingSystemCode');
-        $segment->setName('DevicesDetection_ColumnOperatingSystem');
-        $segment->setAcceptedValues('WIN, MAC, LIN, AND, IPD, etc.');
-        $this->addSegment($segment);
     }
 }

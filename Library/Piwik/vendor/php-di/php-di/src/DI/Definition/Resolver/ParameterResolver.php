@@ -10,9 +10,9 @@
 namespace DI\Definition\Resolver;
 
 use DI\Definition\AbstractFunctionCallDefinition;
+use DI\Definition\ObjectDefinition;
 use DI\Definition\Exception\DefinitionException;
 use DI\Definition\Helper\DefinitionHelper;
-use DI\Definition\ObjectDefinition;
 
 /**
  * Resolves parameters for a function call.
@@ -37,8 +37,8 @@ class ParameterResolver
 
     /**
      * @param AbstractFunctionCallDefinition $definition
-     * @param \ReflectionFunctionAbstract $functionReflection
-     * @param array $parameters
+     * @param \ReflectionFunctionAbstract    $functionReflection
+     * @param array                          $parameters
      *
      * @throws DefinitionException A parameter has no value defined or guessable.
      * @return array Parameters to use to call the function.
@@ -50,7 +50,7 @@ class ParameterResolver
     ) {
         $args = array();
 
-        if (!$functionReflection) {
+        if (! $functionReflection) {
             return $args;
         }
 
@@ -95,7 +95,7 @@ class ParameterResolver
     /**
      * Returns the default value of a function parameter.
      *
-     * @param \ReflectionParameter $parameter
+     * @param \ReflectionParameter        $parameter
      * @param \ReflectionFunctionAbstract $function
      *
      * @throws DefinitionException Can't get default values from PHP internal classes and functions

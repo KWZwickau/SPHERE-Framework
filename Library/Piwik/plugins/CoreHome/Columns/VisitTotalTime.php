@@ -12,6 +12,7 @@ use Piwik\Config;
 use Piwik\Plugin\Dimension\VisitDimension;
 use Piwik\Plugins\CoreHome\Segment;
 use Piwik\Tracker\Action;
+use Piwik\Tracker\GoalManager;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
 
@@ -19,6 +20,15 @@ class VisitTotalTime extends VisitDimension
 {
     protected $columnName = 'visit_total_time';
     protected $columnType = 'SMALLINT(5) UNSIGNED NOT NULL';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('visitDuration');
+        $segment->setName('General_ColumnVisitDuration');
+        $segment->setType(Segment::TYPE_METRIC);
+        $this->addSegment($segment);
+    }
 
     /**
      * @param Request $request
@@ -32,23 +42,6 @@ class VisitTotalTime extends VisitDimension
         $totalTime = $this->cleanupVisitTotalTime($totalTime);
 
         return $totalTime;
-    }
-
-    private function cleanupVisitTotalTime($t)
-    {
-        $t = (int)$t;
-
-        if ($t < 0) {
-            $t = 0;
-        }
-
-        $smallintMysqlLimit = 65534;
-
-        if ($t > $smallintMysqlLimit) {
-            $t = $smallintMysqlLimit;
-        }
-
-        return $t;
     }
 
     /**
@@ -96,13 +89,21 @@ class VisitTotalTime extends VisitDimension
         return array('visit_first_action_time');
     }
 
-    protected function configureSegments()
+    private function cleanupVisitTotalTime($t)
     {
-        $segment = new Segment();
-        $segment->setSegment('visitDuration');
-        $segment->setName('General_ColumnVisitDuration');
-        $segment->setType(Segment::TYPE_METRIC);
-        $this->addSegment($segment);
+        $t = (int)$t;
+
+        if ($t < 0) {
+            $t = 0;
+        }
+
+        $smallintMysqlLimit = 65534;
+
+        if ($t > $smallintMysqlLimit) {
+            $t = $smallintMysqlLimit;
+        }
+
+        return $t;
     }
 
 }

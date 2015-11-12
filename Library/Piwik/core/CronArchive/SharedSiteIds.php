@@ -54,6 +54,66 @@ class SharedSiteIds
         });
     }
 
+    public function getInitialSiteIds()
+    {
+        return $this->siteIds;
+    }
+
+    /**
+     * Get the number of total websites that needs to be processed.
+     *
+     * @return int
+     */
+    public function getNumSites()
+    {
+        return count($this->siteIds);
+    }
+
+    /**
+     * Get the number of already processed websites (not necessarily all of those where processed by this archiver).
+     *
+     * @return int
+     */
+    public function getNumProcessedWebsites()
+    {
+        if ($this->done) {
+            return $this->getNumSites();
+        }
+
+        if (empty($this->currentSiteId)) {
+            return 0;
+        }
+
+        $index = array_search($this->currentSiteId, $this->siteIds);
+
+        if (false === $index) {
+            return 0;
+        }
+
+        return $index + 1;
+    }
+
+    public function setSiteIdsToArchive($siteIds)
+    {
+        if (!empty($siteIds)) {
+            Option::set($this->optionName, implode(',', $siteIds));
+        } else {
+            Option::delete($this->optionName);
+        }
+    }
+
+    public function getAllSiteIdsToArchive()
+    {
+        Option::clearCachedOption($this->optionName);
+        $siteIdsToArchive = Option::get($this->optionName);
+
+        if (empty($siteIdsToArchive)) {
+            return array();
+        }
+
+        return explode(',', trim($siteIdsToArchive));
+    }
+
     /**
      * If there are multiple archiver running on the same node it makes sure only one of them performs an action and it
      * will wait until another one has finished. Any closure you pass here should be very fast as other processes wait
@@ -87,71 +147,6 @@ class SharedSiteIds
         return $result;
     }
 
-    public function getAllSiteIdsToArchive()
-    {
-        Option::clearCachedOption($this->optionName);
-        $siteIdsToArchive = Option::get($this->optionName);
-
-        if (empty($siteIdsToArchive)) {
-            return array();
-        }
-
-        return explode(',', trim($siteIdsToArchive));
-    }
-
-    public function setSiteIdsToArchive($siteIds)
-    {
-        if (!empty($siteIds)) {
-            Option::set($this->optionName, implode(',', $siteIds));
-        } else {
-            Option::delete($this->optionName);
-        }
-    }
-
-    public static function isSupported()
-    {
-        return Process::isSupported();
-    }
-
-    public function getInitialSiteIds()
-    {
-        return $this->siteIds;
-    }
-
-    /**
-     * Get the number of already processed websites (not necessarily all of those where processed by this archiver).
-     *
-     * @return int
-     */
-    public function getNumProcessedWebsites()
-    {
-        if ($this->done) {
-            return $this->getNumSites();
-        }
-
-        if (empty($this->currentSiteId)) {
-            return 0;
-        }
-
-        $index = array_search($this->currentSiteId, $this->siteIds);
-
-        if (false === $index) {
-            return 0;
-        }
-
-        return $index + 1;
-    }
-
-    /**
-     * Get the number of total websites that needs to be processed.
-     *
-     * @return int
-     */
-    public function getNumSites()
-    {
-        return count($this->siteIds);
-    }
-
     /**
      * Get the next site id that needs to be processed or null if all site ids where processed.
      *
@@ -180,5 +175,10 @@ class SharedSiteIds
         }
 
         return $this->currentSiteId;
+    }
+
+    public static function isSupported()
+    {
+        return Process::isSupported();
     }
 }

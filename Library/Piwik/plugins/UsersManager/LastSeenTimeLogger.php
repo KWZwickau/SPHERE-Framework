@@ -28,15 +28,6 @@ class LastSeenTimeLogger
     const LAST_TIME_SAVE_DELTA = 300;
 
     /**
-     * Returns the time a user was last seen or `false` if the user has never logged in.
-     */
-    public static function getLastSeenTimeForUser($userName)
-    {
-        $optionName = self::OPTION_PREFIX . $userName;
-        return Option::get($optionName);
-    }
-
-    /**
      * Saves the current time for a user as an option if the current request is for something
      * in the reporting UI, the current user is not anonymous and the time hasn't been saved
      * in the last 5 minutes.
@@ -67,5 +58,14 @@ class LastSeenTimeLogger
         // log last seen time (Note: autoload is important so the Option::get above does not result in
         // a separate query)
         Option::set($optionName, time(), $autoload = 1);
+    }
+
+    /**
+     * Returns the time a user was last seen or `false` if the user has never logged in.
+     */
+    public static function getLastSeenTimeForUser($userName)
+    {
+        $optionName = self::OPTION_PREFIX . $userName;
+        return Option::get($optionName);
     }
 }

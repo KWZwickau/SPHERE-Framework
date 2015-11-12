@@ -15,6 +15,19 @@ use Piwik\Plugins\UserCountry\LocationProvider;
 
 class GetCountry extends Base
 {
+    protected function init()
+    {
+        parent::init();
+        $this->dimension      = new Country();
+        $this->name           = Piwik::translate('UserCountry_Country');
+        $this->documentation  = Piwik::translate('UserCountry_getCountryDocumentation');
+        $this->metrics        = array('nb_visits', 'nb_uniq_visitors', 'nb_actions');
+        $this->hasGoalMetrics = true;
+        $this->order = 5;
+        $this->widgetTitle = Piwik::translate('UserCountry_WidgetLocation')
+                           . ' (' . Piwik::translate('UserCountry_Country') . ')';
+    }
+
     public function configureView(ViewDataTable $view)
     {
         $view->config->show_exclude_low_population = false;
@@ -31,19 +44,6 @@ class GetCountry extends Base
 
             $view->config->show_footer_message = $footerMessage;
         }
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension      = new Country();
-        $this->name           = Piwik::translate('UserCountry_Country');
-        $this->documentation  = Piwik::translate('UserCountry_getCountryDocumentation');
-        $this->metrics        = array('nb_visits', 'nb_uniq_visitors', 'nb_actions');
-        $this->hasGoalMetrics = true;
-        $this->order = 5;
-        $this->widgetTitle = Piwik::translate('UserCountry_WidgetLocation')
-                           . ' (' . Piwik::translate('UserCountry_Country') . ')';
     }
 
 }

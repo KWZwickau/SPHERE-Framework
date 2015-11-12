@@ -20,6 +20,17 @@ class TotalEvents extends VisitDimension
     protected $columnName = 'visit_total_events';
     protected $columnType = 'SMALLINT(5) UNSIGNED NOT NULL';
 
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('events');
+        $segment->setName('Events_TotalEvents');
+        $segment->setAcceptedValues('To select all visits who triggered an Event, use: &segment=events>0');
+        $segment->setCategory('General_Visit');
+        $segment->setType(Segment::TYPE_METRIC);
+        $this->addSegment($segment);
+    }
+
     public function getName()
     {
         return Piwik::translate('Events_EventName');
@@ -41,15 +52,6 @@ class TotalEvents extends VisitDimension
     }
 
     /**
-     * @param Action|null $action
-     * @return bool
-     */
-    private function isEventAction($action)
-    {
-        return ($action && $action->getActionType() == Action::TYPE_EVENT);
-    }
-
-    /**
      * @param Request $request
      * @param Visitor $visitor
      * @param Action|null $action
@@ -64,14 +66,12 @@ class TotalEvents extends VisitDimension
         return false;
     }
 
-    protected function configureSegments()
+    /**
+     * @param Action|null $action
+     * @return bool
+     */
+    private function isEventAction($action)
     {
-        $segment = new Segment();
-        $segment->setSegment('events');
-        $segment->setName('Events_TotalEvents');
-        $segment->setAcceptedValues('To select all visits who triggered an Event, use: &segment=events>0');
-        $segment->setCategory('General_Visit');
-        $segment->setType(Segment::TYPE_METRIC);
-        $this->addSegment($segment);
+        return ($action && $action->getActionType() == Action::TYPE_EVENT);
     }
 }

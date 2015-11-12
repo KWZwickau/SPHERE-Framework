@@ -19,7 +19,7 @@
 
 namespace Doctrine\Common\Cache;
 
-use Couchbase;
+use \Couchbase;
 
 /**
  * Couchbase cache provider.
@@ -36,16 +36,6 @@ class CouchbaseCache extends CacheProvider
     private $couchbase;
 
     /**
-     * Gets the Couchbase instance used by the cache.
-     *
-     * @return Couchbase|null
-     */
-    public function getCouchbase()
-    {
-        return $this->couchbase;
-    }
-
-    /**
      * Sets the Couchbase instance to use.
      *
      * @param Couchbase $couchbase
@@ -55,6 +45,16 @@ class CouchbaseCache extends CacheProvider
     public function setCouchbase(Couchbase $couchbase)
     {
         $this->couchbase = $couchbase;
+    }
+
+    /**
+     * Gets the Couchbase instance used by the cache.
+     *
+     * @return Couchbase|null
+     */
+    public function getCouchbase()
+    {
+        return $this->couchbase;
     }
 
     /**

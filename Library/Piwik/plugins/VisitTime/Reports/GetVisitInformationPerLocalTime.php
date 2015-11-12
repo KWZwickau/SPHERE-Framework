@@ -19,6 +19,17 @@ class GetVisitInformationPerLocalTime extends Base
 
     protected $defaultSortColumn = '';
 
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new LocalTime();
+        $this->name          = Piwik::translate('VisitTime_WidgetLocalTime');
+        $this->documentation = Piwik::translate('VisitTime_WidgetLocalTimeDocumentation', array('<strong>', '</strong>'));
+        $this->constantRowsCount = true;
+        $this->order = 20;
+        $this->widgetTitle  = 'VisitTime_WidgetLocalTime';
+    }
+
     public function configureView(ViewDataTable $view)
     {
         $this->setBasicConfigViewProperties($view);
@@ -36,16 +47,5 @@ class GetVisitInformationPerLocalTime extends Base
         if (Common::getRequestVar('period', 'day') != 'day') {
             $view->config->addRelatedReport('VisitTime.getByDayOfWeek', Piwik::translate('VisitTime_VisitsByDayOfWeek'));
         }
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension     = new LocalTime();
-        $this->name          = Piwik::translate('VisitTime_WidgetLocalTime');
-        $this->documentation = Piwik::translate('VisitTime_WidgetLocalTimeDocumentation', array('<strong>', '</strong>'));
-        $this->constantRowsCount = true;
-        $this->order = 20;
-        $this->widgetTitle  = 'VisitTime_WidgetLocalTime';
     }
 }

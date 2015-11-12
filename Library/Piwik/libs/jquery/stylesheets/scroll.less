@@ -5,16 +5,19 @@
  * may not operate correctly without them.
  */
 
-.jspContainer {
+.jspContainer
+{
     /*overflow: hidden;*/
     position: relative;
 }
 
-.jspPane {
+.jspPane
+{
     position: absolute;
 }
 
-.jspVerticalBar {
+.jspVerticalBar
+{
     position: absolute;
     top: 0;
     right: 0;
@@ -22,7 +25,8 @@
     height: 100%;
 }
 
-.jspHorizontalBar {
+.jspHorizontalBar
+{
     position: absolute;
     bottom: 0;
     left: 0;
@@ -32,27 +36,32 @@
 }
 
 .jspVerticalBar *,
-.jspHorizontalBar * {
+.jspHorizontalBar *
+{
     margin: 0;
     padding: 0;
 }
 
-.jspCap {
+.jspCap
+{
     display: none;
 }
 
-.jspHorizontalBar .jspCap {
+.jspHorizontalBar .jspCap
+{
     float: left;
 }
 
-.jspTrack {
+.jspTrack
+{
     background: url("../images/slide.png") transparent no-repeat 7px;
     position: relative;
     background-size: 20% 100%;
     /*height: 447px!important;*/
 }
 
-.jspDrag {
+.jspDrag
+{
     background: url("../images/scroller.png") transparent no-repeat;
     background-size: 100% 100%;
     width: 17px;
@@ -63,49 +72,54 @@
 }
 
 .jspHorizontalBar .jspTrack,
-.jspHorizontalBar .jspDrag {
+.jspHorizontalBar .jspDrag
+{
     float: left;
     height: 100%;
 }
 
-.jspArrow {
+.jspArrow
+{
 
     text-indent: -20000px;
     display: block;
     cursor: pointer;
 }
-
-.jspArrowDown {
+.jspArrowDown{
     background: url("../images/down_arrow.png") transparent no-repeat;
 }
-
-.jspArrowUp {
+.jspArrowUp{
     background: url("../images/up_arrow.png") transparent no-repeat;
 }
 
-.jspVerticalBar .jspArrow {
+.jspVerticalBar .jspArrow
+{
     height: 14px;
 
 }
 
-.jspHorizontalBar .jspArrow {
+.jspHorizontalBar .jspArrow
+{
     width: 16px;
     float: left;
     height: 100%;
 }
 
-.jspVerticalBar .jspArrow:focus {
+.jspVerticalBar .jspArrow:focus
+{
     outline: none;
 }
 
-.jspCorner {
+.jspCorner
+{
     background: #eeeef4;
     float: left;
     height: 100%;
 }
 
 /* Yuk! CSS Hack for IE6 3 pixel bug :( */
-* html .jspCorner {
+* html .jspCorner
+{
     margin: 0 -3px 0 0;
 }
 
@@ -113,13 +127,14 @@
 .scroll-pane-before,
 .scroll-pane-after,
 .scroll-pane-split,
-.scroll-pane-os {
+.scroll-pane-os
+{
     width: 100%;
     height: 200px;
     overflow: auto;
 }
-
-.horizontal-only {
+.horizontal-only
+{
     height: auto;
     max-height: 200px;
 }

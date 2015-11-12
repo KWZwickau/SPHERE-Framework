@@ -27,6 +27,16 @@ class FixedSiteIds
     }
 
     /**
+     * Get the number of total websites that needs to be processed.
+     *
+     * @return int
+     */
+    public function getNumSites()
+    {
+        return count($this->siteIds);
+    }
+
+    /**
      * Get the number of already processed websites. All websites were processed by the current archiver.
      *
      * @return int
@@ -40,16 +50,6 @@ class FixedSiteIds
         }
 
         return $numProcessed;
-    }
-
-    /**
-     * Get the number of total websites that needs to be processed.
-     *
-     * @return int
-     */
-    public function getNumSites()
-    {
-        return count($this->siteIds);
     }
 
     public function getNextSiteId()

@@ -73,14 +73,6 @@ class TaskScheduler
     }
 
     /**
-     * @return Scheduler
-     */
-    private static function getInstance()
-    {
-        return StaticContainer::getContainer()->get('Piwik\Scheduler\Scheduler');
-    }
-
-    /**
      * Determines a task's scheduled time and persists it, overwriting the previous scheduled time.
      *
      * Call this method if your task's scheduled time has changed due to, for example, an option that
@@ -116,5 +108,13 @@ class TaskScheduler
     public static function getScheduledTimeForMethod($className, $methodName, $methodParameter = null)
     {
         return self::getInstance()->getScheduledTimeForMethod($className, $methodName, $methodParameter);
+    }
+
+    /**
+     * @return Scheduler
+     */
+    private static function getInstance()
+    {
+        return StaticContainer::getContainer()->get('Piwik\Scheduler\Scheduler');
     }
 }

@@ -13,10 +13,6 @@ use Piwik\Plugins\CoreHome\Columns\Metrics\ConversionRate;
 
 class GetMetrics extends Base
 {
-    public function configureReportMetadata(&$availableReports, $infos)
-    {
-    }
-
     protected function init()
     {
         parent::init();
@@ -28,5 +24,9 @@ class GetMetrics extends Base
         $this->orderGoal = 50;
         $this->metrics = array( 'nb_conversions', 'nb_visits_converted', 'revenue');
         $this->parameters = null;
+    }
+
+    public function configureReportMetadata(&$availableReports, $infos)
+    {
     }
 }

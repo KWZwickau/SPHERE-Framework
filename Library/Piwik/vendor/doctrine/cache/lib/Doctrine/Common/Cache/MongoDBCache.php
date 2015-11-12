@@ -96,29 +96,6 @@ class MongoDBCache extends CacheProvider
     }
 
     /**
-     * Check if the document is expired.
-     *
-     * @param array $document
-     * @return boolean
-     */
-    private function isExpired(array $document)
-    {
-        return isset($document[self::EXPIRATION_FIELD]) &&
-            $document[self::EXPIRATION_FIELD] instanceof MongoDate &&
-            $document[self::EXPIRATION_FIELD]->sec < time();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function doDelete($id)
-    {
-        $result = $this->collection->remove(array('_id' => $id));
-
-        return isset($result['n']) ? $result['n'] == 1 : true;
-    }
-
-    /**
      * {@inheritdoc}
      */
     protected function doContains($id)
@@ -157,6 +134,16 @@ class MongoDBCache extends CacheProvider
     /**
      * {@inheritdoc}
      */
+    protected function doDelete($id)
+    {
+        $result = $this->collection->remove(array('_id' => $id));
+
+        return isset($result['n']) ? $result['n'] == 1 : true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     protected function doFlush()
     {
         // Use remove() in lieu of drop() to maintain any collection indexes
@@ -187,5 +174,18 @@ class MongoDBCache extends CacheProvider
             Cache::STATS_MEMORY_USAGE => (isset($collStats['size']) ? (integer) $collStats['size'] : null),
             Cache::STATS_MEMORY_AVAILABLE  => null,
         );
+    }
+
+    /**
+     * Check if the document is expired.
+     *
+     * @param array $document
+     * @return boolean
+     */
+    private function isExpired(array $document)
+    {
+        return isset($document[self::EXPIRATION_FIELD]) &&
+            $document[self::EXPIRATION_FIELD] instanceof MongoDate &&
+            $document[self::EXPIRATION_FIELD]->sec < time();
     }
 }

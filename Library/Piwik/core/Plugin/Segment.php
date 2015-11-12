@@ -16,14 +16,14 @@ namespace Piwik\Plugin;
  *
  * Example:
  * ```
- * $segment = new \Piwik\Plugin\Segment();
- * $segment->setType(\Piwik\Plugin\Segment::TYPE_DIMENSION);
- * $segment->setName('General_EntryKeyword');
- * $segment->setCategory('General_Visit');
- * $segment->setSegment('entryKeyword');
- * $segment->setSqlSegment('log_visit.entry_keyword');
- * $segment->setAcceptedValues('Any keywords people search for on your website such as "help" or "imprint"');
- * ```
+ $segment = new \Piwik\Plugin\Segment();
+ $segment->setType(\Piwik\Plugin\Segment::TYPE_DIMENSION);
+ $segment->setName('General_EntryKeyword');
+ $segment->setCategory('General_Visit');
+ $segment->setSegment('entryKeyword');
+ $segment->setSqlSegment('log_visit.entry_keyword');
+ $segment->setAcceptedValues('Any keywords people search for on your website such as "help" or "imprint"');
+ ```
  * @api
  * @since 2.5.0
  */
@@ -113,6 +113,18 @@ class Segment
     }
 
     /**
+     * Set (overwrite) the name of the segment. The name should be lower case first and has to be unique. The segment
+     * name defined here needs to be set in the URL to actually apply this segment. Eg if the segment is 'searches'
+     * you need to set "&segment=searches>0" in the UI.
+     * @param string $segment
+     * @api
+     */
+    public function setSegment($segment)
+    {
+        $this->segment = $segment;
+    }
+
+    /**
      * Sometimes you want users to set values that differ from the way they are actually stored. For instance if you
      * want to allow to filter by any URL than you might have to resolve this URL to an action id. Or a country name
      * maybe has to be mapped to a 2 letter country code. You can do this by specifing either a callable such as
@@ -144,15 +156,6 @@ class Segment
     }
 
     /**
-     * @return string
-     * @ignore
-     */
-    public function getSqlSegment()
-    {
-        return $this->sqlSegment;
-    }
-
-    /**
      * Defines to which column in the MySQL database the segment belongs: 'mytablename.mycolumnname'. Eg
      * 'log_visit.idsite'. When a segment is applied the given or filtered value will be compared with this column.
      *
@@ -168,9 +171,9 @@ class Segment
      * @return string
      * @ignore
      */
-    public function getType()
+    public function getSqlSegment()
     {
-        return $this->type;
+        return $this->sqlSegment;
     }
 
     /**
@@ -184,6 +187,15 @@ class Segment
     }
 
     /**
+     * @return string
+     * @ignore
+     */
+    public function getType()
+    {
+        return $this->type;
+    }
+
+    /**
      * Returns the name of this segment as it should appear in segment expressions.
      *
      * @return string
@@ -191,18 +203,6 @@ class Segment
     public function getSegment()
     {
         return $this->segment;
-    }
-
-    /**
-     * Set (overwrite) the name of the segment. The name should be lower case first and has to be unique. The segment
-     * name defined here needs to be set in the URL to actually apply this segment. Eg if the segment is 'searches'
-     * you need to set "&segment=searches>0" in the UI.
-     * @param string $segment
-     * @api
-     */
-    public function setSegment($segment)
-    {
-        $this->segment = $segment;
     }
 
     /**

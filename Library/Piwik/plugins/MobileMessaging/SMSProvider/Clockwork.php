@@ -38,11 +38,24 @@ class Clockwork extends SMSProvider
         return true;
     }
 
-    public function getCreditLeft($apiKey)
+    public function sendSMS($apiKey, $smsText, $phoneNumber, $from)
     {
-        return $this->issueApiCall(
+        $from = substr($from, 0, self::MAXIMUM_FROM_LENGTH);
+
+        $smsText = self::truncate($smsText, self::MAXIMUM_CONCATENATED_SMS);
+
+        $additionalParameters = array(
+            'To'      => str_replace('+', '', $phoneNumber),
+            'Content' => $smsText,
+            'From'    => $from,
+            'Long'    => 1,
+            'MsgType' => self::containsUCS2Characters($smsText) ? 'UCS2' : 'TEXT',
+        );
+
+        $this->issueApiCall(
             $apiKey,
-            self::CHECK_CREDIT_RESOURCE
+            self::SEND_SMS_RESOURCE,
+            $additionalParameters
         );
     }
 
@@ -85,24 +98,11 @@ class Clockwork extends SMSProvider
         return $result;
     }
 
-    public function sendSMS($apiKey, $smsText, $phoneNumber, $from)
+    public function getCreditLeft($apiKey)
     {
-        $from = substr($from, 0, self::MAXIMUM_FROM_LENGTH);
-
-        $smsText = self::truncate($smsText, self::MAXIMUM_CONCATENATED_SMS);
-
-        $additionalParameters = array(
-            'To'      => str_replace('+', '', $phoneNumber),
-            'Content' => $smsText,
-            'From'    => $from,
-            'Long'    => 1,
-            'MsgType' => self::containsUCS2Characters($smsText) ? 'UCS2' : 'TEXT',
-        );
-
-        $this->issueApiCall(
+        return $this->issueApiCall(
             $apiKey,
-            self::SEND_SMS_RESOURCE,
-            $additionalParameters
+            self::CHECK_CREDIT_RESOURCE
         );
     }
 }

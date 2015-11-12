@@ -20,147 +20,34 @@ use Exception;
 class Http
 {
     /**
-     * Downloads the next chunk of a specific file. The next chunk's byte range
-     * is determined by the existing file's size and the expected file size, which
-     * is stored in the piwik_option table before starting a download. The expected
-     * file size is obtained through a `HEAD` HTTP request.
+     * Returns the "best" available transport method for {@link sendHttpRequest()} calls.
      *
-     * _Note: this function uses the **Range** HTTP header to accomplish downloading in
-     * parts. Not every server supports this header._
-     *
-     * The proper use of this function is to call it once per request. The browser
-     * should continue to send requests to Piwik which will in turn call this method
-     * until the file has completely downloaded. In this way, the user can be informed
-     * of a download's progress.
-     *
-     * **Example Usage**
-     *
-     * ```
-     * // browser JavaScript
-     * var downloadFile = function (isStart) {
-     *     var ajax = new ajaxHelper();
-     *     ajax.addParams({
-     *         module: 'MyPlugin',
-     *         action: 'myAction',
-     *         isStart: isStart ? 1 : 0
-     *     }, 'post');
-     *     ajax.setCallback(function (response) {
-     *         var progress = response.progress
-     *         // ...update progress...
-     *
-     *         downloadFile(false);
-     *     });
-     *     ajax.send();
-     * }
-     *
-     * downloadFile(true);
-     * ```
-     *
-     * ```
-     * // PHP controller action
-     * public function myAction()
-     * {
-     *     $outputPath = PIWIK_INCLUDE_PATH . '/tmp/averybigfile.zip';
-     *     $isStart = Common::getRequestVar('isStart', 1, 'int');
-     *     Http::downloadChunk("http://bigfiles.com/averybigfile.zip", $outputPath, $isStart == 1);
-     * }
-     * ```
-     *
-     * @param string $url The url to download from.
-     * @param string $outputPath The path to the file to save/append to.
-     * @param bool $isContinuation `true` if this is the continuation of a download,
-     *                             or if we're starting a fresh one.
-     * @throws Exception if the file already exists and we're starting a new download,
-     *                   if we're trying to continue a download that never started
-     * @return array
+     * @return string|null Either curl, fopen, socket or null if no method is supported.
      * @api
      */
-    public static function downloadChunk($url, $outputPath, $isContinuation)
+    public static function getTransportMethod()
     {
-        // make sure file doesn't already exist if we're starting a new download
-        if (!$isContinuation
-            && file_exists($outputPath)
-        ) {
-            throw new Exception(
-                Piwik::translate('General_DownloadFail_FileExists', "'" . $outputPath . "'")
-                . ' ' . Piwik::translate('General_DownloadPleaseRemoveExisting'));
-        }
-
-        // if we're starting a download, get the expected file size & save as an option
-        $downloadOption = $outputPath . '_expectedDownloadSize';
-        if (!$isContinuation) {
-            $expectedFileSizeResult = Http::sendHttpRequest(
-                $url,
-                $timeout = 300,
-                $userAgent = null,
-                $destinationPath = null,
-                $followDepth = 0,
-                $acceptLanguage = false,
-                $byteRange = false,
-                $getExtendedInfo = true,
-                $httpMethod = 'HEAD'
-            );
-
-            $expectedFileSize = 0;
-            if (isset($expectedFileSizeResult['headers']['Content-Length'])) {
-                $expectedFileSize = (int)$expectedFileSizeResult['headers']['Content-Length'];
-            }
-
-            if ($expectedFileSize == 0) {
-                Log::info("HEAD request for '%s' failed, got following: %s", $url, print_r($expectedFileSizeResult, true));
-                throw new Exception(Piwik::translate('General_DownloadFail_HttpRequestFail'));
-            }
-
-            Option::set($downloadOption, $expectedFileSize);
-        } else {
-            $expectedFileSize = (int)Option::get($downloadOption);
-            if ($expectedFileSize === false) { // sanity check
-                throw new Exception("Trying to continue a download that never started?! That's not supposed to happen...");
+        $method = 'curl';
+        if (!self::isCurlEnabled()) {
+            $method = 'fopen';
+            if (@ini_get('allow_url_fopen') != '1') {
+                $method = 'socket';
+                if (!self::isSocketEnabled()) {
+                    return null;
+                }
             }
         }
+        return $method;
+    }
 
-        // if existing file is already big enough, then fail so we don't accidentally overwrite
-        // existing DB
-        $existingSize = file_exists($outputPath) ? filesize($outputPath) : 0;
-        if ($existingSize >= $expectedFileSize) {
-            throw new Exception(
-                Piwik::translate('General_DownloadFail_FileExistsContinue', "'" . $outputPath . "'")
-                . ' ' . Piwik::translate('General_DownloadPleaseRemoveExisting'));
-        }
+    protected static function isSocketEnabled()
+    {
+        return function_exists('fsockopen');
+    }
 
-        // download a chunk of the file
-        $result = Http::sendHttpRequest(
-            $url,
-            $timeout = 300,
-            $userAgent = null,
-            $destinationPath = null,
-            $followDepth = 0,
-            $acceptLanguage = false,
-            $byteRange = array($existingSize, min($existingSize + 1024 * 1024 - 1, $expectedFileSize)),
-            $getExtendedInfo = true
-        );
-
-        if ($result === false
-            || $result['status'] < 200
-            || $result['status'] > 299
-        ) {
-            $result['data'] = self::truncateStr($result['data'], 1024);
-            Log::info("Failed to download range '%s-%s' of file from url '%s'. Got result: %s",
-                $byteRange[0], $byteRange[1], $url, print_r($result, true));
-
-            throw new Exception(Piwik::translate('General_DownloadFail_HttpRequestFail'));
-        }
-
-        // write chunk to file
-        $f = fopen($outputPath, 'ab');
-        fwrite($f, $result['data']);
-        fclose($f);
-
-        clearstatcache($clear_realpath_cache = true, $outputPath);
-        return array(
-            'current_size'       => filesize($outputPath),
-            'expected_file_size' => $expectedFileSize,
-        );
+    protected static function isCurlEnabled()
+    {
+        return function_exists('curl_init') && function_exists('curl_exec');
     }
 
     /**
@@ -709,11 +596,238 @@ class Http
         }
     }
 
+    /**
+     * Downloads the next chunk of a specific file. The next chunk's byte range
+     * is determined by the existing file's size and the expected file size, which
+     * is stored in the piwik_option table before starting a download. The expected
+     * file size is obtained through a `HEAD` HTTP request.
+     *
+     * _Note: this function uses the **Range** HTTP header to accomplish downloading in
+     * parts. Not every server supports this header._
+     *
+     * The proper use of this function is to call it once per request. The browser
+     * should continue to send requests to Piwik which will in turn call this method
+     * until the file has completely downloaded. In this way, the user can be informed
+     * of a download's progress.
+     *
+     * **Example Usage**
+     *
+     * ```
+     * // browser JavaScript
+     * var downloadFile = function (isStart) {
+     *     var ajax = new ajaxHelper();
+     *     ajax.addParams({
+     *         module: 'MyPlugin',
+     *         action: 'myAction',
+     *         isStart: isStart ? 1 : 0
+     *     }, 'post');
+     *     ajax.setCallback(function (response) {
+     *         var progress = response.progress
+     *         // ...update progress...
+     *
+     *         downloadFile(false);
+     *     });
+     *     ajax.send();
+     * }
+     *
+     * downloadFile(true);
+     * ```
+     *
+     * ```
+     * // PHP controller action
+     * public function myAction()
+     * {
+     *     $outputPath = PIWIK_INCLUDE_PATH . '/tmp/averybigfile.zip';
+     *     $isStart = Common::getRequestVar('isStart', 1, 'int');
+     *     Http::downloadChunk("http://bigfiles.com/averybigfile.zip", $outputPath, $isStart == 1);
+     * }
+     * ```
+     *
+     * @param string $url The url to download from.
+     * @param string $outputPath The path to the file to save/append to.
+     * @param bool $isContinuation `true` if this is the continuation of a download,
+     *                             or if we're starting a fresh one.
+     * @throws Exception if the file already exists and we're starting a new download,
+     *                   if we're trying to continue a download that never started
+     * @return array
+     * @api
+     */
+    public static function downloadChunk($url, $outputPath, $isContinuation)
+    {
+        // make sure file doesn't already exist if we're starting a new download
+        if (!$isContinuation
+            && file_exists($outputPath)
+        ) {
+            throw new Exception(
+                Piwik::translate('General_DownloadFail_FileExists', "'" . $outputPath . "'")
+                . ' ' . Piwik::translate('General_DownloadPleaseRemoveExisting'));
+        }
+
+        // if we're starting a download, get the expected file size & save as an option
+        $downloadOption = $outputPath . '_expectedDownloadSize';
+        if (!$isContinuation) {
+            $expectedFileSizeResult = Http::sendHttpRequest(
+                $url,
+                $timeout = 300,
+                $userAgent = null,
+                $destinationPath = null,
+                $followDepth = 0,
+                $acceptLanguage = false,
+                $byteRange = false,
+                $getExtendedInfo = true,
+                $httpMethod = 'HEAD'
+            );
+
+            $expectedFileSize = 0;
+            if (isset($expectedFileSizeResult['headers']['Content-Length'])) {
+                $expectedFileSize = (int)$expectedFileSizeResult['headers']['Content-Length'];
+            }
+
+            if ($expectedFileSize == 0) {
+                Log::info("HEAD request for '%s' failed, got following: %s", $url, print_r($expectedFileSizeResult, true));
+                throw new Exception(Piwik::translate('General_DownloadFail_HttpRequestFail'));
+            }
+
+            Option::set($downloadOption, $expectedFileSize);
+        } else {
+            $expectedFileSize = (int)Option::get($downloadOption);
+            if ($expectedFileSize === false) { // sanity check
+                throw new Exception("Trying to continue a download that never started?! That's not supposed to happen...");
+            }
+        }
+
+        // if existing file is already big enough, then fail so we don't accidentally overwrite
+        // existing DB
+        $existingSize = file_exists($outputPath) ? filesize($outputPath) : 0;
+        if ($existingSize >= $expectedFileSize) {
+            throw new Exception(
+                Piwik::translate('General_DownloadFail_FileExistsContinue', "'" . $outputPath . "'")
+                . ' ' . Piwik::translate('General_DownloadPleaseRemoveExisting'));
+        }
+
+        // download a chunk of the file
+        $result = Http::sendHttpRequest(
+            $url,
+            $timeout = 300,
+            $userAgent = null,
+            $destinationPath = null,
+            $followDepth = 0,
+            $acceptLanguage = false,
+            $byteRange = array($existingSize, min($existingSize + 1024 * 1024 - 1, $expectedFileSize)),
+            $getExtendedInfo = true
+        );
+
+        if ($result === false
+            || $result['status'] < 200
+            || $result['status'] > 299
+        ) {
+            $result['data'] = self::truncateStr($result['data'], 1024);
+            Log::info("Failed to download range '%s-%s' of file from url '%s'. Got result: %s",
+                $byteRange[0], $byteRange[1], $url, print_r($result, true));
+
+            throw new Exception(Piwik::translate('General_DownloadFail_HttpRequestFail'));
+        }
+
+        // write chunk to file
+        $f = fopen($outputPath, 'ab');
+        fwrite($f, $result['data']);
+        fclose($f);
+
+        clearstatcache($clear_realpath_cache = true, $outputPath);
+        return array(
+            'current_size'       => filesize($outputPath),
+            'expected_file_size' => $expectedFileSize,
+        );
+    }
+
+    /**
+     * Will configure CURL handle $ch
+     * to use local list of Certificate Authorities,
+     */
+    public static function configCurlCertificate(&$ch)
+    {
+        if (file_exists(PIWIK_INCLUDE_PATH . '/core/DataFiles/cacert.pem')) {
+            @curl_setopt($ch, CURLOPT_CAINFO, PIWIK_INCLUDE_PATH . '/core/DataFiles/cacert.pem');
+        }
+    }
+
     public static function getUserAgent()
     {
         return !empty($_SERVER['HTTP_USER_AGENT'])
             ? $_SERVER['HTTP_USER_AGENT']
             : 'Piwik/' . Version::VERSION;
+    }
+
+    /**
+     * Fetches a file located at `$url` and saves it to `$destinationPath`.
+     *
+     * @param string $url The URL of the file to download.
+     * @param string $destinationPath The path to download the file to.
+     * @param int $tries (deprecated)
+     * @param int $timeout The amount of seconds to wait before aborting the HTTP request.
+     * @throws Exception if the response cannot be saved to `$destinationPath`, if the HTTP response cannot be sent,
+     *                   if there are more than 5 redirects or if the request times out.
+     * @return bool `true` on success, throws Exception on failure
+     * @api
+     */
+    public static function fetchRemoteFile($url, $destinationPath = null, $tries = 0, $timeout = 10)
+    {
+        @ignore_user_abort(true);
+        SettingsServer::setMaxExecutionTime(0);
+        return self::sendHttpRequest($url, $timeout, 'Update', $destinationPath);
+    }
+
+    /**
+     * Utility function, parses an HTTP header line into key/value & sets header
+     * array with them.
+     *
+     * @param array $headers
+     * @param string $line
+     */
+    private static function parseHeaderLine(&$headers, $line)
+    {
+        $parts = explode(':', $line, 2);
+        if (count($parts) == 1) {
+            return;
+        }
+
+        list($name, $value) = $parts;
+        $headers[trim($name)] = trim($value);
+    }
+
+    /**
+     * Utility function that truncates a string to an arbitrary limit.
+     *
+     * @param string $str The string to truncate.
+     * @param int $limit The maximum length of the truncated string.
+     * @return string
+     */
+    private static function truncateStr($str, $limit)
+    {
+        if (strlen($str) > $limit) {
+            return substr($str, 0, $limit) . '...';
+        }
+        return $str;
+    }
+
+    /**
+     * Returns the If-Modified-Since HTTP header if it can be found. If it cannot be
+     * found, an empty string is returned.
+     *
+     * @return string
+     */
+    public static function getModifiedSinceHeader()
+    {
+        $modifiedSince = '';
+        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
+            $modifiedSince = $_SERVER['HTTP_IF_MODIFIED_SINCE'];
+
+            // strip any trailing data appended to header
+            if (false !== ($semicolonPos = strpos($modifiedSince, ';'))) {
+                $modifiedSince = substr($modifiedSince, 0, $semicolonPos);
+            }
+        }
+        return $modifiedSince;
     }
 
     /**
@@ -738,119 +852,5 @@ class Http
         $proxyPassword = Config::getInstance()->proxy['password'];
 
         return array($proxyHost, $proxyPort, $proxyUser, $proxyPassword);
-    }
-
-    protected static function isSocketEnabled()
-    {
-        return function_exists('fsockopen');
-    }
-
-    /**
-     * Utility function, parses an HTTP header line into key/value & sets header
-     * array with them.
-     *
-     * @param array $headers
-     * @param string $line
-     */
-    private static function parseHeaderLine(&$headers, $line)
-    {
-        $parts = explode(':', $line, 2);
-        if (count($parts) == 1) {
-            return;
-        }
-
-        list($name, $value) = $parts;
-        $headers[trim($name)] = trim($value);
-    }
-
-    protected static function isCurlEnabled()
-    {
-        return function_exists('curl_init') && function_exists('curl_exec');
-    }
-
-    /**
-     * Will configure CURL handle $ch
-     * to use local list of Certificate Authorities,
-     */
-    public static function configCurlCertificate(&$ch)
-    {
-        if (file_exists(PIWIK_INCLUDE_PATH . '/core/DataFiles/cacert.pem')) {
-            @curl_setopt($ch, CURLOPT_CAINFO, PIWIK_INCLUDE_PATH . '/core/DataFiles/cacert.pem');
-        }
-    }
-
-    /**
-     * Returns the "best" available transport method for {@link sendHttpRequest()} calls.
-     *
-     * @return string|null Either curl, fopen, socket or null if no method is supported.
-     * @api
-     */
-    public static function getTransportMethod()
-    {
-        $method = 'curl';
-        if (!self::isCurlEnabled()) {
-            $method = 'fopen';
-            if (@ini_get('allow_url_fopen') != '1') {
-                $method = 'socket';
-                if (!self::isSocketEnabled()) {
-                    return null;
-                }
-            }
-        }
-        return $method;
-    }
-
-    /**
-     * Utility function that truncates a string to an arbitrary limit.
-     *
-     * @param string $str The string to truncate.
-     * @param int $limit The maximum length of the truncated string.
-     * @return string
-     */
-    private static function truncateStr($str, $limit)
-    {
-        if (strlen($str) > $limit) {
-            return substr($str, 0, $limit) . '...';
-        }
-        return $str;
-    }
-
-    /**
-     * Fetches a file located at `$url` and saves it to `$destinationPath`.
-     *
-     * @param string $url The URL of the file to download.
-     * @param string $destinationPath The path to download the file to.
-     * @param int $tries (deprecated)
-     * @param int $timeout The amount of seconds to wait before aborting the HTTP request.
-     * @throws Exception if the response cannot be saved to `$destinationPath`, if the HTTP response cannot be sent,
-     *                   if there are more than 5 redirects or if the request times out.
-     * @return bool `true` on success, throws Exception on failure
-     * @api
-     */
-    public static function fetchRemoteFile($url, $destinationPath = null, $tries = 0, $timeout = 10)
-    {
-        @ignore_user_abort(true);
-        SettingsServer::setMaxExecutionTime(0);
-        return self::sendHttpRequest($url, $timeout, 'Update', $destinationPath);
-    }
-
-    /**
-     * Returns the If-Modified-Since HTTP header if it can be found. If it cannot be
-     * found, an empty string is returned.
-     *
-     * @return string
-     */
-    public static function getModifiedSinceHeader()
-    {
-        $modifiedSince = '';
-        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
-            $modifiedSince = $_SERVER['HTTP_IF_MODIFIED_SINCE'];
-
-            // strip any trailing data appended to header
-            if (false !== ($semicolonPos = strpos($modifiedSince, ';'))) {
-                $modifiedSince = substr($modifiedSince, 0, $semicolonPos);
-            }
-        }
-        return $modifiedSince;
     }
 }

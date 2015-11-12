@@ -32,11 +32,6 @@ class Model
         return $id;
     }
 
-    private function getDb()
-    {
-        return Tracker::getDatabase();
-    }
-
     public function createConversion($conversion)
     {
         $fields     = implode(", ", array_keys($conversion));
@@ -88,6 +83,7 @@ class Model
 
         return true;
     }
+
 
     /**
      * Loads the Ecommerce items from the request and records them in the DB
@@ -190,16 +186,6 @@ class Model
         return $actionId;
     }
 
-    public function getIdActionMatchingNameAndType($name, $type)
-    {
-        $sql  = $this->getSqlSelectActionId();
-        $bind = array($name, $name, $type);
-
-        $idAction = $this->getDb()->fetchOne($sql, $bind);
-
-        return $idAction;
-    }
-
     private function getSqlSelectActionId()
     {
         // it is possible for multiple actions to exist in the DB (due to rare concurrency issues), so the ORDER BY and
@@ -211,17 +197,14 @@ class Model
         return $sql;
     }
 
-    private function getSqlConditionToMatchSingleAction()
+    public function getIdActionMatchingNameAndType($name, $type)
     {
-        return "( hash = CRC32(?) AND name = ? AND type = ? )";
-    }
+        $sql  = $this->getSqlSelectActionId();
+        $bind = array($name, $name, $type);
 
-    private function deleteDuplicateAction($newActionId)
-    {
-        $sql = "DELETE FROM " . Common::prefixTable('log_action') . " WHERE idaction = ?";
+        $idAction = $this->getDb()->fetchOne($sql, $bind);
 
-        $db = $this->getDb();
-        $db->query($sql, array($newActionId));
+        return $idAction;
     }
 
     /**
@@ -329,26 +312,6 @@ class Model
         return $wasInserted;
     }
 
-    private function visitFieldsToQuery($valuesToUpdate)
-    {
-        $updateParts = array();
-        $sqlBind     = array();
-
-        foreach ($valuesToUpdate as $name => $value) {
-            // Case where bind parameters don't work
-            if ($value === $name . ' + 1') {
-                //$name = 'visit_total_events'
-                //$value = 'visit_total_events + 1';
-                $updateParts[] = " $name = $value ";
-            } else {
-                $updateParts[] = $name . " = ?";
-                $sqlBind[]     = $value;
-            }
-        }
-
-        return array($updateParts, $sqlBind);
-    }
-
     public function findVisitor($idSite, $configId, $idVisitor, $fieldsToRead, $shouldMatchOneFieldOnly, $isVisitorIdToLookup, $timeLookBack, $timeLookAhead)
     {
         $selectCustomVariables = '';
@@ -398,6 +361,15 @@ class Model
         return $this->fetchVisitor($select, $from, $where, $bindSql);
     }
 
+    private function findVisitorByConfigId($configId, $select, $from, $where, $bindSql)
+    {
+        // will use INDEX index_idsite_config_datetime (idsite, config_id, visit_last_action_time)
+        $where .= ' AND config_id = ?';
+        $bindSql[] = $configId;
+
+        return $this->fetchVisitor($select, $from, $where, $bindSql);
+    }
+
     private function fetchVisitor($select, $from, $where, $bindSql)
     {
         $sql = "$select $from WHERE " . $where . "
@@ -407,15 +379,6 @@ class Model
         $visitRow = $this->getDb()->fetch($sql, $bindSql);
 
         return $visitRow;
-    }
-
-    private function findVisitorByConfigId($configId, $select, $from, $where, $bindSql)
-    {
-        // will use INDEX index_idsite_config_datetime (idsite, config_id, visit_last_action_time)
-        $where .= ' AND config_id = ?';
-        $bindSql[] = $configId;
-
-        return $this->fetchVisitor($select, $from, $where, $bindSql);
     }
 
     /**
@@ -431,5 +394,43 @@ class Model
         $result = \Piwik\Db::fetchOne($sql, array($siteId));
 
         return $result == null;
+    }
+
+    private function visitFieldsToQuery($valuesToUpdate)
+    {
+        $updateParts = array();
+        $sqlBind     = array();
+
+        foreach ($valuesToUpdate as $name => $value) {
+            // Case where bind parameters don't work
+            if ($value === $name . ' + 1') {
+                //$name = 'visit_total_events'
+                //$value = 'visit_total_events + 1';
+                $updateParts[] = " $name = $value ";
+            } else {
+                $updateParts[] = $name . " = ?";
+                $sqlBind[]     = $value;
+            }
+        }
+
+        return array($updateParts, $sqlBind);
+    }
+
+    private function deleteDuplicateAction($newActionId)
+    {
+        $sql = "DELETE FROM " . Common::prefixTable('log_action') . " WHERE idaction = ?";
+
+        $db = $this->getDb();
+        $db->query($sql, array($newActionId));
+    }
+
+    private function getDb()
+    {
+        return Tracker::getDatabase();
+    }
+
+    private function getSqlConditionToMatchSingleAction()
+    {
+        return "( hash = CRC32(?) AND name = ? AND type = ? )";
     }
 }

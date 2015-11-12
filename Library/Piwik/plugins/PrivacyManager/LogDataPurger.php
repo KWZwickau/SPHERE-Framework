@@ -79,18 +79,6 @@ class LogDataPurger
         Db::optimizeTables($logTables);
     }
 
-    public static function getDeleteTableLogTables()
-    {
-        $result = Common::prefixTables('log_conversion',
-            'log_link_visit_action',
-            'log_visit',
-            'log_conversion_item');
-        if (Db::isLockPrivilegeGranted()) {
-            $result[] = Common::prefixTable('log_action');
-        }
-        return $result;
-    }
-
     /**
      * Returns an array describing what data would be purged if purging were invoked.
      *
@@ -153,11 +141,22 @@ class LogDataPurger
         return Db::segmentedFetchFirst($sql, $maxIdVisit, 0, -self::$selectSegmentSize);
     }
 
-    // let's hardcode, since these are not dynamically created tables
-
     private function getLogTableDeleteCount($table, $maxIdVisit)
     {
         $sql = "SELECT COUNT(*) FROM $table WHERE idvisit <= ?";
         return (int) Db::fetchOne($sql, array($maxIdVisit));
+    }
+
+    // let's hardcode, since these are not dynamically created tables
+    public static function getDeleteTableLogTables()
+    {
+        $result = Common::prefixTables('log_conversion',
+            'log_link_visit_action',
+            'log_visit',
+            'log_conversion_item');
+        if (Db::isLockPrivilegeGranted()) {
+            $result[] = Common::prefixTable('log_action');
+        }
+        return $result;
     }
 }

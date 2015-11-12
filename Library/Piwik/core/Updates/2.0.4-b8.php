@@ -12,9 +12,9 @@ namespace Piwik\Updates;
 use Piwik\Config;
 use Piwik\Plugins\CoreAdminHome\CustomLogo;
 use Piwik\Plugins\PrivacyManager\Config as PrivacyManagerConfig;
-use Piwik\Updater;
 use Piwik\UpdaterErrorException;
 use Piwik\Updates;
+use Piwik\Updater;
 
 /**
  */
@@ -47,6 +47,19 @@ class Updates_2_0_4_b8 extends Updates
         $useCustomLogo ? $customLogo->enable() : $customLogo->disable();
     }
 
+    private static function migratePrivacyManagerConfig(Config $oldConfig, PrivacyManagerConfig $newConfig)
+    {
+        $ipVisitEnrichment   = self::getValueAndDelete($oldConfig, 'Tracker', 'use_anonymized_ip_for_visit_enrichment');
+        $ipAddressMarkLength = self::getValueAndDelete($oldConfig, 'Tracker', 'ip_address_mask_length');
+
+        if (null !== $ipVisitEnrichment) {
+            $newConfig->useAnonymizedIpForVisitEnrichment = $ipVisitEnrichment;
+        }
+        if (null !== $ipAddressMarkLength) {
+            $newConfig->ipAddressMaskLength = $ipAddressMarkLength;
+        }
+    }
+
     private static function getValueAndDelete(Config $config, $section, $key)
     {
         if (!$config->$section || !array_key_exists($key, $config->$section)) {
@@ -60,18 +73,5 @@ class Updates_2_0_4_b8 extends Updates
         $config->$section = $values;
 
         return $value;
-    }
-
-    private static function migratePrivacyManagerConfig(Config $oldConfig, PrivacyManagerConfig $newConfig)
-    {
-        $ipVisitEnrichment   = self::getValueAndDelete($oldConfig, 'Tracker', 'use_anonymized_ip_for_visit_enrichment');
-        $ipAddressMarkLength = self::getValueAndDelete($oldConfig, 'Tracker', 'ip_address_mask_length');
-
-        if (null !== $ipVisitEnrichment) {
-            $newConfig->useAnonymizedIpForVisitEnrichment = $ipVisitEnrichment;
-        }
-        if (null !== $ipAddressMarkLength) {
-            $newConfig->ipAddressMaskLength = $ipAddressMarkLength;
-        }
     }
 }

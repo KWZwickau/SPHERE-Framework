@@ -11,10 +11,10 @@ namespace DI\Definition\Source;
 
 use DI\Annotation\Inject;
 use DI\Annotation\Injectable;
+use DI\Definition\ObjectDefinition;
 use DI\Definition\EntryReference;
 use DI\Definition\Exception\AnnotationException;
 use DI\Definition\Exception\DefinitionException;
-use DI\Definition\ObjectDefinition;
 use DI\Definition\ObjectDefinition\MethodInjection;
 use DI\Definition\ObjectDefinition\PropertyInjection;
 use Doctrine\Common\Annotations\AnnotationRegistry;
@@ -47,7 +47,7 @@ class AnnotationReader implements DefinitionSource
      * @var PhpDocReader
      */
     private $phpDocReader;
-
+    
     /**
      * @var bool
      */
@@ -58,7 +58,7 @@ class AnnotationReader implements DefinitionSource
      */
     public function __construct($ignorePhpDocErrors = false)
     {
-        $this->ignorePhpDocErrors = (bool)$ignorePhpDocErrors;
+        $this->ignorePhpDocErrors = (bool) $ignorePhpDocErrors;
     }
 
     /**
@@ -86,58 +86,10 @@ class AnnotationReader implements DefinitionSource
         return $definition;
     }
 
-    private function readInjectableAnnotation(ReflectionClass $class, ObjectDefinition $definition)
-    {
-        try {
-            /** @var $annotation Injectable|null */
-            $annotation = $this->getAnnotationReader()
-                ->getClassAnnotation($class, 'DI\Annotation\Injectable');
-        } catch (UnexpectedValueException $e) {
-            throw new DefinitionException(sprintf(
-                'Error while reading @Injectable on %s: %s',
-                $class->getName(),
-                $e->getMessage()
-            ), 0, $e);
-        }
-
-        if (!$annotation) {
-            return;
-        }
-
-        if ($annotation->getScope()) {
-            $definition->setScope($annotation->getScope());
-        }
-        if ($annotation->isLazy() !== null) {
-            $definition->setLazy($annotation->isLazy());
-        }
-    }
-
-    /**
-     * @return Reader The annotation reader
-     */
-    public function getAnnotationReader()
-    {
-        if ($this->annotationReader == null) {
-            AnnotationRegistry::registerAutoloadNamespace('DI\Annotation', __DIR__ . '/../../../');
-            $this->annotationReader = new SimpleAnnotationReader();
-            $this->annotationReader->addNamespace('DI\Annotation');
-        }
-
-        return $this->annotationReader;
-    }
-
-    /**
-     * @param Reader $annotationReader The annotation reader
-     */
-    public function setAnnotationReader(Reader $annotationReader)
-    {
-        $this->annotationReader = $annotationReader;
-    }
-
     /**
      * Browse the class properties looking for annotated properties.
      *
-     * @param ReflectionClass $reflectionClass
+     * @param ReflectionClass  $reflectionClass
      * @param ObjectDefinition $objectDefinition
      */
     private function readProperties(ReflectionClass $reflectionClass, ObjectDefinition $objectDefinition)
@@ -185,18 +137,6 @@ class AnnotationReader implements DefinitionSource
     }
 
     /**
-     * @return PhpDocReader
-     */
-    private function getPhpDocReader()
-    {
-        if ($this->phpDocReader === null) {
-            $this->phpDocReader = new PhpDocReader($this->ignorePhpDocErrors);
-        }
-
-        return $this->phpDocReader;
-    }
-
-    /**
      * Browse the object's methods looking for annotated methods.
      *
      * @param ReflectionClass $class
@@ -212,7 +152,7 @@ class AnnotationReader implements DefinitionSource
 
             $methodInjection = $this->getMethodInjection($method);
 
-            if (!$methodInjection) {
+            if (! $methodInjection) {
                 continue;
             }
 
@@ -244,7 +184,7 @@ class AnnotationReader implements DefinitionSource
         $annotationParameters = $annotation ? $annotation->getParameters() : array();
 
         // @Inject on constructor is implicit
-        if (!($annotation || $method->isConstructor())) {
+        if (! ($annotation || $method->isConstructor())) {
             return null;
         }
 
@@ -265,9 +205,9 @@ class AnnotationReader implements DefinitionSource
     }
 
     /**
-     * @param int $parameterIndex
+     * @param int                 $parameterIndex
      * @param ReflectionParameter $parameter
-     * @param array $annotationParameters
+     * @param array               $annotationParameters
      *
      * @return string|null Entry name or null if not found.
      */
@@ -294,5 +234,65 @@ class AnnotationReader implements DefinitionSource
 
         // Last resort, look for @param tag
         return $this->getPhpDocReader()->getParameterClass($parameter);
+    }
+
+    /**
+     * @return Reader The annotation reader
+     */
+    public function getAnnotationReader()
+    {
+        if ($this->annotationReader == null) {
+            AnnotationRegistry::registerAutoloadNamespace('DI\Annotation', __DIR__ . '/../../../');
+            $this->annotationReader = new SimpleAnnotationReader();
+            $this->annotationReader->addNamespace('DI\Annotation');
+        }
+
+        return $this->annotationReader;
+    }
+
+    /**
+     * @param Reader $annotationReader The annotation reader
+     */
+    public function setAnnotationReader(Reader $annotationReader)
+    {
+        $this->annotationReader = $annotationReader;
+    }
+
+    /**
+     * @return PhpDocReader
+     */
+    private function getPhpDocReader()
+    {
+        if ($this->phpDocReader === null) {
+            $this->phpDocReader = new PhpDocReader($this->ignorePhpDocErrors);
+        }
+
+        return $this->phpDocReader;
+    }
+
+    private function readInjectableAnnotation(ReflectionClass $class, ObjectDefinition $definition)
+    {
+        try {
+            /** @var $annotation Injectable|null */
+            $annotation = $this->getAnnotationReader()
+                ->getClassAnnotation($class, 'DI\Annotation\Injectable');
+        } catch (UnexpectedValueException $e) {
+            throw new DefinitionException(sprintf(
+                'Error while reading @Injectable on %s: %s',
+                $class->getName(),
+                $e->getMessage()
+            ), 0, $e);
+        }
+
+        if (! $annotation) {
+            return;
+        }
+
+        if ($annotation->getScope()) {
+            $definition->setScope($annotation->getScope());
+        }
+        if ($annotation->isLazy() !== null) {
+            $definition->setLazy($annotation->isLazy());
+        }
     }
 }

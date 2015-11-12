@@ -11,8 +11,8 @@
 
 namespace Symfony\Component\Console\Output;
 
-use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Formatter\OutputFormatterInterface;
+use Symfony\Component\Console\Formatter\OutputFormatter;
 
 /**
  * Base class for output classes.
@@ -53,17 +53,17 @@ abstract class Output implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function getFormatter()
+    public function setFormatter(OutputFormatterInterface $formatter)
     {
-        return $this->formatter;
+        $this->formatter = $formatter;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function setFormatter(OutputFormatterInterface $formatter)
+    public function getFormatter()
     {
-        $this->formatter = $formatter;
+        return $this->formatter;
     }
 
     /**
@@ -85,17 +85,17 @@ abstract class Output implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function getVerbosity()
+    public function setVerbosity($level)
     {
-        return $this->verbosity;
+        $this->verbosity = (int) $level;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function setVerbosity($level)
+    public function getVerbosity()
     {
-        $this->verbosity = (int) $level;
+        return $this->verbosity;
     }
 
     public function isQuiet()

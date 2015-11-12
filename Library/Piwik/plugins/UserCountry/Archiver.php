@@ -24,18 +24,25 @@ class Archiver extends \Piwik\Plugin\Archiver
 
     // separate region, city & country info in stored report labels
     const LOCATION_SEPARATOR = '|';
-    const COUNTRY_FIELD = 'location_country';
-    const REGION_FIELD = 'location_region';
-    const CITY_FIELD = 'location_city';
-    const LATITUDE_FIELD = 'location_latitude';
-    const LONGITUDE_FIELD = 'location_longitude';
+
+    private $latLongForCities = array();
+
     protected $maximumRows;
+
+    const COUNTRY_FIELD = 'location_country';
+
+    const REGION_FIELD = 'location_region';
+
+    const CITY_FIELD = 'location_city';
+
     protected $dimensions = array(self::COUNTRY_FIELD, self::REGION_FIELD, self::CITY_FIELD);
+
     /**
      * @var DataArray[] $arrays
      */
     protected $arrays;
-    private $latLongForCities = array();
+    const LATITUDE_FIELD = 'location_latitude';
+    const LONGITUDE_FIELD = 'location_longitude';
 
     public function aggregateDayReport()
     {
@@ -45,6 +52,28 @@ class Archiver extends \Piwik\Plugin\Archiver
         $this->aggregateFromVisits();
         $this->aggregateFromConversions();
         $this->insertDayReports();
+    }
+
+    public function aggregateMultipleReports()
+    {
+        $dataTableToSum = array(
+            self::COUNTRY_RECORD_NAME,
+            self::REGION_RECORD_NAME,
+            self::CITY_RECORD_NAME,
+        );
+        $columnsAggregationOperation = null;
+
+        $nameToCount = $this->getProcessor()->aggregateDataTableRecords(
+            $dataTableToSum,
+            $maximumRowsInDataTableLevelZero = null,
+            $maximumRowsInSubDataTable = null,
+            $columnToSortByBeforeTruncation = null,
+            $columnsAggregationOperation,
+            $columnsToRenameAfterAggregation = null,
+            $countRowsRecursive = array()
+        );
+        $this->getProcessor()->insertNumericRecord(self::DISTINCT_COUNTRIES_METRIC,
+            $nameToCount[self::COUNTRY_RECORD_NAME]['level0']);
     }
 
     protected function aggregateFromVisits()
@@ -155,27 +184,5 @@ class Archiver extends \Piwik\Plugin\Archiver
                 $row->setMetadata('long', $long);
             }
         }
-    }
-
-    public function aggregateMultipleReports()
-    {
-        $dataTableToSum = array(
-            self::COUNTRY_RECORD_NAME,
-            self::REGION_RECORD_NAME,
-            self::CITY_RECORD_NAME,
-        );
-        $columnsAggregationOperation = null;
-
-        $nameToCount = $this->getProcessor()->aggregateDataTableRecords(
-            $dataTableToSum,
-            $maximumRowsInDataTableLevelZero = null,
-            $maximumRowsInSubDataTable = null,
-            $columnToSortByBeforeTruncation = null,
-            $columnsAggregationOperation,
-            $columnsToRenameAfterAggregation = null,
-            $countRowsRecursive = array()
-        );
-        $this->getProcessor()->insertNumericRecord(self::DISTINCT_COUNTRIES_METRIC,
-            $nameToCount[self::COUNTRY_RECORD_NAME]['level0']);
     }
 }

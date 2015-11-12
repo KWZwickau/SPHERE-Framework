@@ -51,14 +51,15 @@ class GenerateCommand extends GeneratePluginBase
         ));
     }
 
-    protected function getPluginName(InputInterface $input, OutputInterface $output)
+    /**
+     * Convert MyComponentName => my-component-name
+     * @param  string $commandNameCamelCase
+     * @return string
+     */
+    protected function buildCommandName($commandNameCamelCase)
     {
-        $pluginNames = $this->getPluginNames();
-        $invalidName = 'You have to enter the name of an existing plugin';
-
-        return $this->askPluginNameAndValidate($input, $output, $pluginNames, $invalidName);
+        return strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $commandNameCamelCase));
     }
-
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
@@ -93,13 +94,11 @@ class GenerateCommand extends GeneratePluginBase
         return $testname;
     }
 
-    /**
-     * Convert MyComponentName => my-component-name
-     * @param  string $commandNameCamelCase
-     * @return string
-     */
-    protected function buildCommandName($commandNameCamelCase)
+    protected function getPluginName(InputInterface $input, OutputInterface $output)
     {
-        return strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $commandNameCamelCase));
+        $pluginNames = $this->getPluginNames();
+        $invalidName = 'You have to enter the name of an existing plugin';
+
+        return $this->askPluginNameAndValidate($input, $output, $pluginNames, $invalidName);
     }
 }

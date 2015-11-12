@@ -15,18 +15,6 @@ use Piwik\Plugins\Referrers\Columns\Keyword;
 
 class GetKeywords extends Base
 {
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->show_exclude_low_population = false;
-        $view->config->addTranslation('label', Piwik::translate('General_ColumnKeyword'));
-
-        $view->requestConfig->filter_limit = 25;
-
-        if ($view->isViewDataTableId(HtmlTable::ID)) {
-            $view->config->disable_subtable_when_show_goals = true;
-        }
-    }
-
     protected function init()
     {
         parent::init();
@@ -37,6 +25,18 @@ class GetKeywords extends Base
         $this->hasGoalMetrics = true;
         $this->order = 3;
         $this->widgetTitle  = 'Referrers_Keywords';
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->show_exclude_low_population = false;
+        $view->config->addTranslation('label', Piwik::translate('General_ColumnKeyword'));
+
+        $view->requestConfig->filter_limit = 25;
+
+        if ($view->isViewDataTableId(HtmlTable::ID)) {
+            $view->config->disable_subtable_when_show_goals = true;
+        }
     }
 
 }

@@ -8,6 +8,7 @@
  */
 namespace Piwik\Plugins\UserLanguage\Reports;
 
+use Piwik\Plugin\ViewDataTable;
 use Piwik\Plugins\CoreVisualizations\Visualizations\Graph;
 
 abstract class Base extends \Piwik\Plugin\Report

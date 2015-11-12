@@ -20,6 +20,16 @@ class VisitsByDaysSinceLastVisit extends VisitDimension
     protected $columnName = 'visitor_days_since_last';
     protected $columnType = 'SMALLINT(5) UNSIGNED NOT NULL';
 
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('daysSinceLastVisit');
+        $segment->setName('General_DaysSinceLastVisit');
+        $segment->setType(Segment::TYPE_METRIC);
+
+        $this->addSegment($segment);
+    }
+
     public function getName()
     {
         return Piwik::translate('VisitorInterest_VisitsByDaysSinceLast');
@@ -34,16 +44,6 @@ class VisitsByDaysSinceLastVisit extends VisitDimension
     public function onNewVisit(Request $request, Visitor $visitor, $action)
     {
         return $request->getDaysSinceLastVisit();
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('daysSinceLastVisit');
-        $segment->setName('General_DaysSinceLastVisit');
-        $segment->setType(Segment::TYPE_METRIC);
-
-        $this->addSegment($segment);
     }
 
 }

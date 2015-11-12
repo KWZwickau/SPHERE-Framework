@@ -12,13 +12,13 @@ use Exception;
 use Piwik\Access;
 use Piwik\Common;
 use Piwik\DataTable;
-use Piwik\Log;
 use Piwik\Piwik;
-use Piwik\Plugin\Manager as PluginManager;
 use Piwik\PluginDeactivatedException;
 use Piwik\SettingsServer;
 use Piwik\Url;
 use Piwik\UrlHelper;
+use Piwik\Log;
+use Piwik\Plugin\Manager as PluginManager;
 
 /**
  * Dispatches API requests to the appropriate API method.
@@ -74,23 +74,6 @@ class Request
     private $request = null;
 
     /**
-     * Constructor.
-     *
-     * @param string|array $request Query string that defines the API call (must at least contain a **method** parameter),
-     *                              eg, `'method=UserLanguage.getLanguage&idSite=1&date=yesterday&period=week&format=xml'`
-     *                              If a request is not provided, then we use the values in the `$_GET` and `$_POST`
-     *                              superglobals.
-     * @param array $defaultRequest Default query parameters. If a query parameter is absent in `$request`, it will be loaded
-     *                              from this. Defaults to `$_GET + $_POST`.
-     */
-    public function __construct($request = null, $defaultRequest = null)
-    {
-        $this->request = self::getRequestArrayFromString($request, $defaultRequest);
-        $this->sanitizeRequest();
-        $this->renameModuleAndActionInRequest();
-    }
-
-    /**
      * Converts the supplied request string into an array of query paramater name/value
      * mappings. The current query parameters (everything in `$_GET` and `$_POST`) are
      * forwarded to request array before it is returned.
@@ -140,54 +123,20 @@ class Request
     }
 
     /**
-     * @return array
-     */
-    private static function getDefaultRequest()
-    {
-        return $_GET + $_POST;
-    }
-
-    /**
-     * Returns the original request parameters in the current query string as an array mapping
-     * query parameter names with values. The result of this function will not be affected
-     * by any modifications to `$_GET` and will not include parameters in `$_POST`.
+     * Constructor.
      *
-     * @return array
+     * @param string|array $request Query string that defines the API call (must at least contain a **method** parameter),
+     *                              eg, `'method=UserLanguage.getLanguage&idSite=1&date=yesterday&period=week&format=xml'`
+     *                              If a request is not provided, then we use the values in the `$_GET` and `$_POST`
+     *                              superglobals.
+     * @param array $defaultRequest Default query parameters. If a query parameter is absent in `$request`, it will be loaded
+     *                              from this. Defaults to `$_GET + $_POST`.
      */
-    public static function getRequestParametersGET()
+    public function __construct($request = null, $defaultRequest = null)
     {
-        if (empty($_SERVER['QUERY_STRING'])) {
-            return array();
-        }
-        $GET = UrlHelper::getArrayFromQueryString($_SERVER['QUERY_STRING']);
-        return $GET;
-    }
-
-    /**
-     * Make sure that the request contains no logical errors
-     */
-    private function sanitizeRequest()
-    {
-        // The label filter does not work with expanded=1 because the data table IDs have a different meaning
-        // depending on whether the table has been loaded yet. expanded=1 causes all tables to be loaded, which
-        // is why the label filter can't descend when a recursive label has been requested.
-        // To fix this, we remove the expanded parameter if a label parameter is set.
-        if (isset($this->request['label']) && !empty($this->request['label'])
-            && isset($this->request['expanded']) && $this->request['expanded']
-        ) {
-            unset($this->request['expanded']);
-        }
-    }
-
-    private function renameModuleAndActionInRequest()
-    {
-        if (empty($this->request['apiModule'])) {
-            return;
-        }
-        if (empty($this->request['apiAction'])) {
-            $this->request['apiAction'] = null;
-        }
-        list($this->request['apiModule'], $this->request['apiAction']) = $this->getRenamedModuleAndAction($this->request['apiModule'], $this->request['apiAction']);
+        $this->request = self::getRequestArrayFromString($request, $defaultRequest);
+        $this->sanitizeRequest();
+        $this->renameModuleAndActionInRequest();
     }
 
     /**
@@ -215,108 +164,19 @@ class Request
     }
 
     /**
-     * Detect if request is an API request. Meaning the module is 'API' and an API method having a valid format was
-     * specified.
-     *
-     * @param array $request  eg array('module' => 'API', 'method' => 'Test.getMethod')
-     * @return bool
-     * @throws Exception
+     * Make sure that the request contains no logical errors
      */
-    public static function isApiRequest($request)
+    private function sanitizeRequest()
     {
-        $module = Common::getRequestVar('module', '', 'string', $request);
-        $method = Common::getRequestVar('method', '', 'string', $request);
-
-        return $module === 'API' && !empty($method) && (count(explode('.', $method)) === 2);
-    }
-
-    /**
-     * If the token_auth is found in the $request parameter,
-     * the current session will be authenticated using this token_auth.
-     * It will overwrite the previous Auth object.
-     *
-     * @param array $request If null, uses the default request ($_GET)
-     * @return void
-     * @ignore
-     */
-    public static function reloadAuthUsingTokenAuth($request = null)
-    {
-        // if a token_auth is specified in the API request, we load the right permissions
-        $token_auth = Common::getRequestVar('token_auth', '', 'string', $request);
-
-        if (self::shouldReloadAuthUsingTokenAuth($request)) {
-            self::forceReloadAuthUsingTokenAuth($token_auth);
+        // The label filter does not work with expanded=1 because the data table IDs have a different meaning
+        // depending on whether the table has been loaded yet. expanded=1 causes all tables to be loaded, which
+        // is why the label filter can't descend when a recursive label has been requested.
+        // To fix this, we remove the expanded parameter if a label parameter is set.
+        if (isset($this->request['label']) && !empty($this->request['label'])
+            && isset($this->request['expanded']) && $this->request['expanded']
+        ) {
+            unset($this->request['expanded']);
         }
-    }
-
-    private static function shouldReloadAuthUsingTokenAuth($request)
-    {
-        if (is_null($request)) {
-            $request = self::getDefaultRequest();
-        }
-
-        if (!isset($request['token_auth'])) {
-            // no token is given so we just keep the current loaded user
-            return false;
-        }
-
-        // a token is specified, we need to reload auth in case it is different than the current one, even if it is empty
-        $tokenAuth = Common::getRequestVar('token_auth', '', 'string', $request);
-
-        // not using !== is on purpose as getTokenAuth() might return null whereas $tokenAuth is '' . In this case
-        // we do not need to reload.
-
-        return $tokenAuth != Access::getInstance()->getTokenAuth();
-    }
-
-    /**
-     * The current session will be authenticated using this token_auth.
-     * It will overwrite the previous Auth object.
-     *
-     * @param string $tokenAuth
-     * @return void
-     */
-    private static function forceReloadAuthUsingTokenAuth($tokenAuth)
-    {
-        /**
-         * Triggered when authenticating an API request, but only if the **token_auth**
-         * query parameter is found in the request.
-         *
-         * Plugins that provide authentication capabilities should subscribe to this event
-         * and make sure the global authentication object (the object returned by `StaticContainer::get('Piwik\Auth')`)
-         * is setup to use `$token_auth` when its `authenticate()` method is executed.
-         *
-         * @param string $token_auth The value of the **token_auth** query parameter.
-         */
-        Piwik::postEvent('API.Request.authenticate', array($tokenAuth));
-        Access::getInstance()->reloadAccess();
-        SettingsServer::raiseMemoryLimitIfNecessary();
-    }
-
-    /**
-     * Helper method that processes an API request in one line using the variables in `$_GET`
-     * and `$_POST`.
-     *
-     * @param string $method The API method to call, ie, `'Actions.getPageTitles'`.
-     * @param array $paramOverride The parameter name-value pairs to use instead of what's
-     *                             in `$_GET` & `$_POST`.
-     * @param array $defaultRequest Default query parameters. If a query parameter is absent in `$request`, it will be loaded
-     *                              from this. Defaults to `$_GET + $_POST`.
-     *
-     *                              To avoid using any parameters from $_GET or $_POST, set this to an empty `array()`.
-     * @return mixed The result of the API request. See {@link process()}.
-     */
-    public static function processRequest($method, $paramOverride = array(), $defaultRequest = null)
-    {
-        $params = array();
-        $params['format'] = 'original';
-        $params['module'] = 'API';
-        $params['method'] = $method;
-        $params = $paramOverride + $params;
-
-        // process request
-        $request = new Request($params, $defaultRequest);
-        return $request->process();
     }
 
     /**
@@ -362,7 +222,7 @@ class Request
 
             list($module, $method) = $this->extractModuleAndMethod($moduleMethod);
             list($module, $method) = self::getRenamedModuleAndAction($module, $method);
-
+            
             PluginManager::getInstance()->checkIsPluginActivated($module);
 
             $apiClassName = self::getClassNameAPI($module);
@@ -391,6 +251,112 @@ class Request
         return $toReturn;
     }
 
+    private function restoreAuthUsingTokenAuth($tokenToRestore, $hadSuperUserAccess)
+    {
+        // if we would not make sure to unset super user access, the tokenAuth would be not authenticated and any
+        // token would just keep super user access (eg if the token that was reloaded before had super user access)
+        Access::getInstance()->setSuperUserAccess(false);
+
+        // we need to restore by reloading the tokenAuth as some permissions could have been removed in the API
+        // request etc. Otherwise we could just store a clone of Access::getInstance() and restore here
+        self::forceReloadAuthUsingTokenAuth($tokenToRestore);
+
+        if ($hadSuperUserAccess && !Access::getInstance()->hasSuperUserAccess()) {
+            // we are in context of `doAsSuperUser()` and need to restore this behaviour
+            Access::getInstance()->setSuperUserAccess(true);
+        }
+    }
+
+    /**
+     * Returns the name of a plugin's API class by plugin name.
+     *
+     * @param string $plugin The plugin name, eg, `'Referrers'`.
+     * @return string The fully qualified API class name, eg, `'\Piwik\Plugins\Referrers\API'`.
+     */
+    public static function getClassNameAPI($plugin)
+    {
+        return sprintf('\Piwik\Plugins\%s\API', $plugin);
+    }
+
+    /**
+     * Detect if request is an API request. Meaning the module is 'API' and an API method having a valid format was
+     * specified.
+     *
+     * @param array $request  eg array('module' => 'API', 'method' => 'Test.getMethod')
+     * @return bool
+     * @throws Exception
+     */
+    public static function isApiRequest($request)
+    {
+        $module = Common::getRequestVar('module', '', 'string', $request);
+        $method = Common::getRequestVar('method', '', 'string', $request);
+
+        return $module === 'API' && !empty($method) && (count(explode('.', $method)) === 2);
+    }
+
+    /**
+     * If the token_auth is found in the $request parameter,
+     * the current session will be authenticated using this token_auth.
+     * It will overwrite the previous Auth object.
+     *
+     * @param array $request If null, uses the default request ($_GET)
+     * @return void
+     * @ignore
+     */
+    public static function reloadAuthUsingTokenAuth($request = null)
+    {
+        // if a token_auth is specified in the API request, we load the right permissions
+        $token_auth = Common::getRequestVar('token_auth', '', 'string', $request);
+
+        if (self::shouldReloadAuthUsingTokenAuth($request)) {
+            self::forceReloadAuthUsingTokenAuth($token_auth);
+        }
+    }
+
+    /**
+     * The current session will be authenticated using this token_auth.
+     * It will overwrite the previous Auth object.
+     *
+     * @param string $tokenAuth
+     * @return void
+     */
+    private static function forceReloadAuthUsingTokenAuth($tokenAuth)
+    {
+        /**
+         * Triggered when authenticating an API request, but only if the **token_auth**
+         * query parameter is found in the request.
+         *
+         * Plugins that provide authentication capabilities should subscribe to this event
+         * and make sure the global authentication object (the object returned by `StaticContainer::get('Piwik\Auth')`)
+         * is setup to use `$token_auth` when its `authenticate()` method is executed.
+         *
+         * @param string $token_auth The value of the **token_auth** query parameter.
+         */
+        Piwik::postEvent('API.Request.authenticate', array($tokenAuth));
+        Access::getInstance()->reloadAccess();
+        SettingsServer::raiseMemoryLimitIfNecessary();
+    }
+
+    private static function shouldReloadAuthUsingTokenAuth($request)
+    {
+        if (is_null($request)) {
+            $request = self::getDefaultRequest();
+        }
+
+        if (!isset($request['token_auth'])) {
+            // no token is given so we just keep the current loaded user
+            return false;
+        }
+
+        // a token is specified, we need to reload auth in case it is different than the current one, even if it is empty
+        $tokenAuth = Common::getRequestVar('token_auth', '', 'string', $request);
+
+        // not using !== is on purpose as getTokenAuth() might return null whereas $tokenAuth is '' . In this case
+        // we do not need to reload.
+
+        return $tokenAuth != Access::getInstance()->getTokenAuth();
+    }
+
     /**
      * Returns array($class, $method) from the given string $class.$method
      *
@@ -408,30 +374,45 @@ class Request
     }
 
     /**
-     * Returns the name of a plugin's API class by plugin name.
+     * Helper method that processes an API request in one line using the variables in `$_GET`
+     * and `$_POST`.
      *
-     * @param string $plugin The plugin name, eg, `'Referrers'`.
-     * @return string The fully qualified API class name, eg, `'\Piwik\Plugins\Referrers\API'`.
+     * @param string $method The API method to call, ie, `'Actions.getPageTitles'`.
+     * @param array $paramOverride The parameter name-value pairs to use instead of what's
+     *                             in `$_GET` & `$_POST`.
+     * @param array $defaultRequest Default query parameters. If a query parameter is absent in `$request`, it will be loaded
+     *                              from this. Defaults to `$_GET + $_POST`.
+     *
+     *                              To avoid using any parameters from $_GET or $_POST, set this to an empty `array()`.
+     * @return mixed The result of the API request. See {@link process()}.
      */
-    public static function getClassNameAPI($plugin)
+    public static function processRequest($method, $paramOverride = array(), $defaultRequest = null)
     {
-        return sprintf('\Piwik\Plugins\%s\API', $plugin);
+        $params = array();
+        $params['format'] = 'original';
+        $params['module'] = 'API';
+        $params['method'] = $method;
+        $params = $paramOverride + $params;
+
+        // process request
+        $request = new Request($params, $defaultRequest);
+        return $request->process();
     }
 
-    private function restoreAuthUsingTokenAuth($tokenToRestore, $hadSuperUserAccess)
+    /**
+     * Returns the original request parameters in the current query string as an array mapping
+     * query parameter names with values. The result of this function will not be affected
+     * by any modifications to `$_GET` and will not include parameters in `$_POST`.
+     *
+     * @return array
+     */
+    public static function getRequestParametersGET()
     {
-        // if we would not make sure to unset super user access, the tokenAuth would be not authenticated and any
-        // token would just keep super user access (eg if the token that was reloaded before had super user access)
-        Access::getInstance()->setSuperUserAccess(false);
-
-        // we need to restore by reloading the tokenAuth as some permissions could have been removed in the API
-        // request etc. Otherwise we could just store a clone of Access::getInstance() and restore here
-        self::forceReloadAuthUsingTokenAuth($tokenToRestore);
-
-        if ($hadSuperUserAccess && !Access::getInstance()->hasSuperUserAccess()) {
-            // we are in context of `doAsSuperUser()` and need to restore this behaviour
-            Access::getInstance()->setSuperUserAccess(true);
+        if (empty($_SERVER['QUERY_STRING'])) {
+            return array();
         }
+        $GET = UrlHelper::getArrayFromQueryString($_SERVER['QUERY_STRING']);
+        return $GET;
     }
 
     /**
@@ -511,5 +492,24 @@ class Request
             }
         }
         return $segmentRaw;
+    }
+
+    private function renameModuleAndActionInRequest()
+    {
+        if (empty($this->request['apiModule'])) {
+            return;
+        }
+        if (empty($this->request['apiAction'])) {
+            $this->request['apiAction'] = null;
+        }
+        list($this->request['apiModule'], $this->request['apiAction']) = $this->getRenamedModuleAndAction($this->request['apiModule'], $this->request['apiAction']);
+    }
+
+    /**
+     * @return array
+     */
+    private static function getDefaultRequest()
+    {
+        return $_GET + $_POST;
     }
 }

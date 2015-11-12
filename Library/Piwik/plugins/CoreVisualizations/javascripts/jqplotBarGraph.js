@@ -8,21 +8,18 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-(function ($, require)
-{
+(function ($, require) {
 
     var exports = require('piwik/UI'),
         JqplotGraphDataTable = exports.JqplotGraphDataTable;
 
-    exports.JqplotBarGraphDataTable = function (element)
-    {
+    exports.JqplotBarGraphDataTable = function (element) {
         JqplotGraphDataTable.call(this, element);
     };
 
     $.extend(exports.JqplotBarGraphDataTable.prototype, JqplotGraphDataTable.prototype, {
 
-        _setJqplotParameters: function (params)
-        {
+        _setJqplotParameters: function (params) {
             JqplotGraphDataTable.prototype._setJqplotParameters.call(this, params);
 
             this.jqplotParams.seriesDefaults = {
@@ -53,14 +50,12 @@
             };
         },
 
-        _bindEvents: function ()
-        {
+        _bindEvents: function () {
             this.setYTicks();
             JqplotGraphDataTable.prototype._bindEvents.call(this);
         },
 
-        _showDataPointTooltip: function (element, seriesIndex, valueIndex)
-        {
+        _showDataPointTooltip: function (element, seriesIndex, valueIndex) {
             var value = this.formatY(this.data[seriesIndex][valueIndex], seriesIndex);
             var series = this.jqplotParams.series[seriesIndex].label;
 
@@ -73,8 +68,8 @@
             var label = this.jqplotParams.axes.xaxis.labels[valueIndex];
             var text = '<strong>' + value + '</strong> ' + series + percentage;
             $(element).tooltip({
-                track: true,
-                items: '*',
+                track:   true,
+                items:   '*',
                 content: '<h3>' + label + '</h3>' + text,
                 show: false,
                 hide: false

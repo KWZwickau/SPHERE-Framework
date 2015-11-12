@@ -35,12 +35,7 @@ class Zend_Validate_Alpha extends Zend_Validate_Abstract
     const INVALID      = 'alphaInvalid';
     const NOT_ALPHA    = 'notAlpha';
     const STRING_EMPTY = 'alphaStringEmpty';
-    /**
-     * Alphabetic filter used for validation
-     *
-     * @var Zend_Filter_Alpha
-     */
-    protected static $_filter = null;
+
     /**
      * Whether to allow white space characters; off by default
      *
@@ -48,6 +43,14 @@ class Zend_Validate_Alpha extends Zend_Validate_Abstract
      * @deprecated
      */
     public $allowWhiteSpace;
+
+    /**
+     * Alphabetic filter used for validation
+     *
+     * @var Zend_Filter_Alpha
+     */
+    protected static $_filter = null;
+
     /**
      * Validation failure message template definitions
      *

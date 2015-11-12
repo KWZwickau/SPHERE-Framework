@@ -18,13 +18,6 @@ use Piwik\Updates;
  */
 class Updates_0_9_1 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        if (SettingsServer::isTimezoneSupportEnabled()) {
-            $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-        }
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         if (!SettingsServer::isTimezoneSupportEnabled()) {
@@ -53,5 +46,12 @@ class Updates_0_9_1 extends Updates
 			WHERE option_name = "SitesManager_DefaultTimezone"
 				AND option_value IN (' . $timezoneList . ')' => false,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        if (SettingsServer::isTimezoneSupportEnabled()) {
+            $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
+        }
     }
 }

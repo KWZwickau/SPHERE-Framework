@@ -16,10 +16,10 @@ use Piwik\Plugin\Manager;
  */
 class Theme
 {
-    /** @var string */
+    /** @var string  */
     private $themeName;
 
-    /** @var \Piwik\Plugin */
+    /** @var \Piwik\Plugin  */
     private $theme;
 
     /**
@@ -100,14 +100,6 @@ class Theme
         return preg_replace_callback($pattern, array($this, 'rewriteAssetPathIfOverridesFound'), $output);
     }
 
-    /**
-     * @return string
-     */
-    public function getThemeName()
-    {
-        return $this->themeName;
-    }
-
     private function rewriteAssetPathIfOverridesFound($src)
     {
         $source = $src[0];
@@ -149,5 +141,13 @@ class Theme
             return str_replace($pathAsset, $overridingAsset, $source);
         }
         return $source;
+    }
+
+    /**
+     * @return string
+     */
+    public function getThemeName()
+    {
+        return $this->themeName;
     }
 }

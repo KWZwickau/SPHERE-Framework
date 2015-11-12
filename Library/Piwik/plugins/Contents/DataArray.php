@@ -27,6 +27,14 @@ class DataArray extends \Piwik\DataArray
         $this->doSumContentsImpressionMetrics($row, $this->data[$label]);
     }
 
+    public function sumMetricsInteractions($label, $row)
+    {
+        if (!isset($this->data[$label])) {
+            return; // do igonre interactions that do not have an impression
+        }
+        $this->doSumContentsInteractionMetrics($row, $this->data[$label]);
+    }
+
     protected static function makeEmptyContentsRow()
     {
         return array(
@@ -42,14 +50,6 @@ class DataArray extends \Piwik\DataArray
         $oldRowToUpdate[Metrics::INDEX_NB_VISITS] += $newRowToAdd[Metrics::INDEX_NB_VISITS];
         $oldRowToUpdate[Metrics::INDEX_NB_UNIQ_VISITORS] += $newRowToAdd[Metrics::INDEX_NB_UNIQ_VISITORS];
         $oldRowToUpdate[Metrics::INDEX_CONTENT_NB_IMPRESSIONS] += $newRowToAdd[Metrics::INDEX_CONTENT_NB_IMPRESSIONS];
-    }
-
-    public function sumMetricsInteractions($label, $row)
-    {
-        if (!isset($this->data[$label])) {
-            return; // do igonre interactions that do not have an impression
-        }
-        $this->doSumContentsInteractionMetrics($row, $this->data[$label]);
     }
 
     protected function doSumContentsInteractionMetrics($newRowToAdd, &$oldRowToUpdate)

@@ -9,11 +9,12 @@
 namespace Piwik\Plugins\UserCountry;
 
 use Piwik\ArchiveProcessor;
+use Piwik\Common;
 use Piwik\Config;
 use Piwik\Container\StaticContainer;
 use Piwik\Intl\Data\Provider\RegionDataProvider;
-use Piwik\Plugins\UserCountry\LocationProvider;
 use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
+use Piwik\Plugins\UserCountry\LocationProvider;
 use Piwik\Url;
 
 /**
@@ -26,33 +27,6 @@ require_once PIWIK_INCLUDE_PATH . '/plugins/UserCountry/GeoIPAutoUpdater.php';
  */
 class UserCountry extends \Piwik\Plugin
 {
-    /**
-     * Returns a list of country codes for a given continent code.
-     *
-     * @param string $continent The continent code.
-     * @return array
-     */
-    public static function getCountriesForContinent($continent)
-    {
-        /** @var RegionDataProvider $regionDataProvider */
-        $regionDataProvider = StaticContainer::get('Piwik\Intl\Data\Provider\RegionDataProvider');
-
-        $result = array();
-        $continent = strtolower($continent);
-        foreach ($regionDataProvider->getCountryList() as $countryCode => $continentCode) {
-            if ($continent == $continentCode) {
-                $result[] = $countryCode;
-            }
-        }
-        return array('SQL'  => "'" . implode("', '", $result) . "', ?",
-                     'bind' => '-'); // HACK: SegmentExpression requires a $bind, even if there's nothing to bind
-    }
-
-    public static function isGeoLocationAdminEnabled()
-    {
-        return (bool) Config::getInstance()->General['enable_geolocation_admin'];
-    }
-
     /**
      * @see Piwik\Plugin::registerEvents
      */
@@ -106,6 +80,28 @@ class UserCountry extends \Piwik\Plugin
     }
 
     /**
+     * Returns a list of country codes for a given continent code.
+     *
+     * @param string $continent The continent code.
+     * @return array
+     */
+    public static function getCountriesForContinent($continent)
+    {
+        /** @var RegionDataProvider $regionDataProvider */
+        $regionDataProvider = StaticContainer::get('Piwik\Intl\Data\Provider\RegionDataProvider');
+
+        $result = array();
+        $continent = strtolower($continent);
+        foreach ($regionDataProvider->getCountryList() as $countryCode => $continentCode) {
+            if ($continent == $continentCode) {
+                $result[] = $countryCode;
+            }
+        }
+        return array('SQL'  => "'" . implode("', '", $result) . "', ?",
+                     'bind' => '-'); // HACK: SegmentExpression requires a $bind, even if there's nothing to bind
+    }
+
+    /**
      * Returns true if a GeoIP provider is installed & working, false if otherwise.
      *
      * @return bool
@@ -123,6 +119,11 @@ class UserCountry extends \Piwik\Plugin
         $translationKeys[] = "UserCountry_FatalErrorDuringDownload";
         $translationKeys[] = "UserCountry_SetupAutomaticUpdatesOfGeoIP";
         $translationKeys[] = "General_Done";
+    }
+
+    public static function isGeoLocationAdminEnabled()
+    {
+        return (bool) Config::getInstance()->General['enable_geolocation_admin'];
     }
 
 }

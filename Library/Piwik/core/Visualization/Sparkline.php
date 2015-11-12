@@ -32,17 +32,19 @@ class Sparkline implements ViewInterface
     public static $enableSparklineImages = true;
 
     private static $colorNames = array('backgroundColor', 'lineColor', 'minPointColor', 'lastPointColor', 'maxPointColor');
+    private $values = array();
+
     /**
      * Width of the sparkline
      * @var int
      */
     protected $_width = self::DEFAULT_WIDTH;
+
     /**
      * Height of sparkline
      * @var int
      */
     protected $_height = self::DEFAULT_HEIGHT;
-    private $values = array();
 
     /**
      * Array with format: array( x, y, z, ... )
@@ -51,6 +53,50 @@ class Sparkline implements ViewInterface
     public function setValues($data)
     {
         $this->values = $data;
+    }
+
+    /**
+     * Sets the height of the sparkline
+     * @param int $height
+     */
+    public function setHeight($height)
+    {
+        if (!is_numeric($height) || $height <= 0) {
+            return;
+        }
+
+        $this->_height = (int)$height;
+    }
+
+    /**
+     * Sets the width of the sparkline
+     * @param int $width
+     */
+    public function setWidth($width)
+    {
+        if (!is_numeric($width) || $width <= 0) {
+            return;
+        }
+
+        $this->_width = (int)$width;
+    }
+
+    /**
+     * Returns the width of the sparkline
+     * @return int
+     */
+    public function getWidth()
+    {
+        return $this->_width;
+    }
+
+    /**
+     * Returns the height of the sparkline
+     * @return int
+     */
+    public function getHeight()
+    {
+        return $this->_height;
     }
 
     public function main()
@@ -98,48 +144,11 @@ class Sparkline implements ViewInterface
         $this->sparkline = $sparkline;
     }
 
-    /**
-     * Returns the width of the sparkline
-     * @return int
-     */
-    public function getWidth()
+    public function render()
     {
-        return $this->_width;
-    }
-
-    /**
-     * Sets the width of the sparkline
-     * @param int $width
-     */
-    public function setWidth($width)
-    {
-        if (!is_numeric($width) || $width <= 0) {
-            return;
+        if (self::$enableSparklineImages) {
+            $this->sparkline->Output();
         }
-
-        $this->_width = (int)$width;
-    }
-
-    /**
-     * Returns the height of the sparkline
-     * @return int
-     */
-    public function getHeight()
-    {
-        return $this->_height;
-    }
-
-    /**
-     * Sets the height of the sparkline
-     * @param int $height
-     */
-    public function setHeight($height)
-    {
-        if (!is_numeric($height) || $height <= 0) {
-            return;
-        }
-
-        $this->_height = (int)$height;
     }
 
     /**
@@ -165,13 +174,6 @@ class Sparkline implements ViewInterface
             if (!empty($colors[$name])) {
                 $sparkline->SetColorHtml($name, $colors[$name]);
             }
-        }
-    }
-
-    public function render()
-    {
-        if (self::$enableSparklineImages) {
-            $this->sparkline->Output();
         }
     }
 }

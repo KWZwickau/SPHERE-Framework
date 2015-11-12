@@ -36,20 +36,6 @@ class Invoker implements InvokerInterface
     }
 
     /**
-     * Create the default parameter resolver.
-     *
-     * @return ParameterResolver
-     */
-    private function createParameterResolver()
-    {
-        return new ResolverChain(array(
-            new NumericArrayResolver,
-            new AssociativeArrayResolver,
-            new DefaultValueResolver,
-        ));
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function call($callable, array $parameters = array())
@@ -85,6 +71,36 @@ class Invoker implements InvokerInterface
         }
 
         return call_user_func_array($callable, $args);
+    }
+
+    /**
+     * Create the default parameter resolver.
+     *
+     * @return ParameterResolver
+     */
+    private function createParameterResolver()
+    {
+        return new ResolverChain(array(
+            new NumericArrayResolver,
+            new AssociativeArrayResolver,
+            new DefaultValueResolver,
+        ));
+    }
+
+    /**
+     * @return ParameterResolver By default it's a ResolverChain
+     */
+    public function getParameterResolver()
+    {
+        return $this->parameterResolver;
+    }
+
+    /**
+     * @return ContainerInterface|null
+     */
+    public function getContainer()
+    {
+        return $this->container;
     }
 
     /**
@@ -165,21 +181,5 @@ class Invoker implements InvokerInterface
         }
 
         return false;
-    }
-
-    /**
-     * @return ParameterResolver By default it's a ResolverChain
-     */
-    public function getParameterResolver()
-    {
-        return $this->parameterResolver;
-    }
-
-    /**
-     * @return ContainerInterface|null
-     */
-    public function getContainer()
-    {
-        return $this->container;
     }
 }

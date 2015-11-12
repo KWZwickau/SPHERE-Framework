@@ -23,13 +23,6 @@ class UIAssetMinifier extends Singleton
         parent::__construct();
     }
 
-    private static function validateDependency()
-    {
-        if (!class_exists("JShrink\\Minifier")) {
-            throw new Exception("JShrink could not be found, maybe you are using Piwik from git and need to update Composer. $ php composer.phar update");
-        }
-    }
-
     /**
      * Indicates if the provided JavaScript content has already been minified or not.
      * The heuristic is based on a custom ratio : (size of file) / (number of lines).
@@ -62,5 +55,12 @@ class UIAssetMinifier extends Singleton
     public function minifyJs($content)
     {
         return Minifier::minify($content);
+    }
+
+    private static function validateDependency()
+    {
+        if (!class_exists("JShrink\\Minifier")) {
+            throw new Exception("JShrink could not be found, maybe you are using Piwik from git and need to update Composer. $ php composer.phar update");
+        }
     }
 }

@@ -72,6 +72,17 @@ class Twig_TokenParser_For extends Twig_TokenParser
         return new Twig_Node_For($keyTarget, $valueTarget, $seq, $ifexpr, $body, $else, $lineno, $this->getTag());
     }
 
+    public function decideForFork(Twig_Token $token)
+    {
+        return $token->test(array('else', 'endfor'));
+    }
+
+    public function decideForEnd(Twig_Token $token)
+    {
+        return $token->test('endfor');
+    }
+
+    // the loop variable cannot be used in the condition
     protected function checkLoopUsageCondition(Twig_TokenStream $stream, Twig_NodeInterface $node)
     {
         if ($node instanceof Twig_Node_Expression_GetAttr && $node->getNode('node') instanceof Twig_Node_Expression_Name && 'loop' == $node->getNode('node')->getAttribute('name')) {
@@ -87,6 +98,8 @@ class Twig_TokenParser_For extends Twig_TokenParser
         }
     }
 
+    // check usage of non-defined loop-items
+    // it does not catch all problems (for instance when a for is included into another or when the variable is used in an include)
     protected function checkLoopUsageBody(Twig_TokenStream $stream, Twig_NodeInterface $node)
     {
         if ($node instanceof Twig_Node_Expression_GetAttr && $node->getNode('node') instanceof Twig_Node_Expression_Name && 'loop' == $node->getNode('node')->getAttribute('name')) {
@@ -110,8 +123,6 @@ class Twig_TokenParser_For extends Twig_TokenParser
         }
     }
 
-    // the loop variable cannot be used in the condition
-
     /**
      * Gets the tag name associated with this token parser.
      *
@@ -120,18 +131,5 @@ class Twig_TokenParser_For extends Twig_TokenParser
     public function getTag()
     {
         return 'for';
-    }
-
-    // check usage of non-defined loop-items
-    // it does not catch all problems (for instance when a for is included into another or when the variable is used in an include)
-
-    public function decideForFork(Twig_Token $token)
-    {
-        return $token->test(array('else', 'endfor'));
-    }
-
-    public function decideForEnd(Twig_Token $token)
-    {
-        return $token->test('endfor');
     }
 }

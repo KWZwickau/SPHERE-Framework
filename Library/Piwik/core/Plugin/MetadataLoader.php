@@ -63,6 +63,13 @@ class MetadataLoader
         );
     }
 
+    public function hasPluginJson()
+    {
+        $hasJson = $this->loadPluginInfoJson();
+
+        return !empty($hasJson);
+    }
+
     private function getDefaultPluginInformation()
     {
         $descriptionKey = $this->pluginName . '_PluginDescription';
@@ -103,12 +110,5 @@ class MetadataLoader
         }
 
         return $info;
-    }
-
-    public function hasPluginJson()
-    {
-        $hasJson = $this->loadPluginInfoJson();
-
-        return !empty($hasJson);
     }
 }

@@ -22,11 +22,6 @@ class Html extends Formatter
         return $result;
     }
 
-    private function replaceSpaceWithNonBreakingSpace($value)
-    {
-        return str_replace(' ', '&nbsp;', $value);
-    }
-
     public function getPrettySizeFromBytes($size, $unit = null, $precision = 1)
     {
         $result = parent::getPrettySizeFromBytes($size, $unit, $precision);
@@ -39,5 +34,10 @@ class Html extends Formatter
         $result = parent::getPrettyMoney($value, $idSite);
         $result = $this->replaceSpaceWithNonBreakingSpace($result);
         return $result;
+    }
+
+    private function replaceSpaceWithNonBreakingSpace($value)
+    {
+        return str_replace(' ', '&nbsp;', $value);
     }
 }

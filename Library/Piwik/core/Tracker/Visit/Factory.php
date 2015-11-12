@@ -8,10 +8,10 @@
  */
 namespace Piwik\Tracker\Visit;
 
-use Exception;
 use Piwik\Piwik;
 use Piwik\Tracker\Visit;
 use Piwik\Tracker\VisitInterface;
+use Exception;
 
 class Factory
 {

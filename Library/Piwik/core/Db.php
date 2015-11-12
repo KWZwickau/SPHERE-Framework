@@ -34,61 +34,10 @@ use Piwik\Db\Adapter;
 class Db
 {
     const SQL_MODE = 'ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_AUTO_VALUE_ON_ZERO,NO_ZERO_DATE,NO_ZERO_IN_DATE';
-    /**
-     * Cached result of isLockprivilegeGranted function.
-     *
-     * Public so tests can simulate the situation where the lock tables privilege isn't granted.
-     *
-     * @var bool
-     * @ignore
-     */
-    public static $lockPrivilegeGranted = null;
+
     private static $connection = null;
+
     private static $logQueries = true;
-
-    /**
-     * Disconnects and destroys the database connection.
-     *
-     * For tests.
-     */
-    public static function destroyDatabaseObject()
-    {
-        DbHelper::disconnectDatabase();
-        self::$connection = null;
-    }
-
-    /**
-     * Executes an SQL `SELECT` statement and returns the first row of the result set.
-     *
-     * @param string $sql The SQL query.
-     * @param array $parameters Parameters to bind in the query, eg, `array(param1 => value1, param2 => value2)`.
-     * @throws \Exception If there is a problem with the SQL or bind parameters.
-     * @return array The fetched row, each element is an associative array mapping column names
-     *               with column values.
-     */
-    public static function fetchRow($sql, $parameters = array())
-    {
-        try {
-            self::logSql(__FUNCTION__, $sql, $parameters);
-
-            return self::get()->fetchRow($sql, $parameters);
-        } catch (Exception $ex) {
-            self::logExtraInfoIfDeadlock($ex);
-            throw $ex;
-        }
-    }
-
-    private static function logSql($functionName, $sql, $parameters = array())
-    {
-        if (self::$logQueries === false
-            || @Config::getInstance()->Debug['log_sql_queries'] != 1
-        ) {
-            return;
-        }
-
-        // NOTE: at the moment we don't log parameters in order to avoid sensitive information leaks
-        Log::debug("Db::%s() executing SQL: %s", $functionName, $sql);
-    }
 
     /**
      * Returns the database connection and creates it if it hasn't been already.
@@ -106,33 +55,6 @@ class Db
         }
 
         return self::$connection;
-    }
-
-    /**
-     * Detect whether a database object is initialized / created or not.
-     *
-     * @internal
-     */
-    public static function hasDatabaseObject()
-    {
-        return isset(self::$connection);
-    }
-
-    /**
-     * Connects to the database.
-     *
-     * Shouldn't be called directly, use {@link get()} instead.
-     *
-     * @param array|null $dbConfig Connection parameters in an array. Defaults to the `[database]`
-     *                             INI config section.
-     */
-    public static function createDatabaseObject($dbConfig = null)
-    {
-        $dbConfig = self::getDatabaseConfig($dbConfig);
-
-        $db = @Adapter::factory($dbConfig['adapter'], $dbConfig);
-
-        self::$connection = $db;
     }
 
     public static function getDatabaseConfig($dbConfig = null)
@@ -168,20 +90,96 @@ class Db
         return $dbConfig;
     }
 
-    private static function logExtraInfoIfDeadlock($ex)
+    /**
+     * Connects to the database.
+     *
+     * Shouldn't be called directly, use {@link get()} instead.
+     *
+     * @param array|null $dbConfig Connection parameters in an array. Defaults to the `[database]`
+     *                             INI config section.
+     */
+    public static function createDatabaseObject($dbConfig = null)
     {
-        if (!self::get()->isErrNo($ex, 1213)) {
-            return;
-        }
+        $dbConfig = self::getDatabaseConfig($dbConfig);
+
+        $db = @Adapter::factory($dbConfig['adapter'], $dbConfig);
+
+        self::$connection = $db;
+    }
+
+    /**
+     * Detect whether a database object is initialized / created or not.
+     *
+     * @internal
+     */
+    public static function hasDatabaseObject()
+    {
+        return isset(self::$connection);
+    }
+
+    /**
+     * Disconnects and destroys the database connection.
+     *
+     * For tests.
+     */
+    public static function destroyDatabaseObject()
+    {
+        DbHelper::disconnectDatabase();
+        self::$connection = null;
+    }
+
+    /**
+     * Executes an unprepared SQL query. Recommended for DDL statements like `CREATE`,
+     * `DROP` and `ALTER`. The return value is DBMS-specific. For MySQLI, it returns the
+     * number of rows affected. For PDO, it returns a
+     * [Zend_Db_Statement](http://framework.zend.com/manual/1.12/en/zend.db.statement.html) object.
+     *
+     * @param string $sql The SQL query.
+     * @throws \Exception If there is an error in the SQL.
+     * @return integer|\Zend_Db_Statement
+     */
+    public static function exec($sql)
+    {
+        /** @var \Zend_Db_Adapter_Abstract $db */
+        $db = self::get();
+        $profiler = $db->getProfiler();
+        $q = $profiler->queryStart($sql, \Zend_Db_Profiler::INSERT);
 
         try {
-            $deadlockInfo = self::fetchAll("SHOW ENGINE INNODB STATUS");
+            self::logSql(__FUNCTION__, $sql);
 
-            // log using exception so backtrace appears in log output
-            Log::debug(new Exception("Encountered deadlock: " . print_r($deadlockInfo, true)));
+            $return = self::get()->exec($sql);
+        } catch (Exception $ex) {
+            self::logExtraInfoIfDeadlock($ex);
+            throw $ex;
+        }
 
-        } catch (\Exception $e) {
-            //  1227 Access denied; you need (at least one of) the PROCESS privilege(s) for this operation
+        $profiler->queryEnd($q);
+
+        return $return;
+    }
+
+    /**
+     * Executes an SQL query and returns the [Zend_Db_Statement](http://framework.zend.com/manual/1.12/en/zend.db.statement.html)
+     * for the query.
+     *
+     * This method is meant for non-query SQL statements like `INSERT` and `UPDATE. If you want to fetch
+     * data from the DB you should use one of the fetch... functions.
+     *
+     * @param string $sql The SQL query.
+     * @param array $parameters Parameters to bind in the query, eg, `array(param1 => value1, param2 => value2)`.
+     * @throws \Exception If there is a problem with the SQL or bind parameters.
+     * @return \Zend_Db_Statement
+     */
+    public static function query($sql, $parameters = array())
+    {
+        try {
+            self::logSql(__FUNCTION__, $sql, $parameters);
+
+            return self::get()->query($sql, $parameters);
+        } catch (Exception $ex) {
+            self::logExtraInfoIfDeadlock($ex);
+            throw $ex;
         }
     }
 
@@ -200,6 +198,48 @@ class Db
             self::logSql(__FUNCTION__, $sql, $parameters);
 
             return self::get()->fetchAll($sql, $parameters);
+        } catch (Exception $ex) {
+            self::logExtraInfoIfDeadlock($ex);
+            throw $ex;
+        }
+    }
+
+    /**
+     * Executes an SQL `SELECT` statement and returns the first row of the result set.
+     *
+     * @param string $sql The SQL query.
+     * @param array $parameters Parameters to bind in the query, eg, `array(param1 => value1, param2 => value2)`.
+     * @throws \Exception If there is a problem with the SQL or bind parameters.
+     * @return array The fetched row, each element is an associative array mapping column names
+     *               with column values.
+     */
+    public static function fetchRow($sql, $parameters = array())
+    {
+        try {
+            self::logSql(__FUNCTION__, $sql, $parameters);
+
+            return self::get()->fetchRow($sql, $parameters);
+        } catch (Exception $ex) {
+            self::logExtraInfoIfDeadlock($ex);
+            throw $ex;
+        }
+    }
+
+    /**
+     * Executes an SQL `SELECT` statement and returns the first column value of the first
+     * row in the result set.
+     *
+     * @param string $sql The SQL query.
+     * @param array $parameters Parameters to bind in the query, eg, `array(param1 => value1, param2 => value2)`.
+     * @throws \Exception If there is a problem with the SQL or bind parameters.
+     * @return string
+     */
+    public static function fetchOne($sql, $parameters = array())
+    {
+        try {
+            self::logSql(__FUNCTION__, $sql, $parameters);
+
+            return self::get()->fetchOne($sql, $parameters);
         } catch (Exception $ex) {
             self::logExtraInfoIfDeadlock($ex);
             throw $ex;
@@ -271,30 +311,6 @@ class Db
     }
 
     /**
-     * Executes an SQL query and returns the [Zend_Db_Statement](http://framework.zend.com/manual/1.12/en/zend.db.statement.html)
-     * for the query.
-     *
-     * This method is meant for non-query SQL statements like `INSERT` and `UPDATE. If you want to fetch
-     * data from the DB you should use one of the fetch... functions.
-     *
-     * @param string $sql The SQL query.
-     * @param array $parameters Parameters to bind in the query, eg, `array(param1 => value1, param2 => value2)`.
-     * @throws \Exception If there is a problem with the SQL or bind parameters.
-     * @return \Zend_Db_Statement
-     */
-    public static function query($sql, $parameters = array())
-    {
-        try {
-            self::logSql(__FUNCTION__, $sql, $parameters);
-
-            return self::get()->query($sql, $parameters);
-        } catch (Exception $ex) {
-            self::logExtraInfoIfDeadlock($ex);
-            throw $ex;
-        }
-    }
-
-    /**
      * Runs an `OPTIMIZE TABLE` query on the supplied table or tables.
      *
      * Tables will only be optimized if the `[General] enable_sql_optimize_queries` INI config option is
@@ -347,55 +363,9 @@ class Db
         return self::query("OPTIMIZE TABLE " . implode(',', $tables));
     }
 
-    public static function isOptimizeInnoDBSupported($version = null)
-    {
-        if ($version === null) {
-            $version = Db::fetchOne("SELECT VERSION()");
-        }
-
-        $version = strtolower($version);
-
-        if (strpos($version, "mariadb") === false) {
-            return false;
-        }
-
-        $semanticVersion = strstr($version, '-', $beforeNeedle = true);
-        return version_compare($semanticVersion, '10.1.1', '>=');
-    }
-
-    /**
-     * Executes an SQL `SELECT` statement and returns the first column value of the first
-     * row in the result set.
-     *
-     * @param string $sql The SQL query.
-     * @param array $parameters Parameters to bind in the query, eg, `array(param1 => value1, param2 => value2)`.
-     * @throws \Exception If there is a problem with the SQL or bind parameters.
-     * @return string
-     */
-    public static function fetchOne($sql, $parameters = array())
-    {
-        try {
-            self::logSql(__FUNCTION__, $sql, $parameters);
-
-            return self::get()->fetchOne($sql, $parameters);
-        } catch (Exception $ex) {
-            self::logExtraInfoIfDeadlock($ex);
-            throw $ex;
-        }
-    }
-
     private static function getTableStatus()
     {
         return Db::fetchAll("SHOW TABLE STATUS");
-    }
-
-    /**
-     * Drops all tables
-     */
-    public static function dropAllTables()
-    {
-        $tablesAlreadyInstalled = DbHelper::getTablesInstalled();
-        self::dropTables($tablesAlreadyInstalled);
     }
 
     /**
@@ -415,6 +385,15 @@ class Db
     }
 
     /**
+     * Drops all tables
+     */
+    public static function dropAllTables()
+    {
+        $tablesAlreadyInstalled = DbHelper::getTablesInstalled();
+        self::dropTables($tablesAlreadyInstalled);
+    }
+
+    /**
      * Get columns information from table
      *
      * @param string|array $table The name of the table you want to get the columns definition for.
@@ -425,6 +404,53 @@ class Db
     {
         $tableMetadataAccess = new TableMetadata();
         return $tableMetadataAccess->getColumns($table);
+    }
+
+    /**
+     * Locks the supplied table or tables.
+     *
+     * **NOTE:** Piwik does not require the `LOCK TABLES` privilege to be available. Piwik
+     * should still work if it has not been granted.
+     *
+     * @param string|array $tablesToRead The table or tables to obtain 'read' locks on. Table names must
+     *                                   be prefixed (see {@link Piwik\Common::prefixTable()}).
+     * @param string|array $tablesToWrite The table or tables to obtain 'write' locks on. Table names must
+     *                                    be prefixed (see {@link Piwik\Common::prefixTable()}).
+     * @return \Zend_Db_Statement
+     */
+    public static function lockTables($tablesToRead, $tablesToWrite = array())
+    {
+        if (!is_array($tablesToRead)) {
+            $tablesToRead = array($tablesToRead);
+        }
+
+        if (!is_array($tablesToWrite)) {
+            $tablesToWrite = array($tablesToWrite);
+        }
+
+        $lockExprs = array();
+        foreach ($tablesToWrite as $table) {
+            $lockExprs[] = $table . " WRITE";
+        }
+
+        foreach ($tablesToRead as $table) {
+            $lockExprs[] = $table . " READ";
+        }
+
+        return self::exec("LOCK TABLES " . implode(', ', $lockExprs));
+    }
+
+    /**
+     * Releases all table locks.
+     *
+     * **NOTE:** Piwik does not require the `LOCK TABLES` privilege to be available. Piwik
+     * should still work if it has not been granted.
+     *
+     * @return \Zend_Db_Statement
+     */
+    public static function unlockAllTables()
+    {
+        return self::exec("UNLOCK TABLES");
     }
 
     /**
@@ -549,12 +575,12 @@ class Db
         if ($step > 0) {
             for ($i = $first; $i <= $last; $i += $step) {
                 $currentParams = array_merge($params, array($i, $i + $step));
-                $result = array_merge($result, self::fetchAll($sql, $currentParams));
+                $result        = array_merge($result, self::fetchAll($sql, $currentParams));
             }
         } else {
             for ($i = $first; $i >= $last; $i += $step) {
                 $currentParams = array_merge($params, array($i, $i + $step));
-                $result = array_merge($result, self::fetchAll($sql, $currentParams));
+                $result        = array_merge($result, self::fetchAll($sql, $currentParams));
             }
         }
 
@@ -650,6 +676,16 @@ class Db
     }
 
     /**
+     * Cached result of isLockprivilegeGranted function.
+     *
+     * Public so tests can simulate the situation where the lock tables privilege isn't granted.
+     *
+     * @var bool
+     * @ignore
+     */
+    public static $lockPrivilegeGranted = null;
+
+    /**
      * Checks whether the database user is allowed to lock tables.
      *
      * @return bool
@@ -670,82 +706,33 @@ class Db
         return self::$lockPrivilegeGranted;
     }
 
-    /**
-     * Locks the supplied table or tables.
-     *
-     * **NOTE:** Piwik does not require the `LOCK TABLES` privilege to be available. Piwik
-     * should still work if it has not been granted.
-     *
-     * @param string|array $tablesToRead The table or tables to obtain 'read' locks on. Table names must
-     *                                   be prefixed (see {@link Piwik\Common::prefixTable()}).
-     * @param string|array $tablesToWrite The table or tables to obtain 'write' locks on. Table names must
-     *                                    be prefixed (see {@link Piwik\Common::prefixTable()}).
-     * @return \Zend_Db_Statement
-     */
-    public static function lockTables($tablesToRead, $tablesToWrite = array())
+    private static function logExtraInfoIfDeadlock($ex)
     {
-        if (!is_array($tablesToRead)) {
-            $tablesToRead = array($tablesToRead);
+        if (!self::get()->isErrNo($ex, 1213)) {
+            return;
         }
-
-        if (!is_array($tablesToWrite)) {
-            $tablesToWrite = array($tablesToWrite);
-        }
-
-        $lockExprs = array();
-        foreach ($tablesToWrite as $table) {
-            $lockExprs[] = $table . " WRITE";
-        }
-
-        foreach ($tablesToRead as $table) {
-            $lockExprs[] = $table . " READ";
-        }
-
-        return self::exec("LOCK TABLES " . implode(', ', $lockExprs));
-    }
-
-    /**
-     * Executes an unprepared SQL query. Recommended for DDL statements like `CREATE`,
-     * `DROP` and `ALTER`. The return value is DBMS-specific. For MySQLI, it returns the
-     * number of rows affected. For PDO, it returns a
-     * [Zend_Db_Statement](http://framework.zend.com/manual/1.12/en/zend.db.statement.html) object.
-     *
-     * @param string $sql The SQL query.
-     * @throws \Exception If there is an error in the SQL.
-     * @return integer|\Zend_Db_Statement
-     */
-    public static function exec($sql)
-    {
-        /** @var \Zend_Db_Adapter_Abstract $db */
-        $db = self::get();
-        $profiler = $db->getProfiler();
-        $q = $profiler->queryStart($sql, \Zend_Db_Profiler::INSERT);
 
         try {
-            self::logSql(__FUNCTION__, $sql);
+            $deadlockInfo = self::fetchAll("SHOW ENGINE INNODB STATUS");
 
-            $return = self::get()->exec($sql);
-        } catch (Exception $ex) {
-            self::logExtraInfoIfDeadlock($ex);
-            throw $ex;
+            // log using exception so backtrace appears in log output
+            Log::debug(new Exception("Encountered deadlock: " . print_r($deadlockInfo, true)));
+
+        } catch(\Exception $e) {
+            //  1227 Access denied; you need (at least one of) the PROCESS privilege(s) for this operation
         }
-
-        $profiler->queryEnd($q);
-
-        return $return;
     }
 
-    /**
-     * Releases all table locks.
-     *
-     * **NOTE:** Piwik does not require the `LOCK TABLES` privilege to be available. Piwik
-     * should still work if it has not been granted.
-     *
-     * @return \Zend_Db_Statement
-     */
-    public static function unlockAllTables()
+    private static function logSql($functionName, $sql, $parameters = array())
     {
-        return self::exec("UNLOCK TABLES");
+        if (self::$logQueries === false
+            || @Config::getInstance()->Debug['log_sql_queries'] != 1
+        ) {
+            return;
+        }
+
+        // NOTE: at the moment we don't log parameters in order to avoid sensitive information leaks
+        Log::debug("Db::%s() executing SQL: %s", $functionName, $sql);
     }
 
     /**
@@ -762,5 +749,21 @@ class Db
     public static function isQueryLogEnabled()
     {
         return self::$logQueries;
+    }
+
+    public static function isOptimizeInnoDBSupported($version = null)
+    {
+        if ($version === null) {
+            $version = Db::fetchOne("SELECT VERSION()");
+        }
+
+        $version = strtolower($version);
+
+        if (strpos($version, "mariadb") === false) {
+            return false;
+        }
+
+        $semanticVersion = strstr($version, '-', $beforeNeedle = true);
+        return version_compare($semanticVersion, '10.1.1', '>=');
     }
 }

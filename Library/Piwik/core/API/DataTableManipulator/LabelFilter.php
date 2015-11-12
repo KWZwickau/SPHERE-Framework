@@ -25,9 +25,10 @@ class LabelFilter extends DataTableManipulator
 {
     const SEPARATOR_RECURSIVE_LABEL = '>';
     const TERMINAL_OPERATOR = '@';
-    const FLAG_IS_ROW_EVOLUTION = 'label_index';
+
     private $labels;
     private $addLabelIndex;
+    const FLAG_IS_ROW_EVOLUTION = 'label_index';
 
     /**
      * Filter a data table by label.
@@ -55,6 +56,49 @@ class LabelFilter extends DataTableManipulator
     }
 
     /**
+     * Method for the recursive descend
+     *
+     * @param array $labelParts
+     * @param DataTable $dataTable
+     * @return Row|bool
+     */
+    private function doFilterRecursiveDescend($labelParts, $dataTable)
+    {
+        // we need to make sure to rebuild the index as some filters change the label column directly via
+        // $row->setColumn('label', '') which would not be noticed in the label index otherwise.
+        $dataTable->rebuildIndex();
+
+        // search for the first part of the tree search
+        $labelPart = array_shift($labelParts);
+
+        $row = false;
+        foreach ($this->getLabelVariations($labelPart) as $labelPart) {
+            $row = $dataTable->getRowFromLabel($labelPart);
+            if ($row !== false) {
+                break;
+            }
+        }
+
+        if ($row === false) {
+            // not found
+            return false;
+        }
+
+        // end of tree search reached
+        if (count($labelParts) == 0) {
+            return $row;
+        }
+
+        $subTable = $this->loadSubtable($dataTable, $row);
+        if ($subTable === null) {
+            // no more subtables but label parts left => no match found
+            return false;
+        }
+
+        return $this->doFilterRecursiveDescend($labelParts, $subTable);
+    }
+
+    /**
      * Clean up request for ResponseBuilder to behave correctly
      *
      * @param $request
@@ -67,33 +111,6 @@ class LabelFilter extends DataTableManipulator
         $request['filter_sort_column'] = ''; // do not sort, we only want to find a matching column
 
         return $request;
-    }
-
-    /**
-     * Filter a DataTable instance. See @filter for more info.
-     *
-     * @param DataTable\Simple|DataTable\Map $dataTable
-     * @return mixed
-     */
-    protected function manipulateDataTable($dataTable)
-    {
-        $result = $dataTable->getEmptyClone();
-        foreach ($this->labels as $labelIndex => $label) {
-            $row = null;
-            foreach ($this->getLabelVariations($label) as $labelVariation) {
-                $labelVariation = explode(self::SEPARATOR_RECURSIVE_LABEL, $labelVariation);
-
-                $row = $this->doFilterRecursiveDescend($labelVariation, $dataTable);
-                if ($row) {
-                    if ($this->addLabelIndex) {
-                        $row->setMetadata(self::FLAG_IS_ROW_EVOLUTION, $labelIndex);
-                    }
-                    $result->addRow($row);
-                    break;
-                }
-            }
-        }
-        return $result;
     }
 
     /**
@@ -143,45 +160,29 @@ class LabelFilter extends DataTableManipulator
     }
 
     /**
-     * Method for the recursive descend
+     * Filter a DataTable instance. See @filter for more info.
      *
-     * @param array $labelParts
-     * @param DataTable $dataTable
-     * @return Row|bool
+     * @param DataTable\Simple|DataTable\Map $dataTable
+     * @return mixed
      */
-    private function doFilterRecursiveDescend($labelParts, $dataTable)
+    protected function manipulateDataTable($dataTable)
     {
-        // we need to make sure to rebuild the index as some filters change the label column directly via
-        // $row->setColumn('label', '') which would not be noticed in the label index otherwise.
-        $dataTable->rebuildIndex();
+        $result = $dataTable->getEmptyClone();
+        foreach ($this->labels as $labelIndex => $label) {
+            $row = null;
+            foreach ($this->getLabelVariations($label) as $labelVariation) {
+                $labelVariation = explode(self::SEPARATOR_RECURSIVE_LABEL, $labelVariation);
 
-        // search for the first part of the tree search
-        $labelPart = array_shift($labelParts);
-
-        $row = false;
-        foreach ($this->getLabelVariations($labelPart) as $labelPart) {
-            $row = $dataTable->getRowFromLabel($labelPart);
-            if ($row !== false) {
-                break;
+                $row = $this->doFilterRecursiveDescend($labelVariation, $dataTable);
+                if ($row) {
+                    if ($this->addLabelIndex) {
+                        $row->setMetadata(self::FLAG_IS_ROW_EVOLUTION, $labelIndex);
+                    }
+                    $result->addRow($row);
+                    break;
+                }
             }
         }
-
-        if ($row === false) {
-            // not found
-            return false;
-        }
-
-        // end of tree search reached
-        if (count($labelParts) == 0) {
-            return $row;
-        }
-
-        $subTable = $this->loadSubtable($dataTable, $row);
-        if ($subTable === null) {
-            // no more subtables but label parts left => no match found
-            return false;
-        }
-
-        return $this->doFilterRecursiveDescend($labelParts, $subTable);
+        return $result;
     }
 }

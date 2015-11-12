@@ -8,17 +8,27 @@
  */
 namespace Piwik\Plugins\UserCountry\Columns;
 
+use Piwik\Common;
 use Piwik\Piwik;
 use Piwik\Plugins\UserCountry\LocationProvider;
 use Piwik\Plugins\UserCountry\Segment;
-use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Action;
 
 class Longitude extends Base
 {
     protected $columnName = 'location_longitude';
     protected $columnType = 'float(10, 6) DEFAULT NULL';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('longitude');
+        $segment->setName('UserCountry_Longitude');
+        $segment->setAcceptedValues('-70.664, 14.326, etc.');
+        $this->addSegment($segment);
+    }
 
     public function getName()
     {
@@ -66,14 +76,5 @@ class Longitude extends Base
     public function onAnyGoalConversion(Request $request, Visitor $visitor, $action)
     {
         return $visitor->getVisitorColumn($this->columnName);
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('longitude');
-        $segment->setName('UserCountry_Longitude');
-        $segment->setAcceptedValues('-70.664, 14.326, etc.');
-        $this->addSegment($segment);
     }
 }

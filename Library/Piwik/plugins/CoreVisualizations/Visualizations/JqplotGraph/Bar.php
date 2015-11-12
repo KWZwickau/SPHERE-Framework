@@ -21,19 +21,19 @@ class Bar extends JqplotGraph
     const FOOTER_ICON       = 'plugins/Morpheus/images/chart_bar.png';
     const FOOTER_ICON_TITLE = 'General_VBarGraph';
 
+    public function beforeRender()
+    {
+        parent::beforeRender();
+
+        $this->config->datatable_js_type = 'JqplotBarGraphDataTable';
+    }
+
     public static function getDefaultConfig()
     {
         $config = new Config();
         $config->max_graph_elements = 6;
 
         return $config;
-    }
-
-    public function beforeRender()
-    {
-        parent::beforeRender();
-
-        $this->config->datatable_js_type = 'JqplotBarGraphDataTable';
     }
 
     protected function makeDataGenerator($properties)

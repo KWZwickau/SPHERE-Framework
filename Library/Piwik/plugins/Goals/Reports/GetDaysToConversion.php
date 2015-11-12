@@ -10,12 +10,27 @@ namespace Piwik\Plugins\Goals\Reports;
 
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
-use Piwik\Plugins\Goals\Archiver;
 use Piwik\Plugins\Goals\Columns\DaysToConversion;
+use Piwik\Plugins\Goals\Archiver;
 
 class GetDaysToConversion extends Base
 {
     protected $defaultSortColumn = '';
+
+    protected function init()
+    {
+        parent::init();
+
+        $this->name = Piwik::translate('Goals_DaysToConv');
+        $this->dimension = new DaysToConversion();
+        $this->constantRowsCount = true;
+        $this->processedMetrics = false;
+        $this->parameters = array();
+
+        $this->metrics = array('nb_conversions');
+        $this->order = 10;
+        $this->orderGoal = 52;
+    }
 
     public function configureView(ViewDataTable $view)
     {
@@ -49,20 +64,5 @@ class GetDaysToConversion extends Base
         $this->addReportMetadataForEachGoal($availableReports, $infos, function ($goal) use ($name) {
             return $goal['name'] . ' - ' . $name;
         });
-    }
-
-    protected function init()
-    {
-        parent::init();
-
-        $this->name = Piwik::translate('Goals_DaysToConv');
-        $this->dimension = new DaysToConversion();
-        $this->constantRowsCount = true;
-        $this->processedMetrics = false;
-        $this->parameters = array();
-
-        $this->metrics = array('nb_conversions');
-        $this->order = 10;
-        $this->orderGoal = 52;
     }
 }

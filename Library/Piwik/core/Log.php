@@ -88,22 +88,28 @@ class Log extends Singleton
      */
     private $logger;
 
+    public static function getInstance()
+    {
+        if (self::$instance === null) {
+            self::$instance = StaticContainer::get(__CLASS__);
+        }
+        return self::$instance;
+    }
+    public static function unsetInstance()
+    {
+        self::$instance = null;
+    }
+    public static function setSingletonInstance($instance)
+    {
+        self::$instance = $instance;
+    }
+
     /**
      * @param LoggerInterface $logger
      */
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-    }
-
-    public static function unsetInstance()
-    {
-        self::$instance = null;
-    }
-
-    public static function setSingletonInstance($instance)
-    {
-        self::$instance = $instance;
     }
 
     /**
@@ -119,37 +125,6 @@ class Log extends Singleton
     public static function error($message /* ... */)
     {
         self::logMessage(Logger::ERROR, $message, array_slice(func_get_args(), 1));
-    }
-
-    private static function logMessage($level, $message, $parameters)
-    {
-        self::getInstance()->doLog($level, $message, $parameters);
-    }
-
-    private function doLog($level, $message, $parameters = array())
-    {
-        // To ensure the compatibility with PSR-3, the message must be a string
-        if ($message instanceof \Exception) {
-            $parameters['exception'] = $message;
-            $message = $message->getMessage();
-        }
-
-        if (is_object($message) || is_array($message) || is_resource($message)) {
-            $this->logger->warning('Trying to log a message that is not a string', array(
-                'exception' => new \InvalidArgumentException('Trying to log a message that is not a string')
-            ));
-            return;
-        }
-
-        $this->logger->log($level, $message, $parameters);
-    }
-
-    public static function getInstance()
-    {
-        if (self::$instance === null) {
-            self::$instance = StaticContainer::get(__CLASS__);
-        }
-        return self::$instance;
     }
 
     /**
@@ -212,6 +187,44 @@ class Log extends Singleton
         self::logMessage(Logger::DEBUG, $message, array_slice(func_get_args(), 1));
     }
 
+    /**
+     * @param int $logLevel
+     * @deprecated Will be removed, log levels are now applied on each Monolog handler.
+     */
+    public function setLogLevel($logLevel)
+    {
+    }
+
+    /**
+     * @deprecated Will be removed, log levels are now applied on each Monolog handler.
+     */
+    public function getLogLevel()
+    {
+    }
+
+    private function doLog($level, $message, $parameters = array())
+    {
+        // To ensure the compatibility with PSR-3, the message must be a string
+        if ($message instanceof \Exception) {
+            $parameters['exception'] = $message;
+            $message = $message->getMessage();
+        }
+
+        if (is_object($message) || is_array($message) || is_resource($message)) {
+            $this->logger->warning('Trying to log a message that is not a string', array(
+                'exception' => new \InvalidArgumentException('Trying to log a message that is not a string')
+            ));
+            return;
+        }
+
+        $this->logger->log($level, $message, $parameters);
+    }
+
+    private static function logMessage($level, $message, $parameters)
+    {
+        self::getInstance()->doLog($level, $message, $parameters);
+    }
+
     public static function getMonologLevel($level)
     {
         switch ($level) {
@@ -230,20 +243,5 @@ class Log extends Singleton
                 // Highest level possible, need to do better in the future...
                 return Logger::EMERGENCY;
         }
-    }
-
-    /**
-     * @param int $logLevel
-     * @deprecated Will be removed, log levels are now applied on each Monolog handler.
-     */
-    public function setLogLevel($logLevel)
-    {
-    }
-
-    /**
-     * @deprecated Will be removed, log levels are now applied on each Monolog handler.
-     */
-    public function getLogLevel()
-    {
     }
 }

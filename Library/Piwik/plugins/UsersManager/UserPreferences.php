@@ -90,6 +90,20 @@ class UserPreferences
         return $defaultDate;
     }
 
+    /**
+     * Returns default period type for Piwik reports.
+     *
+     * @param string $defaultDate the default date string from which the default period will be guessed
+     * @return string `'day'`, `'week'`, `'month'`, `'year'` or `'range'`
+     * @api
+     */
+    public function getDefaultPeriod($defaultDate = null)
+    {
+        list($defaultDate, $defaultPeriod) = $this->getDefaultDateAndPeriod($defaultDate);
+
+        return $defaultPeriod;
+    }
+
     private function getDefaultDateAndPeriod($defaultDate = null)
     {
         $defaultPeriod = $this->getDefaultPeriodWithoutValidation($defaultDate);
@@ -104,6 +118,23 @@ class UserPreferences
         }
 
         return array($defaultDate, $defaultPeriod);
+    }
+
+    public function getDefaultDateWithoutValidation()
+    {
+        // NOTE: a change in this function might mean a change in plugins/UsersManager/javascripts/usersSettings.js as well
+        $userSettingsDate = $this->api->getUserPreference(Piwik::getCurrentUserLogin(), APIUsersManager::PREFERENCE_DEFAULT_REPORT_DATE);
+        if ($userSettingsDate == 'yesterday') {
+            return $userSettingsDate;
+        }
+        // if last7, last30, etc.
+        if (strpos($userSettingsDate, 'last') === 0
+            || strpos($userSettingsDate, 'previous') === 0
+        ) {
+            return $userSettingsDate;
+        }
+
+        return 'today';
     }
 
     public function getDefaultPeriodWithoutValidation($defaultDate = null)
@@ -129,44 +160,13 @@ class UserPreferences
         return $defaultDate;
     }
 
-    private function getSystemDefaultPeriod()
-    {
-        return Config::getInstance()->General['default_period'];
-    }
-
-    public function getDefaultDateWithoutValidation()
-    {
-        // NOTE: a change in this function might mean a change in plugins/UsersManager/javascripts/usersSettings.js as well
-        $userSettingsDate = $this->api->getUserPreference(Piwik::getCurrentUserLogin(), APIUsersManager::PREFERENCE_DEFAULT_REPORT_DATE);
-        if ($userSettingsDate == 'yesterday') {
-            return $userSettingsDate;
-        }
-        // if last7, last30, etc.
-        if (strpos($userSettingsDate, 'last') === 0
-            || strpos($userSettingsDate, 'previous') === 0
-        ) {
-            return $userSettingsDate;
-        }
-
-        return 'today';
-    }
-
     private function getSystemDefaultDate()
     {
         return Config::getInstance()->General['default_day'];
     }
 
-    /**
-     * Returns default period type for Piwik reports.
-     *
-     * @param string $defaultDate the default date string from which the default period will be guessed
-     * @return string `'day'`, `'week'`, `'month'`, `'year'` or `'range'`
-     * @api
-     */
-    public function getDefaultPeriod($defaultDate = null)
+    private function getSystemDefaultPeriod()
     {
-        list($defaultDate, $defaultPeriod) = $this->getDefaultDateAndPeriod($defaultDate);
-
-        return $defaultPeriod;
+        return Config::getInstance()->General['default_period'];
     }
 }

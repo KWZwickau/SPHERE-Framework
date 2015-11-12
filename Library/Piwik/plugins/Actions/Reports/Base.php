@@ -8,7 +8,6 @@
  */
 namespace Piwik\Plugins\Actions\Reports;
 
-use Piwik\API\Request;
 use Piwik\Common;
 use Piwik\Metrics;
 use Piwik\Metrics\Formatter;
@@ -16,6 +15,7 @@ use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
 use Piwik\Plugins\Actions\Actions;
 use Piwik\Plugins\CoreVisualizations\Visualizations\HtmlTable;
+use Piwik\API\Request;
 
 abstract class Base extends \Piwik\Plugin\Report
 {

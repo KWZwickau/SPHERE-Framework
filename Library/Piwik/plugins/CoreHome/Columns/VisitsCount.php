@@ -19,6 +19,15 @@ class VisitsCount extends VisitDimension
     protected $columnName = 'visitor_count_visits';
     protected $columnType = 'SMALLINT(5) UNSIGNED NOT NULL';
 
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setType(Segment::TYPE_METRIC);
+        $segment->setSegment('visitCount');
+        $segment->setName('General_NumberOfVisits');
+        $this->addSegment($segment);
+    }
+
     /**
      * @param Request $request
      * @param Visitor $visitor
@@ -39,14 +48,5 @@ class VisitsCount extends VisitDimension
     public function onAnyGoalConversion(Request $request, Visitor $visitor, $action)
     {
         return $visitor->getVisitorColumn($this->columnName);
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setType(Segment::TYPE_METRIC);
-        $segment->setSegment('visitCount');
-        $segment->setName('General_NumberOfVisits');
-        $this->addSegment($segment);
     }
 }

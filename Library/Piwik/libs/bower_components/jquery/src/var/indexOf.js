@@ -1,6 +1,5 @@
 define([
-    "./deletedIds"
-], function (deletedIds)
-{
-    return deletedIds.indexOf;
+	"./deletedIds"
+], function( deletedIds ) {
+	return deletedIds.indexOf;
 });

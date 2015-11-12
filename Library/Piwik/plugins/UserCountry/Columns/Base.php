@@ -11,12 +11,12 @@ namespace Piwik\Plugins\UserCountry\Columns;
 use Piwik\Common;
 use Piwik\Network\IPUtils;
 use Piwik\Plugin\Dimension\VisitDimension;
-use Piwik\Plugins\PrivacyManager\Config as PrivacyManagerConfig;
-use Piwik\Plugins\UserCountry\LocationProvider;
-use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
 use Piwik\Plugins\UserCountry\VisitorGeolocator;
-use Piwik\Tracker\Request;
+use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
+use Piwik\Plugins\UserCountry\LocationProvider;
+use Piwik\Plugins\PrivacyManager\Config as PrivacyManagerConfig;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Request;
 
 abstract class Base extends VisitDimension
 {
@@ -24,11 +24,6 @@ abstract class Base extends VisitDimension
      * @var VisitorGeolocator
      */
     private $visitorGeolocator;
-
-    public function getRequiredVisitFields()
-    {
-        return array('location_ip', 'location_browser_lang');
-    }
 
     protected function getUrlOverrideValueIfAllowed($urlParamToOverride, Request $request)
     {
@@ -42,6 +37,11 @@ abstract class Base extends VisitDimension
         }
 
         return false;
+    }
+
+    public function getRequiredVisitFields()
+    {
+        return array('location_ip', 'location_browser_lang');
     }
 
     protected function getLocationDetail($userInfo, $locationKey)
@@ -68,9 +68,9 @@ abstract class Base extends VisitDimension
     protected function getUserInfo(Request $request, Visitor $visitor)
     {
         $ipAddress = $this->getIpAddress($visitor->getVisitorColumn('location_ip'), $request);
-        $language = $request->getBrowserLanguage();
+        $language  = $request->getBrowserLanguage();
 
-        $userInfo = array('lang' => $language, 'ip' => $ipAddress);
+        $userInfo  = array('lang' => $language, 'ip' => $ipAddress);
 
         return $userInfo;
     }

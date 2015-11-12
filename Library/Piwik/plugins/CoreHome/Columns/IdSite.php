@@ -9,9 +9,9 @@
 namespace Piwik\Plugins\CoreHome\Columns;
 
 use Piwik\Plugin\Dimension\VisitDimension;
-use Piwik\Tracker;
 use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
+use Piwik\Tracker;
 use Piwik\Tracker\Visitor;
 
 class IdSite extends VisitDimension

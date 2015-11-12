@@ -20,11 +20,6 @@ class MetricsFormatter
     private static $formatter = null;
     private static $htmlFormatter = null;
 
-    public static function getPrettyNumber($value)
-    {
-        return self::getFormatter()->getPrettyNumber($value);
-    }
-
     public static function getFormatter($isHtml = false)
     {
         if ($isHtml) {
@@ -38,6 +33,11 @@ class MetricsFormatter
             }
             return self::$htmlFormatter;
         }
+    }
+
+    public static function getPrettyNumber($value)
+    {
+        return self::getFormatter()->getPrettyNumber($value);
     }
 
     public static function getPrettyTimeFromSeconds($numberOfSeconds, $displayTimeAsSentence = true, $isHtml = true, $round = false)

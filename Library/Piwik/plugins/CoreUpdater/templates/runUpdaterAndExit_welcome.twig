@@ -4,7 +4,6 @@
 
     <div class="header">
         <h1>{{ 'CoreUpdater_DatabaseUpgradeRequired'|translate }}</h1>
-
         <p>{{ 'CoreUpdater_YourDatabaseIsOutOfDate'|translate }}</p>
         {{ postEvent('Template.topBar')|raw }}
     </div>
@@ -56,8 +55,7 @@
                 <p>{{ 'CoreUpdater_YouCouldManuallyExecuteSqlQueries'|translate }}</p>
                 <p><a href="#" id="showSql">› {{ 'CoreUpdater_ClickHereToViewSqlQueries'|translate }}</a></p>
                 <div id="sqlQueries" style="display:none;">
-                    <pre># {{ 'CoreUpdater_NoteItIsExpectedThatQueriesFail'|translate }}
-                        <br/>{% for query in queries %}{{ query }}<br/>{% endfor %}</pre>
+                    <pre># {{ 'CoreUpdater_NoteItIsExpectedThatQueriesFail'|translate }}<br/>{% for query in queries %}{{ query }}<br/>{% endfor %}</pre>
                 </div>
 
                 <h2>{{ 'CoreUpdater_ReadyToGo'|translate }}</h2>
@@ -68,15 +66,13 @@
                 <div class="alert alert-info">
                     {{ warningMessages[0] }}
                     {% if warningMessages|length > 1 %}
-                        <button id="more-results"
-                                class="ui-button ui-state-default ui-corner-all">{{ 'General_Details'|translate }}</button>
+                        <button id="more-results" class="ui-button ui-state-default ui-corner-all">{{ 'General_Details'|translate }}</button>
                     {% endif %}
                 </div>
             {% endif %}
 
-            {% if coreToUpdate or pluginNamesToUpdate|length > 0 or dimensionsToUpdate|length > 0 %}
-                <form action="index.php" id="upgradeCorePluginsForm" class="clearfix"
-                      data-updating="{{ 'CoreUpdater_Updating'|translate }}...">
+            {% if coreToUpdate or pluginNamesToUpdate|length > 0 or dimensionsToUpdate|length > 0  %}
+                <form action="index.php" id="upgradeCorePluginsForm" class="clearfix" data-updating="{{ 'CoreUpdater_Updating'|translate }}...">
                     <input type="hidden" name="updateCorePlugins" value="1"/>
                     {% if queries|length == 1 %}
                         <input type="submit" class="submit" value="{{ 'General_ContinueToPiwik'|translate }}"/>

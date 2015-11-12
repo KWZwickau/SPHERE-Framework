@@ -57,27 +57,6 @@ class Monthly extends Schedule
     }
 
     /**
-     * Makes this scheduled time execute on a particular day of the week on each month.
-     *
-     * @param int $_day the day of the week to use, between 0-6 (inclusive). 0 -> Sunday
-     * @param int $_week the week to use, between 0-3 (inclusive)
-     * @throws Exception if either parameter is invalid
-     */
-    public function setDayOfWeek($_day, $_week)
-    {
-        if (!($_day >= 0 && $_day < 7)) {
-            throw new Exception("Invalid day of week parameter, must be >= 0 & < 7");
-        }
-
-        if (!($_week >= 0 && $_week < 4)) {
-            throw new Exception("Invalid week number, must be >= 1 & < 4");
-        }
-
-        $this->dayOfWeek = $_day;
-        $this->week = $_week;
-    }
-
-    /**
      * @return int
      */
     public function getRescheduledTime()
@@ -140,5 +119,26 @@ class Monthly extends Schedule
         }
 
         $this->day = $_day;
+    }
+
+    /**
+     * Makes this scheduled time execute on a particular day of the week on each month.
+     *
+     * @param int $_day the day of the week to use, between 0-6 (inclusive). 0 -> Sunday
+     * @param int $_week the week to use, between 0-3 (inclusive)
+     * @throws Exception if either parameter is invalid
+     */
+    public function setDayOfWeek($_day, $_week)
+    {
+        if (!($_day >= 0 && $_day < 7)) {
+            throw new Exception("Invalid day of week parameter, must be >= 0 & < 7");
+        }
+
+        if (!($_week >= 0 && $_week < 4)) {
+            throw new Exception("Invalid week number, must be >= 1 & < 4");
+        }
+
+        $this->dayOfWeek = $_day;
+        $this->week = $_week;
     }
 }

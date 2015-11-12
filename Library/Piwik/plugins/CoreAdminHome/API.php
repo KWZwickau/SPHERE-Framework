@@ -11,14 +11,14 @@ namespace Piwik\Plugins\CoreAdminHome;
 use Exception;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
-use Piwik\Archive\ArchiveInvalidator;
 use Piwik\Container\StaticContainer;
+use Piwik\Archive\ArchiveInvalidator;
 use Piwik\CronArchive;
 use Piwik\Date;
 use Piwik\Db;
 use Piwik\Piwik;
-use Piwik\Scheduler\Scheduler;
 use Piwik\Segment;
+use Piwik\Scheduler\Scheduler;
 use Piwik\Site;
 
 /**
@@ -91,8 +91,7 @@ class API extends \Piwik\Plugin\API
 
         list($dateObjects, $invalidDates) = $this->getDatesToInvalidateFromString($dates);
 
-        $invalidationResult = $this->invalidator->markArchivesAsInvalidated($idSites, $dateObjects, $period, $segment,
-            (bool)$cascadeDown);
+        $invalidationResult = $this->invalidator->markArchivesAsInvalidated($idSites, $dateObjects, $period, $segment, (bool)$cascadeDown);
 
         $output = $invalidationResult->makeOutputLogs();
         if ($invalidDates) {
@@ -103,6 +102,26 @@ class API extends \Piwik\Plugin\API
         Site::clearCache(); // TODO: is this needed? it shouldn't be needed...
 
         return $invalidationResult->makeOutputLogs();
+    }
+
+    /**
+     * Initiates cron archiving via web request.
+     *
+     * @hideExceptForSuperUser
+     */
+    public function runCronArchiving()
+    {
+        Piwik::checkUserHasSuperUserAccess();
+
+        // HTTP request: logs needs to be dumped in the HTTP response (on top of existing log destinations)
+        /** @var \Monolog\Logger $logger */
+        $logger = StaticContainer::get('Psr\Log\LoggerInterface');
+        $handler = new StreamHandler('php://output', Logger::INFO);
+        $handler->setFormatter(StaticContainer::get('Piwik\Plugins\Monolog\Formatter\LineMessageFormatter'));
+        $logger->pushHandler($handler);
+
+        $archiver = new CronArchive();
+        $archiver->main();
     }
 
     /**
@@ -136,25 +155,5 @@ class API extends \Piwik\Plugin\API
         }
 
         return array($toInvalidate, $invalidDates);
-    }
-
-    /**
-     * Initiates cron archiving via web request.
-     *
-     * @hideExceptForSuperUser
-     */
-    public function runCronArchiving()
-    {
-        Piwik::checkUserHasSuperUserAccess();
-
-        // HTTP request: logs needs to be dumped in the HTTP response (on top of existing log destinations)
-        /** @var \Monolog\Logger $logger */
-        $logger = StaticContainer::get('Psr\Log\LoggerInterface');
-        $handler = new StreamHandler('php://output', Logger::INFO);
-        $handler->setFormatter(StaticContainer::get('Piwik\Plugins\Monolog\Formatter\LineMessageFormatter'));
-        $logger->pushHandler($handler);
-
-        $archiver = new CronArchive();
-        $archiver->main();
     }
 }

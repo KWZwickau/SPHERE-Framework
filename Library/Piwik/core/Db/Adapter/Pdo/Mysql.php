@@ -25,11 +25,6 @@ use Zend_Db_Statement_Interface;
 class Mysql extends Zend_Db_Adapter_Pdo_Mysql implements AdapterInterface
 {
     /**
-     * @var \Zend_Db_Statement_Pdo[]
-     */
-    private $cachePreparedStatement = array();
-
-    /**
      * Constructor
      *
      * @param array|Zend_Config $config database configuration
@@ -41,26 +36,6 @@ class Mysql extends Zend_Db_Adapter_Pdo_Mysql implements AdapterInterface
             $config['driver_options'][PDO::MYSQL_ATTR_LOCAL_INFILE] = true;
         }
         parent::__construct($config);
-    }
-
-    /**
-     * Return default port.
-     *
-     * @return int
-     */
-    public static function getDefaultPort()
-    {
-        return 3306;
-    }
-
-    /**
-     * Returns true if this adapter's required extensions are enabled
-     *
-     * @return bool
-     */
-    public static function isEnabled()
-    {
-        return extension_loaded('PDO') && extension_loaded('pdo_mysql') && in_array('mysql', PDO::getAvailableDrivers());
     }
 
     /**
@@ -113,6 +88,16 @@ class Mysql extends Zend_Db_Adapter_Pdo_Mysql implements AdapterInterface
     }
 
     /**
+     * Return default port.
+     *
+     * @return int
+     */
+    public static function getDefaultPort()
+    {
+        return 3306;
+    }
+
+    /**
      * Check MySQL version
      *
      * @throws Exception
@@ -146,23 +131,13 @@ class Mysql extends Zend_Db_Adapter_Pdo_Mysql implements AdapterInterface
     }
 
     /**
-     * Retrieve client version in PHP style
+     * Returns true if this adapter's required extensions are enabled
      *
-     * @return string
+     * @return bool
      */
-    public function getClientVersion()
+    public static function isEnabled()
     {
-        $this->_connect();
-        try {
-            $version = $this->_connection->getAttribute(PDO::ATTR_CLIENT_VERSION);
-            $matches = null;
-            if (preg_match('/((?:[0-9]{1,2}\.){1,3}[0-9]{1,2})/', $version, $matches)) {
-                return $matches[1];
-            }
-        } catch (PDOException $e) {
-            // In case of the driver doesn't support getting attributes
-        }
-        return null;
+        return extension_loaded('PDO') && extension_loaded('pdo_mysql') && in_array('mysql', PDO::getAvailableDrivers());
     }
 
     /**
@@ -217,6 +192,31 @@ class Mysql extends Zend_Db_Adapter_Pdo_Mysql implements AdapterInterface
         $charset = $charsetInfo[0]['Value'];
         return $charset === 'utf8';
     }
+
+    /**
+     * Retrieve client version in PHP style
+     *
+     * @return string
+     */
+    public function getClientVersion()
+    {
+        $this->_connect();
+        try {
+            $version = $this->_connection->getAttribute(PDO::ATTR_CLIENT_VERSION);
+            $matches = null;
+            if (preg_match('/((?:[0-9]{1,2}\.){1,3}[0-9]{1,2})/', $version, $matches)) {
+                return $matches[1];
+            }
+        } catch (PDOException $e) {
+            // In case of the driver doesn't support getting attributes
+        }
+        return null;
+    }
+
+    /**
+     * @var \Zend_Db_Statement_Pdo[]
+     */
+    private $cachePreparedStatement = array();
 
     /**
      * Prepares and executes an SQL statement with bound data.

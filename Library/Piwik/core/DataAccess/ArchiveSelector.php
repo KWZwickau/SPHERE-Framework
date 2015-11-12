@@ -40,13 +40,18 @@ class ArchiveSelector
 
     const NB_VISITS_CONVERTED_RECORD_LOOKED_UP = "nb_visits_converted";
 
+    private static function getModel()
+    {
+        return new Model();
+    }
+
     public static function getArchiveIdAndVisits(ArchiveProcessor\Parameters $params, $minDatetimeArchiveProcessedUTC)
     {
-        $idSite = $params->getSite()->getId();
-        $period = $params->getPeriod()->getId();
-        $dateStart = $params->getPeriod()->getDateStart();
+        $idSite       = $params->getSite()->getId();
+        $period       = $params->getPeriod()->getId();
+        $dateStart    = $params->getPeriod()->getDateStart();
         $dateStartIso = $dateStart->toString('Y-m-d');
-        $dateEndIso = $params->getPeriod()->getDateEnd()->toString('Y-m-d');
+        $dateEndIso   = $params->getPeriod()->getDateEnd()->toString('Y-m-d');
 
         $numericTable = ArchiveTableCreator::getNumericTable($dateStart);
 
@@ -56,14 +61,13 @@ class ArchiveSelector
         }
 
         $requestedPlugin = $params->getRequestedPlugin();
-        $segment = $params->getSegment();
+        $segment         = $params->getSegment();
         $plugins = array("VisitsSummary", $requestedPlugin);
 
-        $doneFlags = Rules::getDoneFlags($plugins, $segment);
+        $doneFlags      = Rules::getDoneFlags($plugins, $segment);
         $doneFlagValues = Rules::getSelectableDoneFlagValues();
 
-        $results = self::getModel()->getArchiveIdAndVisits($numericTable, $idSite, $period, $dateStartIso, $dateEndIso,
-            $minDatetimeIsoArchiveProcessedUTC, $doneFlags, $doneFlagValues);
+        $results = self::getModel()->getArchiveIdAndVisits($numericTable, $idSite, $period, $dateStartIso, $dateEndIso, $minDatetimeIsoArchiveProcessedUTC, $doneFlags, $doneFlagValues);
 
         if (empty($results)) {
             return false;
@@ -73,36 +77,13 @@ class ArchiveSelector
 
         $idArchiveVisitsSummary = self::getMostRecentIdArchiveFromResults($segment, "VisitsSummary", $results);
 
-        list($visits, $visitsConverted) = self::getVisitsMetricsFromResults($idArchive, $idArchiveVisitsSummary,
-            $results);
+        list($visits, $visitsConverted) = self::getVisitsMetricsFromResults($idArchive, $idArchiveVisitsSummary, $results);
 
         if (false === $visits && false === $idArchive) {
             return false;
         }
 
         return array($idArchive, $visits, $visitsConverted);
-    }
-
-    private static function getModel()
-    {
-        return new Model();
-    }
-
-    protected static function getMostRecentIdArchiveFromResults(Segment $segment, $requestedPlugin, $results)
-    {
-        $idArchive = false;
-        $namesRequestedPlugin = Rules::getDoneFlags(array($requestedPlugin), $segment);
-
-        foreach ($results as $result) {
-            if ($idArchive === false
-                && in_array($result['name'], $namesRequestedPlugin)
-            ) {
-                $idArchive = $result['idarchive'];
-                break;
-            }
-        }
-
-        return $idArchive;
     }
 
     protected static function getVisitsMetricsFromResults($idArchive, $idArchiveVisitsSummary, $results)
@@ -133,6 +114,23 @@ class ArchiveSelector
         return array($visits, $visitsConverted);
     }
 
+    protected static function getMostRecentIdArchiveFromResults(Segment $segment, $requestedPlugin, $results)
+    {
+        $idArchive = false;
+        $namesRequestedPlugin = Rules::getDoneFlags(array($requestedPlugin), $segment);
+
+        foreach ($results as $result) {
+            if ($idArchive === false
+                && in_array($result['name'], $namesRequestedPlugin)
+            ) {
+                $idArchive = $result['idarchive'];
+                break;
+            }
+        }
+
+        return $idArchive;
+    }
+
     /**
      * Queries and returns archive IDs for a set of sites, periods, and a segment.
      *
@@ -155,7 +153,7 @@ class ArchiveSelector
         }
 
         foreach ($siteIds as $index => $siteId) {
-            $siteIds[$index] = (int)$siteId;
+            $siteIds[$index] = (int) $siteId;
         }
 
         $getArchiveIdsSql = "SELECT idsite, name, date1, date2, MAX(idarchive) as idarchive
@@ -219,34 +217,13 @@ class ArchiveSelector
     }
 
     /**
-     * Returns the SQL condition used to find successfully completed archives that
-     * this instance is querying for.
-     *
-     * @param array $plugins
-     * @param Segment $segment
-     * @return string
-     */
-    private static function getNameCondition(array $plugins, Segment $segment)
-    {
-        // the flags used to tell how the archiving process for a specific archive was completed,
-        // if it was completed
-        $doneFlags = Rules::getDoneFlags($plugins, $segment);
-        $allDoneFlags = "'" . implode("','", $doneFlags) . "'";
-
-        $possibleValues = Rules::getSelectableDoneFlagValues();
-
-        // create the SQL to find archives that are DONE
-        return "((name IN ($allDoneFlags)) AND (value IN (" . implode(',', $possibleValues) . ")))";
-    }
-
-    /**
      * Queries and returns archive data using a set of archive IDs.
      *
      * @param array $archiveIds The IDs of the archives to get data from.
      * @param array $recordNames The names of the data to retrieve (ie, nb_visits, nb_actions, etc.).
      *                           Note: You CANNOT pass multiple recordnames if $loadAllSubtables=true.
      * @param string $archiveDataType The archive data type (either, 'blob' or 'numeric').
-     * @param int|null|string $idSubtable null if the root blob should be loaded, an integer if a subtable should be
+     * @param int|null|string $idSubtable  null if the root blob should be loaded, an integer if a subtable should be
      *                                     loaded and 'all' if all subtables should be loaded.
      * @throws Exception
      * @return array
@@ -266,7 +243,7 @@ class ArchiveSelector
             $appendix = $chunk->getAppendix();
             $lenAppendix = strlen($appendix);
 
-            $checkForChunkBlob = "SUBSTRING(name, $nameEnd, $lenAppendix) = '$appendix'";
+            $checkForChunkBlob  = "SUBSTRING(name, $nameEnd, $lenAppendix) = '$appendix'";
             $checkForSubtableId = "(SUBSTRING(name, $nameEndAppendix, 1) >= '0'
                                     AND SUBSTRING(name, $nameEndAppendix, 1) <= '9')";
 
@@ -287,7 +264,7 @@ class ArchiveSelector
                 }
             }
 
-            $inNames = Common::getSqlStringFieldsArray($bind);
+            $inNames     = Common::getSqlStringFieldsArray($bind);
             $whereNameIs = "name IN ($inNames)";
         }
 
@@ -313,7 +290,7 @@ class ArchiveSelector
                 $table = ArchiveTableCreator::getBlobTable($date);
             }
 
-            $sql = sprintf($getValuesSql, $table, implode(',', $ids));
+            $sql      = sprintf($getValuesSql, $table, implode(',', $ids));
             $dataRows = Db::fetchAll($sql, $bind);
 
             foreach ($dataRows as $row) {
@@ -334,16 +311,6 @@ class ArchiveSelector
         return $rows;
     }
 
-    public static function appendIdSubtable($recordName, $id)
-    {
-        return $recordName . "_" . $id;
-    }
-
-    private static function uncompress($data)
-    {
-        return @gzuncompress($data);
-    }
-
     private static function moveChunkRowToRows(&$rows, $row, Chunk $chunk, $loadAllSubtables, $idSubtable)
     {
         // $blobs = array([subtableID] = [blob of subtableId])
@@ -359,7 +326,7 @@ class ArchiveSelector
         if ($loadAllSubtables) {
             foreach ($blobs as $subtableId => $blob) {
                 $row['value'] = $blob;
-                $row['name'] = self::appendIdSubtable($rawName, $subtableId);
+                $row['name']  = self::appendIdSubtable($rawName, $subtableId);
                 $rows[] = $row;
             }
         } elseif (array_key_exists($idSubtable, $blobs)) {
@@ -367,5 +334,36 @@ class ArchiveSelector
             $row['name'] = self::appendIdSubtable($rawName, $idSubtable);
             $rows[] = $row;
         }
+    }
+
+    public static function appendIdSubtable($recordName, $id)
+    {
+        return $recordName . "_" . $id;
+    }
+
+    private static function uncompress($data)
+    {
+        return @gzuncompress($data);
+    }
+
+    /**
+     * Returns the SQL condition used to find successfully completed archives that
+     * this instance is querying for.
+     *
+     * @param array $plugins
+     * @param Segment $segment
+     * @return string
+     */
+    private static function getNameCondition(array $plugins, Segment $segment)
+    {
+        // the flags used to tell how the archiving process for a specific archive was completed,
+        // if it was completed
+        $doneFlags    = Rules::getDoneFlags($plugins, $segment);
+        $allDoneFlags = "'" . implode("','", $doneFlags) . "'";
+
+        $possibleValues = Rules::getSelectableDoneFlagValues();
+
+        // create the SQL to find archives that are DONE
+        return "((name IN ($allDoneFlags)) AND (value IN (" . implode(',', $possibleValues) . ")))";
     }
 }

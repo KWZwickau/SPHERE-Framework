@@ -13,13 +13,6 @@ use Piwik\Plugins\UserLanguage\Columns\Language;
 
 class GetLanguageCode extends GetLanguage
 {
-    public function getRelatedReports()
-    {
-        return array(
-            self::factory('UserLanguage', 'getLanguage'),
-        );
-    }
-
     protected function init()
     {
         parent::init();
@@ -28,6 +21,13 @@ class GetLanguageCode extends GetLanguage
         $this->documentation = '';
         $this->order = 11;
         $this->widgetTitle  = 'UserLanguage_LanguageCode';
+    }
+
+    public function getRelatedReports()
+    {
+        return array(
+            self::factory('UserLanguage', 'getLanguage'),
+        );
     }
 
 }

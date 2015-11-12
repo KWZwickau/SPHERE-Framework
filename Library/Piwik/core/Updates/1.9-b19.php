@@ -17,16 +17,6 @@ use Piwik\Updates;
  */
 class Updates_1_9_b19 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-
-        try {
-            \Piwik\Plugin\Manager::getInstance()->activatePlugin('Transitions');
-        } catch (\Exception $e) {
-        }
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -37,5 +27,15 @@ class Updates_1_9_b19 extends Updates
 			CHANGE `visit_exit_idaction_url` `visit_exit_idaction_url` INT( 10 ) UNSIGNED NULL DEFAULT 0'
             => false
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
+
+        try {
+            \Piwik\Plugin\Manager::getInstance()->activatePlugin('Transitions');
+        } catch (\Exception $e) {
+        }
     }
 }

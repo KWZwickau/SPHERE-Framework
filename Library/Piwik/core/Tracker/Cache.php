@@ -23,20 +23,13 @@ use Piwik\Tracker;
  */
 class Cache
 {
+    private static $cacheIdGeneral = 'general';
+
     /**
      * Public for tests only
      * @var \Piwik\Cache\Lazy
      */
     public static $cache;
-    private static $cacheIdGeneral = 'general';
-
-    /**
-     * Clear general (global) cache
-     */
-    public static function clearCacheGeneral()
-    {
-        self::getCache()->delete(self::$cacheIdGeneral);
-    }
 
     /**
      * @return \Piwik\Cache\Lazy
@@ -48,6 +41,81 @@ class Cache
         }
 
         return self::$cache;
+    }
+
+    private static function getTtl()
+    {
+        return Config::getInstance()->Tracker['tracker_cache_file_ttl'];
+    }
+
+    /**
+     * Returns array containing data about the website: goals, URLs, etc.
+     *
+     * @param int $idSite
+     * @return array
+     */
+    public static function getCacheWebsiteAttributes($idSite)
+    {
+        if ('all' == $idSite) {
+            return array();
+        }
+
+        $idSite = (int) $idSite;
+        if ($idSite <= 0) {
+            return array();
+        }
+
+        $cache = self::getCache();
+        $cacheId = $idSite;
+        $cacheContent = $cache->fetch($cacheId);
+
+        if (false !== $cacheContent) {
+            return $cacheContent;
+        }
+
+        Tracker::initCorePiwikInTrackerMode();
+
+        $content = array();
+        Access::doAsSuperUser(function () use (&$content, $idSite) {
+            /**
+             * Triggered to get the attributes of a site entity that might be used by the
+             * Tracker.
+             *
+             * Plugins add new site attributes for use in other tracking events must
+             * use this event to put those attributes in the Tracker Cache.
+             *
+             * **Example**
+             *
+             *     public function getSiteAttributes($content, $idSite)
+             *     {
+             *         $sql = "SELECT info FROM " . Common::prefixTable('myplugin_extra_site_info') . " WHERE idsite = ?";
+             *         $content['myplugin_site_data'] = Db::fetchOne($sql, array($idSite));
+             *     }
+             *
+             * @param array &$content Array mapping of site attribute names with values.
+             * @param int $idSite The site ID to get attributes for.
+             */
+            Piwik::postEvent('Tracker.Cache.getSiteAttributes', array(&$content, $idSite));
+            Common::printDebug("Website $idSite tracker cache was re-created.");
+        });
+
+        // if nothing is returned from the plugins, we don't save the content
+        // this is not expected: all websites are expected to have at least one URL
+        if (!empty($content)) {
+            $cache->save($cacheId, $content, self::getTtl());
+        }
+
+        Tracker::restoreTrackerPlugins();
+
+        return $content;
+    }
+
+    /**
+     * Clear general (global) cache
+     */
+    public static function clearCacheGeneral()
+    {
+        self::getCache()->delete(self::$cacheIdGeneral);
     }
 
     /**
@@ -113,11 +181,6 @@ class Cache
         return $cache->save(self::$cacheIdGeneral, $value, self::getTtl());
     }
 
-    private static function getTtl()
-    {
-        return Config::getInstance()->Tracker['tracker_cache_file_ttl'];
-    }
-
     /**
      * Regenerate Tracker cache files
      *
@@ -143,68 +206,6 @@ class Cache
     public static function deleteCacheWebsiteAttributes($idSite)
     {
         self::getCache()->delete((int) $idSite);
-    }
-
-    /**
-     * Returns array containing data about the website: goals, URLs, etc.
-     *
-     * @param int $idSite
-     * @return array
-     */
-    public static function getCacheWebsiteAttributes($idSite)
-    {
-        if ('all' == $idSite) {
-            return array();
-        }
-
-        $idSite = (int) $idSite;
-        if ($idSite <= 0) {
-            return array();
-        }
-
-        $cache = self::getCache();
-        $cacheId = $idSite;
-        $cacheContent = $cache->fetch($cacheId);
-
-        if (false !== $cacheContent) {
-            return $cacheContent;
-        }
-
-        Tracker::initCorePiwikInTrackerMode();
-
-        $content = array();
-        Access::doAsSuperUser(function () use (&$content, $idSite) {
-            /**
-             * Triggered to get the attributes of a site entity that might be used by the
-             * Tracker.
-             *
-             * Plugins add new site attributes for use in other tracking events must
-             * use this event to put those attributes in the Tracker Cache.
-             *
-             * **Example**
-             *
-             *     public function getSiteAttributes($content, $idSite)
-             *     {
-             *         $sql = "SELECT info FROM " . Common::prefixTable('myplugin_extra_site_info') . " WHERE idsite = ?";
-             *         $content['myplugin_site_data'] = Db::fetchOne($sql, array($idSite));
-             *     }
-             *
-             * @param array &$content Array mapping of site attribute names with values.
-             * @param int $idSite The site ID to get attributes for.
-             */
-            Piwik::postEvent('Tracker.Cache.getSiteAttributes', array(&$content, $idSite));
-            Common::printDebug("Website $idSite tracker cache was re-created.");
-        });
-
-        // if nothing is returned from the plugins, we don't save the content
-        // this is not expected: all websites are expected to have at least one URL
-        if (!empty($content)) {
-            $cache->save($cacheId, $content, self::getTtl());
-        }
-
-        Tracker::restoreTrackerPlugins();
-
-        return $content;
     }
 
     /**

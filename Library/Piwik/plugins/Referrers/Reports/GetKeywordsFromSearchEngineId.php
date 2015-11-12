@@ -14,13 +14,6 @@ use Piwik\Plugins\Referrers\Columns\Keyword;
 
 class GetKeywordsFromSearchEngineId extends Base
 {
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->show_search = false;
-        $view->config->show_exclude_low_population = false;
-        $view->config->addTranslation('label', $this->dimension->getName());
-    }
-
     protected function init()
     {
         parent::init();
@@ -29,6 +22,13 @@ class GetKeywordsFromSearchEngineId extends Base
         $this->documentation = Piwik::translate('Referrers_SearchEnginesReportDocumentation', '<br />');
         $this->isSubtableReport = true;
         $this->order = 8;
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->show_search = false;
+        $view->config->show_exclude_low_population = false;
+        $view->config->addTranslation('label', $this->dimension->getName());
     }
 
 }

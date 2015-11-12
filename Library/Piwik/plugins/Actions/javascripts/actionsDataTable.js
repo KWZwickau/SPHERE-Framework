@@ -100,7 +100,7 @@
 
             if (hasOnlyOneSubtable) {
                 var hasOnlyOneRow = domElem.find('tbody tr.level0').length === 1;
-
+                
                 if (hasOnlyOneRow) {
                     var $labels = $subtables.find('.label');
                     if ($labels.length) {
@@ -111,7 +111,7 @@
         },
 
         openSubtableFromSubtableIfOnlyOneSubtableGiven: function (domElem) {
-            var hasOnlyOneRow = domElem.length === 1;
+            var hasOnlyOneRow = domElem.length === 1
             var hasOnlyOneSubtable = domElem.hasClass('subDataTable');
 
             if (hasOnlyOneRow && hasOnlyOneSubtable) {

@@ -12,10 +12,10 @@ use Piwik\Common;
 use Piwik\Piwik;
 use Piwik\Plugin\Dimension\ActionDimension;
 use Piwik\Plugin\Segment;
-use Piwik\Tracker\Action;
 use Piwik\Tracker\ActionPageview;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Action;
 
 /**
  * This example dimension recognizes a new tracking url parameter that is supposed to save the keywords that were used
@@ -50,6 +50,21 @@ class ExampleActionDimension extends ActionDimension
     }
 
     /**
+     * By defining one or multiple segments a user will be able to filter their visitors by this column. For instance
+     * show all actions only considering users having more than 10 achievement points. If you do not want to define a
+     * segment for this dimension just remove the column.
+     */
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('keywords');
+        $segment->setCategory('General_Actions');
+        $segment->setName('ExampleTracker_DimensionName');
+        $segment->setAcceptedValues('Here you should explain which values are accepted/useful: Any word, for instance MyKeyword1, MyKeyword2');
+        $this->addSegment($segment);
+    }
+
+    /**
      * This event is triggered before a new action is logged to the log_link_visit_action table. It overwrites any
      * looked up action so it makes usually no sense to implement both methods but it sometimes does. You can assign
      * any value to the column or return boolan false in case you do not want to save any value.
@@ -79,21 +94,6 @@ class ExampleActionDimension extends ActionDimension
     }
 
     /**
-     * By defining one or multiple segments a user will be able to filter their visitors by this column. For instance
-     * show all actions only considering users having more than 10 achievement points. If you do not want to define a
-     * segment for this dimension just remove the column.
-     */
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('keywords');
-        $segment->setCategory('General_Actions');
-        $segment->setName('ExampleTracker_DimensionName');
-        $segment->setAcceptedValues('Here you should explain which values are accepted/useful: Any word, for instance MyKeyword1, MyKeyword2');
-        $this->addSegment($segment);
-    }
-
-    /**
      * If the value you want to save for your dimension is something like a page title or page url, you usually do not
      * want to save the raw value over and over again to save bytes in the database. Instead you want to save each value
      * once in the log_action table and refer to this value by its ID in the log_link_visit_action table. You can do
@@ -107,30 +107,30 @@ class ExampleActionDimension extends ActionDimension
      *
      * @return false|mixed
     public function onLookupAction(Request $request, Action $action)
-    * {
-        * if (!($action instanceof ActionPageview)) {
-            * // save value only in case it is a page view.
-            * return false;
-        * }
- *
-* $value = Common::getRequestVar('my_page_keywords', false, 'string', $request->getParams());
- *
-* if (false === $value) {
-            * return $value;
-        * }
- *
-* $value = trim($value);
- *
-* return substr($value, 0, 255);
-    * }
+    {
+        if (!($action instanceof ActionPageview)) {
+            // save value only in case it is a page view.
+            return false;
+        }
+
+        $value = Common::getRequestVar('my_page_keywords', false, 'string', $request->getParams());
+
+        if (false === $value) {
+            return $value;
+        }
+
+        $value = trim($value);
+
+        return substr($value, 0, 255);
+    }
      */
 
     /**
      * An action id. The value returned by the lookup action will be associated with this id in the log_action table.
      * @return int
     public function getActionId()
-    * {
-        * return Action::TYPE_PAGE_URL;
-    * }
+    {
+        return Action::TYPE_PAGE_URL;
+    }
      */
 }

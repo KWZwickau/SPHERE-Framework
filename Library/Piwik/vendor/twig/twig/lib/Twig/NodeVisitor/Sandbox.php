@@ -24,14 +24,6 @@ class Twig_NodeVisitor_Sandbox extends Twig_BaseNodeVisitor
     /**
      * {@inheritdoc}
      */
-    public function getPriority()
-    {
-        return 0;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     protected function doEnterNode(Twig_Node $node, Twig_Environment $env)
     {
         if ($node instanceof Twig_Node_Module) {
@@ -78,5 +70,13 @@ class Twig_NodeVisitor_Sandbox extends Twig_BaseNodeVisitor
         }
 
         return $node;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPriority()
+    {
+        return 0;
     }
 }

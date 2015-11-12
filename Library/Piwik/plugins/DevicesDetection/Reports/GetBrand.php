@@ -14,13 +14,6 @@ use Piwik\Plugins\DevicesDetection\Columns\DeviceBrand;
 
 class GetBrand extends Base
 {
-    public function configureView(ViewDataTable $view)
-    {
-        $view->config->show_search = true;
-        $view->config->show_exclude_low_population = false;
-        $view->config->addTranslation('label', Piwik::translate("DevicesDetection_dataTableLabelBrands"));
-    }
-
     protected function init()
     {
         parent::init();
@@ -29,6 +22,13 @@ class GetBrand extends Base
         $this->documentation = ''; // TODO
         $this->order = 1;
         $this->widgetTitle  = 'DevicesDetection_DeviceBrand';
+    }
+
+    public function configureView(ViewDataTable $view)
+    {
+        $view->config->show_search = true;
+        $view->config->show_exclude_low_population = false;
+        $view->config->addTranslation('label', Piwik::translate("DevicesDetection_dataTableLabelBrands"));
     }
 
 }

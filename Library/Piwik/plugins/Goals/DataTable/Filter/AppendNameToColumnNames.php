@@ -8,8 +8,8 @@
  */
 namespace Piwik\Plugins\Goals\DataTable\Filter;
 
-use Piwik\DataTable;
 use Piwik\DataTable\BaseFilter;
+use Piwik\DataTable;
 use Piwik\Metrics;
 
 /**

@@ -50,9 +50,7 @@ class Date
     const DATE_FORMAT_MONTH_LONG  = 'Intl_Format_Month_Long';
     const DATE_FORMAT_YEAR        = 'Intl_Format_Year';
     const TIME_FORMAT             = 'Intl_Format_Time';
-    protected static $tokens = array(
-        'G', 'y', 'M', 'L', 'd', 'h', 'H', 'm', 's', 'E', 'c', 'e', 'D', 'F', 'w', 'W', 'a', 'z', 'Z', 'v',
-    );
+
     /**
      * Max days for months (non-leap-year). See {@link addPeriod()} implementation.
      *
@@ -72,12 +70,14 @@ class Date
         '11' => 30,
         '12' => 31
     );
+
     /**
      * The stored timestamp is always UTC based.
      * The returned timestamp via getTimestamp() will have the conversion applied
      * @var int|null
      */
     protected $timestamp = null;
+
     /**
      * Timezone the current date object is set to.
      * Timezone will only affect the returned timestamp via getTimestamp()
@@ -99,121 +99,6 @@ class Date
         }
         $this->timezone = $timezone;
         $this->timestamp = $timestamp;
-    }
-
-    /**
-     * Returns the date in the "Y-m-d H:i:s" PHP format
-     *
-     * @param int $timestamp
-     * @return string
-     */
-    public static function getDatetimeFromTimestamp($timestamp)
-    {
-        return date("Y-m-d H:i:s", $timestamp);
-    }
-
-    /**
-     * Returns the number of days represented by a number of seconds.
-     *
-     * @param int $secs
-     * @return float
-     */
-    public static function secondsToDays($secs)
-    {
-        return $secs / self::NUM_SECONDS_IN_DAY;
-    }
-
-    /**
-     * Returns the current hour in UTC timezone.
-     * @return string
-     * @throws Exception
-     */
-    public function getHourUTC()
-    {
-        $dateTime = $this->getDatetime();
-        $hourInTz = Date::factory($dateTime, 'UTC')->toString('G');
-
-        return $hourInTz;
-    }
-
-    /**
-     * Returns the current timestamp as a string with the following format: `'YYYY-MM-DD HH:MM:SS'`.
-     *
-     * @return string
-     */
-    public function getDatetime()
-    {
-        return $this->toString(self::DATE_TIME_FORMAT);
-    }
-
-    /**
-     * Converts this date to the requested string format. See {@link http://php.net/date}
-     * for the list of format strings.
-     *
-     * @param string $format
-     * @return string
-     */
-    public function toString($format = 'Y-m-d')
-    {
-        return date($format, $this->getTimestamp());
-    }
-
-    /**
-     * Returns the unix timestamp of the date in UTC, converted from the current
-     * timestamp timezone.
-     *
-     * @return int
-     */
-    public function getTimestamp()
-    {
-        if (empty($this->timezone)) {
-            $this->timezone = 'UTC';
-        }
-        $utcOffset = self::extractUtcOffset($this->timezone);
-        if ($utcOffset !== false) {
-            return (int)($this->timestamp - $utcOffset * 3600);
-        }
-        // The following code seems clunky - I thought the DateTime php class would allow to return timestamps
-        // after applying the timezone offset. Instead, the underlying timestamp is not changed.
-        // I decided to get the date without the timezone information, and create the timestamp from the truncated string.
-        // Unit tests pass (@see Date.test.php) but I'm pretty sure this is not the right way to do it
-        date_default_timezone_set($this->timezone);
-        $dtzone = timezone_open('UTC');
-        $time   = date('r', $this->timestamp);
-        $dtime  = date_create($time);
-
-        date_timezone_set($dtime, $dtzone);
-        $dateWithTimezone    = date_format($dtime, 'r');
-        $dateWithoutTimezone = substr($dateWithTimezone, 0, -6);
-        $timestamp           = strtotime($dateWithoutTimezone);
-        date_default_timezone_set('UTC');
-
-        return (int) $timestamp;
-    }
-
-    /**
-     * Helper function that returns the offset in the timezone string 'UTC+14'
-     * Returns false if the timezone is not UTC+X or UTC-X
-     *
-     * @param string $timezone
-     * @return int|bool  utc offset or false
-     */
-    protected static function extractUtcOffset($timezone)
-    {
-        if ($timezone == 'UTC') {
-            return 0;
-        }
-        $start = substr($timezone, 0, 4);
-        if ($start != 'UTC-'
-            && $start != 'UTC+'
-        ) {
-            return false;
-        }
-        $offset = (float)substr($timezone, 4);
-        if ($start == 'UTC-') {
-            $offset = -$offset;
-        }
-        return $offset;
     }
 
     /**
@@ -269,49 +154,93 @@ class Date
     }
 
     /**
-     * Returns a date object set to now in UTC (same as {@link today()}, except that the time is also set).
+     * Returns the current timestamp as a string with the following format: `'YYYY-MM-DD HH:MM:SS'`.
      *
-     * @return \Piwik\Date
+     * @return string
      */
-    public static function now()
+    public function getDatetime()
     {
-        return new Date(time());
+        return $this->toString(self::DATE_TIME_FORMAT);
     }
 
     /**
-     * Returns a date object set to today at midnight in UTC.
-     *
-     * @return \Piwik\Date
+     * Returns the current hour in UTC timezone.
+     * @return string
+     * @throws Exception
      */
-    public static function today()
+    public function getHourUTC()
     {
-        return new Date(strtotime(date("Y-m-d 00:00:00")));
+        $dateTime = $this->getDatetime();
+        $hourInTz = Date::factory($dateTime, 'UTC')->toString('G');
+
+        return $hourInTz;
     }
 
     /**
-     * Returns a date object set to yesterday at midnight in UTC.
+     * Returns the start of the day of the current timestamp in UTC. For example,
+     * if the current timestamp is `'2007-07-24 14:04:24'` in UTC, the result will
+     * be `'2007-07-24'`.
      *
-     * @return \Piwik\Date
+     * @return string
      */
-    public static function yesterday()
+    public function getDateStartUTC()
     {
-        return new Date(strtotime("yesterday"));
+        $dateStartUTC = gmdate('Y-m-d', $this->timestamp);
+        $date = Date::factory($dateStartUTC)->setTimezone($this->timezone);
+        return $date->toString(self::DATE_TIME_FORMAT);
     }
 
     /**
-     * Returns a date object set to yesterday with the current time of day in UTC.
+     * Returns the end of the day of the current timestamp in UTC. For example,
+     * if the current timestamp is `'2007-07-24 14:03:24'` in UTC, the result will
+     * be `'2007-07-24 23:59:59'`.
      *
-     * @return \Piwik\Date
+     * @return string
      */
-    public static function yesterdaySameTime()
+    public function getDateEndUTC()
     {
-        return new Date(strtotime("yesterday " . date('H:i:s')));
+        $dateEndUTC = gmdate('Y-m-d 23:59:59', $this->timestamp);
+        $date = Date::factory($dateEndUTC)->setTimezone($this->timezone);
+        return $date->toString(self::DATE_TIME_FORMAT);
     }
 
-    private static function getInvalidDateFormatException($dateString)
+    /**
+     * Returns a new date object with the same timestamp as `$this` but with a new
+     * timezone.
+     *
+     * See {@link getTimestamp()} to see how the timezone is used.
+     *
+     * @param string $timezone eg, `'UTC'`, `'Europe/London'`, etc.
+     * @return Date
+     */
+    public function setTimezone($timezone)
     {
-        $message = Piwik::translate('General_ExceptionInvalidDateFormat', array("YYYY-MM-DD, or 'today' or 'yesterday'", "strtotime", "http://php.net/strtotime"));
-        return new Exception($message . ": $dateString");
+        return new Date($this->timestamp, $timezone);
+    }
+
+    /**
+     * Helper function that returns the offset in the timezone string 'UTC+14'
+     * Returns false if the timezone is not UTC+X or UTC-X
+     *
+     * @param string $timezone
+     * @return int|bool  utc offset or false
+     */
+    protected static function extractUtcOffset($timezone)
+    {
+        if ($timezone == 'UTC') {
+            return 0;
+        }
+        $start = substr($timezone, 0, 4);
+        if ($start != 'UTC-'
+            && $start != 'UTC+'
+        ) {
+            return false;
+        }
+        $offset = (float)substr($timezone, 4);
+        if ($start == 'UTC-') {
+            $offset = -$offset;
+        }
+        return $offset;
     }
 
     /**
@@ -337,79 +266,14 @@ class Date
     }
 
     /**
-     * Adds N number of hours to a UNIX timestamp and returns the result. Using
-     * this static function instead of {@link addHour()} will be faster since a
-     * Date instance does not have to be created.
+     * Returns the date in the "Y-m-d H:i:s" PHP format
      *
-     * @param int $timestamp The timestamp to add to.
-     * @param number $n Number of hours to add, must be > 0.
-     * @return int The result as a UNIX timestamp.
-     */
-    public static function addHourTo($timestamp, $n)
-    {
-        $isNegative = ($n < 0);
-        $minutes = 0;
-        if ($n != round($n)) {
-            if ($n >= 1 || $n <= -1) {
-                $extraMinutes = floor(abs($n));
-                if ($isNegative) {
-                    $extraMinutes = -$extraMinutes;
-                }
-                $minutes = abs($n - $extraMinutes) * 60;
-                if ($isNegative) {
-                    $minutes *= -1;
-                }
-            } else {
-                $minutes = $n * 60;
-            }
-            $n = floor(abs($n));
-            if ($isNegative) {
-                $n *= -1;
-            }
-        }
-        return (int)($timestamp + round($minutes * 60) + $n * 3600);
-    }
-
-    /**
-     * Returns the start of the day of the current timestamp in UTC. For example,
-     * if the current timestamp is `'2007-07-24 14:04:24'` in UTC, the result will
-     * be `'2007-07-24'`.
-     *
+     * @param int $timestamp
      * @return string
      */
-    public function getDateStartUTC()
+    public static function getDatetimeFromTimestamp($timestamp)
     {
-        $dateStartUTC = gmdate('Y-m-d', $this->timestamp);
-        $date = Date::factory($dateStartUTC)->setTimezone($this->timezone);
-        return $date->toString(self::DATE_TIME_FORMAT);
-    }
-
-    /**
-     * Returns a new date object with the same timestamp as `$this` but with a new
-     * timezone.
-     *
-     * See {@link getTimestamp()} to see how the timezone is used.
-     *
-     * @param string $timezone eg, `'UTC'`, `'Europe/London'`, etc.
-     * @return Date
-     */
-    public function setTimezone($timezone)
-    {
-        return new Date($this->timestamp, $timezone);
-    }
-
-    /**
-     * Returns the end of the day of the current timestamp in UTC. For example,
-     * if the current timestamp is `'2007-07-24 14:03:24'` in UTC, the result will
-     * be `'2007-07-24 23:59:59'`.
-     *
-     * @return string
-     */
-    public function getDateEndUTC()
-    {
-        $dateEndUTC = gmdate('Y-m-d 23:59:59', $this->timestamp);
-        $date = Date::factory($dateEndUTC)->setTimezone($this->timezone);
-        return $date->toString(self::DATE_TIME_FORMAT);
+        return date("Y-m-d H:i:s", $timestamp);
     }
 
     /**
@@ -420,6 +284,39 @@ class Date
     public function getTimestampUTC()
     {
         return $this->timestamp;
+    }
+
+    /**
+     * Returns the unix timestamp of the date in UTC, converted from the current
+     * timestamp timezone.
+     *
+     * @return int
+     */
+    public function getTimestamp()
+    {
+        if (empty($this->timezone)) {
+            $this->timezone = 'UTC';
+        }
+        $utcOffset = self::extractUtcOffset($this->timezone);
+        if ($utcOffset !== false) {
+            return (int)($this->timestamp - $utcOffset * 3600);
+        }
+        // The following code seems clunky - I thought the DateTime php class would allow to return timestamps
+        // after applying the timezone offset. Instead, the underlying timestamp is not changed.
+        // I decided to get the date without the timezone information, and create the timestamp from the truncated string.
+        // Unit tests pass (@see Date.test.php) but I'm pretty sure this is not the right way to do it
+        date_default_timezone_set($this->timezone);
+        $dtzone = timezone_open('UTC');
+        $time   = date('r', $this->timestamp);
+        $dtime  = date_create($time);
+
+        date_timezone_set($dtime, $dtzone);
+        $dateWithTimezone    = date_format($dtime, 'r');
+        $dateWithoutTimezone = substr($dateWithTimezone, 0, -6);
+        $timestamp           = strtotime($dateWithoutTimezone);
+        date_default_timezone_set('UTC');
+
+        return (int) $timestamp;
     }
 
     /**
@@ -454,6 +351,18 @@ class Date
         $currentYear = date('Y', $this->getTimestamp());
 
         return ($currentYear % 400) == 0 || (($currentYear % 4) == 0 && ($currentYear % 100) != 0);
+    }
+
+    /**
+     * Converts this date to the requested string format. See {@link http://php.net/date}
+     * for the list of format strings.
+     *
+     * @param string $format
+     * @return string
+     */
+    public function toString($format = 'Y-m-d')
+    {
+        return date($format, $this->getTimestamp());
     }
 
     /**
@@ -537,6 +446,46 @@ class Date
     }
 
     /**
+     * Returns a date object set to now in UTC (same as {@link today()}, except that the time is also set).
+     *
+     * @return \Piwik\Date
+     */
+    public static function now()
+    {
+        return new Date(time());
+    }
+
+    /**
+     * Returns a date object set to today at midnight in UTC.
+     *
+     * @return \Piwik\Date
+     */
+    public static function today()
+    {
+        return new Date(strtotime(date("Y-m-d 00:00:00")));
+    }
+
+    /**
+     * Returns a date object set to yesterday at midnight in UTC.
+     *
+     * @return \Piwik\Date
+     */
+    public static function yesterday()
+    {
+        return new Date(strtotime("yesterday"));
+    }
+
+    /**
+     * Returns a date object set to yesterday with the current time of day in UTC.
+     *
+     * @return \Piwik\Date
+     */
+    public static function yesterdaySameTime()
+    {
+        return new Date(strtotime("yesterday " . date('H:i:s')));
+    }
+
+    /**
      * Returns a new Date instance with `$this` date's day and the specified new
      * time of day.
      *
@@ -591,17 +540,6 @@ class Date
     }
 
     /**
-     * Subtracts `$n` weeks from `$this` date and returns a new Date object.
-     *
-     * @param int $n An integer > 0.
-     * @return \Piwik\Date
-     */
-    public function subWeek($n)
-    {
-        return $this->subDay(7 * $n);
-    }
-
-    /**
      * Subtracts `$n` number of days from `$this` date and returns a new Date object.
      *
      * @param int $n An integer > 0.
@@ -614,6 +552,17 @@ class Date
         }
         $ts = strtotime("-$n day", $this->timestamp);
         return new Date($ts, $this->timezone);
+    }
+
+    /**
+     * Subtracts `$n` weeks from `$this` date and returns a new Date object.
+     *
+     * @param int $n An integer > 0.
+     * @return \Piwik\Date
+     */
+    public function subWeek($n)
+    {
+        return $this->subDay(7 * $n);
     }
 
     /**
@@ -728,64 +677,6 @@ class Date
         return str_replace(array_keys($mapping), array_values($mapping), $template);
     }
 
-    /**
-     * Parses the datetime format pattern and returns a tokenized result array
-     *
-     * Examples:
-     * Input                     Output
-     * 'dd.mm.yyyy'              array(array('dd'), '.', array('mm'), '.', array('yyyy'))
-     * 'y?M?d?EEEE ah:mm:ss'   array(array('y'), '?', array('M'), '?', array('d'), '?', array('EEEE'), ' ', array('a'), array('h'), ':', array('mm'), ':', array('ss'))
-     *
-     * @param string $pattern the pattern to be parsed
-     * @return array tokenized parsing result
-     */
-    protected static function parseFormat($pattern)
-    {
-        static $formats = array();  // cache
-        if (isset($formats[$pattern])) {
-            return $formats[$pattern];
-        }
-        $tokens = array();
-        $n = strlen($pattern);
-        $isLiteral = false;
-        $literal = '';
-        for ($i = 0; $i < $n; ++$i) {
-            $c = $pattern[$i];
-            if ($c === "'") {
-                if ($i < $n - 1 && $pattern[$i + 1] === "'") {
-                    $tokens[] = "'";
-                    $i++;
-                } elseif ($isLiteral) {
-                    $tokens[] = $literal;
-                    $literal = '';
-                    $isLiteral = false;
-                } else {
-                    $isLiteral = true;
-                    $literal = '';
-                }
-            } elseif ($isLiteral) {
-                $literal .= $c;
-            } else {
-                for ($j = $i + 1; $j < $n; ++$j) {
-                    if ($pattern[$j] !== $c) {
-                        break;
-                    }
-                }
-                $p = str_repeat($c, $j - $i);
-                if (in_array($c, self::$tokens)) {
-                    $tokens[] = array($p);
-                } else {
-                    $tokens[] = $p;
-                }
-                $i = $j - 1;
-            }
-        }
-        if ($literal !== '') {
-            $tokens[] = $literal;
-        }
-        return $formats[$pattern] = $tokens;
-    }
-
     protected function formatToken($token)
     {
         $dayOfWeek = $this->toString('N');
@@ -882,6 +773,68 @@ class Date
         return '';
     }
 
+    protected static $tokens = array(
+        'G', 'y', 'M', 'L', 'd', 'h', 'H', 'm', 's', 'E', 'c', 'e', 'D', 'F', 'w', 'W', 'a', 'z', 'Z', 'v',
+    );
+
+    /**
+     * Parses the datetime format pattern and returns a tokenized result array
+     *
+     * Examples:
+     * Input                     Output
+     * 'dd.mm.yyyy'              array(array('dd'), '.', array('mm'), '.', array('yyyy'))
+     * 'y?M?d?EEEE ah:mm:ss'   array(array('y'), '?', array('M'), '?', array('d'), '?', array('EEEE'), ' ', array('a'), array('h'), ':', array('mm'), ':', array('ss'))
+     *
+     * @param string $pattern the pattern to be parsed
+     * @return array tokenized parsing result
+     */
+    protected static function parseFormat($pattern)
+    {
+        static $formats = array();  // cache
+        if (isset($formats[$pattern])) {
+            return $formats[$pattern];
+        }
+        $tokens = array();
+        $n = strlen($pattern);
+        $isLiteral = false;
+        $literal = '';
+        for ($i = 0; $i < $n; ++$i) {
+            $c = $pattern[$i];
+            if ($c === "'") {
+                if ($i < $n - 1 && $pattern[$i + 1] === "'") {
+                    $tokens[] = "'";
+                    $i++;
+                } elseif ($isLiteral) {
+                    $tokens[] = $literal;
+                    $literal = '';
+                    $isLiteral = false;
+                } else {
+                    $isLiteral = true;
+                    $literal = '';
+                }
+            } elseif ($isLiteral) {
+                $literal .= $c;
+            } else {
+                for ($j = $i + 1; $j < $n; ++$j) {
+                    if ($pattern[$j] !== $c) {
+                        break;
+                    }
+                }
+                $p = str_repeat($c, $j - $i);
+                if (in_array($c, self::$tokens)) {
+                    $tokens[] = array($p);
+                } else {
+                    $tokens[] = $p;
+                }
+                $i = $j - 1;
+            }
+        }
+        if ($literal !== '') {
+            $tokens[] = $literal;
+        }
+        return $formats[$pattern] = $tokens;
+    }
+
     /**
      * Adds `$n` days to `$this` date and returns the result in a new Date.
      * instance.
@@ -893,17 +846,6 @@ class Date
     {
         $ts = strtotime("+$n day", $this->timestamp);
         return new Date($ts, $this->timezone);
-    }
-
-    /**
-     * Subtracts `$n` hours from `$this` date and returns the result in a new Date.
-     *
-     * @param int $n Number of hours to subtract. Can be less than 0.
-     * @return \Piwik\Date
-     */
-    public function subHour($n)
-    {
-        return $this->addHour(-$n);
     }
 
     /**
@@ -919,6 +861,51 @@ class Date
     }
 
     /**
+     * Adds N number of hours to a UNIX timestamp and returns the result. Using
+     * this static function instead of {@link addHour()} will be faster since a
+     * Date instance does not have to be created.
+     *
+     * @param int $timestamp The timestamp to add to.
+     * @param number $n Number of hours to add, must be > 0.
+     * @return int The result as a UNIX timestamp.
+     */
+    public static function addHourTo($timestamp, $n)
+    {
+        $isNegative = ($n < 0);
+        $minutes = 0;
+        if ($n != round($n)) {
+            if ($n >= 1 || $n <= -1) {
+                $extraMinutes = floor(abs($n));
+                if ($isNegative) {
+                    $extraMinutes = -$extraMinutes;
+                }
+                $minutes = abs($n - $extraMinutes) * 60;
+                if ($isNegative) {
+                    $minutes *= -1;
+                }
+            } else {
+                $minutes = $n * 60;
+            }
+            $n = floor(abs($n));
+            if ($isNegative) {
+                $n *= -1;
+            }
+        }
+        return (int)($timestamp + round($minutes * 60) + $n * 3600);
+    }
+
+    /**
+     * Subtracts `$n` hours from `$this` date and returns the result in a new Date.
+     *
+     * @param int $n Number of hours to subtract. Can be less than 0.
+     * @return \Piwik\Date
+     */
+    public function subHour($n)
+    {
+        return $this->addHour(-$n);
+    }
+
+    /**
      * Subtracts `$n` seconds from `$this` date and returns the result in a new Date.
      *
      * @param int $n Number of seconds to subtract. Can be less than 0.
@@ -927,18 +914,6 @@ class Date
     public function subSeconds($n)
     {
         return new Date($this->timestamp - $n, $this->timezone);
-    }
-
-    /**
-     * Subtracts a period from `$this` date and returns the result in a new Date instance.
-     *
-     * @param int $n The number of periods to add. Can be negative.
-     * @param string $period The type of period to add (YEAR, MONTH, WEEK, DAY, ...)
-     * @return \Piwik\Date
-     */
-    public function subPeriod($n, $period)
-    {
-        return $this->addPeriod(-$n, $period);
     }
 
     /**
@@ -983,5 +958,34 @@ class Date
         } else {
             return self::$maxDaysInMonth[$month];
         }
+    }
+
+    /**
+     * Subtracts a period from `$this` date and returns the result in a new Date instance.
+     *
+     * @param int $n The number of periods to add. Can be negative.
+     * @param string $period The type of period to add (YEAR, MONTH, WEEK, DAY, ...)
+     * @return \Piwik\Date
+     */
+    public function subPeriod($n, $period)
+    {
+        return $this->addPeriod(-$n, $period);
+    }
+
+    /**
+     * Returns the number of days represented by a number of seconds.
+     *
+     * @param int $secs
+     * @return float
+     */
+    public static function secondsToDays($secs)
+    {
+        return $secs / self::NUM_SECONDS_IN_DAY;
+    }
+
+    private static function getInvalidDateFormatException($dateString)
+    {
+        $message = Piwik::translate('General_ExceptionInvalidDateFormat', array("YYYY-MM-DD, or 'today' or 'yesterday'", "strtotime", "http://php.net/strtotime"));
+        return new Exception($message . ": $dateString");
     }
 }

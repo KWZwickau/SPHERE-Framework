@@ -39,9 +39,9 @@ class GetDatabaseUsageSummary extends Base
         // translate the labels themselves
         $valueToTranslationStr = array(
             'tracker_data' => 'DBStats_TrackerTables',
-            'report_data' => 'DBStats_ReportTables',
-            'metric_data' => 'DBStats_MetricTables',
-            'other_data' => 'DBStats_OtherTables'
+            'report_data'  => 'DBStats_ReportTables',
+            'metric_data'  => 'DBStats_MetricTables',
+            'other_data'   => 'DBStats_OtherTables'
         );
 
         $translateSummaryLabel = function ($value) use ($valueToTranslationStr) {
@@ -50,11 +50,7 @@ class GetDatabaseUsageSummary extends Base
                 : $value;
         };
 
-        $view->config->filters[] = array(
-            'ColumnCallbackReplace',
-            array('label', $translateSummaryLabel),
-            $isPriority = true
-        );
+        $view->config->filters[] = array('ColumnCallbackReplace', array('label', $translateSummaryLabel), $isPriority = true);
     }
 
 }

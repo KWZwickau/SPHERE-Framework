@@ -62,21 +62,6 @@ class CliMulti
     }
 
     /**
-     * What is missing under windows? Detection whether a process is still running in Process::isProcessStillRunning
-     * and how to send a process into background in start()
-     */
-    public function supportsAsync()
-    {
-        return Process::isSupported() && !Common::isPhpCgiType() && $this->findPhpBinary();
-    }
-
-    private function findPhpBinary()
-    {
-        $cliPhp = new CliPhp();
-        return $cliPhp->findPhpBinary();
-    }
-
-    /**
      * It will request all given URLs in parallel (async) using the CLI and wait until all requests are finished.
      * If multi cli is not supported (eg windows) it will initiate an HTTP request instead (not async).
      *
@@ -105,23 +90,26 @@ class CliMulti
     }
 
     /**
-     * @param array $piwikUrls
-     * @return array
+     * Ok, this sounds weird. Why should we care about ssl certificates when we are in CLI mode? It is needed for
+     * our simple fallback mode for Windows where we initiate HTTP requests instead of CLI.
+     * @param $acceptInvalidSSLCertificate
      */
-    private function requestUrls(array $piwikUrls)
+    public function setAcceptInvalidSSLCertificate($acceptInvalidSSLCertificate)
     {
-        $this->start($piwikUrls);
+        $this->acceptInvalidSSLCertificate = $acceptInvalidSSLCertificate;
+    }
 
-        do {
-            usleep(100000); // 100 * 1000 = 100ms
-        } while (!$this->hasFinished());
+    /**
+     * @param $limit int Maximum count of requests to issue in parallel
+     */
+    public function setConcurrentProcessesLimit($limit)
+    {
+        $this->concurrentProcessesLimit = $limit;
+    }
 
-        $results = $this->getResponse($piwikUrls);
-        $this->cleanup();
-
-        self::cleanupNotRemovedFiles();
-
-        return $results;
+    public function runAsSuperUser($runAsSuperUser = true)
+    {
+        $this->runAsSuperUser = $runAsSuperUser;
     }
 
     private function start($piwikUrls)
@@ -134,11 +122,6 @@ class CliMulti
             $cmdId = $this->generateCommandId($url) . $index;
             $this->executeUrlCommand($cmdId, $url);
         }
-    }
-
-    private function generateCommandId($command)
-    {
-        return substr(Common::hash($command . microtime(true) . rand(0, 99999)), 0, 100);
     }
 
     private function executeUrlCommand($cmdId, $url)
@@ -154,6 +137,124 @@ class CliMulti
         $this->outputs[] = $output;
     }
 
+    private function buildCommand($hostname, $query, $outputFile)
+    {
+        $bin = $this->findPhpBinary();
+        $superuserCommand = $this->runAsSuperUser ? "--superuser" : "";
+
+        return sprintf('%s %s/console climulti:request -q --piwik-domain=%s %s %s > %s 2>&1 &',
+                       $bin, PIWIK_INCLUDE_PATH, escapeshellarg($hostname), $superuserCommand, escapeshellarg($query), $outputFile);
+    }
+
+    private function getResponse()
+    {
+        $response = array();
+
+        foreach ($this->outputs as $output) {
+            $response[] = $output->get();
+        }
+
+        return $response;
+    }
+
+    private function hasFinished()
+    {
+        foreach ($this->processes as $index => $process) {
+            $hasStarted = $process->hasStarted();
+
+            if (!$hasStarted && 8 <= $process->getSecondsSinceCreation()) {
+                // if process was created more than 8 seconds ago but still not started there must be something wrong.
+                // ==> declare the process as finished
+                $process->finishProcess();
+                continue;
+            } elseif (!$hasStarted) {
+                return false;
+            }
+
+            if ($process->isRunning()) {
+                return false;
+            }
+
+            $pid = $process->getPid();
+            foreach ($this->outputs as $output) {
+                if ($output->getOutputId() === $pid && $output->isAbnormal()) {
+                    $process->finishProcess();
+                    return true;
+                }
+            }
+
+            if ($process->hasFinished()) {
+                // prevent from checking this process over and over again
+                unset($this->processes[$index]);
+            }
+        }
+
+        return true;
+    }
+
+    private function generateCommandId($command)
+    {
+        return substr(Common::hash($command . microtime(true) . rand(0, 99999)), 0, 100);
+    }
+
+    /**
+     * What is missing under windows? Detection whether a process is still running in Process::isProcessStillRunning
+     * and how to send a process into background in start()
+     */
+    public function supportsAsync()
+    {
+        return Process::isSupported() && !Common::isPhpCgiType() && $this->findPhpBinary();
+    }
+
+    private function findPhpBinary()
+    {
+        $cliPhp = new CliPhp();
+        return $cliPhp->findPhpBinary();
+    }
+
+    private function cleanup()
+    {
+        foreach ($this->processes as $pid) {
+            $pid->finishProcess();
+        }
+
+        foreach ($this->outputs as $output) {
+            $output->destroy();
+        }
+
+        $this->processes = array();
+        $this->outputs   = array();
+    }
+
+    /**
+     * Remove files older than one week. They should be cleaned up automatically after each request but for whatever
+     * reason there can be always some files left.
+     */
+    public static function cleanupNotRemovedFiles()
+    {
+        $timeOneWeekAgo = strtotime('-1 week');
+
+        $files = _glob(self::getTmpPath() . '/*');
+        if (empty($files)) {
+            return;
+        }
+
+        foreach ($files as $file) {
+            if (file_exists($file)) {
+                $timeLastModified = filemtime($file);
+
+                if ($timeLastModified !== false && $timeOneWeekAgo > $timeLastModified) {
+                    unlink($file);
+                }
+            }
+        }
+    }
+
+    public static function getTmpPath()
+    {
+        return StaticContainer::get('path.tmp') . '/climulti';
+    }
+
     private function executeAsyncCli($url, Output $output, $cmdId)
     {
         $this->processes[] = new Process($cmdId);
@@ -165,28 +266,6 @@ class CliMulti
 
         Log::debug($command);
         shell_exec($command);
-    }
-
-    private function appendTestmodeParamToUrlIfNeeded($url)
-    {
-        $isTestMode = defined('PIWIK_TEST_MODE');
-
-        if ($isTestMode && false === strpos($url, '?')) {
-            $url .= "?testmode=1";
-        } elseif ($isTestMode) {
-            $url .= "&testmode=1";
-        }
-
-        return $url;
-    }
-
-    private function buildCommand($hostname, $query, $outputFile)
-    {
-        $bin = $this->findPhpBinary();
-        $superuserCommand = $this->runAsSuperUser ? "--superuser" : "";
-
-        return sprintf('%s %s/console climulti:request -q --piwik-domain=%s %s %s > %s 2>&1 &',
-                       $bin, PIWIK_INCLUDE_PATH, escapeshellarg($hostname), $superuserCommand, escapeshellarg($query), $outputFile);
     }
 
     private function executeNotAsyncHttp($url, Output $output)
@@ -233,6 +312,39 @@ class CliMulti
         }
     }
 
+    private function appendTestmodeParamToUrlIfNeeded($url)
+    {
+        $isTestMode = defined('PIWIK_TEST_MODE');
+
+        if ($isTestMode && false === strpos($url, '?')) {
+            $url .= "?testmode=1";
+        } elseif ($isTestMode) {
+            $url .= "&testmode=1";
+        }
+
+        return $url;
+    }
+
+    /**
+     * @param array $piwikUrls
+     * @return array
+     */
+    private function requestUrls(array $piwikUrls)
+    {
+        $this->start($piwikUrls);
+
+        do {
+            usleep(100000); // 100 * 1000 = 100ms
+        } while (!$this->hasFinished());
+
+        $results = $this->getResponse($piwikUrls);
+        $this->cleanup();
+
+        self::cleanupNotRemovedFiles();
+
+        return $results;
+    }
+
     private static function getSuperUserTokenAuths()
     {
         $tokens = array();
@@ -245,118 +357,6 @@ class CliMulti
         Piwik::postEvent('CronArchive.getTokenAuth', array(&$tokens));
 
         return $tokens;
-    }
-
-    private function hasFinished()
-    {
-        foreach ($this->processes as $index => $process) {
-            $hasStarted = $process->hasStarted();
-
-            if (!$hasStarted && 8 <= $process->getSecondsSinceCreation()) {
-                // if process was created more than 8 seconds ago but still not started there must be something wrong.
-                // ==> declare the process as finished
-                $process->finishProcess();
-                continue;
-            } elseif (!$hasStarted) {
-                return false;
-            }
-
-            if ($process->isRunning()) {
-                return false;
-            }
-
-            $pid = $process->getPid();
-            foreach ($this->outputs as $output) {
-                if ($output->getOutputId() === $pid && $output->isAbnormal()) {
-                    $process->finishProcess();
-                    return true;
-                }
-            }
-
-            if ($process->hasFinished()) {
-                // prevent from checking this process over and over again
-                unset($this->processes[$index]);
-            }
-        }
-
-        return true;
-    }
-
-    private function getResponse()
-    {
-        $response = array();
-
-        foreach ($this->outputs as $output) {
-            $response[] = $output->get();
-        }
-
-        return $response;
-    }
-
-    private function cleanup()
-    {
-        foreach ($this->processes as $pid) {
-            $pid->finishProcess();
-        }
-
-        foreach ($this->outputs as $output) {
-            $output->destroy();
-        }
-
-        $this->processes = array();
-        $this->outputs   = array();
-    }
-
-    /**
-     * Remove files older than one week. They should be cleaned up automatically after each request but for whatever
-     * reason there can be always some files left.
-     */
-    public static function cleanupNotRemovedFiles()
-    {
-        $timeOneWeekAgo = strtotime('-1 week');
-
-        $files = _glob(self::getTmpPath() . '/*');
-        if (empty($files)) {
-            return;
-        }
-
-        foreach ($files as $file) {
-            if (file_exists($file)) {
-                $timeLastModified = filemtime($file);
-
-                if ($timeLastModified !== false && $timeOneWeekAgo > $timeLastModified) {
-                    unlink($file);
-                }
-            }
-        }
-    }
-
-    public static function getTmpPath()
-    {
-        return StaticContainer::get('path.tmp') . '/climulti';
-    }
-
-    /**
-     * Ok, this sounds weird. Why should we care about ssl certificates when we are in CLI mode? It is needed for
-     * our simple fallback mode for Windows where we initiate HTTP requests instead of CLI.
-     * @param $acceptInvalidSSLCertificate
-     */
-    public function setAcceptInvalidSSLCertificate($acceptInvalidSSLCertificate)
-    {
-        $this->acceptInvalidSSLCertificate = $acceptInvalidSSLCertificate;
-    }
-
-    /**
-     * @param $limit int Maximum count of requests to issue in parallel
-     */
-    public function setConcurrentProcessesLimit($limit)
-    {
-        $this->concurrentProcessesLimit = $limit;
-    }
-
-    public function runAsSuperUser($runAsSuperUser = true)
-    {
-        $this->runAsSuperUser = $runAsSuperUser;
     }
 
     public function setUrlToPiwik($urlToPiwik)

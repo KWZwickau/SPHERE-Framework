@@ -9,11 +9,11 @@
 namespace Piwik\Plugins\SitesManager\Tracker;
 
 use Piwik\Date;
-use Piwik\Plugins\SitesManager\Model as SitesManagerModel;
 use Piwik\Tracker\Cache;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\RequestProcessor;
 use Piwik\Tracker\Visit\VisitProperties;
+use Piwik\Plugins\SitesManager\Model as SitesManagerModel;
 
 /**
  * Handles site specific logic during tracking.

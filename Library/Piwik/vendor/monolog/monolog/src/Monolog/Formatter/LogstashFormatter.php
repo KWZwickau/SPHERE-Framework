@@ -84,43 +84,6 @@ class LogstashFormatter extends NormalizerFormatter
         return $this->toJson($message) . "\n";
     }
 
-    protected function formatV1(array $record)
-    {
-        if (empty($record['datetime'])) {
-            $record['datetime'] = gmdate('c');
-        }
-        $message = array(
-            '@timestamp' => $record['datetime'],
-            '@version' => 1,
-            'host' => $this->systemName,
-        );
-        if (isset($record['message'])) {
-            $message['message'] = $record['message'];
-        }
-        if (isset($record['channel'])) {
-            $message['type'] = $record['channel'];
-            $message['channel'] = $record['channel'];
-        }
-        if (isset($record['level_name'])) {
-            $message['level'] = $record['level_name'];
-        }
-        if ($this->applicationName) {
-            $message['type'] = $this->applicationName;
-        }
-        if (!empty($record['extra'])) {
-            foreach ($record['extra'] as $key => $val) {
-                $message[$this->extraPrefix . $key] = $val;
-            }
-        }
-        if (!empty($record['context'])) {
-            foreach ($record['context'] as $key => $val) {
-                $message[$this->contextPrefix . $key] = $val;
-            }
-        }
-
-        return $message;
-    }
-
     protected function formatV0(array $record)
     {
         if (empty($record['datetime'])) {
@@ -158,6 +121,43 @@ class LogstashFormatter extends NormalizerFormatter
         if (!empty($record['context'])) {
             foreach ($record['context'] as $key => $val) {
                 $message['@fields'][$this->contextPrefix . $key] = $val;
+            }
+        }
+
+        return $message;
+    }
+
+    protected function formatV1(array $record)
+    {
+        if (empty($record['datetime'])) {
+            $record['datetime'] = gmdate('c');
+        }
+        $message = array(
+            '@timestamp' => $record['datetime'],
+            '@version' => 1,
+            'host' => $this->systemName,
+        );
+        if (isset($record['message'])) {
+            $message['message'] = $record['message'];
+        }
+        if (isset($record['channel'])) {
+            $message['type'] = $record['channel'];
+            $message['channel'] = $record['channel'];
+        }
+        if (isset($record['level_name'])) {
+            $message['level'] = $record['level_name'];
+        }
+        if ($this->applicationName) {
+            $message['type'] = $this->applicationName;
+        }
+        if (!empty($record['extra'])) {
+            foreach ($record['extra'] as $key => $val) {
+                $message[$this->extraPrefix . $key] = $val;
+            }
+        }
+        if (!empty($record['context'])) {
+            foreach ($record['context'] as $key => $val) {
+                $message[$this->contextPrefix . $key] = $val;
             }
         }
 

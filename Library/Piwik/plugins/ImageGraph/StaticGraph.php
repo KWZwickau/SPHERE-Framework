@@ -9,12 +9,13 @@
 
 namespace Piwik\Plugins\ImageGraph;
 
+use Exception;
 use pData;
 use pImage;
-use Piwik\BaseFactory;
 use Piwik\Container\StaticContainer;
 use Piwik\NumberFormatter;
 use Piwik\Piwik;
+use Piwik\BaseFactory;
 
 require_once PIWIK_INCLUDE_PATH . "/libs/pChart/class/pDraw.class.php";
 require_once PIWIK_INCLUDE_PATH . "/libs/pChart/class/pImage.class.php";
@@ -31,7 +32,7 @@ abstract class StaticGraph extends BaseFactory
     const GRAPH_TYPE_HORIZONTAL_BAR = "horizontalBar";
     const GRAPH_TYPE_3D_PIE = "3dPie";
     const GRAPH_TYPE_BASIC_PIE = "pie";
-    const ABSCISSA_SERIE_NAME = 'ABSCISSA';
+
     private static $availableStaticGraphTypes = array(
         self::GRAPH_TYPE_BASIC_LINE     => 'Evolution',
         self::GRAPH_TYPE_VERTICAL_BAR   => 'VerticalBar',
@@ -39,6 +40,11 @@ abstract class StaticGraph extends BaseFactory
         self::GRAPH_TYPE_BASIC_PIE      => 'Pie',
         self::GRAPH_TYPE_3D_PIE         => 'Pie3D',
     );
+
+    const ABSCISSA_SERIE_NAME = 'ABSCISSA';
+
+    private $aliasedGraph;
+
     /**
      * @var pImage
      */
@@ -63,7 +69,10 @@ abstract class StaticGraph extends BaseFactory
     protected $width;
     protected $height;
     protected $forceSkippedLabels = false;
-    private $aliasedGraph;
+
+    abstract protected function getDefaultColors();
+
+    abstract public function renderGraph();
 
     protected static function getClassNameFromClassId($graphType)
     {
@@ -85,8 +94,6 @@ abstract class StaticGraph extends BaseFactory
         return array_keys(self::$availableStaticGraphTypes);
     }
 
-    abstract public function renderGraph();
-
     /**
      * Save rendering to disk
      *
@@ -98,22 +105,6 @@ abstract class StaticGraph extends BaseFactory
         $filePath = self::getOutputPath($filename);
         $this->pImage->Render($filePath);
         return $filePath;
-    }
-
-    /**
-     * Return $filename with temp directory and delete file
-     *
-     * @static
-     * @param  $filename
-     * @return string path of file in temp directory
-     */
-    protected static function getOutputPath($filename)
-    {
-        $outputFilename = StaticContainer::get('path.tmp') . '/assets/' . $filename;
-
-        @chmod($outputFilename, 0600);
-        @unlink($outputFilename);
-        return $outputFilename;
     }
 
     /**
@@ -163,19 +154,6 @@ abstract class StaticGraph extends BaseFactory
     public function setTextColor($textColor)
     {
         $this->textColor = self::hex2rgb($textColor);
-    }
-
-    private static function hex2rgb($hexColor)
-    {
-        if (preg_match('/([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})/', $hexColor, $matches)) {
-            return array(
-                'R' => hexdec($matches[1]),
-                'G' => hexdec($matches[2]),
-                'B' => hexdec($matches[3])
-            );
-        } else {
-            return false;
-        }
     }
 
     public function setBackgroundColor($backgroundColor)
@@ -243,7 +221,21 @@ abstract class StaticGraph extends BaseFactory
         }
     }
 
-    abstract protected function getDefaultColors();
+    /**
+     * Return $filename with temp directory and delete file
+     *
+     * @static
+     * @param  $filename
+     * @return string path of file in temp directory
+     */
+    protected static function getOutputPath($filename)
+    {
+        $outputFilename = StaticContainer::get('path.tmp') . '/assets/' . $filename;
+
+        @chmod($outputFilename, 0600);
+        @unlink($outputFilename);
+        return $outputFilename;
+    }
 
     protected function initpData()
     {
@@ -262,6 +254,45 @@ abstract class StaticGraph extends BaseFactory
 
         $this->pData->addPoints($this->abscissaSeries, self::ABSCISSA_SERIE_NAME);
         $this->pData->setAbscissa(self::ABSCISSA_SERIE_NAME);
+    }
+
+    protected function initpImage()
+    {
+        $this->pImage = new pImage($this->width, $this->height, $this->pData);
+        $this->pImage->Antialias = $this->aliasedGraph;
+
+        $this->pImage->setFontProperties(
+            array_merge(
+                array(
+                     'FontName' => $this->font,
+                     'FontSize' => $this->fontSize,
+                ),
+                $this->textColor
+            )
+        );
+    }
+
+    protected function getTextWidthHeight($text, $fontSize = false)
+    {
+        if (!$fontSize) {
+            $fontSize = $this->fontSize;
+        }
+
+        if (!$this->pImage) {
+            $this->initpImage();
+        }
+
+        // could not find a way to get pixel perfect width & height info using imageftbbox
+        $textInfo = $this->pImage->drawText(
+            0, 0, $text,
+            array(
+                 'Alpha'    => 0,
+                 'FontSize' => $fontSize,
+                 'FontName' => $this->font
+            )
+        );
+
+        return array($textInfo[1]['X'] + 1, $textInfo[0]['Y'] - $textInfo[2]['Y']);
     }
 
     protected function getMaximumTextWidthHeight($values)
@@ -289,45 +320,6 @@ abstract class StaticGraph extends BaseFactory
         return array($maxWidth, $maxHeight);
     }
 
-    protected function getTextWidthHeight($text, $fontSize = false)
-    {
-        if (!$fontSize) {
-            $fontSize = $this->fontSize;
-        }
-
-        if (!$this->pImage) {
-            $this->initpImage();
-        }
-
-        // could not find a way to get pixel perfect width & height info using imageftbbox
-        $textInfo = $this->pImage->drawText(
-            0, 0, $text,
-            array(
-                 'Alpha'    => 0,
-                 'FontSize' => $fontSize,
-                 'FontName' => $this->font
-            )
-        );
-
-        return array($textInfo[1]['X'] + 1, $textInfo[0]['Y'] - $textInfo[2]['Y']);
-    }
-
-    protected function initpImage()
-    {
-        $this->pImage = new pImage($this->width, $this->height, $this->pData);
-        $this->pImage->Antialias = $this->aliasedGraph;
-
-        $this->pImage->setFontProperties(
-            array_merge(
-                array(
-                     'FontName' => $this->font,
-                     'FontSize' => $this->fontSize,
-                ),
-                $this->textColor
-            )
-        );
-    }
-
     protected function drawBackground()
     {
         $this->pImage->drawFilledRectangle(
@@ -337,6 +329,19 @@ abstract class StaticGraph extends BaseFactory
             $this->height,
             array_merge(array('Alpha' => 100), $this->backgroundColor)
         );
+    }
+
+    private static function hex2rgb($hexColor)
+    {
+        if (preg_match('/([a-fA-F0-9]{2})([a-fA-F0-9]{2})([a-fA-F0-9]{2})/', $hexColor, $matches)) {
+            return array(
+                'R' => hexdec($matches[1]),
+                'G' => hexdec($matches[2]),
+                'B' => hexdec($matches[3])
+            );
+        } else {
+            return false;
+        }
     }
 }
 

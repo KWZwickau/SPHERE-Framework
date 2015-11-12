@@ -21,23 +21,6 @@ class Visitor
         $this->details = $details;
     }
 
-    function getPluginIcons()
-    {
-        $pluginNames = $this->getPlugins();
-        if (!empty($pluginNames)) {
-            $pluginNames = explode(self::DELIMITER_PLUGIN_NAME, $pluginNames);
-            $pluginIcons = array();
-
-            foreach ($pluginNames as $plugin) {
-                $pluginIcons[] = array("pluginIcon" => getPluginsLogo($plugin), "pluginName" => $plugin);
-            }
-
-            return $pluginIcons;
-        }
-
-        return null;
-    }
-
     function getPlugins()
     {
         $plugins = array(
@@ -61,5 +44,22 @@ class Visitor
         }
 
         return implode(self::DELIMITER_PLUGIN_NAME, $pluginShortNames);
+    }
+
+    function getPluginIcons()
+    {
+        $pluginNames = $this->getPlugins();
+        if (!empty($pluginNames)) {
+            $pluginNames = explode(self::DELIMITER_PLUGIN_NAME, $pluginNames);
+            $pluginIcons = array();
+
+            foreach ($pluginNames as $plugin) {
+                $pluginIcons[] = array("pluginIcon" => getPluginsLogo($plugin), "pluginName" => $plugin);
+            }
+
+            return $pluginIcons;
+        }
+
+        return null;
     }
 }

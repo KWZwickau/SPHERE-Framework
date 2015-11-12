@@ -18,22 +18,6 @@ use Piwik\Updates;
  */
 class Updates_0_2_10 extends Updates
 {
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-
-        $obsoleteDirectories = array(
-            '/plugins/AdminHome',
-            '/plugins/Home',
-            '/plugins/PluginsAdmin',
-        );
-        foreach ($obsoleteDirectories as $dir) {
-            if (file_exists(PIWIK_INCLUDE_PATH . $dir)) {
-                Filesystem::unlinkRecursive(PIWIK_INCLUDE_PATH . $dir, true);
-            }
-        }
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
@@ -64,5 +48,21 @@ class Updates_0_2_10 extends Updates
             'ALTER IGNORE TABLE `' . Common::prefixTable('site') . '`
 				 CHANGE `feedburnerName` `feedburnerName` VARCHAR( 100 ) DEFAULT NULL'       => 1054,
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
+
+        $obsoleteDirectories = array(
+            '/plugins/AdminHome',
+            '/plugins/Home',
+            '/plugins/PluginsAdmin',
+        );
+        foreach ($obsoleteDirectories as $dir) {
+            if (file_exists(PIWIK_INCLUDE_PATH . $dir)) {
+                Filesystem::unlinkRecursive(PIWIK_INCLUDE_PATH . $dir, true);
+            }
+        }
     }
 }

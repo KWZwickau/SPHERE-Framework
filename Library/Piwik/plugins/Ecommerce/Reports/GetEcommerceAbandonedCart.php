@@ -12,17 +12,6 @@ use Piwik\Piwik;
 
 class GetEcommerceAbandonedCart extends Base
 {
-    public function getMetrics()
-    {
-        $metrics = parent::getMetrics();
-
-        $metrics['nb_conversions'] = Piwik::translate('General_AbandonedCarts');
-        $metrics['revenue'] = Piwik::translate('Goals_LeftInCart', Piwik::translate('General_ColumnRevenue'));
-        $metrics['items'] = Piwik::translate('Goals_LeftInCart', Piwik::translate('Goals_Products'));
-
-        return $metrics;
-    }
-
     protected function init()
     {
         parent::init();
@@ -33,5 +22,15 @@ class GetEcommerceAbandonedCart extends Base
         $this->metrics = array('nb_conversions', 'conversion_rate', 'revenue', 'items');
 
         $this->parameters = array('idGoal' => Piwik::LABEL_ID_GOAL_IS_ECOMMERCE_CART);
+    }
+
+    public function getMetrics() {
+        $metrics = parent::getMetrics();
+
+        $metrics['nb_conversions'] = Piwik::translate('General_AbandonedCarts');
+        $metrics['revenue']        = Piwik::translate('Goals_LeftInCart', Piwik::translate('General_ColumnRevenue'));
+        $metrics['items']          = Piwik::translate('Goals_LeftInCart', Piwik::translate('Goals_Products'));
+
+        return $metrics;
     }
 }

@@ -12,6 +12,7 @@ use Piwik\Common;
 use Piwik\Db;
 use Piwik\DbHelper;
 use Piwik\ReportRenderer;
+use Piwik\Translate;
 
 class Model
 {
@@ -23,31 +24,10 @@ class Model
         $this->table = Common::prefixTable(self::$rawPrefix);
     }
 
-    public static function install()
-    {
-        $reportTable = "`idreport` INT(11) NOT NULL AUTO_INCREMENT,
-					    `idsite` INTEGER(11) NOT NULL,
-					    `login` VARCHAR(100) NOT NULL,
-					    `description` VARCHAR(255) NOT NULL,
-					    `idsegment` INT(11),
-					    `period` VARCHAR(10) NOT NULL,
-					    `hour` tinyint NOT NULL default 0,
-					    `type` VARCHAR(10) NOT NULL,
-					    `format` VARCHAR(10) NOT NULL,
-					    `reports` TEXT NOT NULL,
-					    `parameters` TEXT NULL,
-					    `ts_created` TIMESTAMP NULL,
-					    `ts_last_sent` TIMESTAMP NULL,
-					    `deleted` tinyint(4) NOT NULL default 0,
-					    PRIMARY KEY (`idreport`)";
-
-        DbHelper::createTable(self::$rawPrefix, $reportTable);
-    }
-
     public function deleteUserReportForSite($userLogin, $idSite)
     {
         $query = 'DELETE FROM ' . $this->table . ' WHERE login = ? and idsite = ?';
-        $bind = array($userLogin, $idSite);
+        $bind  = array($userLogin, $idSite);
         Db::query($query, $bind);
     }
 
@@ -58,14 +38,9 @@ class Model
 
     public function updateReport($idReport, $report)
     {
-        $idReport = (int)$idReport;
+        $idReport = (int) $idReport;
 
         $this->getDb()->update($this->table, $report, "idreport = " . $idReport);
-    }
-
-    private function getDb()
-    {
-        return Db::get();
     }
 
     public function createReport($report)
@@ -88,5 +63,31 @@ class Model
         }
 
         return $idReport;
+    }
+
+    private function getDb()
+    {
+        return Db::get();
+    }
+
+    public static function install()
+    {
+        $reportTable = "`idreport` INT(11) NOT NULL AUTO_INCREMENT,
+					    `idsite` INTEGER(11) NOT NULL,
+					    `login` VARCHAR(100) NOT NULL,
+					    `description` VARCHAR(255) NOT NULL,
+					    `idsegment` INT(11),
+					    `period` VARCHAR(10) NOT NULL,
+					    `hour` tinyint NOT NULL default 0,
+					    `type` VARCHAR(10) NOT NULL,
+					    `format` VARCHAR(10) NOT NULL,
+					    `reports` TEXT NOT NULL,
+					    `parameters` TEXT NULL,
+					    `ts_created` TIMESTAMP NULL,
+					    `ts_last_sent` TIMESTAMP NULL,
+					    `deleted` tinyint(4) NOT NULL default 0,
+					    PRIMARY KEY (`idreport`)";
+
+        DbHelper::createTable(self::$rawPrefix, $reportTable);
     }
 }

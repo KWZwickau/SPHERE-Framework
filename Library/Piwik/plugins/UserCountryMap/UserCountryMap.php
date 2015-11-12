@@ -10,23 +10,23 @@ namespace Piwik\Plugins\UserCountryMap;
 
 use Piwik\FrontController;
 use Piwik\Piwik;
-use Piwik\Plugin\Manager as PluginManager;
+use Piwik\Version;
 use Piwik\WidgetsList;
+use Piwik\Plugin\Manager as PluginManager;
 
 /**
  */
 class UserCountryMap extends \Piwik\Plugin
 {
+    public function postLoad()
+    {
+        Piwik::addAction('Template.leftColumnUserCountry', array('Piwik\Plugins\UserCountryMap\UserCountryMap', 'insertMapInLocationReport'));
+    }
+
     public static function insertMapInLocationReport(&$out)
     {
         $out = '<h2>' . Piwik::translate('UserCountryMap_VisitorMap') . '</h2>';
         $out .= FrontController::getInstance()->fetchDispatch('UserCountryMap', 'visitorMap');
-    }
-
-    public function postLoad()
-    {
-        Piwik::addAction('Template.leftColumnUserCountry',
-            array('Piwik\Plugins\UserCountryMap\UserCountryMap', 'insertMapInLocationReport'));
     }
 
     public function registerEvents()
@@ -36,7 +36,7 @@ class UserCountryMap extends \Piwik\Plugin
             'AssetManager.getStylesheetFiles' => 'getStylesheetFiles',
             'Translate.getClientSideTranslationKeys' => 'getClientSideTranslationKeys',
             'Platform.initialized' => array(
-                'after' => true,
+                'after'    => true,
                 'function' => 'registerWidgets'
             )
         );
@@ -46,8 +46,7 @@ class UserCountryMap extends \Piwik\Plugin
     public function registerWidgets()
     {
         if (PluginManager::getInstance()->isPluginActivated('UserCountry')) {
-            WidgetsList::add('General_Visitors', Piwik::translate('UserCountryMap_VisitorMap'), 'UserCountryMap',
-                'visitorMap');
+            WidgetsList::add('General_Visitors', Piwik::translate('UserCountryMap_VisitorMap'), 'UserCountryMap', 'visitorMap');
             WidgetsList::add('Live!', Piwik::translate('UserCountryMap_RealTimeMap'), 'UserCountryMap', 'realtimeMap');
         }
     }

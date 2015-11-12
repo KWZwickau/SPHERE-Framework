@@ -146,77 +146,13 @@ class Zend_Validate_File_Size extends Zend_Validate_Abstract
     }
 
     /**
-     * Defined by Zend_Validate_Interface
+     * Will bytestring be used?
      *
-     * Returns true if and only if the filesize of $value is at least min and
-     * not bigger than max (when max is not null).
-     *
-     * @param  string $value Real file to check for size
-     * @param  array  $file  File data from Zend_File_Transfer
      * @return boolean
      */
-    public function isValid($value, $file = null)
+    public function useByteString()
     {
-        // Is file readable ?
-        // require_once 'Zend/Loader.php';
-        if (!Zend_Loader::isReadable($value)) {
-            return $this->_throw($file, self::NOT_FOUND);
-        }
-
-        // limited to 4GB files
-        $size        = sprintf("%u", @filesize($value));
-        $this->_size = $size;
-
-        // Check to see if it's smaller than min size
-        $min = $this->getMin(true);
-        $max = $this->getMax(true);
-        if (($min !== null) && ($size < $min)) {
-            if ($this->useByteString()) {
-                $this->_min  = $this->_toByteString($min);
-                $this->_size = $this->_toByteString($size);
-                $this->_throw($file, self::TOO_SMALL);
-                $this->_min  = $min;
-                $this->_size = $size;
-            } else {
-                $this->_throw($file, self::TOO_SMALL);
-            }
-        }
-
-        // Check to see if it's larger than max size
-        if (($max !== null) && ($max < $size)) {
-            if ($this->useByteString()) {
-                $this->_max  = $this->_toByteString($max);
-                $this->_size = $this->_toByteString($size);
-                $this->_throw($file, self::TOO_BIG);
-                $this->_max  = $max;
-                $this->_size = $size;
-            } else {
-                $this->_throw($file, self::TOO_BIG);
-            }
-        }
-
-        if (count($this->_messages) > 0) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Throws an error of the given type
-     *
-     * @param  string $file
-     * @param  string $errorType
-     * @return false
-     */
-    protected function _throw($file, $errorType)
-    {
-        if ($file !== null) {
-            $this->_value = $file['name'];
-        }
-
-        $this->_error($errorType);
-        return false;
+        return $this->_useByteString;
     }
 
     /**
@@ -259,32 +195,6 @@ class Zend_Validate_File_Size extends Zend_Validate_Abstract
 
         $this->_min = $min;
         return $this;
-    }
-
-    /**
-     * Will bytestring be used?
-     *
-     * @return boolean
-     */
-    public function useByteString()
-    {
-        return $this->_useByteString;
-    }
-
-    /**
-     * Returns the formatted size
-     *
-     * @param  integer $size
-     * @return string
-     */
-    protected function _toByteString($size)
-    {
-        $sizes = array('B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
-        for ($i=0; $size >= 1024 && $i < 9; $i++) {
-            $size /= 1024;
-        }
-
-        return round($size, 2) . $sizes[$i];
     }
 
     /**
@@ -352,6 +262,79 @@ class Zend_Validate_File_Size extends Zend_Validate_Abstract
     }
 
     /**
+     * Defined by Zend_Validate_Interface
+     *
+     * Returns true if and only if the filesize of $value is at least min and
+     * not bigger than max (when max is not null).
+     *
+     * @param  string $value Real file to check for size
+     * @param  array  $file  File data from Zend_File_Transfer
+     * @return boolean
+     */
+    public function isValid($value, $file = null)
+    {
+        // Is file readable ?
+        // require_once 'Zend/Loader.php';
+        if (!Zend_Loader::isReadable($value)) {
+            return $this->_throw($file, self::NOT_FOUND);
+        }
+
+        // limited to 4GB files
+        $size        = sprintf("%u", @filesize($value));
+        $this->_size = $size;
+
+        // Check to see if it's smaller than min size
+        $min = $this->getMin(true);
+        $max = $this->getMax(true);
+        if (($min !== null) && ($size < $min)) {
+            if ($this->useByteString()) {
+                $this->_min  = $this->_toByteString($min);
+                $this->_size = $this->_toByteString($size);
+                $this->_throw($file, self::TOO_SMALL);
+                $this->_min  = $min;
+                $this->_size = $size;
+            } else {
+                $this->_throw($file, self::TOO_SMALL);
+            }
+        }
+
+        // Check to see if it's larger than max size
+        if (($max !== null) && ($max < $size)) {
+            if ($this->useByteString()) {
+                $this->_max  = $this->_toByteString($max);
+                $this->_size = $this->_toByteString($size);
+                $this->_throw($file, self::TOO_BIG);
+                $this->_max  = $max;
+                $this->_size = $size;
+            } else {
+                $this->_throw($file, self::TOO_BIG);
+            }
+        }
+
+        if (count($this->_messages) > 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns the formatted size
+     *
+     * @param  integer $size
+     * @return string
+     */
+    protected function _toByteString($size)
+    {
+        $sizes = array('B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB');
+        for ($i=0; $size >= 1024 && $i < 9; $i++) {
+            $size /= 1024;
+        }
+
+        return round($size, 2) . $sizes[$i];
+    }
+
+    /**
      * Returns the unformatted size
      *
      * @param  string $size
@@ -400,5 +383,22 @@ class Zend_Validate_File_Size extends Zend_Validate_Abstract
         }
 
         return $value;
+    }
+
+    /**
+     * Throws an error of the given type
+     *
+     * @param  string $file
+     * @param  string $errorType
+     * @return false
+     */
+    protected function _throw($file, $errorType)
+    {
+        if ($file !== null) {
+            $this->_value = $file['name'];
+        }
+
+        $this->_error($errorType);
+        return false;
     }
 }

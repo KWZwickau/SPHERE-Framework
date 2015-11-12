@@ -77,6 +77,29 @@ class SetNumberOfCustomVariables extends ConsoleCommand
         ));
     }
 
+    private function initProgress($numChangesToPerform, OutputInterface $output)
+    {
+        /** @var \Symfony\Component\Console\Helper\ProgressHelper $progress */
+        $progress = $this->getHelperSet()->get('progress');
+        $progress->start($output, $numChangesToPerform);
+
+        return $progress;
+    }
+
+    private function performChange($scope, $numVarsToSet, OutputInterface $output)
+    {
+        $model = new Model($scope);
+        $numCurrentVars = $model->getCurrentNumCustomVars();
+        $numDifference  = $this->getAbsoluteDifference($numCurrentVars, $numVarsToSet);
+
+        if ($numVarsToSet > $numCurrentVars) {
+            $this->addCustomVariables($model, $numDifference, $output);
+            return;
+        }
+
+        $this->removeCustomVariables($model, $numDifference, $output);
+    }
+
     private function getNumVariablesToSet(InputInterface $input)
     {
         $maxCustomVars = $input->getArgument('maxCustomVars');
@@ -94,22 +117,16 @@ class SetNumberOfCustomVariables extends ConsoleCommand
         return $maxCustomVars;
     }
 
-    private function getNumberOfChangesToPerform($numVarsToSet)
+    private function confirmChange(OutputInterface $output)
     {
-        $numChangesToPerform = 0;
+        $output->writeln('');
 
-        foreach (Model::getScopes() as $scope) {
-            $model = new Model($scope);
-            $numCurrentCustomVars = $model->getCurrentNumCustomVars();
-            $numChangesToPerform += $this->getAbsoluteDifference($numCurrentCustomVars, $numVarsToSet);
-        }
-
-        return $numChangesToPerform;
-    }
-
-    private function getAbsoluteDifference($currentNumber, $numberToSet)
-    {
-        return abs($numberToSet - $currentNumber);
+        $dialog = $this->getHelperSet()->get('dialog');
+        return $dialog->askConfirmation(
+            $output,
+            '<question>Are you sure you want to perform these actions? (y/N)</question>',
+            false
+        );
     }
 
     private function printChanges($scope, $numVarsToSet, OutputInterface $output)
@@ -149,39 +166,18 @@ class SetNumberOfCustomVariables extends ConsoleCommand
         }
     }
 
-    private function confirmChange(OutputInterface $output)
+    private function getAbsoluteDifference($currentNumber, $numberToSet)
     {
-        $output->writeln('');
-
-        $dialog = $this->getHelperSet()->get('dialog');
-        return $dialog->askConfirmation(
-            $output,
-            '<question>Are you sure you want to perform these actions? (y/N)</question>',
-            false
-        );
+        return abs($numberToSet - $currentNumber);
     }
 
-    private function initProgress($numChangesToPerform, OutputInterface $output)
+    private function removeCustomVariables(Model $model, $numberOfVarsToRemove, OutputInterface $output)
     {
-        /** @var \Symfony\Component\Console\Helper\ProgressHelper $progress */
-        $progress = $this->getHelperSet()->get('progress');
-        $progress->start($output, $numChangesToPerform);
-
-        return $progress;
-    }
-
-    private function performChange($scope, $numVarsToSet, OutputInterface $output)
-    {
-        $model = new Model($scope);
-        $numCurrentVars = $model->getCurrentNumCustomVars();
-        $numDifference  = $this->getAbsoluteDifference($numCurrentVars, $numVarsToSet);
-
-        if ($numVarsToSet > $numCurrentVars) {
-            $this->addCustomVariables($model, $numDifference, $output);
-            return;
+        for ($index = 0; $index < $numberOfVarsToRemove; $index++) {
+            $indexRemoved = $model->removeCustomVariable();
+            $this->progress->advance();
+            $output->writeln('  <info>Removed a variable in scope "' . $model->getScopeName() .  '" having the index ' . $indexRemoved . '</info>');
         }
-
-        $this->removeCustomVariables($model, $numDifference, $output);
     }
 
     private function addCustomVariables(Model $model, $numberOfVarsToAdd, OutputInterface $output)
@@ -193,12 +189,16 @@ class SetNumberOfCustomVariables extends ConsoleCommand
         }
     }
 
-    private function removeCustomVariables(Model $model, $numberOfVarsToRemove, OutputInterface $output)
+    private function getNumberOfChangesToPerform($numVarsToSet)
     {
-        for ($index = 0; $index < $numberOfVarsToRemove; $index++) {
-            $indexRemoved = $model->removeCustomVariable();
-            $this->progress->advance();
-            $output->writeln('  <info>Removed a variable in scope "' . $model->getScopeName() .  '" having the index ' . $indexRemoved . '</info>');
+        $numChangesToPerform = 0;
+
+        foreach (Model::getScopes() as $scope) {
+            $model = new Model($scope);
+            $numCurrentCustomVars = $model->getCurrentNumCustomVars();
+            $numChangesToPerform += $this->getAbsoluteDifference($numCurrentCustomVars, $numVarsToSet);
         }
+
+        return $numChangesToPerform;
     }
 }

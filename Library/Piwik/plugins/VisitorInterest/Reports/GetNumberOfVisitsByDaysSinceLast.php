@@ -16,6 +16,19 @@ class GetNumberOfVisitsByDaysSinceLast extends Base
 {
     protected $defaultSortColumn = '';
 
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new VisitsByDaysSinceLastVisit();
+        $this->name          = Piwik::translate('VisitorInterest_VisitsByDaysSinceLast');
+        $this->documentation = Piwik::translate('VisitorInterest_WidgetVisitsByDaysSinceLastDocumentation');
+        $this->metrics       = array('nb_visits');
+        $this->processedMetrics  = false;
+        $this->constantRowsCount = true;
+        $this->order = 30;
+        $this->widgetTitle  = 'VisitorInterest_WidgetVisitsByDaysSinceLast';
+    }
+
     public function configureView(ViewDataTable $view)
     {
         $view->requestConfig->filter_sort_column = 'label';
@@ -31,19 +44,6 @@ class GetNumberOfVisitsByDaysSinceLast extends Base
         $view->config->show_table_all_columns  = false;
         $view->config->show_exclude_low_population = false;
         $view->config->addTranslation('label', Piwik::translate('General_DaysSinceLastVisit'));
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension     = new VisitsByDaysSinceLastVisit();
-        $this->name          = Piwik::translate('VisitorInterest_VisitsByDaysSinceLast');
-        $this->documentation = Piwik::translate('VisitorInterest_WidgetVisitsByDaysSinceLastDocumentation');
-        $this->metrics       = array('nb_visits');
-        $this->processedMetrics  = false;
-        $this->constantRowsCount = true;
-        $this->order = 30;
-        $this->widgetTitle  = 'VisitorInterest_WidgetVisitsByDaysSinceLast';
     }
 
 }

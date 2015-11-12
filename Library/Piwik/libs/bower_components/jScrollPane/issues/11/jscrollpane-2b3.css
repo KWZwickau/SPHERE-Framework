@@ -5,118 +5,139 @@
  * may not operate correctly without them.
  */
 
-.jspContainer {
-    overflow: hidden;
-    position: relative;
+.jspContainer
+{
+	overflow: hidden;
+	position: relative;
 }
 
-.jspPane {
-    position: absolute;
+.jspPane
+{
+	position: absolute;
 }
 
-.jspVerticalBar {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 16px;
-    height: 100%;
-    background: red;
+.jspVerticalBar
+{
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 16px;
+	height: 100%;
+	background: red;
 }
 
-.jspHorizontalBar {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 16px;
-    background: red;
+.jspHorizontalBar
+{
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 16px;
+	background: red;
 }
 
 .jspVerticalBar *,
-.jspHorizontalBar * {
-    margin: 0;
-    padding: 0;
+.jspHorizontalBar *
+{
+	margin: 0;
+	padding: 0;
 }
 
-.jspCap {
-    display: none;
+.jspCap
+{
+	display: none;
 }
 
-.jspHorizontalBar .jspCap {
-    float: left;
+.jspHorizontalBar .jspCap
+{
+	float: left;
 }
 
-.jspTrack {
-    background: #000 url(../__imgs/furn/track.gif) repeat-y center;
-    position: relative;
+.jspTrack
+{
+	background: #000 url(../__imgs/furn/track.gif) repeat-y center;
+	position: relative;
 }
 
-.jspDrag {
-    background: #666;
-    border: solid #aaa 2px;
-    position: relative;
-    top: 0;
-    left: 0;
-    cursor: pointer;
+.jspDrag
+{
+	background: #666;
+	border: solid #aaa 2px;
+	position: relative;
+	top: 0;
+	left: 0;
+	cursor: pointer;
 }
 
 .jspHorizontalBar .jspTrack,
-.jspHorizontalBar .jspDrag {
-    float: left;
-    height: 100%;
+.jspHorizontalBar .jspDrag
+{
+	float: left;
+	height: 100%;
 }
 
-.jspArrow {
-    background-color: rgba(0, 0, 0, 0.9);
-    text-indent: -20000px;
-    display: block;
-    cursor: pointer;
+.jspArrow
+{
+	background-color: rgba(0,0,0,0.9);
+	text-indent: -20000px;
+	display: block;
+	cursor: pointer;
 }
 
-.jspArrowUp {
-    background-image: url("../__imgs/furn/arrow_up.gif");
+.jspArrowUp
+{
+	background-image: url("../__imgs/furn/arrow_up.gif");
 }
 
-.jspArrowDown {
-    background-image: url("../__imgs/furn/arrow_down.gif");
+.jspArrowDown
+{
+	background-image: url("../__imgs/furn/arrow_down.gif");
 }
 
-.jspArrow.jspDisabled {
-    cursor: default;
-    background: #80808d;
+.jspArrow.jspDisabled
+{
+	cursor: default;
+	background: #80808d;
 }
 
-.jspArrowUp.jspDisabled {
-    cursor: default;
-    background-image: url("../__imgs/furn/arrow_up.gif");
+.jspArrowUp.jspDisabled
+{
+	cursor: default;
+	background-image: url("../__imgs/furn/arrow_up.gif");
 }
 
-.jspArrowDown.jspDisabled {
-    cursor: default;
-    background-image: url("../__imgs/furn/arrow_down.gif");
+.jspArrowDown.jspDisabled
+{
+	cursor: default;
+	background-image: url("../__imgs/furn/arrow_down.gif");
 }
 
-.jspVerticalBar .jspArrow {
-    height: 16px;
+.jspVerticalBar .jspArrow
+{
+	height: 16px;
 }
 
-.jspHorizontalBar .jspArrow {
-    width: 16px;
-    float: left;
-    height: 100%;
+.jspHorizontalBar .jspArrow
+{
+	width: 16px;
+	float: left;
+	height: 100%;
 }
 
-.jspVerticalBar .jspArrow:focus {
-    outline: none;
+.jspVerticalBar .jspArrow:focus
+{
+	outline: none;
 }
 
-.jspCorner {
-    background: #eeeef4;
-    float: left;
-    height: 100%;
+.jspCorner
+{
+	background: #eeeef4;
+	float: left;
+	height: 100%;
 }
 
 /* Yuk! CSS Hack for IE6 3 pixel bug :( */
-* html .jspCorner {
-    margin: 0 -3px 0 0;
+* html .jspCorner
+{
+	margin: 0 -3px 0 0;
 }

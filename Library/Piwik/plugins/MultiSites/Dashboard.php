@@ -11,12 +11,12 @@ namespace Piwik\Plugins\MultiSites;
 use Piwik\API\DataTablePostProcessor;
 use Piwik\API\ResponseBuilder;
 use Piwik\Config;
-use Piwik\DataTable;
-use Piwik\DataTable\Row;
-use Piwik\DataTable\Row\DataTableSummaryRow;
 use Piwik\Metrics\Formatter;
 use Piwik\NumberFormatter;
 use Piwik\Period;
+use Piwik\DataTable;
+use Piwik\DataTable\Row;
+use Piwik\DataTable\Row\DataTableSummaryRow;
 use Piwik\Plugin\Report;
 use Piwik\Plugins\API\ProcessedReport;
 use Piwik\Site;
@@ -91,6 +91,120 @@ class Dashboard
         $this->rememberNumberOfSites();
     }
 
+    public function getSites($request, $limit)
+    {
+        $request['filter_limit']  = $limit;
+        $request['filter_offset'] = isset($request['filter_offset']) ? $request['filter_offset'] : 0;
+
+        $this->makeSitesFlatAndApplyGenericFilters($this->sitesByGroup, $request);
+        $sites = $this->convertDataTableToArrayAndApplyQueuedFilters($this->sitesByGroup, $request);
+        $sites = $this->enrichValues($sites);
+
+        return $sites;
+    }
+
+    public function getTotals()
+    {
+        $totals = array(
+            'nb_pageviews'       => $this->sitesByGroup->getMetadata('total_nb_pageviews'),
+            'nb_visits'          => $this->sitesByGroup->getMetadata('total_nb_visits'),
+            'nb_actions'         => $this->sitesByGroup->getMetadata('total_nb_actions'),
+            'revenue'            => $this->sitesByGroup->getMetadata('total_revenue'),
+            'nb_visits_lastdate' => $this->sitesByGroup->getMetadata('total_nb_visits_lastdate') ? : 0,
+        );
+        $this->formatMetrics($totals);
+        return $totals;
+    }
+
+    private function formatMetrics(&$metrics)
+    {
+        $formatter = NumberFormatter::getInstance();
+        foreach($metrics as $metricName => &$value) {
+            if(in_array($metricName, $this->displayedMetricColumns)) {
+
+                if( strpos($metricName, 'revenue') !== false) {
+                    $currency = isset($metrics['idsite']) ? Site::getCurrencySymbolFor($metrics['idsite']) : '';
+                    $value  = $formatter->formatCurrency($value, $currency);
+                    continue;
+                }
+                $value = $formatter->format($value);
+            }
+        }
+    }
+
+
+    public function getNumSites()
+    {
+        return $this->numSites;
+    }
+
+    public function search($pattern)
+    {
+        $this->nestedSearch($this->sitesByGroup, $pattern);
+        $this->rememberNumberOfSites();
+    }
+
+    private function rememberNumberOfSites()
+    {
+        $this->numSites = $this->sitesByGroup->getRowsCountRecursive();
+    }
+
+    private function nestedSearch(DataTable $sitesByGroup, $pattern)
+    {
+        foreach ($sitesByGroup->getRows() as $index => $site) {
+
+            $label = strtolower($site->getColumn('label'));
+            $labelMatches = false !== strpos($label, $pattern);
+
+            if ($site->getMetadata('isGroup')) {
+                $subtable = $site->getSubtable();
+                $this->nestedSearch($subtable, $pattern);
+
+                if (!$labelMatches && !$subtable->getRowsCount()) {
+                    // we keep the group if at least one site within the group matches the pattern
+                    $sitesByGroup->deleteRow($index);
+                }
+
+            } elseif (!$labelMatches) {
+                $group = $site->getMetadata('group');
+
+                if (!$group || false === strpos(strtolower($group), $pattern)) {
+                    $sitesByGroup->deleteRow($index);
+                }
+            }
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getLastDate()
+    {
+        $lastPeriod = $this->sitesByGroup->getMetadata('last_period_date');
+
+        if (!empty($lastPeriod)) {
+            $lastPeriod = $lastPeriod->toString();
+        } else {
+            $lastPeriod = '';
+        }
+
+        return $lastPeriod;
+    }
+
+    private function convertDataTableToArrayAndApplyQueuedFilters(DataTable $table, $request)
+    {
+        $request['serialize'] = 0;
+        $request['expanded'] = 0;
+        $request['totals'] = 0;
+        $request['format_metrics'] = 1;
+        $request['disable_generic_filters'] = 1;
+
+        $responseBuilder = new ResponseBuilder('php', $request);
+        $rows = $responseBuilder->getResponse($table, 'MultiSites', 'getAll');
+
+        return $rows;
+    }
+
     private function moveSitesHavingAGroupIntoSubtables(DataTable $sites)
     {
         /** @var DataTableSummaryRow[] $groups */
@@ -127,17 +241,7 @@ class Dashboard
             // only actual returned groups.
             $group->recalculate();
         }
-
-        return $sitesByGroup;
-    }
-
-    private function makeCloneOfDataTableSites(DataTable $sites)
-    {
-        $sitesByGroup = $sites->getEmptyClone(true);
-        // we handle them ourselves for faster performance etc. This way we also avoid to apply them twice.
-        $sitesByGroup->disableFilter('ColumnCallbackReplace');
-        $sitesByGroup->disableFilter('MetadataCallbackAddMetadata');
-
+        
         return $sitesByGroup;
     }
 
@@ -150,21 +254,14 @@ class Dashboard
         return $table;
     }
 
-    private function rememberNumberOfSites()
+    private function makeCloneOfDataTableSites(DataTable $sites)
     {
-        $this->numSites = $this->sitesByGroup->getRowsCountRecursive();
-    }
+        $sitesByGroup = $sites->getEmptyClone(true);
+        // we handle them ourselves for faster performance etc. This way we also avoid to apply them twice.
+        $sitesByGroup->disableFilter('ColumnCallbackReplace');
+        $sitesByGroup->disableFilter('MetadataCallbackAddMetadata');
 
-    public function getSites($request, $limit)
-    {
-        $request['filter_limit']  = $limit;
-        $request['filter_offset'] = isset($request['filter_offset']) ? $request['filter_offset'] : 0;
-
-        $this->makeSitesFlatAndApplyGenericFilters($this->sitesByGroup, $request);
-        $sites = $this->convertDataTableToArrayAndApplyQueuedFilters($this->sitesByGroup, $request);
-        $sites = $this->enrichValues($sites);
-
-        return $sites;
+        return $sitesByGroup;
     }
 
     /**
@@ -228,20 +325,6 @@ class Dashboard
         $table->filter('Piwik\Plugins\MultiSites\DataTable\Filter\NestedSitesLimiter', array($filterOffset, $filterLimit));
     }
 
-    private function convertDataTableToArrayAndApplyQueuedFilters(DataTable $table, $request)
-    {
-        $request['serialize'] = 0;
-        $request['expanded'] = 0;
-        $request['totals'] = 0;
-        $request['format_metrics'] = 1;
-        $request['disable_generic_filters'] = 1;
-
-        $responseBuilder = new ResponseBuilder('php', $request);
-        $rows = $responseBuilder->getResponse($table, 'MultiSites', 'getAll');
-
-        return $rows;
-    }
-
     private function enrichValues($sites)
     {
         foreach ($sites as &$site) {
@@ -255,87 +338,5 @@ class Dashboard
         }
 
         return $sites;
-    }
-
-    private function formatMetrics(&$metrics)
-    {
-        $formatter = NumberFormatter::getInstance();
-        foreach($metrics as $metricName => &$value) {
-            if(in_array($metricName, $this->displayedMetricColumns)) {
-
-                if( strpos($metricName, 'revenue') !== false) {
-                    $currency = isset($metrics['idsite']) ? Site::getCurrencySymbolFor($metrics['idsite']) : '';
-                    $value  = $formatter->formatCurrency($value, $currency);
-                    continue;
-                }
-                $value = $formatter->format($value);
-            }
-        }
-    }
-
-    public function getTotals()
-    {
-        $totals = array(
-            'nb_pageviews'       => $this->sitesByGroup->getMetadata('total_nb_pageviews'),
-            'nb_visits'          => $this->sitesByGroup->getMetadata('total_nb_visits'),
-            'nb_actions'         => $this->sitesByGroup->getMetadata('total_nb_actions'),
-            'revenue'            => $this->sitesByGroup->getMetadata('total_revenue'),
-            'nb_visits_lastdate' => $this->sitesByGroup->getMetadata('total_nb_visits_lastdate') ? : 0,
-        );
-        $this->formatMetrics($totals);
-        return $totals;
-    }
-
-    public function getNumSites()
-    {
-        return $this->numSites;
-    }
-
-    public function search($pattern)
-    {
-        $this->nestedSearch($this->sitesByGroup, $pattern);
-        $this->rememberNumberOfSites();
-    }
-
-    private function nestedSearch(DataTable $sitesByGroup, $pattern)
-    {
-        foreach ($sitesByGroup->getRows() as $index => $site) {
-
-            $label = strtolower($site->getColumn('label'));
-            $labelMatches = false !== strpos($label, $pattern);
-
-            if ($site->getMetadata('isGroup')) {
-                $subtable = $site->getSubtable();
-                $this->nestedSearch($subtable, $pattern);
-
-                if (!$labelMatches && !$subtable->getRowsCount()) {
-                    // we keep the group if at least one site within the group matches the pattern
-                    $sitesByGroup->deleteRow($index);
-                }
-
-            } elseif (!$labelMatches) {
-                $group = $site->getMetadata('group');
-
-                if (!$group || false === strpos(strtolower($group), $pattern)) {
-                    $sitesByGroup->deleteRow($index);
-                }
-            }
-        }
-    }
-
-    /**
-     * @return string
-     */
-    public function getLastDate()
-    {
-        $lastPeriod = $this->sitesByGroup->getMetadata('last_period_date');
-
-        if (!empty($lastPeriod)) {
-            $lastPeriod = $lastPeriod->toString();
-        } else {
-            $lastPeriod = '';
-        }
-
-        return $lastPeriod;
     }
 }

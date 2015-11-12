@@ -18,17 +18,41 @@ use DeviceDetector\Parser\ParserAbstract;
  */
 abstract class DeviceParserAbstract extends ParserAbstract
 {
+    protected $deviceType = null;
+    protected $model = null;
+    protected $brand = null;
+
     const DEVICE_TYPE_DESKTOP              = 0;
     const DEVICE_TYPE_SMARTPHONE           = 1;
     const DEVICE_TYPE_TABLET               = 2;
     const DEVICE_TYPE_FEATURE_PHONE        = 3;
     const DEVICE_TYPE_CONSOLE              = 4;
-const DEVICE_TYPE_TV                   = 5;
+    const DEVICE_TYPE_TV                   = 5; // including set top boxes, blu-ray players,...
     const DEVICE_TYPE_CAR_BROWSER          = 6;
     const DEVICE_TYPE_SMART_DISPLAY        = 7;
-        const DEVICE_TYPE_CAMERA               = 8; // including set top boxes, blu-ray players,...
+    const DEVICE_TYPE_CAMERA               = 8;
     const DEVICE_TYPE_PORTABLE_MEDIA_PAYER = 9;
     const DEVICE_TYPE_PHABLET              = 10;
+
+    /**
+     * Detectable device types
+     *
+     * @var array
+     */
+    protected static $deviceTypes = array(
+        'desktop'               => self::DEVICE_TYPE_DESKTOP,
+        'smartphone'            => self::DEVICE_TYPE_SMARTPHONE,
+        'tablet'                => self::DEVICE_TYPE_TABLET,
+        'feature phone'         => self::DEVICE_TYPE_FEATURE_PHONE,
+        'console'               => self::DEVICE_TYPE_CONSOLE,
+        'tv'                    => self::DEVICE_TYPE_TV,
+        'car browser'           => self::DEVICE_TYPE_CAR_BROWSER,
+        'smart display'         => self::DEVICE_TYPE_SMART_DISPLAY,
+        'camera'                => self::DEVICE_TYPE_CAMERA,
+        'portable media player' => self::DEVICE_TYPE_PORTABLE_MEDIA_PAYER,
+        'phablet'               => self::DEVICE_TYPE_PHABLET
+    );
+
     /**
      * Known device brands
      *
@@ -287,27 +311,11 @@ const DEVICE_TYPE_TV                   = 5;
         'ZP' => 'Zopo',
         'ZT' => 'ZTE',
     );
-    /**
-     * Detectable device types
-     *
-     * @var array
-     */
-    protected static $deviceTypes = array(
-        'desktop'               => self::DEVICE_TYPE_DESKTOP,
-        'smartphone'            => self::DEVICE_TYPE_SMARTPHONE,
-        'tablet'                => self::DEVICE_TYPE_TABLET,
-        'feature phone'         => self::DEVICE_TYPE_FEATURE_PHONE,
-        'console'               => self::DEVICE_TYPE_CONSOLE,
-        'tv'                    => self::DEVICE_TYPE_TV,
-        'car browser'           => self::DEVICE_TYPE_CAR_BROWSER,
-        'smart display'         => self::DEVICE_TYPE_SMART_DISPLAY,
-        'camera'                => self::DEVICE_TYPE_CAMERA,
-        'portable media player' => self::DEVICE_TYPE_PORTABLE_MEDIA_PAYER,
-        'phablet'               => self::DEVICE_TYPE_PHABLET
-    );
-    protected $deviceType = null;
-    protected $model = null;
-    protected $brand = null;
+
+    public function getDeviceType()
+    {
+        return $this->deviceType;
+    }
 
     /**
      * Returns available device types
@@ -343,26 +351,6 @@ const DEVICE_TYPE_TV                   = 5;
     }
 
     /**
-     * Returns the full brand name for the given short name
-     *
-     * @param string $brandId  short brand name
-     * @return string
-     */
-    public static function getFullName($brandId)
-    {
-        if (array_key_exists($brandId, self::$deviceBrands)) {
-            return self::$deviceBrands[$brandId];
-        }
-
-        return '';
-    }
-
-    public function getDeviceType()
-    {
-        return $this->deviceType;
-    }
-
-    /**
      * Returns the detected device model
      *
      * @return string
@@ -380,6 +368,21 @@ const DEVICE_TYPE_TV                   = 5;
     public function getBrand()
     {
         return $this->brand;
+    }
+
+    /**
+     * Returns the full brand name for the given short name
+     *
+     * @param string $brandId  short brand name
+     * @return string
+     */
+    public static function getFullName($brandId)
+    {
+        if (array_key_exists($brandId, self::$deviceBrands)) {
+            return self::$deviceBrands[$brandId];
+        }
+
+        return '';
     }
 
     public function parse()

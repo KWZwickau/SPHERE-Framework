@@ -28,6 +28,11 @@ class Exception extends StaticGraph
         $this->exception = $exception;
     }
 
+    protected function getDefaultColors()
+    {
+        return array();
+    }
+
     public function setWidth($width)
     {
         if (empty($width)) {
@@ -69,10 +74,5 @@ class Exception extends StaticGraph
             $message,
             $this->textColor
         );
-    }
-
-    protected function getDefaultColors()
-    {
-        return array();
     }
 }

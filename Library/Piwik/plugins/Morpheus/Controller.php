@@ -16,7 +16,7 @@ class Controller extends \Piwik\Plugin\Controller
 {
     public function demo()
     {
-        if (!Development::isEnabled() || !Piwik::isUserHasSomeAdminAccess()) {
+        if (! Development::isEnabled() || !Piwik::isUserHasSomeAdminAccess()) {
             return;
         }
 

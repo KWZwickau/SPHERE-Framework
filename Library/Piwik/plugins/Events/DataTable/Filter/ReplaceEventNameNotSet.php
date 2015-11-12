@@ -8,9 +8,9 @@
  */
 namespace Piwik\Plugins\Events\DataTable\Filter;
 
-use Piwik\DataTable;
 use Piwik\DataTable\BaseFilter;
 use Piwik\DataTable\Row;
+use Piwik\DataTable;
 use Piwik\Piwik;
 use Piwik\Plugins\Events\Archiver;
 

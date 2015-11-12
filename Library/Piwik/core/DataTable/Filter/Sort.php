@@ -8,10 +8,10 @@
  */
 namespace Piwik\DataTable\Filter;
 
-use Piwik\DataTable;
 use Piwik\DataTable\BaseFilter;
 use Piwik\DataTable\Row;
 use Piwik\DataTable\Simple;
+use Piwik\DataTable;
 use Piwik\Metrics;
 
 /**
@@ -23,11 +23,12 @@ use Piwik\Metrics;
  */
 class Sort extends BaseFilter
 {
-    const ORDER_DESC = 'desc';
-    const ORDER_ASC = 'asc';
     protected $columnToSort;
     protected $order;
     protected $sign;
+
+    const ORDER_DESC = 'desc';
+    const ORDER_ASC  = 'asc';
 
     /**
      * Constructor.
@@ -47,7 +48,7 @@ class Sort extends BaseFilter
         }
 
         $this->columnToSort = $columnToSort;
-        $this->naturalSort = $naturalSort;
+        $this->naturalSort  = $naturalSort;
         $this->setOrder($order);
     }
 
@@ -60,18 +61,18 @@ class Sort extends BaseFilter
     {
         if ($order == 'asc') {
             $this->order = 'asc';
-            $this->sign = 1;
+            $this->sign  = 1;
         } else {
             $this->order = 'desc';
-            $this->sign = -1;
+            $this->sign  = -1;
         }
     }
 
     /**
      * Sorting method used for sorting numbers
      *
-     * @param array $rowA array[0 => value of column to sort, 1 => label]
-     * @param array $rowB array[0 => value of column to sort, 1 => label]
+     * @param array $rowA  array[0 => value of column to sort, 1 => label]
+     * @param array $rowB  array[0 => value of column to sort, 1 => label]
      * @return int
      */
     public function numberSort($rowA, $rowB)
@@ -139,6 +140,54 @@ class Sort extends BaseFilter
             );
     }
 
+    protected function getColumnValue(Row $row)
+    {
+        $value = $row->getColumn($this->columnToSort);
+
+        if ($value === false || is_array($value)) {
+            return null;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Sets the column to be used for sorting
+     *
+     * @param Row $row
+     * @return int
+     */
+    protected function selectColumnToSort($row)
+    {
+        $value = $row->hasColumn($this->columnToSort);
+        if ($value) {
+            return $this->columnToSort;
+        }
+
+        $columnIdToName = Metrics::getMappingFromNameToId();
+        // sorting by "nb_visits" but the index is Metrics::INDEX_NB_VISITS in the table
+        if (isset($columnIdToName[$this->columnToSort])) {
+            $column = $columnIdToName[$this->columnToSort];
+            $value = $row->hasColumn($column);
+
+            if ($value) {
+                return $column;
+            }
+        }
+
+        // eg. was previously sorted by revenue_per_visit, but this table
+        // doesn't have this column; defaults with nb_visits
+        $column = Metrics::INDEX_NB_VISITS;
+        $value = $row->hasColumn($column);
+        if ($value) {
+            return $column;
+        }
+
+        // even though this column is not set properly in the table,
+        // we select it for the sort, so that the table's internal state is set properly
+        return $this->columnToSort;
+    }
+
     /**
      * See {@link Sort}.
      *
@@ -181,43 +230,6 @@ class Sort extends BaseFilter
         $this->sort($table, $methodToUse);
     }
 
-    /**
-     * Sets the column to be used for sorting
-     *
-     * @param Row $row
-     * @return int
-     */
-    protected function selectColumnToSort($row)
-    {
-        $value = $row->hasColumn($this->columnToSort);
-        if ($value) {
-            return $this->columnToSort;
-        }
-
-        $columnIdToName = Metrics::getMappingFromNameToId();
-        // sorting by "nb_visits" but the index is Metrics::INDEX_NB_VISITS in the table
-        if (isset($columnIdToName[$this->columnToSort])) {
-            $column = $columnIdToName[$this->columnToSort];
-            $value = $row->hasColumn($column);
-
-            if ($value) {
-                return $column;
-            }
-        }
-
-        // eg. was previously sorted by revenue_per_visit, but this table
-        // doesn't have this column; defaults with nb_visits
-        $column = Metrics::INDEX_NB_VISITS;
-        $value = $row->hasColumn($column);
-        if ($value) {
-            return $column;
-        }
-
-        // even though this column is not set properly in the table,
-        // we select it for the sort, so that the table's internal state is set properly
-        return $this->columnToSort;
-    }
-
     private function getFirstValueFromDataTable($table)
     {
         foreach ($table->getRowsWithoutSummaryRow() as $row) {
@@ -226,17 +238,6 @@ class Sort extends BaseFilter
                 return $value;
             }
         }
-    }
-
-    protected function getColumnValue(Row $row)
-    {
-        $value = $row->getColumn($this->columnToSort);
-
-        if ($value === false || is_array($value)) {
-            return null;
-        }
-
-        return $value;
     }
 
     /**

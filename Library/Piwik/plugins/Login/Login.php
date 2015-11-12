@@ -29,10 +29,10 @@ class Login extends \Piwik\Plugin
     {
         $hooks = array(
             'Request.initAuthenticationObject' => 'initAuthenticationObject',
-            'User.isNotAuthorized' => 'noAccess',
-            'API.Request.authenticate' => 'ApiRequestAuthenticate',
-            'AssetManager.getJavaScriptFiles' => 'getJsFiles',
-            'AssetManager.getStylesheetFiles' => 'getStylesheetFiles'
+            'User.isNotAuthorized'             => 'noAccess',
+            'API.Request.authenticate'         => 'ApiRequestAuthenticate',
+            'AssetManager.getJavaScriptFiles'  => 'getJsFiles',
+            'AssetManager.getStylesheetFiles'  => 'getStylesheetFiles'
         );
         return $hooks;
     }
@@ -42,7 +42,7 @@ class Login extends \Piwik\Plugin
         $jsFiles[] = "plugins/Login/javascripts/login.js";
     }
 
-    public function getStylesheetFiles(&$stylesheetFiles)
+   public function getStylesheetFiles(&$stylesheetFiles)
     {
         $stylesheetFiles[] = "plugins/Login/stylesheets/login.less";
         $stylesheetFiles[] = "plugins/Login/stylesheets/variables.less";
@@ -57,8 +57,7 @@ class Login extends \Piwik\Plugin
         $frontController = FrontController::getInstance();
 
         if (Common::isXmlHttpRequest()) {
-            echo $frontController->dispatch(Piwik::getLoginPluginName(), 'ajaxNoAccess',
-                array($exception->getMessage()));
+            echo $frontController->dispatch(Piwik::getLoginPluginName(), 'ajaxNoAccess', array($exception->getMessage()));
             return;
         }
 
@@ -75,6 +74,12 @@ class Login extends \Piwik\Plugin
         $auth = StaticContainer::get('Piwik\Auth');
         $auth->setLogin($login = null);
         $auth->setTokenAuth($tokenAuth);
+    }
+
+    protected static function isModuleIsAPI()
+    {
+        return Piwik::getModule() === 'API'
+                && (Piwik::getAction() == '' || Piwik::getAction() == 'index');
     }
 
     /**
@@ -107,12 +112,6 @@ class Login extends \Piwik\Plugin
         }
         $auth->setLogin($defaultLogin);
         $auth->setTokenAuth($defaultTokenAuth);
-    }
-
-    protected static function isModuleIsAPI()
-    {
-        return Piwik::getModule() === 'API'
-        && (Piwik::getAction() == '' || Piwik::getAction() == 'index');
     }
 
 }

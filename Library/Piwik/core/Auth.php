@@ -190,16 +190,6 @@ class AuthResult
     }
 
     /**
-     * Returns true if the user has Super User access, false otherwise.
-     *
-     * @return bool
-     */
-    public function hasSuperUserAccess()
-    {
-        return $this->getCode() == self::SUCCESS_SUPERUSER_AUTH_CODE;
-    }
-
-    /**
      * Returns the authentication result code.
      *
      * @return int
@@ -207,6 +197,16 @@ class AuthResult
     public function getCode()
     {
         return $this->code;
+    }
+
+    /**
+     * Returns true if the user has Super User access, false otherwise.
+     *
+     * @return bool
+     */
+    public function hasSuperUserAccess()
+    {
+        return $this->getCode() == self::SUCCESS_SUPERUSER_AUTH_CODE;
     }
 
     /**

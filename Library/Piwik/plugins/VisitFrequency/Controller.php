@@ -39,6 +39,13 @@ class Controller extends \Piwik\Plugin\Controller
         return $view->render();
     }
 
+    public function getSparklines()
+    {
+        $view = new View('@VisitFrequency/getSparklines');
+        $this->setSparklinesAndNumbers($view);
+        return $view->render();
+    }
+
     public function getEvolutionGraph(array $columns = array(), array $defaultColumns = array())
     {
         if (empty($columns)) {
@@ -112,12 +119,5 @@ class Controller extends \Piwik\Plugin\Controller
         $requestString = "method=VisitFrequency.get&format=original";
         $request = new Request($requestString);
         return $request->process();
-    }
-
-    public function getSparklines()
-    {
-        $view = new View('@VisitFrequency/getSparklines');
-        $this->setSparklinesAndNumbers($view);
-        return $view->render();
     }
 }

@@ -8,8 +8,8 @@
  */
 namespace Piwik\DataTable\Filter;
 
-use Piwik\DataTable;
 use Piwik\DataTable\BaseFilter;
+use Piwik\DataTable;
 use Piwik\DataTable\Row;
 
 /**
@@ -51,15 +51,9 @@ class ColumnCallbackAddColumnQuotient extends BaseFilter
      * @param bool $getDivisorFromSummaryRow Whether to get the divisor from the summary row or the current
      *                                       row iteration.
      */
-    public function __construct(
-        $table,
-        $columnNameToAdd,
-        $columnValueToRead,
-        $divisorValueOrDivisorColumnName,
-        $quotientPrecision = 0,
-        $shouldSkipRows = false,
-        $getDivisorFromSummaryRow = false
-    ) {
+    public function __construct($table, $columnNameToAdd, $columnValueToRead, $divisorValueOrDivisorColumnName,
+                                $quotientPrecision = 0, $shouldSkipRows = false, $getDivisorFromSummaryRow = false)
+    {
         parent::__construct($table);
         $this->table = $table;
         $this->columnValueToRead = $columnValueToRead;
@@ -103,6 +97,23 @@ class ColumnCallbackAddColumnQuotient extends BaseFilter
     }
 
     /**
+     * Formats the given value
+     *
+     * @param number $value
+     * @param number $divisor
+     * @return float|int
+     */
+    protected function formatValue($value, $divisor)
+    {
+        $quotient = 0;
+        if ($divisor > 0 && $value > 0) {
+            $quotient = round($value / $divisor, $this->quotientPrecision);
+        }
+
+        return $quotient;
+    }
+
+    /**
      * Returns the dividend to use when calculating the new column value. Can
      * be overridden by descendent classes to customize behavior.
      *
@@ -131,22 +142,5 @@ class ColumnCallbackAddColumnQuotient extends BaseFilter
         } else {
             return $row->getColumn($this->columnNameUsedAsDivisor);
         }
-    }
-
-    /**
-     * Formats the given value
-     *
-     * @param number $value
-     * @param number $divisor
-     * @return float|int
-     */
-    protected function formatValue($value, $divisor)
-    {
-        $quotient = 0;
-        if ($divisor > 0 && $value > 0) {
-            $quotient = round($value / $divisor, $this->quotientPrecision);
-        }
-
-        return $quotient;
     }
 }

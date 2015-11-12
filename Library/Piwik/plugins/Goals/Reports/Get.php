@@ -12,19 +12,6 @@ use Piwik\Piwik;
 
 class Get extends Base
 {
-    public function configureReportMetadata(&$availableReports, $infos)
-    {
-        if (!$this->isEnabled()) {
-            return;
-        }
-
-        parent::configureReportMetadata($availableReports, $infos);
-
-        $this->addReportMetadataForEachGoal($availableReports, $infos, function ($goal) {
-            return Piwik::translate('Goals_GoalX', $goal['name']);
-        });
-    }
-
     protected function init()
     {
         parent::init();
@@ -36,5 +23,18 @@ class Get extends Base
         $this->orderGoal = 50;
         $this->metrics = array('nb_conversions', 'nb_visits_converted', 'revenue');
         $this->parameters = null;
+    }
+
+    public function configureReportMetadata(&$availableReports, $infos)
+    {
+        if (!$this->isEnabled()) {
+            return;
+        }
+
+        parent::configureReportMetadata($availableReports, $infos);
+
+        $this->addReportMetadataForEachGoal($availableReports, $infos, function ($goal) {
+            return Piwik::translate('Goals_GoalX', $goal['name']);
+        });
     }
 }

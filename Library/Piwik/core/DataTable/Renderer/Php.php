@@ -9,9 +9,9 @@
 namespace Piwik\DataTable\Renderer;
 
 use Exception;
-use Piwik\DataTable;
 use Piwik\DataTable\Renderer;
 use Piwik\DataTable\Simple;
+use Piwik\DataTable;
 use Piwik\Piwik;
 
 /**
@@ -140,21 +140,46 @@ class Php extends Renderer
     }
 
     /**
-     * Converts the simple data table to an array
      *
-     * @param Simple $table
+     * @param array $array
      * @return array
      */
-    protected function renderSimpleTable($table)
+    protected function flattenArray($array)
     {
-        $array = array();
-
-        $row = $table->getFirstRow();
-        if ($row === false) {
-            return $array;
+        $flatArray = array();
+        foreach ($array as $row) {
+            $newRow = $row['columns'] + $row['metadata'];
+            if (isset($row['idsubdatatable'])
+                && $this->hideIdSubDatatable === false
+            ) {
+                $newRow += array('idsubdatatable' => $row['idsubdatatable']);
+            }
+            if (isset($row['subtable'])) {
+                $newRow += array('subtable' => $this->flattenArray($row['subtable']));
+            }
+            $flatArray[] = $newRow;
         }
-        foreach ($row->getColumns() as $columnName => $columnValue) {
-            $array[$columnName] = $columnValue;
+        return $flatArray;
+    }
+
+    /**
+     * Converts the current data table to an array
+     *
+     * @return array
+     * @throws Exception
+     */
+    public function originalRender()
+    {
+        Piwik::checkObjectTypeIs($this->table, array('Simple', 'DataTable'));
+
+        if ($this->table instanceof Simple) {
+            $array = $this->renderSimpleTable($this->table);
+        } elseif ($this->table instanceof DataTable) {
+            $array = $this->renderTable($this->table);
+        }
+
+        if ($this->serialize) {
+            $array = serialize($array);
         }
         return $array;
     }
@@ -203,46 +228,21 @@ class Php extends Renderer
     }
 
     /**
+     * Converts the simple data table to an array
      *
-     * @param array $array
+     * @param Simple $table
      * @return array
      */
-    protected function flattenArray($array)
+    protected function renderSimpleTable($table)
     {
-        $flatArray = array();
-        foreach ($array as $row) {
-            $newRow = $row['columns'] + $row['metadata'];
-            if (isset($row['idsubdatatable'])
-                && $this->hideIdSubDatatable === false
-            ) {
-                $newRow += array('idsubdatatable' => $row['idsubdatatable']);
-            }
-            if (isset($row['subtable'])) {
-                $newRow += array('subtable' => $this->flattenArray($row['subtable']));
-            }
-            $flatArray[] = $newRow;
+        $array = array();
+
+        $row = $table->getFirstRow();
+        if ($row === false) {
+            return $array;
         }
-        return $flatArray;
-    }
-
-    /**
-     * Converts the current data table to an array
-     *
-     * @return array
-     * @throws Exception
-     */
-    public function originalRender()
-    {
-        Piwik::checkObjectTypeIs($this->table, array('Simple', 'DataTable'));
-
-        if ($this->table instanceof Simple) {
-            $array = $this->renderSimpleTable($this->table);
-        } elseif ($this->table instanceof DataTable) {
-            $array = $this->renderTable($this->table);
-        }
-
-        if ($this->serialize) {
-            $array = serialize($array);
+        foreach ($row->getColumns() as $columnName => $columnValue) {
+            $array[$columnName] = $columnValue;
         }
         return $array;
     }

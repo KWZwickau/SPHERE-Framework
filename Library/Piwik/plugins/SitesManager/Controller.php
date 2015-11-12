@@ -12,8 +12,9 @@ use Exception;
 use Piwik\API\ResponseBuilder;
 use Piwik\Common;
 use Piwik\Exception\UnexpectedWebsiteFoundException;
-use Piwik\Measurable\MeasurableSettings;
 use Piwik\Piwik;
+use Piwik\Measurable\MeasurableSetting;
+use Piwik\Measurable\MeasurableSettings;
 use Piwik\SettingsPiwik;
 use Piwik\Site;
 use Piwik\Tracker\TrackerCodeGenerator;
@@ -42,11 +43,11 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
 
         if ($idSite >= 1) {
             Piwik::checkUserHasAdminAccess($idSite);
-        } else {if ($idSite === 0) {
+        } else if ($idSite === 0) {
             Piwik::checkUserHasSomeAdminAccess();
         } else {
             throw new Exception('Invalid idSite parameter. IdSite has to be zero or higher');
-        }}
+        }
 
         $view = new View('@SitesManager/measurable_type_settings');
 

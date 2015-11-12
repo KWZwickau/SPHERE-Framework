@@ -33,6 +33,14 @@ class Mysqli extends Zend_Db_Adapter_Mysqli implements AdapterInterface
     }
 
     /**
+     * Reset the configuration variables in this adapter.
+     */
+    public function resetConfig()
+    {
+        $this->_config = array();
+    }
+
+    /**
      * Return default port.
      *
      * @return int
@@ -42,23 +50,15 @@ class Mysqli extends Zend_Db_Adapter_Mysqli implements AdapterInterface
         return 3306;
     }
 
-    /**
-     * Returns true if this adapter's required extensions are enabled
-     *
-     * @return bool
-     */
-    public static function isEnabled()
+    protected function _connect()
     {
-        $extensions = @get_loaded_extensions();
-        return in_array('mysqli', $extensions);
-    }
+        if ($this->_connection) {
+            return;
+        }
 
-    /**
-     * Reset the configuration variables in this adapter.
-     */
-    public function resetConfig()
-    {
-        $this->_config = array();
+        parent::_connect();
+
+        $this->_connection->query('SET sql_mode = "' . Db::SQL_MODE . '"');
     }
 
     /**
@@ -95,31 +95,14 @@ class Mysqli extends Zend_Db_Adapter_Mysqli implements AdapterInterface
     }
 
     /**
-     * Get client version
+     * Returns true if this adapter's required extensions are enabled
      *
-     * @return string
+     * @return bool
      */
-    public function getClientVersion()
+    public static function isEnabled()
     {
-        $this->_connect();
-
-        $version  = $this->_connection->server_version;
-        $major    = (int)($version / 10000);
-        $minor    = (int)($version % 10000 / 100);
-        $revision = (int)($version % 100);
-
-        return $major . '.' . $minor . '.' . $revision;
-    }
-
-    protected function _connect()
-    {
-        if ($this->_connection) {
-            return;
-        }
-
-        parent::_connect();
-
-        $this->_connection->query('SET sql_mode = "' . Db::SQL_MODE . '"');
+        $extensions = @get_loaded_extensions();
+        return in_array('mysqli', $extensions);
     }
 
     /**
@@ -189,5 +172,22 @@ class Mysqli extends Zend_Db_Adapter_Mysqli implements AdapterInterface
     {
         $charset = mysqli_character_set_name($this->_connection);
         return $charset === 'utf8';
+    }
+
+    /**
+     * Get client version
+     *
+     * @return string
+     */
+    public function getClientVersion()
+    {
+        $this->_connect();
+
+        $version  = $this->_connection->server_version;
+        $major    = (int)($version / 10000);
+        $minor    = (int)($version % 10000 / 100);
+        $revision = (int)($version % 100);
+
+        return $major . '.' . $minor . '.' . $revision;
     }
 }

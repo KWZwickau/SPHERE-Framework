@@ -24,6 +24,56 @@ class Development
     private static $isEnabled = null;
 
     /**
+     * Returns `true` if development mode is enabled and `false` otherwise.
+     *
+     * @return bool
+     */
+    public static function isEnabled()
+    {
+        if (is_null(self::$isEnabled)) {
+            self::$isEnabled = (bool) Config::getInstance()->Development['enabled'];
+        }
+
+        return self::$isEnabled;
+    }
+
+    /**
+     * Verifies whether a className of object implements the given method. It does not check whether the given method
+     * is actually callable (public).
+     *
+     * @param string|object $classOrObject
+     * @param string $method
+     *
+     * @return bool true if the method exists, false otherwise.
+     */
+    public static function methodExists($classOrObject, $method)
+    {
+        if (is_string($classOrObject)) {
+            return class_exists($classOrObject) && method_exists($classOrObject, $method);
+        }
+
+        return method_exists($classOrObject, $method);
+    }
+
+    /**
+     * Formats a method call depending on the given class/object and method name. It does not perform any checks whether
+     * does actually exists.
+     *
+     * @param string|object $classOrObject
+     * @param string $method
+     *
+     * @return string Formatted method call. Example: "MyNamespace\MyClassname::methodName()"
+     */
+    public static function formatMethodCall($classOrObject, $method)
+    {
+        if (is_object($classOrObject)) {
+            $classOrObject = get_class($classOrObject);
+        }
+
+        return $classOrObject . '::' . $method . '()';
+    }
+
+    /**
      * Checks whether the given method is actually callable on the given class/object if the development mode is
      * enabled. En error will be triggered if the method does not exist or is not callable (public) containing a useful
      * error message for the developer.
@@ -44,20 +94,6 @@ class Development
         if (!self::isCallableMethod($classOrObject, $method)) {
             self::error($prefixMessageIfError . ' "' . self::formatMethodCall($classOrObject, $method) .  '" is not callable. Please make sure to method is public');
         }
-    }
-
-    /**
-     * Returns `true` if development mode is enabled and `false` otherwise.
-     *
-     * @return bool
-     */
-    public static function isEnabled()
-    {
-        if (is_null(self::$isEnabled)) {
-            self::$isEnabled = (bool) Config::getInstance()->Development['enabled'];
-        }
-
-        return self::$isEnabled;
     }
 
     /**
@@ -82,21 +118,20 @@ class Development
     }
 
     /**
-     * Verifies whether a className of object implements the given method. It does not check whether the given method
-     * is actually callable (public).
+     * Verify whether the given method actually exists and is callable (public).
      *
      * @param string|object $classOrObject
      * @param string $method
-     *
-     * @return bool true if the method exists, false otherwise.
+     * @return bool
      */
-    public static function methodExists($classOrObject, $method)
+    public static function isCallableMethod($classOrObject, $method)
     {
-        if (is_string($classOrObject)) {
-            return class_exists($classOrObject) && method_exists($classOrObject, $method);
+        if (!self::methodExists($classOrObject, $method)) {
+            return false;
         }
 
-        return method_exists($classOrObject, $method);
+        $reflection = new \ReflectionMethod($classOrObject, $method);
+        return $reflection->isPublic();
     }
 
     /**
@@ -120,41 +155,6 @@ class Development
         } else {
             throw new Exception($message);
         }
-    }
-
-    /**
-     * Formats a method call depending on the given class/object and method name. It does not perform any checks whether
-     * does actually exists.
-     *
-     * @param string|object $classOrObject
-     * @param string $method
-     *
-     * @return string Formatted method call. Example: "MyNamespace\MyClassname::methodName()"
-     */
-    public static function formatMethodCall($classOrObject, $method)
-    {
-        if (is_object($classOrObject)) {
-            $classOrObject = get_class($classOrObject);
-        }
-
-        return $classOrObject . '::' . $method . '()';
-    }
-
-    /**
-     * Verify whether the given method actually exists and is callable (public).
-     *
-     * @param string|object $classOrObject
-     * @param string $method
-     * @return bool
-     */
-    public static function isCallableMethod($classOrObject, $method)
-    {
-        if (!self::methodExists($classOrObject, $method)) {
-            return false;
-        }
-
-        $reflection = new \ReflectionMethod($classOrObject, $method);
-        return $reflection->isPublic();
     }
 
     public static function getMethodSourceCode($className, $methodName)

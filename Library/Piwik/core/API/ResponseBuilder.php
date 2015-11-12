@@ -11,10 +11,10 @@ namespace Piwik\API;
 use Exception;
 use Piwik\Common;
 use Piwik\DataTable;
+use Piwik\DataTable\Renderer;
 use Piwik\DataTable\DataTableInterface;
 use Piwik\DataTable\Filter\ColumnDelete;
 use Piwik\DataTable\Filter\Pattern;
-use Piwik\DataTable\Renderer;
 
 /**
  */
@@ -120,11 +120,51 @@ class ResponseBuilder
         return $this->apiRenderer->renderScalar($value);
     }
 
-    private function sendHeaderIfEnabled()
+    /**
+     * Returns an error $message in the requested $format
+     *
+     * @param Exception $e
+     * @throws Exception
+     * @return string
+     */
+    public function getResponseException(Exception $e)
     {
-        if ($this->sendHeader) {
-            $this->apiRenderer->sendHeader();
+        $e       = $this->decorateExceptionWithDebugTrace($e);
+        $message = $this->formatExceptionMessage($e);
+
+        $this->sendHeaderIfEnabled();
+
+        return $this->apiRenderer->renderException($message, $e);
+    }
+
+    /**
+     * @param Exception $e
+     * @return Exception
+     */
+    private function decorateExceptionWithDebugTrace(Exception $e)
+    {
+        // If we are in tests, show full backtrace
+        if (defined('PIWIK_PATH_TEST_TO_ROOT')) {
+            if (\Piwik_ShouldPrintBackTraceWithMessage()) {
+                $message = $e->getMessage() . " in \n " . $e->getFile() . ":" . $e->getLine() . " \n " . $e->getTraceAsString();
+            } else {
+                $message = $e->getMessage() . "\n \n --> To temporarily debug this error further, set const PIWIK_PRINT_ERROR_BACKTRACE=true; in index.php";
+            }
+
+            return new Exception($message);
         }
+
+        return $e;
+    }
+
+    private function formatExceptionMessage(Exception $exception)
+    {
+        $message = $exception->getMessage();
+        if (\Piwik_ShouldPrintBackTraceWithMessage()) {
+            $message .= "\n" . $exception->getTraceAsString();
+        }
+
+        return Renderer::formatValueXml($message);
     }
 
     private function handleDataTable(DataTableInterface $datatable)
@@ -209,50 +249,10 @@ class ResponseBuilder
         return true;
     }
 
-    /**
-     * Returns an error $message in the requested $format
-     *
-     * @param Exception $e
-     * @throws Exception
-     * @return string
-     */
-    public function getResponseException(Exception $e)
+    private function sendHeaderIfEnabled()
     {
-        $e       = $this->decorateExceptionWithDebugTrace($e);
-        $message = $this->formatExceptionMessage($e);
-
-        $this->sendHeaderIfEnabled();
-
-        return $this->apiRenderer->renderException($message, $e);
-    }
-
-    /**
-     * @param Exception $e
-     * @return Exception
-     */
-    private function decorateExceptionWithDebugTrace(Exception $e)
-    {
-        // If we are in tests, show full backtrace
-        if (defined('PIWIK_PATH_TEST_TO_ROOT')) {
-            if (\Piwik_ShouldPrintBackTraceWithMessage()) {
-                $message = $e->getMessage() . " in \n " . $e->getFile() . ":" . $e->getLine() . " \n " . $e->getTraceAsString();
-            } else {
-                $message = $e->getMessage() . "\n \n --> To temporarily debug this error further, set const PIWIK_PRINT_ERROR_BACKTRACE=true; in index.php";
-            }
-
-            return new Exception($message);
+        if ($this->sendHeader) {
+            $this->apiRenderer->sendHeader();
         }
-
-        return $e;
-    }
-
-    private function formatExceptionMessage(Exception $exception)
-    {
-        $message = $exception->getMessage();
-        if (\Piwik_ShouldPrintBackTraceWithMessage()) {
-            $message .= "\n" . $exception->getTraceAsString();
-        }
-
-        return Renderer::formatValueXml($message);
     }
 }

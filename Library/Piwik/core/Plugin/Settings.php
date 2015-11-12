@@ -40,18 +40,21 @@ abstract class Settings
     const CONTROL_PASSWORD = 'password';
     const CONTROL_MULTI_SELECT  = 'multiselect';
     const CONTROL_SINGLE_SELECT = 'select';
-    protected $pluginName;
-    /**
-     * @var StorageInterface
-     */
-    protected $storage;
+
     /**
      * An array containing all available settings: Array ( [setting-name] => [setting] )
      *
      * @var Settings[]
      */
     private $settings = array();
+
     private $introduction;
+    protected $pluginName;
+
+    /**
+     * @var StorageInterface
+     */
+    protected $storage;
 
     /**
      * Constructor.
@@ -75,13 +78,6 @@ abstract class Settings
     }
 
     /**
-     * Implemented by descendants. This method should define plugin settings (via the
-     * {@link addSetting()}) method and set the introduction text (via the
-     * {@link setIntroduction()}).
-     */
-    abstract protected function init();
-
-    /**
      * @ignore
      */
     public function getPluginName()
@@ -101,14 +97,11 @@ abstract class Settings
     }
 
     /**
-     * Returns the introduction text for this plugin's settings.
-     *
-     * @return string
+     * Implemented by descendants. This method should define plugin settings (via the
+     * {@link addSetting()}) method and set the introduction text (via the
+     * {@link setIntroduction()}).
      */
-    public function getIntroduction()
-    {
-        return $this->introduction;
-    }
+    abstract protected function init();
 
     /**
      * Sets the text used to introduce this plugin's settings in the _Plugin Settings_ page.
@@ -118,6 +111,16 @@ abstract class Settings
     protected function setIntroduction($introduction)
     {
         $this->introduction = $introduction;
+    }
+
+    /**
+     * Returns the introduction text for this plugin's settings.
+     *
+     * @return string
+     */
+    public function getIntroduction()
+    {
+        return $this->introduction;
     }
 
     /**
@@ -168,6 +171,35 @@ abstract class Settings
     }
 
     /**
+     * Makes a new plugin setting available.
+     *
+     * @param Setting $setting
+     * @throws \Exception       If there is a setting with the same name that already exists.
+     *                          If the name contains non-alphanumeric characters.
+     */
+    protected function addSetting(Setting $setting)
+    {
+        $name = $setting->getName();
+
+        if (!ctype_alnum(str_replace('_', '', $name))) {
+            $msg = sprintf('The setting name "%s" in plugin "%s" is not valid. Only underscores, alpha and numerical characters are allowed', $setting->getName(), $this->pluginName);
+            throw new \Exception($msg);
+        }
+
+        if (array_key_exists($name, $this->settings)) {
+            throw new \Exception(sprintf('A setting with name "%s" does already exist for plugin "%s"', $setting->getName(), $this->pluginName));
+        }
+
+        $this->setDefaultTypeAndFieldIfNeeded($setting);
+        $this->addValidatorIfNeeded($setting);
+
+        $setting->setStorage($this->storage);
+        $setting->setPluginName($this->pluginName);
+
+        $this->settings[$name] = $setting;
+    }
+
+    /**
      * Saves (persists) the current setting values in the database.
      */
     public function save()
@@ -204,50 +236,6 @@ abstract class Settings
         SettingsStorage::clearCache();
     }
 
-    /**
-     * Makes a new plugin setting available.
-     *
-     * @param Setting $setting
-     * @throws \Exception       If there is a setting with the same name that already exists.
-     *                          If the name contains non-alphanumeric characters.
-     */
-    protected function addSetting(Setting $setting)
-    {
-        $name = $setting->getName();
-
-        if (!ctype_alnum(str_replace('_', '', $name))) {
-            $msg = sprintf('The setting name "%s" in plugin "%s" is not valid. Only underscores, alpha and numerical characters are allowed', $setting->getName(), $this->pluginName);
-            throw new \Exception($msg);
-        }
-
-        if (array_key_exists($name, $this->settings)) {
-            throw new \Exception(sprintf('A setting with name "%s" does already exist for plugin "%s"', $setting->getName(), $this->pluginName));
-        }
-
-        $this->setDefaultTypeAndFieldIfNeeded($setting);
-        $this->addValidatorIfNeeded($setting);
-
-        $setting->setStorage($this->storage);
-        $setting->setPluginName($this->pluginName);
-
-        $this->settings[$name] = $setting;
-    }
-
-    private function setDefaultTypeAndFieldIfNeeded(Setting $setting)
-    {
-        $hasControl = !is_null($setting->uiControlType);
-        $hasType    = !is_null($setting->type);
-
-        if ($hasControl && !$hasType) {
-            $setting->type = $this->getDefaultType($setting->uiControlType);
-        } elseif ($hasType && !$hasControl) {
-            $setting->uiControlType = $this->getDefaultCONTROL($setting->type);
-        } elseif (!$hasControl && !$hasType) {
-            $setting->type = static::TYPE_STRING;
-            $setting->uiControlType = static::CONTROL_TEXT;
-        }
-    }
-
     private function getDefaultType($controlType)
     {
         $defaultTypes = array(
@@ -274,6 +262,21 @@ abstract class Settings
         );
 
         return $defaultControlTypes[$type];
+    }
+
+    private function setDefaultTypeAndFieldIfNeeded(Setting $setting)
+    {
+        $hasControl = !is_null($setting->uiControlType);
+        $hasType    = !is_null($setting->type);
+
+        if ($hasControl && !$hasType) {
+            $setting->type = $this->getDefaultType($setting->uiControlType);
+        } elseif ($hasType && !$hasControl) {
+            $setting->uiControlType = $this->getDefaultCONTROL($setting->type);
+        } elseif (!$hasControl && !$hasType) {
+            $setting->type = static::TYPE_STRING;
+            $setting->uiControlType = static::CONTROL_TEXT;
+        }
     }
 
     private function addValidatorIfNeeded(Setting $setting)

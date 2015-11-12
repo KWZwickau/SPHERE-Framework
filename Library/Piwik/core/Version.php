@@ -22,14 +22,14 @@ final class Version
      */
     const VERSION = '2.15.0';
 
-    public function isVersionNumber($version)
-    {
-        return $this->isStableVersion($version) || $this->isNonStableVersion($version);
-    }
-
     public function isStableVersion($version)
     {
         return (bool) preg_match('/^(\d+)\.(\d+)\.(\d+)$/', $version);
+    }
+
+    public function isVersionNumber($version)
+    {
+        return $this->isStableVersion($version) || $this->isNonStableVersion($version);
     }
 
     private function isNonStableVersion($version)

@@ -17,11 +17,19 @@ use Piwik\Container\StaticContainer;
  */
 class EventDispatcher
 {
-    const EVENT_CALLBACK_GROUP_FIRST = 0;
+    /**
+     * @return EventDispatcher
+     */
+    public static function getInstance()
+    {
+        return StaticContainer::get('Piwik\EventDispatcher');
+    }
 
     // implementation details for postEvent
+    const EVENT_CALLBACK_GROUP_FIRST = 0;
     const EVENT_CALLBACK_GROUP_SECOND = 1;
     const EVENT_CALLBACK_GROUP_THIRD = 2;
+
     /**
      * Array of observers (callbacks attached to events) that are not methods
      * of plugin classes.
@@ -29,6 +37,7 @@ class EventDispatcher
      * @var array
      */
     private $extraObservers = array();
+
     /**
      * Array storing information for all pending events. Each item in the array
      * will be an array w/ two elements:
@@ -41,12 +50,14 @@ class EventDispatcher
      * @var array
      */
     private $pendingEvents = array();
+
     /**
      * Plugin\Manager instance used to get list of loaded plugins.
      *
      * @var \Piwik\Plugin\Manager
      */
     private $pluginManager;
+
     private $pluginHooks = array();
 
     /**
@@ -59,52 +70,6 @@ class EventDispatcher
         foreach ($observers as $observerInfo) {
             list($eventName, $callback) = $observerInfo;
             $this->extraObservers[$eventName][] = $callback;
-        }
-    }
-
-    /**
-     * @return EventDispatcher
-     */
-    public static function getInstance()
-    {
-        return StaticContainer::get('Piwik\EventDispatcher');
-    }
-
-    /**
-     * Associates a callback that is not a plugin class method with an event
-     * name.
-     *
-     * @param string $eventName
-     * @param array|callable $callback This can be a normal PHP callback or an array
-     *                        that looks like this:
-     *                        array(
-     *                            'function' => $callback,
-     *                            'before' => true
-     *                        )
-     *                        or this:
-     *                        array(
-     *                            'function' => $callback,
-     *                            'after' => true
-     *                        )
-     *                        If 'before' is set, the callback will be executed
-     *                        before normal & 'after' ones. If 'after' then it
-     *                        will be executed after normal ones.
-     */
-    public function addObserver($eventName, $callback)
-    {
-        $this->extraObservers[$eventName][] = $callback;
-    }
-
-    /**
-     * Re-posts all pending events to the given plugin.
-     *
-     * @param Plugin $plugin
-     */
-    public function postPendingEventsTo($plugin)
-    {
-        foreach ($this->pendingEvents as $eventInfo) {
-            list($eventName, $eventParams) = $eventInfo;
-            $this->postEvent($eventName, $eventParams, $pending = false, array($plugin));
         }
     }
 
@@ -175,6 +140,44 @@ class EventDispatcher
             foreach ($callbackGroup as $callback) {
                 call_user_func_array($callback, $params);
             }
+        }
+    }
+
+    /**
+     * Associates a callback that is not a plugin class method with an event
+     * name.
+     *
+     * @param string $eventName
+     * @param array|callable $callback This can be a normal PHP callback or an array
+     *                        that looks like this:
+     *                        array(
+     *                            'function' => $callback,
+     *                            'before' => true
+     *                        )
+     *                        or this:
+     *                        array(
+     *                            'function' => $callback,
+     *                            'after' => true
+     *                        )
+     *                        If 'before' is set, the callback will be executed
+     *                        before normal & 'after' ones. If 'after' then it
+     *                        will be executed after normal ones.
+     */
+    public function addObserver($eventName, $callback)
+    {
+        $this->extraObservers[$eventName][] = $callback;
+    }
+
+    /**
+     * Re-posts all pending events to the given plugin.
+     *
+     * @param Plugin $plugin
+     */
+    public function postPendingEventsTo($plugin)
+    {
+        foreach ($this->pendingEvents as $eventInfo) {
+            list($eventName, $eventParams) = $eventInfo;
+            $this->postEvent($eventName, $eventParams, $pending = false, array($plugin));
         }
     }
 

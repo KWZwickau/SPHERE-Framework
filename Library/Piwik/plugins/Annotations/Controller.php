@@ -11,6 +11,7 @@ namespace Piwik\Plugins\Annotations;
 use Piwik\API\Request;
 use Piwik\Common;
 use Piwik\Date;
+use Piwik\Piwik;
 use Piwik\View;
 
 /**
@@ -19,6 +20,73 @@ use Piwik\View;
  */
 class Controller extends \Piwik\Plugin\Controller
 {
+    /**
+     * Controller action that returns HTML displaying annotations for a site and
+     * specific date range.
+     *
+     * Query Param Input:
+     *  - idSite: The ID of the site to get annotations for. Only one allowed.
+     *  - date: The date to get annotations for. If lastN is not supplied, this is the start date,
+     *          otherwise the start date in the last period.
+     *  - period: The period type.
+     *  - lastN: If supplied, the last N # of periods will be included w/ the range specified
+     *           by date + period.
+     *
+     * Output:
+     *  - HTML displaying annotations for a specific range.
+     *
+     * @param bool $fetch True if the annotation manager should be returned as a string,
+     *                    false if it should be echo-ed.
+     * @param bool|string $date Override for 'date' query parameter.
+     * @param bool|string $period Override for 'period' query parameter.
+     * @param bool|string $lastN Override for 'lastN' query parameter.
+     * @return string|void
+     */
+    public function getAnnotationManager($fetch = false, $date = false, $period = false, $lastN = false)
+    {
+        $idSite = Common::getRequestVar('idSite');
+
+        if ($date === false) {
+            $date = Common::getRequestVar('date', false);
+        }
+
+        if ($period === false) {
+            $period = Common::getRequestVar('period', 'day');
+        }
+
+        if ($lastN === false) {
+            $lastN = Common::getRequestVar('lastN', false);
+        }
+
+        // create & render the view
+        $view = new View('@Annotations/getAnnotationManager');
+
+        $allAnnotations = Request::processRequest(
+            'Annotations.getAll', array('date' => $date, 'period' => $period, 'lastN' => $lastN));
+        $view->annotations = empty($allAnnotations[$idSite]) ? array() : $allAnnotations[$idSite];
+
+        $view->period = $period;
+        $view->lastN = $lastN;
+
+        list($startDate, $endDate) = API::getDateRangeForPeriod($date, $period, $lastN);
+        $view->startDate = $startDate->toString();
+        $view->endDate = $endDate->toString();
+
+        if ($startDate->toString() !== $endDate->toString()) {
+            $view->selectedDate = Date::today()->toString();
+        } else {
+            $view->selectedDate = $endDate->toString();
+        }
+
+        $dateFormat = Date::DATE_FORMAT_SHORT;
+        $view->startDatePretty = $startDate->getLocalized($dateFormat);
+        $view->endDatePretty = $endDate->getLocalized($dateFormat);
+
+        $view->canUserAddNotes = AnnotationList::canUserAddNotesFor($idSite);
+
+        return $view->render();
+    }
+
     /**
      * Controller action that modifies an annotation and returns HTML displaying
      * the modified annotation.
@@ -90,73 +158,6 @@ class Controller extends \Piwik\Plugin\Controller
             $managerPeriod = Common::getRequestVar('managerPeriod', false);
             return $this->getAnnotationManager($fetch = true, $managerDate, $managerPeriod);
         }
-    }
-
-    /**
-     * Controller action that returns HTML displaying annotations for a site and
-     * specific date range.
-     *
-     * Query Param Input:
-     *  - idSite: The ID of the site to get annotations for. Only one allowed.
-     *  - date: The date to get annotations for. If lastN is not supplied, this is the start date,
-     *          otherwise the start date in the last period.
-     *  - period: The period type.
-     *  - lastN: If supplied, the last N # of periods will be included w/ the range specified
-     *           by date + period.
-     *
-     * Output:
-     *  - HTML displaying annotations for a specific range.
-     *
-     * @param bool $fetch True if the annotation manager should be returned as a string,
-     *                    false if it should be echo-ed.
-     * @param bool|string $date Override for 'date' query parameter.
-     * @param bool|string $period Override for 'period' query parameter.
-     * @param bool|string $lastN Override for 'lastN' query parameter.
-     * @return string|void
-     */
-    public function getAnnotationManager($fetch = false, $date = false, $period = false, $lastN = false)
-    {
-        $idSite = Common::getRequestVar('idSite');
-
-        if ($date === false) {
-            $date = Common::getRequestVar('date', false);
-        }
-
-        if ($period === false) {
-            $period = Common::getRequestVar('period', 'day');
-        }
-
-        if ($lastN === false) {
-            $lastN = Common::getRequestVar('lastN', false);
-        }
-
-        // create & render the view
-        $view = new View('@Annotations/getAnnotationManager');
-
-        $allAnnotations = Request::processRequest(
-            'Annotations.getAll', array('date' => $date, 'period' => $period, 'lastN' => $lastN));
-        $view->annotations = empty($allAnnotations[$idSite]) ? array() : $allAnnotations[$idSite];
-
-        $view->period = $period;
-        $view->lastN = $lastN;
-
-        list($startDate, $endDate) = API::getDateRangeForPeriod($date, $period, $lastN);
-        $view->startDate = $startDate->toString();
-        $view->endDate = $endDate->toString();
-
-        if ($startDate->toString() !== $endDate->toString()) {
-            $view->selectedDate = Date::today()->toString();
-        } else {
-            $view->selectedDate = $endDate->toString();
-        }
-
-        $dateFormat = Date::DATE_FORMAT_SHORT;
-        $view->startDatePretty = $startDate->getLocalized($dateFormat);
-        $view->endDatePretty = $endDate->getLocalized($dateFormat);
-
-        $view->canUserAddNotes = AnnotationList::canUserAddNotesFor($idSite);
-
-        return $view->render();
     }
 
     /**

@@ -11,9 +11,9 @@ namespace Piwik\Plugins\ExampleTracker\Columns;
 use Piwik\Piwik;
 use Piwik\Plugin\Dimension\VisitDimension;
 use Piwik\Plugin\Segment;
-use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Action;
 
 /**
  * This example dimension counts achievement points for each user. A user gets one achievement point for each action
@@ -47,6 +47,21 @@ class ExampleVisitDimension extends VisitDimension
     public function getName()
     {
         return Piwik::translate('ExampleTracker_DimensionName');
+    }
+
+    /**
+     * By defining one or multiple segments a user will be able to filter their visitors by this column. For instance
+     * show all reports only considering users having more than 10 achievement points. If you do not want to define a
+     * segment for this dimension just remove the column.
+     */
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('achievementPoints');
+        $segment->setCategory('General_Visit');
+        $segment->setName('ExampleTracker_DimensionName');
+        $segment->setAcceptedValues('Here you should explain which values are accepted/useful: Any number, for instance 1, 2, 3 , 99');
+        $this->addSegment($segment);
     }
 
     /**
@@ -111,21 +126,6 @@ class ExampleVisitDimension extends VisitDimension
     }
 
     /**
-     * By defining one or multiple segments a user will be able to filter their visitors by this column. For instance
-     * show all reports only considering users having more than 10 achievement points. If you do not want to define a
-     * segment for this dimension just remove the column.
-     */
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('achievementPoints');
-        $segment->setCategory('General_Visit');
-        $segment->setName('ExampleTracker_DimensionName');
-        $segment->setAcceptedValues('Here you should explain which values are accepted/useful: Any number, for instance 1, 2, 3 , 99');
-        $this->addSegment($segment);
-    }
-
-    /**
      * By implementing this event you can persist a value to the log_conversion table in case a conversion happens.
      * The persisted value will be logged along the conversion and will not be changed afterwards.
      * This allows you to generate reports that shows for instance which url was called how often for a specific
@@ -138,9 +138,9 @@ class ExampleVisitDimension extends VisitDimension
      *
      * @return mixed
     public function onAnyGoalConversion(Request $request, Visitor $visitor, $action)
-    * {
-        * return $visitor->getVisitorColumn($this->columnName);
-    * }
+    {
+        return $visitor->getVisitorColumn($this->columnName);
+    }
      */
 
     /**
@@ -150,8 +150,8 @@ class ExampleVisitDimension extends VisitDimension
      * values may not be available.
      * @return array
     public function getRequiredVisitFields()
-    * {
-        * return array('idsite', 'server_time');
-    * }
+    {
+        return array('idsite', 'server_time');
+    }
     */
 }

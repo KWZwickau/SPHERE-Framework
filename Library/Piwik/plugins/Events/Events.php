@@ -15,12 +15,6 @@ use Piwik\Plugin\ViewDataTable;
 
 class Events extends \Piwik\Plugin
 {
-    public $metadataDimensions = array(
-        'eventCategory' => array('Events_EventCategory', 'log_link_visit_action.idaction_event_category'),
-        'eventAction'   => array('Events_EventAction', 'log_link_visit_action.idaction_event_action'),
-        'eventName'     => array('Events_EventName', 'log_link_visit_action.idaction_name'),
-    );
-
     /**
      * @see Piwik\Plugin::registerEvents
      */
@@ -44,20 +38,6 @@ class Events extends \Piwik\Plugin
         $translations = array_merge($translations, $this->getMetricTranslations());
     }
 
-    public function getMetricTranslations()
-    {
-        $metrics = array(
-            'nb_events'            => 'Events_TotalEvents',
-            'sum_event_value'      => 'Events_TotalValue',
-            'min_event_value'      => 'Events_MinValue',
-            'max_event_value'      => 'Events_MaxValue',
-            'avg_event_value'      => 'Events_AvgValue',
-            'nb_events_with_value' => 'Events_EventsWithValue',
-        );
-        $metrics = array_map(array('\\Piwik\\Piwik', 'translate'), $metrics);
-        return $metrics;
-    }
-
     public function addMetricDocumentationTranslations(&$translations)
     {
         $translations = array_merge($translations, $this->getMetricDocumentation());
@@ -77,6 +57,42 @@ class Events extends \Piwik\Plugin
         return $documentation;
     }
 
+    public function getMetricTranslations()
+    {
+        $metrics = array(
+            'nb_events'            => 'Events_TotalEvents',
+            'sum_event_value'      => 'Events_TotalValue',
+            'min_event_value'      => 'Events_MinValue',
+            'max_event_value'      => 'Events_MaxValue',
+            'avg_event_value'      => 'Events_AvgValue',
+            'nb_events_with_value' => 'Events_EventsWithValue',
+        );
+        $metrics = array_map(array('\\Piwik\\Piwik', 'translate'), $metrics);
+        return $metrics;
+    }
+
+    public $metadataDimensions = array(
+        'eventCategory' => array('Events_EventCategory', 'log_link_visit_action.idaction_event_category'),
+        'eventAction'   => array('Events_EventAction', 'log_link_visit_action.idaction_event_action'),
+        'eventName'     => array('Events_EventName', 'log_link_visit_action.idaction_name'),
+    );
+
+    public function getDimensionLabel($dimension)
+    {
+        return Piwik::translate($this->metadataDimensions[$dimension][0]);
+    }
+    /**
+     * @return array
+     */
+    public static function getLabelTranslations()
+    {
+        return array(
+            'getCategory' => array('Events_EventCategories', 'Events_EventCategory'),
+            'getAction'   => array('Events_EventActions', 'Events_EventAction'),
+            'getName'     => array('Events_EventNames', 'Events_EventName'),
+        );
+    }
+
     /**
      * Given getCategory, returns "Event Categories"
      *
@@ -86,6 +102,17 @@ class Events extends \Piwik\Plugin
     public function getReportTitleTranslation($apiMethod)
     {
         return $this->getTranslation($apiMethod, $index = 0);
+    }
+
+    /**
+     * Given getCategory, returns "Event Category"
+     *
+     * @param $apiMethod
+     * @return string
+     */
+    public function getColumnTranslation($apiMethod)
+    {
+        return $this->getTranslation($apiMethod, $index = 1);
     }
 
     protected function getTranslation($apiMethod, $index)
@@ -99,18 +126,6 @@ class Events extends \Piwik\Plugin
             }
         }
         throw new \Exception("Translation not found for report $apiMethod");
-    }
-
-    /**
-     * @return array
-     */
-    public static function getLabelTranslations()
-    {
-        return array(
-            'getCategory' => array('Events_EventCategories', 'Events_EventCategory'),
-            'getAction'   => array('Events_EventActions', 'Events_EventAction'),
-            'getName'     => array('Events_EventNames', 'Events_EventName'),
-        );
     }
 
     public function configureViewDataTable(ViewDataTable $view)
@@ -142,25 +157,6 @@ class Events extends \Piwik\Plugin
         $subtableReport = Report::factory('Events', $view->config->subtable_controller_action);
         $view->config->pivot_by_dimension = $subtableReport->getDimension()->getId();
         $view->config->pivot_by_column = 'nb_events';
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getSecondaryDimensionFromRequest()
-    {
-        return Common::getRequestVar('secondaryDimension', false, 'string');
-    }
-
-    /**
-     * Given getCategory, returns "Event Category"
-     *
-     * @param $apiMethod
-     * @return string
-     */
-    public function getColumnTranslation($apiMethod)
-    {
-        return $this->getTranslation($apiMethod, $index = 1);
     }
 
     private function addRelatedReports($view, $secondaryDimension)
@@ -201,11 +197,6 @@ class Events extends \Piwik\Plugin
 
     }
 
-    public function getDimensionLabel($dimension)
-    {
-        return Piwik::translate($this->metadataDimensions[$dimension][0]);
-    }
-
     private function addTooltipEventValue(ViewDataTable $view)
     {
         // Creates the tooltip message for Event Value column
@@ -234,5 +225,13 @@ class Events extends \Piwik\Plugin
                 $tooltipCallback
             )
         );
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getSecondaryDimensionFromRequest()
+    {
+        return Common::getRequestVar('secondaryDimension', false, 'string');
     }
 }

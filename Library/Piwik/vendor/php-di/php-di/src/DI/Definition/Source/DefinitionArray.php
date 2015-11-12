@@ -10,11 +10,11 @@
 namespace DI\Definition\Source;
 
 use DI\Definition\ArrayDefinition;
+use DI\Definition\ObjectDefinition;
 use DI\Definition\Definition;
 use DI\Definition\FactoryDefinition;
-use DI\Definition\Helper\DefinitionHelper;
-use DI\Definition\ObjectDefinition;
 use DI\Definition\ValueDefinition;
+use DI\Definition\Helper\DefinitionHelper;
 
 /**
  * Reads DI definitions from a PHP array.

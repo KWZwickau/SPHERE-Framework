@@ -37,6 +37,21 @@ class MultiRowEvolution extends RowEvolution
         parent::__construct($idSite, $date);
     }
 
+    protected function loadEvolutionReport($column = false)
+    {
+        // set the "column" parameter for the API.getRowEvolution call
+        parent::loadEvolutionReport($this->metric);
+    }
+
+    protected function extractEvolutionReport($report)
+    {
+        $this->metric = $report['column'];
+        $this->dataTable = $report['reportData'];
+        $this->availableMetrics = $report['metadata']['metrics'];
+        $this->metricsForSelect = $report['metadata']['columns'];
+        $this->dimension = $report['metadata']['dimension'];
+    }
+
     /**
      * Render the popover
      * @param \Piwik\Plugins\CoreHome\Controller $controller
@@ -52,20 +67,5 @@ class MultiRowEvolution extends RowEvolution
             . Piwik::translate('RowEvolution_ComparingRecords', array(count($this->availableMetrics)));
 
         return parent::renderPopover($controller, $view);
-    }
-
-    protected function loadEvolutionReport($column = false)
-    {
-        // set the "column" parameter for the API.getRowEvolution call
-        parent::loadEvolutionReport($this->metric);
-    }
-
-    protected function extractEvolutionReport($report)
-    {
-        $this->metric = $report['column'];
-        $this->dataTable = $report['reportData'];
-        $this->availableMetrics = $report['metadata']['metrics'];
-        $this->metricsForSelect = $report['metadata']['columns'];
-        $this->dimension = $report['metadata']['dimension'];
     }
 }

@@ -14,6 +14,16 @@ use Piwik\Plugins\Resolution\Columns\Resolution;
 
 class GetResolution extends Base
 {
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new Resolution();
+        $this->name          = Piwik::translate('Resolution_WidgetResolutions');
+        $this->documentation = ''; // TODO
+        $this->order = 0;
+        $this->widgetTitle  = 'Resolution_WidgetResolutions';
+    }
+
     public function configureView(ViewDataTable $view)
     {
         $this->getBasicResolutionDisplayProperties($view);
@@ -26,15 +36,5 @@ class GetResolution extends Base
         return array(
             self::factory('Resolution', 'getConfiguration'),
         );
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension     = new Resolution();
-        $this->name          = Piwik::translate('Resolution_WidgetResolutions');
-        $this->documentation = ''; // TODO
-        $this->order = 0;
-        $this->widgetTitle  = 'Resolution_WidgetResolutions';
     }
 }

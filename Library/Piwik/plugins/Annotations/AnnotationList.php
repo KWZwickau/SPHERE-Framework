@@ -60,55 +60,6 @@ class AnnotationList
     }
 
     /**
-     * Retrieves annotations from the database for the sites supplied to the
-     * constructor.
-     *
-     * @return array Lists of annotations mapped by site ID.
-     */
-    private function getAnnotationsForSite()
-    {
-        $result = array();
-        foreach ($this->idSites as $id) {
-            $optionName = self::getAnnotationCollectionOptionName($id);
-            $serialized = Option::get($optionName);
-
-            if ($serialized !== false) {
-                $result[$id] = @unserialize($serialized);
-                if (empty($result[$id])) {
-                    // in case unserialize failed
-                    $result[$id] = array();
-                }
-            } else {
-                $result[$id] = array();
-            }
-        }
-        return $result;
-    }
-
-    /**
-     * Returns the option name used to store annotations for a site.
-     *
-     * @param int $idSite The site ID.
-     * @return string
-     */
-    public static function getAnnotationCollectionOptionName($idSite)
-    {
-        return $idSite . self::ANNOTATION_COLLECTION_OPTION_SUFFIX;
-    }
-
-    /**
-     * Returns true if the current user can add notes for a specific site.
-     *
-     * @param int $idSite The site to add notes to.
-     * @return bool
-     */
-    public static function canUserAddNotesFor($idSite)
-    {
-        return Piwik::isUserHasViewAccess($idSite)
-        && !Piwik::isUserIsAnonymous();
-    }
-
-    /**
      * Returns the list of site IDs this list contains annotations for.
      *
      * @return array
@@ -142,123 +93,6 @@ class AnnotationList
         $newNoteId = key($this->annotations[$idSite]);
 
         return $this->get($idSite, $newNoteId);
-    }
-
-    /**
-     * Utility function that checks if a site ID was supplied and if not,
-     * throws an exception.
-     *
-     * We can only modify/read annotations for sites that we've actually
-     * loaded the annotations for.
-     *
-     * @param int $idSite
-     * @throws Exception
-     */
-    private function checkIdSiteIsLoaded($idSite)
-    {
-        if (!in_array($idSite, $this->idSites)) {
-            throw new Exception("This AnnotationList was not initialized with idSite '$idSite'.");
-        }
-    }
-
-    /**
-     * Utility function. Creates a new annotation.
-     *
-     * @param string $date
-     * @param string $note
-     * @param int $starred
-     * @return array
-     */
-    private function makeAnnotation($date, $note, $starred = 0)
-    {
-        return array(
-            'date' => $date,
-            'note' => $note,
-            'starred' => (int)$starred,
-            'user' => Piwik::getCurrentUserLogin()
-        );
-    }
-
-    /**
-     * Retrieves an annotation by ID.
-     *
-     * This function returns an array with the following elements:
-     *  - idNote: The ID of the annotation.
-     *  - date: The date of the annotation.
-     *  - note: The text of the annotation.
-     *  - starred: 1 or 0, whether the annotation is stared;
-     *  - user: (unless current user is anonymous) The user that created the annotation.
-     *  - canEditOrDelete: True if the user can edit/delete the annotation.
-     *
-     * @param int $idSite The ID of the site to get an annotation for.
-     * @param int $idNote The ID of the note to get.
-     * @throws Exception if $idSite is not an ID that was supplied upon construction.
-     * @throws Exception if $idNote does not refer to valid note for the site.
-     */
-    public function get($idSite, $idNote)
-    {
-        $this->checkIdSiteIsLoaded($idSite);
-        $this->checkNoteExists($idSite, $idNote);
-
-        $annotation = $this->annotations[$idSite][$idNote];
-        $this->augmentAnnotationData($idSite, $idNote, $annotation);
-        return $annotation;
-    }
-
-    /**
-     * Utility function that checks if a note exists for a site, and if not,
-     * throws an exception.
-     *
-     * @param int $idSite
-     * @param int $idNote
-     * @throws Exception
-     */
-    private function checkNoteExists($idSite, $idNote)
-    {
-        if (empty($this->annotations[$idSite][$idNote])) {
-            throw new Exception("There is no note with id '$idNote' for site with id '$idSite'.");
-        }
-    }
-
-    /**
-     * Adds extra data to an annotation, including the annotation's ID and whether
-     * the current user can edit or delete it.
-     *
-     * Also, if the current user is anonymous, the user attribute is removed.
-     *
-     * @param int $idSite
-     * @param int $idNote
-     * @param array $annotation
-     */
-    private function augmentAnnotationData($idSite, $idNote, &$annotation)
-    {
-        $annotation['idNote'] = $idNote;
-        $annotation['canEditOrDelete'] = self::canUserModifyOrDelete($idSite, $annotation);
-
-        // we don't supply user info if the current user is anonymous
-        if (Piwik::isUserIsAnonymous()) {
-            unset($annotation['user']);
-        }
-    }
-
-    /**
-     * Returns true if the current user can modify or delete a specific annotation.
-     *
-     * A user can modify/delete a note if the user has admin access for the site OR
-     * the user has view access, is not the anonymous user and is the user that
-     * created the note in question.
-     *
-     * @param int $idSite The site ID the annotation belongs to.
-     * @param array $annotation The annotation.
-     * @return bool
-     */
-    public static function canUserModifyOrDelete($idSite, $annotation)
-    {
-        // user can save if user is admin or if has view access, is not anonymous & is user who wrote note
-        $canEdit = Piwik::isUserHasAdminAccess($idSite)
-            || (!Piwik::isUserIsAnonymous()
-                && Piwik::getCurrentUserLogin() == $annotation['user']);
-        return $canEdit;
     }
 
     /**
@@ -345,35 +179,29 @@ class AnnotationList
     }
 
     /**
-     * Counts annotations & starred annotations within a date range and returns
-     * the counts. The date range includes the start date, but not the end date.
+     * Retrieves an annotation by ID.
      *
-     * @param int $idSite The ID of the site to count annotations for.
-     * @param string|false $startDate The start date of the range or false if no
-     *                                range check is desired.
-     * @param string|false $endDate The end date of the range or false if no
-     *                              range check is desired.
-     * @return array eg, array('count' => 5, 'starred' => 2)
+     * This function returns an array with the following elements:
+     *  - idNote: The ID of the annotation.
+     *  - date: The date of the annotation.
+     *  - note: The text of the annotation.
+     *  - starred: 1 or 0, whether the annotation is stared;
+     *  - user: (unless current user is anonymous) The user that created the annotation.
+     *  - canEditOrDelete: True if the user can edit/delete the annotation.
+     *
+     * @param int $idSite The ID of the site to get an annotation for.
+     * @param int $idNote The ID of the note to get.
+     * @throws Exception if $idSite is not an ID that was supplied upon construction.
+     * @throws Exception if $idNote does not refer to valid note for the site.
      */
-    public function count($idSite, $startDate, $endDate)
+    public function get($idSite, $idNote)
     {
         $this->checkIdSiteIsLoaded($idSite);
+        $this->checkNoteExists($idSite, $idNote);
 
-        // search includes end date, and count should not, so subtract one from the timestamp
-        $annotations = $this->search($startDate, Date::factory($endDate->getTimestamp() - 1));
-
-        // count the annotations
-        $count = $starred = 0;
-        if (!empty($annotations[$idSite])) {
-            $count = count($annotations[$idSite]);
-            foreach ($annotations[$idSite] as $annotation) {
-                if ($annotation['starred']) {
-                    ++$starred;
-                }
-            }
-        }
-
-        return array('count' => $count, 'starred' => $starred);
+        $annotation = $this->annotations[$idSite][$idNote];
+        $this->augmentAnnotationData($idSite, $idNote, $annotation);
+        return $annotation;
     }
 
     /**
@@ -441,6 +269,153 @@ class AnnotationList
     }
 
     /**
+     * Counts annotations & starred annotations within a date range and returns
+     * the counts. The date range includes the start date, but not the end date.
+     *
+     * @param int $idSite The ID of the site to count annotations for.
+     * @param string|false $startDate The start date of the range or false if no
+     *                                range check is desired.
+     * @param string|false $endDate The end date of the range or false if no
+     *                              range check is desired.
+     * @return array eg, array('count' => 5, 'starred' => 2)
+     */
+    public function count($idSite, $startDate, $endDate)
+    {
+        $this->checkIdSiteIsLoaded($idSite);
+
+        // search includes end date, and count should not, so subtract one from the timestamp
+        $annotations = $this->search($startDate, Date::factory($endDate->getTimestamp() - 1));
+
+        // count the annotations
+        $count = $starred = 0;
+        if (!empty($annotations[$idSite])) {
+            $count = count($annotations[$idSite]);
+            foreach ($annotations[$idSite] as $annotation) {
+                if ($annotation['starred']) {
+                    ++$starred;
+                }
+            }
+        }
+
+        return array('count' => $count, 'starred' => $starred);
+    }
+
+    /**
+     * Utility function. Creates a new annotation.
+     *
+     * @param string $date
+     * @param string $note
+     * @param int $starred
+     * @return array
+     */
+    private function makeAnnotation($date, $note, $starred = 0)
+    {
+        return array('date'    => $date,
+                     'note'    => $note,
+                     'starred' => (int)$starred,
+                     'user'    => Piwik::getCurrentUserLogin());
+    }
+
+    /**
+     * Retrieves annotations from the database for the sites supplied to the
+     * constructor.
+     *
+     * @return array Lists of annotations mapped by site ID.
+     */
+    private function getAnnotationsForSite()
+    {
+        $result = array();
+        foreach ($this->idSites as $id) {
+            $optionName = self::getAnnotationCollectionOptionName($id);
+            $serialized = Option::get($optionName);
+
+            if ($serialized !== false) {
+                $result[$id] = @unserialize($serialized);
+                if (empty($result[$id])) {
+                    // in case unserialize failed
+                    $result[$id] = array();
+                }
+            } else {
+                $result[$id] = array();
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Utility function that checks if a site ID was supplied and if not,
+     * throws an exception.
+     *
+     * We can only modify/read annotations for sites that we've actually
+     * loaded the annotations for.
+     *
+     * @param int $idSite
+     * @throws Exception
+     */
+    private function checkIdSiteIsLoaded($idSite)
+    {
+        if (!in_array($idSite, $this->idSites)) {
+            throw new Exception("This AnnotationList was not initialized with idSite '$idSite'.");
+        }
+    }
+
+    /**
+     * Utility function that checks if a note exists for a site, and if not,
+     * throws an exception.
+     *
+     * @param int $idSite
+     * @param int $idNote
+     * @throws Exception
+     */
+    private function checkNoteExists($idSite, $idNote)
+    {
+        if (empty($this->annotations[$idSite][$idNote])) {
+            throw new Exception("There is no note with id '$idNote' for site with id '$idSite'.");
+        }
+    }
+
+    /**
+     * Returns true if the current user can modify or delete a specific annotation.
+     *
+     * A user can modify/delete a note if the user has admin access for the site OR
+     * the user has view access, is not the anonymous user and is the user that
+     * created the note in question.
+     *
+     * @param int $idSite The site ID the annotation belongs to.
+     * @param array $annotation The annotation.
+     * @return bool
+     */
+    public static function canUserModifyOrDelete($idSite, $annotation)
+    {
+        // user can save if user is admin or if has view access, is not anonymous & is user who wrote note
+        $canEdit = Piwik::isUserHasAdminAccess($idSite)
+            || (!Piwik::isUserIsAnonymous()
+                && Piwik::getCurrentUserLogin() == $annotation['user']);
+        return $canEdit;
+    }
+
+    /**
+     * Adds extra data to an annotation, including the annotation's ID and whether
+     * the current user can edit or delete it.
+     *
+     * Also, if the current user is anonymous, the user attribute is removed.
+     *
+     * @param int $idSite
+     * @param int $idNote
+     * @param array $annotation
+     */
+    private function augmentAnnotationData($idSite, $idNote, &$annotation)
+    {
+        $annotation['idNote'] = $idNote;
+        $annotation['canEditOrDelete'] = self::canUserModifyOrDelete($idSite, $annotation);
+
+        // we don't supply user info if the current user is anonymous
+        if (Piwik::isUserIsAnonymous()) {
+            unset($annotation['user']);
+        }
+    }
+
+    /**
      * Utility function that compares two annotations.
      *
      * @param array $lhs An annotation.
@@ -454,5 +429,28 @@ class AnnotationList
         }
 
         return $lhs['date'] < $rhs['date'] ? -1 : 1; // string comparison works because date format should be YYYY-MM-DD
+    }
+
+    /**
+     * Returns true if the current user can add notes for a specific site.
+     *
+     * @param int $idSite The site to add notes to.
+     * @return bool
+     */
+    public static function canUserAddNotesFor($idSite)
+    {
+        return Piwik::isUserHasViewAccess($idSite)
+        && !Piwik::isUserIsAnonymous();
+    }
+
+    /**
+     * Returns the option name used to store annotations for a site.
+     *
+     * @param int $idSite The site ID.
+     * @return string
+     */
+    public static function getAnnotationCollectionOptionName($idSite)
+    {
+        return $idSite . self::ANNOTATION_COLLECTION_OPTION_SUFFIX;
     }
 }

@@ -35,6 +35,25 @@ class GenerateIntl extends ConsoleCommand
             ->setDescription('Generates Intl-data for Piwik');
     }
 
+    protected function transformLangCode($langCode)
+    {
+        if (substr_count($langCode, '-') == 1) {
+            $langCodeParts = explode('-', $langCode, 2);
+            return sprintf('%s-%s', $langCodeParts[0], strtoupper($langCodeParts[1]));
+        }
+        return $langCode;
+    }
+
+    protected function transform($str)
+    {
+        if (empty($str)) {
+            return $str;
+        }
+
+        preg_match_all("~^(.)(.*)$~u", $str, $arr);
+        return mb_strtoupper($arr[1][0], 'UTF-8').$arr[2][0];
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $piwikLanguages = \Piwik\Plugins\LanguagesManager\API::getInstance()->getAvailableLanguages();
@@ -87,13 +106,24 @@ class GenerateIntl extends ConsoleCommand
         }
     }
 
-    protected function transformLangCode($langCode)
+    protected function getEnglishLanguageName($code)
     {
-        if (substr_count($langCode, '-') == 1) {
-            $langCodeParts = explode('-', $langCode, 2);
-            return sprintf('%s-%s', $langCodeParts[0], strtoupper($langCodeParts[1]));
+        $languageDataUrl = 'https://raw.githubusercontent.com/unicode-cldr/cldr-localenames-full/master/main/%s/languages.json';
+
+        static $languageData = array();
+
+        try {
+            if (empty($languageData)) {
+                $languageData = Http::fetchRemoteFile(sprintf($languageDataUrl, 'en'));
+                $languageData = json_decode($languageData, true);
+                $languageData = $languageData['main']['en']['localeDisplayNames']['languages'];
+            }
+
+            return (array_key_exists($code, $languageData) && $languageData[$code] != $code) ? $this->transform($languageData[$code]) : '';
+        } catch (\Exception $e) {
         }
-        return $langCode;
+
+        return '';
     }
 
     protected function fetchLanguageData(OutputInterface $output, $langCode, $requestLangCode, &$translations)
@@ -119,9 +149,9 @@ class GenerateIntl extends ConsoleCommand
 
             if (array_key_exists($langCode, $languageData) && $languageData[$langCode] != $langCode) {
                 $translations['Intl']['OriginalLanguageName'] = $this->transform($languageData[$langCode]);
-            } else {if (array_key_exists($requestLangCode, $languageData) && $languageData[$requestLangCode] != $requestLangCode) {
+            } else if (array_key_exists($requestLangCode, $languageData) && $languageData[$requestLangCode] != $requestLangCode) {
                 $translations['Intl']['OriginalLanguageName'] = $this->transform($languageData[$requestLangCode]);
-            }}
+            }
             $translations['Intl']['EnglishLanguageName'] = $this->getEnglishLanguageName($langCode) ? $this->getEnglishLanguageName($langCode) : $this->getEnglishLanguageName($requestLangCode);
 
             $output->writeln('Saved language data for ' . $langCode);
@@ -130,34 +160,28 @@ class GenerateIntl extends ConsoleCommand
         }
     }
 
-    protected function transform($str)
+    protected function fetchLayoutDirection(OutputInterface $output, $langCode, $requestLangCode, &$translations)
     {
-        if (empty($str)) {
-            return $str;
-        }
-
-        preg_match_all("~^(.)(.*)$~u", $str, $arr);
-        return mb_strtoupper($arr[1][0], 'UTF-8').$arr[2][0];
-    }
-
-    protected function getEnglishLanguageName($code)
-    {
-        $languageDataUrl = 'https://raw.githubusercontent.com/unicode-cldr/cldr-localenames-full/master/main/%s/languages.json';
-
-        static $languageData = array();
+        $layoutDirectionUrl = 'https://raw.githubusercontent.com/unicode-cldr/cldr-misc-full/master/main/%s/layout.json';
 
         try {
-            if (empty($languageData)) {
-                $languageData = Http::fetchRemoteFile(sprintf($languageDataUrl, 'en'));
-                $languageData = json_decode($languageData, true);
-                $languageData = $languageData['main']['en']['localeDisplayNames']['languages'];
+            $layoutData = Http::fetchRemoteFile(sprintf($layoutDirectionUrl, $requestLangCode));
+            $layoutData = json_decode($layoutData, true);
+            $layoutData = $layoutData['main'][$requestLangCode]['layout']['orientation'];
+
+            if (empty($layoutData)) {
+                throw new \Exception();
             }
 
-            return (array_key_exists($code, $languageData) && $languageData[$code] != $code) ? $this->transform($languageData[$code]) : '';
-        } catch (\Exception $e) {
-        }
+            $translations['Intl']['LayoutDirection'] = 'ltr';
+            if ($layoutData['characterOrder'] == 'right-to-left') {
+                $translations['Intl']['LayoutDirection'] = 'rtl';
+            }
 
-        return '';
+            $output->writeln('Saved language data for ' . $langCode);
+        } catch (\Exception $e) {
+            $output->writeln('Unable to import language data for ' . $langCode);
+        }
     }
 
     protected function fetchTerritoryData(OutputInterface $output, $langCode, $requestLangCode, &$translations)
@@ -301,27 +325,29 @@ class GenerateIntl extends ConsoleCommand
         return $dateFormat;
     }
 
-    protected function fetchLayoutDirection(OutputInterface $output, $langCode, $requestLangCode, &$translations)
+    protected function fetchNumberFormattingData(OutputInterface $output, $langCode, $requestLangCode, &$translations)
     {
-        $layoutDirectionUrl = 'https://raw.githubusercontent.com/unicode-cldr/cldr-misc-full/master/main/%s/layout.json';
+        $unitsUrl = 'https://raw.githubusercontent.com/unicode-cldr/cldr-numbers-full/master/main/%s/numbers.json';
 
         try {
-            $layoutData = Http::fetchRemoteFile(sprintf($layoutDirectionUrl, $requestLangCode));
-            $layoutData = json_decode($layoutData, true);
-            $layoutData = $layoutData['main'][$requestLangCode]['layout']['orientation'];
+            $unitsData = Http::fetchRemoteFile(sprintf($unitsUrl, $requestLangCode));
+            $unitsData = json_decode($unitsData, true);
+            $unitsData = $unitsData['main'][$requestLangCode]['numbers'];
 
-            if (empty($layoutData)) {
-                throw new \Exception();
-            }
+            $numberingSystem = $unitsData['defaultNumberingSystem'];
 
-            $translations['Intl']['LayoutDirection'] = 'ltr';
-            if ($layoutData['characterOrder'] == 'right-to-left') {
-                $translations['Intl']['LayoutDirection'] = 'rtl';
-            }
+            $translations['Intl']['NumberSymbolDecimal']  = $unitsData['symbols-numberSystem-' . $numberingSystem]['decimal'];
+            $translations['Intl']['NumberSymbolGroup']    = $unitsData['symbols-numberSystem-' . $numberingSystem]['group'];
+            $translations['Intl']['NumberSymbolPercent']  = $unitsData['symbols-numberSystem-' . $numberingSystem]['percentSign'];
+            $translations['Intl']['NumberSymbolPlus']     = $unitsData['symbols-numberSystem-' . $numberingSystem]['plusSign'];
+            $translations['Intl']['NumberSymbolMinus']    = $unitsData['symbols-numberSystem-' . $numberingSystem]['minusSign'];
+            $translations['Intl']['NumberFormatNumber']   = $unitsData['decimalFormats-numberSystem-' . $numberingSystem]['standard'];
+            $translations['Intl']['NumberFormatCurrency']   = $unitsData['currencyFormats-numberSystem-' . $numberingSystem]['standard'];
+            $translations['Intl']['NumberFormatPercent']  = $unitsData['percentFormats-numberSystem-' . $numberingSystem]['standard'];
 
-            $output->writeln('Saved language data for ' . $langCode);
+            $output->writeln('Saved number formatting data for ' . $langCode);
         } catch (\Exception $e) {
-            $output->writeln('Unable to import language data for ' . $langCode);
+            $output->writeln('Unable to import number formatting data for ' . $langCode);
         }
     }
 
@@ -382,32 +408,6 @@ class GenerateIntl extends ConsoleCommand
     protected function replacePlaceHolder($string, $replacement = '%s')
     {
         return str_replace('{0}', $replacement, $string);
-    }
-
-    protected function fetchNumberFormattingData(OutputInterface $output, $langCode, $requestLangCode, &$translations)
-    {
-        $unitsUrl = 'https://raw.githubusercontent.com/unicode-cldr/cldr-numbers-full/master/main/%s/numbers.json';
-
-        try {
-            $unitsData = Http::fetchRemoteFile(sprintf($unitsUrl, $requestLangCode));
-            $unitsData = json_decode($unitsData, true);
-            $unitsData = $unitsData['main'][$requestLangCode]['numbers'];
-
-            $numberingSystem = $unitsData['defaultNumberingSystem'];
-
-            $translations['Intl']['NumberSymbolDecimal']  = $unitsData['symbols-numberSystem-' . $numberingSystem]['decimal'];
-            $translations['Intl']['NumberSymbolGroup']    = $unitsData['symbols-numberSystem-' . $numberingSystem]['group'];
-            $translations['Intl']['NumberSymbolPercent']  = $unitsData['symbols-numberSystem-' . $numberingSystem]['percentSign'];
-            $translations['Intl']['NumberSymbolPlus']     = $unitsData['symbols-numberSystem-' . $numberingSystem]['plusSign'];
-            $translations['Intl']['NumberSymbolMinus']    = $unitsData['symbols-numberSystem-' . $numberingSystem]['minusSign'];
-            $translations['Intl']['NumberFormatNumber']   = $unitsData['decimalFormats-numberSystem-' . $numberingSystem]['standard'];
-            $translations['Intl']['NumberFormatCurrency']   = $unitsData['currencyFormats-numberSystem-' . $numberingSystem]['standard'];
-            $translations['Intl']['NumberFormatPercent']  = $unitsData['percentFormats-numberSystem-' . $numberingSystem]['standard'];
-
-            $output->writeln('Saved number formatting data for ' . $langCode);
-        } catch (\Exception $e) {
-            $output->writeln('Unable to import number formatting data for ' . $langCode);
-        }
     }
 
 }

@@ -77,6 +77,39 @@ class Zend_Db_Adapter_Pdo_Mysql extends Zend_Db_Adapter_Pdo_Abstract
     );
 
     /**
+     * Override _dsn() and ensure that charset is incorporated in mysql
+     * @see Zend_Db_Adapter_Pdo_Abstract::_dsn()
+     */
+    protected function _dsn()
+    {
+        $dsn = parent::_dsn();
+        if (isset($this->_config['charset'])) {
+            $dsn .= ';charset=' . $this->_config['charset'];
+        }
+        return $dsn;
+    }
+    
+    /**
+     * Creates a PDO object and connects to the database.
+     *
+     * @return void
+     * @throws Zend_Db_Adapter_Exception
+     */
+    protected function _connect()
+    {
+        if ($this->_connection) {
+            return;
+        }
+
+        if (!empty($this->_config['charset'])) {
+            $initCommand = "SET NAMES '" . $this->_config['charset'] . "'";
+            $this->_config['driver_options'][1002] = $initCommand; // 1002 = PDO::MYSQL_ATTR_INIT_COMMAND
+        }
+
+        parent::_connect();
+    }
+
+    /**
      * @return string
      */
     public function getQuoteIdentifierSymbol()
@@ -157,19 +190,19 @@ class Zend_Db_Adapter_Pdo_Mysql extends Zend_Db_Adapter_Pdo_Abstract
             if (preg_match('/^((?:var)?char)\((\d+)\)/', $row[$type], $matches)) {
                 $row[$type] = $matches[1];
                 $length = $matches[2];
-            } else {if (preg_match('/^decimal\((\d+),(\d+)\)/', $row[$type], $matches)) {
+            } else if (preg_match('/^decimal\((\d+),(\d+)\)/', $row[$type], $matches)) {
                 $row[$type] = 'decimal';
                 $precision = $matches[1];
                 $scale = $matches[2];
-            } else {if (preg_match('/^float\((\d+),(\d+)\)/', $row[$type], $matches)) {
+            } else if (preg_match('/^float\((\d+),(\d+)\)/', $row[$type], $matches)) {
                 $row[$type] = 'float';
                 $precision = $matches[1];
                 $scale = $matches[2];
-            } else {if (preg_match('/^((?:big|medium|small|tiny)?int)\((\d+)\)/', $row[$type], $matches)) {
+            } else if (preg_match('/^((?:big|medium|small|tiny)?int)\((\d+)\)/', $row[$type], $matches)) {
                 $row[$type] = $matches[1];
                 // The optional argument of a MySQL int type is not precision
                 // or length; it is only a hint for display width.
-            }}}}
+            }
             if (strtoupper($row[$key]) == 'PRI') {
                 $primary = true;
                 $primaryPosition = $p;
@@ -232,39 +265,6 @@ class Zend_Db_Adapter_Pdo_Mysql extends Zend_Db_Adapter_Pdo_Abstract
         }
 
         return $sql;
-    }
-
-    /**
-     * Override _dsn() and ensure that charset is incorporated in mysql
-     * @see Zend_Db_Adapter_Pdo_Abstract::_dsn()
-     */
-    protected function _dsn()
-    {
-        $dsn = parent::_dsn();
-        if (isset($this->_config['charset'])) {
-            $dsn .= ';charset=' . $this->_config['charset'];
-        }
-        return $dsn;
-    }
-
-    /**
-     * Creates a PDO object and connects to the database.
-     *
-     * @return void
-     * @throws Zend_Db_Adapter_Exception
-     */
-    protected function _connect()
-    {
-        if ($this->_connection) {
-            return;
-        }
-
-        if (!empty($this->_config['charset'])) {
-            $initCommand = "SET NAMES '" . $this->_config['charset'] . "'";
-            $this->_config['driver_options'][1002] = $initCommand; // 1002 = PDO::MYSQL_ATTR_INIT_COMMAND
-        }
-
-        parent::_connect();
     }
 
 }

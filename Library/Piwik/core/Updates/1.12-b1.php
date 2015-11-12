@@ -22,16 +22,16 @@ class Updates_1_12_b1 extends Updates
         return true;
     }
 
-    public function doUpdate(Updater $updater)
-    {
-        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
-    }
-
     public function getMigrationQueries(Updater $updater)
     {
         return array(
             'ALTER TABLE `' . Common::prefixTable('log_link_visit_action') . '`
 			 ADD `custom_float` FLOAT NULL DEFAULT NULL' => 1060
         );
+    }
+
+    public function doUpdate(Updater $updater)
+    {
+        $updater->executeMigrationQueries(__FILE__, $this->getMigrationQueries($updater));
     }
 }

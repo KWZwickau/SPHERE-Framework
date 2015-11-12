@@ -69,50 +69,13 @@ abstract class Schedule
     }
 
     /**
-     * Returns a new Schedule instance using a string description of the scheduled period type
-     * and a string description of the day within the period to execute the task on.
-     *
-     * @param string $periodType The scheduled period type. Can be `'hourly'`, `'daily'`, `'weekly'`, or `'monthly'`.
-     * @param bool|false|int|string $periodDay A string describing the day within the scheduled period to execute
-     *                                    the task on. Only valid for week and month periods.
-     *
-     *                                    If `'weekly'` is supplied for `$periodType`, this should be a day
-     *                                    of the week, for example, `'monday'` or `'tuesday'`.
-     *
-     *                                    If `'monthly'` is supplied for `$periodType`, this can be a numeric
-     *                                    day in the month or a day in one week of the month. For example,
-     *                                    `12`, `23`, `'first sunday'` or `'fourth tuesday'`.
-     * @return Hourly|Daily|Weekly|Monthly
-     * @throws Exception
-     * @api
+     * Returns the system time used by subclasses to compute schedulings.
+     * This method has been introduced so unit tests can override the current system time.
+     * @return int
      */
-    public static function factory($periodType, $periodDay = false)
+    protected function getTime()
     {
-        switch ($periodType) {
-            case 'hourly':
-                return new Hourly();
-            case 'daily':
-                return new Daily();
-            case 'weekly':
-                $result = new Weekly();
-                if ($periodDay !== false) {
-                    $result->setDay($periodDay);
-                }
-                return $result;
-            case 'monthly':
-                $result = new Monthly($periodDay);
-                if ($periodDay !== false) {
-                    if (is_int($periodDay)) {
-                        $result->setDay($periodDay);
-                    } else {
-                        $result->setDayOfWeekFromString($periodDay);
-                    }
-                }
-                return $result;
-            default:
-                throw new Exception("Unsupported scheduled period type: '$periodType'. Supported values are"
-                    . " 'hourly', 'daily', 'weekly' or 'monthly'.");
-        }
+        return time();
     }
 
     /**
@@ -169,7 +132,7 @@ abstract class Schedule
         }
 
         $arbitraryDateInUTC = Date::factory('2011-01-01');
-        $dateInTimezone = Date::factory($arbitraryDateInUTC, $this->timezone);
+        $dateInTimezone     = Date::factory($arbitraryDateInUTC, $this->timezone);
 
         $midnightInTimezone = date('H', $dateInTimezone->getTimestamp());
 
@@ -179,7 +142,7 @@ abstract class Schedule
             $hoursDifference = 24 - $midnightInTimezone;
         }
 
-        $hoursDifference = $hoursDifference % 24;
+        $hoursDifference  = $hoursDifference % 24;
 
         $rescheduledTime += (3600 * $hoursDifference);
 
@@ -189,16 +152,6 @@ abstract class Schedule
         }
 
         return $rescheduledTime;
-    }
-
-    /**
-     * Returns the system time used by subclasses to compute schedulings.
-     * This method has been introduced so unit tests can override the current system time.
-     * @return int
-     */
-    protected function getTime()
-    {
-        return time();
     }
 
     /**
@@ -220,5 +173,52 @@ abstract class Schedule
             );
         }
         return $rescheduledTime;
+    }
+
+    /**
+     * Returns a new Schedule instance using a string description of the scheduled period type
+     * and a string description of the day within the period to execute the task on.
+     *
+     * @param string $periodType The scheduled period type. Can be `'hourly'`, `'daily'`, `'weekly'`, or `'monthly'`.
+     * @param bool|false|int|string $periodDay A string describing the day within the scheduled period to execute
+     *                                    the task on. Only valid for week and month periods.
+     *
+     *                                    If `'weekly'` is supplied for `$periodType`, this should be a day
+     *                                    of the week, for example, `'monday'` or `'tuesday'`.
+     *
+     *                                    If `'monthly'` is supplied for `$periodType`, this can be a numeric
+     *                                    day in the month or a day in one week of the month. For example,
+     *                                    `12`, `23`, `'first sunday'` or `'fourth tuesday'`.
+     * @return Hourly|Daily|Weekly|Monthly
+     * @throws Exception
+     * @api
+     */
+    public static function factory($periodType, $periodDay = false)
+    {
+        switch ($periodType) {
+            case 'hourly':
+                return new Hourly();
+            case 'daily':
+                return new Daily();
+            case 'weekly':
+                $result = new Weekly();
+                if ($periodDay !== false) {
+                    $result->setDay($periodDay);
+                }
+                return $result;
+            case 'monthly':
+                $result = new Monthly($periodDay);
+                if ($periodDay !== false) {
+                    if (is_int($periodDay)) {
+                        $result->setDay($periodDay);
+                    } else {
+                        $result->setDayOfWeekFromString($periodDay);
+                    }
+                }
+                return $result;
+            default:
+                throw new Exception("Unsupported scheduled period type: '$periodType'. Supported values are"
+                                  . " 'hourly', 'daily', 'weekly' or 'monthly'.");
+        }
     }
 }

@@ -34,13 +34,13 @@ class PhpDocReader
 
     /**
      * Enable or disable throwing errors when PhpDoc Errors occur (when parsing annotations)
-     *
+     * 
      * @var bool
      */
     private $ignorePhpDocErrors;
 
     /**
-     *
+     * 
      * @param bool $ignorePhpDocErrors
      */
     public function __construct($ignorePhpDocErrors = false)
@@ -147,15 +147,6 @@ class PhpDocReader
         $type = ltrim($type, '\\');
 
         return $type;
-    }
-
-    /**
-     * @param string $class
-     * @return bool
-     */
-    private function classExists($class)
-    {
-        return class_exists($class) || interface_exists($class);
     }
 
     /**
@@ -266,5 +257,14 @@ class PhpDocReader
         $type = ltrim($type, '\\');
 
         return $type;
+    }
+
+    /**
+     * @param string $class
+     * @return bool
+     */
+    private function classExists($class)
+    {
+        return class_exists($class) || interface_exists($class);
     }
 }

@@ -156,6 +156,39 @@ class Zend_Mail_Storage_Folder_Mbox extends Zend_Mail_Storage_Mbox implements Ze
     }
 
     /**
+     * get root folder or given folder
+     *
+     * @param string $rootFolder get folder structure for given folder, else root
+     * @return Zend_Mail_Storage_Folder root or wanted folder
+     * @throws Zend_Mail_Storage_Exception
+     */
+    public function getFolders($rootFolder = null)
+    {
+        if (!$rootFolder) {
+            return $this->_rootFolder;
+        }
+
+        $currentFolder = $this->_rootFolder;
+        $subname = trim($rootFolder, DIRECTORY_SEPARATOR);
+        while ($currentFolder) {
+            @list($entry, $subname) = @explode(DIRECTORY_SEPARATOR, $subname, 2);
+            $currentFolder = $currentFolder->$entry;
+            if (!$subname) {
+                break;
+            }
+        }
+
+        if ($currentFolder->getGlobalName() != DIRECTORY_SEPARATOR . trim($rootFolder, DIRECTORY_SEPARATOR)) {
+            /**
+             * @see Zend_Mail_Storage_Exception
+             */
+            // require_once 'Zend/Mail/Storage/Exception.php';
+            throw new Zend_Mail_Storage_Exception("folder $rootFolder not found");
+        }
+        return $currentFolder;
+    }
+
+    /**
      * select given folder
      *
      * folder must be selectable!
@@ -191,39 +224,6 @@ class Zend_Mail_Storage_Folder_Mbox extends Zend_Mail_Storage_Mbox implements Ze
             throw new Zend_Mail_Storage_Exception('seems like the mbox file has vanished, I\'ve rebuild the ' .
                                                          'folder tree, search for an other folder and try again', 0, $e);
         }
-    }
-
-    /**
-     * get root folder or given folder
-     *
-     * @param string $rootFolder get folder structure for given folder, else root
-     * @return Zend_Mail_Storage_Folder root or wanted folder
-     * @throws Zend_Mail_Storage_Exception
-     */
-    public function getFolders($rootFolder = null)
-    {
-        if (!$rootFolder) {
-            return $this->_rootFolder;
-        }
-
-        $currentFolder = $this->_rootFolder;
-        $subname = trim($rootFolder, DIRECTORY_SEPARATOR);
-        while ($currentFolder) {
-            @list($entry, $subname) = @explode(DIRECTORY_SEPARATOR, $subname, 2);
-            $currentFolder = $currentFolder->$entry;
-            if (!$subname) {
-                break;
-            }
-        }
-
-        if ($currentFolder->getGlobalName() != DIRECTORY_SEPARATOR . trim($rootFolder, DIRECTORY_SEPARATOR)) {
-            /**
-             * @see Zend_Mail_Storage_Exception
-             */
-            // require_once 'Zend/Mail/Storage/Exception.php';
-            throw new Zend_Mail_Storage_Exception("folder $rootFolder not found");
-        }
-        return $currentFolder;
     }
 
     /**

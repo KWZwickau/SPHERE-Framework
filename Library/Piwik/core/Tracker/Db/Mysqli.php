@@ -144,29 +144,6 @@ class Mysqli extends Db
     }
 
     /**
-     * Input is a prepared SQL statement and parameters
-     * Returns the SQL statement
-     *
-     * @param string $query
-     * @param array $parameters
-     * @return string
-     */
-    private function prepare($query, $parameters)
-    {
-        if (!$parameters) {
-            $parameters = array();
-        } elseif (!is_array($parameters)) {
-            $parameters = array($parameters);
-        }
-
-        $this->paramNb = 0;
-        $this->params = & $parameters;
-        $query = preg_replace_callback('/\?/', array($this, 'replaceParam'), $query);
-
-        return $query;
-    }
-
-    /**
      * Returns the first row of a query result, using optional bound parameters.
      *
      * @see query()
@@ -248,6 +225,29 @@ class Mysqli extends Db
     public function lastInsertId()
     {
         return mysqli_insert_id($this->connection);
+    }
+
+    /**
+     * Input is a prepared SQL statement and parameters
+     * Returns the SQL statement
+     *
+     * @param string $query
+     * @param array $parameters
+     * @return string
+     */
+    private function prepare($query, $parameters)
+    {
+        if (!$parameters) {
+            $parameters = array();
+        } elseif (!is_array($parameters)) {
+            $parameters = array($parameters);
+        }
+
+        $this->paramNb = 0;
+        $this->params = & $parameters;
+        $query = preg_replace_callback('/\?/', array($this, 'replaceParam'), $query);
+
+        return $query;
     }
 
     public function replaceParam($match)

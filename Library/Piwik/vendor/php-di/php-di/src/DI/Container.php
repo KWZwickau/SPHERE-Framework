@@ -9,16 +9,16 @@
 
 namespace DI;
 
+use DI\Definition\ObjectDefinition;
 use DI\Definition\Definition;
 use DI\Definition\FactoryDefinition;
-use DI\Definition\Helper\DefinitionHelper;
 use DI\Definition\InstanceDefinition;
-use DI\Definition\ObjectDefinition;
-use DI\Definition\Resolver\DefinitionResolver;
 use DI\Definition\Resolver\ResolverDispatcher;
 use DI\Definition\Source\CachedDefinitionSource;
 use DI\Definition\Source\DefinitionSource;
 use DI\Definition\Source\MutableDefinitionSource;
+use DI\Definition\Helper\DefinitionHelper;
+use DI\Definition\Resolver\DefinitionResolver;
 use DI\Invoker\DefinitionParameterResolver;
 use DI\Proxy\ProxyFactory;
 use Exception;
@@ -125,40 +125,6 @@ class Container implements ContainerInterface, FactoryInterface, \DI\InvokerInte
         if ($definition->getScope() === Scope::SINGLETON) {
             $this->singletonEntries[$name] = $value;
         }
-
-        return $value;
-    }
-
-    /**
-     * Resolves a definition.
-     *
-     * Checks for circular dependencies while resolving the definition.
-     *
-     * @param Definition $definition
-     * @param array      $parameters
-     *
-     * @throws DependencyException Error while resolving the entry.
-     * @return mixed
-     */
-    private function resolveDefinition(Definition $definition, array $parameters = array())
-    {
-        $entryName = $definition->getName();
-
-        // Check if we are already getting this entry -> circular dependency
-        if (isset($this->entriesBeingResolved[$entryName])) {
-            throw new DependencyException("Circular dependency detected while trying to resolve entry '$entryName'");
-        }
-        $this->entriesBeingResolved[$entryName] = true;
-
-        // Resolve the definition
-        try {
-            $value = $this->definitionResolver->resolve($definition, $parameters);
-        } catch (Exception $exception) {
-            unset($this->entriesBeingResolved[$entryName]);
-            throw $exception;
-        }
-
-        unset($this->entriesBeingResolved[$entryName]);
 
         return $value;
     }
@@ -272,22 +238,6 @@ class Container implements ContainerInterface, FactoryInterface, \DI\InvokerInte
         return $this->getInvoker()->call($callable, $parameters);
     }
 
-    private function getInvoker()
-    {
-        if (! $this->invoker) {
-            $parameterResolver = new ResolverChain(array(
-                new NumericArrayResolver,
-                new AssociativeArrayResolver,
-                new DefinitionParameterResolver($this->definitionResolver),
-                new TypeHintContainerResolver($this),
-            ));
-
-            $this->invoker = new Invoker($parameterResolver, $this);
-        }
-
-        return $this->invoker;
-    }
-
     /**
      * Define an object or a value in the container.
      *
@@ -309,6 +259,40 @@ class Container implements ContainerInterface, FactoryInterface, \DI\InvokerInte
         }
     }
 
+    /**
+     * Resolves a definition.
+     *
+     * Checks for circular dependencies while resolving the definition.
+     *
+     * @param Definition $definition
+     * @param array      $parameters
+     *
+     * @throws DependencyException Error while resolving the entry.
+     * @return mixed
+     */
+    private function resolveDefinition(Definition $definition, array $parameters = array())
+    {
+        $entryName = $definition->getName();
+
+        // Check if we are already getting this entry -> circular dependency
+        if (isset($this->entriesBeingResolved[$entryName])) {
+            throw new DependencyException("Circular dependency detected while trying to resolve entry '$entryName'");
+        }
+        $this->entriesBeingResolved[$entryName] = true;
+
+        // Resolve the definition
+        try {
+            $value = $this->definitionResolver->resolve($definition, $parameters);
+        } catch (Exception $exception) {
+            unset($this->entriesBeingResolved[$entryName]);
+            throw $exception;
+        }
+
+        unset($this->entriesBeingResolved[$entryName]);
+
+        return $value;
+    }
+
     private function setDefinition($name, Definition $definition)
     {
         if ($this->definitionSource instanceof CachedDefinitionSource) {
@@ -326,5 +310,21 @@ class Container implements ContainerInterface, FactoryInterface, \DI\InvokerInte
         }
 
         $this->definitionSource->addDefinition($definition);
+    }
+
+    private function getInvoker()
+    {
+        if (! $this->invoker) {
+            $parameterResolver = new ResolverChain(array(
+                new NumericArrayResolver,
+                new AssociativeArrayResolver,
+                new DefinitionParameterResolver($this->definitionResolver),
+                new TypeHintContainerResolver($this),
+            ));
+
+            $this->invoker = new Invoker($parameterResolver, $this);
+        }
+
+        return $this->invoker;
     }
 }

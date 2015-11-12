@@ -153,141 +153,62 @@ class LogAggregator
         $this->sites = $params->getIdSites();
     }
 
-    /**
-     * Creates and returns an array of SQL `SELECT` expressions that will each count how
-     * many rows have a column whose value is within a certain range.
-     *
-     * **Note:** The result of this function is meant for use in the `$additionalSelects` parameter
-     * in one of the query... methods (for example {@link queryVisitsByDimension()}).
-     *
-     * **Example**
-     *
-     *     // summarize one column
-     *     $visitTotalActionsRanges = array(
-     *         array(1, 1),
-     *         array(2, 10),
-     *         array(10)
-     *     );
-     *     $selects = LogAggregator::getSelectsFromRangedColumn('visit_total_actions', $visitTotalActionsRanges, 'log_visit', 'vta');
-     *
-     *     // summarize another column in the same request
-     *     $visitCountVisitsRanges = array(
-     *         array(1, 1),
-     *         array(2, 20),
-     *         array(20)
-     *     );
-     *     $selects = array_merge(
-     *         $selects,
-     *         LogAggregator::getSelectsFromRangedColumn('visitor_count_visits', $visitCountVisitsRanges, 'log_visit', 'vcv')
-     *     );
-     *
-     *     // perform the query
-     *     $logAggregator = // get the LogAggregator somehow
-     *     $query = $logAggregator->queryVisitsByDimension($dimensions = array(), $where = false, $selects);
-     *     $tableSummary = $query->fetch();
-     *
-     *     $numberOfVisitsWithOneAction = $tableSummary['vta0'];
-     *     $numberOfVisitsBetweenTwoAnd10 = $tableSummary['vta1'];
-     *
-     *     $numberOfVisitsWithVisitCountOfOne = $tableSummary['vcv0'];
-     *
-     * @param string $column The name of a column in `$table` that will be summarized.
-     * @param array $ranges The array of ranges over which the data in the table
-     *                      will be summarized. For example,
-     *                      ```
-     *                      array(
-     *                          array(1, 1),
-     *                          array(2, 2),
-     *                          array(3, 8),
-     *                          array(8) // everything over 8
-     *                      )
-     *                      ```
-     * @param string $table The unprefixed name of the table whose rows will be summarized.
-     * @param string $selectColumnPrefix The prefix to prepend to each SELECT expression. This
-     *                                   prefix is used to differentiate different sets of
-     *                                   range summarization SELECTs. You can supply different
-     *                                   values to this argument to summarize several columns
-     *                                   in one query (see above for an example).
-     * @param bool $restrictToReturningVisitors Whether to only summarize rows that belong to
-     *                                          visits of returning visitors or not. If this
-     *                                          argument is true, then the SELECT expressions
-     *                                          returned can only be used with the
-     *                                          {@link queryVisitsByDimension()} method.
-     * @return array An array of SQL SELECT expressions, for example,
-     *               ```
-     *               array(
-     *                   'sum(case when log_visit.visit_total_actions between 0 and 2 then 1 else 0 end) as vta0',
-     *                   'sum(case when log_visit.visit_total_actions > 2 then 1 else 0 end) as vta1'
-     *               )
-     *               ```
-     * @api
-     */
-    public static function getSelectsFromRangedColumn($column, $ranges, $table, $selectColumnPrefix, $restrictToReturningVisitors = false)
-    {
-        $selects = array();
-        $extraCondition = '';
-
-        if ($restrictToReturningVisitors) {
-            // extra condition for the SQL SELECT that makes sure only returning visits are counted
-            // when creating the 'days since last visit' report
-            $extraCondition = 'and log_visit.visitor_returning = 1';
-            $extraSelect    = "sum(case when log_visit.visitor_returning = 0 then 1 else 0 end) "
-                            . " as `" . $selectColumnPrefix . 'General_NewVisits' . "`";
-            $selects[] = $extraSelect;
-        }
-
-        foreach ($ranges as $gap) {
-            if (count($gap) == 2) {
-                $lowerBound = $gap[0];
-                $upperBound = $gap[1];
-
-                $selectAs = "$selectColumnPrefix$lowerBound-$upperBound";
-
-                $selects[] = "sum(case when $table.$column between $lowerBound and $upperBound $extraCondition" .
-                             " then 1 else 0 end) as `$selectAs`";
-            } else {
-                $lowerBound = $gap[0];
-
-                $selectAs  = $selectColumnPrefix . ($lowerBound + 1) . urlencode('+');
-                $selects[] = "sum(case when $table.$column > $lowerBound $extraCondition then 1 else 0 end) as `$selectAs`";
-            }
-        }
-
-        return $selects;
-    }
-
-    /**
-     * Clean up the row data and return values.
-     * $lookForThisPrefix can be used to make sure only SOME of the data in $row is used.
-     *
-     * The array will have one column $columnName
-     *
-     * @param $row
-     * @param $columnName
-     * @param bool $lookForThisPrefix A string that identifies which elements of $row to use
-     *                                 in the result. Every key of $row that starts with this
-     *                                 value is used.
-     * @return array
-     */
-    public static function makeArrayOneColumn($row, $columnName, $lookForThisPrefix = false)
-    {
-        $cleanRow = array();
-
-        foreach ($row as $label => $count) {
-            if (empty($lookForThisPrefix)
-                || strpos($label, $lookForThisPrefix) === 0
-            ) {
-                $cleanLabel = substr($label, strlen($lookForThisPrefix));
-                $cleanRow[$cleanLabel] = array($columnName => $count);
-            }
-        }
-
-        return $cleanRow;
-    }
-
     public function setQueryOriginHint($nameOfOrigiin)
     {
         $this->queryOriginHint = $nameOfOrigiin;
+    }
+
+    public function generateQuery($select, $from, $where, $groupBy, $orderBy)
+    {
+        $bind = $this->getGeneralQueryBindParams();
+        $query = $this->segment->getSelectQuery($select, $from, $where, $bind, $orderBy, $groupBy);
+
+        $select = 'SELECT';
+        if ($this->queryOriginHint && is_array($query) && 0 === strpos(trim($query['sql']), $select)) {
+            $query['sql'] = trim($query['sql']);
+            $query['sql'] = 'SELECT /* ' . $this->queryOriginHint . ' */' . substr($query['sql'], strlen($select));
+        }
+
+        return $query;
+    }
+
+    protected function getVisitsMetricFields()
+    {
+        return array(
+            Metrics::INDEX_NB_UNIQ_VISITORS               => "count(distinct " . self::LOG_VISIT_TABLE . ".idvisitor)",
+            Metrics::INDEX_NB_UNIQ_FINGERPRINTS           => "count(distinct " . self::LOG_VISIT_TABLE . ".config_id)",
+            Metrics::INDEX_NB_VISITS                      => "count(*)",
+            Metrics::INDEX_NB_ACTIONS                     => "sum(" . self::LOG_VISIT_TABLE . ".visit_total_actions)",
+            Metrics::INDEX_MAX_ACTIONS                    => "max(" . self::LOG_VISIT_TABLE . ".visit_total_actions)",
+            Metrics::INDEX_SUM_VISIT_LENGTH               => "sum(" . self::LOG_VISIT_TABLE . ".visit_total_time)",
+            Metrics::INDEX_BOUNCE_COUNT                   => "sum(case " . self::LOG_VISIT_TABLE . ".visit_total_actions when 1 then 1 when 0 then 1 else 0 end)",
+            Metrics::INDEX_NB_VISITS_CONVERTED            => "sum(case " . self::LOG_VISIT_TABLE . ".visit_goal_converted when 1 then 1 else 0 end)",
+            Metrics::INDEX_NB_USERS                       => "count(distinct " . self::LOG_VISIT_TABLE . ".user_id)",
+        );
+    }
+
+    public static function getConversionsMetricFields()
+    {
+        return array(
+            Metrics::INDEX_GOAL_NB_CONVERSIONS             => "count(*)",
+            Metrics::INDEX_GOAL_NB_VISITS_CONVERTED        => "count(distinct " . self::LOG_CONVERSION_TABLE . ".idvisit)",
+            Metrics::INDEX_GOAL_REVENUE                    => self::getSqlConversionRevenueSum(self::TOTAL_REVENUE_FIELD),
+            Metrics::INDEX_GOAL_ECOMMERCE_REVENUE_SUBTOTAL => self::getSqlConversionRevenueSum(self::REVENUE_SUBTOTAL_FIELD),
+            Metrics::INDEX_GOAL_ECOMMERCE_REVENUE_TAX      => self::getSqlConversionRevenueSum(self::REVENUE_TAX_FIELD),
+            Metrics::INDEX_GOAL_ECOMMERCE_REVENUE_SHIPPING => self::getSqlConversionRevenueSum(self::REVENUE_SHIPPING_FIELD),
+            Metrics::INDEX_GOAL_ECOMMERCE_REVENUE_DISCOUNT => self::getSqlConversionRevenueSum(self::REVENUE_DISCOUNT_FIELD),
+            Metrics::INDEX_GOAL_ECOMMERCE_ITEMS            => "SUM(" . self::LOG_CONVERSION_TABLE . "." . self::ITEMS_COUNT_FIELD . ")",
+        );
+    }
+
+    private static function getSqlConversionRevenueSum($field)
+    {
+        return self::getSqlRevenue('SUM(' . self::LOG_CONVERSION_TABLE . '.' . $field . ')');
+    }
+
+    public static function getSqlRevenue($field)
+    {
+        return "ROUND(" . $field . "," . GoalManager::REVENUE_PRECISION . ")";
     }
 
     /**
@@ -420,19 +341,18 @@ class LogAggregator
         return $this->getDb()->query($query['sql'], $query['bind']);
     }
 
-    protected function getVisitsMetricFields()
+    protected function getSelectsMetrics($metricsAvailable, $metricsRequested = false)
     {
-        return array(
-            Metrics::INDEX_NB_UNIQ_VISITORS               => "count(distinct " . self::LOG_VISIT_TABLE . ".idvisitor)",
-            Metrics::INDEX_NB_UNIQ_FINGERPRINTS           => "count(distinct " . self::LOG_VISIT_TABLE . ".config_id)",
-            Metrics::INDEX_NB_VISITS                      => "count(*)",
-            Metrics::INDEX_NB_ACTIONS                     => "sum(" . self::LOG_VISIT_TABLE . ".visit_total_actions)",
-            Metrics::INDEX_MAX_ACTIONS                    => "max(" . self::LOG_VISIT_TABLE . ".visit_total_actions)",
-            Metrics::INDEX_SUM_VISIT_LENGTH               => "sum(" . self::LOG_VISIT_TABLE . ".visit_total_time)",
-            Metrics::INDEX_BOUNCE_COUNT                   => "sum(case " . self::LOG_VISIT_TABLE . ".visit_total_actions when 1 then 1 when 0 then 1 else 0 end)",
-            Metrics::INDEX_NB_VISITS_CONVERTED            => "sum(case " . self::LOG_VISIT_TABLE . ".visit_goal_converted when 1 then 1 else 0 end)",
-            Metrics::INDEX_NB_USERS                       => "count(distinct " . self::LOG_VISIT_TABLE . ".user_id)",
-        );
+        $selects = array();
+
+        foreach ($metricsAvailable as $metricId => $statement) {
+            if ($this->isMetricRequested($metricId, $metricsRequested)) {
+                $aliasAs   = $this->getSelectAliasAs($metricId);
+                $selects[] = $statement . $aliasAs;
+            }
+        }
+
+        return $selects;
     }
 
     protected function getSelectStatement($dimensions, $tableName, $additionalSelects, array $availableMetrics, $requestedMetrics = false)
@@ -476,11 +396,6 @@ class LogAggregator
         return $dimensionsToSelect;
     }
 
-    protected function getSelectAliasAs($metricId)
-    {
-        return " AS `" . $metricId . "`";
-    }
-
     /**
      * Returns the dimensions array, where
      * (1) the table name is prepended to the field
@@ -519,12 +434,6 @@ class LogAggregator
         return $dimensions;
     }
 
-    protected function isFieldFunctionOrComplexExpression($field)
-    {
-        return strpos($field, "(") !== false
-            || strpos($field, "CASE") !== false;
-    }
-
     /**
      * Prefixes a column name with a table name if not already done.
      *
@@ -541,18 +450,15 @@ class LogAggregator
         }
     }
 
-    protected function getSelectsMetrics($metricsAvailable, $metricsRequested = false)
+    protected function isFieldFunctionOrComplexExpression($field)
     {
-        $selects = array();
+        return strpos($field, "(") !== false
+            || strpos($field, "CASE") !== false;
+    }
 
-        foreach ($metricsAvailable as $metricId => $statement) {
-            if ($this->isMetricRequested($metricId, $metricsRequested)) {
-                $aliasAs   = $this->getSelectAliasAs($metricId);
-                $selects[] = $statement . $aliasAs;
-            }
-        }
-
-        return $selects;
+    protected function getSelectAliasAs($metricId)
+    {
+        return " AS `" . $metricId . "`";
     }
 
     protected function isMetricRequested($metricId, $metricsRequested)
@@ -589,20 +495,6 @@ class LogAggregator
         return $groupBy;
     }
 
-    public function generateQuery($select, $from, $where, $groupBy, $orderBy)
-    {
-        $bind = $this->getGeneralQueryBindParams();
-        $query = $this->segment->getSelectQuery($select, $from, $where, $bind, $orderBy, $groupBy);
-
-        $select = 'SELECT';
-        if ($this->queryOriginHint && is_array($query) && 0 === strpos(trim($query['sql']), $select)) {
-            $query['sql'] = trim($query['sql']);
-            $query['sql'] = 'SELECT /* ' . $this->queryOriginHint . ' */' . substr($query['sql'], strlen($select));
-        }
-
-        return $query;
-    }
-
     /**
      * Returns general bind parameters for all log aggregation queries. This includes the datetime
      * start of entities, datetime end of entities and IDs of all sites.
@@ -615,11 +507,6 @@ class LogAggregator
         $bind = array_merge($bind, $this->sites);
 
         return $bind;
-    }
-
-    public function getDb()
-    {
-        return Db::get();
     }
 
     /**
@@ -725,11 +612,6 @@ class LogAggregator
         );
 
         return $this->getDb()->query($query['sql'], $query['bind']);
-    }
-
-    public static function getSqlRevenue($field)
-    {
-        return "ROUND(" . $field . "," . GoalManager::REVENUE_PRECISION . ")";
     }
 
     /**
@@ -916,22 +798,140 @@ class LogAggregator
         return $this->getDb()->query($query['sql'], $query['bind']);
     }
 
-    public static function getConversionsMetricFields()
+    /**
+     * Creates and returns an array of SQL `SELECT` expressions that will each count how
+     * many rows have a column whose value is within a certain range.
+     *
+     * **Note:** The result of this function is meant for use in the `$additionalSelects` parameter
+     * in one of the query... methods (for example {@link queryVisitsByDimension()}).
+     *
+     * **Example**
+     *
+     *     // summarize one column
+     *     $visitTotalActionsRanges = array(
+     *         array(1, 1),
+     *         array(2, 10),
+     *         array(10)
+     *     );
+     *     $selects = LogAggregator::getSelectsFromRangedColumn('visit_total_actions', $visitTotalActionsRanges, 'log_visit', 'vta');
+     *
+     *     // summarize another column in the same request
+     *     $visitCountVisitsRanges = array(
+     *         array(1, 1),
+     *         array(2, 20),
+     *         array(20)
+     *     );
+     *     $selects = array_merge(
+     *         $selects,
+     *         LogAggregator::getSelectsFromRangedColumn('visitor_count_visits', $visitCountVisitsRanges, 'log_visit', 'vcv')
+     *     );
+     *
+     *     // perform the query
+     *     $logAggregator = // get the LogAggregator somehow
+     *     $query = $logAggregator->queryVisitsByDimension($dimensions = array(), $where = false, $selects);
+     *     $tableSummary = $query->fetch();
+     *
+     *     $numberOfVisitsWithOneAction = $tableSummary['vta0'];
+     *     $numberOfVisitsBetweenTwoAnd10 = $tableSummary['vta1'];
+     *
+     *     $numberOfVisitsWithVisitCountOfOne = $tableSummary['vcv0'];
+     *
+     * @param string $column The name of a column in `$table` that will be summarized.
+     * @param array $ranges The array of ranges over which the data in the table
+     *                      will be summarized. For example,
+     *                      ```
+     *                      array(
+     *                          array(1, 1),
+     *                          array(2, 2),
+     *                          array(3, 8),
+     *                          array(8) // everything over 8
+     *                      )
+     *                      ```
+     * @param string $table The unprefixed name of the table whose rows will be summarized.
+     * @param string $selectColumnPrefix The prefix to prepend to each SELECT expression. This
+     *                                   prefix is used to differentiate different sets of
+     *                                   range summarization SELECTs. You can supply different
+     *                                   values to this argument to summarize several columns
+     *                                   in one query (see above for an example).
+     * @param bool $restrictToReturningVisitors Whether to only summarize rows that belong to
+     *                                          visits of returning visitors or not. If this
+     *                                          argument is true, then the SELECT expressions
+     *                                          returned can only be used with the
+     *                                          {@link queryVisitsByDimension()} method.
+     * @return array An array of SQL SELECT expressions, for example,
+     *               ```
+     *               array(
+     *                   'sum(case when log_visit.visit_total_actions between 0 and 2 then 1 else 0 end) as vta0',
+     *                   'sum(case when log_visit.visit_total_actions > 2 then 1 else 0 end) as vta1'
+     *               )
+     *               ```
+     * @api
+     */
+    public static function getSelectsFromRangedColumn($column, $ranges, $table, $selectColumnPrefix, $restrictToReturningVisitors = false)
     {
-        return array(
-            Metrics::INDEX_GOAL_NB_CONVERSIONS             => "count(*)",
-            Metrics::INDEX_GOAL_NB_VISITS_CONVERTED        => "count(distinct " . self::LOG_CONVERSION_TABLE . ".idvisit)",
-            Metrics::INDEX_GOAL_REVENUE                    => self::getSqlConversionRevenueSum(self::TOTAL_REVENUE_FIELD),
-            Metrics::INDEX_GOAL_ECOMMERCE_REVENUE_SUBTOTAL => self::getSqlConversionRevenueSum(self::REVENUE_SUBTOTAL_FIELD),
-            Metrics::INDEX_GOAL_ECOMMERCE_REVENUE_TAX      => self::getSqlConversionRevenueSum(self::REVENUE_TAX_FIELD),
-            Metrics::INDEX_GOAL_ECOMMERCE_REVENUE_SHIPPING => self::getSqlConversionRevenueSum(self::REVENUE_SHIPPING_FIELD),
-            Metrics::INDEX_GOAL_ECOMMERCE_REVENUE_DISCOUNT => self::getSqlConversionRevenueSum(self::REVENUE_DISCOUNT_FIELD),
-            Metrics::INDEX_GOAL_ECOMMERCE_ITEMS            => "SUM(" . self::LOG_CONVERSION_TABLE . "." . self::ITEMS_COUNT_FIELD . ")",
-        );
+        $selects = array();
+        $extraCondition = '';
+
+        if ($restrictToReturningVisitors) {
+            // extra condition for the SQL SELECT that makes sure only returning visits are counted
+            // when creating the 'days since last visit' report
+            $extraCondition = 'and log_visit.visitor_returning = 1';
+            $extraSelect    = "sum(case when log_visit.visitor_returning = 0 then 1 else 0 end) "
+                            . " as `" . $selectColumnPrefix . 'General_NewVisits' . "`";
+            $selects[] = $extraSelect;
+        }
+
+        foreach ($ranges as $gap) {
+            if (count($gap) == 2) {
+                $lowerBound = $gap[0];
+                $upperBound = $gap[1];
+
+                $selectAs = "$selectColumnPrefix$lowerBound-$upperBound";
+
+                $selects[] = "sum(case when $table.$column between $lowerBound and $upperBound $extraCondition" .
+                             " then 1 else 0 end) as `$selectAs`";
+            } else {
+                $lowerBound = $gap[0];
+
+                $selectAs  = $selectColumnPrefix . ($lowerBound + 1) . urlencode('+');
+                $selects[] = "sum(case when $table.$column > $lowerBound $extraCondition then 1 else 0 end) as `$selectAs`";
+            }
+        }
+
+        return $selects;
     }
 
-    private static function getSqlConversionRevenueSum($field)
+    /**
+     * Clean up the row data and return values.
+     * $lookForThisPrefix can be used to make sure only SOME of the data in $row is used.
+     *
+     * The array will have one column $columnName
+     *
+     * @param $row
+     * @param $columnName
+     * @param bool $lookForThisPrefix A string that identifies which elements of $row to use
+     *                                 in the result. Every key of $row that starts with this
+     *                                 value is used.
+     * @return array
+     */
+    public static function makeArrayOneColumn($row, $columnName, $lookForThisPrefix = false)
     {
-        return self::getSqlRevenue('SUM(' . self::LOG_CONVERSION_TABLE . '.' . $field . ')');
+        $cleanRow = array();
+
+        foreach ($row as $label => $count) {
+            if (empty($lookForThisPrefix)
+                || strpos($label, $lookForThisPrefix) === 0
+            ) {
+                $cleanLabel = substr($label, strlen($lookForThisPrefix));
+                $cleanRow[$cleanLabel] = array($columnName => $count);
+            }
+        }
+
+        return $cleanRow;
+    }
+
+    public function getDb()
+    {
+        return Db::get();
     }
 }

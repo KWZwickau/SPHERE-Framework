@@ -131,7 +131,7 @@ class Zend_Validate_EmailAddress extends Zend_Validate_Abstract
     {
         if ($options instanceof Zend_Config) {
             $options = $options->toArray();
-        } else {if (!is_array($options)) {
+        } else if (!is_array($options)) {
             $options = func_get_args();
             $temp['allow'] = array_shift($options);
             if (!empty($options)) {
@@ -143,7 +143,7 @@ class Zend_Validate_EmailAddress extends Zend_Validate_Abstract
             }
 
             $options = $temp;
-        }}
+        }
 
         $options += $this->_options;
         $this->setOptions($options);
@@ -332,130 +332,6 @@ class Zend_Validate_EmailAddress extends Zend_Validate_Abstract
     }
 
     /**
-     * Defined by Zend_Validate_Interface
-     *
-     * Returns true if and only if $value is a valid email address
-     * according to RFC2822
-     *
-     * @link   http://www.ietf.org/rfc/rfc2822.txt RFC2822
-     * @link   http://www.columbia.edu/kermit/ascii.html US-ASCII characters
-     * @param  string $value
-     * @return boolean
-     */
-    public function isValid($value)
-    {
-        if (!is_string($value)) {
-            $this->_error(self::INVALID);
-            return false;
-        }
-
-        $matches = array();
-        $length  = true;
-        $this->_setValue($value);
-
-        // Split email address up and disallow '..'
-        if ((strpos($value, '..') !== false) or
-            (!preg_match('/^(.+)@([^@]+)$/', $value, $matches))) {
-            $this->_error(self::INVALID_FORMAT);
-            return false;
-        }
-
-        $this->_localPart = $matches[1];
-        $this->_hostname  = $matches[2];
-
-        if ((strlen($this->_localPart) > 64) || (strlen($this->_hostname) > 255)) {
-            $length = false;
-            $this->_error(self::LENGTH_EXCEEDED);
-        }
-
-        // Match hostname part
-        if ($this->_options['domain']) {
-            $hostname = $this->_validateHostnamePart();
-        }
-
-        $local = $this->_validateLocalPart();
-
-        // If both parts valid, return true
-        if ($local && $length) {
-            if (($this->_options['domain'] && $hostname) || !$this->_options['domain']) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Internal method to validate the hostname part of the email address
-     *
-     * @return boolean
-     */
-    private function _validateHostnamePart()
-    {
-        $hostname = $this->_options['hostname']->setTranslator($this->getTranslator())
-                         ->isValid($this->_hostname);
-        if (!$hostname) {
-            $this->_error(self::INVALID_HOSTNAME);
-
-            // Get messages and errors from hostnameValidator
-            foreach ($this->_options['hostname']->getMessages() as $code => $message) {
-                $this->_messages[$code] = $message;
-            }
-
-            foreach ($this->_options['hostname']->getErrors() as $error) {
-                $this->_errors[] = $error;
-            }
-        } else {if ($this->_options['mx']) {
-            // MX check on hostname
-            $hostname = $this->_validateMXRecords();
-        }}
-
-        return $hostname;
-    }
-
-    /**
-     * Internal method to validate the servers MX records
-     *
-     * @return boolean
-     */
-    private function _validateMXRecords()
-    {
-        $mxHosts = array();
-        $result = getmxrr($this->_hostname, $mxHosts);
-        if (!$result) {
-            $this->_error(self::INVALID_MX_RECORD);
-        } else {if ($this->_options['deep'] && function_exists('checkdnsrr')) {
-            $validAddress = false;
-            $reserved     = true;
-            foreach ($mxHosts as $hostname) {
-                $res = $this->_isReserved($hostname);
-                if (!$res) {
-                    $reserved = false;
-                }
-
-                if (!$res
-                    && (checkdnsrr($hostname, "A")
-                    || checkdnsrr($hostname, "AAAA")
-                    || checkdnsrr($hostname, "A6"))) {
-                    $validAddress = true;
-                    break;
-                }
-            }
-
-            if (!$validAddress) {
-                $result = false;
-                if ($reserved) {
-                    $this->_error(self::INVALID_SEGMENT);
-                } else {
-                    $this->_error(self::INVALID_MX_RECORD);
-                }
-            }
-        }}
-
-        return $result;
-    }
-
-    /**
      * Returns if the given host is reserved
      *
      * @param string $host
@@ -469,7 +345,7 @@ class Zend_Validate_EmailAddress extends Zend_Validate_Abstract
         $octet = explode('.',$host);
         if ((int)$octet[0] >= 224) {
             return true;
-        } else {if (array_key_exists($octet[0], $this->_invalidIp)) {
+        } else if (array_key_exists($octet[0], $this->_invalidIp)) {
             foreach ((array)$this->_invalidIp[$octet[0]] as $subnetData) {
                 // we skip the first loop as we already know that octet matches
                 for ($i = 1; $i < 4; $i++) {
@@ -501,7 +377,7 @@ class Zend_Validate_EmailAddress extends Zend_Validate_Abstract
             return true;
         } else {
             return false;
-        }}
+        }
     }
 
     /**
@@ -556,5 +432,129 @@ class Zend_Validate_EmailAddress extends Zend_Validate_Abstract
         }
 
         return $result;
+    }
+
+    /**
+     * Internal method to validate the servers MX records
+     *
+     * @return boolean
+     */
+    private function _validateMXRecords()
+    {
+        $mxHosts = array();
+        $result = getmxrr($this->_hostname, $mxHosts);
+        if (!$result) {
+            $this->_error(self::INVALID_MX_RECORD);
+        } else if ($this->_options['deep'] && function_exists('checkdnsrr')) {
+            $validAddress = false;
+            $reserved     = true;
+            foreach ($mxHosts as $hostname) {
+                $res = $this->_isReserved($hostname);
+                if (!$res) {
+                    $reserved = false;
+                }
+
+                if (!$res
+                    && (checkdnsrr($hostname, "A")
+                    || checkdnsrr($hostname, "AAAA")
+                    || checkdnsrr($hostname, "A6"))) {
+                    $validAddress = true;
+                    break;
+                }
+            }
+
+            if (!$validAddress) {
+                $result = false;
+                if ($reserved) {
+                    $this->_error(self::INVALID_SEGMENT);
+                } else {
+                    $this->_error(self::INVALID_MX_RECORD);
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Internal method to validate the hostname part of the email address
+     *
+     * @return boolean
+     */
+    private function _validateHostnamePart()
+    {
+        $hostname = $this->_options['hostname']->setTranslator($this->getTranslator())
+                         ->isValid($this->_hostname);
+        if (!$hostname) {
+            $this->_error(self::INVALID_HOSTNAME);
+
+            // Get messages and errors from hostnameValidator
+            foreach ($this->_options['hostname']->getMessages() as $code => $message) {
+                $this->_messages[$code] = $message;
+            }
+
+            foreach ($this->_options['hostname']->getErrors() as $error) {
+                $this->_errors[] = $error;
+            }
+        } else if ($this->_options['mx']) {
+            // MX check on hostname
+            $hostname = $this->_validateMXRecords();
+        }
+
+        return $hostname;
+    }
+
+    /**
+     * Defined by Zend_Validate_Interface
+     *
+     * Returns true if and only if $value is a valid email address
+     * according to RFC2822
+     *
+     * @link   http://www.ietf.org/rfc/rfc2822.txt RFC2822
+     * @link   http://www.columbia.edu/kermit/ascii.html US-ASCII characters
+     * @param  string $value
+     * @return boolean
+     */
+    public function isValid($value)
+    {
+        if (!is_string($value)) {
+            $this->_error(self::INVALID);
+            return false;
+        }
+
+        $matches = array();
+        $length  = true;
+        $this->_setValue($value);
+
+        // Split email address up and disallow '..'
+        if ((strpos($value, '..') !== false) or
+            (!preg_match('/^(.+)@([^@]+)$/', $value, $matches))) {
+            $this->_error(self::INVALID_FORMAT);
+            return false;
+        }
+
+        $this->_localPart = $matches[1];
+        $this->_hostname  = $matches[2];
+
+        if ((strlen($this->_localPart) > 64) || (strlen($this->_hostname) > 255)) {
+            $length = false;
+            $this->_error(self::LENGTH_EXCEEDED);
+        }
+
+        // Match hostname part
+        if ($this->_options['domain']) {
+            $hostname = $this->_validateHostnamePart();
+        }
+
+        $local = $this->_validateLocalPart();
+
+        // If both parts valid, return true
+        if ($local && $length) {
+            if (($this->_options['domain'] && $hostname) || !$this->_options['domain']) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

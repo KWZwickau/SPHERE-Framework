@@ -88,6 +88,20 @@
 class HTML_QuickForm2_Rule_Callback extends HTML_QuickForm2_Rule
 {
    /**
+    * Validates the owner element
+    *
+    * @return   bool    the value returned by a callback function
+    */
+    protected function validateOwner()
+    {
+        $value  = $this->owner->getValue();
+        $config = $this->getConfig();
+        return (bool)call_user_func_array(
+            $config['callback'], array_merge(array($value), $config['arguments'])
+        );
+    }
+
+   /**
     * Merges local configuration with that provided for registerRule()
     *
     * "Global" configuration may be passed to
@@ -153,20 +167,6 @@ class HTML_QuickForm2_Rule_Callback extends HTML_QuickForm2_Rule
             );
         }
         return parent::setConfig($config + array('arguments' => array()));
-    }
-
-   /**
-    * Validates the owner element
-    *
-    * @return   bool    the value returned by a callback function
-    */
-    protected function validateOwner()
-    {
-        $value  = $this->owner->getValue();
-        $config = $this->getConfig();
-        return (bool)call_user_func_array(
-            $config['callback'], array_merge(array($value), $config['arguments'])
-        );
     }
 }
 ?>

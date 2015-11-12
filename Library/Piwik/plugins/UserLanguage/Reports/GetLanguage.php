@@ -14,6 +14,16 @@ use Piwik\Plugins\UserLanguage\Columns\Language;
 
 class GetLanguage extends Base
 {
+    protected function init()
+    {
+        parent::init();
+        $this->dimension     = new Language();
+        $this->name          = Piwik::translate('UserLanguage_BrowserLanguage');
+        $this->documentation = ''; // TODO
+        $this->order = 10;
+        $this->widgetTitle  = 'UserLanguage_BrowserLanguage';
+    }
+
     public function configureView(ViewDataTable $view)
     {
         $view->config->show_search = false;
@@ -29,16 +39,6 @@ class GetLanguage extends Base
         return array(
             self::factory('UserLanguage', 'getLanguageCode'),
         );
-    }
-
-    protected function init()
-    {
-        parent::init();
-        $this->dimension     = new Language();
-        $this->name          = Piwik::translate('UserLanguage_BrowserLanguage');
-        $this->documentation = ''; // TODO
-        $this->order = 10;
-        $this->widgetTitle  = 'UserLanguage_BrowserLanguage';
     }
 
 }

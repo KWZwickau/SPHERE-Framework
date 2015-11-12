@@ -22,26 +22,13 @@ class Twig_Sandbox_SecurityPolicy implements Twig_Sandbox_SecurityPolicyInterfac
     protected $allowedProperties;
     protected $allowedFunctions;
 
-    public function __construct(
-        array $allowedTags = array(),
-        array $allowedFilters = array(),
-        array $allowedMethods = array(),
-        array $allowedProperties = array(),
-        array $allowedFunctions = array()
-    ) {
+    public function __construct(array $allowedTags = array(), array $allowedFilters = array(), array $allowedMethods = array(), array $allowedProperties = array(), array $allowedFunctions = array())
+    {
         $this->allowedTags = $allowedTags;
         $this->allowedFilters = $allowedFilters;
         $this->setAllowedMethods($allowedMethods);
         $this->allowedProperties = $allowedProperties;
         $this->allowedFunctions = $allowedFunctions;
-    }
-
-    public function setAllowedMethods(array $methods)
-    {
-        $this->allowedMethods = array();
-        foreach ($methods as $class => $m) {
-            $this->allowedMethods[$class] = array_map('strtolower', is_array($m) ? $m : array($m));
-        }
     }
 
     public function setAllowedTags(array $tags)
@@ -52,6 +39,14 @@ class Twig_Sandbox_SecurityPolicy implements Twig_Sandbox_SecurityPolicyInterfac
     public function setAllowedFilters(array $filters)
     {
         $this->allowedFilters = $filters;
+    }
+
+    public function setAllowedMethods(array $methods)
+    {
+        $this->allowedMethods = array();
+        foreach ($methods as $class => $m) {
+            $this->allowedMethods[$class] = array_map('strtolower', is_array($m) ? $m : array($m));
+        }
     }
 
     public function setAllowedProperties(array $properties)
@@ -74,15 +69,13 @@ class Twig_Sandbox_SecurityPolicy implements Twig_Sandbox_SecurityPolicyInterfac
 
         foreach ($filters as $filter) {
             if (!in_array($filter, $this->allowedFilters)) {
-                throw new Twig_Sandbox_SecurityNotAllowedFilterError(sprintf('Filter "%s" is not allowed.', $filter),
-                    $filter);
+                throw new Twig_Sandbox_SecurityNotAllowedFilterError(sprintf('Filter "%s" is not allowed.', $filter), $filter);
             }
         }
 
         foreach ($functions as $function) {
             if (!in_array($function, $this->allowedFunctions)) {
-                throw new Twig_Sandbox_SecurityNotAllowedFunctionError(sprintf('Function "%s" is not allowed.',
-                    $function), $function);
+                throw new Twig_Sandbox_SecurityNotAllowedFunctionError(sprintf('Function "%s" is not allowed.', $function), $function);
             }
         }
     }
@@ -104,8 +97,7 @@ class Twig_Sandbox_SecurityPolicy implements Twig_Sandbox_SecurityPolicyInterfac
         }
 
         if (!$allowed) {
-            throw new Twig_Sandbox_SecurityError(sprintf('Calling "%s" method on a "%s" object is not allowed.',
-                $method, get_class($obj)));
+            throw new Twig_Sandbox_SecurityError(sprintf('Calling "%s" method on a "%s" object is not allowed.', $method, get_class($obj)));
         }
     }
 
@@ -121,8 +113,7 @@ class Twig_Sandbox_SecurityPolicy implements Twig_Sandbox_SecurityPolicyInterfac
         }
 
         if (!$allowed) {
-            throw new Twig_Sandbox_SecurityError(sprintf('Calling "%s" property on a "%s" object is not allowed.',
-                $property, get_class($obj)));
+            throw new Twig_Sandbox_SecurityError(sprintf('Calling "%s" property on a "%s" object is not allowed.', $property, get_class($obj)));
         }
     }
 }

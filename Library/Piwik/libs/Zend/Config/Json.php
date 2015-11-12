@@ -174,34 +174,6 @@ class Zend_Config_Json extends Zend_Config
     }
 
     /**
-     * Replace any constants referenced in a string with their values
-     *
-     * @param  string $value
-     * @return string
-     */
-    protected function _replaceConstants($value)
-    {
-        foreach ($this->_getConstants() as $constant) {
-            if (strstr($value, $constant)) {
-                $value = str_replace($constant, constant($constant), $value);
-            }
-        }
-        return $value;
-    }
-
-    /**
-     * Get (reverse) sorted list of defined constant names
-     *
-     * @return array
-     */
-    protected function _getConstants()
-    {
-        $constants = array_keys(get_defined_constants());
-        rsort($constants, SORT_STRING);
-        return $constants;
-    }
-
-    /**
      * Helper function to process each element in the section and handle
      * the "_extends" inheritance attribute.
      *
@@ -236,5 +208,33 @@ class Zend_Config_Json extends Zend_Config
         $config = $this->_arrayMergeRecursive($config, $thisSection);
 
         return $config;
+    }
+
+    /**
+     * Replace any constants referenced in a string with their values
+     *
+     * @param  string $value
+     * @return string
+     */
+    protected function _replaceConstants($value)
+    {
+        foreach ($this->_getConstants() as $constant) {
+            if (strstr($value, $constant)) {
+                $value = str_replace($constant, constant($constant), $value);
+            }
+        }
+        return $value;
+    }
+
+    /**
+     * Get (reverse) sorted list of defined constant names
+     *
+     * @return array
+     */
+    protected function _getConstants()
+    {
+        $constants = array_keys(get_defined_constants());
+        rsort($constants, SORT_STRING);
+        return $constants;
     }
 }

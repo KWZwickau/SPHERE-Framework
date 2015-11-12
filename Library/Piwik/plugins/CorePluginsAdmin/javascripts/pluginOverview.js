@@ -5,13 +5,11 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
 
-$(document).ready(function ()
-{
+$(document).ready(function () {
 
     var uninstallConfirmMessage = '';
 
-    $('#plugins .uninstall').click(function (event)
-    {
+    $('#plugins .uninstall').click(function (event) {
         event.preventDefault();
 
         var link = $(this).attr('href');
@@ -30,20 +28,18 @@ $(document).ready(function ()
         $('#uninstallPluginConfirm').text(messageToDisplay);
 
         piwikHelper.modalConfirm('#confirmUninstallPlugin', {
-            yes: function ()
-            {
+            yes: function () {
                 window.location = link;
             }
         });
     });
 
-    $('.plugin-donation-link').click(function (event)
-    {
+    $('.plugin-donation-link').click(function (event) {
         event.preventDefault();
 
         var overlayId = $(this).data('overlay-id');
 
-        piwikHelper.modalConfirm('#' + overlayId, {});
+        piwikHelper.modalConfirm('#'+overlayId, {});
     });
 
 });

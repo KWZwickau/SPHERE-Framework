@@ -11,8 +11,8 @@
 
 namespace Monolog\Handler;
 
-use Monolog\Formatter\LineFormatter;
 use Monolog\Logger;
+use Monolog\Formatter\LineFormatter;
 
 /**
  * Sends notifications through Slack API
@@ -224,6 +224,34 @@ class SlackHandler extends SocketHandler
     }
 
     /**
+     * Builds the header of the API Call
+     *
+     * @param  string $content
+     * @return string
+     */
+    private function buildHeader($content)
+    {
+        $header = "POST /api/chat.postMessage HTTP/1.1\r\n";
+        $header .= "Host: slack.com\r\n";
+        $header .= "Content-Type: application/x-www-form-urlencoded\r\n";
+        $header .= "Content-Length: " . strlen($content) . "\r\n";
+        $header .= "\r\n";
+
+        return $header;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @param array $record
+     */
+    protected function write(array $record)
+    {
+        parent::write($record);
+        $this->closeSocket();
+    }
+
+    /**
      * Returned a Slack message attachment color associated with
      * provided level.
      *
@@ -261,33 +289,5 @@ class SlackHandler extends SocketHandler
         $string = rtrim($string, " |");
 
         return $string;
-    }
-
-    /**
-     * Builds the header of the API Call
-     *
-     * @param  string $content
-     * @return string
-     */
-    private function buildHeader($content)
-    {
-        $header = "POST /api/chat.postMessage HTTP/1.1\r\n";
-        $header .= "Host: slack.com\r\n";
-        $header .= "Content-Type: application/x-www-form-urlencoded\r\n";
-        $header .= "Content-Length: " . strlen($content) . "\r\n";
-        $header .= "\r\n";
-
-        return $header;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @param array $record
-     */
-    protected function write(array $record)
-    {
-        parent::write($record);
-        $this->closeSocket();
     }
 }

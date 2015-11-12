@@ -33,6 +33,24 @@ class ActionPageview extends Action
         $this->timeGeneration = $this->request->getPageGenerationTime();
     }
 
+    protected function getActionsToLookup()
+    {
+        return array(
+            'idaction_name' => array($this->getActionName(), Action::TYPE_PAGE_TITLE),
+            'idaction_url'  => $this->getUrlAndType()
+        );
+    }
+
+    public function getCustomFloatValue()
+    {
+        return $this->request->getPageGenerationTime();
+    }
+
+    public static function shouldHandle(Request $request)
+    {
+        return true;
+    }
+
     private function cleanupActionName($actionName)
     {
         // get the delimiter, by default '/'; BC, we read the old action_category_delimiter first (see #1067)
@@ -46,18 +64,9 @@ class ActionPageview extends Action
         return $this->rebuildNameOfCleanedCategories($actionCategoryDelimiter, $split);
     }
 
-    private function getActionCategoryDelimiter()
+    private function rebuildNameOfCleanedCategories($actionCategoryDelimiter, $split)
     {
-        if (isset(Config::getInstance()->General['action_category_delimiter'])) {
-            return Config::getInstance()->General['action_category_delimiter'];
-        }
-
-        return Config::getInstance()->General['action_url_category_delimiter'];
-    }
-
-    private function trimEveryCategory($split)
-    {
-        return array_map('trim', $split);
+        return implode($actionCategoryDelimiter, $split);
     }
 
     private function removeEmptyCategories($split)
@@ -65,26 +74,17 @@ class ActionPageview extends Action
         return array_filter($split, 'strlen');
     }
 
-    private function rebuildNameOfCleanedCategories($actionCategoryDelimiter, $split)
+    private function trimEveryCategory($split)
     {
-        return implode($actionCategoryDelimiter, $split);
+        return array_map('trim', $split);
     }
 
-    public static function shouldHandle(Request $request)
+    private function getActionCategoryDelimiter()
     {
-        return true;
-    }
+        if (isset(Config::getInstance()->General['action_category_delimiter'])) {
+            return Config::getInstance()->General['action_category_delimiter'];
+        }
 
-    public function getCustomFloatValue()
-    {
-        return $this->request->getPageGenerationTime();
-    }
-
-    protected function getActionsToLookup()
-    {
-        return array(
-            'idaction_name' => array($this->getActionName(), Action::TYPE_PAGE_TITLE),
-            'idaction_url'  => $this->getUrlAndType()
-        );
+        return Config::getInstance()->General['action_url_category_delimiter'];
     }
 }

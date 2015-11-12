@@ -11,8 +11,8 @@
 
 namespace Monolog\Handler;
 
-use Monolog\Formatter\LineFormatter;
 use Monolog\Logger;
+use Monolog\Formatter\LineFormatter;
 
 /**
  * Common syslog functionality

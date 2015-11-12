@@ -16,11 +16,6 @@ class ServerTime extends VisitDimension
 {
     protected $columnName = 'visit_last_action_time';
 
-    public function getName()
-    {
-        return Piwik::translate('VisitTime_ColumnServerTime');
-    }
-
     protected function configureSegments()
     {
         $segment = new Segment();
@@ -29,5 +24,10 @@ class ServerTime extends VisitDimension
         $segment->setSqlSegment('HOUR(log_visit.visit_last_action_time)');
         $segment->setAcceptedValues('0, 1, 2, 3, ..., 20, 21, 22, 23');
         $this->addSegment($segment);
+    }
+
+    public function getName()
+    {
+        return Piwik::translate('VisitTime_ColumnServerTime');
     }
 }

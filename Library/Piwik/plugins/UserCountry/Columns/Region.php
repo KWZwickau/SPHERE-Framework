@@ -11,14 +11,23 @@ namespace Piwik\Plugins\UserCountry\Columns;
 use Piwik\Piwik;
 use Piwik\Plugins\UserCountry\LocationProvider;
 use Piwik\Plugins\UserCountry\Segment;
-use Piwik\Tracker\Action;
 use Piwik\Tracker\Request;
 use Piwik\Tracker\Visitor;
+use Piwik\Tracker\Action;
 
 class Region extends Base
 {
     protected $columnName = 'location_region';
     protected $columnType = 'char(2) DEFAULT NULL';
+
+    protected function configureSegments()
+    {
+        $segment = new Segment();
+        $segment->setSegment('regionCode');
+        $segment->setName('UserCountry_Region');
+        $segment->setAcceptedValues('01 02, OR, P8, etc.<br/>eg. region=A1;country=fr');
+        $this->addSegment($segment);
+    }
 
     public function getName()
     {
@@ -64,14 +73,5 @@ class Region extends Base
     public function onAnyGoalConversion(Request $request, Visitor $visitor, $action)
     {
         return $visitor->getVisitorColumn($this->columnName);
-    }
-
-    protected function configureSegments()
-    {
-        $segment = new Segment();
-        $segment->setSegment('regionCode');
-        $segment->setName('UserCountry_Region');
-        $segment->setAcceptedValues('01 02, OR, P8, etc.<br/>eg. region=A1;country=fr');
-        $this->addSegment($segment);
     }
 }

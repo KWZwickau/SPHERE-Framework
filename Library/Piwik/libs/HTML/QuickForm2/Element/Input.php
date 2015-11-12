@@ -59,11 +59,21 @@
  */
 class HTML_QuickForm2_Element_Input extends HTML_QuickForm2_Element
 {
-    /**
-     * 'type' attribute should not be changeable
-     * @var array
-     */
+   /**
+    * 'type' attribute should not be changeable
+    * @var array
+    */
     protected $watchedAttributes = array('id', 'name', 'type');
+
+    protected function onAttributeChange($name, $value = null)
+    {
+        if ('type' == $name) {
+            throw new HTML_QuickForm2_InvalidArgumentException(
+                "Attribute 'type' is read-only"
+            );
+        }
+        parent::onAttributeChange($name, $value);
+    }
 
     public function getType()
     {
@@ -78,7 +88,7 @@ class HTML_QuickForm2_Element_Input extends HTML_QuickForm2_Element
 
     public function getValue()
     {
-        return $this->getAttribute('disabled') ? null : $this->applyFilters($this->getAttribute('value'));
+        return $this->getAttribute('disabled')? null: $this->applyFilters($this->getAttribute('value'));
     }
 
     public function __toString()
@@ -90,26 +100,15 @@ class HTML_QuickForm2_Element_Input extends HTML_QuickForm2_Element
         }
     }
 
-    /**
-     * Returns the field's value without HTML tags
-     * @return string
-     */
+   /**
+    * Returns the field's value without HTML tags
+    * @return string
+    */
     protected function getFrozenHtml()
     {
         $value = $this->getAttribute('value');
-        return (('' != $value) ? htmlspecialchars($value, ENT_QUOTES, self::getOption('charset')) : '&nbsp;') .
-        $this->getPersistentContent();
-    }
-
-    protected function onAttributeChange($name, $value = null)
-    {
-        if ('type' == $name) {
-            throw new HTML_QuickForm2_InvalidArgumentException(
-                "Attribute 'type' is read-only"
-            );
-        }
-        parent::onAttributeChange($name, $value);
+        return (('' != $value)? htmlspecialchars($value, ENT_QUOTES, self::getOption('charset')): '&nbsp;') .
+               $this->getPersistentContent();
     }
 }
-
 ?>
