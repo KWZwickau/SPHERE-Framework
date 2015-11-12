@@ -171,6 +171,8 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
+            $tblYear = Term::useService()->getYearById($Division['Year']);
+            $tblLevel = $this->getLevelById($Division['Level']);
             if ((new Data($this->getBinding()))->createDivision(
                 $tblYear, $tblLevel, $Division['Name'], $Division['Description']
             )
