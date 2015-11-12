@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Lesson\Division\Service;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -24,8 +25,8 @@ class Data extends AbstractData
 
     /**
      * @param TblType $tblType
-     * @param string $Name
-     * @param string $Description
+     * @param string  $Name
+     * @param string  $Description
      *
      * @return TblLevel
      */
@@ -34,7 +35,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblLevel')->findOneBy(array(
-            TblLevel::ATTR_NAME => $Name,
+            TblLevel::ATTR_NAME        => $Name,
             TblLevel::SERVICE_TBL_TYPE => $tblType->getId()
         ));
         if (null === $Entity) {
@@ -71,8 +72,24 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Name
+     * @param $tblLevel
+     *
+     * @return bool|TblDivision
+     */
+    public function getDivisionByGroupAndLevel($Name, TblLevel $tblLevel)
+    {
+
+        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision', array(
+            TblDivision::ATTR_NAME  => $Name,
+            TblDivision::ATTR_LEVEL => $tblLevel->getId()
+        ));
+        return ( $Entity ? $Entity : false );
+    }
+
+    /**
      * @param TblType $tblType
-     * @param string $Name
+     * @param string  $Name
      *
      * @return bool
      */
@@ -80,10 +97,10 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel', array(
-            TblLevel::ATTR_NAME => $Name,
+            TblLevel::ATTR_NAME        => $Name,
             TblLevel::SERVICE_TBL_TYPE => $tblType->getId()
         ));
-        return ($Entity ? true : false);
+        return ( $Entity ? true : false );
     }
 
     /**
@@ -106,6 +123,7 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
+     *
      * @return bool|TblPerson[]
      */
     public function getStudentAllByDivision(TblDivision $tblDivision)
@@ -117,18 +135,18 @@ class Data extends AbstractData
 
         $EntityList = array();
 
-        if (!empty ($TempList)) {
+        if (!empty ( $TempList )) {
             /** @var TblDivisionStudent $tblDivisionStudent */
             foreach ($TempList as $tblDivisionStudent) {
                 array_push($EntityList, $tblDivisionStudent->getServiceTblPerson());
             }
         }
-        return empty($EntityList) ? false : $EntityList;
+        return empty( $EntityList ) ? false : $EntityList;
     }
 
     /**
-     * @param TblDivision  $tblDivision
-     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param TblPerson   $tblPerson
      *
      * @return TblDivisionStudent
      */
@@ -138,7 +156,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDivisionStudent')
             ->findOneBy(array(
-                TblDivisionStudent::ATTR_TBL_DIVISION     => $tblDivision->getId(),
+                TblDivisionStudent::ATTR_TBL_DIVISION       => $tblDivision->getId(),
                 TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null === $Entity) {
@@ -149,5 +167,36 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblYear     $Year
+     * @param TblLevel    $Level
+     * @param string      $Name
+     * @param string      $Description
+     *
+     * @return bool
+     */
+    public function updateDivision(TblDivision $tblDivision, TblYear $Year, TblLevel $Level, $Name, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblDivision $Entity */
+        $Entity = $Manager->getEntityById('TblDivision', $tblDivision->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setServiceTblYear($Year);
+            $Entity->setTblLevel($Level);
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
     }
 }

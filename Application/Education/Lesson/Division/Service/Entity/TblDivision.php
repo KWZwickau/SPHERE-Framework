@@ -21,6 +21,7 @@ class TblDivision extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_LEVEL = 'tblLevel';
 
     /**
      * @Column(type="string")

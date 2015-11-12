@@ -5,7 +5,6 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Transfer;
-use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -42,6 +41,11 @@ class Division implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Create/Division', __NAMESPACE__.'\Frontend::frontendCreateDivision'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Change/Division', __NAMESPACE__.'\Frontend::frontendChangeDivision'
+        )->setParameterDefault('Id', null)
+            ->setParameterDefault('Division', null)
+        );
     }
 
     /**
@@ -114,34 +118,35 @@ class Division implements IModuleInterface
                         )
                     ))
                 )));
-//            $tblCategoryAll = $this->useService()->getCategoryAllByLevel($tblLevel);
-//            array_walk($tblCategoryAll, function (TblCategory $tblCategory) use (&$Content, $tblLevel) {
-//
-//                $tblSubjectAll = $this->useService()->getSubjectAllByCategory($tblCategory);
-//                array_walk($tblSubjectAll, function (TblSubject &$tblSubject) {
-//
-//                    $tblSubject = new Bold($tblSubject->getAcronym()).' - '
-//                        .$tblSubject->getName().' '
-//                        .new Small(new Muted($tblSubject->getDescription()));
-//                });
-//
-//                $Height = floor(( ( count($tblSubjectAll) + 2 ) / 3 ) + 1);
-                Main::getDispatcher()->registerWidget($tblLevel->getName(),
-                    new Panel(
-//                        $tblCategory->getName().' '.$tblCategory->getDescription(),
-//                        $tblSubjectAll,
-//                        ( $tblCategory->getIsLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT ),
-                        '',
-                        new Standard('Zuweisen von Klassen-Gruppen', __NAMESPACE__.'\Link\Subject', new Transfer()
-                        //array('Id' => $tblCategory->getId()
-                        ))
-                );
-                //, 2, ( $Height ? $Height : $Height + 2 ));
-//            });
-                array_push($Content, new LayoutRow(array(
-                    new LayoutColumn(Main::getDispatcher()->fetchDashboard($tblLevel->getName()))
-                )));
             });
+////            $tblCategoryAll = $this->useService()->getCategoryAllByLevel($tblLevel);
+////            array_walk($tblCategoryAll, function (TblCategory $tblCategory) use (&$Content, $tblLevel) {
+////
+////                $tblSubjectAll = $this->useService()->getSubjectAllByCategory($tblCategory);
+////                array_walk($tblSubjectAll, function (TblSubject &$tblSubject) {
+////
+////                    $tblSubject = new Bold($tblSubject->getAcronym()).' - '
+////                        .$tblSubject->getName().' '
+////                        .new Small(new Muted($tblSubject->getDescription()));
+////                });
+////
+////                $Height = floor(( ( count($tblSubjectAll) + 2 ) / 3 ) + 1);
+//                Main::getDispatcher()->registerWidget($tblLevel->getName(),
+//                    new Panel(
+////                        $tblCategory->getName().' '.$tblCategory->getDescription(),
+////                        $tblSubjectAll,
+////                        ( $tblCategory->getIsLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT ),
+//                        '',
+//                        new Standard('Zuweisen von Klassen-Gruppen', __NAMESPACE__.'\Link\Subject', new Transfer()
+//                        //array('Id' => $tblCategory->getId()
+//                        ))
+//                );
+//                //, 2, ( $Height ? $Height : $Height + 2 ));
+////            });
+//                array_push($Content, new LayoutRow(array(
+//                    new LayoutColumn(Main::getDispatcher()->fetchDashboard($tblLevel->getName()))
+//                )));
+//            });
         }
         $Stage->setContent(
             new Layout(new LayoutGroup($Content, new Title('Klassen', 'Zusammensetzung')))
