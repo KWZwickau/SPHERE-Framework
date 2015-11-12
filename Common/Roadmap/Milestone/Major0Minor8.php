@@ -30,12 +30,6 @@ class Major0Minor8
         $Feature->createTask('Informationen (Metadaten)')
             ->createDuty('Schülerakte (Speichern)', false)
             ->createDuty('Personendaten (Vorbelegtes Autocomplete, Konfession)', true);
-
-        // Plattform
-        $Category = $Release->createCategory('Plattform');
-        $Feature = $Category->createFeature('Archiv');
-        $Feature->createTask('Allowed memory size')
-            ->createDuty('Speicherverbrauch minimieren');
     }
 
     /**
