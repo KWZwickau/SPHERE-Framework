@@ -21,6 +21,7 @@ use SPHERE\System\Cache\Type\ApcUser;
 use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Cache\Type\OpCache;
+use SPHERE\System\Cache\Type\SmartyCache;
 use SPHERE\System\Cache\Type\TwigCache;
 use SPHERE\System\Extension\Extension;
 
@@ -85,9 +86,10 @@ class Cache extends Extension implements IModuleInterface
         if ($Clear) {
             (new CacheType(new ApcUser(), true))->getCache()->clearCache();
             (new CacheType(new Apcu(), true))->getCache()->clearCache();
-            (new CacheType(new Memcached(), true))->getCache()->clearCache();
+            (new CacheType(new Memcached(), true))->getCache()->clearCache(true);
             (new CacheType(new OpCache(), true))->getCache()->clearCache();
             (new CacheType(new TwigCache(), true))->getCache()->clearCache();
+            (new CacheType(new SmartyCache(), true))->getCache()->clearCache();
         }
         $Stage->setContent(
             new Layout(array(
@@ -115,7 +117,12 @@ class Cache extends Extension implements IModuleInterface
                     new LayoutColumn(new Status(
                         (new CacheType(new TwigCache(), true))->getCache()
                     ))
-                ), new Title('Twig'))
+                ), new Title('Template: Twig')),
+                new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(new Status(
+                        (new CacheType(new SmartyCache(), true))->getCache()
+                    ))
+                ), new Title('Template: Smarty')),
             ))
         );
         return $Stage;

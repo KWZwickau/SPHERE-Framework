@@ -1,18 +1,18 @@
 <?php
 namespace SPHERE\System\Cache\Type;
 
-use MOC\V\Component\Template\Component\Bridge\Repository\TwigTemplate;
+use MOC\V\Component\Template\Component\Bridge\Repository\SmartyTemplate;
 use SPHERE\System\Cache\ITypeInterface;
 
 /**
- * Class TwigCache
+ * Class SmartyCache
  *
  * @package SPHERE\System\Cache\Type
  */
-class TwigCache implements ITypeInterface
+class SmartyCache implements ITypeInterface
 {
 
-    private static $Cache = '/../../../Library/MOC-V/Component/Template/Component/Bridge/Repository/TwigTemplate';
+    private static $Cache = '/../../../Library/MOC-V/Component/Template/Component/Bridge/Repository/SmartyTemplate';
 
     /**
      * @param bool $doPrune
@@ -20,8 +20,7 @@ class TwigCache implements ITypeInterface
     public function clearCache($doPrune = false)
     {
 
-        (new TwigTemplate())->createInstance()->clearCacheFiles();
-        (new TwigTemplate())->createInstance()->clearTemplateCache();
+        (new SmartyTemplate())->createInstance()->clearAllCache();
     }
 
     /**

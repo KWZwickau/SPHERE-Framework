@@ -15,9 +15,9 @@ class ApcUser implements ITypeInterface
     private $Status = array();
 
     /**
-     * @return void
+     * @param bool $doPrune
      */
-    public function clearCache()
+    public function clearCache($doPrune = false)
     {
 
         if (function_exists('apc_clear_cache')) {

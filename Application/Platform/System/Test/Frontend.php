@@ -25,6 +25,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Badge;
@@ -33,6 +34,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -41,6 +43,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutSocial;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -203,6 +206,23 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutTab('Name2', 1),
                             new LayoutTab('Name3', 2),
                         )), 3),
+                        new LayoutColumn(
+                            (new LayoutSocial())
+                                ->addMediaItem('Head1', new Paragraph('Content').new Paragraph('Content'), new Time())
+                                ->addMediaItem('Head2', 'Content',
+                                    '<img src="/Common/Style/Resource/logo_kreide2.png" class="image-responsive" style="width:20px;"/>',
+                                    '', LayoutSocial::ALIGN_BOTTOM)
+                                ->addMediaList(
+                                    (new LayoutSocial())
+                                        ->addMediaItem('Head2.1',
+                                            new Well(new Paragraph('Content').new Paragraph('Content')),
+                                            '<img src="/Common/Style/Resource/logo_kreide2.png" class="image-responsive" style="width:20px;"/>',
+                                            '', LayoutSocial::ALIGN_TOP)
+                                        ->addMediaItem('', new Well('Content'),
+                                            '<img src="/Common/Style/Resource/logo_kreide2.png" class="image-responsive" style="width:20px;"/>',
+                                            '', LayoutSocial::ALIGN_MIDDLE)
+                                )
+                            , 4),
                     )),
 
                 ), new Title('Layout Development'))
