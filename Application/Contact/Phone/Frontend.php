@@ -370,7 +370,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         (preg_match('!Notfall!is',
                                             $tblPhone->getTblType()->getName() . ' ' . $tblPhone->getTblType()->getDescription())
                                             ? Panel::PANEL_TYPE_DANGER
-                                            : Panel::PANEL_TYPE_SUCCESS
+                                            : Panel::PANEL_TYPE_DEFAULT
                                         ),
                                         $tblRelationship->getServiceTblPersonFrom()->getFullName()
                                         . ' (' . $tblRelationship->getTblType()->getName() . ')'
