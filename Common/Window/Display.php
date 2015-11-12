@@ -45,7 +45,7 @@ class Display extends Extension implements ITemplateInterface
     public function __construct()
     {
 
-        $this->Template = $this->getTemplate(__DIR__.'/Display.twig');
+        $this->Template = $this->getTemplate(__DIR__ . '/Display.twig');
     }
 
     /**
@@ -98,7 +98,7 @@ class Display extends Extension implements ITemplateInterface
     }
 
     /**
-     * @param Link       $Link
+     * @param Link $Link
      * @param Link\Route $Restriction
      *
      * @return Display
@@ -149,7 +149,7 @@ class Display extends Extension implements ITemplateInterface
     }
 
     /**
-     * @param Link       $Link
+     * @param Link $Link
      * @param Link\Route $Restriction
      *
      * @return Display
@@ -218,7 +218,7 @@ class Display extends Extension implements ITemplateInterface
 
     /**
      * @param \Exception $Exception
-     * @param string     $Name
+     * @param string $Name
      *
      * @return Display
      */
@@ -228,13 +228,13 @@ class Display extends Extension implements ITemplateInterface
         $TraceList = '';
         foreach ((array)$Exception->getTrace() as $Index => $Trace) {
             $TraceList .= nl2br('<br/><samp class="text-info">'
-                .( isset( $Trace['type'] ) && isset( $Trace['function'] ) ? '<br/>Method: '.$Trace['type'].$Trace['function'] : '<br/>Method: ' )
-                .( isset( $Trace['class'] ) ? '<br/>Class: '.$Trace['class'] : '<br/>Class: ' )
-                .( isset( $Trace['file'] ) ? '<br/>File: '.$Trace['file'] : '<br/>File: ' )
-                .( isset( $Trace['line'] ) ? '<br/>Line: '.$Trace['line'] : '<br/>Line: ' )
-                .'</samp>');
+                . (isset($Trace['type']) && isset($Trace['function']) ? '<br/>Method: ' . $Trace['type'] . $Trace['function'] : '<br/>Method: ')
+                . (isset($Trace['class']) ? '<br/>Class: ' . $Trace['class'] : '<br/>Class: ')
+                . (isset($Trace['file']) ? '<br/>File: ' . $Trace['file'] : '<br/>File: ')
+                . (isset($Trace['line']) ? '<br/>Line: ' . $Trace['line'] : '<br/>Line: ')
+                . '</samp>');
         }
-        $Hit = '<samp class="text-danger"><p class="h6">'.nl2br($Exception->getMessage()).'</p><br/>File: '.$Exception->getFile().'<br/>Line: '.$Exception->getLine().'</samp>'.$TraceList;
+        $Hit = '<samp class="text-danger"><p class="h6">' . nl2br($Exception->getMessage()) . '</p><br/>File: ' . $Exception->getFile() . '<br/>Line: ' . $Exception->getLine() . '</samp>' . $TraceList;
         $this->addContent(new Error(
             $Exception->getCode() == 0 ? $Name : $Exception->getCode(), $Hit
         ));
@@ -284,9 +284,9 @@ class Display extends Extension implements ITemplateInterface
         $Debug = $this->getDebugger();
         $Runtime = $Debug->getRuntime();
         $Protocol = $Debug->getProtocol();
-        if (!empty( $Protocol )) {
+        if (!empty($Protocol)) {
             $this->Template->setVariable('DebuggerProtocol',
-                (new Accordion())->addItem('Debug Protocol '.$Runtime, $Protocol)
+                (new Accordion())->addItem('Debug Protocol ' . $Runtime, $Protocol)
             );
         }
         $this->Template->setVariable('DebuggerHost', gethostname());
@@ -296,8 +296,8 @@ class Display extends Extension implements ITemplateInterface
         $this->Template->setVariable('PathBase', $this->getRequest()->getPathBase());
         if (!$NoConnection) {
             $this->Template->setVariable('Consumer',
-                '['.Consumer::useService()->getConsumerBySession()->getAcronym().'] '
-                .Consumer::useService()->getConsumerBySession()->getName()
+                '[' . Consumer::useService()->getConsumerBySession()->getAcronym() . '] '
+                . Consumer::useService()->getConsumerBySession()->getName()
             );
         }
 
