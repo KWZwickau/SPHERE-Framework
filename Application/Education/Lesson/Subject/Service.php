@@ -468,6 +468,16 @@ class Service extends AbstractService
         if (isset( $Subject['Acronym'] ) && empty( $Subject['Acronym'] )) {
             $Form->setError('Subject[Acronym]', 'Bitte geben Sie ein eineindeutiges Kürzel an');
             $Error = true;
+        } else{
+            $tblSUbject = Subject::useService()->getSubjectByAcronym($Subject['Acronym']);
+            if($tblSUbject)
+            {
+                if($tblSUbject->getId() !== $Id)
+                {
+                    $Form->setError('Subject[Acronym]', 'Kürzel ist schon vorhanden');
+                    $Error = true;
+                }
+            }
         }
 
         if (isset( $Subject['Name'] ) && empty( $Subject['Name'] )) {
