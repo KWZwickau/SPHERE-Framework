@@ -277,7 +277,7 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         // Person
-        $tblPersonAll = Account::useService()->getPersonAllHavingNoAccount();
+        $tblPersonAll = \SPHERE\Application\People\Person\Person::useService()->getPersonAll();
         if ($tblPersonAll) {
             array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
 
