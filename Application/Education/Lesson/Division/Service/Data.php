@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Lesson\Division\Service;
 
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -187,6 +188,28 @@ class Data extends AbstractData
             /** @var TblDivisionStudent $tblDivisionStudent */
             foreach ($TempList as $tblDivisionStudent) {
                 array_push($EntityList, $tblDivisionStudent->getServiceTblPerson());
+            }
+        }
+        return empty( $EntityList ) ? false : $EntityList;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getTeacherAllByDivision(TblDivision $tblDivision)
+    {
+
+        $TempList = $this->getConnection()->getEntityManager()->getEntity('TblDivisionTeacher')->findBy(array(
+            TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()
+        ));
+        $EntityList = array();
+
+        if (!empty ( $TempList )) {
+            /** @var TblDivisionTeacher $tblDivisionTeacher */
+            foreach ($TempList as $tblDivisionTeacher) {
+                array_push($EntityList, $tblDivisionTeacher->getServiceTblPerson());
             }
         }
         return empty( $EntityList ) ? false : $EntityList;
