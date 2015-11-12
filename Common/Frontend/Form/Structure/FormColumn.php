@@ -9,7 +9,7 @@ use SPHERE\System\Extension\Extension;
 /**
  * Class FormColumn
  *
- * @package KREDA\Sphere\Client\Frontend\Form\Structure
+ * @package SPHERE\Common\Frontend\Form\Structure
  */
 class FormColumn extends Extension implements IStructureInterface
 {

@@ -26,21 +26,13 @@ class Major1Minor0
         $Category = $Release->createCategory('Bildung');
         $Feature = $Category->createFeature('Zensuren');
         $Task = $Feature->createTask('Elektronisches Notenbuch')
-            ->createDuty('Basisfunktionalitäten')
-            ->createDuty('Eingabe/Ausgabe von Zensuren')
+            ->createDuty('Basisfunktionalitäten', false)
+            ->createDuty('Eingabe/Ausgabe von Zensuren', false)
             ->createDuty('Anlegen & Auswahl von Leistungsüberprüfungen', true);
 
         // Auswertungen
         $Release->createCategory('Auswertungen')
             ->createFeature('Festdefinierte Auswertungen')
             ->createTask('für ESZC', '', true);
-
-        // Personenverwaltung
-        $Category = $Release->createCategory('Personenverwaltung');
-        $Category->createFeature('Person löschen');
-
-        // Firmenverwaltung
-        $Category = $Release->createCategory('Firmenverwaltung');
-        $Category->createFeature('Firma löschen');
     }
 }
