@@ -330,6 +330,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblRelationshipAll) {
             foreach ($tblRelationshipAll as $tblRelationship) {
                 if ($tblRelationship->getServiceTblPersonTo() && $tblRelationship->getServiceTblPersonFrom()) {
+
                     if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonFrom()->getId()) {
                         $tblRelationshipMailAll = Mail::useService()->getMailAllByPerson($tblRelationship->getServiceTblPersonFrom());
                         if ($tblRelationshipMailAll) {
@@ -344,6 +345,35 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Panel(
                                         new MailIcon().' '.$tblMail->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_DEFAULT,
                                         $tblRelationship->getServiceTblPersonFrom()->getFullName()
+                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                    )
+                                    , 3);
+
+                                if ($tblMailAll !== false) {
+                                    $tblMailAll[] = $tblMail;
+                                } else {
+                                    $tblMailAll = array();
+                                    $tblMailAll[] = $tblMail;
+                                }
+
+                            }
+                        }
+                    }
+
+                    if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonTo()->getId()) {
+                        $tblRelationshipMailAll = Mail::useService()->getMailAllByPerson($tblRelationship->getServiceTblPersonTo());
+                        if ($tblRelationshipMailAll) {
+                            foreach ($tblRelationshipMailAll as $tblMail) {
+
+                                $Panel = array($tblMail->getTblMail()->getAddress());
+                                if ($tblMail->getRemark()) {
+                                    array_push($Panel, new Muted(new Small($tblMail->getRemark())));
+                                }
+
+                                $tblMail = new LayoutColumn(
+                                    new Panel(
+                                        new MailIcon().' '.$tblMail->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_DEFAULT,
+                                        $tblRelationship->getServiceTblPersonTo()->getFullName()
                                         . ' (' . $tblRelationship->getTblType()->getName() . ')'
                                     )
                                     , 3);
