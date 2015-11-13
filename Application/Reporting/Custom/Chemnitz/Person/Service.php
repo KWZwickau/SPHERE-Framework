@@ -4,15 +4,19 @@ namespace SPHERE\Application\Reporting\Custom\Chemnitz\Person;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
+use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
-use SPHERE\Application\Document\Explorer\Storage\Writer\Temporary;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Search\Group\Group;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Window\Redirect;
 
 /**
  * Class Service
@@ -23,28 +27,52 @@ class Service
 {
 
     /**
-     * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
+     * @param IFormInterface|null $Stage
+     * @param null $Select
+     * @param string $Redirect
+     *
+     * @return IFormInterface|Redirect
      */
-    public function createClassList()
+    public function getClass(IFormInterface $Stage = null, $Select = null, $Redirect)
     {
 
-        // Todo JohK Klassen einbauen
-        $studentList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Schüler'));
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Select) {
+            return $Stage;
+        }
 
-        if (!empty( $studentList )) {
+        $tblDivision = Division::useService()->getDivisionById($Select['Division']);
+
+        return new Redirect($Redirect, 0, array(
+            'DivisionId' => $tblDivision->getId(),
+        ));
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
+     */
+    public function createClassList(TblDivision $tblDivision)
+    {
+
+        $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
+
+        if (!empty($studentList)) {
             foreach ($studentList as $tblPerson) {
                 $father = null;
                 $mother = null;
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
-                        if (( $guardian->getTblType()->getId() == 1 )
-                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1 )
+                        if (($guardian->getTblType()->getId() == 1)
+                            && ($guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1)
                         ) {
                             $father = $guardian->getServiceTblPersonFrom();
                         }
-                        if (( $guardian->getTblType()->getId() == 1 )
-                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2 )
+                        if (($guardian->getTblType()->getId() == 1)
+                            && ($guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2)
                         ) {
                             $mother = $guardian->getServiceTblPersonFrom();
                         }
@@ -65,11 +93,11 @@ class Service
                     $tblPerson->StreetName = $address->getTblAddress()->getStreetName();
                     $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getCode()
-                        .' '.$address->getTblAddress()->getTblCity()->getName();
+                        . ' ' . $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber().' '.
-                        $address->getTblAddress()->getTblCity()->getCode().' '.
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
+                        $address->getTblAddress()->getStreetNumber() . ' ' .
+                        $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->City = '';
@@ -100,7 +128,7 @@ class Service
     public function createClassListExcel($studentList)
     {
 
-        if (!empty( $studentList )) {
+        if (!empty($studentList)) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -139,6 +167,8 @@ class Service
 
             return $fileLocation;
         }
+
+        return false;
     }
 
     /**
@@ -149,7 +179,7 @@ class Service
 
         $staffList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Mitarbeiter'));
 
-        if (!empty( $staffList )) {
+        if (!empty($staffList)) {
             foreach ($staffList as $tblPerson) {
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -172,9 +202,9 @@ class Service
                     $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber().' '.
-                        $address->getTblAddress()->getTblCity()->getCode().' '.
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
+                        $address->getTblAddress()->getStreetNumber() . ' ' .
+                        $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->City = $tblPerson->Code = '';
@@ -214,7 +244,7 @@ class Service
     public function createStaffListExcel($staffList)
     {
 
-        if (!empty( $staffList )) {
+        if (!empty($staffList)) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -255,18 +285,21 @@ class Service
 
             return $fileLocation;
         }
+
+        return false;
     }
 
     /**
+     * @param TblDivision $tblDivision
+     *
      * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
      */
-    public function createMedicList()
+    public function createMedicList(TblDivision $tblDivision)
     {
 
-        // Todo JohK Klassen einbauen
-        $studentList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Schüler'));
+        $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
 
-        if (!empty( $studentList )) {
+        if (!empty($studentList)) {
             foreach ($studentList as $tblPerson) {
 
                 if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
@@ -286,9 +319,9 @@ class Service
                     $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
                     $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber().' '.
-                        $address->getTblAddress()->getTblCity()->getCode().' '.
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
+                        $address->getTblAddress()->getStreetNumber() . ' ' .
+                        $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->City = $tblPerson->Code = '';
@@ -310,7 +343,7 @@ class Service
     public function createMedicListExcel($studentList)
     {
 
-        if (!empty( $studentList )) {
+        if (!empty($studentList)) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -341,18 +374,21 @@ class Service
 
             return $fileLocation;
         }
+
+        return false;
     }
 
     /**
+     * @param TblDivision $tblDivision
+     *
      * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
      */
-    public function createParentTeacherConferenceList()
+    public function createParentTeacherConferenceList(TblDivision $tblDivision)
     {
 
-        // Todo JohK Klassen einbauen
-        $studentList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Schüler'));
+        $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
 
-        if (!empty( $studentList )) {
+        if (!empty($studentList)) {
             foreach ($studentList as $tblPerson) {
                 $tblPerson->Attendance = '';
             }
@@ -371,7 +407,7 @@ class Service
     public function createParentTeacherConferenceListExcel($studentList)
     {
 
-        if (!empty( $studentList )) {
+        if (!empty($studentList)) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -393,6 +429,8 @@ class Service
 
             return $fileLocation;
         }
+
+        return false;
     }
 
     /**
@@ -400,50 +438,53 @@ class Service
      */
     public function createClubMemberList()
     {
+        $clubGroup = Group::useService()->getGroupByName('Verein');
+        if ($clubGroup) {
+            $clubMemberList = Group::useService()->getPersonAllByGroup($clubGroup);
+            if ($clubMemberList) {
+                foreach ($clubMemberList as $tblPerson) {
 
-        $clubMemberList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Verein'));
+                    if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                        $address = $addressList[0];
+                    } else {
+                        $address = null;
+                    }
 
-        if (!empty( $clubMemberList )) {
-            foreach ($clubMemberList as $tblPerson) {
+                    $tblPerson->Salutation = $tblPerson->getSalutation();
 
-                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
-                    $address = $addressList[0];
-                } else {
-                    $address = null;
+                    if ($address !== null) {
+                        $tblPerson->StreetName = $address->getTblAddress()->getStreetName();
+                        $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
+                        $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
+                        $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
+
+                        $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
+                            $address->getTblAddress()->getStreetNumber() . ' ' .
+                            $address->getTblAddress()->getTblCity()->getCode() . ' ' .
+                            $address->getTblAddress()->getTblCity()->getName();
+                    } else {
+                        $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
+                        $tblPerson->Address = '';
+                    }
+
+                    $tblPerson->Phone = $tblPerson->Mail = '';
+                    $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
+                    if ($phoneList) {
+                        $tblPerson->Phone = $phoneList[0]->getTblPhone()->getNumber();
+                    }
+                    $mailList = Mail::useService()->getMailAllByPerson($tblPerson);
+                    if ($mailList) {
+                        $tblPerson->Mail = $mailList[0]->getTblMail()->getAddress();
+                    }
+
+                    $tblPerson->Directorate = '';
                 }
-
-                $tblPerson->Salutation = $tblPerson->getSalutation();
-
-                if ($address !== null) {
-                    $tblPerson->StreetName = $address->getTblAddress()->getStreetName();
-                    $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
-                    $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
-                    $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
-
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber().' '.
-                        $address->getTblAddress()->getTblCity()->getCode().' '.
-                        $address->getTblAddress()->getTblCity()->getName();
-                } else {
-                    $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
-                    $tblPerson->Address = '';
-                }
-
-                $tblPerson->Phone = $tblPerson->Mail = '';
-                $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
-                if ($phoneList) {
-                    $tblPerson->Phone = $phoneList[0]->getTblPhone()->getNumber();
-                }
-                $mailList = Mail::useService()->getMailAllByPerson($tblPerson);
-                if ($mailList) {
-                    $tblPerson->Mail = $mailList[0]->getTblMail()->getAddress();
-                }
-
-                $tblPerson->Directorate = '';
             }
+
+            return $clubMemberList;
         }
 
-        return $clubMemberList;
+        return false;
     }
 
     /**
@@ -456,7 +497,7 @@ class Service
     public function createClubMemberListExcel($clubMemberList)
     {
 
-        if (!empty( $clubMemberList )) {
+        if (!empty($clubMemberList)) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -493,6 +534,7 @@ class Service
 
             return $fileLocation;
         }
+        return false;
     }
 
     /**
@@ -503,7 +545,7 @@ class Service
 
         $interestedPersonList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Interessent'));
 
-        if (!empty( $interestedPersonList )) {
+        if (!empty($interestedPersonList)) {
             foreach ($interestedPersonList as $tblPerson) {
 
                 if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
@@ -518,9 +560,9 @@ class Service
                     $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber().' '.
-                        $address->getTblAddress()->getTblCity()->getCode().' '.
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
+                        $address->getTblAddress()->getStreetNumber() . ' ' .
+                        $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
@@ -532,15 +574,20 @@ class Service
                     $tblProspectReservation = $tblProspect->getTblProspectReservation();
                     if ($tblProspectReservation) {
                         $tblPerson->SchoolYear = $tblProspectReservation->getReservationYear();
-                        if ($tblProspectReservation->getServiceTblCompanyOptionA()) {
-                            $tblPerson->CompanyOptionA = $tblProspectReservation->getServiceTblCompanyOptionA()->getName();
+                        if ($tblProspectReservation->getServiceTblTypeOptionA()) {
+                            $tblPerson->TypeOptionA = $tblProspectReservation->getServiceTblTypeOptionA()->getName();
                         } else {
-                            $tblPerson->CompanyOptionA = '';
+                            $tblPerson->TypeOptionA = '';
                         }
-                        if ($tblProspectReservation->getServiceTblCompanyOptionB()) {
-                            $tblPerson->CompanyOptionB = $tblProspectReservation->getServiceTblCompanyOptionB()->getName();
+                        if ($tblProspectReservation->getServiceTblTypeOptionB()) {
+                            $tblPerson->TypeOptionB = $tblProspectReservation->getServiceTblTypeOptionB()->getName();
                         } else {
-                            $tblPerson->CompanyOptionB = '';
+                            $tblPerson->TypeOptionB = '';
+                        }
+                        if ($tblProspectReservation->getReservationDivision()) {
+                            $tblPerson->DivisionLevel = $tblProspectReservation->getReservationDivision();
+                        } else {
+                            $tblPerson->DivisionLevel = '';
                         }
                     }
                     $tblProspectAppointment = $tblProspect->getTblProspectAppointment();
@@ -550,8 +597,8 @@ class Service
                         $tblPerson->RegistrationDate = '';
                     }
                 } else {
-                    $tblPerson->SchoolYear = $tblPerson->CompanyOptionA = $tblPerson->CompanyOptionB
-                        = $tblPerson->RegistrationDate = '';
+                    $tblPerson->SchoolYear = $tblPerson->TypeOptionA = $tblPerson->TypeOptionB
+                        = $tblPerson->RegistrationDate = $tblPerson->DivisionLevel = '';
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -567,13 +614,13 @@ class Service
 
                 $tblPerson->Siblings = '';
                 $relationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
-                if (!empty( $relationshipList )) {
+                if (!empty($relationshipList)) {
                     foreach ($relationshipList as $relationship) {
                         if ($relationship->getTblType()->getName() == 'Geschwisterkind') {
                             if ($relationship->getServiceTblPersonFrom()->getId() == $tblPerson->getId()) {
-                                $tblPerson->Siblings .= $relationship->getServiceTblPersonTo()->getFullName().' ';
+                                $tblPerson->Siblings .= $relationship->getServiceTblPersonTo()->getFullName() . ' ';
                             } else {
-                                $tblPerson->Siblings .= $relationship->getServiceTblPersonFrom()->getFullName().' ';
+                                $tblPerson->Siblings .= $relationship->getServiceTblPersonFrom()->getFullName() . ' ';
                             }
                         }
                     }
@@ -582,7 +629,7 @@ class Service
 
                 $tblPerson->Hoard = 'Nein';
                 $groupList = Group::useService()->getGroupAllByPerson($tblPerson);
-                if (!empty( $groupList )) {
+                if (!empty($groupList)) {
                     foreach ($groupList as $group) {
                         if ($group->getName() == 'Hort') {
                             $tblPerson->Hoard = 'Ja';
@@ -595,13 +642,13 @@ class Service
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
-                        if (( $guardian->getTblType()->getId() == 1 )
-                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1 )
+                        if (($guardian->getTblType()->getId() == 1)
+                            && ($guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1)
                         ) {
                             $father = $guardian->getServiceTblPersonFrom();
                         }
-                        if (( $guardian->getTblType()->getId() == 1 )
-                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2 )
+                        if (($guardian->getTblType()->getId() == 1)
+                            && ($guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2)
                         ) {
                             $mother = $guardian->getServiceTblPersonFrom();
                         }
@@ -641,7 +688,7 @@ class Service
     public function createInterestedPersonListExcel($interestedPersonList)
     {
 
-        if (!empty( $interestedPersonList )) {
+        if (!empty($interestedPersonList)) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -650,24 +697,25 @@ class Service
             $export->setValue($export->getCell("1", "0"), "Vorname");
             $export->setValue($export->getCell("2", "0"), "Name");
             $export->setValue($export->getCell("3", "0"), "Schuljahr");
-            $export->setValue($export->getCell("4", "0"), "Schulart 1");
-            $export->setValue($export->getCell("5", "0"), "Schulart 2");
-            $export->setValue($export->getCell("6", "0"), "Straße");
-            $export->setValue($export->getCell("7", "0"), "Hausnummer");
-            $export->setValue($export->getCell("8", "0"), "PLZ");
-            $export->setValue($export->getCell("9", "0"), "Ort");
-            $export->setValue($export->getCell("10", "0"), "Geburtsdatum");
-            $export->setValue($export->getCell("11", "0"), "Geburtsort");
-            $export->setValue($export->getCell("12", "0"), "Staatsangeh.");
-            $export->setValue($export->getCell("13", "0"), "Bekenntnis");
-            $export->setValue($export->getCell("14", "0"), "Geschwister");
-            $export->setValue($export->getCell("15", "0"), "Hort");
-            $export->setValue($export->getCell("16", "0"), "Anrede V");
-            $export->setValue($export->getCell("17", "0"), "Name V");
-            $export->setValue($export->getCell("18", "0"), "Vorname V");
-            $export->setValue($export->getCell("19", "0"), "Anrede M");
-            $export->setValue($export->getCell("20", "0"), "Name M");
-            $export->setValue($export->getCell("21", "0"), "Vorname M");
+            $export->setValue($export->getCell("4", "0"), "Klassenstufe");
+            $export->setValue($export->getCell("5", "0"), "Schulart 1");
+            $export->setValue($export->getCell("6", "0"), "Schulart 2");
+            $export->setValue($export->getCell("7", "0"), "Straße");
+            $export->setValue($export->getCell("8", "0"), "Hausnummer");
+            $export->setValue($export->getCell("9", "0"), "PLZ");
+            $export->setValue($export->getCell("10", "0"), "Ort");
+            $export->setValue($export->getCell("11", "0"), "Geburtsdatum");
+            $export->setValue($export->getCell("12", "0"), "Geburtsort");
+            $export->setValue($export->getCell("13", "0"), "Staatsangeh.");
+            $export->setValue($export->getCell("14", "0"), "Bekenntnis");
+            $export->setValue($export->getCell("15", "0"), "Geschwister");
+            $export->setValue($export->getCell("16", "0"), "Hort");
+            $export->setValue($export->getCell("17", "0"), "Anrede V");
+            $export->setValue($export->getCell("18", "0"), "Name V");
+            $export->setValue($export->getCell("19", "0"), "Vorname V");
+            $export->setValue($export->getCell("20", "0"), "Anrede M");
+            $export->setValue($export->getCell("21", "0"), "Name M");
+            $export->setValue($export->getCell("22", "0"), "Vorname M");
 
             $Row = 1;
             foreach ($interestedPersonList as $tblPerson) {
@@ -676,24 +724,25 @@ class Service
                 $export->setValue($export->getCell("1", $Row), $tblPerson->getFirstName());
                 $export->setValue($export->getCell("2", $Row), $tblPerson->getLastName());
                 $export->setValue($export->getCell("3", $Row), $tblPerson->SchoolYear);
-                $export->setValue($export->getCell("4", $Row), $tblPerson->CompanyOptionA);
-                $export->setValue($export->getCell("5", $Row), $tblPerson->CompanyOptionB);
-                $export->setValue($export->getCell("6", $Row), $tblPerson->StreetName);
-                $export->setValue($export->getCell("7", $Row), $tblPerson->StreetNumber);
-                $export->setValue($export->getCell("8", $Row), $tblPerson->Code);
-                $export->setValue($export->getCell("9", $Row), $tblPerson->City);
-                $export->setValue($export->getCell("10", $Row), $tblPerson->Birthday);
-                $export->setValue($export->getCell("11", $Row), $tblPerson->Birthplace);
-                $export->setValue($export->getCell("12", $Row), $tblPerson->Nationality);
-                $export->setValue($export->getCell("13", $Row), $tblPerson->Denomination);
-                $export->setValue($export->getCell("14", $Row), $tblPerson->Siblings);
-                $export->setValue($export->getCell("15", $Row), $tblPerson->Hoard);
-                $export->setValue($export->getCell("16", $Row), $tblPerson->FatherSalutation);
-                $export->setValue($export->getCell("17", $Row), $tblPerson->FatherLastName);
-                $export->setValue($export->getCell("18", $Row), $tblPerson->FatherFirstName);
-                $export->setValue($export->getCell("19", $Row), $tblPerson->MotherSalutation);
-                $export->setValue($export->getCell("20", $Row), $tblPerson->MotherLastName);
-                $export->setValue($export->getCell("21", $Row), $tblPerson->MotherFirstName);
+                $export->setValue($export->getCell("4", $Row), $tblPerson->DivisionLevel);
+                $export->setValue($export->getCell("5", $Row), $tblPerson->TypeOptionA);
+                $export->setValue($export->getCell("6", $Row), $tblPerson->TypeOptionB);
+                $export->setValue($export->getCell("7", $Row), $tblPerson->StreetName);
+                $export->setValue($export->getCell("8", $Row), $tblPerson->StreetNumber);
+                $export->setValue($export->getCell("9", $Row), $tblPerson->Code);
+                $export->setValue($export->getCell("10", $Row), $tblPerson->City);
+                $export->setValue($export->getCell("11", $Row), $tblPerson->Birthday);
+                $export->setValue($export->getCell("12", $Row), $tblPerson->Birthplace);
+                $export->setValue($export->getCell("13", $Row), $tblPerson->Nationality);
+                $export->setValue($export->getCell("14", $Row), $tblPerson->Denomination);
+                $export->setValue($export->getCell("15", $Row), $tblPerson->Siblings);
+                $export->setValue($export->getCell("16", $Row), $tblPerson->Hoard);
+                $export->setValue($export->getCell("17", $Row), $tblPerson->FatherSalutation);
+                $export->setValue($export->getCell("18", $Row), $tblPerson->FatherLastName);
+                $export->setValue($export->getCell("19", $Row), $tblPerson->FatherFirstName);
+                $export->setValue($export->getCell("20", $Row), $tblPerson->MotherSalutation);
+                $export->setValue($export->getCell("21", $Row), $tblPerson->MotherLastName);
+                $export->setValue($export->getCell("22", $Row), $tblPerson->MotherFirstName);
 
                 $Row++;
             }
@@ -702,6 +751,7 @@ class Service
 
             return $fileLocation;
         }
+        return false;
     }
 
     /**
@@ -712,11 +762,14 @@ class Service
 
         $studentList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Schüler'));
 
-        if (!empty( $studentList )) {
+        if (!empty($studentList)) {
             foreach ($studentList as $tblPerson) {
 
-                // ToDo JohK DebtorNumber
-                $tblPerson->DebtorNumber = '';
+                if ($debtorList = Banking::useService()->getDebtorAllByPerson($tblPerson)) {
+                    $tblPerson->DebtorNumber = $debtorList[0]->getDebtorNumber();
+                } else {
+                    $tblPerson->DebtorNumber = '';
+                }
 
                 if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
                     $address = $addressList[0];
@@ -730,9 +783,9 @@ class Service
                     $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
-                        $address->getTblAddress()->getStreetNumber().' '.
-                        $address->getTblAddress()->getTblCity()->getCode().' '.
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
+                        $address->getTblAddress()->getStreetNumber() . ' ' .
+                        $address->getTblAddress()->getTblCity()->getCode() . ' ' .
                         $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
@@ -744,13 +797,13 @@ class Service
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
-                        if (( $guardian->getTblType()->getId() == 1 )
-                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1 )
+                        if (($guardian->getTblType()->getId() == 1)
+                            && ($guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1)
                         ) {
                             $father = $guardian->getServiceTblPersonFrom();
                         }
-                        if (( $guardian->getTblType()->getId() == 1 )
-                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2 )
+                        if (($guardian->getTblType()->getId() == 1)
+                            && ($guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2)
                         ) {
                             $mother = $guardian->getServiceTblPersonFrom();
                         }
@@ -792,7 +845,7 @@ class Service
     public function createSchoolFeeListExcel($studentList)
     {
 
-        if (!empty( $studentList )) {
+        if (!empty($studentList)) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -849,5 +902,6 @@ class Service
 
             return $fileLocation;
         }
+        return false;
     }
 }

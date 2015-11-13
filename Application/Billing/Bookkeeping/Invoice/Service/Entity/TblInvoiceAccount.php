@@ -22,7 +22,6 @@ class TblInvoiceAccount extends Element
      * @Column(type="bigint")
      */
     protected $tblInvoiceItem;
-
     /**
      * @Column(type="bigint")
      */

@@ -23,27 +23,22 @@ class TblItem extends Element
      * @Column(type="string")
      */
     protected $Description;
-
     /**
      * @Column(type="decimal", precision=14, scale=4)
      */
     protected $Price;
-
     /**
      * @Column(type="string")
      */
     protected $Name;
-
     /**
      * @Column(type="string")
      */
     protected $CostUnit;
-
     /**
      * @Column(type="bigint")
      */
     protected $serviceManagement_Course;
-
     /**
      * @Column(type="bigint")
      */

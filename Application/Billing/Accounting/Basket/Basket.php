@@ -14,6 +14,7 @@ class Basket implements IModuleInterface
 
     public static function registerModule()
     {
+
         /**
          * Register Route
          */
@@ -37,7 +38,7 @@ class Basket implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
                 __NAMESPACE__.'\Frontend::frontendBasketDestroy'
             )->setParameterDefault('Id', null)
-            ->setParameterDefault('Confirm', null)
+                ->setParameterDefault('Confirm', null)
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Commodity/Select',
@@ -122,6 +123,7 @@ class Basket implements IModuleInterface
      */
     public static function useFrontend()
     {
+
         return new Frontend();
     }
 

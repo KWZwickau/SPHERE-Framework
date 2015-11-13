@@ -3,7 +3,6 @@ namespace SPHERE\Application\Transfer\Export;
 
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\IApplicationInterface;
-use SPHERE\Application\Transfer\Export\Chemnitz\Chemnitz;
 use SPHERE\Application\Transfer\Export\Datev\Datev;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
@@ -24,7 +23,6 @@ class Export implements IApplicationInterface
     {
 
         Datev::registerModule();
-        Chemnitz::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten exportieren'))
@@ -40,20 +38,13 @@ class Export implements IApplicationInterface
                 new Standard('', '/Sphere/Transfer/Export/Datev', new Download(), array(), 'Download')
             ), 2, 4
         );
-        Main::getDispatcher()->registerWidget('Transfer',
-            new Thumbnail(
-                FileSystem::getFileLoader('/Common/Style/Resource/datev_logo.png'),
-                'Datev', 'Rechnungen',
-                new Standard('', '/Sphere/Transfer/Export/Datev', new Download(), array(), 'Download')
-            ), 2, 4
-        );
-        Main::getDispatcher()->registerWidget('Export',
-            new Thumbnail(
-                FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),
-                'Chemnitz', 'Klassenliste',
-                new Standard('', '/Transfer/Export/Chemnitz/Class', new Download(), array(), 'Download')
-            ), 2, 2
-        );
+//        Main::getDispatcher()->registerWidget('Transfer',
+//            new Thumbnail(
+//                FileSystem::getFileLoader('/Common/Style/Resource/datev_logo.png'),
+//                'Datev', 'Rechnungen',
+//                new Standard('', '/Sphere/Transfer/Export/Datev', new Download(), array(), 'Download')
+//            ), 2, 4
+//        );
     }
 
     /**

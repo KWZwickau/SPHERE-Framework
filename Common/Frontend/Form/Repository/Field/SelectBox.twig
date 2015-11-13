@@ -24,7 +24,27 @@
         {
             var guiSelect = jQuery('select[name="{{ ElementName }}"]');
             guiSelect.find('option[value="{{ ElementValue }}"]').attr('selected', 'selected');
+            guiSelect.on('change', function(Event, Element)
+            {
+                var noSelection = jQuery(Event.currentTarget);
+                var useColor = noSelection.parent().find('span.selecter-selected');
+                var useValue = noSelection.parent().find('span.selecter-item.selected');
+                if (useValue.attr('data-value') == 0) {
+                    useColor.css('color', 'silver');
+                } else {
+                    useColor.css('color', '');
+                }
+            })
             guiSelect.ModSelecter();
+
+            var noSelection = guiSelect;
+            var useColor = noSelection.parent().find('span.selecter-selected');
+            var useValue = noSelection.parent().find('span.selecter-item.selected');
+            if (useValue.attr('data-value') == 0) {
+                useColor.css('color', 'silver');
+            }
+
+
         }
     );
 </script>

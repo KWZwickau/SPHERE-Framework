@@ -1,7 +1,7 @@
-(function ($)
+(function($)
 {
     'use strict';
-    $.fn.SDDDocument = function (options)
+    $.fn.SDDDocument = function(options)
     {
         var _this = this;
         console.log('SDDDocument', _this);
@@ -13,12 +13,17 @@
             // These are the defaults.
         }, options);
 
-        _this.find('.SDD-Page').each(function (Event, Container)
+        _this.find('.SDD-Panel').each(function(Event, Container)
+        {
+            $(Container).SDDPanel();
+        });
+
+        _this.find('.SDD-Page').each(function(Event, Container)
         {
             var SDDContainer = $(Container).SDDPage();
             RegisterContainer[RegisterContainer.length] = SDDContainer;
 
-            SDDContainer.on('click', function (Event)
+            SDDContainer.on('click', function(Event)
             {
                 Event.stopPropagation();
 //                console.log(SDDContainer.getTargetPosition(Event));
@@ -28,7 +33,7 @@
 
         });
 
-        _this.on('resize', function (Event)
+        _this.on('resize', function(Event)
         {
             Event.stopPropagation();
             var Size = _this.getSize();
@@ -37,7 +42,7 @@
 
         });
 
-        _this.getTargetPosition = function (Event)
+        _this.getTargetPosition = function(Event)
         {
             var Target = $(Event.target);
             return {
@@ -46,7 +51,7 @@
             }
         };
 
-        _this.getTargetSize = function (Event)
+        _this.getTargetSize = function(Event)
         {
 
             var Target = $(Event.target);
@@ -56,7 +61,7 @@
             }
         };
 
-        _this.getPosition = function ()
+        _this.getPosition = function()
         {
 
             return {
@@ -65,7 +70,7 @@
             }
         };
 
-        _this.getSize = function ()
+        _this.getSize = function()
         {
 
             return {
@@ -74,12 +79,12 @@
             }
         };
 
-        _this.getContainerList = function ()
+        _this.getContainerList = function()
         {
             return RegisterContainer;
         };
 
-        _this.getSerialize = function ()
+        _this.getSerialize = function()
         {
             var List = _this.getContainerList();
             for (var Container in List) {
@@ -89,7 +94,7 @@
             }
         };
 
-        _this.getSettings = function ()
+        _this.getSettings = function()
         {
             return settings;
         };

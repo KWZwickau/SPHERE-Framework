@@ -5,6 +5,10 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -16,108 +20,165 @@ use SPHERE\System\Database\Fitting\Element;
 class TblStudentTransfer extends Element
 {
 
-    /**
-     * @Column(type="bigint")
-     */
-    protected $tblStudentTransferArrive;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $tblStudentTransferEnrollment;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $tblStudentTransferLeave;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $tblStudentTransferProcess;
+    const ATTR_TBL_STUDENT = 'tblStudent';
+    const ATTR_TBL_TRANSFER_TYPE = 'tblStudentTransferType';
 
     /**
-     * @return bool|TblStudentTransferArrive
+     * @Column(type="bigint")
      */
-    public function getTblStudentTransferArrive()
+    protected $tblStudent;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentTransferType;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblCompany;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblType;
+    /**
+     * @Column(type="datetime")
+     */
+    protected $TransferDate;
+    /**
+     * @Column(type="text")
+     */
+    protected $Remark;
+
+    /**
+     * @return bool|TblStudent
+     */
+    public function getTblStudent()
     {
 
-        if (null === $this->tblStudentTransferArrive) {
+        if (null === $this->tblStudent) {
             return false;
         } else {
-            return Student::useService()->getStudentTransferArriveById($this->tblStudentTransferArrive);
+            return Student::useService()->getStudentById($this->tblStudent);
         }
     }
 
     /**
-     * @param null|TblStudentTransferArrive $tblStudentTransferArrive
+     * @param null|TblStudent $tblStudent
      */
-    public function setTblStudentTransferArrive(TblStudentTransferArrive $tblStudentTransferArrive = null)
+    public function setTblStudent(TblStudent $tblStudent = null)
     {
 
-        $this->tblStudentTransferArrive = ( null === $tblStudentTransferArrive ? null : $tblStudentTransferArrive->getId() );
+        $this->tblStudent = ( null === $tblStudent ? null : $tblStudent->getId() );
     }
 
     /**
-     * @return bool|TblStudentTransferEnrollment
+     * @return bool|TblStudentTransferType
      */
-    public function getTblStudentTransferEnrollment()
+    public function getTblStudentTransferType()
     {
 
-        if (null === $this->tblStudentTransferEnrollment) {
+        if (null === $this->tblStudentTransferType) {
             return false;
         } else {
-            return Student::useService()->getStudentTransferEnrollmentById($this->tblStudentTransferEnrollment);
+            return Student::useService()->getStudentTransferTypeById($this->tblStudentTransferType);
         }
     }
 
     /**
-     * @param null|TblStudentTransferEnrollment $tblStudentTransferEnrollment
+     * @param null|TblStudentTransferType $tblStudentTransferType
      */
-    public function setTblStudentTransferEnrollment(TblStudentTransferEnrollment $tblStudentTransferEnrollment = null)
+    public function setTblStudentTransferType(TblStudentTransferType $tblStudentTransferType = null)
     {
 
-        $this->tblStudentTransferEnrollment = ( null === $tblStudentTransferEnrollment ? null : $tblStudentTransferEnrollment->getId() );
+        $this->tblStudentTransferType = ( null === $tblStudentTransferType ? null : $tblStudentTransferType->getId() );
     }
 
     /**
-     * @return bool|TblStudentTransferLeave
+     * @return string
      */
-    public function getTblStudentTransferLeave()
+    public function getTransferDate()
     {
 
-        if (null === $this->tblStudentTransferLeave) {
+        if (null === $this->TransferDate) {
             return false;
+        }
+        /** @var \DateTime $TransferDate */
+        $TransferDate = $this->TransferDate;
+        if ($TransferDate instanceof \DateTime) {
+            return $TransferDate->format('d.m.Y');
         } else {
-            return Student::useService()->getStudentTransferLeaveById($this->tblStudentTransferLeave);
+            return (string)$TransferDate;
         }
     }
 
     /**
-     * @param null|TblStudentTransferLeave $tblStudentTransferLeave
+     * @param null|\DateTime $TransferDate
      */
-    public function setTblStudentTransferLeave(TblStudentTransferLeave $tblStudentTransferLeave = null)
+    public function setTransferDate(\DateTime $TransferDate = null)
     {
 
-        $this->tblStudentTransferLeave = ( null === $tblStudentTransferLeave ? null : $tblStudentTransferLeave->getId() );
+        $this->TransferDate = $TransferDate;
     }
 
     /**
-     * @return bool|TblStudentTransferProcess
+     * @return string
      */
-    public function getTblStudentTransferProcess()
+    public function getRemark()
     {
 
-        if (null === $this->tblStudentTransferProcess) {
+        return $this->Remark;
+    }
+
+    /**
+     * @param string $Remark
+     */
+    public function setRemark($Remark)
+    {
+
+        $this->Remark = $Remark;
+    }
+
+    /**
+     * @return bool|TblCompany
+     */
+    public function getServiceTblCompany()
+    {
+
+        if (null === $this->serviceTblCompany) {
             return false;
         } else {
-            return Student::useService()->getStudentTransferProcessById($this->tblStudentTransferProcess);
+            return Company::useService()->getCompanyById($this->serviceTblCompany);
         }
     }
 
     /**
-     * @param null|TblStudentTransferProcess $tblStudentTransferProcess
+     * @param TblCompany|null $tblCompany
      */
-    public function setTblStudentTransferProcess(TblStudentTransferProcess $tblStudentTransferProcess = null)
+    public function setServiceTblCompany(TblCompany $tblCompany = null)
     {
 
-        $this->tblStudentTransferProcess = ( null === $tblStudentTransferProcess ? null : $tblStudentTransferProcess->getId() );
+        $this->serviceTblCompany = ( null === $tblCompany ? null : $tblCompany->getId() );
+    }
+
+    /**
+     * @return bool|TblType
+     */
+    public function getServiceTblType()
+    {
+
+        if (null === $this->serviceTblType) {
+            return false;
+        } else {
+            return Type::useService()->getTypeById($this->serviceTblType);
+        }
+    }
+
+    /**
+     * @param TblType|null $tblType
+     */
+    public function setServiceTblType(TblType $tblType = null)
+    {
+
+        $this->serviceTblType = ( null === $tblType ? null : $tblType->getId() );
     }
 }

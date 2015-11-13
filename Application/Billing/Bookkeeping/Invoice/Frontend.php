@@ -232,30 +232,6 @@ class Frontend extends Extension implements IFrontendInterface
         $tblInvoice = Invoice::useService()->getInvoiceById($Id);
         $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
 
-        if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
-            $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
-            if ($tblDebtor) {
-                if (Banking::useService()->getActiveAccountByDebtor($tblDebtor)) {
-                    $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
-                        new Ok(), array(
-                            'Id' => $Id
-                        )
-                    ));
-                }
-            }
-        } else {
-            $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
-                new Ok(), array(
-                    'Id' => $Id
-                )
-            ));
-        }
-
-        $Stage->addButton(new Danger('Stornieren', '/Billing/Bookkeeping/Invoice/Cancel',
-            new Remove(), array(
-                'Id' => $Id
-            )
-        ));
         if ($tblInvoice->getIsConfirmed()) {
             $Stage->setContent(new Warning('Die Rechnung wurde bereits bestätigt und freigegeben und kann nicht mehr bearbeitet werden')
                 .new Redirect('/Billing/Bookkeeping/Invoice', 2));
@@ -266,10 +242,9 @@ class Frontend extends Extension implements IFrontendInterface
                     function (TblInvoiceItem &$tblInvoiceItem, $index, TblInvoice $tblInvoice) {
 
                         $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
-                        if($tblDebtor)
-                        {
+                        if ($tblDebtor) {
                             $tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor);
-                        }else{
+                        } else {
                             $tblAccount = false;
                         }
 
@@ -326,6 +301,47 @@ class Frontend extends Extension implements IFrontendInterface
                                 )))->__toString();
                     }, $tblInvoice);
             }
+
+            if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
+
+                $ReferenceOk = true;
+                foreach ($tblInvoiceItemAll as $tblInvoiceItem) {
+                    if ($tblInvoiceItem->Status != new \SPHERE\Common\Frontend\Text\Repository\Success('Mandatsreferenz'.' '.new Ok())) {
+                        $ReferenceOk = false;
+                    }
+                }
+
+                $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+                if ($tblDebtor) {
+                    if (Banking::useService()->getActiveAccountByDebtor($tblDebtor)) {
+                        if ($ReferenceOk) {
+                            $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
+                                new Ok(), array(
+                                    'Id' => $Id
+                                )
+                            ));
+                        } else {
+                            $Stage->addButton(new Standard('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit',
+                                new Ok(), array(
+                                    'Id' => $Id
+                                ), 'Fehlende Mandatsreferenz'
+                            ));
+                        }
+                    }
+                }
+            } else {
+                $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
+                    new Ok(), array(
+                        'Id' => $Id
+                    )
+                ));
+            }
+
+            $Stage->addButton(new Danger('Stornieren', '/Billing/Bookkeeping/Invoice/Cancel',
+                new Remove(), array(
+                    'Id' => $Id
+                )
+            ));
 
 
             $Stage->setContent(
@@ -409,13 +425,13 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                         )),
                         ( ( $tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift' ) ?
-                            ($tblDebtor)?
+                            ( $tblDebtor ) ?
                                 new LayoutRow(
                                     new LayoutColumn(
                                         self::layoutAccount($tblDebtor, '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', $tblInvoice->getId())
                                     )
                                 ) : null
-                                : null
+                            : null
                         ),
                         new LayoutRow(
                             new LayoutColumn(
@@ -531,10 +547,9 @@ class Frontend extends Extension implements IFrontendInterface
                 function (TblInvoiceItem &$tblInvoiceItem, $index, TblInvoice $tblInvoice) {
 
                     $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
-                    if($tblDebtor)
-                    {
+                    if ($tblDebtor) {
                         $tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor);
-                    } else{
+                    } else {
                         $tblAccount = false;
                     }
 
@@ -968,12 +983,29 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
 
                 $Global = $this->getGlobal();
-                if (!isset( $Global->POST['InvoiceItem'])) {
+                if (!isset( $Global->POST['InvoiceItem'] )) {
                     $Global->POST['InvoiceItem']['Price'] = str_replace('.', ',', $tblInvoiceItem->getItemPrice());
                     $Global->POST['InvoiceItem']['Quantity'] = str_replace('.', ',',
                         $tblInvoiceItem->getItemQuantity());
                     $Global->savePost();
                 }
+
+                $Form = new Form(array(
+                    new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new TextField('InvoiceItem[Price]', 'Preis in €', 'Preis',
+                                    new MoneyEuro()
+                                ), 6),
+                            new FormColumn(
+                                new TextField('InvoiceItem[Quantity]', 'Menge', 'Menge',
+                                    new Quantity()
+                                ), 6)
+                        ))
+                    ))
+                ));
+                $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Änderungen speichern'));
+                $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
                 $Stage->setContent(
                     new Layout(array(
@@ -996,26 +1028,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
-                                        Invoice::useService()->changeInvoiceItem(
-                                            new Form(array(
-                                                new FormGroup(array(
-                                                    new FormRow(array(
-                                                        new FormColumn(
-                                                            new TextField('InvoiceItem[Price]', 'Preis in €', 'Preis',
-                                                                new MoneyEuro()
-                                                            ), 6),
-                                                        new FormColumn(
-                                                            new TextField('InvoiceItem[Quantity]', 'Menge', 'Menge',
-                                                                new Quantity()
-                                                            ), 6)
-                                                    ))
-                                                ))
-                                            ),
-                                                new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Änderungen speichern')
-                                            ), $tblInvoiceItem, $InvoiceItem
-                                        )
+                                    Invoice::useService()->changeInvoiceItem(
+                                        $Form, $tblInvoiceItem, $InvoiceItem
                                     )
-                                )
+                                ))
                             ))
                         ))
                     ))

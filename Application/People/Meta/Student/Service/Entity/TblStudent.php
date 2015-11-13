@@ -35,7 +35,15 @@ class TblStudent extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblStudentTransfer;
+    protected $tblStudentBilling;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentLocker;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentBaptism;
 
     /**
      * @return bool|TblStudentMedicalRecord
@@ -82,28 +90,6 @@ class TblStudent extends Element
     }
 
     /**
-     * @return bool|TblStudentTransfer
-     */
-    public function getTblStudentTransfer()
-    {
-
-        if (null === $this->tblStudentTransfer) {
-            return false;
-        } else {
-            return Student::useService()->getStudentTransferById($this->tblStudentTransfer);
-        }
-    }
-
-    /**
-     * @param null|TblStudentTransfer $tblStudentTransfer
-     */
-    public function setTblStudentTransfer(TblStudentTransfer $tblStudentTransfer = null)
-    {
-
-        $this->tblStudentTransfer = ( null === $tblStudentTransfer ? null : $tblStudentTransfer->getId() );
-    }
-
-    /**
      * @return bool|TblPerson
      */
     public function getServiceTblPerson()
@@ -123,5 +109,71 @@ class TblStudent extends Element
     {
 
         $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
+     * @return bool|TblStudentBilling
+     */
+    public function getTblStudentBilling()
+    {
+
+        if (null === $this->tblStudentBilling) {
+            return false;
+        } else {
+            return Student::useService()->getStudentBillingById($this->tblStudentBilling);
+        }
+    }
+
+    /**
+     * @param null|TblStudentBilling $tblStudentBilling
+     */
+    public function setTblStudentBilling(TblStudentBilling $tblStudentBilling = null)
+    {
+
+        $this->tblStudentBilling = ( null === $tblStudentBilling ? null : $tblStudentBilling->getId() );
+    }
+
+    /**
+     * @return bool|TblStudentBaptism
+     */
+    public function getTblStudentBaptism()
+    {
+
+        if (null === $this->tblStudentBaptism) {
+            return false;
+        } else {
+            return Student::useService()->getStudentBaptismById($this->tblStudentBaptism);
+        }
+    }
+
+    /**
+     * @param null|TblStudentBaptism $tblStudentBaptism
+     */
+    public function setTblStudentBaptism(TblStudentBaptism $tblStudentBaptism = null)
+    {
+
+        $this->tblStudentBaptism = ( null === $tblStudentBaptism ? null : $tblStudentBaptism->getId() );
+    }
+
+    /**
+     * @return bool|TblStudentLocker
+     */
+    public function getTblStudentLocker()
+    {
+
+        if (null === $this->tblStudentLocker) {
+            return false;
+        } else {
+            return Student::useService()->getStudentLockerById($this->tblStudentLocker);
+        }
+    }
+
+    /**
+     * @param null|TblStudentLocker $tblStudentLocker
+     */
+    public function setTblStudentLocker(TblStudentLocker $tblStudentLocker = null)
+    {
+
+        $this->tblStudentLocker = ( null === $tblStudentLocker ? null : $tblStudentLocker->getId() );
     }
 }

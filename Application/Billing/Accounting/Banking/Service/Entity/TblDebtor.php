@@ -83,7 +83,7 @@ class TblDebtor extends Element
         if (null === $this->ServiceManagementPerson) {
             return false;
         } else {
-            return Person::useService()->getPersonById( $this->ServiceManagementPerson );
+            return Person::useService()->getPersonById($this->ServiceManagementPerson);
         }
     }
 
@@ -93,7 +93,7 @@ class TblDebtor extends Element
     public function setServiceManagementPerson(TblPerson $ServiceManagementPerson)
     {
 
-        $this->ServiceManagementPerson = ( null === $ServiceManagementPerson ? null : $ServiceManagementPerson->getId() );//todo
+        $this->ServiceManagementPerson = ( null === $ServiceManagementPerson ? null : $ServiceManagementPerson->getId() );
     }
 
     /**

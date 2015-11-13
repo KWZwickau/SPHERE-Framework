@@ -27,17 +27,24 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblStudentMedicalRecord = $this->setTableStudentMedicalRecord($Schema);
         $tblStudentTransport = $this->setTableStudentTransport($Schema);
+        $tblStudentBilling = $this->setTableStudentBilling($Schema);
+        $tblStudentLocker = $this->setTableStudentLocker($Schema);
+        $tblStudentBaptism = $this->setTableStudentBaptism($Schema);
 
-        $tblStudentTransferEnrollment = $this->setTableStudentTransferEnrollment($Schema);
-        $tblStudentTransferArrive = $this->setTableStudentTransferArrive($Schema);
-        $tblStudentTransferProcess = $this->setTableStudentTransferProcess($Schema);
-        $tblStudentTransferLeave = $this->setTableStudentTransferLeave($Schema);
-        $tblStudentTransfer = $this->setTableStudentTransfer($Schema,
-            $tblStudentTransferEnrollment, $tblStudentTransferArrive, $tblStudentTransferProcess,
-            $tblStudentTransferLeave
-        );
+        $tblStudent = $this->setTableStudent($Schema, $tblStudentMedicalRecord, $tblStudentTransport,
+            $tblStudentBilling, $tblStudentLocker, $tblStudentBaptism);
 
-        $this->setTableStudent($Schema, $tblStudentMedicalRecord, $tblStudentTransport, $tblStudentTransfer);
+        $tblStudentTransferType = $this->setTableStudentTransferType($Schema);
+        $this->setTableStudentTransfer($Schema, $tblStudent, $tblStudentTransferType);
+
+        $tblStudentAgreementCategory = $this->setTableStudentAgreementCategory($Schema);
+        $tblStudentAgreementType = $this->setTableStudentAgreementType($Schema, $tblStudentAgreementCategory);
+        $this->setTableStudentAgreement($Schema, $tblStudent, $tblStudentAgreementType);
+
+        $tblStudentSubjectType = $this->setTableStudentSubjectType($Schema);
+        $tblStudentSubjectRanking = $this->setTableStudentSubjectRanking($Schema);
+        $this->setTableStudentSubject($Schema, $tblStudent, $tblStudentSubjectType, $tblStudentSubjectRanking);
+
         /**
          * Migration & Protocol
          */
@@ -102,18 +109,12 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableStudentTransferEnrollment(Schema &$Schema)
+    private function setTableStudentBilling(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblStudentTransferEnrollment');
-        if (!$this->getConnection()->hasColumn('tblStudentTransferEnrollment', 'serviceTblCompany')) {
-            $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentTransferEnrollment', 'EnrollmentDate')) {
-            $Table->addColumn('EnrollmentDate', 'datetime', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentTransferEnrollment', 'Remark')) {
-            $Table->addColumn('Remark', 'text');
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentBilling');
+        if (!$this->getConnection()->hasColumn('tblStudentBilling', 'serviceTblSiblingRank')) {
+            $Table->addColumn('serviceTblSiblingRank', 'bigint', array('notnull' => false));
         }
         return $Table;
     }
@@ -123,21 +124,18 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableStudentTransferArrive(Schema &$Schema)
+    private function setTableStudentLocker(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblStudentTransferArrive');
-        if (!$this->getConnection()->hasColumn('tblStudentTransferArrive', 'serviceTblCompany')) {
-            $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentLocker');
+        if (!$this->getConnection()->hasColumn('tblStudentLocker', 'LockerNumber')) {
+            $Table->addColumn('LockerNumber', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblStudentTransferArrive', 'serviceTblType')) {
-            $Table->addColumn('serviceTblType', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblStudentLocker', 'LockerLockation')) {
+            $Table->addColumn('LockerLockation', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblStudentTransferArrive', 'ArriveDate')) {
-            $Table->addColumn('ArriveDate', 'datetime', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentTransferArrive', 'Remark')) {
-            $Table->addColumn('Remark', 'text');
+        if (!$this->getConnection()->hasColumn('tblStudentLocker', 'KeyNumber')) {
+            $Table->addColumn('KeyNumber', 'string');
         }
         return $Table;
     }
@@ -147,65 +145,16 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableStudentTransferProcess(Schema &$Schema)
+    private function setTableStudentBaptism(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblStudentTransferProcess');
-        if (!$this->getConnection()->hasColumn('tblStudentTransferProcess', 'serviceTblType')) {
-            $Table->addColumn('serviceTblType', 'bigint', array('notnull' => false));
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentBaptism');
+        if (!$this->getConnection()->hasColumn('tblStudentBaptism', 'BaptismDate')) {
+            $Table->addColumn('BaptismDate', 'datetime', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblStudentTransferProcess', 'Remark')) {
-            $Table->addColumn('Remark', 'text');
+        if (!$this->getConnection()->hasColumn('tblStudentBaptism', 'Location')) {
+            $Table->addColumn('Location', 'string');
         }
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     *
-     * @return Table
-     */
-    private function setTableStudentTransferLeave(Schema &$Schema)
-    {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblStudentTransferLeave');
-        if (!$this->getConnection()->hasColumn('tblStudentTransferLeave', 'serviceTblCompany')) {
-            $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentTransferLeave', 'serviceTblType')) {
-            $Table->addColumn('serviceTblType', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentTransferLeave', 'LeaveDate')) {
-            $Table->addColumn('LeaveDate', 'datetime', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblStudentTransferLeave', 'Remark')) {
-            $Table->addColumn('Remark', 'text');
-        }
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblStudentTransferEnrollment
-     * @param Table  $tblStudentTransferArrive
-     * @param Table  $tblStudentTransferProcess
-     * @param Table  $tblStudentTransferLeave
-     *
-     * @return Table
-     */
-    private function setTableStudentTransfer(
-        Schema &$Schema,
-        Table $tblStudentTransferEnrollment,
-        Table $tblStudentTransferArrive,
-        Table $tblStudentTransferProcess,
-        Table $tblStudentTransferLeave
-    ) {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblStudentTransfer');
-        $this->getConnection()->addForeignKey($Table, $tblStudentTransferEnrollment);
-        $this->getConnection()->addForeignKey($Table, $tblStudentTransferArrive);
-        $this->getConnection()->addForeignKey($Table, $tblStudentTransferProcess);
-        $this->getConnection()->addForeignKey($Table, $tblStudentTransferLeave);
         return $Table;
     }
 
@@ -213,7 +162,9 @@ class Setup extends AbstractSetup
      * @param Schema $Schema
      * @param Table  $tblStudentMedicalRecord
      * @param Table  $tblStudentTransport
-     * @param Table  $tblStudentTransfer
+     * @param Table  $tblStudentBilling
+     * @param Table  $tblStudentLocker
+     * @param Table  $tblStudentBaptism
      *
      * @return Table
      */
@@ -221,7 +172,9 @@ class Setup extends AbstractSetup
         Schema &$Schema,
         Table $tblStudentMedicalRecord,
         Table $tblStudentTransport,
-        Table $tblStudentTransfer
+        Table $tblStudentBilling,
+        Table $tblStudentLocker,
+        Table $tblStudentBaptism
     ) {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblStudent');
@@ -230,7 +183,202 @@ class Setup extends AbstractSetup
         }
         $this->getConnection()->addForeignKey($Table, $tblStudentMedicalRecord);
         $this->getConnection()->addForeignKey($Table, $tblStudentTransport);
-        $this->getConnection()->addForeignKey($Table, $tblStudentTransfer);
+        $this->getConnection()->addForeignKey($Table, $tblStudentBilling);
+        $this->getConnection()->addForeignKey($Table, $tblStudentLocker);
+        $this->getConnection()->addForeignKey($Table, $tblStudentBaptism);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableStudentTransferType(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentTransferType');
+        if (!$this->getConnection()->hasColumn('tblStudentTransferType', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblStudentTransferType', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblStudent
+     * @param Table  $tblStudentTransferType
+     *
+     * @return Table
+     */
+    private function setTableStudentTransfer(
+        Schema &$Schema,
+        Table $tblStudent,
+        Table $tblStudentTransferType
+    ) {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentTransfer');
+        if (!$this->getConnection()->hasColumn('tblStudentTransfer', 'serviceTblCompany')) {
+            $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblStudentTransfer', 'serviceTblType')) {
+            $Table->addColumn('serviceTblType', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblStudentTransfer', 'TransferDate')) {
+            $Table->addColumn('TransferDate', 'datetime', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblStudentTransfer', 'Remark')) {
+            $Table->addColumn('Remark', 'text');
+        }
+        $this->getConnection()->addForeignKey($Table, $tblStudent);
+        $this->getConnection()->addForeignKey($Table, $tblStudentTransferType);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableStudentAgreementCategory(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentAgreementCategory');
+        if (!$this->getConnection()->hasColumn('tblStudentAgreementCategory', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblStudentAgreementCategory', 'Description')) {
+            $Table->addColumn('Description', 'string');
+        }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblStudentAgreementCategory
+     *
+     * @return Table
+     */
+    private function setTableStudentAgreementType(Schema &$Schema, Table $tblStudentAgreementCategory)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentAgreementType');
+        if (!$this->getConnection()->hasColumn('tblStudentAgreementType', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblStudentAgreementType', 'Description')) {
+            $Table->addColumn('Description', 'string');
+        }
+        $this->getConnection()->addForeignKey($Table, $tblStudentAgreementCategory);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblStudent
+     * @param Table  $tblStudentAgreementCategory
+     * @param Table  $tblStudentAgreementType
+     *
+     * @return Table
+     */
+    private function setTableStudentAgreement(
+        Schema &$Schema,
+        Table $tblStudent,
+        Table $tblStudentAgreementType
+    ) {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentAgreement');
+        $this->getConnection()->addForeignKey($Table, $tblStudent);
+        $this->getConnection()->addForeignKey($Table, $tblStudentAgreementType);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableStudentSubjectType(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentSubjectType');
+        if (!$this->getConnection()->hasColumn('tblStudentSubjectType', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblStudentSubjectType', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableStudentSubjectRanking(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentSubjectRanking');
+        if (!$this->getConnection()->hasColumn('tblStudentSubjectRanking', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblStudentSubjectRanking', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblStudent
+     * @param Table  $tblStudentSubjectType
+     * @param Table  $tblStudentSubjectRanking
+     *
+     * @return Table
+     */
+    private function setTableStudentSubject(
+        Schema &$Schema,
+        Table $tblStudent,
+        Table $tblStudentSubjectType,
+        Table $tblStudentSubjectRanking
+    ) {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentSubject');
+        $this->getConnection()->addForeignKey($Table, $tblStudent);
+        $this->getConnection()->addForeignKey($Table, $tblStudentSubjectType);
+        $this->getConnection()->addForeignKey($Table, $tblStudentSubjectRanking);
+        if (!$this->getConnection()->hasColumn('tblStudentSubject', 'serviceTblSubject')) {
+            $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
+        }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblStudentIntegrationCoaching
+     * @param Table  $tblStudentIntegrationSchool
+     * @param Table  $tblStudentIntegrationModule
+     * @param Table  $tblStudentIntegrationDisorder
+     *
+     * @return Table
+     */
+    private function setTableStudentIntegration(
+        Schema &$Schema,
+        Table $tblStudentIntegrationCoaching,
+        Table $tblStudentIntegrationSchool,
+        Table $tblStudentIntegrationModule,
+        Table $tblStudentIntegrationDisorder
+    ) {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentIntegration');
+        $this->getConnection()->addForeignKey($Table, $tblStudentIntegrationCoaching);
+        $this->getConnection()->addForeignKey($Table, $tblStudentIntegrationSchool);
+        $this->getConnection()->addForeignKey($Table, $tblStudentIntegrationModule);
+        $this->getConnection()->addForeignKey($Table, $tblStudentIntegrationDisorder);
         return $Table;
     }
 }

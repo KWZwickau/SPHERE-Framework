@@ -119,16 +119,19 @@ class Frontend extends Extension implements IFrontendInterface
             new ChevronLeft()
         ));
 
-        $Stage->setContent(Basket::useService()->createBasket(
-            new Form(array(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new TextField('Basket[Name]', 'Name', 'Name', new Conversation()
-                            ), 6),
-                    )),
-                ))
-            ), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Hinzufügen')), $Basket));
+        $Form = new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Basket[Name]', 'Name', 'Name', new Conversation()
+                        ), 6),
+                )),
+            ))
+        ));
+        $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Hinzufügen'));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(Basket::useService()->createBasket($Form, $Basket));
 
         return $Stage;
     }
@@ -164,17 +167,19 @@ class Frontend extends Extension implements IFrontendInterface
                     $Global->savePost();
                 }
 
-                $Stage->setContent(Basket::useService()->changeBasket(
-                    new Form(array(
-                        new FormGroup(array(
-                            new FormRow(array(
-                                new FormColumn(
-                                    new TextField('Basket[Name]', 'Name', 'Name', new Conversation()
-                                    ), 6),
-                            ))
+                $Form = new Form(array(
+                    new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new TextField('Basket[Name]', 'Name', 'Name', new Conversation()
+                                ), 6),
                         ))
-                    ), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Änderungen speichern')
-                    ), $tblBasket, $Basket));
+                    ))
+                ));
+                $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Änderungen speichern'));
+                $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+                $Stage->setContent(Basket::useService()->changeBasket($Form, $tblBasket, $Basket));
             }
         }
 
@@ -306,7 +311,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Options = true;
         if (!empty( $tblCommodityAll )) {
-            if(empty( Basket::useService()->getCommodityAllByBasket($tblBasket))) {
+            if (empty( Basket::useService()->getCommodityAllByBasket($tblBasket) )) {
                 /** @noinspection PhpUnusedParameterInspection */
                 array_walk($tblCommodityAll, function (TblCommodity $tblCommodity, $Index, TblBasket $tblBasket) {
 
@@ -320,7 +325,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'CommodityId' => $tblCommodity->getId()
                             )))->__toString();
                 }, $tblBasket);
-            } else{
+            } else {
                 array_walk($tblCommodityAll, function (TblCommodity $tblCommodity) {
 
                     $tblCommodity->Type = $tblCommodity->getTblCommodityType()->getName();
@@ -366,41 +371,41 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )),
                 ), new Title('zugewiesene Leistungen')),
-                ($Options)?
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                                new TableData($tblCommodityAll, null,
-                                    array(
-                                        'Name'         => 'Name',
-                                        'Description'  => 'Beschreibung',
-                                        'Type'         => 'Leistungsart',
-                                        'ItemCount'    => 'Artikelanzahl',
-                                        'SumPriceItem' => 'Gesamtpreis',
-                                        'Option'       => 'Option'
+                ( $Options ) ?
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                    new TableData($tblCommodityAll, null,
+                                        array(
+                                            'Name'         => 'Name',
+                                            'Description'  => 'Beschreibung',
+                                            'Type'         => 'Leistungsart',
+                                            'ItemCount'    => 'Artikelanzahl',
+                                            'SumPriceItem' => 'Gesamtpreis',
+                                            'Option'       => 'Option'
+                                        )
                                     )
                                 )
                             )
-                        )
-                    )),
-                ), new Title('mögliche Leistungen'))
+                        )),
+                    ), new Title('mögliche Leistungen'))
                     :
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                                new TableData($tblCommodityAll, null,
-                                    array(
-                                        'Name'         => 'Name',
-                                        'Description'  => 'Beschreibung',
-                                        'Type'         => 'Leistungsart',
-                                        'ItemCount'    => 'Artikelanzahl',
-                                        'SumPriceItem' => 'Gesamtpreis',
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                    new TableData($tblCommodityAll, null,
+                                        array(
+                                            'Name'         => 'Name',
+                                            'Description'  => 'Beschreibung',
+                                            'Type'         => 'Leistungsart',
+                                            'ItemCount'    => 'Artikelanzahl',
+                                            'SumPriceItem' => 'Gesamtpreis',
+                                        )
                                     )
                                 )
                             )
-                        )
-                    )),
-                ), new Title('mögliche Leistungen'))
+                        )),
+                    ), new Title('mögliche Leistungen'))
             ))
         );
 
@@ -787,7 +792,6 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-
     /**
      * @param $Id
      * @param $Basket
@@ -826,13 +830,27 @@ class Frontend extends Extension implements IFrontendInterface
         $Result = 0.00;
         foreach ($tblBasketItemAll as $tblBasketItem) {
             if ($tblBasketItem->getServiceBillingCommodityItem()->getTblCommodity()->getTblCommodityType()->getName() === 'Sammelleistung') {
-                $Numerator = count( $tblPersonByBasketList );
+                $Numerator = count($tblPersonByBasketList);
 
                 $Result = ( ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) / $Numerator ) + $Result;
             } else {
                 $Result = ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) + $Result;
             }
         }
+
+        $Form = new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new DatePicker('Basket[Date]', 'Zahlungsdatum (Fälligkeit)',
+                            'Zahlungsdatum (Fälligkeit)',
+                            new Time())
+                        , 3)
+                )),
+            ), new \SPHERE\Common\Frontend\Form\Repository\Title('Zahlungsdatum'))
+        );
+        $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Warenkorb fakturieren (prüfen)'));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $Stage->setContent(
             new Layout(array(
@@ -871,8 +889,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ), new Title('Artikel')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
-                        new LayoutColumn(array(
-                        ),8),
+                        new LayoutColumn(array(), 8),
                         new LayoutColumn(array(
                             new Panel('Preis pro Person: '.$Result.' €', '', Panel::PANEL_TYPE_PRIMARY)
                         ), 3)
@@ -895,21 +912,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            Basket::useService()->checkBasket(
-                                new Form(
-                                    new FormGroup(array(
-                                        new FormRow(array(
-                                            new FormColumn(
-                                                new DatePicker('Basket[Date]', 'Zahlungsdatum (Fälligkeit)',
-                                                    'Zahlungsdatum (Fälligkeit)',
-                                                    new Time())
-                                                , 3)
-                                        )),
-                                    ), new \SPHERE\Common\Frontend\Form\Repository\Title('Zahlungsdatum'))
-                                    ,
-                                    new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Warenkorb fakturieren (prüfen)')
-                                ), $tblBasket, $Basket
-                            )
+                            Basket::useService()->checkBasket($Form, $tblBasket, $Basket)
                         )
                     ))
                 ))
@@ -961,6 +964,31 @@ class Frontend extends Extension implements IFrontendInterface
             ));
         });
 
+        $Form = new Form(
+            new FormGroup(array(
+                new FormRow(
+                    new FormColumn(
+                        new TableData(
+                            $tblBasketCommodityList, null, array(
+                            'Name'      => 'Person',
+                            'Commodity' => 'Leistung',
+                            'Select'    => 'Debitorennummer - Debitor - Beschreibung'
+                        ), false)
+                    )
+                ),
+                new FormRow(array(
+                    new FormColumn(
+                        new SelectBox('Save', '', array(
+                            1 => 'Nicht speichern',
+                            2 => 'Als Standard speichern'
+                        ))
+                        , 3),
+                ))
+            ))
+        );
+        $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Debitoren zuordnen (prüfen)'));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
@@ -982,34 +1010,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            Basket::useService()->checkDebtors(
-                                new Form(
-                                    new FormGroup(array(
-                                        new FormRow(
-                                            new FormColumn(
-                                                new TableData(
-                                                    $tblBasketCommodityList, null, array(
-                                                    'Name'      => 'Person',
-                                                    'Commodity' => 'Leistung',
-                                                    'Select'    => 'Debitorennummer - Debitor - Beschreibung'
-                                                ), false)
-                                            )
-                                        ),
-                                        new FormRow(array(
-                                            new FormColumn(
-                                                new SelectBox('Save', '', array(
-                                                    1 => 'Nicht speichern',
-                                                    2 => 'Als Standard speichern'
-                                                ))
-                                                , 3),
-                                            new FormColumn(
-                                                new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Debitoren zuordnen (prüfen)')
-                                                , 3),
-                                        ))
-                                    ))
-                                )
-                                , $Id, $Date, $Data, $Save
-                            )
+                            Basket::useService()->checkDebtors($Form, $Id, $Date, $Data, $Save)
                         )
                     ))
                 )),

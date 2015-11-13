@@ -192,9 +192,10 @@ class Data extends AbstractData
      */
     public function getReferenceActiveByAccount(TblAccount $tblAccount)
     {
+
         $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblReference')
             ->findBy(array(TblReference::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
-                TblReference::ATTR_IS_VOID => false));
+                           TblReference::ATTR_IS_VOID     => false));
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -314,11 +315,9 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        if(Banking::useService()->getReferenceActiveByAccount($tblAccount))
-        {
+        if (Banking::useService()->getReferenceActiveByAccount($tblAccount)) {
             $tblReferenceList = Banking::useService()->getReferenceActiveByAccount($tblAccount);
-            foreach($tblReferenceList as $tblReference)
-            {
+            foreach ($tblReferenceList as $tblReference) {
                 $this->deactivateReference($tblReference);
             }
         }
@@ -329,28 +328,6 @@ class Data extends AbstractData
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->killEntity($Entity);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param TblDebtor $tblDebtor
-     *
-     * @return bool
-     */
-    public function removeReference(TblDebtor $tblDebtor)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        $EntityList = $Manager->getEntity('TblReference')->findBy(array(TblReference::ATTR_TBL_DEBTOR => $tblDebtor->getId()));
-
-        if (null !== $EntityList) {
-            foreach ($EntityList as $Entity) {
-                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
-                    $Entity);
-                $Manager->killEntity($Entity);
-            }
             return true;
         }
         return false;
@@ -376,6 +353,28 @@ class Data extends AbstractData
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblDebtor $tblDebtor
+     *
+     * @return bool
+     */
+    public function removeReference(TblDebtor $tblDebtor)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $EntityList = $Manager->getEntity('TblReference')->findBy(array(TblReference::ATTR_TBL_DEBTOR => $tblDebtor->getId()));
+
+        if (null !== $EntityList) {
+            foreach ($EntityList as $Entity) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+                $Manager->killEntity($Entity);
+            }
             return true;
         }
         return false;
@@ -742,8 +741,9 @@ class Data extends AbstractData
      */
     public function getReferenceByAccountAndCommodity(TblAccount $tblAccount, TblCommodity $tblCommodity)
     {
+
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblReference')->findOneBy(array(
-            TblReference::ATTR_TBL_ACCOUNT                => $tblAccount->getId(),
+            TblReference::ATTR_TBL_ACCOUNT               => $tblAccount->getId(),
             TblReference::ATTR_SERVICE_BILLING_COMMODITY => $tblCommodity->getId(),
             TblReference::ATTR_IS_VOID                   => false
         ));

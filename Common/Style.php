@@ -20,7 +20,8 @@ class Style extends Extension
     private function __construct()
     {
 
-        $this->setSource('/Common/Style/Bootstrap.css');
+//        $this->setSource('/Common/Style/Bootstrap.css');
+        $this->setSource('/Common/Style/theme.css');
 
         $this->setSource('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_halflings/web/html_css/css/glyphicons-halflings.css');
         $this->setSource('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons/web/html_css/css/glyphicons.css');
@@ -45,7 +46,8 @@ class Style extends Extension
         $this->setSource('/Library/jQuery.FlowPlayer/6.0.3/skin/functional.css');
         $this->setSource('/Library/Highlight.js/8.8.0/styles/docco.css');
 
-        $this->setSource('/Common/Style/Correction.css');
+//        $this->setSource('/Common/Style/Correction.css');
+        $this->setSource('/Common/Style/theme.correction.css');
         $this->setSource('/Common/Style/PhpInfo.css');
 
     }
