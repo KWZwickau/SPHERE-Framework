@@ -308,6 +308,10 @@ class Service extends AbstractService
 
             $tblType = $this->getTypeById($Type['Type']);
             $tblState = $this->getStateById($State);
+            if(!$tblState)
+            {
+                $tblState = null;
+            }
             $tblCity = (new Data($this->getBinding()))->createCity(
                 $City['Code'], $City['Name'], $City['District']
             );
