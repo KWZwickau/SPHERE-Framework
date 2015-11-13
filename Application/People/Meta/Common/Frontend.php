@@ -24,7 +24,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Sheriff;
 use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -47,7 +47,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage();
 
-        $Stage->setMessage(
+        $Stage->setDescription(
             new Danger(
                 new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
             )
@@ -150,12 +150,9 @@ class Frontend extends Extension implements IFrontendInterface
                                         TblCommonBirthDates::VALUE_GENDER_FEMALE => 'Weiblich'
                                     ), new Child()),
                                 ), Panel::PANEL_TYPE_INFO),
-                                new Panel('Sonstiges', array(
-                                    new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
-                                ), Panel::PANEL_TYPE_INFO)
-                            ), 6),
+                            ), 3),
                             new FormColumn(array(
-                                new Panel('Informationen', array(
+                                new Panel('Ausweisdaten / Informationen', array(
                                     new AutoCompleter('Meta[Information][Nationality]', 'Staatsangehörigkeit',
                                         'Staatsangehörigkeit',
                                         $tblNationalityAll, new Nameplate()
@@ -164,6 +161,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Konfession',
                                         $tblDenominationAll, new TempleChurch()
                                     ),
+                                ), Panel::PANEL_TYPE_INFO),
+                            ), 3),
+                            new FormColumn(array(
+                                new Panel('Mitarbeit', array(
                                     new SelectBox('Meta[Information][IsAssistance]', 'Mitarbeitsbereitschaft', array(
                                         TblCommonInformation::VALUE_IS_ASSISTANCE_NULL => '',
                                         TblCommonInformation::VALUE_IS_ASSISTANCE_YES  => 'Ja',
@@ -175,7 +176,12 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Mitarbeitsbereitschaft - Tätigkeiten', new Pencil()
                                     ),
                                 ), Panel::PANEL_TYPE_INFO)
-                            ), 6),
+                            ), 3),
+                            new FormColumn(array(
+                                new Panel('Sonstiges', array(
+                                    new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
+                                ), Panel::PANEL_TYPE_INFO)
+                            ), 3),
                         )),
                     )),
                 ), new Primary('Informationen speichern')

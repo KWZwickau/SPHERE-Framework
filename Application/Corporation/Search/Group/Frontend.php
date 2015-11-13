@@ -6,6 +6,7 @@ use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -76,7 +77,8 @@ class Frontend implements IFrontendInterface
                         ), Panel::PANEL_TYPE_SUCCESS
                         )
                     )),
-                    new LayoutRow(new LayoutColumn(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Headline('Verfügbare Firmen', 'in dieser Gruppe'),
                         new TableData($tblCompanyAll, null,
                             array(
                                 'Name'        => 'Name',
@@ -84,7 +86,7 @@ class Frontend implements IFrontendInterface
                                 'Option'      => 'Optionen',
                             )
                         )
-                    ))
+                    )))
                 )))
             );
         } else {

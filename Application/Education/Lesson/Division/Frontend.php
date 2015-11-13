@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -24,7 +25,10 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -44,7 +48,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCreateLevel($Level = null)
     {
 
-        $Stage = new Stage('Klassenstufen', 'Bearbeiten');
+        $Stage = new Stage('Klassenstufen', 'bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
 
         $tblLevelAll = Division::useService()->getLevelAll();
         if ($tblLevelAll) {
@@ -55,8 +60,10 @@ class Frontend extends Extension implements IFrontendInterface
                     ? $tblType->getName().' '.$tblType->getDescription()
                     : ''
                 );
-                $tblLevel->Option = new Standard('', '', new Pencil(), array(), 'Bearbeiten')
-                    .new Standard('', '', new Remove(), array(), 'Löschen');
+                $tblLevel->Option = new Standard('', '/Education/Lesson/Division/Change/Level', new Pencil(),
+                        array('Id' => $tblLevel->getId()))
+                    .new Standard('', '/Education/Lesson/Division/Destroy/Level', new Remove(),
+                        array('Id' => $tblLevel->getId()));
             });
         }
         $Stage->setContent(
@@ -144,6 +151,33 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param $Id
+     * @param $Level
+     *
+     * @return Stage
+     */
+    public function frontendChangeLevel($Id, $Level)
+    {
+
+        $Stage = new Stage('Klassenstufe', 'bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Create/Level', new ChevronLeft()));
+        $tblLevel = Division::useService()->getLevelById($Id);
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Id'] ) && $tblLevel) {
+            $Global->POST['Division']['Type'] = $tblLevel->getServiceTblType()->getId();
+            $Global->POST['Division']['Name'] = $tblLevel->getName();
+            $Global->POST['Division']['Description'] = $tblLevel->getDescription();
+            $Global->savePost();
+        }
+        $Stage->setContent(Division::useService()->changeLevel($this->formLevel($tblLevel)
+            ->appendFormButton(new Primary('Änderung speichern'))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+            , $Level, $Id));
+
+        return $Stage;
+    }
+
+    /**
      * @param null|array $Division
      *
      * @return Stage
@@ -151,7 +185,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCreateDivision($Division = null)
     {
 
-        $Stage = new Stage('Klassengruppen', 'Bearbeiten');
+        $Stage = new Stage('Klassengruppen', 'bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
 
         $tblDivisionAll = Division::useService()->getDivisionAll();
         if ($tblDivisionAll) {
@@ -159,11 +194,13 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblYear = $tblDivision->getServiceTblYear();
                 $tblDivision->Year = ( $tblYear
-                    ? $tblYear->getName().' '.$tblYear->getDescription()
-                    : ''
-                );
-                $tblDivision->Option = new Standard('', '', new Pencil(), array(), 'Bearbeiten')
-                    .new Standard('', '', new Remove(), array(), 'Löschen');
+                    ? $tblYear->getName().' '.$tblYear->getDescription() : '' );
+                $tblDivision->Level = ( $tblDivision->getTblLevel()->getName()
+                    ? $tblDivision->getTblLevel()->getName().' '.
+                    new Muted($tblDivision->getTblLevel()->getServiceTblType()->getName()) : '' );
+                $tblDivision->Option = new Standard('', '/Education/Lesson/Division/Change/Division', new Pencil(),
+                        array('Id' => $tblDivision->getId()))
+                    .new Standard('', '/Education/Lesson/Division/Destroy/Division', new Remove(), array('Id' => $tblDivision->getId()));
             });
         }
         $Stage->setContent(
@@ -184,12 +221,12 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-//                            Division::useService()->createDivision(
-                            $this->formDivision()
-                                ->appendFormButton(new Primary('Klassengruppe hinzufügen'))
-                                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-//                                , $Division
-//                            )
+                            Division::useService()->createDivision(
+                                $this->formDivision()
+                                    ->appendFormButton(new Primary('Klassengruppe hinzufügen'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $Division
+                            )
                         )
                     ), new Title('Klassengruppe hinzufügen')
                 )
@@ -221,6 +258,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Division'] ) && $tblDivision) {
             $Global->POST['Division']['Year'] = ( $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getId() : 0 );
+            $Global->POST['Division']['Level'] = ( $tblDivision->getTblLevel() ? $tblDivision->getTblLevel()->getId() : 0 );
             $Global->POST['Division']['Name'] = $tblDivision->getName();
             $Global->POST['Division']['Description'] = $tblDivision->getDescription();
             $Global->savePost();
@@ -230,7 +268,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblLevelAll = Division::useService()->getLevelAll();
         if ($tblLevelAll) {
-            array_push($tblLevelAll, new TblLevel());
+//            array_push($tblLevelAll, new TblLevel());
         } else {
             $tblLevelAll = array();
         }
@@ -260,5 +298,66 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
+    }
+
+    /**
+     * @param $Id
+     * @param $Division
+     *
+     * @return Stage
+     */
+    public function frontendChangeDivision($Id, $Division)
+    {
+
+        $Stage = new Stage('Klassengruppe', 'bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Create/Division', new ChevronLeft()));
+        $tblDivision = Division::useService()->getDivisionById($Id);
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Id'] ) && $tblDivision) {
+            $Global->POST['Division']['Year'] = $tblDivision->getServiceTblYear()->getId();
+            $Global->POST['Division']['Level'] = $tblDivision->getTblLevel()->getId();
+            $Global->POST['Division']['Name'] = $tblDivision->getName();
+            $Global->POST['Division']['Description'] = $tblDivision->getDescription();
+            $Global->savePost();
+        }
+        $Stage->setContent(Division::useService()->changeDivision($this->formDivision($tblDivision)
+            ->appendFormButton(new Primary('Änderung speichern'))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+            , $Division, $Id));
+
+        return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return Stage|string
+     */
+    public function frontendDestroyDivision($Id)
+    {
+
+        $Stage = new Stage('Klassengruppe', 'entfernen');
+        $tblDivision = Division::useService()->getDivisionById($Id);
+        if ($tblDivision) {
+            $Stage->setContent(Division::useService()->destroyDivision($tblDivision));
+        } else {
+            return $Stage.new Warning('Klassengruppe nicht gefunden!')
+            .new Redirect('/Education/Lesson/Division/Create/Division');
+        }
+        return $Stage;
+    }
+
+    public function frontendDestroyLevel($Id)
+    {
+
+        $Stage = new Stage('Klassenstufe', 'entfernen');
+        $tblLevel = Division::useService()->getLevelById($Id);
+        if ($tblLevel) {
+            $Stage->setContent(Division::useService()->destroyLevel($tblLevel));
+        } else {
+            return $Stage.new Warning('Klassenstufe nicht gefunden!')
+            .new Redirect('/Education/Lesson/Division/Create/Level');
+        }
+        return $Stage;
     }
 }
