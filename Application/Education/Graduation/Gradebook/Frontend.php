@@ -167,7 +167,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnList = array();
                 $columnList[] = new LayoutColumn(new Header(' '), 2);
                 foreach ($tblPeriodList as $tblPeriod) {
-                    if (count($tblStudentList) > 0) {
+                    if ($tblStudentList) {
                         $gradeList = Gradebook::useService()->getGradesByStudentAndSubjectAndPeriod($tblStudentList[0],
                             $tblSubject, $tblPeriod);
                         if ($gradeList) {
@@ -223,7 +223,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new Form(new FormGroup(array(
                     new FormRow(array(
                         new FormColumn(
-                            new SelectBox('Select[Division]', 'Klasse', array('Name' => $tblDivisionAll)), 6
+                            new SelectBox('Select[Division]', 'Klasse',
+                                array('{{serviceTblYear.Name}} - {{tblLevel.serviceTblType.Name}} - {{Name}}' => $tblDivisionAll)),
+                            6
                         ),
                         new FormColumn(
                             new SelectBox('Select[Subject]', 'Fach', array('Name' => $tblSubjectAll)), 6
