@@ -9,6 +9,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Setup;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -228,6 +229,45 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getTeacherAllByDivision($tblDivision);
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblDivision    $tblDivision
+     * @param                $Student
+     *
+     * @return IFormInterface|string
+     */
+    public function addStudentToDivision(IFormInterface $Form, TblDivision $tblDivision, $Student)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Student) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (!$Error) {
+            // Add new Link
+            array_walk($Student, function ($Student) use ($tblDivision, &$Error) {
+
+                if (!(new Data($this->getBinding()))->addDivisionStudent($tblDivision, Person::useService()->getPersonById($Student))) {
+                    $Error = false;
+                }
+            });
+
+            if (!$Error) {
+                return new Success('Die Schüler wurden der Klasse erfolgreich hinzugefügt')
+                .new Redirect('/Education/Lesson/Division', 3);
+            } else {
+                return new Danger('Einige Schüler konnte nicht hinzugefügt werden')
+                .new Redirect('/Education/Lesson/Division');
+            }
+        }
+        return $Form;
     }
 
     /**
