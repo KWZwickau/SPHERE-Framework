@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Division\Service\Setup;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
@@ -109,6 +110,17 @@ class Service extends AbstractService
 
     /**
      * @param TblType $tblType
+     * @param $Name
+     * @param string $Description
+     * @return bool|TblLevel
+     */
+    public function insertLevel(TblType $tblType, $Name, $Description = '')
+    {
+        return (new Data($this->getBinding()))->createLevel($tblType, $Name, $Description);
+    }
+
+    /**
+     * @param TblType $tblType
      * @param string  $Name
      *
      * @return bool|TblLevel
@@ -165,6 +177,20 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
+    /**
+     * @param TblYear $tblYear
+     * @param TblLevel $tblLevel
+     * @param $Name
+     * @param string $Description
+     *
+     * @return null|TblDivision
+     */
+    public function insertDivision(TblYear $tblYear, TblLevel $tblLevel, $Name, $Description = '')
+    {
+        return (new Data($this->getBinding()))->createDivision($tblYear, $tblLevel, $Name, $Description);
+    }
+
     /**
      * @param int $Id
      *
