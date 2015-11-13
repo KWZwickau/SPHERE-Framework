@@ -12,6 +12,8 @@ namespace SPHERE\Application\Transfer\Import\FuxMedia;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
@@ -155,8 +157,8 @@ class Service
 
                             // Student Address
                             if (trim($Document->getValue($Document->getCell($Location['Schüler_Wohnort'],
-                                $RunY)))!= '')
-                            {
+                                    $RunY))) != ''
+                            ) {
                                 $Street = trim($Document->getValue($Document->getCell($Location['Schüler_Straße'],
                                     $RunY)));
                                 if (preg_match_all('!\d+!', $Street, $matches)) {
@@ -183,20 +185,32 @@ class Service
                                 }
                             }
 
-                            // ToDo JohK Kontaktdaten
-
                             // Student Contact
-                            for ($i = 1; $i<7; $i++){
-                                $PhoneNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Telefon'.$i],
+                            for ($i = 1; $i < 7; $i++) {
+                                $PhoneNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Telefon' . $i],
                                     $RunY)));
-                                if ($PhoneNumber != ''){
-
+                                if ($PhoneNumber != '') {
+                                    Phone::useService()->insertPhoneToPerson($tblPerson, $PhoneNumber,
+                                        Phone::useService()->getTypeById(1), '');
                                 }
+                            }
+                            $FaxNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Fax'],
+                                $RunY)));
+                            if ($FaxNumber != '') {
+                                Phone::useService()->insertPhoneToPerson($tblPerson, $FaxNumber,
+                                    Phone::useService()->getTypeById(7), '');
+                            }
+                            $MailAddress = trim($Document->getValue($Document->getCell($Location['Kommunikation_Email'],
+                                $RunY)));
+                            if ($MailAddress != '') {
+                                Mail::useService()->insertMailToPerson($tblPerson, $MailAddress,
+                                    Mail::useService()->getTypeById(1), '');
                             }
 
                             // ToDo JohK Schülerakte (Schülernummer...)
                             // ToDo JohK Klassenzugehörigkeit
                             // ToDo JohK Fächerzugehörigkeit
+                            // ToDo JohK Prüfung ob Sorgeberechtigter schon vorhanden
 
                             // Sorgeberechtigter 1
                             $tblPersonFather = null;
@@ -226,8 +240,8 @@ class Service
 
                                 // Sorgeberechtigter1 Address
                                 if (trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Wohnort'],
-                                        $RunY)))!= '')
-                                {
+                                        $RunY))) != ''
+                                ) {
                                     $Street = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Straße'],
                                         $RunY)));
                                     if (preg_match_all('!\d+!', $Street, $matches)) {
@@ -237,7 +251,7 @@ class Service
                                             $StreetNumber = trim(substr($Street, $pos));
 
                                             Address::useService()->insertAddressToPerson(
-                                                $tblPerson,
+                                                $tblPersonFather,
                                                 $StreetName,
                                                 $StreetNumber,
                                                 trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Plz'],
@@ -285,8 +299,8 @@ class Service
 
                                 // Sorgeberechtigter2 Address
                                 if (trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Wohnort'],
-                                        $RunY)))!= '')
-                                {
+                                        $RunY))) != ''
+                                ) {
                                     $Street = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Straße'],
                                         $RunY)));
                                     if (preg_match_all('!\d+!', $Street, $matches)) {
@@ -296,7 +310,7 @@ class Service
                                             $StreetNumber = trim(substr($Street, $pos));
 
                                             Address::useService()->insertAddressToPerson(
-                                                $tblPerson,
+                                                $tblPersonMother,
                                                 $StreetName,
                                                 $StreetNumber,
                                                 trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Plz'],
