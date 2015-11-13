@@ -14,6 +14,9 @@ use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
@@ -21,26 +24,70 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class Service
 {
+
     /**
-     * @param IFormInterface|null $Form
-     * @param UploadedFile $File
+     * @param IFormInterface|null $Stage
+     * @param null $Select
      *
-     * @return IFormInterface|Danger|string
-     *
-     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     * @return IFormInterface|Redirect|string
      */
-    public function createStudentsFromFile(IFormInterface $Form = null, UploadedFile $File = null)
+    public function getTypeAndYear(IFormInterface $Stage = null, $Select = null)
     {
 
         /**
          * Skip to Frontend
          */
-        if (null === $File) {
+        if (null === $Select) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (!isset($Select['Type']))
+        {
+            $Error = true;
+            $Stage .=  new Warning('Schulart nicht gefunden');
+        }
+        if(!isset($Select['Year'])) {
+            $Error = true;
+            $Stage .=  new Warning('Schuljahr nicht gefunden');
+        }
+        if ($Error)
+        {
+            return $Stage;
+        }
+
+        return new Redirect('/Transfer/Import/FuxMedia/Student/Import', 0, array(
+            'TypeId' => $Select['Type'],
+            'YearId' => $Select['Year'],
+        ));
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     * @param null $TypeId
+     * @param null $YearId
+     * @return IFormInterface|Danger|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createStudentsFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null,
+        $TypeId = null,
+        $YearId = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File || $TypeId === null || $YearId === null) {
             return $Form;
         }
 
@@ -75,6 +122,7 @@ class Service
                     'Schüler_Name' => null,
                     'Schüler_Vorname' => null,
                     'Schüler_Klasse' => null,
+                    'Schüler_Klassenstufe' => null,
                     'Schüler_Geschlecht' => null,
                     'Schüler_Staatsangehörigkeit' => null,
                     'Schüler_Straße' => null,
@@ -120,6 +168,9 @@ class Service
                     $countStudent = 0;
                     $countFather = 0;
                     $countMother = 0;
+
+                    $tblType = Type::useService()->getTypeById($TypeId);
+                    $tblYear = Term::useService()->getYearById($YearId);
 
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
 
@@ -207,8 +258,25 @@ class Service
                                     Mail::useService()->getTypeById(1), '');
                             }
 
-                            // ToDo JohK Schülerakte (Schülernummer...)
                             // ToDo JohK Klassenzugehörigkeit
+                            if (($Level = trim($Document->getValue($Document->getCell($Location['Schüler_Klassenstufe'],
+                                    $RunY)))) != ''
+                            ) {
+                                $tblLevel = Division::useService()->insertLevel($tblType, $Level);
+                                if ($tblLevel) {
+                                    $Division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
+                                        $RunY)));
+                                    if ($Division != '') {
+                                        $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel, $Division);
+                                        if ($tblDivision)
+                                        {
+                                            Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
+                                        }
+                                    }
+                                }
+                            }
+
+                            // ToDo JohK Schülerakte (Schülernummer...)
                             // ToDo JohK Fächerzugehörigkeit
                             // ToDo JohK Prüfung ob Sorgeberechtigter schon vorhanden
 
