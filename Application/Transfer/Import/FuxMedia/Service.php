@@ -11,6 +11,7 @@ namespace SPHERE\Application\Transfer\Import\FuxMedia;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
@@ -94,6 +95,14 @@ class Service
                     'Sorgeberechtigter2_Plz' => null,
                     'Sorgeberechtigter2_Wohnort' => null,
                     'Sorgeberechtigter2_Ortsteil' => null,
+                    'Kommunikation_Telefon1' => null,
+                    'Kommunikation_Telefon2' => null,
+                    'Kommunikation_Telefon3' => null,
+                    'Kommunikation_Telefon4' => null,
+                    'Kommunikation_Telefon5' => null,
+                    'Kommunikation_Telefon6' => null,
+                    'Kommunikation_Fax' => null,
+                    'Kommunikation_Email' => null,
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = $Document->getValue($Document->getCell($RunX, 0));
@@ -128,7 +137,7 @@ class Service
                         if ($tblPerson !== false) {
                             $countStudent++;
 
-                            // Student
+                            // Student Common
                             Common::useService()->insertMeta(
                                 $tblPerson,
                                 trim($Document->getValue($Document->getCell($Location['Schüler_Geburtsdatum'],
@@ -143,30 +152,51 @@ class Service
                                 '',
                                 ''
                             );
+
                             // Student Address
-//                            if (trim($Document->getValue($Document->getCell($Location['Schüler_Wohnort'],
-//                                $RunY)))!= '')
-//                            {
-//                                Address::useService()->insertAddressToPerson(
-//                                  $tblPerson,
-//                                    trim($Document->getValue($Document->getCell($Location['Schüler_Straße'],
-//                                        $RunY))),
-//                                    '',
-//                                    trim($Document->getValue($Document->getCell($Location['Schüler_Plz'],
-//                                        $RunY))),
-//                                    trim($Document->getValue($Document->getCell($Location['Schüler_Wohnort'],
-//                                        $RunY))),
-//                                    trim($Document->getValue($Document->getCell($Location['Schüler_Ortsteil'],
-//                                        $RunY))),
-//                                    '',
-//                                    trim($Document->getValue($Document->getCell($Location['Schüler_Bundesland'],
-//                                        $RunY)))
-//                                );
-//                            }
+                            if (trim($Document->getValue($Document->getCell($Location['Schüler_Wohnort'],
+                                $RunY)))!= '')
+                            {
+                                $Street = trim($Document->getValue($Document->getCell($Location['Schüler_Straße'],
+                                    $RunY)));
+                                if (preg_match_all('!\d+!', $Street, $matches)) {
+                                    $pos = strpos($Street, $matches[0][0]);
+                                    if ($pos !== null) {
+                                        $StreetName = trim(substr($Street, 0, $pos));
+                                        $StreetNumber = trim(substr($Street, $pos));
 
+                                        Address::useService()->insertAddressToPerson(
+                                            $tblPerson,
+                                            $StreetName,
+                                            $StreetNumber,
+                                            trim($Document->getValue($Document->getCell($Location['Schüler_Plz'],
+                                                $RunY))),
+                                            trim($Document->getValue($Document->getCell($Location['Schüler_Wohnort'],
+                                                $RunY))),
+                                            trim($Document->getValue($Document->getCell($Location['Schüler_Ortsteil'],
+                                                $RunY))),
+                                            '',
+                                            null
+                                        );
 
-                            // ToDo JohK Schülerakte
+                                    }
+                                }
+                            }
+
+                            // ToDo JohK Kontaktdaten
+
+                            // Student Contact
+                            for ($i = 1; $i<7; $i++){
+                                $PhoneNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Telefon'.$i],
+                                    $RunY)));
+                                if ($PhoneNumber != ''){
+
+                                }
+                            }
+
+                            // ToDo JohK Schülerakte (Schülernummer...)
                             // ToDo JohK Klassenzugehörigkeit
+                            // ToDo JohK Fächerzugehörigkeit
 
                             // Sorgeberechtigter 1
                             $tblPersonFather = null;
@@ -193,6 +223,36 @@ class Service
                                     Relationship::useService()->getTypeById(1),             //Sorgeberechtigt
                                     ''
                                 );
+
+                                // Sorgeberechtigter1 Address
+                                if (trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Wohnort'],
+                                        $RunY)))!= '')
+                                {
+                                    $Street = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Straße'],
+                                        $RunY)));
+                                    if (preg_match_all('!\d+!', $Street, $matches)) {
+                                        $pos = strpos($Street, $matches[0][0]);
+                                        if ($pos !== null) {
+                                            $StreetName = trim(substr($Street, 0, $pos));
+                                            $StreetNumber = trim(substr($Street, $pos));
+
+                                            Address::useService()->insertAddressToPerson(
+                                                $tblPerson,
+                                                $StreetName,
+                                                $StreetNumber,
+                                                trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Plz'],
+                                                    $RunY))),
+                                                trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Wohnort'],
+                                                    $RunY))),
+                                                trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Ortsteil'],
+                                                    $RunY))),
+                                                '',
+                                                null
+                                            );
+
+                                        }
+                                    }
+                                }
 
                                 $countFather++;
                             }
@@ -223,44 +283,40 @@ class Service
                                     ''
                                 );
 
+                                // Sorgeberechtigter2 Address
+                                if (trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Wohnort'],
+                                        $RunY)))!= '')
+                                {
+                                    $Street = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Straße'],
+                                        $RunY)));
+                                    if (preg_match_all('!\d+!', $Street, $matches)) {
+                                        $pos = strpos($Street, $matches[0][0]);
+                                        if ($pos !== null) {
+                                            $StreetName = trim(substr($Street, 0, $pos));
+                                            $StreetNumber = trim(substr($Street, $pos));
+
+                                            Address::useService()->insertAddressToPerson(
+                                                $tblPerson,
+                                                $StreetName,
+                                                $StreetNumber,
+                                                trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Plz'],
+                                                    $RunY))),
+                                                trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Wohnort'],
+                                                    $RunY))),
+                                                trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Ortsteil'],
+                                                    $RunY))),
+                                                '',
+                                                null
+                                            );
+
+                                        }
+                                    }
+                                }
+
                                 $countMother++;
                             }
 
                         }
-//
-//                            // Addresses
-//                            $City = trim($Document->getValue($Document->getCell($Location['PLZ Ort'], $RunY)));
-//                            $CityCode = substr($City, 0, 5);
-//                            $CityName = substr($City, 6);
-//                            $this->useContactAddress()->createAddressToPersonFromImport(
-//                                $tblPerson,
-//                                trim($Document->getValue($Document->getCell($Location['Straße'], $RunY))),
-//                                trim($Document->getValue($Document->getCell($Location['Hausnr.'], $RunY))),
-//                                $CityCode,
-//                                $CityName,
-//                                \SPHERE\Application\Contact\Address\Address::useService()->getStateById(1)
-//                            );
-//                            if ($tblPersonFather !== null) {
-//                                $this->useContactAddress()->createAddressToPersonFromImport(
-//                                    $tblPersonFather,
-//                                    trim($Document->getValue($Document->getCell($Location['Straße'], $RunY))),
-//                                    trim($Document->getValue($Document->getCell($Location['Hausnr.'], $RunY))),
-//                                    $CityCode,
-//                                    $CityName,
-//                                    \SPHERE\Application\Contact\Address\Address::useService()->getStateById(1)
-//                                );
-//                            }
-//                            if ($tblPersonMother !== null) {
-//                                $this->useContactAddress()->createAddressToPersonFromImport(
-//                                    $tblPersonMother,
-//                                    trim($Document->getValue($Document->getCell($Location['Straße'], $RunY))),
-//                                    trim($Document->getValue($Document->getCell($Location['Hausnr.'], $RunY))),
-//                                    $CityCode,
-//                                    $CityName,
-//                                    \SPHERE\Application\Contact\Address\Address::useService()->getStateById(1)
-//                                );
-//                            }
-//                        }
                     }
 
                     return
