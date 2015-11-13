@@ -9,7 +9,7 @@ use SPHERE\System\Extension\Extension;
 /**
  * Class TableVertical
  *
- * @package KREDA\Sphere\Common\Frontend\Table
+ * @package SPHERE\Common\Frontend\Table\Structure
  */
 class TableVertical extends Extension implements ITemplateInterface
 {

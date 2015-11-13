@@ -30,12 +30,6 @@ class Major0Minor8
         $Feature->createTask('Informationen (Metadaten)')
             ->createDuty('Schülerakte (Speichern)', false)
             ->createDuty('Personendaten (Vorbelegtes Autocomplete, Konfession)', true);
-
-        // Plattform
-        $Category = $Release->createCategory('Plattform');
-        $Feature = $Category->createFeature('Archiv');
-        $Feature->createTask('Allowed memory size')
-            ->createDuty('Speicherverbrauch minimieren');
     }
 
     /**
@@ -63,7 +57,7 @@ class Major0Minor8
         $Feature->createTask('Benutzerkonten')
             ->createDuty('Benutzerkonten bearbeiten', false);
         $Feature->createTask('Mein Benutzerkonto')
-            ->createDuty('Informationen anzeigen (Vervollständigen)');
+            ->createDuty('Informationen anzeigen (Vervollständigen)', false);
 
         $Feature = $Category->createFeature('Mandant',
             new External('siehe EGE', 'http://www.ege-annaberg.de/node/416'));

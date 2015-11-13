@@ -26,13 +26,21 @@ class Memcached implements IApiInterface
     private $Timing = '';
 
     /**
-     * @return void
+     * @param bool $doPrune
      */
-    public function clearCache()
+    public function clearCache($doPrune = false)
     {
 
         if (null !== self::$Server) {
             self::$Server->flush();
+            if ($doPrune) {
+                $KeyList = self::$Server->getAllKeys();
+                array_walk($KeyList, function ($Key) {
+
+                    self::$Server->delete($Key);
+                });
+
+            }
         }
     }
 

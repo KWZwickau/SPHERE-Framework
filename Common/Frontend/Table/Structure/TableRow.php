@@ -7,7 +7,7 @@ use SPHERE\System\Extension\Extension;
 /**
  * Class TableRow
  *
- * @package KREDA\Sphere\Client\Frontend\Form\Type
+ * @package SPHERE\Common\Frontend\Table\Structure
  */
 class TableRow extends Extension implements ITableInterface
 {

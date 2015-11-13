@@ -32,13 +32,14 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
  *
  * @package SPHERE\Application\Setting\MyAccount
  */
-class Frontend implements IFrontendInterface
+class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
@@ -112,9 +113,11 @@ class Frontend implements IFrontendInterface
     }
 
     /**
+     * @param array $Setting
+     *
      * @return Stage
      */
-    public function frontendMyAccount()
+    public function frontendMyAccount($Setting = array())
     {
 
         $Stage = new Stage('Mein Benutzerkonto', 'Profil');
@@ -168,12 +171,48 @@ class Frontend implements IFrontendInterface
             $Token,
         );
 
+        if (empty( $Setting )) {
+            $Global = $this->getGlobal();
+            $SettingSurface = MyAccount::useService()->getSettingByAccount($tblAccount, 'Surface');
+            if ($SettingSurface) {
+                $Global->POST['Setting']['Surface'] = $SettingSurface->getValue();
+                $Global->savePost();
+            }
+        }
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new Title('Benutzerkonto', 'Informationen'),
+                            new Title('Konfiguration', 'Benutzereinstellungen'),
+                            MyAccount::useService()->updateSetting(
+                                new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(array(
+                                                new Panel(
+                                                    'Oberfläche', array(
+                                                        new SelectBox(
+                                                            'Setting[Surface]',
+                                                            'Aussehen der Programmoberfläche',
+                                                            array(1 => 'Webseite', 2 => 'Anwendung')
+                                                        ),
+                                                    )
+                                                    , Panel::PANEL_TYPE_DEFAULT),
+                                                new Panel(
+                                                    'Statistik', array(
+                                                        '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>',
+                                                    )
+                                                    , Panel::PANEL_TYPE_DEFAULT),
+                                            ))
+                                        )
+                                    )
+                                    , new Primary('Einstellungen speichern')
+                                ), $tblAccount, $Setting)
+                        ), 4),
+                        new LayoutColumn(array(
+                            new Title('Profil', 'Informationen'),
                             new Panel(
                                 'Benutzerkonto: '.new Bold($tblAccount->getUsername()), $Account
                                 , Panel::PANEL_TYPE_DEFAULT,
@@ -193,7 +232,7 @@ class Frontend implements IFrontendInterface
                                 , Panel::PANEL_TYPE_DEFAULT,
                                 new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
                             )
-                        ), 8)
+                        ), 4),
                     ))
                 )
             )

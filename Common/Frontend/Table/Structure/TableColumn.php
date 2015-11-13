@@ -7,7 +7,7 @@ use SPHERE\System\Extension\Extension;
 /**
  * Class TableColumn
  *
- * @package KREDA\Sphere\Client\Frontend\Table\Structure
+ * @package SPHERE\Common\Frontend\Table\Structure
  */
 class TableColumn extends Extension implements ITemplateInterface
 {

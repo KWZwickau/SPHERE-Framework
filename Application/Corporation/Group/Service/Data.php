@@ -21,6 +21,7 @@ class Data extends AbstractData
 
         $this->createGroup('Alle', 'Firmendaten', '', true, 'COMMON');
         $this->createGroup('Schulen', '', '', true, 'SCHOOL');
+        $this->createGroup('Kita', 'Kindertagesstätte', '', true, 'NURSERY');
     }
 
     /**

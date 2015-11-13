@@ -7,7 +7,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
-use SPHERE\Application\People\Meta\Student\Service\Service\Subject;
+use SPHERE\Application\People\Meta\Student\Service\Service\Integration;
 use SPHERE\Application\People\Meta\Student\Service\Setup;
 
 /**
@@ -15,7 +15,7 @@ use SPHERE\Application\People\Meta\Student\Service\Setup;
  *
  * @package SPHERE\Application\People\Meta\Student
  */
-class Service extends Subject
+class Service extends Integration
 {
 
     /**

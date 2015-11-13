@@ -6,7 +6,7 @@ use SPHERE\Common\Frontend\Table\Repository\Title;
 /**
  * Class TableData
  *
- * @package KREDA\Sphere\Common\Frontend\Table
+ * @package SPHERE\Common\Frontend\Table\Structure
  */
 class TableData extends Table
 {

@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\System\Cache\Type;
 
+use MOC\V\Component\Template\Component\Bridge\Repository\TwigTemplate;
 use SPHERE\System\Cache\ITypeInterface;
 
 /**
@@ -14,14 +15,13 @@ class TwigCache implements ITypeInterface
     private static $Cache = '/../../../Library/MOC-V/Component/Template/Component/Bridge/Repository/TwigTemplate';
 
     /**
-     * @return void
+     * @param bool $doPrune
      */
-    public function clearCache()
+    public function clearCache($doPrune = false)
     {
 
-        $E = new \Twig_Environment(null, array('cache' => realpath(__DIR__.self::$Cache)));
-        $E->clearCacheFiles();
-        $E->clearTemplateCache();
+        (new TwigTemplate())->createInstance()->clearCacheFiles();
+        (new TwigTemplate())->createInstance()->clearTemplateCache();
     }
 
     /**
