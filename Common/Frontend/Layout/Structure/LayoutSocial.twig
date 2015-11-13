@@ -1,0 +1,23 @@
+{% if(MediaList is not empty) %}
+    <ul class="media-list">
+        {% for Media in MediaList %}
+            <li class="media">
+                <div class="media-left {{ Media.Alignment }}">
+                    {% if(Media.Route is not empty) %}
+                    <a href="{{ Media.Route }}">
+                        {% endif %}
+                        {{ Media.Object }}
+                        {% if(Media.Route is not empty) %}
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="media-body">
+                    {% if(Media.Headline is not empty) %}
+                        <h4 class="media-heading">{{ Media.Headline }}</h4>
+                    {% endif %}
+                    {{ Media.Content }}
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}

@@ -17,9 +17,9 @@ class OpCache implements ITypeInterface
     private $Config = array();
 
     /**
-     * @return void
+     * @param bool $doPrune
      */
-    public function clearCache()
+    public function clearCache($doPrune = false)
     {
 
         if (function_exists('opcache_reset')) {

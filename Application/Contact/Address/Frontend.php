@@ -8,6 +8,7 @@ use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -495,7 +496,74 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                     , 3);
             });
-        } else {
+        }
+
+        $tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+        if ($tblRelationshipAll) {
+            foreach ($tblRelationshipAll as $tblRelationship) {
+                if ($tblRelationship->getServiceTblPersonTo() && $tblRelationship->getServiceTblPersonFrom()) {
+                    if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonFrom()->getId()) {
+                        $tblRelationshipAddressAll = Address::useService()->getAddressAllByPerson($tblRelationship->getServiceTblPersonFrom());
+                        if ($tblRelationshipAddressAll) {
+                            foreach ($tblRelationshipAddressAll as $tblAddress) {
+
+                                $Panel = array($tblAddress->getTblAddress()->getLayout());
+                                if ($tblAddress->getRemark()) {
+                                    array_push($Panel, new Muted(new Small($tblAddress->getRemark())));
+                                }
+
+                                $tblAddress = new LayoutColumn(
+                                    new Panel(
+                                        new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
+                                        Panel::PANEL_TYPE_DEFAULT,
+                                        $tblRelationship->getServiceTblPersonFrom()->getFullName()
+                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                    )
+                                    , 3);
+
+                                if ($tblAddressAll !== false) {
+                                    $tblAddressAll[] = $tblAddress;
+                                } else {
+                                    $tblAddressAll = array();
+                                    $tblAddressAll[] = $tblAddress;
+                                }
+                            }
+                        }
+                    }
+
+                    if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonTo()->getId()) {
+                        $tblRelationshipAddressAll = Address::useService()->getAddressAllByPerson($tblRelationship->getServiceTblPersonTo());
+                        if ($tblRelationshipAddressAll) {
+                            foreach ($tblRelationshipAddressAll as $tblAddress) {
+
+                                $Panel = array($tblAddress->getTblAddress()->getLayout());
+                                if ($tblAddress->getRemark()) {
+                                    array_push($Panel, new Muted(new Small($tblAddress->getRemark())));
+                                }
+
+                                $tblAddress = new LayoutColumn(
+                                    new Panel(
+                                        new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
+                                        Panel::PANEL_TYPE_DEFAULT,
+                                        $tblRelationship->getServiceTblPersonTo()->getFullName()
+                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                    )
+                                    , 3);
+
+                                if ($tblAddressAll !== false) {
+                                    $tblAddressAll[] = $tblAddress;
+                                } else {
+                                    $tblAddressAll = array();
+                                    $tblAddressAll[] = $tblAddress;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($tblAddressAll === false) {
             $tblAddressAll = array(
                 new LayoutColumn(
                     new Warning('Keine Adressen hinterlegt')

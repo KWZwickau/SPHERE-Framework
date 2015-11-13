@@ -7,7 +7,7 @@ use SPHERE\System\Extension\Extension;
 /**
  * Class Well
  *
- * @package KREDA\Sphere\Client\Frontend\Layout\Type
+ * @package SPHERE\Common\Frontend\Layout\Repository
  */
 class Well extends Extension implements ITemplateInterface
 {

@@ -7,7 +7,7 @@ use SPHERE\System\Extension\Extension;
 /**
  * Class TableBody
  *
- * @package KREDA\Sphere\Client\Frontend\Table\Structure
+ * @package SPHERE\Common\Frontend\Table\Structure
  */
 class TableBody extends Extension implements ITableInterface
 {

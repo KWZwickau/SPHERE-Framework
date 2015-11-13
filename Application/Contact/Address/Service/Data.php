@@ -331,10 +331,10 @@ class Data extends AbstractData
     public function getAddressAllByPerson(TblPerson $tblPerson)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblToPerson')->findBy(array(
+        return $this->getCachedEntityListBy( __METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+        array(
             TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
-        return ( empty( $EntityList ) ? false : $EntityList );
     }
 
     /**

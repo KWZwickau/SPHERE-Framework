@@ -108,6 +108,11 @@ class Roadmap extends Extension
         $Feature->createTask('Person')
             ->createDuty('Metadaten');
 
+        // Plattform
+        $Category = $Release->createCategory('Plattform');
+        $Feature = $Category->createFeature('Archiv');
+        $Feature->createTask('Allowed memory size')
+            ->createDuty('Speicherverbrauch minimieren');
     }
 
     /**

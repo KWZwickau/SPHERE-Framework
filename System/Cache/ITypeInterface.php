@@ -10,9 +10,11 @@ interface ITypeInterface
 {
 
     /**
-     * @return void
+     * @param bool $doPrune
+     *
+     * @return
      */
-    public function clearCache();
+    public function clearCache($doPrune = false);
 
     /**
      * @return bool

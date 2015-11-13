@@ -7,6 +7,7 @@ use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -323,7 +324,75 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                     , 3);
             });
-        } else {
+        }
+
+        $tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+        if ($tblRelationshipAll) {
+            foreach ($tblRelationshipAll as $tblRelationship) {
+                if ($tblRelationship->getServiceTblPersonTo() && $tblRelationship->getServiceTblPersonFrom()) {
+
+                    if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonFrom()->getId()) {
+                        $tblRelationshipMailAll = Mail::useService()->getMailAllByPerson($tblRelationship->getServiceTblPersonFrom());
+                        if ($tblRelationshipMailAll) {
+                            foreach ($tblRelationshipMailAll as $tblMail) {
+
+                                $Panel = array($tblMail->getTblMail()->getAddress());
+                                if ($tblMail->getRemark()) {
+                                    array_push($Panel, new Muted(new Small($tblMail->getRemark())));
+                                }
+
+                                $tblMail = new LayoutColumn(
+                                    new Panel(
+                                        new MailIcon().' '.$tblMail->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_DEFAULT,
+                                        $tblRelationship->getServiceTblPersonFrom()->getFullName()
+                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                    )
+                                    , 3);
+
+                                if ($tblMailAll !== false) {
+                                    $tblMailAll[] = $tblMail;
+                                } else {
+                                    $tblMailAll = array();
+                                    $tblMailAll[] = $tblMail;
+                                }
+
+                            }
+                        }
+                    }
+
+                    if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonTo()->getId()) {
+                        $tblRelationshipMailAll = Mail::useService()->getMailAllByPerson($tblRelationship->getServiceTblPersonTo());
+                        if ($tblRelationshipMailAll) {
+                            foreach ($tblRelationshipMailAll as $tblMail) {
+
+                                $Panel = array($tblMail->getTblMail()->getAddress());
+                                if ($tblMail->getRemark()) {
+                                    array_push($Panel, new Muted(new Small($tblMail->getRemark())));
+                                }
+
+                                $tblMail = new LayoutColumn(
+                                    new Panel(
+                                        new MailIcon().' '.$tblMail->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_DEFAULT,
+                                        $tblRelationship->getServiceTblPersonTo()->getFullName()
+                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                    )
+                                    , 3);
+
+                                if ($tblMailAll !== false) {
+                                    $tblMailAll[] = $tblMail;
+                                } else {
+                                    $tblMailAll = array();
+                                    $tblMailAll[] = $tblMail;
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($tblMailAll === false) {
             $tblMailAll = array(
                 new LayoutColumn(
                     new Warning('Keine E-Mail Adressen hinterlegt')

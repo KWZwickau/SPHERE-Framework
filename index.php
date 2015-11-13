@@ -11,6 +11,7 @@ use SPHERE\System\Cache\Type\ApcUser;
 use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Cache\Type\OpCache;
+use SPHERE\System\Cache\Type\SmartyCache;
 use SPHERE\System\Cache\Type\TwigCache;
 use SPHERE\System\Extension\Repository\Debugger;
 
@@ -33,10 +34,12 @@ ini_set('memory_limit', '1024M');
 require_once( __DIR__.'/Library/MOC-V/Core/AutoLoader/AutoLoader.php' );
 AutoLoader::getNamespaceAutoLoader('MOC\V', __DIR__.'/Library/MOC-V');
 AutoLoader::getNamespaceAutoLoader('SPHERE', __DIR__.'/', 'SPHERE');
+AutoLoader::getNamespaceAutoLoader('Markdownify', __DIR__ . '/Library/Markdownify/2.1.6/src');
+
 
 $Main = new Main();
 
-if (true) {
+if (false) {
     (new Cache(new ApcSma()))->getCache()->clearCache();
     (new Cache(new Apcu()))->getCache()->clearCache();
     (new Cache(new ApcUser()))->getCache()->clearCache();
@@ -44,9 +47,10 @@ if (true) {
     (new Cache(new Memory()))->getCache()->clearCache();
     (new Cache(new OpCache()))->getCache()->clearCache();
     (new Cache(new TwigCache()))->getCache()->clearCache();
+    (new Cache(new SmartyCache()))->getCache()->clearCache();
 }
 
-Debugger::$Enabled = false;
+Debugger::$Enabled = true;
 
 $Main->runPlatform();
 

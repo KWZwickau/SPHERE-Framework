@@ -4,6 +4,7 @@ namespace SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
+use SPHERE\Application\Platform\System\Protocol\Protocol;
 
 /**
  * Class Transfer
@@ -12,6 +13,29 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType
  */
 abstract class Transfer extends Agreement
 {
+
+    /**
+     * @param string $Identifier
+     * @param string $Name
+     *
+     * @return TblStudentTransferType
+     */
+    public function createStudentTransferType($Identifier, $Name)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblStudentTransferType')->findOneBy(array(
+            TblStudentTransferType::ATTR_IDENTIFIER => $Identifier
+        ));
+        if (null === $Entity) {
+            $Entity = new TblStudentTransferType();
+            $Entity->setIdentifier($Identifier);
+            $Entity->setName($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
 
     /**
      * @param int $Id
