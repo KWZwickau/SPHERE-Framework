@@ -29,7 +29,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $View = new Stage();
-        $View->setTitle('ESZC Auswertung');
+        $View->setTitle('Auswertungen');
         $View->setDescription('Bitte wählen Sie eine Liste zur Auswertung');
 
         return $View;

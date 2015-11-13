@@ -67,7 +67,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendPerson($TabActive = '#', $Id = null, $Person = null, $Meta = null)
     {
 
-        $Stage = new Stage('Personen', 'Datenblatt');
+        $Stage = new Stage('Person', 'Datenblatt');
 
         if (!$Id) {
 
