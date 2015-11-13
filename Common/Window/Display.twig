@@ -126,6 +126,7 @@
                 © 2014 - {{ "now"|date("Y") }} | Erstellt in {{ DebuggerRuntime }} | {{ DebuggerHost }}
                 <br/>
                 <a href="/Roadmap/Current">Version 0.8.0.1</a>
+
                 <div class="text-left">
                     {{ DebuggerProtocol }}
                 </div>
@@ -139,30 +140,30 @@
     Client.Use('ModAlways', function()
     {
         jQuery().ModAlways();
+
+        var Host = jQuery('<a>').prop('href', window.location).prop('hostname');
+
+        <!-- Piwik -->
+        var _paq = _paq || [];
+        _paq.push(["setDoNotTrack", true]);
+        _paq.push(["disableCookies"]);
+        _paq.push(['trackPageView']);
+        _paq.push(['enableLinkTracking']);
+        (function()
+        {
+            var u = "//" + Host + "/Library/Piwik/";
+            _paq.push(['setTrackerUrl', u + 'piwik.php']);
+            _paq.push(['setSiteId', 1]);
+            var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+            g.type = 'text/javascript';
+            g.async = true;
+            g.defer = true;
+            g.src = u + 'piwik.js';
+            s.parentNode.insertBefore(g, s);
+        })();
+        <!-- End Piwik Code -->
     });
 </script>
-<!-- Piwik -->
-<script type="text/javascript">
-    var _paq = _paq || [];
-    _paq.push(["setDoNotTrack", true]);
-    _paq.push(["disableCookies"]);
-    _paq.push(['trackPageView']);
-    _paq.push(['enableLinkTracking']);
-    (function ()
-    {
-        var u = "//192.168.112.128/Library/Piwik/";
-        _paq.push(['setTrackerUrl', u + 'piwik.php']);
-        _paq.push(['setSiteId', 1]);
-        var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
-        g.type = 'text/javascript';
-        g.async = true;
-        g.defer = true;
-        g.src = u + 'piwik.js';
-        s.parentNode.insertBefore(g, s);
-    })();
-</script>
-<noscript><p><img src="//192.168.1.54/Library/Piwik/piwik.php?idsite=1" style="border:0;" alt=""/></p></noscript>
-<!-- End Piwik Code -->
 </body>
 </html>
 
