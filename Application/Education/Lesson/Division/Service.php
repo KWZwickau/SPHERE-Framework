@@ -16,7 +16,6 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -432,7 +431,6 @@ class Service extends AbstractService
             $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
             $Error = true;
         } else {
-            Debugger::screenDump($tblLevel->getServiceTblType()->getId().' - '.$tblType->getId());
             $tblLevelTest = $this->checkLevelExists($tblType, $Level['Name']);
             if ($tblLevelTest->getId() !== $tblLevel->getId()) {
                 $Form->setError('Level[Name]', 'Diese Klassenstufe wird in <b>'.$tblType->getName().'</b> bereits verwendet');
