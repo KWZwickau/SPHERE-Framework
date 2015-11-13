@@ -96,7 +96,7 @@ class Division implements IModuleInterface
         $Content = array();
 
         if ($tblLevelAll) {
-            foreach ($tblLevelAll as $key => $row) {
+            foreach ((array)$tblLevelAll as $key => $row) {
                 $klass[$key] = strtoupper($row->getName());
                 $second[$key] = strtoupper($row->getServiceTblType()->getName());
                 $id[$key] = $row->getId();

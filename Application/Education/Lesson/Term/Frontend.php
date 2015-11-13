@@ -17,6 +17,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -72,6 +73,17 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
+                            new TableData($tblYearAll, null, array(
+                                'Name' => 'Name',
+                                'Description' => 'Beschreibung',
+                                'Option' => 'Option',
+                            ))
+                        )
+                    ), new Title('Bestehende Schuljahre')
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
                             Term::useService()->createYear(
                                 $this->formYear()
                                     ->appendFormButton(new Primary('Schuljahr erstellen'))
@@ -80,17 +92,6 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ), new Title('Schuljahr erstellen')
-                ),
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new TableData($tblYearAll, null, array(
-                                'Name'        => 'Name',
-                                'Description' => 'Beschreibung',
-                                'Option'      => 'Option',
-                            ))
-                        )
-                    ), new Title('Bestehende Schuljahre')
                 ),
             ))
         );
@@ -362,7 +363,18 @@ class Frontend extends Extension implements IFrontendInterface
                 ->appendFormButton(new Primary('Änderungen speichern'))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-            $Stage->setContent(Term::useService()->changeYear($Form, $tblYear, $Year));
+            $Stage->setContent(
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(array(
+                                new Headline('Fach bearbeiten (' . $tblYear->getName() . ' ' . $tblYear->getDescription() . ')'),
+                                Term::useService()->changeYear($Form, $tblYear, $Year),
+                            ))
+                        )
+                    )
+                )
+            );
 //            $Stage->setContent( Term::useService()->changeYear($this->formYear($tblYear)
 //            ->appendFormButton(new Primary('Änderungen speichern'))
 //            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')

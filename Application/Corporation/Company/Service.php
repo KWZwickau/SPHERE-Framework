@@ -127,12 +127,13 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblCompany     $tblCompany
-     * @param array          $Company
+     * @param TblCompany $tblCompany
+     * @param array $Company
+     * @param null|int $Group
      *
      * @return IFormInterface|Redirect
      */
-    public function updateCompany(IFormInterface $Form = null, TblCompany $tblCompany, $Company)
+    public function updateCompany(IFormInterface $Form = null, TblCompany $tblCompany, $Company, $Group)
     {
 
         /**
@@ -176,7 +177,7 @@ class Service extends AbstractService
                 }
                 return new Success('Die Firma wurde erfolgreich aktualisiert')
                 .new Redirect('/Corporation/Company', 1,
-                    array('Id' => $tblCompany->getId())
+                    array('Id' => $tblCompany->getId(), 'Group' => $Group)
                 );
             } else {
                 return new Danger('Die Firma konnte nicht aktualisiert werden')

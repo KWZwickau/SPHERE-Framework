@@ -64,7 +64,7 @@ class Frontend implements IFrontendInterface
             $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
 
             if ($tblPersonAll) {
-                array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
+                array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup) {
 
                     $tblAddressAll = Address::useService()->getAddressAllByPerson($tblPerson);
                     if ($tblAddressAll) {
@@ -86,8 +86,10 @@ class Frontend implements IFrontendInterface
                         ? $tblAddressAll
                         : new Warning('Keine Adresse hinterlegt')
                     );
-                    $tblPerson->Option = new Standard('', '/People/Person', new Pencil(),
-                        array('Id' => $tblPerson->getId()), 'Bearbeiten');
+                    $tblPerson->Option = new Standard('', '/People/Person', new Pencil(), array(
+                        'Id' => $tblPerson->getId(),
+                        'Group' => $tblGroup->getId()
+                    ), 'Bearbeiten');
                 });
             }
             $Stage->setContent(
