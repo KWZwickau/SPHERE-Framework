@@ -218,7 +218,7 @@ class Data extends AbstractData
             $Entity = new TblSetting();
             $Entity->setTblAccount($tblAccount);
             $Entity->setIdentifier($Identifier);
-            $Entity->setValue($Identifier);
+            $Entity->setValue($Value);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         } else {

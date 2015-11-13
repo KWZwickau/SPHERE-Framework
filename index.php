@@ -11,6 +11,7 @@ use SPHERE\System\Cache\Type\ApcUser;
 use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Cache\Type\OpCache;
+use SPHERE\System\Cache\Type\SmartyCache;
 use SPHERE\System\Cache\Type\TwigCache;
 use SPHERE\System\Extension\Repository\Debugger;
 
@@ -46,9 +47,10 @@ if (false) {
     (new Cache(new Memory()))->getCache()->clearCache();
     (new Cache(new OpCache()))->getCache()->clearCache();
     (new Cache(new TwigCache()))->getCache()->clearCache();
+    (new Cache(new SmartyCache()))->getCache()->clearCache();
 }
 
-Debugger::$Enabled = false;
+Debugger::$Enabled = true;
 
 $Main->runPlatform();
 
