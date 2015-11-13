@@ -16,7 +16,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -63,6 +62,12 @@ class Division implements IModuleInterface
             __NAMESPACE__.'/Student/Add', __NAMESPACE__.'\Frontend::frontendStudentAdd'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Student/Remove', __NAMESPACE__.'\Frontend::frontendStudentRemove'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Teacher/Add', __NAMESPACE__.'\Frontend::frontendTeacherAdd'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Show', __NAMESPACE__.'\Frontend::frontendDivisionShow'
         ));
     }
@@ -103,11 +108,11 @@ class Division implements IModuleInterface
 
 
         if ($tblLevelAll) {
-            array_push($Content, new LayoutRow(array(
-                new LayoutColumn(array(
-                    new Title(new Italic(new Bold('Unzugeordnet'))),
-                ))
-            )));
+//            array_push($Content, new LayoutRow(array(
+//                new LayoutColumn(array(
+//                    new Title(new Italic(new Bold('Unzugeordnet'))),      //ToDO Unzugeordnet verwenden?
+//                ))
+//            )));
 
 //        $tblUnusedSubjectAll = $this->useService()->getSubjectAllHavingNoCategory();
 //        if ($tblUnusedSubjectAll) {
@@ -168,10 +173,12 @@ class Division implements IModuleInterface
                             new Panel(new Standard('', '/Education/Lesson/Division/Show', new EyeOpen(),
                                     array('Id' => $tblDivision->getId()), 'Klassenansicht').'Gruppe: '.$tblDivision->getName()
                                 , array(
-                                    'Anzahl Schüler :'.count($StudentList)
+                                    'Anzahl Schüler: '.count($StudentList)
                                     .new PullRight(new Standard('', '/Education/Lesson/Division/Student/Add', new Pencil(), array('Id' => $tblDivision->getId()), 'Schüler hinzufügen')),
-                                    'Anzahl Lehrer :'.count($TeacherList)
-                                    .new PullRight(new Standard('', '/Education/Lesson/Division', new Pencil(), array('Id'), 'Lehrer hinzufügen')),)
+                                    'Anzahl Lehrer: '.count($TeacherList)
+                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Teacher/Add', new Pencil(), array('Id' => $tblDivision->getId()), 'Lehrer hinzufügen')),
+                                    'Fächer: 0'
+                                    .new PullRight(new Standard('', '', new Pencil(), null, 'Fächer hinzufügen')),)
                                 , Panel::PANEL_TYPE_DEFAULT
                             )
                         );
