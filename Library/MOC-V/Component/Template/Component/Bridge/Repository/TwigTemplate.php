@@ -19,6 +19,8 @@ class TwigTemplate extends Bridge implements IBridgeInterface
     private $Instance = null;
     /** @var null|\Twig_Template $Template */
     private $Template = null;
+    /** @var null|\Twig_LoaderInterface */
+    private $Loader = null;
 
     /**
      *
@@ -33,6 +35,8 @@ class TwigTemplate extends Bridge implements IBridgeInterface
             'Umpirsky\Twig\Extension',
             __DIR__.'/../../../Vendor/TwigExtension/TwigPHPFunction/0.0.0/src'
         );
+
+        $this->Loader = new \Twig_Loader_String();
     }
 
     /**
@@ -44,15 +48,28 @@ class TwigTemplate extends Bridge implements IBridgeInterface
     public function loadString($String, $Reload = false)
     {
 
+        $this->Loader = new \Twig_Loader_String();
+        $this->createInstance($Reload);
+        $this->Template = $this->Instance->loadTemplate($String);
+        return $this;
+    }
+
+    /**
+     * @param bool|false $Reload
+     *
+     * @return \Twig_Environment
+     */
+    public function createInstance($Reload = false)
+    {
+
         $this->Instance = new \Twig_Environment(
-            new \Twig_Loader_String(),
+            $this->Loader,
             array('auto_reload' => $Reload, 'autoescape' => false, 'cache' => realpath(__DIR__.'/TwigTemplate'))
         );
         $this->Instance->addFilter(new \Twig_SimpleFilter('utf8_encode', 'utf8_encode'));
         $this->Instance->addFilter(new \Twig_SimpleFilter('utf8_decode', 'utf8_decode'));
         $this->Instance->addExtension(new PhpFunctionExtension());
-        $this->Template = $this->Instance->loadTemplate($String);
-        return $this;
+        return $this->Instance;
     }
 
     /**
@@ -64,13 +81,8 @@ class TwigTemplate extends Bridge implements IBridgeInterface
     public function loadFile(FileParameter $Location, $Reload = false)
     {
 
-        $this->Instance = new \Twig_Environment(
-            new \Twig_Loader_Filesystem(array(dirname($Location->getFile()))),
-            array('auto_reload' => $Reload, 'autoescape' => false, 'cache' => realpath(__DIR__.'/TwigTemplate'))
-        );
-        $this->Instance->addFilter(new \Twig_SimpleFilter('utf8_encode', 'utf8_encode'));
-        $this->Instance->addFilter(new \Twig_SimpleFilter('utf8_decode', 'utf8_decode'));
-        $this->Instance->addExtension(new PhpFunctionExtension());
+        $this->Loader = new \Twig_Loader_Filesystem(array(dirname($Location->getFile())));
+        $this->createInstance($Reload);
         $this->Template = $this->Instance->loadTemplate(basename($Location->getFile()));
         return $this;
     }

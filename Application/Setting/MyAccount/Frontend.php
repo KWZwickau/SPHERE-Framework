@@ -14,6 +14,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -25,18 +26,20 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
  *
  * @package SPHERE\Application\Setting\MyAccount
  */
-class Frontend implements IFrontendInterface
+class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
@@ -110,9 +113,11 @@ class Frontend implements IFrontendInterface
     }
 
     /**
+     * @param array $Setting
+     *
      * @return Stage
      */
-    public function frontendMyAccount()
+    public function frontendMyAccount($Setting = array())
     {
 
         $Stage = new Stage('Mein Benutzerkonto', 'Profil');
@@ -135,77 +140,87 @@ class Frontend implements IFrontendInterface
             });
         }
 
-        $Person = new LayoutGroup(
-            new LayoutRow(
-                new LayoutColumn(
-                    new Panel('Informationen zur Person',
-                        ( !empty( $tblPersonAll ) ? new Listing($tblPersonAll) : new Danger(new Exclamation().new Small(' Keine Person angeben')) )
-                    )
-                )
+        $Person = new Panel('Informationen zur Person',
+            ( !empty( $tblPersonAll ) ? new Listing($tblPersonAll) : new Danger(new Exclamation().new Small(' Keine Person angeben')) )
+        );
+
+        $Authentication = new Panel('Authentication',
+            ( $tblAccount->getServiceTblIdentification() ? $tblAccount->getServiceTblIdentification()->getDescription() : '' )
+        );
+
+        $Authorization = new Panel('Berechtigungen',
+            ( !empty( $tblAuthorizationAll )
+                ? $tblAuthorizationAll
+                : array(new Danger(new Exclamation().new Small(' Keine Berechtigungen vergeben')))
             )
         );
 
-        $Authentication = new LayoutGroup(
-            new LayoutRow(
-                new LayoutColumn(
-                    new Panel('Authentication',
-                        ( $tblAccount->getServiceTblIdentification() ? $tblAccount->getServiceTblIdentification()->getDescription() : '' )
-                    )
-                )
+        $Token = new Panel('Hardware-Schlüssel',
+            array(
+                $tblAccount->getServiceTblToken()
+                    ? substr($tblAccount->getServiceTblToken()->getSerial(), 0,
+                        4).' '.substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
+                    : new Muted(new Small('Kein Hardware-Schlüssel vergeben'))
             )
         );
 
-        $Authorization = new LayoutGroup(
-            new LayoutRow(
-                new LayoutColumn(
-                    new Panel('Berechtigungen',
-                        ( !empty( $tblAuthorizationAll )
-                            ? $tblAuthorizationAll
-                            : array(new Danger(new Exclamation().new Small(' Keine Berechtigungen vergeben')))
-                        )
-                    )
-                )
-            )
-        );
-
-        $Token = new LayoutGroup(
-            new LayoutRow(
-                new LayoutColumn(
-                    new Panel('Hardware-Schlüssel',
-                        array(
-                            $tblAccount->getServiceTblToken()
-                                ? substr($tblAccount->getServiceTblToken()->getSerial(), 0,
-                                    4).' '.substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
-                                : new Muted(new Small('Kein Hardware-Schlüssel vergeben'))
-                        )
-                    )
-                )
-            )
-        );
-
-        $Account = new Layout(array(
+        $Account = array(
             $Person,
             $Authentication,
             $Authorization,
             $Token,
-        ));
+        );
+
+        if (empty( $Setting )) {
+            $Global = $this->getGlobal();
+            $SettingSurface = MyAccount::useService()->getSettingByAccount($tblAccount, 'Surface');
+            if ($SettingSurface) {
+                $Global->POST['Setting']['Surface'] = $SettingSurface->getValue();
+                $Global->savePost();
+            }
+        }
 
         $Stage->setContent(
-            new Layout(array(
+            new Layout(
                 new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Title('Konfiguration', 'Benutzereinstellungen'),
+                            MyAccount::useService()->updateSetting(
+                                new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(array(
+                                                new Panel(
+                                                    'Oberfläche', array(
+                                                        new SelectBox(
+                                                            'Setting[Surface]',
+                                                            'Aussehen der Programmoberfläche',
+                                                            array(1 => 'Webseite', 2 => 'Anwendung')
+                                                        ),
+                                                    )
+                                                    , Panel::PANEL_TYPE_DEFAULT),
+                                                new Panel(
+                                                    'Statistik', array(
+                                                        '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>',
+                                                    )
+                                                    , Panel::PANEL_TYPE_DEFAULT),
+                                            ))
+                                        )
+                                    )
+                                    , new Primary('Einstellungen speichern')
+                                ), $tblAccount, $Setting)
+                        ), 4),
+                        new LayoutColumn(array(
+                            new Title('Profil', 'Informationen'),
                             new Panel(
-                                'Benutzerkonto: '.$tblAccount->getUsername(), $Account
+                                'Benutzerkonto: '.new Bold($tblAccount->getUsername()), $Account
                                 , Panel::PANEL_TYPE_DEFAULT,
-                                new Standard('Passwort ändern', new Route(__NAMESPACE__.'/Password'))
+                                new Standard('Mein Passwort ändern', new Route(__NAMESPACE__.'/Password'), new Key())
                             )
-                        )
-                    )
-                    , new Title('Benutzerkonto', 'Informationen')),
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
+                        ), 4),
+                        new LayoutColumn(array(
+                            new Title('Mandant (Schulträger)', 'Informationen'),
                             new Panel(
                                 $tblAccount->getServiceTblConsumer()->getName().' ['.$tblAccount->getServiceTblConsumer()->getAcronym().']',
                                 array(
@@ -215,12 +230,12 @@ class Frontend implements IFrontendInterface
                                     'TODO: Anzeigen von zugehörigen Adressen, Telefonnummern, Personen'
                                 )
                                 , Panel::PANEL_TYPE_DEFAULT,
-                                new Standard('Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
+                                new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
                             )
-                        )
-                    )
-                    , new Title('Mandant', 'Informationen')),
-            ))
+                        ), 4),
+                    ))
+                )
+            )
         );
 
         return $Stage;

@@ -33,10 +33,12 @@ ini_set('memory_limit', '1024M');
 require_once( __DIR__.'/Library/MOC-V/Core/AutoLoader/AutoLoader.php' );
 AutoLoader::getNamespaceAutoLoader('MOC\V', __DIR__.'/Library/MOC-V');
 AutoLoader::getNamespaceAutoLoader('SPHERE', __DIR__.'/', 'SPHERE');
+AutoLoader::getNamespaceAutoLoader('Markdownify', __DIR__ . '/Library/Markdownify/2.1.6/src');
+
 
 $Main = new Main();
 
-if (true) {
+if (false) {
     (new Cache(new ApcSma()))->getCache()->clearCache();
     (new Cache(new Apcu()))->getCache()->clearCache();
     (new Cache(new ApcUser()))->getCache()->clearCache();

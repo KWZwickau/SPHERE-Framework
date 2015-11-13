@@ -5,6 +5,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -16,135 +18,113 @@ use SPHERE\System\Database\Fitting\Element;
 class TblStudentSubject extends Element
 {
 
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblStudentSubjectProfile;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblStudentSubjectForeignLanguage;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblStudentSubjectElective;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblStudentSubjectTeam;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblStudentSubjectTrack;
+    const ATTR_TBL_STUDENT = 'tblStudent';
+    const ATTR_TBL_STUDENT_SUBJECT_TYPE = 'tblStudentSubjectType';
+    const ATTR_TBL_STUDENT_SUBJECT_RANKING = 'tblStudentSubjectRanking';
+    const SERVICE_TBL_SUBJECT = 'serviceTblSubject';
 
     /**
-     * @return bool|TblStudentSubjectProfile
+     * @Column(type="bigint")
      */
-    public function getServiceTblStudentSubjectProfile()
+    protected $tblStudent;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentSubjectType;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentSubjectRanking;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblSubject;
+
+    /**
+     * @return bool|TblStudent
+     */
+    public function getTblStudent()
     {
 
-        if (null === $this->serviceTblStudentSubjectProfile) {
+        if (null === $this->tblStudent) {
             return false;
         } else {
-            return Student::useService()->getStudentSubjectProfileById($this->serviceTblStudentSubjectProfile);
+            return Student::useService()->getStudentById($this->tblStudent);
         }
     }
 
     /**
-     * @param TblStudentSubjectProfile|null $tblStudentSubjectProfile
+     * @param null|TblStudent $tblStudent
      */
-    public function setServiceTblStudentSubjectProfile(TblStudentSubjectProfile $tblStudentSubjectProfile = null)
+    public function setTblStudent(TblStudent $tblStudent = null)
     {
 
-        $this->serviceTblStudentSubjectProfile = ( null === $tblStudentSubjectProfile ? null : $tblStudentSubjectProfile->getId() );
+        $this->tblStudent = ( null === $tblStudent ? null : $tblStudent->getId() );
     }
 
     /**
-     * @return bool|TblStudentSubjectElective
+     * @return bool|TblStudentSubjectType
      */
-    public function getServiceTblStudentSubjectElective()
+    public function getTblStudentSubjectType()
     {
 
-        if (null === $this->serviceTblStudentSubjectElective) {
+        if (null === $this->tblStudentSubjectType) {
             return false;
         } else {
-            return Student::useService()->getStudentSubjectElectiveById($this->serviceTblStudentSubjectElective);
+            return Student::useService()->getStudentSubjectTypeById($this->tblStudentSubjectType);
         }
     }
 
     /**
-     * @param TblStudentSubjectElective|null $tblStudentSubjectElective
+     * @param null|TblStudentSubjectType $tblStudentSubjectType
      */
-    public function setServiceTblStudentSubjectElective(TblStudentSubjectElective $tblStudentSubjectElective = null)
+    public function setTblStudentSubjectType(TblStudentSubjectType $tblStudentSubjectType = null)
     {
 
-        $this->serviceTblStudentSubjectElective = ( null === $tblStudentSubjectElective ? null : $tblStudentSubjectElective->getId() );
+        $this->tblStudentSubjectType = ( null === $tblStudentSubjectType ? null : $tblStudentSubjectType->getId() );
     }
 
     /**
-     * @return bool|TblStudentSubjectTeam
+     * @return bool|TblStudentSubjectRanking
      */
-    public function getServiceTblStudentSubjectTeam()
+    public function getTblStudentSubjectRanking()
     {
 
-        if (null === $this->serviceTblStudentSubjectTeam) {
+        if (null === $this->tblStudentSubjectRanking) {
             return false;
         } else {
-            return Student::useService()->getStudentSubjectTeamById($this->serviceTblStudentSubjectTeam);
+            return Student::useService()->getStudentSubjectRankingById($this->tblStudentSubjectRanking);
         }
     }
 
     /**
-     * @param TblStudentSubjectTeam|null $tblStudentSubjectTeam
+     * @param null|TblStudentSubjectRanking $tblStudentSubjectRanking
      */
-    public function setServiceTblStudentSubjectTeam(TblStudentSubjectTeam $tblStudentSubjectTeam = null)
+    public function setTblStudentSubjectRanking(TblStudentSubjectRanking $tblStudentSubjectRanking = null)
     {
 
-        $this->serviceTblStudentSubjectTeam = ( null === $tblStudentSubjectTeam ? null : $tblStudentSubjectTeam->getId() );
+        $this->tblStudentSubjectRanking = ( null === $tblStudentSubjectRanking ? null : $tblStudentSubjectRanking->getId() );
     }
 
     /**
-     * @return bool|TblStudentSubjectTrack
+     * @return bool|TblSubject
      */
-    public function getServiceTblStudentSubjectTrack()
+    public function getServiceTblSubject()
     {
 
-        if (null === $this->serviceTblStudentSubjectTrack) {
+        if (null === $this->serviceTblSubject) {
             return false;
         } else {
-            return Student::useService()->getStudentSubjectTrackById($this->serviceTblStudentSubjectTrack);
+            return Subject::useService()->getSubjectById($this->serviceTblSubject);
         }
     }
 
     /**
-     * @param TblStudentSubjectTrack|null $tblStudentSubjectTrack
+     * @param TblSubject|null $tblSubject
      */
-    public function setServiceTblStudentSubjectTrack(TblStudentSubjectTrack $tblStudentSubjectTrack = null)
+    public function setServiceTblSubject(TblSubject $tblSubject = null)
     {
 
-        $this->serviceTblStudentSubjectTrack = ( null === $tblStudentSubjectTrack ? null : $tblStudentSubjectTrack->getId() );
-    }
-
-    /**
-     * @return bool|TblStudentSubjectForeignLanguage
-     */
-    public function getServiceTblStudentSubjectForeignLanguage()
-    {
-
-        if (null === $this->serviceTblStudentSubjectForeignLanguage) {
-            return false;
-        } else {
-            return Student::useService()->getStudentSubjectForeignLanguageById($this->serviceTblStudentSubjectForeignLanguage);
-        }
-    }
-
-    /**
-     * @param TblStudentSubjectForeignLanguage|null $tblStudentSubjectForeignLanguage
-     */
-    public function setServiceTblStudentSubjectForeignLanguage(
-        TblStudentSubjectForeignLanguage $tblStudentSubjectForeignLanguage = null
-    ) {
-
-        $this->serviceTblStudentSubjectForeignLanguage = ( null === $tblStudentSubjectForeignLanguage ? null : $tblStudentSubjectForeignLanguage->getId() );
+        $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
     }
 }

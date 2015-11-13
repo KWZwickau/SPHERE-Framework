@@ -1,15 +1,7 @@
 <?php
 namespace SPHERE\Common\Window;
 
-use MOC\V\Component\Template\Component\IBridgeInterface;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Accordion;
-use SPHERE\Common\Script;
-use SPHERE\Common\Style;
-use SPHERE\Common\Window\Navigation\Link;
-use SPHERE\System\Extension\Extension;
+use MOC\V\Component\Template\Component\IBridgeInterface;use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;use SPHERE\Common\Frontend\ITemplateInterface;use SPHERE\Common\Frontend\Layout\Repository\Accordion;use SPHERE\Common\Script;use SPHERE\Common\Style;use SPHERE\Common\Window\Navigation\Link;use SPHERE\System\Extension\Extension;
 
 /**
  * Class Display
@@ -45,7 +37,7 @@ class Display extends Extension implements ITemplateInterface
     public function __construct()
     {
 
-        $this->Template = $this->getTemplate(__DIR__.'/Display.twig');
+        $this->Template = $this->getTemplate(__DIR__ . '/Display.twig');
     }
 
     /**
@@ -98,7 +90,7 @@ class Display extends Extension implements ITemplateInterface
     }
 
     /**
-     * @param Link       $Link
+     * @param Link $Link
      * @param Link\Route $Restriction
      *
      * @return Display
@@ -149,7 +141,7 @@ class Display extends Extension implements ITemplateInterface
     }
 
     /**
-     * @param Link       $Link
+     * @param Link $Link
      * @param Link\Route $Restriction
      *
      * @return Display
@@ -218,7 +210,7 @@ class Display extends Extension implements ITemplateInterface
 
     /**
      * @param \Exception $Exception
-     * @param string     $Name
+     * @param string $Name
      *
      * @return Display
      */
@@ -228,13 +220,13 @@ class Display extends Extension implements ITemplateInterface
         $TraceList = '';
         foreach ((array)$Exception->getTrace() as $Index => $Trace) {
             $TraceList .= nl2br('<br/><samp class="text-info">'
-                .( isset( $Trace['type'] ) && isset( $Trace['function'] ) ? '<br/>Method: '.$Trace['type'].$Trace['function'] : '<br/>Method: ' )
-                .( isset( $Trace['class'] ) ? '<br/>Class: '.$Trace['class'] : '<br/>Class: ' )
-                .( isset( $Trace['file'] ) ? '<br/>File: '.$Trace['file'] : '<br/>File: ' )
-                .( isset( $Trace['line'] ) ? '<br/>Line: '.$Trace['line'] : '<br/>Line: ' )
-                .'</samp>');
+                . (isset($Trace['type']) && isset($Trace['function']) ? '<br/>Method: ' . $Trace['type'] . $Trace['function'] : '<br/>Method: ')
+                . (isset($Trace['class']) ? '<br/>Class: ' . $Trace['class'] : '<br/>Class: ')
+                . (isset($Trace['file']) ? '<br/>File: ' . $Trace['file'] : '<br/>File: ')
+                . (isset($Trace['line']) ? '<br/>Line: ' . $Trace['line'] : '<br/>Line: ')
+                . '</samp>');
         }
-        $Hit = '<samp class="text-danger"><p class="h6">'.nl2br($Exception->getMessage()).'</p><br/>File: '.$Exception->getFile().'<br/>Line: '.$Exception->getLine().'</samp>'.$TraceList;
+        $Hit = '<samp class="text-danger"><p class="h6">' . nl2br($Exception->getMessage()) . '</p><br/>File: ' . $Exception->getFile() . '<br/>Line: ' . $Exception->getLine() . '</samp>' . $TraceList;
         $this->addContent(new Error(
             $Exception->getCode() == 0 ? $Name : $Exception->getCode(), $Hit
         ));
@@ -283,10 +275,12 @@ class Display extends Extension implements ITemplateInterface
 
         $Debug = $this->getDebugger();
         $Runtime = $Debug->getRuntime();
-        $this->Template->setVariable('DebuggerProtocol',
-            (new Accordion())->addItem('Debug Protocol '.$Runtime, $Debug->getProtocol())
-        );
-
+        $Protocol = $Debug->getProtocol();
+        if (!empty($Protocol)) {
+            $this->Template->setVariable('DebuggerProtocol',
+                (new Accordion())->addItem('Debug Protocol ' . $Runtime, $Protocol)
+            );
+        }
         $this->Template->setVariable('DebuggerHost', gethostname());
         $this->Template->setVariable('DebuggerRuntime', $Runtime);
 
@@ -294,10 +288,18 @@ class Display extends Extension implements ITemplateInterface
         $this->Template->setVariable('PathBase', $this->getRequest()->getPathBase());
         if (!$NoConnection) {
             $this->Template->setVariable('Consumer',
-                '['.Consumer::useService()->getConsumerBySession()->getAcronym().'] '
-                .Consumer::useService()->getConsumerBySession()->getName()
+                '[' . Consumer::useService()->getConsumerBySession()->getAcronym() . '] '
+                . Consumer::useService()->getConsumerBySession()->getName()
             );
         }
+
+        $this->Template->setVariable('SeoTitle',
+            ( !trim(trim($this->getRequest()->getPathInfo(), '/'))
+                ? ''
+                : ': '.str_replace('/', ' - ', trim($this->getRequest()->getPathInfo(), '/'))
+            )
+        );
+
         return $this->Template->getContent();
     }
 

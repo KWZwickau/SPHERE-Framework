@@ -10,6 +10,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -43,24 +44,36 @@ class Data extends AbstractData
         $tblAccount = $this->createAccount('System', 'System', $tblToken, $tblConsumer);
         $this->addAccountAuthentication($tblAccount, $tblIdentification);
         $this->addAccountAuthorization($tblAccount, $tblRole);
+        if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
+            $this->setSettingByAccount($tblAccount, 'Surface', 1);
+        }
 
         // System (Jens)
         $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjge');
         $tblAccount = $this->createAccount('Kmiezik', 'System', $tblToken, $tblConsumer);
         $this->addAccountAuthentication($tblAccount, $tblIdentification);
         $this->addAccountAuthorization($tblAccount, $tblRole);
+        if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
+            $this->setSettingByAccount($tblAccount, 'Surface', 1);
+        }
 
         // System (Sidney)
         $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjgt');
         $tblAccount = $this->createAccount('Rackel', 'System', $tblToken, $tblConsumer);
         $this->addAccountAuthentication($tblAccount, $tblIdentification);
         $this->addAccountAuthorization($tblAccount, $tblRole);
+        if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
+            $this->setSettingByAccount($tblAccount, 'Surface', 1);
+        }
 
         // System (Johannes)
         $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjgr');
         $tblAccount = $this->createAccount('Kauschke', 'System', $tblToken, $tblConsumer);
         $this->addAccountAuthentication($tblAccount, $tblIdentification);
         $this->addAccountAuthorization($tblAccount, $tblRole);
+        if (!$this->getSettingByAccount($tblAccount, 'Surface')) {
+            $this->setSettingByAccount($tblAccount, 'Surface', 1);
+        }
     }
 
     /**
@@ -93,13 +106,13 @@ class Data extends AbstractData
 
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblIdentification')
             ->findOneBy(array(TblIdentification::ATTR_NAME => $Name));
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
-     * @param string           $Username
-     * @param string           $Password
-     * @param null|TblToken    $tblToken
+     * @param string $Username
+     * @param string $Password
+     * @param null|TblToken $tblToken
      * @param null|TblConsumer $tblConsumer
      *
      * @return TblAccount
@@ -121,7 +134,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblAccount        $tblAccount
+     * @param TblAccount $tblAccount
      * @param TblIdentification $tblIdentification
      *
      * @return TblAuthentication
@@ -132,7 +145,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblAuthentication')
             ->findOneBy(array(
-                TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
+                TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
                 TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
             ));
         if (null === $Entity) {
@@ -147,7 +160,7 @@ class Data extends AbstractData
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblRole    $tblRole
+     * @param TblRole $tblRole
      *
      * @return TblAuthorization
      */
@@ -171,6 +184,57 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblAccount $tblAccount
+     * @param string $Identifier
+     *
+     * @return bool|TblSetting
+     */
+    public function getSettingByAccount(TblAccount $tblAccount, $Identifier)
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblSetting')->findOneBy(array(
+            TblSetting::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+            TblSetting::ATTR_IDENTIFIER => $Identifier
+        ));
+        return (null === $Entity ? false : $Entity);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string $Identifier
+     * @param string $Value
+     *
+     * @return bool|TblSetting
+     */
+    public function setSettingByAccount(TblAccount $tblAccount, $Identifier, $Value)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblSetting')->findOneBy(array(
+            TblSetting::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+            TblSetting::ATTR_IDENTIFIER => $Identifier
+        ));
+        if (null === $Entity) {
+            $Entity = new TblSetting();
+            $Entity->setTblAccount($tblAccount);
+            $Entity->setIdentifier($Identifier);
+            $Entity->setValue($Identifier);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        } else {
+            /**
+             * @var TblSetting $Protocol
+             * @var TblSetting $Entity
+             */
+            $Protocol = clone $Entity;
+            $Entity->setValue($Value);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
+        return (null === $Entity ? false : $Entity);
+    }
+
+    /**
      * @return TblIdentification[]|bool
      */
     public function getIdentificationAll()
@@ -181,7 +245,7 @@ class Data extends AbstractData
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblRole    $tblRole
+     * @param TblRole $tblRole
      *
      * @return bool
      */
@@ -204,7 +268,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblAccount        $tblAccount
+     * @param TblAccount $tblAccount
      * @param TblIdentification $tblIdentification
      *
      * @return bool
@@ -216,7 +280,7 @@ class Data extends AbstractData
         /** @var TblAuthentication $Entity */
         $Entity = $Manager->getEntity('TblAuthentication')
             ->findOneBy(array(
-                TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
+                TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
                 TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
             ));
         if (null !== $Entity) {
@@ -237,7 +301,7 @@ class Data extends AbstractData
 
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblAccount')
             ->findOneBy(array(TblAccount::ATTR_USERNAME => $Username));
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -321,7 +385,7 @@ class Data extends AbstractData
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblAuthentication')->findOneBy(array(
             TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId()
         ));
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -335,12 +399,12 @@ class Data extends AbstractData
         $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblAccount')->findBy(array(
             TblAccount::SERVICE_TBL_CONSUMER => $tblConsumer->getId()
         ));
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return (empty($EntityList) ? false : $EntityList);
     }
 
     /**
-     * @param string            $Username
-     * @param string            $Password
+     * @param string $Username
+     * @param string $Password
      * @param TblIdentification $tblIdentification
      *
      * @return bool|TblAccount
@@ -360,7 +424,7 @@ class Data extends AbstractData
 
         $tblAuthentication = $this->getConnection()->getEntityManager()->getEntity('TblAuthentication')
             ->findOneBy(array(
-                TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
+                TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
                 TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
             ));
         // Identification not valid
@@ -382,13 +446,13 @@ class Data extends AbstractData
         $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblSession')->findBy(array(
             TblSession::ATTR_TBL_ACCOUNT => $tblAccount->getId()
         ));
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return (empty($EntityList) ? false : $EntityList);
     }
 
     /**
-     * @param TblAccount  $tblAccount
+     * @param TblAccount $tblAccount
      * @param null|string $Session
-     * @param integer     $Timeout
+     * @param integer $Timeout
      *
      * @return TblSession
      */
@@ -457,7 +521,7 @@ class Data extends AbstractData
 
     /**
      * @param TblAccount $tblAccount
-     * @param string     $Password
+     * @param string $Password
      *
      * @return bool
      */
@@ -507,7 +571,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblToken   $tblToken
+     * @param TblToken $tblToken
      * @param TblAccount $tblAccount
      *
      * @return bool
@@ -536,7 +600,7 @@ class Data extends AbstractData
 
     /**
      * @param TblConsumer $tblConsumer
-     * @param TblAccount  $tblAccount
+     * @param TblAccount $tblAccount
      *
      * @return bool
      */
@@ -585,7 +649,7 @@ class Data extends AbstractData
         } else {
             $EntityList = null;
         }
-        return ( null === $EntityList ? false : $EntityList );
+        return (null === $EntityList ? false : $EntityList);
     }
 
     /**
@@ -607,7 +671,7 @@ class Data extends AbstractData
         } else {
             $EntityList = null;
         }
-        return ( null === $EntityList ? false : $EntityList );
+        return (null === $EntityList ? false : $EntityList);
     }
 
     /**
@@ -625,7 +689,7 @@ class Data extends AbstractData
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblPerson  $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return TblUser
      */
@@ -635,7 +699,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblUser')
             ->findOneBy(array(
-                TblUser::ATTR_TBL_ACCOUNT   => $tblAccount->getId(),
+                TblUser::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
                 TblUser::SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null === $Entity) {
@@ -650,7 +714,7 @@ class Data extends AbstractData
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblPerson  $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return bool
      */
@@ -661,7 +725,7 @@ class Data extends AbstractData
         /** @var TblUser $Entity */
         $Entity = $Manager->getEntity('TblUser')
             ->findOneBy(array(
-                TblUser::ATTR_TBL_ACCOUNT   => $tblAccount->getId(),
+                TblUser::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
                 TblUser::SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null !== $Entity) {

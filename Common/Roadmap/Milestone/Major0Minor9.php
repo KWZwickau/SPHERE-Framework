@@ -27,17 +27,17 @@ class Major0Minor9
 
         $Feature = $Category->createFeature('Person');
         $Feature->createTask('Informationen (Metadaten)')
-            ->createDuty('Schülerakte (Ersteinschulung: Abgebende Kita)');
+            ->createDuty('Schülerakte (Ersteinschulung: Abgebende Kita)', false);
         $Feature->createTask('Beziehungen')
             ->createDuty('Trennung von Beziehungstypen (Personenbeziehungen)', true)
-            ->createDuty('Frei definierbare Beziehungstypen');
+            ->createDuty('Frei definierbare Beziehungstypen', false);
 
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
         $Feature = $Category->createFeature('Firma');
         $Feature->createTask('Beziehungen')
             ->createDuty('Trennung von Beziehungstypen (Firmenbeziehungen)', true)
-            ->createDuty('Frei definierbare Beziehungstypen');
+            ->createDuty('Frei definierbare Beziehungstypen', false);
     }
 
     /**
@@ -72,16 +72,16 @@ class Major0Minor9
         $Feature->createTask('Schuljahr')
             ->createDuty('Schuljahr hinzufügen', true)
             ->createDuty('Zeitraum hinzufügen', true)
-            ->createDuty('Abschnitt verknüpfen', false);
+            ->createDuty('Abschnitt verknüpfen', true);
         $Feature->createTask('Klassenstufe')
-            ->createDuty('Klassenstufe hinzufügen')
+            ->createDuty('Klassenstufe hinzufügen', true)
             ->createDuty('Klassenstufe löschen')
-            ->createDuty('Schulform verknüpfen');
+            ->createDuty('Schulform verknüpfen', false);
         $Feature->createTask('Klassen')
-            ->createDuty('Klasse hinzufügen')
+            ->createDuty('Klasse hinzufügen', true)
             ->createDuty('Klasse löschen')
-            ->createDuty('Schuljahr verknüpfen')
-            ->createDuty('Klassenstufe verknüpfen')
+            ->createDuty('Schuljahr verknüpfen', true)
+            ->createDuty('Klassenstufe verknüpfen', false)
             ->createDuty('Fachklasse verknüpfen')
             ->createDuty('Klassen-Schüler verknüpfen')
             ->createDuty('Klassen-Lehrer verknüpfen')

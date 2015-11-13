@@ -66,9 +66,9 @@ class Memory implements IApiInterface
     }
 
     /**
-     * @return void
+     * @param bool $doPrune
      */
-    public function clearCache()
+    public function clearCache($doPrune = false)
     {
 
         self::$Memory = array();

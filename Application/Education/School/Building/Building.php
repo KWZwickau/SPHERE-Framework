@@ -19,9 +19,9 @@ class Building implements IModuleInterface
     public static function registerModule()
     {
 
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Gebäude & Räume'))
-        );
+//        Main::getDisplay()->addModuleNavigation(
+//            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Gebäude & Räume'))
+//        );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));

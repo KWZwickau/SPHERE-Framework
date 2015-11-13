@@ -9,6 +9,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Main;
@@ -80,6 +81,10 @@ class Type implements IModuleInterface
     {
 
         $Stage = new Stage('Dashboard', 'Schulart');
+
+        $Stage->setMessage(
+            new Warning('Schularten sind im Moment fest hinterlegt')
+        );
 
         $Stage->setContent(Main::getDispatcher()->fetchDashboard('School-Type'));
 

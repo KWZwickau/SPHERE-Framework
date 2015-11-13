@@ -5,7 +5,7 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\IMessageInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\System\Support\Support;
+use SPHERE\System\Support\Support as SupportSystem;
 use SPHERE\System\Support\Type\YouTrack;
 
 /**
@@ -49,7 +49,7 @@ class Service
              * Nothing to do
              */
             try {
-                $Youtrack = (new Support(new YouTrack()))->getSupport();
+                $Youtrack = (new SupportSystem(new YouTrack()))->getSupport();
                 $Form->prependGridGroup($Youtrack->ticketCurrent());
                 return $Form;
             } catch (\Exception $E) {
@@ -60,7 +60,7 @@ class Service
              * Submit Ticket
              */
             try {
-                $Youtrack = (new Support(new YouTrack()))->getSupport();
+                $Youtrack = (new SupportSystem(new YouTrack()))->getSupport();
                 $Youtrack->createTicket(urldecode($TicketSubject), urldecode($TicketMessage));
                 return new Success('Das Problem wurde erfolgreich dem Support mitgeteilt');
             } catch (\Exception $E) {

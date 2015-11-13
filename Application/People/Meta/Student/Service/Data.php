@@ -1,133 +1,82 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service;
 
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementCategory;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
+use SPHERE\Application\People\Meta\Student\Service\Data\Integration;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferArrive;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferEnrollment;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferLeave;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferProcess;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\People\Meta\Student\Service
  */
-class Data extends AbstractData
+class Data extends Integration
 {
 
     public function setupDatabaseContent()
     {
 
-        $this->createStudentAgreementCategory(
+        $tblStudentAgreementCategory = $this->createStudentAgreementCategory(
             'Foto des Schülers',
             'Sowohl Einzelaufnahmen als auch in Gruppen (z.B. zufällig)'
         );
-        $this->createStudentAgreementType('in Schulschriften');
-        $this->createStudentAgreementType('in Veröffentlichungen');
-        $this->createStudentAgreementType('auf Internetpräsenz');
-        $this->createStudentAgreementType('auf Facebookseite');
-        $this->createStudentAgreementType('für Druckpresse');
-        $this->createStudentAgreementType('durch Ton/Video/Film');
-        $this->createStudentAgreementType('für Werbung in eigener Sache');
-    }
+        $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Schulschriften');
+        $this->createStudentAgreementType($tblStudentAgreementCategory, 'in Veröffentlichungen');
+        $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Internetpräsenz');
+        $this->createStudentAgreementType($tblStudentAgreementCategory, 'auf Facebookseite');
+        $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Druckpresse');
+        $this->createStudentAgreementType($tblStudentAgreementCategory, 'durch Ton/Video/Film');
+        $this->createStudentAgreementType($tblStudentAgreementCategory, 'für Werbung in eigener Sache');
 
-    /**
-     * @param string $Name
-     * @param string $Description
-     *
-     * @return TblStudentAgreementCategory
-     */
-    public function createStudentAgreementCategory($Name, $Description = '')
-    {
+        $this->createStudentSubjectType('ORIENTATION', 'Orientation');
+        $this->createStudentSubjectType('ADVANCED', 'Advanced');
+        $this->createStudentSubjectType('PROFILE', 'Profile');
+        $this->createStudentSubjectType('RELIGION', 'Religion');
 
-        $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblStudentAgreementCategory')->findOneBy(array(
-            TblStudentAgreementCategory::ATTR_NAME => $Name
-        ));
-        if (null === $Entity) {
-            $Entity = new TblStudentAgreementCategory();
-            $Entity->setName($Name);
-            $Entity->setDescription($Description);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        }
-        return $Entity;
-    }
+        $this->createStudentSubjectType('FOREIGN_LANGUAGE', 'Foreign Language');
+        $this->createStudentSubjectType('ELECTIVE', 'Elective');
+        $this->createStudentSubjectType('TEAM', 'Team');
+        $this->createStudentSubjectType('TRACK_INTENSIVE', 'Track Intensive');
+        $this->createStudentSubjectType('TRACK_BASIC', 'Track Basic');
 
-    /**
-     * @param string $Name
-     * @param string $Description
-     *
-     * @return TblStudentAgreementType
-     */
-    public function createStudentAgreementType($Name, $Description = '')
-    {
+        $this->createStudentSubjectRanking('1', '1.');
+        $this->createStudentSubjectRanking('2', '2.');
+        $this->createStudentSubjectRanking('3', '3.');
+        $this->createStudentSubjectRanking('4', '4.');
+        $this->createStudentSubjectRanking('5', '5.');
+        $this->createStudentSubjectRanking('6', '6.');
+        $this->createStudentSubjectRanking('7', '7.');
+        $this->createStudentSubjectRanking('8', '8.');
+        $this->createStudentSubjectRanking('9', '9.');
 
-        $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblStudentAgreementType')->findOneBy(array(
-            TblStudentAgreementType::ATTR_NAME => $Name
-        ));
-        if (null === $Entity) {
-            $Entity = new TblStudentAgreementType();
-            $Entity->setName($Name);
-            $Entity->setDescription($Description);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        }
-        return $Entity;
-    }
+        $this->createStudentFocusType('Sprache');
+        $this->createStudentFocusType('Körperlich-motorische Entwicklung');
+        $this->createStudentFocusType('Sozial-emotionale Entwicklung');
+        $this->createStudentFocusType('Hören');
+        $this->createStudentFocusType('Sehen');
+        $this->createStudentFocusType('Geistige Entwicklung');
+        $this->createStudentFocusType('Lernen');
 
-    /**
-     * @param TblPerson               $tblPerson
-     * @param TblStudentMedicalRecord $tblStudentMedicalRecord
-     *
-     * @return TblStudent
-     */
-    public function createStudent(
-        TblPerson $tblPerson,
-        TblStudentMedicalRecord $tblStudentMedicalRecord
-    ) {
+        $this->createStudentDisorderType('LRS');
+        $this->createStudentDisorderType('Gehörschwierigkeiten');
+        $this->createStudentDisorderType('Augenleiden');
+        $this->createStudentDisorderType('Sprachfehler');
+        $this->createStudentDisorderType('Dyskalkulie');
+        $this->createStudentDisorderType('Autismus');
+        $this->createStudentDisorderType('ADS / ADHS');
+        $this->createStudentDisorderType('Rechenschwäche');
+        $this->createStudentDisorderType('Hochbegabung');
+        $this->createStudentDisorderType('Konzentrationsstörung');
+        $this->createStudentDisorderType('Körperliche Beeinträchtigung');
 
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = new TblStudent();
-        $Entity->setServiceTblPerson($tblPerson);
-        $Entity->setTblStudentMedicalRecord($tblStudentMedicalRecord);
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-
-        return $Entity;
-    }
-
-    /**
-     * @param int $Id
-     *
-     * @return bool|TblStudent
-     */
-    public function getStudentById($Id)
-    {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudent', $Id);
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     *
-     * @return bool|TblStudent
-     */
-    public function getStudentByPerson(TblPerson $tblPerson)
-    {
-
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudent', array(
-            TblStudent::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
+        $this->createStudentTransferType('ENROLLMENT', 'Einschulung');
+        $this->createStudentTransferType('ARRIVE', 'Aufnahme');
+        $this->createStudentTransferType('LEAVE', 'Abgabe');
     }
 
     /**
@@ -206,71 +155,267 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblStudentMedicalRecord',
-            $Id);
+            'TblStudentMedicalRecord', $Id
+        );
+    }
+
+    /**
+     * @param string $BaptismDate
+     * @param string $Location
+     *
+     * @return TblStudentBaptism
+     */
+    public function createStudentBaptism(
+        $BaptismDate,
+        $Location
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblStudentBaptism();
+        $Entity->setBaptismDate(( $BaptismDate ? new \DateTime($BaptismDate) : null ));
+        $Entity->setLocation($Location);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentBaptism $tblStudentBaptism
+     * @param string            $BaptismDate
+     * @param string            $Location
+     *
+     * @return TblStudentBaptism
+     */
+    public function updateStudentBaptism(
+        TblStudentBaptism $tblStudentBaptism,
+        $BaptismDate,
+        $Location
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var null|TblStudentBaptism $Entity */
+        $Entity = $Manager->getEntityById('TblStudentBaptism', $tblStudentBaptism->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setBaptismDate(( $BaptismDate ? new \DateTime($BaptismDate) : null ));
+            $Entity->setLocation($Location);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 
     /**
      * @param int $Id
      *
-     * @return bool|TblStudentTransfer
+     * @return bool|TblStudentBaptism
      */
-    public function getStudentTransferById($Id)
-    {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudentTransfer',
-            $Id);
-    }
-
-    /**
-     * @param int $Id
-     *
-     * @return bool|TblStudentTransferArrive
-     */
-    public function getStudentTransferArriveById($Id)
+    public function getStudentBaptismById($Id)
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblStudentTransferArrive',
-            $Id);
+            'TblStudentBaptism', $Id
+        );
+    }
+
+    /**
+     * @param null|TblSiblingRank $tblSiblingRank
+     *
+     * @return TblStudentBilling
+     */
+    public function createStudentBilling(
+        TblSiblingRank $tblSiblingRank = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblStudentBilling();
+        $Entity->setServiceTblType($tblSiblingRank);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentBilling   $tblStudentBilling
+     * @param null|TblSiblingRank $tblSiblingRank
+     *
+     * @return TblStudentBilling
+     */
+    public function updateStudentBilling(
+        TblStudentBilling $tblStudentBilling,
+        TblSiblingRank $tblSiblingRank = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var null|TblStudentBilling $Entity */
+        $Entity = $Manager->getEntityById('TblStudentBilling', $tblStudentBilling->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setServiceTblType($tblSiblingRank);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 
     /**
      * @param int $Id
      *
-     * @return bool|TblStudentTransferEnrollment
+     * @return bool|TblStudentBilling
      */
-    public function getStudentTransferEnrollmentById($Id)
+    public function getStudentBillingById($Id)
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblStudentTransferEnrollment',
-            $Id);
+            'TblStudentBilling', $Id
+        );
+    }
+
+    /**
+     * @param string $LockerNumber
+     * @param string $LockerLocation
+     * @param string $KeyNumber
+     *
+     * @return TblStudentLocker
+     */
+    public function createStudentLocker(
+        $LockerNumber,
+        $LockerLocation,
+        $KeyNumber
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblStudentLocker();
+        $Entity->setLockerNumber($LockerNumber);
+        $Entity->setLockerLocation($LockerLocation);
+        $Entity->setKeyNumber($KeyNumber);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentLocker $tblStudentLocker
+     * @param string           $LockerNumber
+     * @param string           $LockerLocation
+     * @param string           $KeyNumber
+     *
+     * @return TblStudentLocker
+     */
+    public function updateStudentLocker(
+        TblStudentLocker $tblStudentLocker,
+        $LockerNumber,
+        $LockerLocation,
+        $KeyNumber
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var null|TblStudentLocker $Entity */
+        $Entity = $Manager->getEntityById('TblStudentLocker', $tblStudentLocker->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setLockerNumber($LockerNumber);
+            $Entity->setLockerLocation($LockerLocation);
+            $Entity->setKeyNumber($KeyNumber);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 
     /**
      * @param int $Id
      *
-     * @return bool|TblStudentTransferLeave
+     * @return bool|TblStudentLocker
      */
-    public function getStudentTransferLeaveById($Id)
+    public function getStudentLockerById($Id)
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblStudentTransferLeave',
-            $Id);
+            'TblStudentLocker', $Id
+        );
+    }
+
+    /**
+     * @param string $Route
+     * @param string $StationEntrance
+     * @param string $StationExit
+     * @param string $Remark
+     *
+     * @return TblStudentTransport
+     */
+    public function createStudentTransport(
+        $Route,
+        $StationEntrance,
+        $StationExit,
+        $Remark
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblStudentTransport();
+        $Entity->setRoute($Route);
+        $Entity->setStationEntrance($StationEntrance);
+        $Entity->setStationExit($StationExit);
+        $Entity->setRemark($Remark);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentTransport $tblStudentTransport
+     * @param string              $Route
+     * @param string              $StationEntrance
+     * @param string              $StationExit
+     * @param string              $Remark
+     *
+     * @return TblStudentTransport
+     */
+    public function updateStudentTransport(
+        TblStudentTransport $tblStudentTransport,
+        $Route,
+        $StationEntrance,
+        $StationExit,
+        $Remark
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var null|TblStudentTransport $Entity */
+        $Entity = $Manager->getEntityById('TblStudentTransport', $tblStudentTransport->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setRoute($Route);
+            $Entity->setStationEntrance($StationEntrance);
+            $Entity->setStationExit($StationExit);
+            $Entity->setRemark($Remark);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 
     /**
      * @param int $Id
      *
-     * @return bool|TblStudentTransferProcess
+     * @return bool|TblStudentTransport
      */
-    public function getStudentTransferProcessById($Id)
+    public function getStudentTransportById($Id)
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
-            'TblStudentTransferProcess',
-            $Id);
+            'TblStudentTransport', $Id
+        );
     }
 }

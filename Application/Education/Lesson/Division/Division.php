@@ -4,14 +4,17 @@ namespace SPHERE\Application\Education\Lesson\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Common\Frontend\Icon\Repository\Transfer;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Main;
@@ -40,7 +43,21 @@ class Division implements IModuleInterface
             __NAMESPACE__.'/Create/Level', __NAMESPACE__.'\Frontend::frontendCreateLevel'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Change/Level', __NAMESPACE__.'\Frontend::frontendChangeLevel'
+        )->setParameterDefault('Level', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Destroy/Level', __NAMESPACE__.'\Frontend::frontendDestroyLevel'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Create/Division', __NAMESPACE__.'\Frontend::frontendCreateDivision'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Change/Division', __NAMESPACE__.'\Frontend::frontendChangeDivision'
+        )->setParameterDefault('Division', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Destroy/Division', __NAMESPACE__.'\Frontend::frontendDestroyDivision'
         ));
     }
 
@@ -67,7 +84,15 @@ class Division implements IModuleInterface
         $tblLevelAll = $this->useService()->getLevelAll();
         $Content = array();
 
-        //usort( $tblLevelAll,  );
+        foreach ($tblLevelAll as $key => $row) {
+//            $klass[$key] = strtoupper($row->getName());
+            $second[$key] = strtoupper($row->getServiceTblType()->getName());
+            $id[$key] = $row->getId();
+        }
+        array_multisort(/*$klass, SORT_ASC,*/
+            $second, SORT_ASC, $tblLevelAll);
+
+//        sort($tblLevelAll);
 
         if ($tblLevelAll) {
             array_push($Content, new LayoutRow(array(
@@ -108,39 +133,45 @@ class Division implements IModuleInterface
 
                 array_push($Content, new LayoutRow(array(
                     new LayoutColumn(array(
-                        new Title('Klassenstufe: '.new Bold($tblLevel->getName()), $tblLevel->getDescription()),
-                        new Standard('Zuweisen von Kategorien', __NAMESPACE__.'\Link\Category', new Transfer(),
-                            array('Id' => $tblLevel->getId())
-                        )
+                        new Title('Klassenstufe: '.new Bold($tblLevel->getName()).' '.$tblLevel->getServiceTblType()->getName())
                     ))
                 )));
-//            $tblCategoryAll = $this->useService()->getCategoryAllByLevel($tblLevel);
-//            array_walk($tblCategoryAll, function (TblCategory $tblCategory) use (&$Content, $tblLevel) {
-//
-//                $tblSubjectAll = $this->useService()->getSubjectAllByCategory($tblCategory);
-//                array_walk($tblSubjectAll, function (TblSubject &$tblSubject) {
-//
-//                    $tblSubject = new Bold($tblSubject->getAcronym()).' - '
-//                        .$tblSubject->getName().' '
-//                        .new Small(new Muted($tblSubject->getDescription()));
-//                });
-//
-//                $Height = floor(( ( count($tblSubjectAll) + 2 ) / 3 ) + 1);
-                Main::getDispatcher()->registerWidget($tblLevel->getName(),
-                    new Panel(
-//                        $tblCategory->getName().' '.$tblCategory->getDescription(),
-//                        $tblSubjectAll,
-//                        ( $tblCategory->getIsLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT ),
-                        '',
-                        new Standard('Zuweisen von Klassen-Gruppen', __NAMESPACE__.'\Link\Subject', new Transfer()
-                        //array('Id' => $tblCategory->getId()
-                        ))
-                );
-                //, 2, ( $Height ? $Height : $Height + 2 ));
+
+                $tblDivisionList = $this->useService()->getDivisionByLevel($tblLevel);
+//                $Height = floor(( ( count($tblDivisionList) + 2 ) / 3 ) + 1);
+                if ($tblDivisionList) {
+                    foreach ($tblDivisionList as $tblDivision) {
+                        $StudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+                        $TeacherList = Division::useService()->getTeacherAllByDivision($tblDivision);
+                        if (!$StudentList) {
+                            $StudentList = null;
+                        }
+                        if (!$TeacherList) {
+                            $TeacherList = null;
+                        }
+
+
+                        Main::getDispatcher()->registerWidget($tblLevel->getName(),
+                            new Panel(new Standard('', '', new EyeOpen(), '', 'Klassenansicht').'Gruppe: '.$tblDivision->getName()
+                                , array(
+                                    'Anzahl Schüler :'.count($StudentList)
+                                    .new PullRight(new Standard('', '/Education/Lesson/Division', new Pencil(), array('Id'), 'Schüler bearbeiten')),
+                                    'Anzahl Lehrer :'.count($TeacherList)
+                                    .new PullRight(new Standard('', '/Education/Lesson/Division', new Pencil(), array('Id'), 'Lehrer bearbeiten')),)
+                                , Panel::PANEL_TYPE_DEFAULT
+                            )
+                        );
+                    }
+                    array_push($Content, new LayoutRow(array(
+                        new LayoutColumn(Main::getDispatcher()->fetchDashboard($tblLevel->getName()))
+                    )));
+//                    , 2, ( $Height ? $Height : $Height + 2 ));
 //            });
-                array_push($Content, new LayoutRow(array(
-                    new LayoutColumn(Main::getDispatcher()->fetchDashboard($tblLevel->getName()))
-                )));
+                } else {
+                    array_push($Content, new LayoutRow(array(
+                        new LayoutColumn(new Warning('Keine Gruppe angelegt'), 6)
+                    )));
+                }
             });
         }
         $Stage->setContent(

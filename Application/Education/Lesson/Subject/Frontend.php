@@ -23,9 +23,11 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -45,13 +47,17 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCreateSubject($Subject = null)
     {
 
-        $Stage = new Stage('Fächer', 'Bearbeiten');
+        $Stage = new Stage('Fächer', 'erstellen / bearbeiten');
 
         $tblSubjectAll = Subject::useService()->getSubjectAll();
         array_walk($tblSubjectAll, function (TblSubject &$tblSubject) {
 
-            $tblSubject->Option = new Standard('', '', new Pencil(), array(), 'Bearbeiten')
-                .new Standard('', '', new Remove(), array(), 'Löschen');
+            $tblSubject->Option = new Standard('', '/Education/Lesson/Subject/Change/Subject', new Pencil(),
+                    array('Id' => $tblSubject->getId()))
+                .( Subject::useService()->getSubjectActiveState($tblSubject) === false ?
+                    new Standard('', '/Education/Lesson/Subject/Destroy/Subject', new Remove(),
+                        array('Id' => $tblSubject->getId()))
+                    : '' );
         });
 
         $Stage->setContent(
@@ -137,6 +143,33 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param $Id
+     * @param $Subject
+     *
+     * @return Stage
+     */
+    public function frontendChangeSubject($Id, $Subject)
+    {
+
+        $Stage = new Stage('Fach', 'bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject/Create/Subject', new ChevronLeft()));
+        $tblSubject = Subject::useService()->getSubjectById($Id);
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Id'] ) && $tblSubject) {
+            $Global->POST['Subject']['Acronym'] = $tblSubject->getAcronym();
+            $Global->POST['Subject']['Name'] = $tblSubject->getName();
+            $Global->POST['Subject']['Description'] = $tblSubject->getDescription();
+            $Global->savePost();
+        }
+        $Stage->setContent(Subject::useService()->changeSubject($this->formSubject($tblSubject)
+            ->appendFormButton(new Primary('Änderung speichern'))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+            , $Subject, $Id));
+
+        return $Stage;
+    }
+
+    /**
      * @param null|array $Category
      *
      * @return Stage
@@ -144,13 +177,16 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCreateCategory($Category = null)
     {
 
-        $Stage = new Stage('Kategorien', 'Bearbeiten');
+        $Stage = new Stage('Kategorien', 'erstellen / bearbeiten');
 
         $tblCategoryAll = Subject::useService()->getCategoryAll();
         array_walk($tblCategoryAll, function (TblCategory &$tblCategory) {
 
-            $tblCategory->Option = new Standard('', '', new Pencil(), array(), 'Bearbeiten')
-                .( $tblCategory->getIsLocked() ? '' : new Standard('', '', new Remove(), array(), 'Löschen') );
+            $tblCategory->Option = new Standard('', '/Education/Lesson/Subject/Change/Category', new Pencil(),
+                    array('Id' => $tblCategory->getId()))
+                .( $tblCategory->getIsLocked() ? ''
+                    : new Standard('', '/Education/Lesson/Subject/Destroy/Category', new Remove(),
+                        array('Id' => $tblCategory->getId())) );
         });
 
         $Stage->setContent(
@@ -228,6 +264,32 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
+    }
+
+    /**
+     * @param $Id
+     * @param $Category
+     *
+     * @return Stage
+     */
+    public function frontendChangeCategory($Id, $Category)
+    {
+
+        $Stage = new Stage('Kategorien', 'bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject/Create/Category', new ChevronLeft()));
+        $tblCotegory = Subject::useService()->getCategoryById($Id);
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Id'] ) && $tblCotegory) {
+            $Global->POST['Subject']['Name'] = $tblCotegory->getName();
+            $Global->POST['Subject']['Description'] = $tblCotegory->getDescription();
+            $Global->savePost();
+        }
+        $Stage->setContent(Subject::useService()->changeCategory($this->formCategory($tblCotegory)
+            ->appendFormButton(new Primary('Änderung speichern'))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+            , $Category, $Id));
+
+        return $Stage;
     }
 
     /**
@@ -405,5 +467,43 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return Stage|string
+     */
+    public function frontendDestroySubject($Id)
+    {
+
+        $Stage = new Stage('Fach', 'entfernen');
+        $tblSubject = Subject::useService()->getSubjectById($Id);
+        if ($tblSubject) {
+            $Stage->setContent(Subject::useService()->destroySubject($tblSubject));
+        } else {
+            return $Stage.new Warning('Fach nicht gefunden!')
+            .new Redirect('/Education/Lesson/Subject/Create/Subject');
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return Stage|string
+     */
+    public function frontendDestroyCategory($Id)
+    {
+
+        $Stage = new Stage('Fach', 'entfernen');
+        $tblCategory = Subject::useService()->getCategoryById($Id);
+        if ($tblCategory) {
+            $Stage->setContent(Subject::useService()->destroyCategory($tblCategory));
+        } else {
+            return $Stage.new Warning('Kategorie nicht gefunden!')
+            .new Redirect('/Education/Lesson/Subject/Create/Subject');
+        }
+        return $Stage;
     }
 }

@@ -9,6 +9,7 @@ use SPHERE\System\Extension\Repository\DataTables;
 use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\ModHex;
 use SPHERE\System\Extension\Repository\Roadmap;
+use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\SuperGlobal;
 use SPHERE\System\Extension\Repository\Upload;
 
@@ -109,5 +110,16 @@ class Extension
     {
 
         return new Roadmap();
+    }
+
+    /**
+     * @param array $List
+     *
+     * @return Sorter
+     */
+    public function getSorter($List)
+    {
+
+        return new Sorter($List);
     }
 }

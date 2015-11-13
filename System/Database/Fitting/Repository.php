@@ -19,7 +19,8 @@ class Repository extends EntityRepository implements ObjectRepository, Selectabl
     public function count()
     {
 
-        $Query = $this->createQueryBuilder('e')->select('count(e)')->getQuery()->useQueryCache(true);
+        $Query = $this->createQueryBuilder('e')->select('count(e)')->getQuery()
+            ->useQueryCache(true)->useResultCache(true);
         return $Query->getSingleScalarResult();
     }
 
