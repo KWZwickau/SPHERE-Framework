@@ -232,13 +232,7 @@ class Service extends AbstractService
     ) {
 
         $tblCity = (new Data($this->getBinding()))->createCity($CityCode, $CityName, $CityDistrict);
-        if ($State === '' || $State === null)
-        {
-            $tblState = null;
-        }
-        else {
-            $tblState = (new Data($this->getBinding()))->createState($State);
-        }
+        $tblState = null;
 
         $tblAddress = (new Data($this->getBinding()))->createAddress(
             $tblState,
