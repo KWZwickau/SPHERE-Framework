@@ -49,7 +49,7 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
             return $Entity;
         }
-        return false;
+        return $Entity;
     }
 
     /**
@@ -58,7 +58,7 @@ class Data extends AbstractData
      * @param          $Name
      * @param string   $Description
      *
-     * @return null|object|TblDivision
+     * @return TblDivision
      */
     public function createDivision(TblYear $tblYear, TblLevel $tblLevel, $Name, $Description = '')
     {
@@ -79,7 +79,7 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
             return $Entity;
         }
-        return false;
+        return $Entity;
     }
 
     /**

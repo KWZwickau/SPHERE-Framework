@@ -77,10 +77,12 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param UploadedFile|null $File
+     * @param null $TypeId
+     * @param null $YearId
      *
      * @return Stage
      */
-    public function frontendStudentImport(UploadedFile $File = null)
+    public function frontendStudentImport(UploadedFile $File = null, $TypeId = null, $YearId = null)
     {
 
         $View = new Stage();
@@ -102,7 +104,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             )
                                         )
                                         , new Primary('Hochladen')
-                                    ), $File
+                                    ), $File, $TypeId, $YearId
                                 )
                             ,
                                 new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
