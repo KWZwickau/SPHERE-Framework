@@ -20,6 +20,9 @@ use SPHERE\System\Database\Fitting\Element;
 class TblDivisionSubject extends Element
 {
 
+    const ATTR_TBL_DIVISION = 'tblDivision';
+    const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+
     /**
      * @Column(type="bigint")
      */
