@@ -448,7 +448,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblDivision = Division::useService()->getDivisionById($Id);
         if ($tblDivision) {
-            $Stage = new Stage('Lehrer', 'der Klasse '.new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName()).' hinzufügen');
+            $Stage = new Stage('Klassenlehrer', 'der Klasse '.new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName()).' hinzufügen');
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
 
 
@@ -458,7 +458,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 Division::useService()->addTeacherToDivision(
                                     $this->formTeacherAdd($tblDivision)
-                                        ->appendFormButton(new Primary('Lehrer hinzufügen'))
+                                        ->appendFormButton(new Primary('Klassenlehrer hinzufügen'))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                     , $tblDivision, $Teacher
                                 )
@@ -469,7 +469,7 @@ class Frontend extends Extension implements IFrontendInterface
             ));
 
         } else {
-            $Stage = new Stage('Lehrer', 'hinzufügen');
+            $Stage = new Stage('Klassenlehrer', 'hinzufügen');
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
             $Stage->setContent(new Warning('Klasse nicht gefunden'));
         }
@@ -719,7 +719,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 new TableData($tblDivisionTeacherList,
-                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Zuständige Lehrer für die Klasse '
+                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Zuständige Kassenlehrer für die Klasse '
                                         .$tblDivision->getTblLevel()->getName().$tblDivision->getName()),
                                     array('FirstName' => 'Vorname',
                                           'LastName'  => 'Nachname',

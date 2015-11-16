@@ -336,7 +336,7 @@ class Service extends AbstractService
             });
 
             if (!$Error) {
-                return new Success('Die Lehrer wurden der Klasse erfolgreich hinzugefügt')
+                return new Success('Der Klassenlehrer wurde der Klasse erfolgreich hinzugefügt')
                 .new Redirect('/Education/Lesson/Division', 3);
             } else {
                 return new Danger('Einige Lehrer konnte nicht hinzugefügt werden')

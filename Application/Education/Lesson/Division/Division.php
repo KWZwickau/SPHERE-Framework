@@ -106,10 +106,10 @@ class Division implements IModuleInterface
         $Content = array();
 
         if ($tblLevelAll) {
+            /** @var TblLevel $row */
             foreach ((array)$tblLevelAll as $key => $row) {
                 $klass[$key] = strtoupper($row->getName());
                 $second[$key] = strtoupper($row->getServiceTblType()->getName());
-                $id[$key] = $row->getId();
             }
             array_multisort($second, SORT_ASC, $klass, SORT_ASC, $tblLevelAll);
 
@@ -189,8 +189,8 @@ class Division implements IModuleInterface
                                 , array(
                                     'Anzahl Schüler: '.count($StudentList)
                                     .new PullRight(new Standard('', '/Education/Lesson/Division/Student/Add', new Group(), array('Id' => $tblDivision->getId()), 'Schüler hinzufügen')),
-                                    'Anzahl Lehrer: '.count($TeacherList)
-                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Teacher/Add', new Group(), array('Id' => $tblDivision->getId()), 'Lehrer hinzufügen')),
+                                    'Anzahl Klassenlehrer: '.count($TeacherList)
+                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Teacher/Add', new Group(), array('Id' => $tblDivision->getId()), 'Klassenlehrer hinzufügen')),
                                     'Anzahl Fächer: '.count($SubjectList)
                                     .new PullRight(new Standard('', '/Education/Lesson/Division/Subject/Add', new Book(), array('Id' => $tblDivision->getId()), 'Fächer hinzufügen')),)
                                 , Panel::PANEL_TYPE_DEFAULT
