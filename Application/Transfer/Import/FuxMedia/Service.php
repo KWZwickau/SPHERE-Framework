@@ -84,6 +84,8 @@ class Service
         $YearId = null
     ) {
 
+        var_dump($TypeId, $YearId);
+
         /**
          * Skip to Frontend
          */
@@ -258,7 +260,6 @@ class Service
                                     Mail::useService()->getTypeById(1), '');
                             }
 
-                            // ToDo JohK Klassenzugehörigkeit
                             if (($Level = trim($Document->getValue($Document->getCell($Location['Schüler_Klassenstufe'],
                                     $RunY)))) != ''
                             ) {
