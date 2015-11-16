@@ -3,6 +3,7 @@ namespace SPHERE\Application\People\Search\Group;
 
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
@@ -88,6 +89,16 @@ class Frontend implements IFrontendInterface
                     );
                     $tblPerson->Option = new Standard('', '/People/Person', new Pencil(),
                         array('Id' => $tblPerson->getId()), 'Bearbeiten');
+
+
+                    $common = Common::useService()->getCommonById($tblPerson->getId());
+                    if ($common)
+                    {
+                        $tblPerson->Remark = $common->getRemark();
+                    }
+                    else {
+                        $tblPerson->Remark = '';
+                    }
                 });
             }
             $Stage->setContent(
@@ -106,6 +117,7 @@ class Frontend implements IFrontendInterface
                             array(
                                 'FullName' => 'Name',
                                 'Address' => 'Adresse',
+                                'Remark' => 'Bemerkung',
                                 'Option' => 'Optionen',
                             )
                         )
