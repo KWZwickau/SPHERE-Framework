@@ -95,8 +95,8 @@ class Service
                         'Schüler' => null,
                         'Geburtsdatum' => null,
                         'Geburtsort' => null,
-                        'Import Vater' => null,
-                        'Import Mutter' => null,
+//                        'Import Vater' => null,
+//                        'Import Mutter' => null,
                     );
                     for ($RunX = 0; $RunX < $X; $RunX++) {
                         $Value = $Document->getValue($Document->getCell($RunX, 0));
@@ -173,9 +173,7 @@ class Service
                                             )
                                         );
 
-                                        if (trim($Document->getValue($Document->getCell($Location['Import Vater'],
-                                                $RunY))) === 'nein'
-                                        ) {
+                                        if (strpos($FatherFirstName, ' ') !== false) {
                                             \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
                                                 $tblPersonFather,
                                                 '',
@@ -232,9 +230,7 @@ class Service
                                             )
                                         );
 
-                                        if (trim($Document->getValue($Document->getCell($Location['Import Mutter'],
-                                                $RunY))) === 'nein'
-                                        ) {
+                                        if (strpos($MotherFirstName, ' ') !== false) {
                                             \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
                                                 $tblPersonMother,
                                                 '',
@@ -761,8 +757,8 @@ class Service
                     'Schüler' => null,
                     'Geburtsdatum' => null,
                     'Geburtsort' => null,
-                    'Import Vater' => null,
-                    'Import Mutter' => null,
+//                    'Import Vater' => null,
+//                    'Import Mutter' => null,
                     'Anm.Datum' => null,
                     'Klasse' => null,
                     'Schuljahr' => null,
@@ -879,9 +875,7 @@ class Service
                                         )
                                     );
 
-                                    if (trim($Document->getValue($Document->getCell($Location['Import Vater'],
-                                            $RunY))) === 'nein'
-                                    ) {
+                                    if (strpos($FatherFirstName, ' ') !== false) {
                                         \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
                                             $tblPersonFather,
                                             '',
@@ -937,9 +931,7 @@ class Service
                                         )
                                     );
 
-                                    if (trim($Document->getValue($Document->getCell($Location['Import Mutter'],
-                                            $RunY))) === 'nein'
-                                    ) {
+                                    if (strpos($MotherFirstName, ' ') !== false) {
                                         \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
                                             $tblPersonMother,
                                             '',
