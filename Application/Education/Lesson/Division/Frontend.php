@@ -70,10 +70,17 @@ class Frontend extends Extension implements IFrontendInterface
                     ? $tblType->getName().' '.$tblType->getDescription()
                     : ''
                 );
-                $tblLevel->Option = new Standard('', '/Education/Lesson/Division/Change/Level', new Pencil(),
-                        array('Id' => $tblLevel->getId()))
-                    .new Standard('', '/Education/Lesson/Division/Destroy/Level', new Remove(),
+                $tblDivision = Division::useService()->getDivisionByLevel($tblLevel);
+                if (empty( $tblDivision )) {
+                    $tblLevel->Option = new Standard('', '/Education/Lesson/Division/Change/Level', new Pencil(),
+                            array('Id' => $tblLevel->getId()))
+                        .new Standard('', '/Education/Lesson/Division/Destroy/Level', new Remove(),
+                            array('Id' => $tblLevel->getId()));
+                } else {
+                    $tblLevel->Option = new Standard('', '/Education/Lesson/Division/Change/Level', new Pencil(),
                         array('Id' => $tblLevel->getId()));
+                }
+
             });
         }
         $Stage->setContent(
@@ -202,15 +209,24 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblDivisionAll) {
             array_walk($tblDivisionAll, function (TblDivision &$tblDivision) {
 
+                $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+                $tblTeacherList = Division::useService()->getTeacherAllByDivision($tblDivision);
+
                 $tblYear = $tblDivision->getServiceTblYear();
                 $tblDivision->Year = ( $tblYear
                     ? $tblYear->getName().' '.$tblYear->getDescription() : '' );
                 $tblDivision->Level = ( $tblDivision->getTblLevel()->getName()
                     ? $tblDivision->getTblLevel()->getName().' '.
                     new Muted($tblDivision->getTblLevel()->getServiceTblType()->getName()) : '' );
-                $tblDivision->Option = new Standard('', '/Education/Lesson/Division/Change/Division', new Pencil(),
-                        array('Id' => $tblDivision->getId()))
-                    .new Standard('', '/Education/Lesson/Division/Destroy/Division', new Remove(), array('Id' => $tblDivision->getId()));
+                if (empty( $tblStudentList ) && empty( $tblTeacherList )) {
+                    $tblDivision->Option = new Standard('', '/Education/Lesson/Division/Change/Division', new Pencil(),
+                            array('Id' => $tblDivision->getId()))
+                        .new Standard('', '/Education/Lesson/Division/Destroy/Division', new Remove(), array('Id' => $tblDivision->getId()));
+                } else {
+                    $tblDivision->Option = new Standard('', '/Education/Lesson/Division/Change/Division', new Pencil(),
+                        array('Id' => $tblDivision->getId()));
+                }
+
             });
         }
         $Stage->setContent(
@@ -219,8 +235,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($tblDivisionAll, null, array(
-                                'Year'        => 'Schuljahr',
                                 'Level'       => 'Klassenstufe',
+                                'Year'        => 'Schuljahr',
                                 'Name'        => 'Klassengruppe',
                                 'Description' => 'Beschreibung',
                                 'Option'      => 'Optionen',

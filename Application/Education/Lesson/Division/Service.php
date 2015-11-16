@@ -241,40 +241,6 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->createDivision($tblYear, $tblLevel, $Name, $Description);
     }
-
-    /**
-     * @param TblDivision $tblDivision
-     *
-     * @return bool|TblPerson[]
-     */
-    public function getStudentAllByDivision(TblDivision $tblDivision)
-    {
-
-        return (new Data($this->getBinding()))->getStudentAllByDivision($tblDivision);
-    }
-
-    /**
-     * @param TblDivision $tblDivision
-     *
-     * @return bool|TblPerson[]
-     */
-    public function getTeacherAllByDivision(TblDivision $tblDivision)
-    {
-
-        return (new Data($this->getBinding()))->getTeacherAllByDivision($tblDivision);
-    }
-
-    /**
-     * @param TblDivision $tblDivision
-     *
-     * @return bool|TblSubject[]
-     */
-    public function getSubjectAllByDivision(TblDivision $tblDivision)
-    {
-
-        return (new Data($this->getBinding()))->getSubjectAllByDivision($tblDivision);
-    }
-
     /**
      * @param IFormInterface $Form
      * @param TblDivision    $tblDivision
@@ -313,7 +279,6 @@ class Service extends AbstractService
         }
         return $Form;
     }
-
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -335,7 +300,6 @@ class Service extends AbstractService
             .new Redirect('/Education/Lesson/Division/Show', null, array('Id' => $tblDivision->getId()));
         }
     }
-
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -357,7 +321,6 @@ class Service extends AbstractService
             .new Redirect('/Education/Lesson/Division/Show', null, array('Id' => $tblDivision->getId()));
         }
     }
-
     /**
      * @param IFormInterface $Form
      * @param TblDivision    $tblDivision
@@ -396,7 +359,6 @@ class Service extends AbstractService
         }
         return $Form;
     }
-
     /**
      * @param IFormInterface $Form
      * @param TblDivision    $tblDivision
@@ -435,7 +397,6 @@ class Service extends AbstractService
         }
         return $Form;
     }
-
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -447,7 +408,6 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->addDivisionStudent($tblDivision, $tblPerson);
     }
-
     /**
      * @param IFormInterface $Form
      * @param                $Division
@@ -511,7 +471,6 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionById($Id);
     }
-
     /**
      * @param IFormInterface $Form
      * @param                $Level
@@ -576,8 +535,23 @@ class Service extends AbstractService
             return '';
         }
         $Error = false;
+        $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+        $tblTeacherList = Division::useService()->getTeacherAllByDivision($tblDivision);
+        if (!empty( $tblStudentList )) {
+            $Error = true;
+        }
+        if (!empty( $tblTeacherList )) {
+            $Error = true;
+        }
 
         if (!$Error) {
+            $tblSubjectList = Division::useService()->getSubjectAllByDivision($tblDivision);
+            if (!empty( $tblSubjectList )) {
+                foreach ($tblSubjectList as $tblSubject) {
+                    (new Data($this->getBinding()))->removeSubjectToDivision($tblDivision, $tblSubject);
+                }
+            }
+
             if ((new Data($this->getBinding()))->destroyDivision($tblDivision)) {
                 return new Success('Die Klassengruppe wurde erfolgreich gelöscht')
                 .new Redirect('/Education/Lesson/Division/Create/Division', 1);
@@ -586,8 +560,38 @@ class Service extends AbstractService
                 .new Redirect('/Education/Lesson/Division/Create/Division');
             }
         }
-        return new Danger('Die Klassengruppe wird benutzt!')
+        return new Danger('Die Klassengruppe konnte nicht gelöscht werden, da Personen zugeordnet sind')
         .new Redirect('/Education/Lesson/Division/Create/Division');
+    }
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getStudentAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getStudentAllByDivision($tblDivision);
+    }
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getTeacherAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getTeacherAllByDivision($tblDivision);
+    }
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblSubject[]
+     */
+    public function getSubjectAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectAllByDivision($tblDivision);
     }
     /**
      * @param TblLevel $tblLevel
@@ -603,7 +607,6 @@ class Service extends AbstractService
         $Error = false;
         if ($this->getDivisionByLevel($tblLevel)) {
             $Error = true;
-            var_dump('nicht gelöscht');
         }
 
         if (!$Error) {
