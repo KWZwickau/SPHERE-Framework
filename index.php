@@ -50,7 +50,7 @@ if (false) {
     (new Cache(new SmartyCache()))->getCache()->clearCache();
 }
 
-Debugger::$Enabled = true;
+Debugger::$Enabled = false;
 
 $Main->runPlatform();
 

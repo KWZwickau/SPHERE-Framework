@@ -20,9 +20,9 @@ class Support implements IModuleInterface
         /**
          * Register Navigation
          */
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Support'))
-        );
+//        Main::getDisplay()->addModuleNavigation(
+//            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Support'))
+//        );
         /**
          * Register Route
          */

@@ -44,15 +44,16 @@ class Data extends AbstractData
     }
 
     /**
-     * @param        $Salutation
+     * @param $Salutation
      * @param string $Title
      * @param string $FirstName
      * @param string $SecondName
      * @param string $LastName
+     * @param string $BirthName
      *
      * @return TblPerson
      */
-    public function createPerson($Salutation, $Title, $FirstName, $SecondName, $LastName)
+    public function createPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $BirthName = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -62,18 +63,32 @@ class Data extends AbstractData
         $Entity->setFirstName($FirstName);
         $Entity->setSecondName($SecondName);
         $Entity->setLastName($LastName);
+        $Entity->setBirthName($BirthName);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
     }
 
     /**
+     * @param integer $Id
+     *
+     * @return bool|TblSalutation
+     */
+    public function getSalutationById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSalutation', $Id);
+//        return $this->getConnection()->getEntityManager()->getEntityById('TblSalutation', $Id);
+    }
+
+    /**
      * @param TblPerson $tblPerson
-     * @param        $Salutation
+     * @param $Salutation
      * @param string $Title
      * @param string $FirstName
      * @param string $SecondName
      * @param string $LastName
+     * @param string $BirthName
      *
      * @return bool
      */
@@ -83,7 +98,8 @@ class Data extends AbstractData
         $Title,
         $FirstName,
         $SecondName,
-        $LastName
+        $LastName,
+        $BirthName = ''
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -96,6 +112,7 @@ class Data extends AbstractData
             $Entity->setFirstName($FirstName);
             $Entity->setSecondName($SecondName);
             $Entity->setLastName($LastName);
+            $Entity->setBirthName($BirthName);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
@@ -157,17 +174,5 @@ class Data extends AbstractData
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
 //        return $this->getConnection()->getEntityManager()->getEntityById('TblPerson', $Id);
-    }
-
-    /**
-     * @param integer $Id
-     *
-     * @return bool|TblSalutation
-     */
-    public function getSalutationById($Id)
-    {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSalutation', $Id);
-//        return $this->getConnection()->getEntityManager()->getEntityById('TblSalutation', $Id);
     }
 }

@@ -131,12 +131,10 @@ class Data extends AbstractData
     public function getGroupByMetaTable($MetaTable)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGroup')
-            ->findOneBy(array(
-                TblGroup::ATTR_META_TABLE => $MetaTable,
-                TblGroup::ATTR_IS_LOCKED  => true
-            ));
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', array(
+            TblGroup::ATTR_META_TABLE => $MetaTable,
+            TblGroup::ATTR_IS_LOCKED  => true
+        ));
     }
 
     /**

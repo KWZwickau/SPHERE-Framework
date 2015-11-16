@@ -61,10 +61,10 @@ class Frontend implements IFrontendInterface
             $tblCompanyAll = Group::useService()->getCompanyAllByGroup($tblGroup);
 
             if ($tblCompanyAll) {
-                array_walk($tblCompanyAll, function (TblCompany &$tblCompany) {
+                array_walk($tblCompanyAll, function (TblCompany &$tblCompany) use ($tblGroup) {
 
                     $tblCompany->Option = new Standard('', '/Corporation/Company', new Pencil(),
-                        array('Id' => $tblCompany->getId()), 'Bearbeiten');
+                        array('Id' => $tblCompany->getId(), 'Group' => $tblGroup->getId()), 'Bearbeiten');
                 });
             }
             $Stage->setContent(
