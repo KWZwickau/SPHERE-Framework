@@ -154,10 +154,7 @@ class Service
                                 $tblPersonFather = null;
                                 $FatherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname V.'],
                                     $RunY)));
-                                if ($FatherFirstName !== ''
-                                    && trim($Document->getValue($Document->getCell($Location['Import Vater'],
-                                        $RunY))) !== 'nein'
-                                ) {
+                                if ($FatherFirstName !== '') {
                                     $tblPersonFatherExists = $this->usePeoplePerson()->getPersonExists(
                                         $FatherFirstName,
                                         $LastName,
@@ -175,6 +172,22 @@ class Service
                                                 1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
                                             )
                                         );
+
+                                        if (trim($Document->getValue($Document->getCell($Location['Import Vater'],
+                                                $RunY))) === 'nein'
+                                        ) {
+                                            \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
+                                                $tblPersonFather,
+                                                '',
+                                                '',
+                                                0,
+                                                '',
+                                                '',
+                                                0,
+                                                '',
+                                                'Import Nachbearbeiten'
+                                            );
+                                        }
 
                                         $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
                                             $tblPersonFather,
@@ -199,10 +212,7 @@ class Service
                                 $tblPersonMother = null;
                                 $MotherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname M.'],
                                     $RunY)));
-                                if ($MotherFirstName !== ''
-                                    && trim($Document->getValue($Document->getCell($Location['Import Mutter'],
-                                        $RunY))) !== 'nein'
-                                ) {
+                                if ($MotherFirstName !== '') {
 
                                     $tblPersonMotherExists = $this->usePeoplePerson()->getPersonExists(
                                         $MotherFirstName,
@@ -221,6 +231,22 @@ class Service
                                                 1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
                                             )
                                         );
+
+                                        if (trim($Document->getValue($Document->getCell($Location['Import Mutter'],
+                                                $RunY))) === 'nein'
+                                        ) {
+                                            \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
+                                                $tblPersonMother,
+                                                '',
+                                                '',
+                                                0,
+                                                '',
+                                                '',
+                                                0,
+                                                '',
+                                                'Import Nachbearbeiten'
+                                            );
+                                        }
 
                                         $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
                                             $tblPersonMother,
@@ -834,10 +860,7 @@ class Service
                             $tblPersonFather = null;
                             $FatherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname V.'],
                                 $RunY)));
-                            if ($FatherFirstName !== ''
-                                && trim($Document->getValue($Document->getCell($Location['Import Vater'],
-                                    $RunY))) !== 'nein'
-                            ) {
+                            if ($FatherFirstName !== '') {
                                 $tblPersonFatherExists = $this->usePeoplePerson()->getPersonExists(
                                     $FatherFirstName,
                                     $LastName,
@@ -855,6 +878,22 @@ class Service
                                             1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
                                         )
                                     );
+
+                                    if (trim($Document->getValue($Document->getCell($Location['Import Vater'],
+                                            $RunY))) === 'nein'
+                                    ) {
+                                        \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
+                                            $tblPersonFather,
+                                            '',
+                                            '',
+                                            0,
+                                            '',
+                                            '',
+                                            0,
+                                            '',
+                                            'Import Nachbearbeiten'
+                                        );
+                                    }
 
                                     $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
                                         $tblPersonFather,
@@ -879,11 +918,7 @@ class Service
                             $tblPersonMother = null;
                             $MotherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname M.'],
                                 $RunY)));
-                            if ($MotherFirstName !== ''
-                                && trim($Document->getValue($Document->getCell($Location['Import Mutter'],
-                                    $RunY))) !== 'nein'
-                            ) {
-
+                            if ($MotherFirstName !== '') {
                                 $tblPersonMotherExists = $this->usePeoplePerson()->getPersonExists(
                                     $MotherFirstName,
                                     $LastName,
@@ -901,6 +936,22 @@ class Service
                                             1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
                                         )
                                     );
+
+                                    if (trim($Document->getValue($Document->getCell($Location['Import Mutter'],
+                                            $RunY))) === 'nein'
+                                    ) {
+                                        \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
+                                            $tblPersonMother,
+                                            '',
+                                            '',
+                                            0,
+                                            '',
+                                            '',
+                                            0,
+                                            '',
+                                            'Import Nachbearbeiten'
+                                        );
+                                    }
 
                                     $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
                                         $tblPersonMother,
