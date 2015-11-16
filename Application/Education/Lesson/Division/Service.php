@@ -95,17 +95,9 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-
-            if ((new Data($this->getBinding()))->createLevel(
-                $tblType, $Level['Name'], $Level['Description']
-            )
-            ) {
-                return new Success('Die Klassenstufe wurde erfolgreich hinzugefügt')
-                .new Redirect($this->getRequest()->getUrl(), 1);
-            } else {
-                return new Danger('Die Klassenstufe konnte nicht hinzugefügt werden')
-                .new Redirect($this->getRequest()->getUrl());
-            }
+            (new Data($this->getBinding()))->createLevel($tblType, $Level['Name'], $Level['Description']);
+            return new Success('Die Klassenstufe wurde erfolgreich hinzugefügt')
+            .new Redirect($this->getRequest()->getUrl(), 1);
         }
         return $Form;
     }
@@ -188,16 +180,10 @@ class Service extends AbstractService
         if (!$Error) {
             $tblYear = Term::useService()->getYearById($Division['Year']);
             $tblLevel = $this->getLevelById($Division['Level']);
-            if ((new Data($this->getBinding()))->createDivision(
-                $tblYear, $tblLevel, $Division['Name'], $Division['Description']
-            )
-            ) {
-                return new Success('Die KlassenGruppe wurde erfolgreich hinzugefügt')
-                .new Redirect($this->getRequest()->getUrl(), 1);
-            } else {
-                return new Danger('Die KlassenGruppe konnte nicht hinzugefügt werden')
-                .new Redirect($this->getRequest()->getUrl());
-            }
+            (new Data($this->getBinding()))->createDivision($tblYear, $tblLevel, $Division['Name'], $Division['Description']);
+            return new Success('Die KlassenGruppe wurde erfolgreich hinzugefügt')
+            .new Redirect($this->getRequest()->getUrl(), 1);
+
         }
         return $Form;
     }
