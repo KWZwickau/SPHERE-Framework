@@ -3,8 +3,10 @@ namespace SPHERE\Application\Education\Lesson\Division\Service;
 
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -217,6 +219,28 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
+     *
+     * @return bool|TblSubject[]
+     */
+    public function getSubjectAllByDivision(TblDivision $tblDivision)
+    {
+
+        $TempList = $this->getConnection()->getEntityManager()->getEntity('TblDivisionSubject')->findBy(array(
+            TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId()
+        ));
+        $EntityList = array();
+
+        if (!empty ( $TempList )) {
+            /** @var TblDivisionSubject $tblDivisionSubject */
+            foreach ($TempList as $tblDivisionSubject) {
+                array_push($EntityList, $tblDivisionSubject->getServiceTblSubject());
+            }
+        }
+        return empty( $EntityList ) ? false : $EntityList;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
      *
      * @return TblDivisionStudent
@@ -234,6 +258,56 @@ class Data extends AbstractData
             $Entity = new TblDivisionStudent();
             $Entity->setTblDivision($tblDivision);
             $Entity->setServiceTblPerson($tblPerson);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson   $tblPerson
+     *
+     * @return null|object|TblDivisionTeacher
+     */
+    public function addDivisionTeacher(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblDivisionTeacher')
+            ->findOneBy(array(
+                TblDivisionTeacher::ATTR_TBL_DIVISION       => $tblDivision->getId(),
+                TblDivisionTeacher::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        if (null === $Entity) {
+            $Entity = new TblDivisionTeacher();
+            $Entity->setTblDivision($tblDivision);
+            $Entity->setServiceTblPerson($tblPerson);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject  $tblSubject
+     *
+     * @return null|object|TblDivisionSubject
+     */
+    public function addDivisionSubject(TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblDivisionSubject')
+            ->findOneBy(array(
+                TblDivisionSubject::ATTR_TBL_DIVISION        => $tblDivision->getId(),
+                TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+            ));
+        if (null === $Entity) {
+            $Entity = new TblDivisionSubject();
+            $Entity->setTblDivision($tblDivision);
+            $Entity->setServiceTblSubject($tblSubject);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -267,9 +341,9 @@ class Data extends AbstractData
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
      *
-     * @return null|object|TblDivisionTeacher
+     * @return bool
      */
-    public function addDivisionTeacher(TblDivision $tblDivision, TblPerson $tblPerson)
+    public function removeTeacherToDivision(TblDivision $tblDivision, TblPerson $tblPerson)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -278,14 +352,35 @@ class Data extends AbstractData
                 TblDivisionTeacher::ATTR_TBL_DIVISION       => $tblDivision->getId(),
                 TblDivisionTeacher::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
-        if (null === $Entity) {
-            $Entity = new TblDivisionTeacher();
-            $Entity->setTblDivision($tblDivision);
-            $Entity->setServiceTblPerson($tblPerson);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            return true;
         }
-        return $Entity;
+        return false;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject  $tblSubject
+     *
+     * @return bool
+     */
+    public function removeSubjectToDivision(TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblDivisionSubject')
+            ->findOneBy(array(
+                TblDivisionSubject::ATTR_TBL_DIVISION        => $tblDivision->getId(),
+                TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+            ));
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            return true;
+        }
+        return false;
     }
 
     /**

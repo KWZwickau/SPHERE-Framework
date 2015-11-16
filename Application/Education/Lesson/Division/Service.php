@@ -6,6 +6,8 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Division\Service\Setup;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -110,17 +112,6 @@ class Service extends AbstractService
 
     /**
      * @param TblType $tblType
-     * @param $Name
-     * @param string $Description
-     * @return bool|TblLevel
-     */
-    public function insertLevel(TblType $tblType, $Name, $Description = '')
-    {
-        return (new Data($this->getBinding()))->createLevel($tblType, $Name, $Description);
-    }
-
-    /**
-     * @param TblType $tblType
      * @param string  $Name
      *
      * @return bool|TblLevel
@@ -129,6 +120,19 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->checkLevelExists($tblType, $Name);
+    }
+
+    /**
+     * @param TblType $tblType
+     * @param         $Name
+     * @param string  $Description
+     *
+     * @return bool|TblLevel
+     */
+    public function insertLevel(TblType $tblType, $Name, $Description = '')
+    {
+
+        return (new Data($this->getBinding()))->createLevel($tblType, $Name, $Description);
     }
 
     /**
@@ -199,19 +203,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblYear $tblYear
-     * @param TblLevel $tblLevel
-     * @param $Name
-     * @param string $Description
-     *
-     * @return null|TblDivision
-     */
-    public function insertDivision(TblYear $tblYear, TblLevel $tblLevel, $Name, $Description = '')
-    {
-        return (new Data($this->getBinding()))->createDivision($tblYear, $tblLevel, $Name, $Description);
-    }
-
-    /**
      * @param int $Id
      *
      * @return bool|TblLevel
@@ -221,9 +212,11 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getLevelById($Id);
     }
+
     /**
      * @param $Name
      * @param $Level
+     * @param $Year
      *
      * @return bool|TblDivision
      */
@@ -234,6 +227,21 @@ class Service extends AbstractService
         $tblYear = Term::useService()->getYearById($Year);
         return (new Data($this->getBinding()))->getDivisionByGroupAndLevelAndYear($Name, $tblLevel, $tblYear);
     }
+
+    /**
+     * @param TblYear  $tblYear
+     * @param TblLevel $tblLevel
+     * @param          $Name
+     * @param string   $Description
+     *
+     * @return null|TblDivision
+     */
+    public function insertDivision(TblYear $tblYear, TblLevel $tblLevel, $Name, $Description = '')
+    {
+
+        return (new Data($this->getBinding()))->createDivision($tblYear, $tblLevel, $Name, $Description);
+    }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -254,6 +262,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getTeacherAllByDivision($tblDivision);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblSubject[]
+     */
+    public function getSubjectAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectAllByDivision($tblDivision);
     }
 
     /**
@@ -318,6 +337,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson   $tblPerson
+     *
+     * @return string
+     */
+    public function removeTeacherToDivision(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+
+        $Error = false;
+        if (!(new Data($this->getBinding()))->removeTeacherToDivision($tblDivision, $tblPerson)) {
+            $Error = true;
+        }
+        if (!$Error) {
+            return new Success('Der Lehrer wurde erfolgreich aus der Klasse entfernt')
+            .new Redirect('/Education/Lesson/Division/Show', 3, array('Id' => $tblDivision->getId()));
+        } else {
+            return new Danger('Der Lehrer konnte nicht entfernt werden')
+            .new Redirect('/Education/Lesson/Division/Show', null, array('Id' => $tblDivision->getId()));
+        }
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param TblDivision    $tblDivision
      * @param                $Teacher
@@ -350,6 +391,45 @@ class Service extends AbstractService
                 .new Redirect('/Education/Lesson/Division', 3);
             } else {
                 return new Danger('Einige Lehrer konnte nicht hinzugefügt werden')
+                .new Redirect('/Education/Lesson/Division');
+            }
+        }
+        return $Form;
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblDivision    $tblDivision
+     * @param                $Subject
+     *
+     * @return IFormInterface|string
+     */
+    public function addSubjectToDivision(IFormInterface $Form, TblDivision $tblDivision, $Subject)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Subject) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (!$Error) {
+            // Add new Link
+            array_walk($Subject, function ($Subject) use ($tblDivision, &$Error) {
+
+                if (!(new Data($this->getBinding()))->addDivisionSubject($tblDivision, Subject::useService()->getSubjectById($Subject))) {
+                    $Error = false;
+                }
+            });
+
+            if (!$Error) {
+                return new Success('Die Fächer wurden der Klasse erfolgreich hinzugefügt')
+                .new Redirect('/Education/Lesson/Division', 3);
+            } else {
+                return new Danger('Einige Fächer konnte nicht hinzugefügt werden')
                 .new Redirect('/Education/Lesson/Division');
             }
         }

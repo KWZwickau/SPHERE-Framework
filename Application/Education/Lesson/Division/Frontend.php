@@ -3,6 +3,8 @@ namespace SPHERE\Application\Education\Lesson\Division;
 
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
@@ -17,8 +19,8 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Book;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
-use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
@@ -372,12 +374,14 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
             }
-            foreach ($tblStudentList as &$tblStudent) {
-                $tblStudent = new CheckBox(
-                    'Student['.$tblStudent->getId().']',
-                    $tblStudent->getFirstName().' '.$tblStudent->getSecondName().' '.$tblStudent->getLastName(),
-                    $tblStudent->getId()
-                );
+            if ($tblStudentList) {
+                foreach ($tblStudentList as &$tblStudent) {
+                    $tblStudent = new CheckBox(
+                        'Student['.$tblStudent->getId().']',
+                        $tblStudent->getFirstName().' '.$tblStudent->getSecondName().' '.$tblStudent->getLastName(),
+                        $tblStudent->getId()
+                    );
+                }
             }
         }
 
@@ -449,7 +453,7 @@ class Frontend extends Extension implements IFrontendInterface
             ));
 
         } else {
-            $Stage = new Stage('Schüler', 'hinzufügen');
+            $Stage = new Stage('Lehrer', 'hinzufügen');
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
             $Stage->setContent(new Warning('Klasse nicht gefunden'));
         }
@@ -483,14 +487,14 @@ class Frontend extends Extension implements IFrontendInterface
                     $id[$key] = $row->getId();
                 }
                 array_multisort($last, SORT_ASC, $first, SORT_ASC, $tblTeacherList);
-            }
 
-            foreach ($tblTeacherList as &$tblTeacher) {
-                $tblTeacher = new CheckBox(
-                    'Teacher['.$tblTeacher->getId().']',
-                    $tblTeacher->getTitle().' '.$tblTeacher->getFirstName().' '.$tblTeacher->getSecondName().' '.$tblTeacher->getLastName(),
-                    $tblTeacher->getId()
-                );
+                foreach ($tblTeacherList as &$tblTeacher) {
+                    $tblTeacher = new CheckBox(
+                        'Teacher['.$tblTeacher->getId().']',
+                        $tblTeacher->getTitle().' '.$tblTeacher->getFirstName().' '.$tblTeacher->getSecondName().' '.$tblTeacher->getLastName(),
+                        $tblTeacher->getId()
+                    );
+                }
             }
         }
 
@@ -501,6 +505,106 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel('Lehrer'.
                             new PullRight(new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName()))
                             , $tblTeacherList, Panel::PANEL_TYPE_INFO)
+                        , 6),
+                )),
+            ))
+        );
+    }
+
+    /**
+     * @param $Id
+     * @param $TeacherId
+     *
+     * @return Stage
+     */
+    public function frontendTeacherRemove($Id, $TeacherId)
+    {
+
+        $Stage = new Stage('Lehrer', 'aus der Klasse entfernen');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(), array('Id' => $Id)));
+        $tblDivision = Division::useService()->getDivisionById($Id);
+        $tblStudent = \SPHERE\Application\People\Person\Person::useService()->getPersonById($TeacherId);
+        if ($tblStudent) {
+            $Stage->setContent(Division::useService()->removeTeacherToDivision($tblDivision, $tblStudent));
+        } else {
+            $Stage->setContent(new Warning('Person zur Klasse nicht gefunden'));
+        }
+
+
+        return $Stage;
+    }
+
+    public function frontendSubjectAdd($Id, $Subject = null)
+    {
+
+        $tblDivision = Division::useService()->getDivisionById($Id);
+        if ($tblDivision) {
+            $Stage = new Stage('Fächer', 'der Klasse '.new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName()).' hinzufügen');
+            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
+
+
+            $Stage->setContent(new Layout(array(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                Division::useService()->addSubjectToDivision(
+                                    $this->formSubjectAdd($tblDivision)
+                                        ->appendFormButton(new Primary('Fächer hinzufügen'))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblDivision, $Subject
+                                )
+                            )
+                        ), new Title('Verfügbare Fächer')
+                    )
+                )
+            ));
+
+        } else {
+            $Stage = new Stage('Fächer', 'hinzufügen');
+            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
+            $Stage->setContent(new Warning('Klasse nicht gefunden'));
+        }
+        return $Stage;
+    }
+
+    public function formSubjectAdd(TblDivision $tblDivision)
+    {
+
+        $tblSubjectList = Subject::useService()->getSubjectAll();  // Alle Fächer
+        if ($tblSubjectList) {
+            $tblSubjectListUsed = Division::useService()->getSubjectAllByDivision($tblDivision);
+            if ($tblDivision && $tblSubjectListUsed) {
+                $tblSubjectList = array_udiff($tblSubjectList, $tblSubjectListUsed,
+                    function (TblSubject $invoiceA, TblSubject $invoiceB) {
+
+                        return $invoiceA->getId() - $invoiceB->getId();
+                    });
+            }
+
+            if ($tblSubjectList) {
+                foreach ($tblSubjectList as $key => $row) {
+                    $name[$key] = strtoupper($row->getName());
+                    $acronym[$key] = strtoupper($row->getAcronym());
+                }
+                array_multisort($acronym, SORT_ASC, $name, SORT_ASC, $tblSubjectList);
+
+                foreach ($tblSubjectList as &$tblSubject) {
+                    $tblSubject = new CheckBox(
+                        'Subject['.$tblSubject->getId().']',
+                        $tblSubject->getAcronym().' - '.$tblSubject->getName(),
+                        $tblSubject->getId()
+                    );
+                }
+            }
+        }
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Fächer'.
+                            new PullRight(new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName()))
+                            , $tblSubjectList, Panel::PANEL_TYPE_INFO)
                         , 6),
                 )),
             ))
@@ -554,10 +658,11 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblDivisionStudent->getSecondName().' '.
                         $tblDivisionStudent->getLastName();
                     $tblDivisionStudent->Option = new Standard('', '', new Person(), null, 'Test')
-                        .new Standard('', '', new Edit(), null, 'Test')
+                        .new Standard('', '', new Book(), null, 'Test (Fächer)')
                         .new Standard('', '/Education/Lesson/Division/Student/Remove', new Remove(),
                             array('Id'        => $tblDivision->getId(),
-                                  'StudentId' => $tblDivisionStudent->getId()), 'Löschen');
+                                  'StudentId' => $tblDivisionStudent->getId()),
+                            'Löschen');
 
                     $tblCommon = Common::useService()->getCommonByPerson($tblDivisionStudent);
                     if ($tblCommon) {
@@ -570,7 +675,12 @@ class Frontend extends Extension implements IFrontendInterface
             $tblDivisionTeacherList = Division::useService()->getTeacherAllByDivision($tblDivision);
             if ($tblDivisionTeacherList) {
                 foreach ($tblDivisionTeacherList as &$tblDivisionTeacher) {
-                    $tblDivisionTeacher->Option = new Standard('Test', '', new Person(), null, 'Test');
+                    $tblDivisionTeacher->Option = new Standard('', '', new Person(), null, 'Test')
+                        .new Standard('', '', new Book(), null, 'Test (Fächer)')
+                        .new Standard('', '/Education/Lesson/Division/Teacher/Remove', new Remove(),
+                            array('Id'        => $tblDivision->getId(),
+                                  'TeacherId' => $tblDivisionTeacher->getId()),
+                            'Lehrer entfernen');
                 }
             }
 
