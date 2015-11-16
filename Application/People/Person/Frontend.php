@@ -78,8 +78,7 @@ class Frontend extends Extension implements IFrontendInterface
             $BasicTable = Person::useService()->createPerson(
                 $this->formPerson()
                     ->appendFormButton(new Primary('Grunddaten anlegen'))
-                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                    ->setError('Person[BirthName]', 'Wird im Moment noch nicht gespeichert'),
+                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
                 $Person);
 
             $Stage->setContent(

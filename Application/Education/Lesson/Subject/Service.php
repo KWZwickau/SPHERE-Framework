@@ -256,9 +256,9 @@ class Service extends AbstractService
             }
         });
         // Remove link Group
-        $tblGroupList = Subject::useService()->getGroupByCategory($tblCategory);
-        if ($tblGroupList) {
-            foreach ($tblGroupList as $tblGroup)
+        $tblGroupAll = Subject::useService()->getGroupAllByCategory($tblCategory);
+        if ($tblGroupAll) {
+            foreach ($tblGroupAll as $tblGroup)
                 if (!$this->removeGroupCategory($tblGroup, $tblCategory)) {
                     $Error = true;
                 }
@@ -295,10 +295,10 @@ class Service extends AbstractService
      *
      * @return bool|null|TblGroup[]
      */
-    public function getGroupByCategory(TblCategory $tblCategory)
+    public function getGroupAllByCategory(TblCategory $tblCategory)
     {
 
-        return (new Data($this->getBinding()))->getGroupByCategory($tblCategory);
+        return (new Data($this->getBinding()))->getGroupAllByCategory($tblCategory);
     }
 
     /**
