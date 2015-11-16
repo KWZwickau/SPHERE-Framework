@@ -91,7 +91,7 @@ class Frontend implements IFrontendInterface
                         array('Id' => $tblPerson->getId()), 'Bearbeiten');
 
 
-                    $common = Common::useService()->getCommonById($tblPerson->getId());
+                    $common = Common::useService()->getCommonByPerson($tblPerson);
                     if ($common)
                     {
                         $tblPerson->Remark = $common->getRemark();
