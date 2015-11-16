@@ -106,7 +106,7 @@ class Service extends AbstractService
 
             if (($tblPerson = (new Data($this->getBinding()))->createPerson(
                 $this->getSalutationById($Person['Salutation']), $Person['Title'], $Person['FirstName'],
-                $Person['SecondName'], $Person['LastName']))
+                $Person['SecondName'], $Person['LastName'], $Person['BirthName']))
             ) {
                 // Add to Group
                 if (isset($Person['Group'])) {
@@ -185,10 +185,11 @@ class Service extends AbstractService
      * @param IFormInterface $Form
      * @param TblPerson $tblPerson
      * @param array $Person
+     * @param null|int $Group
      *
      * @return IFormInterface|Redirect
      */
-    public function updatePerson(IFormInterface $Form = null, TblPerson $tblPerson, $Person)
+    public function updatePerson(IFormInterface $Form = null, TblPerson $tblPerson, $Person, $Group)
     {
 
         /**
@@ -211,9 +212,8 @@ class Service extends AbstractService
 
         if (!$Error) {
 
-            if ((new Data($this->getBinding()))->updatePerson($tblPerson,
-                $Person['Salutation'], $Person['Title'], $Person['FirstName'],
-                $Person['SecondName'], $Person['LastName'])
+            if ((new Data($this->getBinding()))->updatePerson($tblPerson, $Person['Salutation'], $Person['Title'],
+                $Person['FirstName'], $Person['SecondName'], $Person['LastName'], $Person['BirthName'])
             ) {
                 // Change Groups
                 if (isset($Person['Group'])) {
@@ -237,7 +237,7 @@ class Service extends AbstractService
                 }
                 return new Success('Die Person wurde erfolgreich aktualisiert')
                 . new Redirect('/People/Person', 1,
-                    array('Id' => $tblPerson->getId())
+                    array('Id' => $tblPerson->getId(), 'Group' => $Group)
                 );
             } else {
                 return new Danger('Die Person konnte nicht aktualisiert werden')

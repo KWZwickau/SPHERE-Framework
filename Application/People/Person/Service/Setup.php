@@ -75,6 +75,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblPerson', 'LastName')) {
             $Table->addColumn('LastName', 'string');
         }
+        if (!$this->getConnection()->hasColumn('tblPerson', 'BirthName')) {
+            $Table->addColumn('BirthName', 'string');
+        }
         $this->getConnection()->addForeignKey($Table, $tblSalutation, true);
         return $Table;
     }

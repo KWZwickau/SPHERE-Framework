@@ -491,9 +491,11 @@ class Data extends AbstractData
     {
 
         /** @var TblCategorySubject[] $EntityList */
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblCategorySubject')->findBy(array(
-            TblCategorySubject::ATTR_TBL_CATEGORY => $tblCategory->getId()
-        ));
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCategorySubject', array(
+                TblCategorySubject::ATTR_TBL_CATEGORY => $tblCategory->getId()
+            )
+        );
         array_walk($EntityList, function (TblCategorySubject &$V) {
 
             $V = $V->getTblSubject();
@@ -510,9 +512,11 @@ class Data extends AbstractData
     {
 
         /** @var TblGroupCategory[] $EntityList */
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblGroupCategory')->findBy(array(
-            TblGroupCategory::ATTR_TBL_GROUP => $tblGroup->getId()
-        ));
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblGroupCategory', array(
+                TblGroupCategory::ATTR_TBL_GROUP => $tblGroup->getId()
+            )
+        );
         array_walk($EntityList, function (TblGroupCategory &$V) {
 
             $V = $V->getTblCategory();
@@ -536,12 +540,15 @@ class Data extends AbstractData
      *
      * @return bool|null|TblGroup[]
      */
-    public function getGroupByCategory(TblCategory $tblCategory)
+    public function getGroupAllByCategory(TblCategory $tblCategory)
     {
+
         /** @var TblGroupCategory[] $EntityList */
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblGroupCategory')->findBy(array(
-            TblGroupCategory::ATTR_TBL_CATEGORY => $tblCategory->getId()
-        ));
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblGroupCategory', array(
+                TblGroupCategory::ATTR_TBL_CATEGORY => $tblCategory->getId()
+            )
+        );
         array_walk($EntityList, function (TblGroupCategory &$V) {
 
             $V = $V->getTblGroup();

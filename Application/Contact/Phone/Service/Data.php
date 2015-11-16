@@ -65,8 +65,7 @@ class Data extends AbstractData
     public function getTypeById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblType', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType', $Id);
     }
 
     /**
@@ -75,8 +74,7 @@ class Data extends AbstractData
     public function getTypeAll()
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblType')->findAll();
-        return ( empty ( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType');
     }
 
     /**
@@ -87,8 +85,7 @@ class Data extends AbstractData
     public function getPhoneById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblPhone', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPhone', $Id);
     }
 
     /**
@@ -99,8 +96,7 @@ class Data extends AbstractData
     public function getPhoneToPersonById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblToPerson', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson', $Id);
     }
 
     /**
@@ -111,8 +107,7 @@ class Data extends AbstractData
     public function getPhoneToCompanyById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblToCompany', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany', $Id);
     }
 
     /**
@@ -121,8 +116,7 @@ class Data extends AbstractData
     public function getPhoneAll()
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblPhone')->findAll();
-        return ( empty ( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPhone');
     }
 
     /**
@@ -154,10 +148,10 @@ class Data extends AbstractData
     public function getPhoneAllByPerson(TblPerson $tblPerson)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblToPerson')->findBy(array(
-            TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+            array(
+                TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
     }
 
     /**
@@ -168,10 +162,10 @@ class Data extends AbstractData
     public function getPhoneAllByCompany(TblCompany $tblCompany)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblToCompany')->findBy(array(
-            TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
-        ));
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany',
+            array(
+                TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
+            ));
     }
 
     /**

@@ -11,7 +11,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
- * e.g. 6 Alpha - Teacher
+ * e.g. 6 Alpha - Division-Teacher
  *
  * @Entity
  * @Table(name="tblDivisionTeacher")
