@@ -18,6 +18,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
@@ -54,10 +55,14 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendCompany($TabActive = false, $Id = null, $Company = null, $Meta = null)
+    public function frontendCompany($TabActive = false, $Id = null, $Company = null, $Meta = null, $Group = null)
     {
 
         $Stage = new Stage('Firmen', 'Datenblatt');
+        if ($Group) {
+            $Stage->addButton(new Standard('Zurück', '/Corporation/Search/Group', new ChevronLeft(),
+                array('Id' => $Group)));
+        }
 
         if (!$Id) {
 
@@ -97,7 +102,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $this->formCompany()
                     ->appendFormButton(new Primary('Grunddaten speichern'))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
-                $tblCompany, $Company);
+                $tblCompany, $Company, $Group);
 
             $MetaTabs = Group::useService()->getGroupAllByCompany($tblCompany);
             // Sort by Name
@@ -151,10 +156,6 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(new LayoutColumn(array(
-                            new Panel(new Building().' Firma', array(
-                                $tblCompany->getName(),
-                                $tblCompany->getDescription(),
-                            ), Panel::PANEL_TYPE_SUCCESS),
                             $BasicTable
                         ))),
                         new Title(new Building().' Grunddaten', 'der Firma')

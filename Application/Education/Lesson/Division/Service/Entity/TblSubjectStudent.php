@@ -11,7 +11,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
- * e.g. 6 Alpha - Math - Student
+ * e.g. 6 Alpha - Info (null) - Student, 6 Alpha - Info (Info I) - Student
  *
  * @Entity
  * @Table(name="tblSubjectStudent")
@@ -24,6 +24,10 @@ class TblSubjectStudent extends Element
      * @Column(type="bigint")
      */
     protected $tblDivisionSubject;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblSubjectGroup;
     /**
      * @Column(type="bigint")
      */
@@ -49,6 +53,28 @@ class TblSubjectStudent extends Element
     {
 
         $this->tblDivisionSubject = ( null === $tblDivisionSubject ? null : $tblDivisionSubject->getId() );
+    }
+
+    /**
+     * @return bool|TblSubjectGroup
+     */
+    public function getTblSubjectGroup()
+    {
+
+        if (null === $this->tblSubjectGroup) {
+            return false;
+        } else {
+            return Division::useService()->getSubjectGroupById($this->tblSubjectGroup);
+        }
+    }
+
+    /**
+     * @param null|TblSubjectGroup $tblSubjectGroup
+     */
+    public function setTblSubjectGroup(TblSubjectGroup $tblSubjectGroup = null)
+    {
+
+        $this->tblSubjectGroup = ( null === $tblSubjectGroup ? null : $tblSubjectGroup->getId() );
     }
 
     /**

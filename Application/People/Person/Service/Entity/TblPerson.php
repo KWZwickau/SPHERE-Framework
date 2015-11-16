@@ -39,6 +39,10 @@ class TblPerson extends Element
      * @Column(type="string")
      */
     protected $LastName;
+    /**
+     * @Column(type="string")
+     */
+    protected $BirthName;
 
     /**
      * @return string
@@ -158,5 +162,23 @@ class TblPerson extends Element
     {
 
         $this->LastName = $LastName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBirthName()
+    {
+
+        return $this->BirthName;
+    }
+
+    /**
+     * @param string $BirthName
+     */
+    public function setBirthName($BirthName)
+    {
+
+        $this->BirthName = $BirthName;
     }
 }

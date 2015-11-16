@@ -5,8 +5,11 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Clock;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Time;
+use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -97,8 +100,8 @@ class Term implements IModuleInterface
 
         $Stage = new Stage('Dashboard', 'Schuljahr');
 
-        $Stage->addButton(new Standard('Schuljahr', __NAMESPACE__.'\Create\Year'));
-        $Stage->addButton(new Standard('Zeitraum', __NAMESPACE__.'\Create\Period'));
+        $Stage->addButton(new Standard('Schuljahr', __NAMESPACE__.'\Create\Year', new Calendar(), null, 'erstellen / bearbeiten'));
+        $Stage->addButton(new Standard('Zeitraum', __NAMESPACE__.'\Create\Period', new Time(), null, 'erstellen / bearbeiten'));
 
         $tblYearAll = Term::useService()->getYearAll();
         $Year = array();
@@ -151,7 +154,8 @@ class Term implements IModuleInterface
             new Layout(
                 new LayoutGroup(
                     new LayoutRow(
-                        new LayoutColumn(
+                        new LayoutColumn(array(
+                            new Headline('Im System vorhandene Schuljahre'),
                             new TableData(
                                 $Year, null, array(
                                     'Schuljahr' => 'Schuljahr',
@@ -159,7 +163,7 @@ class Term implements IModuleInterface
 //                                    'Optionen'  => 'Zuordnung'
                                 )
                             )
-                        )
+                        ))
                     )
                 )
             )
