@@ -6,6 +6,9 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStude
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStudent;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeacher;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
@@ -57,7 +60,7 @@ class Data extends AbstractData
     /**
      * @param TblYear  $tblYear
      * @param TblLevel $tblLevel
-     * @param          $Name
+     * @param string   $Name
      * @param string   $Description
      *
      * @return null|object|TblDivision
@@ -85,6 +88,31 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Name
+     * @param $Description
+     *
+     * @return TblSubjectGroup
+     */
+    public function createSubjectGroup($Name, $Description)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblSubjectGroup')->findOneBy(array(
+            TblSubjectGroup::ATTR_NAME        => $Name,
+            TblSubjectGroup::ATTR_DESCRIPTION => $Description,
+        ));
+        if (null === $Entity) {
+            $Entity = new TblSubjectGroup();
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+            return $Entity;
+        }
+        return $Entity;
+    }
+
+    /**
      * @param int $Id
      *
      * @return bool|TblLevel
@@ -104,6 +132,28 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision', $Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|Element
+     */
+    public function getSubjectGroupById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectGroup', $Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|Element
+     */
+    public function getDivisionSubjectById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionSubject', $Id);
     }
 
     /**
@@ -134,6 +184,22 @@ class Data extends AbstractData
             TblDivision::ATTR_NAME  => $Name,
             TblDivision::ATTR_LEVEL => $tblLevel->getId(),
             TblDivision::ATTR_YEAR  => $tblYear->getId(),
+        ));
+        return ( $Entity ? $Entity : false );
+    }
+
+    /**
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return bool|TblLevel
+     */
+    public function checkSubjectExists($Name, $Description = '')
+    {
+
+        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel', array(
+            TblSubjectGroup::ATTR_NAME        => $Name,
+            TblSubjectGroup::ATTR_DESCRIPTION => $Description
         ));
         return ( $Entity ? $Entity : false );
     }
@@ -170,6 +236,15 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision');
+    }
+
+    /**
+     * @return false|TblSubjectGroup[]
+     */
+    public function getSubjectGroupAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectGroup');
     }
 
     /**
@@ -315,6 +390,64 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblPerson          $tblPerson
+     * @param TblDivisionSubject $tblDivisionSubject
+     * @param TblSubjectGroup    $tblSubjectGroup
+     *
+     * @return null|object|TblSubjectStudent
+     */
+    public function addSubjectStudent(TblPerson $tblPerson, TblDivisionSubject $tblDivisionSubject, TblSubjectGroup $tblSubjectGroup = null)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblSubjectStudent')
+            ->findOneBy(array(
+                TblSubjectStudent::ATTR_SERVICE_TBL_PERSON   => $tblPerson->getId(),
+                TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
+            ));
+        if (null === $Entity) {
+            $Entity = new TblSubjectStudent();
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setTblDivisionSubject($tblDivisionSubject);
+            if ($tblSubjectGroup) {
+                $Entity->setTblSubjectGroup($tblSubjectGroup);
+            }
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblPerson          $tblPerson
+     * @param TblDivisionSubject $tblDivisionSubject
+     * @param TblSubjectGroup    $tblSubjectGroup
+     *
+     * @return null|object|TblSubjectTeacher
+     */
+    public function addSubjectTeacher(TblPerson $tblPerson, TblDivisionSubject $tblDivisionSubject, TblSubjectGroup $tblSubjectGroup = null)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblSubjectTeacher')
+            ->findOneBy(array(
+                TblSubjectTeacher::ATTR_SERVICE_TBL_PERSON   => $tblPerson->getId(),
+                TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
+            ));
+        if (null === $Entity) {
+            $Entity = new TblSubjectTeacher();
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setTblDivisionSubject($tblDivisionSubject);
+            if ($tblSubjectGroup) {
+                $Entity->setTblSubjectGroup($tblSubjectGroup);
+            }
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
      *
@@ -417,7 +550,7 @@ class Data extends AbstractData
     /***
      * @param TblLevel $tblLevel
      * @param TblType  $tblType
-     * @param          $Name
+     * @param string   $Name
      * @param string   $Description
      *
      * @return bool
@@ -432,6 +565,33 @@ class Data extends AbstractData
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setServiceTblType($tblType);
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSubjectGroup $tblSubjectGroup
+     * @param string          $Name
+     * @param string          $Description
+     *
+     * @return bool
+     */
+    public function updateSubjectGroup(TblSubjectGroup $tblSubjectGroup, $Name, $Description)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblSubjectGroup $Entity */
+        $Entity = $Manager->getEntityById('TblSubjectGroup', $tblSubjectGroup->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
@@ -463,11 +623,36 @@ class Data extends AbstractData
         return false;
     }
 
+    /**
+     * @param TblLevel $tblLevel
+     *
+     * @return bool
+     */
     public function destroyLevel(TblLevel $tblLevel)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblLevel')->findOneBy(array('Id' => $tblLevel->getId()));
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSubjectGroup $tblSubjectGroup
+     *
+     * @return bool
+     */
+    public function destroySubjectGroup(TblSubjectGroup $tblSubjectGroup)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntityById('TblSubjectGroup', $tblSubjectGroup->getId());
         if (null !== $Entity) {
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
