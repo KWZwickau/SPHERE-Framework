@@ -44,7 +44,7 @@ class Division implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Change/Level', __NAMESPACE__.'\Frontend::frontendChangeLevel'
-        )->setParameterDefault('Level', null)
+        )
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Destroy/Level', __NAMESPACE__.'\Frontend::frontendDestroyLevel'
@@ -54,10 +54,16 @@ class Division implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Change/Division', __NAMESPACE__.'\Frontend::frontendChangeDivision'
-        )->setParameterDefault('Division', null)
+        )
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Destroy/Division', __NAMESPACE__.'\Frontend::frontendDestroyDivision'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Create/SubjectGroup', __NAMESPACE__.'\Frontend::frontendCreateSubjectGroup'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Change/SubjectGroup', __NAMESPACE__.'\Frontend::frontendChangeSubjectGroup'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Student/Add', __NAMESPACE__.'\Frontend::frontendStudentAdd'
@@ -100,7 +106,8 @@ class Division implements IModuleInterface
         $Stage = new Stage('Dashboard', 'Klassen');
 
         $Stage->addButton(new Standard('Klassenstufe', __NAMESPACE__.'\Create\Level', null, null, 'erstellen / bearbeiten'));
-        $Stage->addButton(new Standard('Klassengruppe', __NAMESPACE__.'\Create\Division', null, null, 'erstellen / bearbeiten'));
+        $Stage->addButton(new Standard('Klassen', __NAMESPACE__.'\Create\Division', null, null, 'erstellen / bearbeiten'));
+        $Stage->addButton(new Standard('Gruppen', __NAMESPACE__.'\Create\SubjectGroup', null, null, 'erstellen / bearbeiten'));
 
         $tblLevelAll = $this->useService()->getLevelAll();
         $Content = array();

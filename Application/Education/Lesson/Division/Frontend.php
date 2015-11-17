@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Lesson\Division;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -61,6 +62,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Klassenstufen', 'bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
+        $Stage->setMessage('Bezeichnet die Gesamtheit der Klassen, die in demselben Lernabschnitt zugehörig sind.');
 
         $tblLevelAll = Division::useService()->getLevelAll();
         if ($tblLevelAll) {
@@ -174,7 +176,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendChangeLevel($Id, $Level)
+    public function frontendChangeLevel($Id, $Level = null)
     {
 
         $Stage = new Stage('Klassenstufe', 'bearbeiten');
@@ -205,6 +207,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Klassengruppen', 'bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
+        $Stage->setMessage('Ein Jahrgang an einer Schule wird meist in mehreren Parallelklassen geführt. Hier als Klassengruppe bezeichnet.');
 
         $tblDivisionAll = Division::useService()->getDivisionAll();
         if ($tblDivisionAll) {
@@ -325,6 +328,105 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
+    }
+
+    public function frontendCreateSubjectGroup($SubjectGroup = null)
+    {
+
+        $Stage = new Stage('Gruppen', 'für Klassen');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
+        $Stage->setMessage('Dient zum erstellen von Klasseninternen Gruppen z.B.: 2 Gruppen für Informatik.');
+
+        $tblSubjectGroupList = Division::useService()->getSubjectGroupAll();
+        if ($tblSubjectGroupList) {
+            array_walk($tblSubjectGroupList, function (TblSubjectGroup &$tblSubjectGroup) {
+
+                $tblSubjectGroup->Option = new Standard('', '/Education/Lesson/Division/Change/SubjectGroup', new Pencil(),
+                    array('Id' => $tblSubjectGroup->getId()));
+            });
+        }
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($tblSubjectGroupList, null, array(
+                                'Name'        => 'Schulart',
+                                'Description' => 'Beschreibung',
+                                'Option'      => 'Optionen',
+                            ))
+                        )
+                    ), new Title('Bestehende Gruppen')
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            Division::useService()->createSubjectGroup(
+                                $this->formSubjectGroup()
+                                    ->appendFormButton(new Primary('Gruppe hinzufügen'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $SubjectGroup
+                            )
+                        )
+                    ), new Title('Klassenstufe hinzufügen')
+                )
+            ))
+        );
+
+        return $Stage;
+    }
+
+    public function formSubjectGroup(TblSubjectGroup $tblSubjectGroup = null)
+    {
+
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['SubjectGroup'] ) && $tblSubjectGroup) {
+            $Global->POST['SubjectGroup']['Name'] = $tblSubjectGroup->getName();
+            $Global->POST['SubjectGroup']['Description'] = $tblSubjectGroup->getDescription();
+            $Global->savePost();
+        }
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Gruppe', array(
+                                new TextField('SubjectGroup[Name]', 'Info I / Info II', 'Gruppenname',
+                                    new Pencil()),
+                                new TextField('SubjectGroup[Description]', 'zb: für Gruppe 1 / 2', 'Beschreibung',
+                                    new Pencil()))
+                            , Panel::PANEL_TYPE_INFO
+                        ), 6),
+                )),
+            ))
+        );
+    }
+
+    /**
+     * @param      $Id
+     * @param null $SubjectGroup
+     *
+     * @return Stage
+     */
+    public function frontendChangeSubjectGroup($Id, $SubjectGroup = null)
+    {
+
+        $Stage = new Stage('Gruppe', 'bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Create/SubjectGroup', new ChevronLeft()));
+        $tblSubjectGroup = Division::useService()->getSubjectGroupById($Id);
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Id'] ) && $tblSubjectGroup) {
+            $Global->POST['SubjectGroup']['Name'] = $tblSubjectGroup->getName();
+            $Global->POST['SubjectGroup']['Description'] = $tblSubjectGroup->getDescription();
+            $Global->savePost();
+        }
+        $Stage->setContent(Division::useService()
+            ->changeSubjectGroup($this->formSubjectGroup($tblSubjectGroup)
+                ->appendFormButton(new Primary('Änderung speichern'))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                , $SubjectGroup, $Id));
+
+        return $Stage;
     }
 
     /**
@@ -649,7 +751,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendChangeDivision($Id, $Division)
+    public function frontendChangeDivision($Id, $Division = null)
     {
 
         $Stage = new Stage('Klassengruppe', 'bearbeiten');

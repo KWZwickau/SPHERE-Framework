@@ -99,7 +99,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblSubjectGroup')->findOneBy(array(
             TblSubjectGroup::ATTR_NAME        => $Name,
-            TblSubjectGroup::ATTR_DESCRIPTION => $Description,
+            TblSubjectGroup::ATTR_DESCRIPTION => $Description
         ));
         if (null === $Entity) {
             $Entity = new TblSubjectGroup();
@@ -137,7 +137,7 @@ class Data extends AbstractData
     /**
      * @param $Id
      *
-     * @return false|Element
+     * @return false|TblSubjectGroup
      */
     public function getSubjectGroupById($Id)
     {
@@ -216,6 +216,22 @@ class Data extends AbstractData
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel', array(
             TblLevel::ATTR_NAME        => $Name,
             TblLevel::SERVICE_TBL_TYPE => $tblType->getId()
+        ));
+        return ( $Entity ? $Entity : false );
+    }
+
+    /**
+     * @param $Name
+     * @param $Description
+     *
+     * @return bool|TblSubjectGroup
+     */
+    public function checkSubjectGroupExists($Name, $Description)
+    {
+
+        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectGroup', array(
+            TblSubjectGroup::ATTR_NAME        => $Name,
+            TblSubjectGroup::ATTR_DESCRIPTION => $Description
         ));
         return ( $Entity ? $Entity : false );
     }
@@ -547,7 +563,7 @@ class Data extends AbstractData
         return false;
     }
 
-    /***
+    /**
      * @param TblLevel $tblLevel
      * @param TblType  $tblType
      * @param string   $Name
@@ -583,7 +599,7 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function updateSubjectGroup(TblSubjectGroup $tblSubjectGroup, $Name, $Description)
+    public function updateSubjectGroup(TblSubjectGroup $tblSubjectGroup, $Name, $Description = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
