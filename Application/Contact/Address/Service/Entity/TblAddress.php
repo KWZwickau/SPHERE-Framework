@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Common\Frontend\Layout\Repository\Address as LayoutAddress;
+use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -74,7 +75,12 @@ class TblAddress extends Element
     public function getGuiLayout()
     {
 
-        return new LayoutAddress($this);
+        $Cache = (new \SPHERE\System\Cache\Cache(new Memcached()))->getCache();
+        if (false === ( $Return = $Cache->getValue(__METHOD__.$this->getId()) )) {
+            $Return = new LayoutAddress($this);
+            $Cache->setValue(__METHOD__.$this->getId(), $Return);
+        }
+        return $Return;
     }
 
     /**
@@ -83,11 +89,18 @@ class TblAddress extends Element
     public function getGuiString()
     {
 
-        return $this->getStreetName()
-        .' '.$this->getStreetNumber()
-        .', '.$this->getTblCity()->getCode()
-        .' '.$this->getTblCity()->getName()
-        .( $this->getTblState() ? ' ('.$this->getTblState()->getName().')' : '' );
+        $Cache = (new \SPHERE\System\Cache\Cache(new Memcached()))->getCache();
+        if (false === ( $Return = $Cache->getValue(__METHOD__.$this->getId()) )) {
+
+            $Return = $this->getStreetName()
+                .' '.$this->getStreetNumber()
+                .', '.$this->getTblCity()->getCode()
+                .' '.$this->getTblCity()->getName()
+                .( $this->getTblState() ? ' ('.$this->getTblState()->getName().')' : '' );
+
+            $Cache->setValue(__METHOD__.$this->getId(), $Return);
+        }
+        return $Return;
     }
 
     /**
