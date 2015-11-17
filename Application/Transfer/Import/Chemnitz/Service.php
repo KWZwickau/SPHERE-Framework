@@ -840,9 +840,11 @@ class Service
                             }
                             Prospect::useService()->insertMeta(
                                 $tblPerson,
-                                date('Y-m-d', \PHPExcel_Shared_Date::ExcelToPHP(
-                                    trim($Document->getValue($Document->getCell($Location['Anm.Datum'],
-                                        $RunY))))),
+                                (trim($Document->getValue($Document->getCell($Location['Anm.Datum'],
+                                    $RunY))) !== '' ?
+                                    date('Y-m-d', \PHPExcel_Shared_Date::ExcelToPHP(
+                                        trim($Document->getValue($Document->getCell($Location['Anm.Datum'],
+                                            $RunY))))) : ''),
                                 '',
                                 '',
                                 trim($Document->getValue($Document->getCell($Location['Schuljahr'], $RunY))),
