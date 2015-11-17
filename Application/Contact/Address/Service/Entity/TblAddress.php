@@ -4,6 +4,8 @@ namespace SPHERE\Application\Contact\Address\Service\Entity;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\JoinColumn;
+use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Common\Frontend\Layout\Repository\Address as LayoutAddress;
@@ -37,12 +39,56 @@ class TblAddress extends Element
     protected $PostOfficeBox;
     /**
      * @Column(type="bigint")
+     * @ManyToOne(targetEntity="TblCity",fetch="EAGER")
+     * @JoinColumn(name="tblCity",referencedColumnName="Id")
      */
     protected $tblCity;
     /**
      * @Column(type="bigint")
+     * @ManyToOne(targetEntity="TblState",fetch="EAGER")
+     * @JoinColumn(name="tblState",referencedColumnName="Id")
      */
     protected $tblState;
+
+    /**
+     * @return string
+     */
+    public function getPostOfficeBox()
+    {
+
+        return $this->PostOfficeBox;
+    }
+
+    /**
+     * @param string $PostOfficeBox
+     */
+    public function setPostOfficeBox($PostOfficeBox)
+    {
+
+        $this->PostOfficeBox = $PostOfficeBox;
+    }
+
+    /**
+     * @return LayoutAddress
+     */
+    public function getGuiLayout()
+    {
+
+        return new LayoutAddress($this);
+    }
+
+    /**
+     * @return string
+     */
+    public function getGuiString()
+    {
+
+        return $this->getStreetName()
+        .' '.$this->getStreetNumber()
+        .', '.$this->getTblCity()->getCode()
+        .' '.$this->getTblCity()->getName()
+        .( $this->getTblState() ? ' ('.$this->getTblState()->getName().')' : '' );
+    }
 
     /**
      * @return string
@@ -78,24 +124,6 @@ class TblAddress extends Element
     {
 
         $this->StreetNumber = $StreetNumber;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPostOfficeBox()
-    {
-
-        return $this->PostOfficeBox;
-    }
-
-    /**
-     * @param string $PostOfficeBox
-     */
-    public function setPostOfficeBox($PostOfficeBox)
-    {
-
-        $this->PostOfficeBox = $PostOfficeBox;
     }
 
     /**
@@ -140,14 +168,5 @@ class TblAddress extends Element
     {
 
         $this->tblState = ( null === $tblState ? null : $tblState->getId() );
-    }
-
-    /**
-     * @return LayoutAddress
-     */
-    public function getLayout()
-    {
-
-        return new LayoutAddress($this);
     }
 }
