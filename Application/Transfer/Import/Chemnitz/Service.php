@@ -99,7 +99,7 @@ class Service
 //                        'Import Mutter' => null,
                     );
                     for ($RunX = 0; $RunX < $X; $RunX++) {
-                        $Value = $Document->getValue($Document->getCell($RunX, 0));
+                        $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
                         if (array_key_exists($Value, $Location)) {
                             $Location[$Value] = $RunX;
                         }
@@ -430,7 +430,7 @@ class Service
 
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
-                    $Value = $Document->getValue($Document->getCell($RunX, 0));
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
                     if (array_key_exists($Value, $Location)) {
                         $Location[$Value] = $RunX;
                     }
@@ -766,7 +766,7 @@ class Service
                     'Schulart 2' => null,
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
-                    $Value = $Document->getValue($Document->getCell($RunX, 0));
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
                     if (array_key_exists($Value, $Location)) {
                         $Location[$Value] = $RunX;
                     }
