@@ -20,6 +20,10 @@ use SPHERE\System\Database\Fitting\Element;
 class TblSubjectStudent extends Element
 {
 
+    const ATTR_TBL_DIVISION_SUBJECT = 'tblDivisionSubject';
+    const ATTR_TBL_SUBJECT_GROUP = 'tblSubjectGroup';
+    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+
     /**
      * @Column(type="bigint")
      */

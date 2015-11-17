@@ -4,7 +4,9 @@ namespace SPHERE\Application\Education\Lesson\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Data;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Division\Service\Setup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -63,6 +65,26 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblSubjectGroup[]
+     */
+    public function getSubjectGroupAll()
+    {
+
+        return (new Data($this->getBinding()))->getSubjectGroupAll();
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|\SPHERE\System\Database\Fitting\Element
+     */
+    public function getSubjectGroupById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectGroupById($Id);
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param null|array     $Level
      *
@@ -115,8 +137,57 @@ class Service extends AbstractService
     }
 
     /**
+     * @param IFormInterface $Form
+     * @param null|array     $SubjectGroup
+     *
+     * @return IFormInterface|string
+     */
+    public function createSubjectGroup(IFormInterface $Form, $SubjectGroup)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $SubjectGroup) {
+            return $Form;
+        }
+        $Error = false;
+
+        if (isset( $SubjectGroup['Name'] ) && empty( $SubjectGroup['Name'] )) {
+            $Form->setError('SubjectGroup[Name]', 'Bitte geben Sie einen Namen an');
+            $Error = true;
+        } else {
+            if ($this->checkSubjectExists($SubjectGroup['Name'], $SubjectGroup['Description'])) {
+                $Form->setError('SubjectGroup[Name]', 'Gruppe schon vorhanden');
+                $Form->setError('SubjectGroup[Description]', 'Beschreibung oder Gruppenname ändern');
+                $Error = true;
+            }
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->createSubjectGroup($SubjectGroup['Name'], $SubjectGroup['Description']);
+            return new Success('Die Gruppe wurde erfolgreich hinzugefügt')
+            .new Redirect($this->getRequest()->getUrl(), 1);
+        }
+
+        return $Form;
+    }
+
+    /**
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return bool|TblLevel
+     */
+    public function checkSubjectExists($Name, $Description = '')
+    {
+
+        return (new Data($this->getBinding()))->checkSubjectExists($Name, $Description);
+    }
+
+    /**
      * @param TblType $tblType
-     * @param         $Name
+     * @param string  $Name
      * @param string  $Description
      *
      * @return bool|TblLevel
@@ -129,7 +200,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param                $Division
+     * @param null|array     $Division
      *
      * @return IFormInterface|string
      */
@@ -217,7 +288,7 @@ class Service extends AbstractService
     /**
      * @param TblYear  $tblYear
      * @param TblLevel $tblLevel
-     * @param          $Name
+     * @param string   $Name
      * @param string   $Description
      *
      * @return null|TblDivision
@@ -227,10 +298,11 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->createDivision($tblYear, $tblLevel, $Name, $Description);
     }
+
     /**
      * @param IFormInterface $Form
      * @param TblDivision    $tblDivision
-     * @param                $Student
+     * @param null|array     $Student
      *
      * @return IFormInterface|string
      */
@@ -265,6 +337,7 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -286,6 +359,7 @@ class Service extends AbstractService
             .new Redirect('/Education/Lesson/Division/Show', null, array('Id' => $tblDivision->getId()));
         }
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -307,10 +381,26 @@ class Service extends AbstractService
             .new Redirect('/Education/Lesson/Division/Show', null, array('Id' => $tblDivision->getId()));
         }
     }
+
+    public function removeSubjectToDivision(TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+        $Error = false;
+        if (!(new Data($this->getBinding()))->removeSubjectToDivision($tblDivision, $tblSubject)) {
+            $Error = true;
+        }
+        if (!$Error) {
+            return new Success('Die Klasse wurde erfolgreich aus der Klasse entfernt')
+            .new Redirect('/Education/Lesson/Division/Show', 3, array('Id' => $tblDivision->getId()));
+        } else {
+            return new Danger('Die Klasse konnte nicht entfernt werden')
+            .new Redirect('/Education/Lesson/Division/Show', null, array('Id' => $tblDivision->getId()));
+        }
+    }
+
     /**
      * @param IFormInterface $Form
      * @param TblDivision    $tblDivision
-     * @param                $Teacher
+     * @param null|array     $Teacher
      *
      * @return IFormInterface|string
      */
@@ -345,10 +435,11 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param IFormInterface $Form
      * @param TblDivision    $tblDivision
-     * @param                $Subject
+     * @param null|array     $Subject
      *
      * @return IFormInterface|string
      */
@@ -383,6 +474,7 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -394,10 +486,11 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->addDivisionStudent($tblDivision, $tblPerson);
     }
+
     /**
      * @param IFormInterface $Form
-     * @param                $Division
-     * @param                $Id
+     * @param null|array     $Division
+     * @param int            $Id
      *
      * @return IFormInterface|string
      */
@@ -447,6 +540,7 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param int $Id
      *
@@ -457,10 +551,22 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionById($Id);
     }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblDivisionSubject
+     */
+    public function getDivisionSubjectById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionSubjectById($Id);
+    }
+
     /**
      * @param IFormInterface $Form
-     * @param                $Level
-     * @param                $Id
+     * @param null|array     $Level
+     * @param int            $Id
      *
      * @return IFormInterface|string
      */
@@ -509,6 +615,7 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -549,6 +656,7 @@ class Service extends AbstractService
         return new Danger('Die Klassengruppe konnte nicht gelöscht werden, da Personen zugeordnet sind')
         .new Redirect('/Education/Lesson/Division/Create/Division');
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -559,6 +667,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getStudentAllByDivision($tblDivision);
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -569,6 +678,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getTeacherAllByDivision($tblDivision);
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -579,6 +689,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getSubjectAllByDivision($tblDivision);
     }
+
     /**
      * @param TblLevel $tblLevel
      *
@@ -607,6 +718,7 @@ class Service extends AbstractService
         return new Danger('Die Klassenstufe enthält Klassengruppen!')
         .new Redirect('/Education/Lesson/Division/Create/Level');
     }
+
     /**
      * @param TblLevel $tblLevel
      *
