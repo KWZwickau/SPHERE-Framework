@@ -117,182 +117,189 @@ class Service
 
                         for ($RunY = 1; $RunY < $Y; $RunY++) {
                             // Student
-                            $tblPerson = $this->usePeoplePerson()->createPersonFromImport(
-                                \SPHERE\Application\People\Person\Person::useService()->getSalutationById(3),
-                                //Schüler
-                                '',
-                                trim($Document->getValue($Document->getCell($Location['Schüler'], $RunY))),
-                                '',
-                                trim($Document->getValue($Document->getCell($Location['Name'], $RunY))),
-                                array(
-                                    0 => Group::useService()->getGroupById(1),    //Personendaten
-                                    1 => Group::useService()->getGroupById(3)            //Schüler
-                                )
-                            );
-
-                            if ($tblPerson !== false) {
-                                $countStudent++;
-
-                                $LastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
-                                $City = trim($Document->getValue($Document->getCell($Location['PLZ Ort'], $RunY)));
-                                $CityCode = substr($City, 0, 5);
-                                $CityName = substr($City, 6);
-
-                                $this->usePeopleMetaCommon()->createMetaFromImport(
-                                    $tblPerson,
-                                    date('Y-m-d', \PHPExcel_Shared_Date::ExcelToPHP(
-                                        trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
-                                            $RunY))))),
-                                    trim($Document->getValue($Document->getCell($Location['Geburtsort'], $RunY))),
-                                    trim($Document->getValue($Document->getCell($Location['Konfession'], $RunY)))
+                            if (trim($Document->getValue($Document->getCell($Location['Schüler'], $RunY))) !== '') {
+                                $tblPerson = $this->usePeoplePerson()->createPersonFromImport(
+                                    \SPHERE\Application\People\Person\Person::useService()->getSalutationById(3),
+                                    //Schüler
+                                    '',
+                                    trim($Document->getValue($Document->getCell($Location['Schüler'], $RunY))),
+                                    '',
+                                    trim($Document->getValue($Document->getCell($Location['Name'], $RunY))),
+                                    array(
+                                        0 => Group::useService()->getGroupById(1),    //Personendaten
+                                        1 => Group::useService()->getGroupById(3)            //Schüler
+                                    )
                                 );
 
-                                // add student to division
-                                Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
+                                if ($tblPerson !== false) {
+                                    $countStudent++;
 
-                                // Father
-                                $tblPersonFather = null;
-                                $FatherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname V.'],
-                                    $RunY)));
-                                if ($FatherFirstName !== '') {
-                                    $tblPersonFatherExists = $this->usePeoplePerson()->getPersonExists(
-                                        $FatherFirstName,
-                                        $LastName,
-                                        $CityCode
+                                    $LastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                                    $City = trim($Document->getValue($Document->getCell($Location['PLZ Ort'], $RunY)));
+                                    $CityCode = substr($City, 0, 5);
+                                    $CityName = substr($City, 6);
+
+                                    $this->usePeopleMetaCommon()->createMetaFromImport(
+                                        $tblPerson,
+                                        date('Y-m-d', \PHPExcel_Shared_Date::ExcelToPHP(
+                                            trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
+                                                $RunY))))),
+                                        trim($Document->getValue($Document->getCell($Location['Geburtsort'], $RunY))),
+                                        trim($Document->getValue($Document->getCell($Location['Konfession'], $RunY)))
                                     );
-                                    if (!$tblPersonFatherExists) {
-                                        $tblPersonFather = $this->usePeoplePerson()->createPersonFromImport(
-                                            \SPHERE\Application\People\Person\Person::useService()->getSalutationById(1),
-                                            '',
+
+                                    // add student to division
+                                    Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
+
+                                    // Father
+                                    $tblPersonFather = null;
+                                    $FatherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname V.'],
+                                        $RunY)));
+                                    if ($FatherFirstName !== '') {
+                                        $tblPersonFatherExists = $this->usePeoplePerson()->getPersonExists(
                                             $FatherFirstName,
-                                            '',
                                             $LastName,
-                                            array(
-                                                0 => Group::useService()->getGroupById(1),        //Personendaten
-                                                1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
-                                            )
+                                            $CityCode
                                         );
+                                        if (!$tblPersonFatherExists) {
+                                            $tblPersonFather = $this->usePeoplePerson()->createPersonFromImport(
+                                                \SPHERE\Application\People\Person\Person::useService()->getSalutationById(1),
+                                                '',
+                                                $FatherFirstName,
+                                                '',
+                                                $LastName,
+                                                array(
+                                                    0 => Group::useService()->getGroupById(1),
+                                                    //Personendaten
+                                                    1 => Group::useService()->getGroupById(4)
+                                                    //Sorgeberechtigt
+                                                )
+                                            );
 
-                                        if (strpos($FatherFirstName, ' ') !== false) {
-                                            \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
+                                            if (strpos($FatherFirstName, ' ') !== false) {
+                                                \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
+                                                    $tblPersonFather,
+                                                    '',
+                                                    '',
+                                                    0,
+                                                    '',
+                                                    '',
+                                                    0,
+                                                    '',
+                                                    'Import Nachbearbeiten'
+                                                );
+                                            }
+
+                                            $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
                                                 $tblPersonFather,
-                                                '',
-                                                '',
-                                                0,
-                                                '',
-                                                '',
-                                                0,
-                                                '',
-                                                'Import Nachbearbeiten'
+                                                $tblPerson,
+                                                \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
                                             );
+
+                                            $countFather++;
+                                        } else {
+
+                                            $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
+                                                $tblPersonFatherExists,
+                                                $tblPerson,
+                                                \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
+                                            );
+
+                                            $countFatherExists++;
                                         }
-
-                                        $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
-                                            $tblPersonFather,
-                                            $tblPerson,
-                                            \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
-                                        );
-
-                                        $countFather++;
-                                    } else {
-
-                                        $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
-                                            $tblPersonFatherExists,
-                                            $tblPerson,
-                                            \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
-                                        );
-
-                                        $countFatherExists++;
                                     }
-                                }
 
-                                // Mother
-                                $tblPersonMother = null;
-                                $MotherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname M.'],
-                                    $RunY)));
-                                if ($MotherFirstName !== '') {
+                                    // Mother
+                                    $tblPersonMother = null;
+                                    $MotherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname M.'],
+                                        $RunY)));
+                                    if ($MotherFirstName !== '') {
 
-                                    $tblPersonMotherExists = $this->usePeoplePerson()->getPersonExists(
-                                        $MotherFirstName,
-                                        $LastName,
-                                        $CityCode
-                                    );
-                                    if (!$tblPersonMotherExists) {
-                                        $tblPersonMother = $this->usePeoplePerson()->createPersonFromImport(
-                                            \SPHERE\Application\People\Person\Person::useService()->getSalutationById(2),
-                                            '',
+                                        $tblPersonMotherExists = $this->usePeoplePerson()->getPersonExists(
                                             $MotherFirstName,
-                                            '',
                                             $LastName,
-                                            array(
-                                                0 => Group::useService()->getGroupById(1),        //Personendaten
-                                                1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
-                                            )
+                                            $CityCode
                                         );
+                                        if (!$tblPersonMotherExists) {
+                                            $tblPersonMother = $this->usePeoplePerson()->createPersonFromImport(
+                                                \SPHERE\Application\People\Person\Person::useService()->getSalutationById(2),
+                                                '',
+                                                $MotherFirstName,
+                                                '',
+                                                $LastName,
+                                                array(
+                                                    0 => Group::useService()->getGroupById(1),
+                                                    //Personendaten
+                                                    1 => Group::useService()->getGroupById(4)
+                                                    //Sorgeberechtigt
+                                                )
+                                            );
 
-                                        if (strpos($MotherFirstName, ' ') !== false) {
-                                            \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
+                                            if (strpos($MotherFirstName, ' ') !== false) {
+                                                \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
+                                                    $tblPersonMother,
+                                                    '',
+                                                    '',
+                                                    0,
+                                                    '',
+                                                    '',
+                                                    0,
+                                                    '',
+                                                    'Import Nachbearbeiten'
+                                                );
+                                            }
+
+                                            $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
                                                 $tblPersonMother,
-                                                '',
-                                                '',
-                                                0,
-                                                '',
-                                                '',
-                                                0,
-                                                '',
-                                                'Import Nachbearbeiten'
+                                                $tblPerson,
+                                                \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
+                                            );
+
+                                            $countMother++;
+                                        } else {
+                                            $countMotherExists++;
+
+                                            $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
+                                                $tblPersonMotherExists,
+                                                $tblPerson,
+                                                \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
                                             );
                                         }
+                                    }
 
-                                        $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
-                                            $tblPersonMother,
-                                            $tblPerson,
-                                            \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
-                                        );
-
-                                        $countMother++;
-                                    } else {
-                                        $countMotherExists++;
-
-                                        $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
-                                            $tblPersonMotherExists,
-                                            $tblPerson,
-                                            \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
+                                    // Addresses
+                                    $StreetName = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                        $RunY)));
+                                    $StreetNumber = trim($Document->getValue($Document->getCell($Location['Hausnr.'],
+                                        $RunY)));
+                                    $this->useContactAddress()->createAddressToPersonFromImport(
+                                        $tblPerson,
+                                        $StreetName,
+                                        $StreetNumber,
+                                        $CityCode,
+                                        $CityName,
+                                        ''
+                                    );
+                                    if ($tblPersonFather !== null) {
+                                        $this->useContactAddress()->createAddressToPersonFromImport(
+                                            $tblPersonFather,
+                                            $StreetName,
+                                            $StreetNumber,
+                                            $CityCode,
+                                            $CityName,
+                                            ''
                                         );
                                     }
-                                }
-
-                                // Addresses
-                                $StreetName = trim($Document->getValue($Document->getCell($Location['Straße'], $RunY)));
-                                $StreetNumber = trim($Document->getValue($Document->getCell($Location['Hausnr.'],
-                                    $RunY)));
-                                $this->useContactAddress()->createAddressToPersonFromImport(
-                                    $tblPerson,
-                                    $StreetName,
-                                    $StreetNumber,
-                                    $CityCode,
-                                    $CityName,
-                                    ''
-                                );
-                                if ($tblPersonFather !== null) {
-                                    $this->useContactAddress()->createAddressToPersonFromImport(
-                                        $tblPersonFather,
-                                        $StreetName,
-                                        $StreetNumber,
-                                        $CityCode,
-                                        $CityName,
-                                        ''
-                                    );
-                                }
-                                if ($tblPersonMother !== null) {
-                                    $this->useContactAddress()->createAddressToPersonFromImport(
-                                        $tblPersonMother,
-                                        $StreetName,
-                                        $StreetNumber,
-                                        $CityCode,
-                                        $CityName,
-                                        ''
-                                    );
+                                    if ($tblPersonMother !== null) {
+                                        $this->useContactAddress()->createAddressToPersonFromImport(
+                                            $tblPersonMother,
+                                            $StreetName,
+                                            $StreetNumber,
+                                            $CityCode,
+                                            $CityName,
+                                            ''
+                                        );
+                                    }
                                 }
                             }
                         }
@@ -447,37 +454,39 @@ class Service
 
                     // create groups
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
-                        if (trim($Document->getValue($Document->getCell($Location['Freunde'], $RunY))) == 'Wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Freunde'], $RunY)))) == 'wahr') {
                             Group::useService()->createGroupFromImport('Freunde');
                         }
-                        if (trim($Document->getValue($Document->getCell($Location['Post'], $RunY))) == 'Wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Post'], $RunY)))) == 'wahr') {
                             Group::useService()->createGroupFromImport('Post');
                         }
-                        if (trim($Document->getValue($Document->getCell($Location['Gebet'], $RunY))) == 'Wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Gebet'], $RunY)))) == 'wahr') {
                             Group::useService()->createGroupFromImport('Gebet');
                         }
-                        if (trim($Document->getValue($Document->getCell($Location['Partner'], $RunY))) == 'Wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Partner'], $RunY)))) == 'wahr') {
                             Group::useService()->createGroupFromImport('Partner');
                         }
-                        if (trim($Document->getValue($Document->getCell($Location['Verein'], $RunY))) == 'Wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Verein'], $RunY)))) == 'wahr') {
                             Group::useService()->createGroupFromImport('Verein');
                         }
-                        if (trim($Document->getValue($Document->getCell($Location['Offizielle'], $RunY))) == 'Wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Offizielle'], $RunY)))) == 'wahr') {
                             Group::useService()->createGroupFromImport('Offizielle');
                         }
-                        if (trim($Document->getValue($Document->getCell($Location['Ehemalige'], $RunY))) == 'Wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Ehemalige'], $RunY)))) == 'wahr') {
                             Group::useService()->createGroupFromImport('Ehemalige');
                         }
-                        if (trim($Document->getValue($Document->getCell($Location['Sonstiges'], $RunY))) == 'Wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Sonstiges'], $RunY)))) == 'wahr') {
                             Group::useService()->createGroupFromImport('Sonstiges');
                         }
-                        if (trim($Document->getValue($Document->getCell($Location['Sonstiges2'], $RunY))) == 'Wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Sonstiges2'], $RunY)))) == 'wahr') {
                             Group::useService()->createGroupFromImport('Sonstiges2');
                         }
                     }
 
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
-                        if (trim($Document->getValue($Document->getCell($Location['Firma'], $RunY))) == 'Falsch') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Firma'],
+                                $RunY)))) == 'falsch'
+                        ) {
 
                             $FirstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
                             $LastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
@@ -552,71 +561,55 @@ class Service
                                 }
 
                                 // add group
-                                if (trim($Document->getValue($Document->getCell($Location['Freunde'],
-                                        $RunY))) == 'Wahr'
-                                ) {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Freunde'], $RunY)))) == 'wahr') {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Freunde'),
                                         $tblPerson
                                     );
                                 }
-                                if (trim($Document->getValue($Document->getCell($Location['Post'], $RunY))) == 'Wahr') {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Post'], $RunY)))) == 'wahr') {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Post'),
                                         $tblPerson
                                     );
                                 }
-                                if (trim($Document->getValue($Document->getCell($Location['Gebet'],
-                                        $RunY))) == 'Wahr'
-                                ) {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Gebet'], $RunY)))) == 'wahr') {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Gebet'),
                                         $tblPerson
                                     );
                                 }
-                                if (trim($Document->getValue($Document->getCell($Location['Partner'],
-                                        $RunY))) == 'Wahr'
-                                ) {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Partner'], $RunY)))) == 'wahr') {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Partner'),
                                         $tblPerson
                                     );
                                 }
-                                if (trim($Document->getValue($Document->getCell($Location['Verein'],
-                                        $RunY))) == 'Wahr'
-                                ) {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Verein'], $RunY)))) == 'wahr') {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Verein'),
                                         $tblPerson
                                     );
                                 }
-                                if (trim($Document->getValue($Document->getCell($Location['Offizielle'],
-                                        $RunY))) == 'Wahr'
-                                ) {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Offizielle'], $RunY)))) == 'wahr') {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Offizielle'),
                                         $tblPerson
                                     );
                                 }
-                                if (trim($Document->getValue($Document->getCell($Location['Ehemalige'],
-                                        $RunY))) == 'Wahr'
-                                ) {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Ehemalige'], $RunY)))) == 'wahr') {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Ehemalige'),
                                         $tblPerson
                                     );
                                 }
-                                if (trim($Document->getValue($Document->getCell($Location['Sonstiges'],
-                                        $RunY))) == 'Wahr'
-                                ) {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Sonstiges'], $RunY)))) == 'wahr') {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Sonstiges'),
                                         $tblPerson
                                     );
                                 }
-                                if (trim($Document->getValue($Document->getCell($Location['Sonstiges2'],
-                                        $RunY))) == 'Wahr'
-                                ) {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Sonstiges2'], $RunY)))) == 'wahr') {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Sonstiges2'),
                                         $tblPerson
@@ -784,218 +777,220 @@ class Service
 
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
                         // InterestedPerson
-                        $tblPerson = $this->usePeoplePerson()->createPersonFromImport(
-                            \SPHERE\Application\People\Person\Person::useService()->getSalutationById(3),
-                            //Schüler
-                            '',
-                            trim($Document->getValue($Document->getCell($Location['Schüler'], $RunY))),
-                            '',
-                            trim($Document->getValue($Document->getCell($Location['Name'], $RunY))),
-                            array(
-                                0 => Group::useService()->getGroupById(1),    // Personendaten
-                                1 => Group::useService()->getGroupById(2)     // Intessentendaten
-                            )
-                        );
-
-                        if ($tblPerson !== false) {
-                            $countInterestedPerson++;
-
-                            $LastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
-                            $City = trim($Document->getValue($Document->getCell($Location['PLZ Ort'], $RunY)));
-                            $CityCode = substr($City, 0, 5);
-                            $CityName = substr($City, 6);
-
-                            $this->usePeopleMetaCommon()->createMetaFromImport(
-                                $tblPerson,
-                                date('Y-m-d', \PHPExcel_Shared_Date::ExcelToPHP(
-                                    trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
-                                        $RunY))))),
-                                trim($Document->getValue($Document->getCell($Location['Geburtsort'], $RunY))),
-                                trim($Document->getValue($Document->getCell($Location['Konfession'], $RunY)))
+                        if (trim($Document->getValue($Document->getCell($Location['Schüler'], $RunY))) !== '') {
+                            $tblPerson = $this->usePeoplePerson()->createPersonFromImport(
+                                \SPHERE\Application\People\Person\Person::useService()->getSalutationById(3),
+                                //Schüler
+                                '',
+                                trim($Document->getValue($Document->getCell($Location['Schüler'], $RunY))),
+                                '',
+                                trim($Document->getValue($Document->getCell($Location['Name'], $RunY))),
+                                array(
+                                    0 => Group::useService()->getGroupById(1),    // Personendaten
+                                    1 => Group::useService()->getGroupById(2)     // Intessentendaten
+                                )
                             );
 
-                            $tblOptionTypeA = null;
-                            if (($OptionTypeA = trim($Document->getValue($Document->getCell($Location['Schulart 1'],
-                                    $RunY)))) !== ''
-                            ) {
-                                if ($OptionTypeA == 'Oberschule') {
-                                    $tblOptionTypeA = Type::useService()->getTypeById(8);
-                                } elseif ($OptionTypeA == 'Gymnasium') {
-                                    $tblOptionTypeA = Type::useService()->getTypeById(7);
-                                } elseif ($OptionTypeA == 'Grundschule') {
-                                    $tblOptionTypeA = Type::useService()->getTypeById(6);
-                                }
-                            }
-                            $tblOptionTypeB = null;
-                            if (($OptionTypeB = trim($Document->getValue($Document->getCell($Location['Schulart 2'],
-                                    $RunY)))) !== ''
-                            ) {
-                                if ($OptionTypeB == 'Oberschule') {
-                                    $tblOptionTypeB = Type::useService()->getTypeById(8);
-                                } elseif ($OptionTypeB == 'Gymnasium') {
-                                    $tblOptionTypeB = Type::useService()->getTypeById(7);
-                                } elseif ($OptionTypeB == 'Grundschule') {
-                                    $tblOptionTypeB = Type::useService()->getTypeById(6);
-                                }
-                            }
-                            Prospect::useService()->insertMeta(
-                                $tblPerson,
-                                (trim($Document->getValue($Document->getCell($Location['Anm.Datum'],
-                                    $RunY))) !== '' ?
+                            if ($tblPerson !== false) {
+                                $countInterestedPerson++;
+
+                                $LastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                                $City = trim($Document->getValue($Document->getCell($Location['PLZ Ort'], $RunY)));
+                                $CityCode = substr($City, 0, 5);
+                                $CityName = substr($City, 6);
+
+                                $this->usePeopleMetaCommon()->createMetaFromImport(
+                                    $tblPerson,
                                     date('Y-m-d', \PHPExcel_Shared_Date::ExcelToPHP(
-                                        trim($Document->getValue($Document->getCell($Location['Anm.Datum'],
-                                            $RunY))))) : ''),
-                                '',
-                                '',
-                                trim($Document->getValue($Document->getCell($Location['Schuljahr'], $RunY))),
-                                trim($Document->getValue($Document->getCell($Location['Klasse'], $RunY))),
-                                $tblOptionTypeA,
-                                $tblOptionTypeB,
-                                ''
-                            );
-
-                            // Father
-                            $tblPersonFather = null;
-                            $FatherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname V.'],
-                                $RunY)));
-                            if ($FatherFirstName !== '') {
-                                $tblPersonFatherExists = $this->usePeoplePerson()->getPersonExists(
-                                    $FatherFirstName,
-                                    $LastName,
-                                    $CityCode
+                                        trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
+                                            $RunY))))),
+                                    trim($Document->getValue($Document->getCell($Location['Geburtsort'], $RunY))),
+                                    trim($Document->getValue($Document->getCell($Location['Konfession'], $RunY)))
                                 );
-                                if (!$tblPersonFatherExists) {
-                                    $tblPersonFather = $this->usePeoplePerson()->createPersonFromImport(
-                                        \SPHERE\Application\People\Person\Person::useService()->getSalutationById(1),
-                                        '',
+
+                                $tblOptionTypeA = null;
+                                if (($OptionTypeA = trim($Document->getValue($Document->getCell($Location['Schulart 1'],
+                                        $RunY)))) !== ''
+                                ) {
+                                    if ($OptionTypeA == 'Oberschule') {
+                                        $tblOptionTypeA = Type::useService()->getTypeById(8);
+                                    } elseif ($OptionTypeA == 'Gymnasium') {
+                                        $tblOptionTypeA = Type::useService()->getTypeById(7);
+                                    } elseif ($OptionTypeA == 'Grundschule') {
+                                        $tblOptionTypeA = Type::useService()->getTypeById(6);
+                                    }
+                                }
+                                $tblOptionTypeB = null;
+                                if (($OptionTypeB = trim($Document->getValue($Document->getCell($Location['Schulart 2'],
+                                        $RunY)))) !== ''
+                                ) {
+                                    if ($OptionTypeB == 'Oberschule') {
+                                        $tblOptionTypeB = Type::useService()->getTypeById(8);
+                                    } elseif ($OptionTypeB == 'Gymnasium') {
+                                        $tblOptionTypeB = Type::useService()->getTypeById(7);
+                                    } elseif ($OptionTypeB == 'Grundschule') {
+                                        $tblOptionTypeB = Type::useService()->getTypeById(6);
+                                    }
+                                }
+                                Prospect::useService()->insertMeta(
+                                    $tblPerson,
+                                    (trim($Document->getValue($Document->getCell($Location['Anm.Datum'],
+                                        $RunY))) !== '' ?
+                                        date('Y-m-d', \PHPExcel_Shared_Date::ExcelToPHP(
+                                            trim($Document->getValue($Document->getCell($Location['Anm.Datum'],
+                                                $RunY))))) : ''),
+                                    '',
+                                    '',
+                                    trim($Document->getValue($Document->getCell($Location['Schuljahr'], $RunY))),
+                                    trim($Document->getValue($Document->getCell($Location['Klasse'], $RunY))),
+                                    $tblOptionTypeA,
+                                    $tblOptionTypeB,
+                                    ''
+                                );
+
+                                // Father
+                                $tblPersonFather = null;
+                                $FatherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname V.'],
+                                    $RunY)));
+                                if ($FatherFirstName !== '') {
+                                    $tblPersonFatherExists = $this->usePeoplePerson()->getPersonExists(
                                         $FatherFirstName,
-                                        '',
                                         $LastName,
-                                        array(
-                                            0 => Group::useService()->getGroupById(1),        //Personendaten
-                                            1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
-                                        )
+                                        $CityCode
                                     );
+                                    if (!$tblPersonFatherExists) {
+                                        $tblPersonFather = $this->usePeoplePerson()->createPersonFromImport(
+                                            \SPHERE\Application\People\Person\Person::useService()->getSalutationById(1),
+                                            '',
+                                            $FatherFirstName,
+                                            '',
+                                            $LastName,
+                                            array(
+                                                0 => Group::useService()->getGroupById(1),        //Personendaten
+                                                1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
+                                            )
+                                        );
 
-                                    if (strpos($FatherFirstName, ' ') !== false) {
-                                        \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
+                                        if (strpos($FatherFirstName, ' ') !== false) {
+                                            \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
+                                                $tblPersonFather,
+                                                '',
+                                                '',
+                                                0,
+                                                '',
+                                                '',
+                                                0,
+                                                '',
+                                                'Import Nachbearbeiten'
+                                            );
+                                        }
+
+                                        $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
                                             $tblPersonFather,
-                                            '',
-                                            '',
-                                            0,
-                                            '',
-                                            '',
-                                            0,
-                                            '',
-                                            'Import Nachbearbeiten'
+                                            $tblPerson,
+                                            \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
                                         );
+
+                                        $countFather++;
+                                    } else {
+
+                                        $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
+                                            $tblPersonFatherExists,
+                                            $tblPerson,
+                                            \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
+                                        );
+
+                                        $countFatherExists++;
                                     }
-
-                                    $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
-                                        $tblPersonFather,
-                                        $tblPerson,
-                                        \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
-                                    );
-
-                                    $countFather++;
-                                } else {
-
-                                    $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
-                                        $tblPersonFatherExists,
-                                        $tblPerson,
-                                        \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
-                                    );
-
-                                    $countFatherExists++;
                                 }
-                            }
 
-                            // Mother
-                            $tblPersonMother = null;
-                            $MotherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname M.'],
-                                $RunY)));
-                            if ($MotherFirstName !== '') {
-                                $tblPersonMotherExists = $this->usePeoplePerson()->getPersonExists(
-                                    $MotherFirstName,
-                                    $LastName,
-                                    $CityCode
-                                );
-                                if (!$tblPersonMotherExists) {
-                                    $tblPersonMother = $this->usePeoplePerson()->createPersonFromImport(
-                                        \SPHERE\Application\People\Person\Person::useService()->getSalutationById(2),
-                                        '',
+                                // Mother
+                                $tblPersonMother = null;
+                                $MotherFirstName = trim($Document->getValue($Document->getCell($Location['Vorname M.'],
+                                    $RunY)));
+                                if ($MotherFirstName !== '') {
+                                    $tblPersonMotherExists = $this->usePeoplePerson()->getPersonExists(
                                         $MotherFirstName,
-                                        '',
                                         $LastName,
-                                        array(
-                                            0 => Group::useService()->getGroupById(1),        //Personendaten
-                                            1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
-                                        )
+                                        $CityCode
                                     );
+                                    if (!$tblPersonMotherExists) {
+                                        $tblPersonMother = $this->usePeoplePerson()->createPersonFromImport(
+                                            \SPHERE\Application\People\Person\Person::useService()->getSalutationById(2),
+                                            '',
+                                            $MotherFirstName,
+                                            '',
+                                            $LastName,
+                                            array(
+                                                0 => Group::useService()->getGroupById(1),        //Personendaten
+                                                1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
+                                            )
+                                        );
 
-                                    if (strpos($MotherFirstName, ' ') !== false) {
-                                        \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
+                                        if (strpos($MotherFirstName, ' ') !== false) {
+                                            \SPHERE\Application\People\Meta\Common\Common::useService()->insertMeta(
+                                                $tblPersonMother,
+                                                '',
+                                                '',
+                                                0,
+                                                '',
+                                                '',
+                                                0,
+                                                '',
+                                                'Import Nachbearbeiten'
+                                            );
+                                        }
+
+                                        $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
                                             $tblPersonMother,
-                                            '',
-                                            '',
-                                            0,
-                                            '',
-                                            '',
-                                            0,
-                                            '',
-                                            'Import Nachbearbeiten'
+                                            $tblPerson,
+                                            \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
+                                        );
+
+                                        $countMother++;
+                                    } else {
+                                        $countMotherExists++;
+
+                                        $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
+                                            $tblPersonMotherExists,
+                                            $tblPerson,
+                                            \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
                                         );
                                     }
+                                }
 
-                                    $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
-                                        $tblPersonMother,
-                                        $tblPerson,
-                                        \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
-                                    );
-
-                                    $countMother++;
-                                } else {
-                                    $countMotherExists++;
-
-                                    $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
-                                        $tblPersonMotherExists,
-                                        $tblPerson,
-                                        \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
+                                // Addresses
+                                $StreetName = trim($Document->getValue($Document->getCell($Location['Straße'], $RunY)));
+                                $StreetNumber = trim($Document->getValue($Document->getCell($Location['Hausnr.'],
+                                    $RunY)));
+                                $this->useContactAddress()->createAddressToPersonFromImport(
+                                    $tblPerson,
+                                    $StreetName,
+                                    $StreetNumber,
+                                    $CityCode,
+                                    $CityName,
+                                    ''
+                                );
+                                if ($tblPersonFather !== null) {
+                                    $this->useContactAddress()->createAddressToPersonFromImport(
+                                        $tblPersonFather,
+                                        $StreetName,
+                                        $StreetNumber,
+                                        $CityCode,
+                                        $CityName,
+                                        ''
                                     );
                                 }
-                            }
-
-                            // Addresses
-                            $StreetName = trim($Document->getValue($Document->getCell($Location['Straße'], $RunY)));
-                            $StreetNumber = trim($Document->getValue($Document->getCell($Location['Hausnr.'],
-                                $RunY)));
-                            $this->useContactAddress()->createAddressToPersonFromImport(
-                                $tblPerson,
-                                $StreetName,
-                                $StreetNumber,
-                                $CityCode,
-                                $CityName,
-                                ''
-                            );
-                            if ($tblPersonFather !== null) {
-                                $this->useContactAddress()->createAddressToPersonFromImport(
-                                    $tblPersonFather,
-                                    $StreetName,
-                                    $StreetNumber,
-                                    $CityCode,
-                                    $CityName,
-                                    ''
-                                );
-                            }
-                            if ($tblPersonMother !== null) {
-                                $this->useContactAddress()->createAddressToPersonFromImport(
-                                    $tblPersonMother,
-                                    $StreetName,
-                                    $StreetNumber,
-                                    $CityCode,
-                                    $CityName,
-                                    ''
-                                );
+                                if ($tblPersonMother !== null) {
+                                    $this->useContactAddress()->createAddressToPersonFromImport(
+                                        $tblPersonMother,
+                                        $StreetName,
+                                        $StreetNumber,
+                                        $CityCode,
+                                        $CityName,
+                                        ''
+                                    );
+                                }
                             }
                         }
                     }
