@@ -396,7 +396,7 @@ class Data extends AbstractData
      *
      * @return null|object|TblSubjectStudent
      */
-    public function addSubjectStudent(TblPerson $tblPerson, TblDivisionSubject $tblDivisionSubject, TblSubjectGroup $tblSubjectGroup = '')
+    public function addSubjectStudent(TblPerson $tblPerson, TblDivisionSubject $tblDivisionSubject, TblSubjectGroup $tblSubjectGroup = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -425,7 +425,7 @@ class Data extends AbstractData
      *
      * @return null|object|TblSubjectTeacher
      */
-    public function addSubjectTeacher(TblPerson $tblPerson, TblDivisionSubject $tblDivisionSubject, TblSubjectGroup $tblSubjectGroup = '')
+    public function addSubjectTeacher(TblPerson $tblPerson, TblDivisionSubject $tblDivisionSubject, TblSubjectGroup $tblSubjectGroup = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();

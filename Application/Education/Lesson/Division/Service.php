@@ -382,6 +382,21 @@ class Service extends AbstractService
         }
     }
 
+    public function removeSubjectToDivision(TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+        $Error = false;
+        if (!(new Data($this->getBinding()))->removeSubjectToDivision($tblDivision, $tblSubject)) {
+            $Error = true;
+        }
+        if (!$Error) {
+            return new Success('Die Klasse wurde erfolgreich aus der Klasse entfernt')
+            .new Redirect('/Education/Lesson/Division/Show', 3, array('Id' => $tblDivision->getId()));
+        } else {
+            return new Danger('Die Klasse konnte nicht entfernt werden')
+            .new Redirect('/Education/Lesson/Division/Show', null, array('Id' => $tblDivision->getId()));
+        }
+    }
+
     /**
      * @param IFormInterface $Form
      * @param TblDivision    $tblDivision
