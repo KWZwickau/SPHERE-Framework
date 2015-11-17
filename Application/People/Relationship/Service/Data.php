@@ -30,7 +30,7 @@ class Data extends AbstractData
         $this->createType('Geschwisterkind', '', $tblGroupPerson);
         $this->createType('Arzt', '', $tblGroupPerson);
         $this->createType('Ehepartner', '', $tblGroupPerson);
-        $this->createType('Lebensabschnittsgefährte', '', $tblGroupPerson);
+        $this->createType('Lebenspartner', '', $tblGroupPerson);
 
         $this->createType('Geschäftsführer', '', $tblGroupCompany);
     }

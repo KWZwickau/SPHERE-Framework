@@ -159,8 +159,8 @@ class Division implements IModuleInterface
                         new Title('Klassenstufe: '.new Bold($tblLevel->getName()).' '.$tblLevel->getServiceTblType()->getName())
                     ))
                 )));
-
                 $tblDivisionList = $this->useService()->getDivisionByLevel($tblLevel);
+//                Debugger::screenDump($tblDivisionList);
 //                $Height = floor(( ( count($tblDivisionList) + 2 ) / 3 ) + 1);
                 if ($tblDivisionList) {
                     foreach ($tblDivisionList as $key => $row) {
@@ -182,8 +182,7 @@ class Division implements IModuleInterface
                             $SubjectList = null;
                         }
 
-
-                        Main::getDispatcher()->registerWidget($tblLevel->getName(),
+                        Main::getDispatcher()->registerWidget($tblLevel->getId(),
                             new Panel(new Standard('', '/Education/Lesson/Division/Show', new EyeOpen(),
                                     array('Id' => $tblDivision->getId()), 'Klassenansicht').'Gruppe: '.$tblDivision->getName()
                                 , array(
@@ -198,7 +197,7 @@ class Division implements IModuleInterface
                         );
                     }
                     array_push($Content, new LayoutRow(array(
-                        new LayoutColumn(Main::getDispatcher()->fetchDashboard($tblLevel->getName()))
+                        new LayoutColumn(Main::getDispatcher()->fetchDashboard($tblLevel->getId()))
                     )));
 //                    , 2, ( $Height ? $Height : $Height + 2 ));
 //            });
