@@ -706,21 +706,12 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $tblDivisionTeacherList = Division::useService()->getTeacherAllByDivision($tblDivision);
             if ($tblDivisionTeacherList) {
-//                foreach ($tblDivisionTeacherList as &$tblDivisionTeacher) {
-//                    $tblDivisionTeacher->Option = new Standard('', '', new Person(), null, 'Test')
-//                        .new Standard('', '', new Book(), null, 'Test (Fächer)')
-//                        .new Standard('', '/Education/Lesson/Division/Teacher/Remove', new Remove(),
-//                            array('Id'        => $tblDivision->getId(),
-//                                  'TeacherId' => $tblDivisionTeacher->getId()),
-//                            'Lehrer entfernen');
-//                }
                 foreach ($tblDivisionTeacherList as &$tblDivisionTeacher) {
                     $Content = array();
                     $tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblDivisionTeacher);
-                    if($tblPhoneList)
-                    {
-                        foreach($tblPhoneList as $tblPhone)
-                        array_push($Content, $tblPhone->getTblType()->getName().' - '.$tblPhone->getTblPhone()->getNumber());
+                    if ($tblPhoneList) {
+                        foreach ($tblPhoneList as $tblPhone)
+                            array_push($Content, $tblPhone->getTblType()->getName().' - '.$tblPhone->getTblPhone()->getNumber());
                     }
 
                     $tblDivisionTeacher = new LayoutColumn(
@@ -747,25 +738,23 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Stage->setContent(
                 new Layout(array(
-
-//                    /** @var LayoutColumn $tblDivisionTeacherList*/
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData($tblDivisionStudentList,
+                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Schüler in der Klasse '
+                                        .$tblDivision->getTblLevel()->getName().$tblDivision->getName()),
+                                    array('FirstName' => 'Vorname',
+                                          'LastName'  => 'Nachname',
+                                          'Option'    => 'Option')
+                                    , true)
+                            )
+                        )
+                    ),
                     new LayoutGroup(
                         new LayoutRow($tblDivisionTeacherList)
                         , new Title('Klassenlehrer:')
                     ),
-//                    new LayoutGroup(
-//                        new LayoutRow(
-//                            new LayoutColumn(
-//                                new TableData($tblDivisionTeacherList,
-//                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Zuständige Kassenlehrer für die Klasse '
-//                                        .$tblDivision->getTblLevel()->getName().$tblDivision->getName()),
-//                                    array('FirstName' => 'Vorname',
-//                                          'LastName'  => 'Nachname',
-//                                          'Option'    => 'Option')
-//                                    , false)
-//                            )
-//                        )
-//                    ),
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
