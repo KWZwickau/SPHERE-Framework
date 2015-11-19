@@ -3,6 +3,7 @@ namespace SPHERE\Application\People\Search\Group;
 
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
@@ -43,7 +44,7 @@ class Frontend implements IFrontendInterface
         $Stage = new Stage('Suche', 'nach Gruppe');
 
         $tblGroupAll = Group::useService()->getGroupAll();
-        if (!empty($tblGroupAll)) {
+        if (!empty( $tblGroupAll )) {
             /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblGroupAll, function (TblGroup &$tblGroup, $Index, Stage $Stage) {
 
@@ -63,52 +64,53 @@ class Frontend implements IFrontendInterface
 
             $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
 
+            $Result = array();
             if ($tblPersonAll) {
-                array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup) {
+                array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result) {
+
 
                     $tblAddressAll = Address::useService()->getAddressAllByPerson($tblPerson);
                     if ($tblAddressAll) {
                         $tblToPerson = $tblAddressAll[0];
-                        $tblAddressAll =
-                            $tblToPerson->getTblAddress()->getStreetName() . ' '
-                            . $tblToPerson->getTblAddress()->getStreetNumber() . ' '
-                            . $tblToPerson->getTblAddress()->getTblCity()->getCode() . ' '
-                            . $tblToPerson->getTblAddress()->getTblCity()->getName() . ' '
-                            . ($tblToPerson->getTblAddress()->getTblState() ? $tblToPerson->getTblAddress()->getTblState()->getName() : '')
-                            . ($tblToPerson->getRemark()
-                                ? '<br/>' . new Small(new Muted($tblToPerson->getRemark()))
+                        $tblAddressAll = $tblToPerson->getTblAddress()->getGuiString()
+                            .( $tblToPerson->getRemark()
+                                ? '<br/>'.new Small(new Muted($tblToPerson->getRemark()))
                                 : ''
                             );
                     }
 
-                    $tblPerson->FullName = $tblPerson->getFullName();
-                    $tblPerson->Address = ($tblAddressAll
-                        ? $tblAddressAll
-                        : new Warning('Keine Adresse hinterlegt')
-                    );
-                    $tblPerson->Option = new Standard('', '/People/Person', new Pencil(), array(
-                        'Id' => $tblPerson->getId(),
-                        'Group' => $tblGroup->getId()
-                    ), 'Bearbeiten');
+                    array_push($Result, array(
+                        'FullName' => $tblPerson->getFullName(),
+                        'Address'  => ( $tblAddressAll
+                            ? $tblAddressAll
+                            : new Warning('Keine Adresse hinterlegt')
+                        ),
+                        'Option'   => new Standard('', '/People/Person', new Pencil(), array(
+                            'Id'    => $tblPerson->getId(),
+                            'Group' => $tblGroup->getId()
+                        ), 'Bearbeiten'),
+                        'Remark'   => ( ( $Common = Common::useService()->getCommonByPerson($tblPerson) ) ? $Common->getRemark() : '' )
+                    ));
                 });
             }
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(
-                        new Panel(new PersonGroup() . ' Gruppe', array(
+                        new Panel(new PersonGroup().' Gruppe', array(
                             new Bold($tblGroup->getName()),
-                            ($tblGroup->getDescription() ? new Small($tblGroup->getDescription()) : ''),
-                            ($tblGroup->getRemark() ? new Danger(new Italic(nl2br($tblGroup->getRemark()))) : '')
+                            ( $tblGroup->getDescription() ? new Small($tblGroup->getDescription()) : '' ),
+                            ( $tblGroup->getRemark() ? new Danger(new Italic(nl2br($tblGroup->getRemark()))) : '' )
                         ), Panel::PANEL_TYPE_SUCCESS
                         )
                     )),
                     new LayoutRow(new LayoutColumn(array(
                         new Headline('Verfügbare Personen', 'in dieser Gruppe'),
-                        new TableData($tblPersonAll, null,
+                        new TableData($Result, null,
                             array(
                                 'FullName' => 'Name',
                                 'Address' => 'Adresse',
-                                'Option' => 'Optionen',
+                                'Remark'  => 'Bemerkung',
+                                'Option'  => 'Optionen',
                             )
                         )
                     )))

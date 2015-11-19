@@ -27,6 +27,7 @@ class Setup extends AbstractSetup
         $tblDivisionSubject = $this->setTableDivisionSubject($Schema, $tblDivision);
         $this->setTableDivisionStudent($Schema, $tblDivision);
         $this->setTableDivisionTeacher($Schema, $tblDivision);
+        $this->setTableSubjectGroup($Schema);
         $this->setTableSubjectStudent($Schema, $tblDivisionSubject);
         $this->setTableSubjectTeacher($Schema, $tblDivisionSubject);
         /**
@@ -134,6 +135,24 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableSubjectGroup(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblSubjectGroup');
+        if (!$this->getConnection()->hasColumn('tblSubjectGroup', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblSubjectGroup', 'Description')) {
+            $Table->addColumn('Description', 'string');
+        }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
      * @param Table  $tblDivisionSubject
      *
      * @return Table
@@ -144,6 +163,9 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblSubjectStudent');
         if (!$this->getConnection()->hasColumn('tblSubjectStudent', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblSubjectStudent', 'tblSubjectGroup')) {
+            $Table->addColumn('tblSubjectGroup', 'bigint', array('notnull' => false));
         }
         $this->getConnection()->addForeignKey($Table, $tblDivisionSubject);
         return $Table;
@@ -161,6 +183,9 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblSubjectTeacher');
         if (!$this->getConnection()->hasColumn('tblSubjectTeacher', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblSubjectTeacher', 'tblSubjectGroup')) {
+            $Table->addColumn('tblSubjectGroup', 'bigint', array('notnull' => false));
         }
         $this->getConnection()->addForeignKey($Table, $tblDivisionSubject);
         return $Table;

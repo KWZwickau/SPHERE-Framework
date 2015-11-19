@@ -12,7 +12,7 @@ use SPHERE\System\Database\Fitting\Element;
 /**
  * @Entity
  * @Table(name="tblSponsorAssociation")
- * @Cache(usage="NONSTRICT_READ_WRITE")
+ * @Cache(usage="READ_ONLY")
  */
 class TblSponsorAssociation extends Element
 {

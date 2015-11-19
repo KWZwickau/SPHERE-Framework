@@ -9,6 +9,9 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecor
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Service\Integration;
 use SPHERE\Application\People\Meta\Student\Service\Setup;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Window\Redirect;
 
 /**
  * Class Service
@@ -32,6 +35,55 @@ class Service extends Integration
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblPerson      $tblPerson
+     * @param array          $Meta
+     *
+     * @return IFormInterface|Redirect
+     */
+    public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta)
+    {
+
+        $this->getDebugger()->screenDump($tblPerson, $Meta);
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Meta) {
+            return $Form;
+        }
+
+        $tblStudent = $this->getStudentByPerson($tblPerson);
+
+        $this->getDebugger()->screenDump($tblStudent);
+
+        if ($tblStudent) {
+//            (new Data($this->getBinding()))->updateStudentMedicalRecord(
+//                $tblStudent->getTblStudentMedicalRecord(),
+//                $Meta['MedicalRecord']['Disease'],
+//                $Meta['MedicalRecord']['Medication'],
+//                $Meta['MedicalRecord']['tblPersonAttendingDoctor'],
+//                $Meta['MedicalRecord']['InsuranceState'],
+//                $Meta['MedicalRecord']['Insurance']
+//            );
+        } else {
+//            $tblStudentMedicalRecord = (new Data($this->getBinding()))->createStudentMedicalRecord(
+//                $Meta['MedicalRecord']['Disease'],
+//                $Meta['MedicalRecord']['Medication'],
+//                $Meta['MedicalRecord']['tblPersonAttendingDoctor'],
+//                $Meta['MedicalRecord']['InsuranceState'],
+//                $Meta['MedicalRecord']['Insurance']
+//            );
+//            (new Data($this->getBinding()))->createStudent(
+//                $tblPerson
+//            );
+        }
+//        return new Success('Die Daten wurde erfolgreich gespeichert')
+//        .new Redirect('/People/Person', 3, array('Id' => $tblPerson->getId()));
+        return $Form;
     }
 
     /**

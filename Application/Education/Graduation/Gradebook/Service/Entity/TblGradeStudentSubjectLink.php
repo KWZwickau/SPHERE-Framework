@@ -26,7 +26,7 @@ use SPHERE\System\Database\Fitting\Element;
 /**
  * @Entity()
  * @Table(name="tblGradeStudentSubjectLink")
- * @Cache(usage="NONSTRICT_READ_WRITE")
+ * @Cache(usage="READ_ONLY")
  */
 class TblGradeStudentSubjectLink extends Element
 {
