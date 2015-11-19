@@ -332,10 +332,10 @@ class Service extends AbstractService
 
             if (!$Error) {
                 return new Success('Die Schüler wurden der Klasse erfolgreich hinzugefügt')
-                .new Redirect('/Education/Lesson/Division', 1);
+                .new Redirect('/Education/Lesson/Division/Show', 1 ,array('Id' => $tblDivision->getId()));
             } else {
                 return new Danger('Einige Schüler konnte nicht hinzugefügt werden')
-                .new Redirect('/Education/Lesson/Division');
+                .new Redirect('/Education/Lesson/Division/Show', 15 ,array('Id' => $tblDivision->getId()));
             }
         }
         return $Form;
@@ -364,7 +364,7 @@ class Service extends AbstractService
         }
         if (!$Error) {
             return new Success('Der Schüler wurde erfolgreich aus der Klasse entfernt')
-            .new Redirect('/Education/Lesson/Division/Show', 3, array('Id' => $tblDivision->getId()));
+            .new Redirect('/Education/Lesson/Division/Show', 1, array('Id' => $tblDivision->getId()));
         } else {
             return new Danger('Der Schüler konnte nicht entfernt werden')
             .new Redirect('/Education/Lesson/Division/Show', 15, array('Id' => $tblDivision->getId()));
@@ -424,7 +424,7 @@ class Service extends AbstractService
     public function removeSubjectStudent(TblSubjectStudent $tblSubjectStudent, TblDivision $tblDivision)
     {
 
-        if (!(new Data($this->getBinding()))->removeSubjectStudent($tblSubjectStudent)) {
+        if ((new Data($this->getBinding()))->removeSubjectStudent($tblSubjectStudent)) {
             return new Success('Die Zuordnung wurde erfolgreich entfernt')
             .new Redirect('/Education/Lesson/Division/SubjectStudent/Show', 1, array('Id' => $tblDivision->getId()));
         } else {
@@ -463,10 +463,10 @@ class Service extends AbstractService
 
             if (!$Error) {
                 return new Success('Der Klassenlehrer wurde der Klasse erfolgreich hinzugefügt')
-                .new Redirect('/Education/Lesson/Division', 1);
+                .new Redirect('/Education/Lesson/Division/Show', 1, array('Id' => $tblDivision->getId()));
             } else {
                 return new Danger('Einige Lehrer konnte nicht hinzugefügt werden')
-                .new Redirect('/Education/Lesson/Division');
+                .new Redirect('/Education/Lesson/Division', 15, array('Id' => $tblDivision->getId()));
             }
         }
         return $Form;
@@ -502,10 +502,10 @@ class Service extends AbstractService
 
             if (!$Error) {
                 return new Success('Die Fächer wurden der Klasse erfolgreich hinzugefügt')
-                .new Redirect('/Education/Lesson/Division', 1);
+                .new Redirect('/Education/Lesson/Division/Show', 1, array('Id' => $tblDivision->getId()));
             } else {
-                return new Danger('Einige Fächer konnte nicht hinzugefügt werden')
-                .new Redirect('/Education/Lesson/Division');
+                return new Danger('Einige Fächer konnten nicht hinzugefügt werden')
+                .new Redirect('/Education/Lesson/Division', 15, array('Id' => $tblDivision->getId()));
             }
         }
         return $Form;

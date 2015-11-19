@@ -4,10 +4,8 @@ namespace SPHERE\Application\Education\Lesson\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Common\Frontend\Icon\Repository\Book;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
-use SPHERE\Common\Frontend\Icon\Repository\Group;
-use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Layout\Repository\Badge;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -18,6 +16,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -203,19 +202,24 @@ class Division implements IModuleInterface
                             new Panel(new Standard('', '/Education/Lesson/Division/Show', new EyeOpen(),
                                     array('Id' => $tblDivision->getId()), 'Klassenansicht').'Gruppe: '.$tblDivision->getName()
                                 , array(
-                                    'Anzahl Schüler: '.count($StudentList)
-                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Student/Add',
-                                        new Group(), array('Id' => $tblDivision->getId()), 'Schüler hinzufügen')),
-                                    'Anzahl Klassenlehrer: '.count($TeacherList)
-                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Teacher/Add',
-                                        new Group(), array('Id' => $tblDivision->getId()), 'Klassenlehrer hinzufügen')),
-                                    'Anzahl Fächer: '.count($SubjectList)
-                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Subject/Add',
-                                        new Book(), array('Id' => $tblDivision->getId()), 'Fächer hinzufügen')),
-                                    'Fach / Gruppenzuweisung'
+//                                    'Anzahl Schüler: '.count($StudentList)
+//                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Student/Add',
+//                                        new Group(), array('Id' => $tblDivision->getId()), 'Schüler hinzufügen')),
+//                                    'Anzahl Klassenlehrer: '.count($TeacherList)
+//                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Teacher/Add',
+//                                        new Group(), array('Id' => $tblDivision->getId()), 'Klassenlehrer hinzufügen')),
+//                                    'Anzahl Fächer: '.count($SubjectList)
+//                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Subject/Add',
+//                                        new Book(), array('Id' => $tblDivision->getId()), 'Fächer hinzufügen')),
+                                    'Zuordnung Gruppen'
                                     .new PullRight(new Standard('', '/Education/Lesson/Division/SubjectStudent/Show',
-                                        new Plus(), array('Id' => $tblDivision->getId()), 'Übersicht')),)
+                                        new EyeOpen(), array('Id' => $tblDivision->getId()), 'Übersicht Gruppen')),
+                                    'Zuordnung Fachlehrer'
+                                    .new PullRight(new Standard('', '',
+                                        new EyeOpen(), array('Id' => $tblDivision->getId()), 'Übersicht Fachlehrer')),)
                                 , Panel::PANEL_TYPE_DEFAULT
+                                , new Small(new Small('Schüler: '.new Badge(count($StudentList))))
+                                .new Pullright(new Small(new Small('Klassenlehrer: '.new Badge(count($TeacherList)))))
                             )
                         );
                     }
