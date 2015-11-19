@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Billing\Accounting\Account\Service\Entity;
+namespace SPHERE\Application\Education\Lesson\Division\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
@@ -8,14 +8,17 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
+ * e.g. Info I, Info II
+ *
  * @Entity
- * @Table(name="tblAccountType")
+ * @Table(name="tblSubjectGroup")
  * @Cache(usage="READ_ONLY")
  */
-class TblAccountType extends Element
+class TblSubjectGroup extends Element
 {
 
-    const ATTR_TBL_ACCOUNT_TYPE = 'tblAccountType';
+    const ATTR_NAME = 'Name';
+    const ATTR_DESCRIPTION = 'Description';
 
     /**
      * @Column(type="string")
@@ -26,8 +29,9 @@ class TblAccountType extends Element
      */
     protected $Description;
 
+
     /**
-     * @return string $Name
+     * @return string
      */
     public function getName()
     {
@@ -45,7 +49,7 @@ class TblAccountType extends Element
     }
 
     /**
-     * @return string $Description
+     * @return string
      */
     public function getDescription()
     {

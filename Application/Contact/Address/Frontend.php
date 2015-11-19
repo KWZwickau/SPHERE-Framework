@@ -475,7 +475,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblAddressAll !== false) {
             array_walk($tblAddressAll, function (TblToPerson &$tblToPerson) {
 
-                $Panel = array($tblToPerson->getTblAddress()->getLayout());
+                $Panel = array($tblToPerson->getTblAddress()->getGuiLayout());
                 if ($tblToPerson->getRemark()) {
                     array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
                 }
@@ -507,7 +507,7 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblRelationshipAddressAll) {
                             foreach ($tblRelationshipAddressAll as $tblAddress) {
 
-                                $Panel = array($tblAddress->getTblAddress()->getLayout());
+                                $Panel = array($tblAddress->getTblAddress()->getGuiLayout());
                                 if ($tblAddress->getRemark()) {
                                     array_push($Panel, new Muted(new Small($tblAddress->getRemark())));
                                 }
@@ -536,7 +536,7 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblRelationshipAddressAll) {
                             foreach ($tblRelationshipAddressAll as $tblAddress) {
 
-                                $Panel = array($tblAddress->getTblAddress()->getLayout());
+                                $Panel = array($tblAddress->getTblAddress()->getGuiLayout());
                                 if ($tblAddress->getRemark()) {
                                     array_push($Panel, new Muted(new Small($tblAddress->getRemark())));
                                 }
@@ -601,7 +601,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblAddressAll !== false) {
             array_walk($tblAddressAll, function (TblToCompany &$tblToCompany) {
 
-                $Panel = array($tblToCompany->getTblAddress()->getLayout());
+                $Panel = array($tblToCompany->getTblAddress()->getGuiLayout());
                 if ($tblToCompany->getRemark()) {
                     array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
                 }

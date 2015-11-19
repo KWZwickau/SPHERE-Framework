@@ -11,7 +11,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
- * e.g. 6 Alpha - Math - Teacher
+ * e.g. 6 Alpha - Info (null) - Teacher, 6 Alpha - Info (Info I) - Teacher
  *
  * @Entity
  * @Table(name="tblSubjectTeacher")
@@ -20,10 +20,18 @@ use SPHERE\System\Database\Fitting\Element;
 class TblSubjectTeacher extends Element
 {
 
+    const ATTR_TBL_DIVISION_SUBJECT = 'tblDivisionSubject';
+    const ATTR_TBL_SUBJECT_GROUP = 'tblSubjectGroup';
+    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+
     /**
      * @Column(type="bigint")
      */
     protected $tblDivisionSubject;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblSubjectGroup;
     /**
      * @Column(type="bigint")
      */
@@ -49,6 +57,28 @@ class TblSubjectTeacher extends Element
     {
 
         $this->tblDivisionSubject = ( null === $tblDivisionSubject ? null : $tblDivisionSubject->getId() );
+    }
+
+    /**
+     * @return bool|TblSubjectGroup
+     */
+    public function getTblSubjectGroup()
+    {
+
+        if (null === $this->tblSubjectGroup) {
+            return false;
+        } else {
+            return Division::useService()->getSubjectGroupById($this->tblSubjectGroup);
+        }
+    }
+
+    /**
+     * @param null|TblSubjectGroup $tblSubjectGroup
+     */
+    public function setTblSubjectGroup(TblSubjectGroup $tblSubjectGroup = null)
+    {
+
+        $this->tblSubjectGroup = ( null === $tblSubjectGroup ? null : $tblSubjectGroup->getId() );
     }
 
     /**

@@ -26,7 +26,7 @@
         Order Deny,Allow
         Deny from All
     </FilesMatch>
-    <FilesMatch "^(index\.php|piwik\.php|piwik.js)$">
+    <FilesMatch "^(index\.php|piwik\.php|piwik\.js)$">
         Allow from All
     </FilesMatch>
 

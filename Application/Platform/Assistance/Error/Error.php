@@ -29,9 +29,9 @@ class Error implements IModuleInterface
         /**
          * Register Navigation
          */
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Fehlermeldungen'))
-        );
+//        Main::getDisplay()->addModuleNavigation(
+//            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Fehlermeldungen'))
+//        );
         /**
          * Register Route
          */

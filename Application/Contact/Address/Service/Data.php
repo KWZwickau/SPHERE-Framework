@@ -277,8 +277,7 @@ class Data extends AbstractData
     public function getAddressToPersonById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblToPerson', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson', $Id);
     }
 
     /**
@@ -289,8 +288,7 @@ class Data extends AbstractData
     public function getAddressToCompanyById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblToCompany', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany', $Id);
     }
 
     /**
@@ -331,10 +329,10 @@ class Data extends AbstractData
     public function getAddressAllByPerson(TblPerson $tblPerson)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblToPerson')->findBy(array(
-            TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+            array(
+                TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
     }
 
     /**
@@ -345,10 +343,10 @@ class Data extends AbstractData
     public function getAddressAllByCompany(TblCompany $tblCompany)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblToCompany')->findBy(array(
-            TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
-        ));
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany',
+            array(
+                TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
+            ));
     }
 
     /**

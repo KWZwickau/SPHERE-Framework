@@ -851,9 +851,12 @@ class Service
                 }
                 $mailAddressList = Mail::useService()->getMailAllByPerson($tblPerson);
                 $mailList = array();
-                foreach ($mailAddressList as $mailAddress) {
-                    $mailList[] = $mailAddress->getTblMail()->getAddress();
+                if ($mailAddressList) {
+                    foreach ($mailAddressList as $mailAddress) {
+                        $mailList[] = $mailAddress->getTblMail()->getAddress();
+                    }
                 }
+
                 if (count($mailList) >= 1) {
                     $tblPerson->Mail = $mailList[0];
                 } else {

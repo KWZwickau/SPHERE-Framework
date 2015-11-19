@@ -41,6 +41,8 @@ class Style extends Extension
             case 2:
                 $this->setSource('/Common/Style/theme.css');
                 break;
+            default:
+                $this->setSource('/Common/Style/Bootstrap.css');
         }
 
         $this->setSource('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_halflings/web/html_css/css/glyphicons-halflings.css');
@@ -73,6 +75,8 @@ class Style extends Extension
             case 2:
                 $this->setSource('/Common/Style/theme.correction.css');
                 break;
+            default:
+                $this->setSource('/Common/Style/Correction.css');
         }
 
         $this->setSource('/Common/Style/PhpInfo.css');

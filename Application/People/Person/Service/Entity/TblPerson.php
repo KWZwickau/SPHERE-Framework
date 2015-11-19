@@ -4,6 +4,8 @@ namespace SPHERE\Application\People\Person\Service\Entity;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\JoinColumn;
+use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\System\Database\Fitting\Element;
@@ -11,7 +13,7 @@ use SPHERE\System\Database\Fitting\Element;
 /**
  * @Entity
  * @Table(name="tblPerson")
- * @Cache(usage="NONSTRICT_READ_WRITE")
+ * @Cache(usage="READ_ONLY")
  */
 class TblPerson extends Element
 {
@@ -21,6 +23,8 @@ class TblPerson extends Element
 
     /**
      * @Column(type="bigint")
+     * @ManyToOne(targetEntity="TblSalutation",fetch="EAGER")
+     * @JoinColumn(name="tblSalutation", referencedColumnName="Id")
      */
     protected $tblSalutation;
     /**
@@ -39,6 +43,10 @@ class TblPerson extends Element
      * @Column(type="string")
      */
     protected $LastName;
+    /**
+     * @Column(type="string")
+     */
+    protected $BirthName;
 
     /**
      * @return string
@@ -59,10 +67,10 @@ class TblPerson extends Element
     public function getSalutation()
     {
 
-        if (!$this->getTblSalutation()) {
+        if (!( $Salutation = $this->getTblSalutation() )) {
             return '';
         } else {
-            return $this->getTblSalutation()->getSalutation();
+            return $Salutation->getSalutation();
         }
     }
 
@@ -158,5 +166,23 @@ class TblPerson extends Element
     {
 
         $this->LastName = $LastName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBirthName()
+    {
+
+        return $this->BirthName;
+    }
+
+    /**
+     * @param string $BirthName
+     */
+    public function setBirthName($BirthName)
+    {
+
+        $this->BirthName = $BirthName;
     }
 }

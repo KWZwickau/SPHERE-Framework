@@ -345,6 +345,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblRelationshipAll) {
             foreach ($tblRelationshipAll as $tblRelationship) {
                 if ($tblRelationship->getServiceTblPersonTo() && $tblRelationship->getServiceTblPersonFrom()) {
+
                     if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonFrom()->getId()) {
                         $tblRelationshipPhoneAll = Phone::useService()->getPhoneAllByPerson($tblRelationship->getServiceTblPersonFrom());
                         if ($tblRelationshipPhoneAll) {
@@ -373,6 +374,49 @@ class Frontend extends Extension implements IFrontendInterface
                                             : Panel::PANEL_TYPE_DEFAULT
                                         ),
                                         $tblRelationship->getServiceTblPersonFrom()->getFullName()
+                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                    )
+                                    , 3);
+
+                                if ($tblPhoneAll !== false) {
+                                    $tblPhoneAll[] = $tblPhone;
+                                } else {
+                                    $tblPhoneAll = array();
+                                    $tblPhoneAll[] = $tblPhone;
+                                }
+
+                            }
+                        }
+                    }
+
+                    if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonTo()->getId()) {
+                        $tblRelationshipPhoneAll = Phone::useService()->getPhoneAllByPerson($tblRelationship->getServiceTblPersonTo());
+                        if ($tblRelationshipPhoneAll) {
+                            foreach ($tblRelationshipPhoneAll as $tblPhone) {
+
+                                $Panel = array($tblPhone->getTblPhone()->getNumber());
+                                if ($tblPhone->getRemark()) {
+                                    array_push($Panel, new Muted(new Small($tblPhone->getRemark())));
+                                }
+
+                                $tblPhone = new LayoutColumn(
+                                    new Panel(
+                                        (preg_match('!Fax!is',
+                                            $tblPhone->getTblType()->getName() . ' ' . $tblPhone->getTblType()->getDescription())
+                                            ? new PhoneFax()
+                                            : (preg_match('!Mobil!is',
+                                                $tblPhone->getTblType()->getName() . ' ' . $tblPhone->getTblType()->getDescription())
+                                                ? new PhoneMobil()
+                                                : new PhoneIcon()
+                                            )
+                                        ) . ' ' . $tblPhone->getTblType()->getName() . ' ' . $tblPhone->getTblType()->getDescription(),
+                                        $Panel,
+                                        (preg_match('!Notfall!is',
+                                            $tblPhone->getTblType()->getName() . ' ' . $tblPhone->getTblType()->getDescription())
+                                            ? Panel::PANEL_TYPE_DANGER
+                                            : Panel::PANEL_TYPE_DEFAULT
+                                        ),
+                                        $tblRelationship->getServiceTblPersonTo()->getFullName()
                                         . ' (' . $tblRelationship->getTblType()->getName() . ')'
                                     )
                                     , 3);
