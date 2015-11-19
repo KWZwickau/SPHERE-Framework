@@ -7,6 +7,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Group;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -84,6 +85,15 @@ class Division implements IModuleInterface
             __NAMESPACE__.'/Subject/Remove', __NAMESPACE__.'\Frontend::frontendSubjectRemove'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/SubjectStudent/Show', __NAMESPACE__.'\Frontend::frontendSubjectStudentShow'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/SubjectStudent/Add', __NAMESPACE__.'\Frontend::frontendSubjectStudentAdd'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/SubjectStudent/Remove', __NAMESPACE__.'\Frontend::frontendSubjectStudentRemove'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Show', __NAMESPACE__.'\Frontend::frontendDivisionShow'
         ));
     }
@@ -106,7 +116,7 @@ class Division implements IModuleInterface
         $Stage = new Stage('Dashboard', 'Klassen');
 
         $Stage->addButton(new Standard('Klassenstufe', __NAMESPACE__.'\Create\Level', null, null, 'erstellen / bearbeiten'));
-        $Stage->addButton(new Standard('Klassen', __NAMESPACE__.'\Create\Division', null, null, 'erstellen / bearbeiten'));
+        $Stage->addButton(new Standard('Klassengruppe', __NAMESPACE__.'\Create\Division', null, null, 'erstellen / bearbeiten'));
         $Stage->addButton(new Standard('Gruppen', __NAMESPACE__.'\Create\SubjectGroup', null, null, 'erstellen / bearbeiten'));
 
         $tblLevelAll = $this->useService()->getLevelAll();
@@ -194,11 +204,17 @@ class Division implements IModuleInterface
                                     array('Id' => $tblDivision->getId()), 'Klassenansicht').'Gruppe: '.$tblDivision->getName()
                                 , array(
                                     'Anzahl Schüler: '.count($StudentList)
-                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Student/Add', new Group(), array('Id' => $tblDivision->getId()), 'Schüler hinzufügen')),
+                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Student/Add',
+                                        new Group(), array('Id' => $tblDivision->getId()), 'Schüler hinzufügen')),
                                     'Anzahl Klassenlehrer: '.count($TeacherList)
-                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Teacher/Add', new Group(), array('Id' => $tblDivision->getId()), 'Klassenlehrer hinzufügen')),
+                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Teacher/Add',
+                                        new Group(), array('Id' => $tblDivision->getId()), 'Klassenlehrer hinzufügen')),
                                     'Anzahl Fächer: '.count($SubjectList)
-                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Subject/Add', new Book(), array('Id' => $tblDivision->getId()), 'Fächer hinzufügen')),)
+                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Subject/Add',
+                                        new Book(), array('Id' => $tblDivision->getId()), 'Fächer hinzufügen')),
+                                    'Fach / Gruppenzuweisung'
+                                    .new PullRight(new Standard('', '/Education/Lesson/Division/SubjectStudent/Show',
+                                        new Plus(), array('Id' => $tblDivision->getId()), 'Übersicht')),)
                                 , Panel::PANEL_TYPE_DEFAULT
                             )
                         );

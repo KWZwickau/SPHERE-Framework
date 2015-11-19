@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStude
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Setup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -19,6 +20,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -349,6 +351,14 @@ class Service extends AbstractService
     {
 
         $Error = false;
+
+        $tblStudentSubjectList = (new Data($this->getBinding()))->getSubjectStudentByPerson($tblPerson);
+        if ($tblStudentSubjectList) {
+            foreach ($tblStudentSubjectList as $tblStudentSubject) {
+                (new Data($this->getBinding()))->removeSubjectStudent($tblStudentSubject);
+            }
+        }
+
         if (!(new Data($this->getBinding()))->removeStudentToDivision($tblDivision, $tblPerson)) {
             $Error = true;
         }
@@ -357,7 +367,7 @@ class Service extends AbstractService
             .new Redirect('/Education/Lesson/Division/Show', 3, array('Id' => $tblDivision->getId()));
         } else {
             return new Danger('Der Schüler konnte nicht entfernt werden')
-            .new Redirect('/Education/Lesson/Division/Show', null, array('Id' => $tblDivision->getId()));
+            .new Redirect('/Education/Lesson/Division/Show', 15, array('Id' => $tblDivision->getId()));
         }
     }
 
@@ -376,10 +386,10 @@ class Service extends AbstractService
         }
         if (!$Error) {
             return new Success('Der Lehrer wurde erfolgreich aus der Klasse entfernt')
-            .new Redirect('/Education/Lesson/Division/Show', 3, array('Id' => $tblDivision->getId()));
+            .new Redirect('/Education/Lesson/Division/Show', 1, array('Id' => $tblDivision->getId()));
         } else {
             return new Danger('Der Lehrer konnte nicht entfernt werden')
-            .new Redirect('/Education/Lesson/Division/Show', null, array('Id' => $tblDivision->getId()));
+            .new Redirect('/Education/Lesson/Division/Show', 15, array('Id' => $tblDivision->getId()));
         }
     }
 
@@ -398,10 +408,28 @@ class Service extends AbstractService
         }
         if (!$Error) {
             return new Success('Die Klasse wurde erfolgreich aus der Klasse entfernt')
-            .new Redirect('/Education/Lesson/Division/Show', 3, array('Id' => $tblDivision->getId()));
+            .new Redirect('/Education/Lesson/Division/Show', 1, array('Id' => $tblDivision->getId()));
         } else {
             return new Danger('Die Klasse konnte nicht entfernt werden')
-            .new Redirect('/Education/Lesson/Division/Show', null, array('Id' => $tblDivision->getId()));
+            .new Redirect('/Education/Lesson/Division/Show', 15, array('Id' => $tblDivision->getId()));
+        }
+    }
+
+    /**
+     * @param TblSubjectStudent $tblSubjectStudent
+     * @param TblDivision       $tblDivision
+     *
+     * @return string
+     */
+    public function removeSubjectStudent(TblSubjectStudent $tblSubjectStudent, TblDivision $tblDivision)
+    {
+
+        if (!(new Data($this->getBinding()))->removeSubjectStudent($tblSubjectStudent)) {
+            return new Success('Die Zuordnung wurde erfolgreich entfernt')
+            .new Redirect('/Education/Lesson/Division/SubjectStudent/Show', 1, array('Id' => $tblDivision->getId()));
+        } else {
+            return new Danger('Die Zuordnung konnte nicht entfernt werden')
+            .new Redirect('/Education/Lesson/Division/SubjectStudent/Show', 15, array('Id' => $tblDivision->getId()));
         }
     }
 
@@ -478,6 +506,58 @@ class Service extends AbstractService
             } else {
                 return new Danger('Einige Fächer konnte nicht hinzugefügt werden')
                 .new Redirect('/Education/Lesson/Division');
+            }
+        }
+        return $Form;
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param                $DivisionSubject
+     * @param                $Student
+     * @param                $DivisionId
+     * @param null           $Group
+     *
+     * @return IFormInterface|string
+     */
+    public function addSubjectStudent(IFormInterface $Form, $DivisionSubject, $Student, $DivisionId, $Group = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Student) {
+            return $Form;
+        }
+
+        $Error = false;
+        if (empty( $DivisionSubject )) {
+            $Form .= new Warning('Keine Zuordnung ohne Fach möglich');
+            $Error = true;
+        }
+
+        if (!$Error) {
+
+            $tblSubjectGroup = Division::useService()->getSubjectGroupById($Group);
+            if ($tblSubjectGroup === false) {
+                $tblSubjectGroup = null;
+            }
+
+            $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubject);
+            // Add new Link
+            array_walk($Student, function ($Student) use ($tblDivisionSubject, $tblSubjectGroup, &$Error) {
+
+                if (!(new Data($this->getBinding()))->addSubjectStudent(Person::useService()->getPersonById($Student), $tblDivisionSubject, $tblSubjectGroup)) {
+                    $Error = false;
+                }
+            });
+
+            if (!$Error) {
+                return new Success('Die Gruppe mit Personen wurden erfolgreich angelegt')
+                .new Redirect('/Education/Lesson/Division/SubjectStudent/Show', 1, array('Id' => $DivisionId));
+            } else {
+                return new Danger('Einige Personen konnte nicht in der Gruppe angelegt werden')
+                .new Redirect('/Education/Lesson/Division/SubjectStudent/Show', 15, array('Id' => $DivisionId));
             }
         }
         return $Form;
@@ -569,6 +649,39 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getDivisionSubjectById($Id);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblDivisionSubject[]
+     */
+    public function getDivisionSubjectByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionSubjectByDivision($tblDivision);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblSubjectStudent
+     */
+    public function getSubjectStudentById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectStudentById($Id);
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool|TblSubjectStudent[]
+     */
+    public function getSubjectStudentByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectStudentByDivisionSubject($tblDivisionSubject);
     }
 
     /**
