@@ -78,12 +78,16 @@ class Frontend extends Extension implements IFrontendInterface
                 '/Api/Reporting/Standard/Person/ExtendedClassList/Download', new Download())
         );
 
+        $All = $Woman = $Man = '0';
         $studentList = Person::useService()->createExtendedClassList();
         $Count = count($studentList);
 
-        $Man = $studentList[$Count - 1]->Man;
-        $Woman = $studentList[$Count - 1]->Woman;
-        $All = $studentList[$Count - 1]->All;
+        if($studentList)
+        {
+            $Man = $studentList[$Count - 1]->Man;
+            $Woman = $studentList[$Count - 1]->Woman;
+            $All = $studentList[$Count - 1]->All;
+        }
 
         $Stage->setContent(
             new TableData($studentList, null,
@@ -134,12 +138,16 @@ class Frontend extends Extension implements IFrontendInterface
                 '/Api/Reporting/Standard/Person/BirthdayClassList/Download', new Download())
         );
 
+        $All = $Woman = $Man = '0';
         $studentList = Person::useService()->createBirthdayClassList();
         $Count = count($studentList);
 
-        $Man = $studentList[$Count - 1]->Man;
-        $Woman = $studentList[$Count - 1]->Woman;
-        $All = $studentList[$Count - 1]->All;
+        if($studentList)
+        {
+            $Man = $studentList[$Count - 1]->Man;
+            $Woman = $studentList[$Count - 1]->Woman;
+            $All = $studentList[$Count - 1]->All;
+        }
 
         $Stage->setContent(
             new TableData($studentList, null,
@@ -185,12 +193,16 @@ class Frontend extends Extension implements IFrontendInterface
                 '/Api/Reporting/Standard/Person/MedicalInsuranceClassList/Download', new Download())
         );
 
+        $All = $Woman = $Man = '0';
         $studentList = Person::useService()->createMedicalInsuranceClassList();
         $Count = count($studentList);
 
-        $Man = $studentList[$Count - 1]->Man;
-        $Woman = $studentList[$Count - 1]->Woman;
-        $All = $studentList[$Count - 1]->All;
+        if($studentList)
+        {
+            $Man = $studentList[$Count - 1]->Man;
+            $Woman = $studentList[$Count - 1]->Woman;
+            $All = $studentList[$Count - 1]->All;
+        }
 
         $Stage->setContent(
             new TableData($studentList, null,
