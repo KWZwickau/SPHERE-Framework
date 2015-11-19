@@ -235,12 +235,15 @@ class Frontend extends Extension implements IFrontendInterface
                 '/Api/Reporting/Standard/Person/EmployeeList/Download', new Download())
         );
 
+        $All = $Woman = $Man = '0';
         $employeeList = Person::useService()->createEmployeeList();
         $Count = count($employeeList);
-
-        $Man = $employeeList[$Count - 1]->Man;
-        $Woman = $employeeList[$Count - 1]->Woman;
-        $All = $employeeList[$Count - 1]->All;
+        if($employeeList)
+        {
+            $Man = $employeeList[$Count - 1]->Man;
+            $Woman = $employeeList[$Count - 1]->Woman;
+            $All = $employeeList[$Count - 1]->All;
+        }
 
         $Stage->setContent(
             new TableData($employeeList, null,
@@ -257,7 +260,6 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
                 false
             )
-
             .new Layout(
                 new LayoutGroup(
                     new LayoutRow(array(
