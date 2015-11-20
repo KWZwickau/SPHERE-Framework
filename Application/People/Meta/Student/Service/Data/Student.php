@@ -16,22 +16,40 @@ abstract class Student extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param string    $Identifier
+     * @param $Identifier
+     * @param null $tblStudentMedicalRecord
+     * @param null $tblStudentTransport
+     * @param null $tblStudentBilling
+     * @param null $tblStudentLocker
+     * @param null $tblStudentBaptism
+     * @param null $tblStudentIntegration
      *
      * @return TblStudent
      */
     public function createStudent(
         TblPerson $tblPerson,
-        $Identifier
+        $Identifier,
+        $tblStudentMedicalRecord = null,
+        $tblStudentTransport = null,
+        $tblStudentBilling = null,
+        $tblStudentLocker = null,
+        $tblStudentBaptism = null,
+        $tblStudentIntegration = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $this->getStudentByPerson($tblPerson);
-        if (null === $Entity) {
+        if (!$Entity) {
 
             $Entity = new TblStudent();
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setIdentifier($Identifier);
+            $Entity->setTblStudentMedicalRecord($tblStudentMedicalRecord);
+            $Entity->setTblStudentTransport($tblStudentTransport);
+            $Entity->setTblStudentBilling($tblStudentBilling);
+            $Entity->setTblStudentLocker($tblStudentLocker);
+            $Entity->setTblStudentBaptism($tblStudentBaptism);
+            $Entity->setTblStudentIntegration($tblStudentIntegration);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }

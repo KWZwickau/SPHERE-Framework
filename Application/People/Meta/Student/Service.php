@@ -9,8 +9,10 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecor
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Service\Integration;
 use SPHERE\Application\People\Meta\Student\Service\Setup;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 
 /**
@@ -39,15 +41,13 @@ class Service extends Integration
 
     /**
      * @param IFormInterface $Form
-     * @param TblPerson      $tblPerson
-     * @param array          $Meta
+     * @param TblPerson $tblPerson
+     * @param array $Meta
      *
      * @return IFormInterface|Redirect
      */
     public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta)
     {
-
-        $this->getDebugger()->screenDump($tblPerson, $Meta);
 
         /**
          * Skip to Frontend
@@ -58,32 +58,38 @@ class Service extends Integration
 
         $tblStudent = $this->getStudentByPerson($tblPerson);
 
-        $this->getDebugger()->screenDump($tblStudent);
+        $this->getDebugger()->screenDump($Meta['MedicalRecord']);
+
+        $AttendingDoctor = Person::useService()->getPersonById($Meta['MedicalRecord']['AttendingDoctor']);
 
         if ($tblStudent) {
-//            (new Data($this->getBinding()))->updateStudentMedicalRecord(
-//                $tblStudent->getTblStudentMedicalRecord(),
-//                $Meta['MedicalRecord']['Disease'],
-//                $Meta['MedicalRecord']['Medication'],
-//                $Meta['MedicalRecord']['tblPersonAttendingDoctor'],
-//                $Meta['MedicalRecord']['InsuranceState'],
-//                $Meta['MedicalRecord']['Insurance']
-//            );
+            // ToDo JohK update StudentIdentifier
+
+            (new Data($this->getBinding()))->updateStudentMedicalRecord(
+                $tblStudent->getTblStudentMedicalRecord(),
+                $Meta['MedicalRecord']['Disease'],
+                $Meta['MedicalRecord']['Medication'],
+                $AttendingDoctor ? $AttendingDoctor : null,
+                $Meta['MedicalRecord']['Insurance']['State'],
+                $Meta['MedicalRecord']['Insurance']['Company']
+            );
         } else {
-//            $tblStudentMedicalRecord = (new Data($this->getBinding()))->createStudentMedicalRecord(
-//                $Meta['MedicalRecord']['Disease'],
-//                $Meta['MedicalRecord']['Medication'],
-//                $Meta['MedicalRecord']['tblPersonAttendingDoctor'],
-//                $Meta['MedicalRecord']['InsuranceState'],
-//                $Meta['MedicalRecord']['Insurance']
-//            );
-//            (new Data($this->getBinding()))->createStudent(
-//                $tblPerson
-//            );
+            $tblStudentMedicalRecord = (new Data($this->getBinding()))->createStudentMedicalRecord(
+                $Meta['MedicalRecord']['Disease'],
+                $Meta['MedicalRecord']['Medication'],
+                $AttendingDoctor ? $AttendingDoctor : null,
+                $Meta['MedicalRecord']['Insurance']['State'],
+                $Meta['MedicalRecord']['Insurance']['Company']
+            );
+            (new Data($this->getBinding()))->createStudent(
+                $tblPerson,
+                $Meta['Student']['Identifier'],
+                $tblStudentMedicalRecord
+            );
         }
-//        return new Success('Die Daten wurde erfolgreich gespeichert')
-//        .new Redirect('/People/Person', 3, array('Id' => $tblPerson->getId()));
-        return $Form;
+
+        return new Success('Die Daten wurde erfolgreich gespeichert')
+        . new Redirect('/People/Person', 3, array('Id' => $tblPerson->getId()));
     }
 
     /**

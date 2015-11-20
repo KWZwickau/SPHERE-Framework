@@ -91,7 +91,7 @@ class Data extends Integration
     public function createStudentMedicalRecord(
         $Disease,
         $Medication,
-        TblPerson $tblPersonAttendingDoctor,
+        TblPerson $tblPersonAttendingDoctor = null,
         $InsuranceState,
         $Insurance
     ) {
@@ -124,7 +124,7 @@ class Data extends Integration
         TblStudentMedicalRecord $tblStudentMedicalRecord,
         $Disease,
         $Medication,
-        TblPerson $tblPersonAttendingDoctor,
+        TblPerson $tblPersonAttendingDoctor = null,
         $InsuranceState,
         $Insurance
     ) {

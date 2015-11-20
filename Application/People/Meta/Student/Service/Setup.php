@@ -232,12 +232,12 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudent', 'Identifier')) {
             $Table->addColumn('Identifier', 'string', array('notnull' => false));
         }
-        $this->getConnection()->addForeignKey($Table, $tblStudentMedicalRecord);
-        $this->getConnection()->addForeignKey($Table, $tblStudentTransport);
-        $this->getConnection()->addForeignKey($Table, $tblStudentBilling);
-        $this->getConnection()->addForeignKey($Table, $tblStudentLocker);
-        $this->getConnection()->addForeignKey($Table, $tblStudentBaptism);
-        $this->getConnection()->addForeignKey($Table, $tblStudentIntegration);
+        $this->getConnection()->addForeignKey($Table, $tblStudentMedicalRecord, true);
+        $this->getConnection()->addForeignKey($Table, $tblStudentTransport, true);
+        $this->getConnection()->addForeignKey($Table, $tblStudentBilling, true);
+        $this->getConnection()->addForeignKey($Table, $tblStudentLocker, true);
+        $this->getConnection()->addForeignKey($Table, $tblStudentBaptism, true);
+        $this->getConnection()->addForeignKey($Table, $tblStudentIntegration, true);
         return $Table;
     }
 
