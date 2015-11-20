@@ -2,6 +2,7 @@
 namespace SPHERE\Application\People\Meta\Student\Service;
 
 use SPHERE\Application\People\Meta\Student\Service\Data\Integration;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
@@ -91,7 +92,7 @@ class Data extends Integration
     public function createStudentMedicalRecord(
         $Disease,
         $Medication,
-        TblPerson $tblPersonAttendingDoctor,
+        TblPerson $tblPersonAttendingDoctor = null,
         $InsuranceState,
         $Insurance
     ) {
@@ -124,7 +125,7 @@ class Data extends Integration
         TblStudentMedicalRecord $tblStudentMedicalRecord,
         $Disease,
         $Medication,
-        TblPerson $tblPersonAttendingDoctor,
+        TblPerson $tblPersonAttendingDoctor = null,
         $InsuranceState,
         $Insurance
     ) {
@@ -417,5 +418,29 @@ class Data extends Integration
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblStudentTransport', $Id
         );
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param $Identifier
+     *
+     * @return bool
+     */
+    public function updateStudentIdentifier(
+        TblStudent $tblStudent,
+        $Identifier
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var null|TblStudent $Entity */
+        $Entity = $Manager->getEntityById('TblStudent', $tblStudent->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setIdentifier($Identifier);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 }

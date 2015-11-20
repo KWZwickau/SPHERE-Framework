@@ -86,26 +86,28 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
-        $Stage->setContent((new Form(array(
-
-            new FormGroup(
-                new FormRow(array(
-                    new FormColumn(
-                        new Panel('Identifikation', array(
-                            new TextField('Meta[Transfer][Student][Identifier]', 'Schülernummer',
-                                'Schülernummer')
-                        ), Panel::PANEL_TYPE_INFO)
-                        , 4),
-                ))
-            ),
-            $this->formGroupTransfer($tblPerson, $Meta),
-            $this->formGroupGeneral($tblPerson, $Meta),
-            $this->formGroupSubject($tblPerson, $Meta),
-            $this->formGroupIntegration($tblPerson, $Meta),
-        ),
-            new Primary('Informationen speichern')
-        )
-        )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.'));
+        $Stage->setContent(
+            Student::useService()->createMeta(
+                (new Form(array(
+                    new FormGroup(
+                        new FormRow(array(
+                            new FormColumn(
+                                new Panel('Identifikation', array(
+                                    new TextField('Meta[Student][Identifier]', 'Schülernummer',
+                                        'Schülernummer')
+                                ), Panel::PANEL_TYPE_INFO)
+                                , 4),
+                        ))
+                    ),
+                    $this->formGroupTransfer($tblPerson, $Meta),
+                    $this->formGroupGeneral($tblPerson, $Meta),
+                    $this->formGroupSubject($tblPerson, $Meta),
+                    $this->formGroupIntegration($tblPerson, $Meta),
+                ), new Primary('Informationen speichern'))
+                )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
+                , $tblPerson, $Meta
+            )
+        );
 
         return $Stage;
     }
@@ -121,7 +123,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
-            if (!isset($Global->POST['Meta'])) {
+            if (!isset($Global->POST['Meta']['Transfer'])) {
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
@@ -174,12 +176,15 @@ class Frontend extends Extension implements IFrontendInterface
                         $Global->POST['Meta']['Transfer']['Leave']['Date'] = $tblStudentTransferLeave->getTransferDate();
                         $Global->POST['Meta']['Transfer']['Leave']['Remark'] = $tblStudentTransferLeave->getRemark();
                     }
-                    /** @var TblStudentTransfer $tblStudentTransferProcess */
-                    $tblStudentTransferProcess = Student::useService()->getStudentTransferByType(
-                        $tblStudent, Student::useService()->getStudentTransferTypeByIdentifier('Process')
-                    );
-                    if ($tblStudentTransferProcess) {
-                        $Global->POST['Meta']['Transfer']['Process']['Remark'] = $tblStudentTransferProcess->getRemark();
+                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Process');
+                    if ($tblStudentTransferType) {
+                        /** @var TblStudentTransfer $tblStudentTransferProcess */
+                        $tblStudentTransferProcess = Student::useService()->getStudentTransferByType(
+                            $tblStudent, $tblStudentTransferType
+                        );
+                        if ($tblStudentTransferProcess) {
+                            $Global->POST['Meta']['Transfer']['Process']['Remark'] = $tblStudentTransferProcess->getRemark();
+                        }
                     }
                     $Global->savePost();
                 }
@@ -334,10 +339,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
-            if (!isset($Global->POST['Meta'])) {
+            if (!isset($Global->POST['Meta']['MedicalRecord'])) {
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
+
+                    $Global->POST['Meta']['Student']['Identifier'] = $tblStudent->getIdentifier();
+
                     /** @var TblStudentMedicalRecord $tblStudentMedicalRecord */
                     $tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
                     if ($tblStudentMedicalRecord) {
@@ -348,9 +356,31 @@ class Frontend extends Extension implements IFrontendInterface
                             ? $tblStudentMedicalRecord->getServiceTblPersonAttendingDoctor()->getId()
                             : 0
                         );
-                        $Global->POST['Meta']['MedicalRecord']['InsuranceState'] = $tblStudentMedicalRecord->getInsuranceState();
-                        $Global->POST['Meta']['MedicalRecord']['Insurance'] = $tblStudentMedicalRecord->getInsurance();
+                        $Global->POST['Meta']['MedicalRecord']['Insurance']['State'] = $tblStudentMedicalRecord->getInsuranceState();
+                        $Global->POST['Meta']['MedicalRecord']['Insurance']['Company'] = $tblStudentMedicalRecord->getInsurance();
                     }
+
+                    $tblStudentLocker = $tblStudent->getTblStudentLocker();
+                    if ($tblStudentLocker) {
+                        $Global->POST['Meta']['Additional']['Locker']['Number'] = $tblStudentLocker->getLockerNumber();
+                        $Global->POST['Meta']['Additional']['Locker']['Location'] = $tblStudentLocker->getLockerLocation();
+                        $Global->POST['Meta']['Additional']['Locker']['Key'] = $tblStudentLocker->getKeyNumber();
+                    }
+
+                    $tblStudentBaptism = $tblStudent->getTblStudentBaptism();
+                    if ($tblStudentBaptism) {
+                        $Global->POST['Meta']['Additional']['Baptism']['Date'] = $tblStudentBaptism->getBaptismDate();
+                        $Global->POST['Meta']['Additional']['Baptism']['Location'] = $tblStudentBaptism->getLocation();
+                    }
+
+                    $tblStudentTransport = $tblStudent->getTblStudentTransport();
+                    if ($tblStudentTransport) {
+                        $Global->POST['Meta']['Transport']['Route'] = $tblStudentTransport->getRoute();
+                        $Global->POST['Meta']['Transport']['Station']['Entrance'] = $tblStudentTransport->getStationEntrance();
+                        $Global->POST['Meta']['Transport']['Station']['Exit'] = $tblStudentTransport->getStationExit();
+                        $Global->POST['Meta']['Transport']['Remark'] = $tblStudentTransport->getRemark();
+                    }
+
                     $Global->savePost();
                 }
             }
@@ -396,7 +426,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Medicine()),
                         new SelectBox('Meta[MedicalRecord][AttendingDoctor]', 'Behandelnder Arzt', array(),
                             new Stethoscope()),
-                        new SelectBox('Meta[MedicalRecord][InsuranceState]', 'Versicherungsstatus', array(
+                        new SelectBox('Meta[MedicalRecord][Insurance][State]', 'Versicherungsstatus', array(
                             0 => '',
                             1 => 'Pflicht',
                             2 => 'Freiwillig',
@@ -404,12 +434,12 @@ class Frontend extends Extension implements IFrontendInterface
                             4 => 'Familie Vater',
                             5 => 'Familie Mutter',
                         ), new Lock()),
-                        new AutoCompleter('Meta[MedicalRecord][Insurance]', 'Krankenkasse', 'Krankenkasse',
+                        new AutoCompleter('Meta[MedicalRecord][Insurance][Company]', 'Krankenkasse', 'Krankenkasse',
                             array(), new Shield()),
                     ), Panel::PANEL_TYPE_DANGER), 3),
                 new FormColumn(array(
                     new Panel('Fakturierung', array(
-                        new SelectBox('Meta[MedicalRecord][InsuranceState]', 'Geschwisterkind', array(
+                        new SelectBox('Meta[Billing]', 'Geschwisterkind', array(
                             0 => '',
                             1 => '1. Geschwisterkind',
                             2 => '2. Geschwisterkind',
@@ -428,10 +458,10 @@ class Frontend extends Extension implements IFrontendInterface
                             new Key()),
                     ), Panel::PANEL_TYPE_INFO),
                     new Panel('Taufe', array(
-                        new DatePicker('Meta[Additional][BaptismDate]', 'Taufdatum', 'Taufdatum',
+                        new DatePicker('Meta[Additional][Baptism][Date]', 'Taufdatum', 'Taufdatum',
                             new TempleChurch()
                         ),
-                        new TextField('Meta[Additional][BaptismLocation]', 'Taufort', 'Taufort', new MapMarker()),
+                        new TextField('Meta[Additional][Baptism][Location]', 'Taufort', 'Taufort', new MapMarker()),
                     ), Panel::PANEL_TYPE_INFO),
                 ), 3),
                 new FormColumn(
@@ -586,6 +616,33 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function formGroupIntegration(TblPerson $tblPerson = null, $Meta = array())
     {
+        if (null !== $tblPerson) {
+            $Global = $this->getGlobal();
+            if (!isset($Global->POST['Meta']['Integration'])) {
+
+                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+
+                if ($tblStudent) {
+
+                    $tblStudentIntegration = $tblStudent->getTblStudentIntegration();
+                    if ($tblStudentIntegration) {
+
+                        $Global->POST['Meta']['Integration']['Coaching']['Required'] = $tblStudentIntegration->getCoachingRequired() ? 1 : 0;
+                        $Global->POST['Meta']['Integration']['Coaching']['CounselDate'] = $tblStudentIntegration->getCoachingCounselDate();
+                        $Global->POST['Meta']['Integration']['Coaching']['RequestDate'] = $tblStudentIntegration->getCoachingRequestDate();
+                        $Global->POST['Meta']['Integration']['Coaching']['DecisionDate'] = $tblStudentIntegration->getCoachingDecisionDate();
+
+                        $Global->POST['Meta']['Integration']['School']['Company'] =
+                            $tblStudentIntegration->getServiceTblCompany() ? $tblStudentIntegration->getServiceTblCompany()->getId() : 0;
+                        $Global->POST['Meta']['Integration']['School']['Person'] =
+                            $tblStudentIntegration->getServiceTblPerson() ? $tblStudentIntegration->getServiceTblPerson()->getId() : 0;
+                        $Global->POST['Meta']['Integration']['School']['Time'] = $tblStudentIntegration->getCoachingTime();
+                        $Global->POST['Meta']['Integration']['School']['Remark'] = $tblStudentIntegration->getCoachingRemark();
+                    }
+                }
+            }
+            $Global->savePost();
+        }
 
         $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
             Group::useService()->getGroupByMetaTable('SCHOOL')
@@ -622,31 +679,31 @@ class Frontend extends Extension implements IFrontendInterface
             new FormRow(array(
                 new FormColumn(
                     new Panel('Förderantrag / Förderbescheid', array(
-                        new CheckBox('Meta[Integration][CoachingRequired]', 'Förderbedarf', 1),
-                        new DatePicker('Meta[Integration][CoachingCounselDate]', 'Förderantrag Beratung',
+                        new CheckBox('Meta[Integration][Coaching][Required]', 'Förderbedarf', 1),
+                        new DatePicker('Meta[Integration][Coaching][CounselDate]', 'Förderantrag Beratung',
                             'Förderantrag Beratung',
                             new Calendar()
                         ),
-                        new DatePicker('Meta[Integration][CoachingRequestDate]', 'Förderantrag',
+                        new DatePicker('Meta[Integration][Coaching][RequestDate]', 'Förderantrag',
                             'Förderantrag',
                             new Calendar()
                         ),
-                        new DatePicker('Meta[Integration][CoachingDecisionDate]', 'Förderbescheid SBA',
+                        new DatePicker('Meta[Integration][Coaching][DecisionDate]', 'Förderbescheid SBA',
                             'Förderbescheid SBA',
                             new Calendar()
                         )
                     ), Panel::PANEL_TYPE_INFO), 3),
                 new FormColumn(
                     new Panel('Förderschule', array(
-                        new SelectBox('Meta[Integration][3]', 'Förderschule',
+                        new SelectBox('Meta[Integration][School][Company]', 'Förderschule',
                             array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
                             new Education()),
-                        new SelectBox('Meta[Integration][3]',
+                        new SelectBox('Meta[Integration][School][Person]',
                             'Schulbegleitung ' . new Small(new Muted('Integrationsbeauftragter')), array(),
                             new Person()),
-                        new NumberField('Meta[Integration][3]', 'Stundenbedarf pro Woche',
+                        new NumberField('Meta[Integration][School][Time]', 'Stundenbedarf pro Woche',
                             'Stundenbedarf pro Woche', new Clock()),
-                        new TextArea('Meta[Integration][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
+                        new TextArea('Meta[Integration][School][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
 
                     ), Panel::PANEL_TYPE_INFO), 3),
                 new FormColumn($PanelFocus, 3),

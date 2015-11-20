@@ -11,7 +11,7 @@ use SPHERE\System\Database\Fitting\Element;
 /**
  * @Entity
  * @Table(name="tblItemCondition")
- * @Cache(usage="NONSTRICT_READ_WRITE")
+ * @Cache(usage="READ_ONLY")
  */
 class TblItemCondition extends Element
 {

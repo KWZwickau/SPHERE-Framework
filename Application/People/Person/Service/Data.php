@@ -55,6 +55,9 @@ class Data extends AbstractData
      */
     public function createPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $BirthName = '')
     {
+        if ($Salutation === false) {
+            $Salutation = null;
+        }
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = new TblPerson();
@@ -78,7 +81,6 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSalutation', $Id);
-//        return $this->getConnection()->getEntityManager()->getEntityById('TblSalutation', $Id);
     }
 
     /**
@@ -101,6 +103,9 @@ class Data extends AbstractData
         $LastName,
         $BirthName = ''
     ) {
+        if ($Salutation === false || $Salutation === '0') {
+            $Salutation = null;
+        }
 
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblPerson $Entity */

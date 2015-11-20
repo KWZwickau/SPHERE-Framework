@@ -14,7 +14,7 @@ use SPHERE\System\Database\Fitting\Element;
 /**
  * @Entity
  * @Table(name="tblBalance")
- * @Cache(usage="NONSTRICT_READ_WRITE")
+ * @Cache(usage="READ_ONLY")
  */
 class TblBalance extends Element
 {

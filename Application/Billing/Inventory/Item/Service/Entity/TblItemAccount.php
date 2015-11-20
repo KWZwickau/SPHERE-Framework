@@ -13,7 +13,7 @@ use SPHERE\System\Database\Fitting\Element;
 /**
  * @Entity
  * @Table(name="tblItemAccount")
- * @Cache(usage="NONSTRICT_READ_WRITE")
+ * @Cache(usage="READ_ONLY")
  */
 class TblItemAccount extends Element
 {

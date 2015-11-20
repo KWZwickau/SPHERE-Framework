@@ -19,7 +19,12 @@ class TblStudent extends Element
 {
 
     const SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_TBL_IDENTIFIER = 'Identifier';
 
+    /**
+     * @Column(type="string")
+     */
+    protected $Identifier;
     /**
      * @Column(type="bigint")
      */
@@ -201,5 +206,23 @@ class TblStudent extends Element
     {
 
         $this->tblStudentIntegration = ( null === $tblStudentIntegration ? null : $tblStudentIntegration->getId() );
+    }
+
+    /**
+     * @return string
+     */
+    public function getIdentifier()
+    {
+
+        return $this->Identifier;
+    }
+
+    /**
+     * @param string $Identifier
+     */
+    public function setIdentifier($Identifier)
+    {
+
+        $this->Identifier = $Identifier;
     }
 }

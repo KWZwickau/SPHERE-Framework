@@ -10,7 +10,7 @@ use SPHERE\System\Database\Fitting\Element;
 /**
  * @Entity
  * @Table(name="tblPaymentType")
- * @Cache(usage="NONSTRICT_READ_WRITE")
+ * @Cache(usage="READ_ONLY")
  */
 class TblPaymentType extends Element
 {

@@ -4,9 +4,12 @@ namespace SPHERE\Application\Contact\Address\Service\Entity;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\JoinColumn;
+use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Common\Frontend\Layout\Repository\Address as LayoutAddress;
+use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -37,12 +40,68 @@ class TblAddress extends Element
     protected $PostOfficeBox;
     /**
      * @Column(type="bigint")
+     * @ManyToOne(targetEntity="TblCity",fetch="EAGER")
+     * @JoinColumn(name="tblCity",referencedColumnName="Id")
      */
     protected $tblCity;
     /**
      * @Column(type="bigint")
+     * @ManyToOne(targetEntity="TblState",fetch="EAGER")
+     * @JoinColumn(name="tblState",referencedColumnName="Id")
      */
     protected $tblState;
+
+    /**
+     * @return string
+     */
+    public function getPostOfficeBox()
+    {
+
+        return $this->PostOfficeBox;
+    }
+
+    /**
+     * @param string $PostOfficeBox
+     */
+    public function setPostOfficeBox($PostOfficeBox)
+    {
+
+        $this->PostOfficeBox = $PostOfficeBox;
+    }
+
+    /**
+     * @return LayoutAddress
+     */
+    public function getGuiLayout()
+    {
+
+        $Cache = (new \SPHERE\System\Cache\Cache(new Memcached()))->getCache();
+        if (false === ( $Return = $Cache->getValue(__METHOD__.$this->getId()) )) {
+            $Return = new LayoutAddress($this);
+            $Cache->setValue(__METHOD__.$this->getId(), $Return);
+        }
+        return $Return;
+    }
+
+    /**
+     * @return string
+     */
+    public function getGuiString()
+    {
+
+        $Cache = (new \SPHERE\System\Cache\Cache(new Memcached()))->getCache();
+        if (false === ( $Return = $Cache->getValue(__METHOD__.$this->getId()) )) {
+
+            $Return = $this->getStreetName()
+                .' '.$this->getStreetNumber()
+                .', '.$this->getTblCity()->getCode()
+                .' '.$this->getTblCity()->getName()
+                .( $this->getTblState() ? ' ('.$this->getTblState()->getName().')' : '' );
+
+            $Cache->setValue(__METHOD__.$this->getId(), $Return);
+        }
+        return $Return;
+    }
 
     /**
      * @return string
@@ -78,24 +137,6 @@ class TblAddress extends Element
     {
 
         $this->StreetNumber = $StreetNumber;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPostOfficeBox()
-    {
-
-        return $this->PostOfficeBox;
-    }
-
-    /**
-     * @param string $PostOfficeBox
-     */
-    public function setPostOfficeBox($PostOfficeBox)
-    {
-
-        $this->PostOfficeBox = $PostOfficeBox;
     }
 
     /**
@@ -140,14 +181,5 @@ class TblAddress extends Element
     {
 
         $this->tblState = ( null === $tblState ? null : $tblState->getId() );
-    }
-
-    /**
-     * @return LayoutAddress
-     */
-    public function getLayout()
-    {
-
-        return new LayoutAddress($this);
     }
 }
