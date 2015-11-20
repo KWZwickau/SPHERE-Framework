@@ -368,6 +368,13 @@ class Frontend extends Extension implements IFrontendInterface
                         $Global->POST['Meta']['Additional']['Locker']['Key'] = $tblStudentLocker->getKeyNumber();
                     }
 
+                    $tblStudentBaptism = $tblStudent->getTblStudentBaptism();
+                    if ($tblStudentBaptism)
+                    {
+                        $Global->POST['Meta']['Additional']['Baptism']['Date'] = $tblStudentBaptism->getBaptismDate();
+                        $Global->POST['Meta']['Additional']['Baptism']['Location'] = $tblStudentBaptism->getLocation();
+                    }
+
                     $Global->savePost();
                 }
             }

@@ -83,6 +83,12 @@ class Service extends Integration
                 $Meta['Additional']['Locker']['Location'],
                 $Meta['Additional']['Locker']['Key']
             );
+
+            (new Data($this->getBinding()))->updateStudentBaptism(
+                $tblStudent->getTblStudentBaptism(),
+                $Meta['Additional']['Baptism']['Date'],
+                $Meta['Additional']['Baptism']['Location']
+            );
         } else {
 
             $tblStudentLocker = (new Data($this->getBinding()))->createStudentLocker(
@@ -99,13 +105,19 @@ class Service extends Integration
                 $Meta['MedicalRecord']['Insurance']['Company']
             );
 
+            $tblStudentBaptism = (new Data($this->getBinding()))->createStudentBaptism(
+                $Meta['Additional']['Baptism']['Date'],
+                $Meta['Additional']['Baptism']['Location']
+            );
+
             (new Data($this->getBinding()))->createStudent(
                 $tblPerson,
                 $Meta['Student']['Identifier'],
                 $tblStudentMedicalRecord,
                 null,
                 null,
-                $tblStudentLocker
+                $tblStudentLocker,
+                $tblStudentBaptism
             );
         }
 
