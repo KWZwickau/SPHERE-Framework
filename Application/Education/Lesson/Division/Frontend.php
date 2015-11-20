@@ -506,12 +506,10 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblStudent->getId()
                     );
                 }
-            }else
-            {
+            } else {
                 $tblStudentList = new Warning('Kein Schüler ohne Klasse im System');
             }
-        } else
-        {
+        } else {
             $tblStudentList = new Warning('Kein Schüler im System');
         }
 
@@ -847,7 +845,7 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                 }
             }
-        }else {
+        } else {
             $tblStudentList = new Warning('Es sind noch keine Schüler für die Klasse hinterlegt');
         }
         $tblGroupList = Division::useService()->getSubjectGroupAll();
@@ -1113,9 +1111,10 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblDivisionStudent->FullName = $tblDivisionStudent->getFirstName().' '.
                         $tblDivisionStudent->getSecondName().' '.
                         $tblDivisionStudent->getLastName();
-                    $tblDivisionStudent->Option = new Standard('', '', new Person(), null, 'Test')
-                        .new Standard('', '', new Book(), null, 'Test (Fächer)')
-                        .new Standard('', '/Education/Lesson/Division/Student/Remove', new Remove(),
+                    $tblDivisionStudent->Option =
+//                        new Standard('', '', new Person(), null, 'Test')
+//                        .new Standard('', '', new Book(), null, 'Test (Fächer)').
+                        new Standard('', '/Education/Lesson/Division/Student/Remove', new Remove(),
                             array('Id'        => $tblDivision->getId(),
                                   'StudentId' => $tblDivisionStudent->getId()),
                             'Schüler entfernen');
@@ -1140,9 +1139,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $tblDivisionTeacher = new LayoutColumn(
                         new Panel($tblDivisionTeacher->getFullName(), $Content, Panel::PANEL_TYPE_INFO,
-                            new Standard('', '', new Person(), null, 'Test')
-                            .new Standard('', '', new Book(), null, 'Test (Fächer)')
-                            .new Standard('', '/Education/Lesson/Division/Teacher/Remove', new Remove(),
+//                            new Standard('', '', new Person(), null, 'Test')
+//                            .new Standard('', '', new Book(), null, 'Test (Fächer)').
+                            new Standard('', '/Education/Lesson/Division/Teacher/Remove', new Remove(),
                                 array('Id'        => $tblDivision->getId(),
                                       'TeacherId' => $tblDivisionTeacher->getId()),
                                 'Lehrer entfernen')), 4
