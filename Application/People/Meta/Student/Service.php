@@ -65,53 +65,113 @@ class Service extends Integration
 
         if ($tblStudent) {
 
-            if ($tblStudent->getIdentifier() !== $Meta['Student']['Identifier']) {
-                (new Data($this->getBinding()))->updateStudentIdentifier(
-                    $tblStudent,
-                    $Meta['Student']['Identifier']);
+            // ToDo JohK StudentBilling
+
+            $tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
+            if ($tblStudentMedicalRecord) {
+                (new Data($this->getBinding()))->updateStudentMedicalRecord(
+                    $tblStudent->getTblStudentMedicalRecord(),
+                    $Meta['MedicalRecord']['Disease'],
+                    $Meta['MedicalRecord']['Medication'],
+                    $AttendingDoctor ? $AttendingDoctor : null,
+                    $Meta['MedicalRecord']['Insurance']['State'],
+                    $Meta['MedicalRecord']['Insurance']['Company']
+                );
+            } else {
+                $tblStudentMedicalRecord = (new Data($this->getBinding()))->createStudentMedicalRecord(
+                    $Meta['MedicalRecord']['Disease'],
+                    $Meta['MedicalRecord']['Medication'],
+                    $AttendingDoctor ? $AttendingDoctor : null,
+                    $Meta['MedicalRecord']['Insurance']['State'],
+                    $Meta['MedicalRecord']['Insurance']['Company']
+                );
             }
 
-            (new Data($this->getBinding()))->updateStudentMedicalRecord(
-                $tblStudent->getTblStudentMedicalRecord(),
-                $Meta['MedicalRecord']['Disease'],
-                $Meta['MedicalRecord']['Medication'],
-                $AttendingDoctor ? $AttendingDoctor : null,
-                $Meta['MedicalRecord']['Insurance']['State'],
-                $Meta['MedicalRecord']['Insurance']['Company']
+            $tblStudentLocker = $tblStudent->getTblStudentLocker();
+            if ($tblStudentLocker) {
+                (new Data($this->getBinding()))->updateStudentLocker(
+                    $tblStudent->getTblStudentLocker(),
+                    $Meta['Additional']['Locker']['Number'],
+                    $Meta['Additional']['Locker']['Location'],
+                    $Meta['Additional']['Locker']['Key']
+                );
+            } else {
+                $tblStudentLocker = (new Data($this->getBinding()))->createStudentLocker(
+                    $Meta['Additional']['Locker']['Number'],
+                    $Meta['Additional']['Locker']['Location'],
+                    $Meta['Additional']['Locker']['Key']
+                );
+            }
+
+            $tblStudentBaptism = $tblStudent->getTblStudentBaptism();
+            if ($tblStudentBaptism) {
+                (new Data($this->getBinding()))->updateStudentBaptism(
+                    $tblStudent->getTblStudentBaptism(),
+                    $Meta['Additional']['Baptism']['Date'],
+                    $Meta['Additional']['Baptism']['Location']
+                );
+            } else {
+                $tblStudentBaptism = (new Data($this->getBinding()))->createStudentBaptism(
+                    $Meta['Additional']['Baptism']['Date'],
+                    $Meta['Additional']['Baptism']['Location']
+                );
+            }
+
+            $tblStudentTransport = $tblStudent->getTblStudentTransport();
+            if ($tblStudentTransport) {
+               (new Data($this->getBinding()))->updateStudentTransport(
+                    $tblStudent->getTblStudentTransport(),
+                    $Meta['Transport']['Route'],
+                    $Meta['Transport']['Station']['Entrance'],
+                    $Meta['Transport']['Station']['Exit'],
+                    $Meta['Transport']['Remark']
+                );
+            } else {
+                $tblStudentTransport = (new Data($this->getBinding()))->createStudentTransport(
+                    $Meta['Transport']['Route'],
+                    $Meta['Transport']['Station']['Entrance'],
+                    $Meta['Transport']['Station']['Exit'],
+                    $Meta['Transport']['Remark']
+                );
+            }
+
+            $tblStudentIntegration = $tblStudent->getTblStudentIntegration();
+            if ($tblStudentIntegration) {
+                (new Data($this->getBinding()))->updateStudentIntegration(
+                    $tblStudent->getTblStudentIntegration(),
+                    $IntegrationPerson ? $IntegrationPerson : null,
+                    $IntegrationCompany ? $IntegrationCompany : null,
+                    $Meta['Integration']['Coaching']['RequestDate'],
+                    $Meta['Integration']['Coaching']['CounselDate'],
+                    $Meta['Integration']['Coaching']['DecisionDate'],
+                    isset($Meta['Integration']['Coaching']['Required']),
+                    $Meta['Integration']['School']['Time'],
+                    $Meta['Integration']['School']['Remark']
+                );
+            } else {
+                $tblStudentIntegration = (new Data($this->getBinding()))->createStudentIntegration(
+                    $IntegrationPerson ? $IntegrationPerson : null,
+                    $IntegrationCompany ? $IntegrationCompany : null,
+                    $Meta['Integration']['Coaching']['RequestDate'],
+                    $Meta['Integration']['Coaching']['CounselDate'],
+                    $Meta['Integration']['Coaching']['DecisionDate'],
+                    isset($Meta['Integration']['Coaching']['Required']),
+                    $Meta['Integration']['School']['Time'],
+                    $Meta['Integration']['School']['Remark']
+                );
+            }
+
+            (new Data($this->getBinding()))->updateStudent(
+                $tblStudent,
+                $Meta['Student']['Identifier'],
+                $tblStudentMedicalRecord,
+                $tblStudentTransport,
+                null,
+                $tblStudentLocker,
+                $tblStudentBaptism,
+                $tblStudentIntegration
             );
 
-            (new Data($this->getBinding()))->updateStudentLocker(
-                $tblStudent->getTblStudentLocker(),
-                $Meta['Additional']['Locker']['Number'],
-                $Meta['Additional']['Locker']['Location'],
-                $Meta['Additional']['Locker']['Key']
-            );
-
-            (new Data($this->getBinding()))->updateStudentBaptism(
-                $tblStudent->getTblStudentBaptism(),
-                $Meta['Additional']['Baptism']['Date'],
-                $Meta['Additional']['Baptism']['Location']
-            );
-
-            (new Data($this->getBinding()))->updateStudentTransport(
-                $tblStudent->getTblStudentTransport(),
-                $Meta['Transport']['Route'],
-                $Meta['Transport']['Station']['Entrance'],
-                $Meta['Transport']['Station']['Exit'],
-                $Meta['Transport']['Remark']
-            );
-
-            (new Data($this->getBinding()))->updateStudentIntegration(
-                $tblStudent->getTblStudentIntegration(),
-                $IntegrationPerson ? $IntegrationPerson : null,
-                $IntegrationCompany ? $IntegrationCompany : null,
-                $Meta['Integration']['Coaching']['RequestDate'],
-                $Meta['Integration']['Coaching']['CounselDate'],
-                $Meta['Integration']['Coaching']['DecisionDate'],
-                isset($Meta['Integration']['Coaching']['Required']),
-                $Meta['Integration']['School']['Time'],
-                $Meta['Integration']['School']['Remark']
-            );
         } else {
 
             $tblStudentLocker = (new Data($this->getBinding()))->createStudentLocker(
@@ -163,19 +223,15 @@ class Service extends Integration
             );
         }
 
-        if ($tblStudent)
-        {
+        if ($tblStudent) {
             $tblStudentDisorderAll = $this->getStudentDisorderAllByStudent($tblStudent);
-            if ($tblStudentDisorderAll)
-            {
+            if ($tblStudentDisorderAll) {
                 foreach ($tblStudentDisorderAll as $tblStudentDisorder) {
                     (new Data($this->getBinding()))->removeStudentDisorder($tblStudentDisorder);
                 }
             }
-            if (isset($Meta['Integration']['Disorder']))
-            {
-                foreach ($Meta['Integration']['Disorder'] as $Key => $Value)
-                {
+            if (isset($Meta['Integration']['Disorder'])) {
+                foreach ($Meta['Integration']['Disorder'] as $Key => $Value) {
                     $tblStudentDisorderType = $this->getStudentDisorderTypeById($Key);
                     if ($tblStudentDisorderType) {
                         (new Data($this->getBinding()))->addStudentDisorder($tblStudent, $tblStudentDisorderType);
@@ -184,16 +240,13 @@ class Service extends Integration
             }
 
             $tblStudentFocusAll = $this->getStudentFocusAllByStudent($tblStudent);
-            if ($tblStudentFocusAll)
-            {
+            if ($tblStudentFocusAll) {
                 foreach ($tblStudentFocusAll as $tblStudentFocus) {
                     (new Data($this->getBinding()))->removeStudentFocus($tblStudentFocus);
                 }
             }
-            if (isset($Meta['Integration']['Focus']))
-            {
-                foreach ($Meta['Integration']['Focus'] as $Key => $Value)
-                {
+            if (isset($Meta['Integration']['Focus'])) {
+                foreach ($Meta['Integration']['Focus'] as $Key => $Value) {
                     $tblStudentFocusType = $this->getStudentFocusTypeById($Key);
                     if ($tblStudentFocusType) {
                         (new Data($this->getBinding()))->addStudentFocus($tblStudent, $tblStudentFocusType);

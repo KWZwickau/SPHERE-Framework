@@ -419,28 +419,4 @@ class Data extends Integration
             'TblStudentTransport', $Id
         );
     }
-
-    /**
-     * @param TblStudent $tblStudent
-     * @param $Identifier
-     *
-     * @return bool
-     */
-    public function updateStudentIdentifier(
-        TblStudent $tblStudent,
-        $Identifier
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        /** @var null|TblStudent $Entity */
-        $Entity = $Manager->getEntityById('TblStudent', $tblStudent->getId());
-        if (null !== $Entity) {
-            $Protocol = clone $Entity;
-            $Entity->setIdentifier($Identifier);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
-            return true;
-        }
-        return false;
-    }
 }
