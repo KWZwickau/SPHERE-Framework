@@ -201,7 +201,6 @@ class Division implements IModuleInterface
                         if (!$StudentList) {
                             $StudentList = null;
                         }
-                        var_dump($TeacherList);
                         if (!$TeacherList) {
                             $TeacherList = null;
                         }
