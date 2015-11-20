@@ -63,8 +63,12 @@ class Service extends Integration
         $AttendingDoctor = Person::useService()->getPersonById($Meta['MedicalRecord']['AttendingDoctor']);
 
         if ($tblStudent) {
-            // ToDo JohK update StudentIdentifier
 
+            if ($tblStudent->getIdentifier() !== $Meta['Student']['Identifier']) {
+                (new Data($this->getBinding()))->updateStudentIdentifier(
+                    $tblStudent,
+                    $Meta['Student']['Identifier']);
+            }
             (new Data($this->getBinding()))->updateStudentMedicalRecord(
                 $tblStudent->getTblStudentMedicalRecord(),
                 $Meta['MedicalRecord']['Disease'],
