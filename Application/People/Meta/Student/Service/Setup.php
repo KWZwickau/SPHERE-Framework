@@ -141,7 +141,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('LockerNumber', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblStudentLocker', 'LockerLockation')) {
-            $Table->addColumn('LockerLockation', 'string');
+            $Table->addColumn('LockerLocation', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblStudentLocker', 'KeyNumber')) {
             $Table->addColumn('KeyNumber', 'string');

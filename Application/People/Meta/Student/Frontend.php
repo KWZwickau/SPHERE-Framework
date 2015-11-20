@@ -359,6 +359,15 @@ class Frontend extends Extension implements IFrontendInterface
                         $Global->POST['Meta']['MedicalRecord']['Insurance']['State'] = $tblStudentMedicalRecord->getInsuranceState();
                         $Global->POST['Meta']['MedicalRecord']['Insurance']['Company'] = $tblStudentMedicalRecord->getInsurance();
                     }
+
+                    $tblStudentLocker = $tblStudent->getTblStudentLocker();
+                    if ($tblStudentLocker)
+                    {
+                        $Global->POST['Meta']['Additional']['Locker']['Number'] = $tblStudentLocker->getLockerNumber();
+                        $Global->POST['Meta']['Additional']['Locker']['Location'] = $tblStudentLocker->getLockerLocation();
+                        $Global->POST['Meta']['Additional']['Locker']['Key'] = $tblStudentLocker->getKeyNumber();
+                    }
+
                     $Global->savePost();
                 }
             }

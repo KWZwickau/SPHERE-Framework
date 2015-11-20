@@ -58,8 +58,6 @@ class Service extends Integration
 
         $tblStudent = $this->getStudentByPerson($tblPerson);
 
-        $this->getDebugger()->screenDump($Meta['MedicalRecord']);
-
         $AttendingDoctor = Person::useService()->getPersonById($Meta['MedicalRecord']['AttendingDoctor']);
 
         if ($tblStudent) {
@@ -69,6 +67,7 @@ class Service extends Integration
                     $tblStudent,
                     $Meta['Student']['Identifier']);
             }
+
             (new Data($this->getBinding()))->updateStudentMedicalRecord(
                 $tblStudent->getTblStudentMedicalRecord(),
                 $Meta['MedicalRecord']['Disease'],
@@ -77,7 +76,21 @@ class Service extends Integration
                 $Meta['MedicalRecord']['Insurance']['State'],
                 $Meta['MedicalRecord']['Insurance']['Company']
             );
+
+            (new Data($this->getBinding()))->updateStudentLocker(
+                $tblStudent->getTblStudentLocker(),
+                $Meta['Additional']['Locker']['Number'],
+                $Meta['Additional']['Locker']['Location'],
+                $Meta['Additional']['Locker']['Key']
+            );
         } else {
+
+            $tblStudentLocker = (new Data($this->getBinding()))->createStudentLocker(
+                $Meta['Additional']['Locker']['Number'],
+                $Meta['Additional']['Locker']['Location'],
+                $Meta['Additional']['Locker']['Key']
+            );
+
             $tblStudentMedicalRecord = (new Data($this->getBinding()))->createStudentMedicalRecord(
                 $Meta['MedicalRecord']['Disease'],
                 $Meta['MedicalRecord']['Medication'],
@@ -85,10 +98,14 @@ class Service extends Integration
                 $Meta['MedicalRecord']['Insurance']['State'],
                 $Meta['MedicalRecord']['Insurance']['Company']
             );
+
             (new Data($this->getBinding()))->createStudent(
                 $tblPerson,
                 $Meta['Student']['Identifier'],
-                $tblStudentMedicalRecord
+                $tblStudentMedicalRecord,
+                null,
+                null,
+                $tblStudentLocker
             );
         }
 
