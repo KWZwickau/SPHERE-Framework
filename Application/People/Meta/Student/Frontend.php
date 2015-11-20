@@ -639,6 +639,22 @@ class Frontend extends Extension implements IFrontendInterface
                         $Global->POST['Meta']['Integration']['School']['Time'] = $tblStudentIntegration->getCoachingTime();
                         $Global->POST['Meta']['Integration']['School']['Remark'] = $tblStudentIntegration->getCoachingRemark();
                     }
+
+                    $tblStudentDisorderAll = Student::useService()->getStudentDisorderAllByStudent($tblStudent);
+                    if ($tblStudentDisorderAll)
+                    {
+                        foreach ($tblStudentDisorderAll as $tblStudentDisorder) {
+                            $Global->POST['Meta']['Integration']['Disorder'][$tblStudentDisorder->getTblStudentDisorderType()->getId()] = 1;
+                        }
+                    }
+
+                    $tblStudentFocusAll = Student::useService()->getStudentFocusAllByStudent($tblStudent);
+                    if ($tblStudentFocusAll)
+                    {
+                        foreach ($tblStudentFocusAll as $tblStudentFocus) {
+                            $Global->POST['Meta']['Integration']['Focus'][$tblStudentFocus->getTblStudentFocusType()->getId()] = 1;
+                        }
+                    }
                 }
             }
             $Global->savePost();

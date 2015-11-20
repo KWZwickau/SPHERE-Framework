@@ -151,7 +151,7 @@ class Service extends Integration
                 $Meta['Integration']['School']['Remark']
             );
 
-            (new Data($this->getBinding()))->createStudent(
+            $tblStudent = (new Data($this->getBinding()))->createStudent(
                 $tblPerson,
                 $Meta['Student']['Identifier'],
                 $tblStudentMedicalRecord,
@@ -163,8 +163,47 @@ class Service extends Integration
             );
         }
 
+        if ($tblStudent)
+        {
+            $tblStudentDisorderAll = $this->getStudentDisorderAllByStudent($tblStudent);
+            if ($tblStudentDisorderAll)
+            {
+                foreach ($tblStudentDisorderAll as $tblStudentDisorder) {
+                    (new Data($this->getBinding()))->removeStudentDisorder($tblStudentDisorder);
+                }
+            }
+            if (isset($Meta['Integration']['Disorder']))
+            {
+                foreach ($Meta['Integration']['Disorder'] as $Key => $Value)
+                {
+                    $tblStudentDisorderType = $this->getStudentDisorderTypeById($Key);
+                    if ($tblStudentDisorderType) {
+                        (new Data($this->getBinding()))->addStudentDisorder($tblStudent, $tblStudentDisorderType);
+                    }
+                }
+            }
+
+            $tblStudentFocusAll = $this->getStudentFocusAllByStudent($tblStudent);
+            if ($tblStudentFocusAll)
+            {
+                foreach ($tblStudentFocusAll as $tblStudentFocus) {
+                    (new Data($this->getBinding()))->removeStudentFocus($tblStudentFocus);
+                }
+            }
+            if (isset($Meta['Integration']['Focus']))
+            {
+                foreach ($Meta['Integration']['Focus'] as $Key => $Value)
+                {
+                    $tblStudentFocusType = $this->getStudentFocusTypeById($Key);
+                    if ($tblStudentFocusType) {
+                        (new Data($this->getBinding()))->addStudentFocus($tblStudent, $tblStudentFocusType);
+                    }
+                }
+            }
+        }
+
         return new Success('Die Daten wurde erfolgreich gespeichert')
-        . new Redirect('/People/Person', 3, array('Id' => $tblPerson->getId()));
+        . new Redirect('/People/Person', 1, array('Id' => $tblPerson->getId()));
     }
 
     /**
