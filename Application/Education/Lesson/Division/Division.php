@@ -16,6 +16,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -200,6 +201,7 @@ class Division implements IModuleInterface
                         if (!$StudentList) {
                             $StudentList = null;
                         }
+                        var_dump($TeacherList);
                         if (!$TeacherList) {
                             $TeacherList = null;
                         }
@@ -209,8 +211,8 @@ class Division implements IModuleInterface
                         if (!$DivisionSubjectList) {
                         } else {
                             foreach ($DivisionSubjectList as $DivisionSubject) {
-                                $TeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($DivisionSubject);
-                                if (!$TeacherList) {
+                                $TeacherListUsed = Division::useService()->getSubjectTeacherByDivisionSubject($DivisionSubject);
+                                if (!$TeacherListUsed) {
                                     $SubjectUsedCount = $SubjectUsedCount + 1;
                                 }
                             }
@@ -239,8 +241,8 @@ class Division implements IModuleInterface
                                 , 'Schüler: '.new Pullright(new Badge(count($StudentList)))
                                 , 'Klassenlehrer: '.new Pullright(new Badge(count($TeacherList)))
                                 , 'Fächer: '.new Pullright(new Badge(count($SubjectList)))
-                                , ( $SubjectUsedCount != 0 ) ? 'fehlende Fachlehrer: '
-                                        .new Pullright(new Badge($SubjectUsedCount, Badge::BADGE_TYPE_DANGER))
+                                , ( $SubjectUsedCount != 0 ) ? new Danger('fehlende Fachlehrer: '
+                                        .new Pullright(new Badge($SubjectUsedCount, Badge::BADGE_TYPE_DANGER)))
                                         : null
                                 )
                                 , Panel::PANEL_TYPE_DEFAULT
