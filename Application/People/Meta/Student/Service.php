@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student;
 
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
@@ -56,11 +57,11 @@ class Service extends Integration
             return $Form;
         }
 
-        var_dump($Meta['Transport']);
-
         $tblStudent = $this->getStudentByPerson($tblPerson);
 
         $AttendingDoctor = Person::useService()->getPersonById($Meta['MedicalRecord']['AttendingDoctor']);
+        $IntegrationPerson = Person::useService()->getPersonById($Meta['Integration']['School']['Person']);
+        $IntegrationCompany = Company::useService()->getCompanyById($Meta['Integration']['School']['Company']);
 
         if ($tblStudent) {
 
@@ -99,6 +100,18 @@ class Service extends Integration
                 $Meta['Transport']['Station']['Exit'],
                 $Meta['Transport']['Remark']
             );
+
+            (new Data($this->getBinding()))->updateStudentIntegration(
+                $tblStudent->getTblStudentIntegration(),
+                $IntegrationPerson ? $IntegrationPerson : null,
+                $IntegrationCompany ? $IntegrationCompany : null,
+                $Meta['Integration']['Coaching']['RequestDate'],
+                $Meta['Integration']['Coaching']['CounselDate'],
+                $Meta['Integration']['Coaching']['DecisionDate'],
+                isset($Meta['Integration']['Coaching']['Required']),
+                $Meta['Integration']['School']['Time'],
+                $Meta['Integration']['School']['Remark']
+            );
         } else {
 
             $tblStudentLocker = (new Data($this->getBinding()))->createStudentLocker(
@@ -127,6 +140,17 @@ class Service extends Integration
                 $Meta['Transport']['Remark']
             );
 
+            $tblStudentIntegration = (new Data($this->getBinding()))->createStudentIntegration(
+                $IntegrationPerson ? $IntegrationPerson : null,
+                $IntegrationCompany ? $IntegrationCompany : null,
+                $Meta['Integration']['Coaching']['RequestDate'],
+                $Meta['Integration']['Coaching']['CounselDate'],
+                $Meta['Integration']['Coaching']['DecisionDate'],
+                isset($Meta['Integration']['Coaching']['Required']),
+                $Meta['Integration']['School']['Time'],
+                $Meta['Integration']['School']['Remark']
+            );
+
             (new Data($this->getBinding()))->createStudent(
                 $tblPerson,
                 $Meta['Student']['Identifier'],
@@ -134,7 +158,8 @@ class Service extends Integration
                 $tblStudentTransport,
                 null,
                 $tblStudentLocker,
-                $tblStudentBaptism
+                $tblStudentBaptism,
+                $tblStudentIntegration
             );
         }
 

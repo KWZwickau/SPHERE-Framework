@@ -123,7 +123,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
-            if (!isset($Global->POST['Meta'])) {
+            if (!isset($Global->POST['Meta']['Transfer'])) {
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
@@ -339,7 +339,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
-            if (!isset($Global->POST['Meta'])) {
+            if (!isset($Global->POST['Meta']['MedicalRecord'])) {
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
@@ -616,6 +616,33 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function formGroupIntegration(TblPerson $tblPerson = null, $Meta = array())
     {
+        if (null !== $tblPerson) {
+            $Global = $this->getGlobal();
+            if (!isset($Global->POST['Meta']['Integration'])) {
+
+                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+
+                if ($tblStudent) {
+
+                    $tblStudentIntegration = $tblStudent->getTblStudentIntegration();
+                    if ($tblStudentIntegration) {
+
+                        $Global->POST['Meta']['Integration']['Coaching']['Required'] = $tblStudentIntegration->getCoachingRequired() ? 1 : 0;
+                        $Global->POST['Meta']['Integration']['Coaching']['CounselDate'] = $tblStudentIntegration->getCoachingCounselDate();
+                        $Global->POST['Meta']['Integration']['Coaching']['RequestDate'] = $tblStudentIntegration->getCoachingRequestDate();
+                        $Global->POST['Meta']['Integration']['Coaching']['DecisionDate'] = $tblStudentIntegration->getCoachingDecisionDate();
+
+                        $Global->POST['Meta']['Integration']['School']['Company'] =
+                            $tblStudentIntegration->getServiceTblCompany() ? $tblStudentIntegration->getServiceTblCompany()->getId() : 0;
+                        $Global->POST['Meta']['Integration']['School']['Person'] =
+                            $tblStudentIntegration->getServiceTblPerson() ? $tblStudentIntegration->getServiceTblPerson()->getId() : 0;
+                        $Global->POST['Meta']['Integration']['School']['Time'] = $tblStudentIntegration->getCoachingTime();
+                        $Global->POST['Meta']['Integration']['School']['Remark'] = $tblStudentIntegration->getCoachingRemark();
+                    }
+                }
+            }
+            $Global->savePost();
+        }
 
         $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
             Group::useService()->getGroupByMetaTable('SCHOOL')

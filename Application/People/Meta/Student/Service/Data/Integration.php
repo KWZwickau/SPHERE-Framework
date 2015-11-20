@@ -1,12 +1,14 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Data;
 
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentDisorder;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentDisorderType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocus;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocusType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentIntegration;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 
 /**
@@ -198,5 +200,92 @@ abstract class Integration extends Subject
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblStudentDisorder'
         );
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     * @param TblCompany|null $tblCompany
+     * @param $CoachingRequestDate
+     * @param $CoachingCounselDate
+     * @param $CoachingDecisionDate
+     * @param $CoachingRequired
+     * @param $CoachingTime
+     * @param $CoachingRemark
+     * 
+     * @return TblStudentIntegration
+     */
+    public function createStudentIntegration(
+        TblPerson $tblPerson = null,
+        TblCompany $tblCompany = null,
+        $CoachingRequestDate,
+        $CoachingCounselDate,
+        $CoachingDecisionDate,
+        $CoachingRequired,
+        $CoachingTime,
+        $CoachingRemark
+    )
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = new TblStudentIntegration();
+        $Entity->setServiceTblPerson($tblPerson);
+        $Entity->setServiceTblCompany($tblCompany);
+        $Entity->setCoachingRequestDate(( $CoachingRequestDate ? new \DateTime($CoachingRequestDate) : null ));
+        $Entity->setCoachingCounselDate(( $CoachingCounselDate ? new \DateTime($CoachingCounselDate) : null ));
+        $Entity->setCoachingDecisionDate(( $CoachingDecisionDate ? new \DateTime($CoachingDecisionDate) : null ));
+        $Entity->setCoachingRequired($CoachingRequired);
+        $Entity->setCoachingTime($CoachingTime);
+        $Entity->setCoachingRemark($CoachingRemark);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentIntegration $tblStudentIntegration
+     * @param TblPerson|null $tblPerson
+     * @param TblCompany|null $tblCompany
+     * @param $CoachingRequestDate
+     * @param $CoachingCounselDate
+     * @param $CoachingDecisionDate
+     * @param $CoachingRequired
+     * @param $CoachingTime
+     * @param $CoachingRemark
+     *
+     * @return bool
+     */
+    public function updateStudentIntegration(
+        TblStudentIntegration $tblStudentIntegration,
+        TblPerson $tblPerson = null,
+        TblCompany $tblCompany = null,
+        $CoachingRequestDate,
+        $CoachingCounselDate,
+        $CoachingDecisionDate,
+        $CoachingRequired,
+        $CoachingTime,
+        $CoachingRemark
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var null|TblStudentIntegration $Entity */
+        $Entity = $Manager->getEntityById('TblStudentIntegration', $tblStudentIntegration->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblCompany($tblCompany);
+            $Entity->setCoachingRequestDate(( $CoachingRequestDate ? new \DateTime($CoachingRequestDate) : null ));
+            $Entity->setCoachingCounselDate(( $CoachingCounselDate ? new \DateTime($CoachingCounselDate) : null ));
+            $Entity->setCoachingDecisionDate(( $CoachingDecisionDate ? new \DateTime($CoachingDecisionDate) : null ));
+            $Entity->setCoachingRequired($CoachingRequired);
+            $Entity->setCoachingTime($CoachingTime);
+            $Entity->setCoachingRemark($CoachingRemark);
+            $Manager->saveEntity($Entity);
+
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 }
