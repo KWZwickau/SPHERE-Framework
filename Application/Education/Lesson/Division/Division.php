@@ -207,7 +207,7 @@ class Division implements IModuleInterface
                         }
 
                         Main::getDispatcher()->registerWidget($tblLevel->getId(),
-                            new Panel('Gruppe: '.$tblDivision->getName()
+                            new Panel('Klassengruppe: '.$tblDivision->getName()
                                 , array(
                                     new Standard('Klassenansicht', '/Education/Lesson/Division/Show', new EyeOpen(),
                                         array('Id' => $tblDivision->getId()), 'Klassenansicht')

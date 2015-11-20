@@ -506,7 +506,13 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblStudent->getId()
                     );
                 }
+            }else
+            {
+                $tblStudentList = new Warning('Kein Schüler ohne Klasse im System');
             }
+        } else
+        {
+            $tblStudentList = new Warning('Kein Schüler im System');
         }
 
         return new Form(
@@ -620,6 +626,8 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                 }
             }
+        } else {
+            $tblTeacherList = new Warning('Es sind noch keine Lehrer im System');
         }
 
         return new Form(
@@ -747,6 +755,8 @@ class Frontend extends Extension implements IFrontendInterface
 //                        $tblSubject->getId()
 //                    );
 //                }
+            } else {
+                $ListLeft = new Warning('Alle Fächer im System bereits vergeben');
             }
         }
 
@@ -798,7 +808,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     , $DivisionSubject, $Student, $Id, $Group
                                 )
                             )
-                        ), new Title('Verfügbare Fächer')
+                        ), new Title('Schüler der Klasse '.$tblDivision->getTblLevel()->getName().$tblDivision->getName())
                     )
                 )
             ));
@@ -837,6 +847,8 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                 }
             }
+        }else {
+            $tblStudentList = new Warning('Es sind noch keine Schüler für die Klasse hinterlegt');
         }
         $tblGroupList = Division::useService()->getSubjectGroupAll();
         $tblGroupList[] = new TblSubjectGroup('');
@@ -891,7 +903,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 Division::useService()->addSubjectTeacher(
                                     $this->formSubjectTeacherAdd($tblDivision)
-                                        ->appendFormButton(new Primary('Gruppe hinzufügen'))
+                                        ->appendFormButton(new Primary('Zuweisung hinzufügen'))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                     , $DivisionSubject, $Teacher, $Id, $Group
                                 )
@@ -967,7 +979,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel('Fächer', $tblDivisionSubjectList, Panel::PANEL_TYPE_INFO)
                         , 6),
                     new FormColumn(
-                        new Panel(' Fächer:'
+                        new Panel(' Lehrer:'
                             , new SelectBox('Teacher', '', array('Name' => $tblTeacherlist)), Panel::PANEL_TYPE_INFO)
                         , 6),
                     new FormColumn(
