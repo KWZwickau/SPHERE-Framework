@@ -140,7 +140,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblStudentLocker', 'LockerNumber')) {
             $Table->addColumn('LockerNumber', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblStudentLocker', 'LockerLockation')) {
+        if (!$this->getConnection()->hasColumn('tblStudentLocker', 'LockerLocation')) {
             $Table->addColumn('LockerLocation', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblStudentLocker', 'KeyNumber')) {
@@ -278,6 +278,9 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblStudentTransfer', 'serviceTblType')) {
             $Table->addColumn('serviceTblType', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblStudentTransfer', 'serviceTblCourse')) {
+            $Table->addColumn('serviceTblCourse', 'bigint', array('notnull' => false));
         }
         if (!$this->getConnection()->hasColumn('tblStudentTransfer', 'TransferDate')) {
             $Table->addColumn('TransferDate', 'datetime', array('notnull' => false));

@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\School\Course\Course;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Student;
@@ -40,6 +42,10 @@ class TblStudentTransfer extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblType;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblCourse;
     /**
      * @Column(type="datetime")
      */
@@ -180,5 +186,27 @@ class TblStudentTransfer extends Element
     {
 
         $this->serviceTblType = ( null === $tblType ? null : $tblType->getId() );
+    }
+
+    /**
+     * @return bool|TblCourse
+     */
+    public function getServiceTblCourse()
+    {
+
+        if (null === $this->serviceTblCourse) {
+            return false;
+        } else {
+            return Course::useService()->getCourseById($this->serviceTblCourse);
+        }
+    }
+
+    /**
+     * @param TblCourse|null $tblCourse
+     */
+    public function setServiceTblCourse(TblCourse $tblCourse = null)
+    {
+
+        $this->serviceTblCourse = ( null === $tblCourse ? null : $tblCourse->getId() );
     }
 }

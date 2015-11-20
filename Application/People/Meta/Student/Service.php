@@ -2,6 +2,8 @@
 namespace SPHERE\Application\People\Meta\Student;
 
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Education\School\Course\Course;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
@@ -119,7 +121,7 @@ class Service extends Integration
 
             $tblStudentTransport = $tblStudent->getTblStudentTransport();
             if ($tblStudentTransport) {
-               (new Data($this->getBinding()))->updateStudentTransport(
+                (new Data($this->getBinding()))->updateStudentTransport(
                     $tblStudent->getTblStudentTransport(),
                     $Meta['Transport']['Route'],
                     $Meta['Transport']['Station']['Entrance'],
@@ -253,6 +255,101 @@ class Service extends Integration
                     }
                 }
             }
+
+            $TransferTypeEnrollment = Student::useService()->getStudentTransferTypeByIdentifier('Enrollment');
+            $tblStudentTransferByTypeEnrollment = Student::useService()->getStudentTransferByType(
+                $tblStudent,
+                $TransferTypeEnrollment
+            );
+            $tblCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeEnrollment->getId()]['School']);
+            $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeEnrollment->getId()]['Type']);
+            $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeEnrollment->getId()]['Course']);
+            if ($tblStudentTransferByTypeEnrollment) {
+                (new Data($this->getBinding()))->updateStudentTransfer(
+                    $tblStudentTransferByTypeEnrollment,
+                    $tblStudent,
+                    $TransferTypeEnrollment,
+                    $tblCompany ? $tblCompany : null,
+                    $tblType ? $tblType : null,
+                    $tblCourse ? $tblCourse : null,
+                    $Meta['Transfer'][$TransferTypeEnrollment->getId()]['Date'],
+                    $Meta['Transfer'][$TransferTypeEnrollment->getId()]['Remark']
+                );
+            } else {
+                (new Data($this->getBinding()))->createStudentTransfer(
+                    $tblStudent,
+                    $TransferTypeEnrollment,
+                    $tblCompany ? $tblCompany : null,
+                    $tblType ? $tblType : null,
+                    $tblCourse ? $tblCourse : null,
+                    $Meta['Transfer'][$TransferTypeEnrollment->getId()]['Date'],
+                    $Meta['Transfer'][$TransferTypeEnrollment->getId()]['Remark']
+                );
+            }
+
+            $TransferTypeArrive = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
+            $tblStudentTransferByTypeArrive = Student::useService()->getStudentTransferByType(
+                $tblStudent,
+                $TransferTypeArrive
+            );
+            $tblCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeArrive->getId()]['School']);
+            $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeArrive->getId()]['Type']);
+            $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeArrive->getId()]['Course']);
+            if ($tblStudentTransferByTypeArrive) {
+                (new Data($this->getBinding()))->updateStudentTransfer(
+                    $tblStudentTransferByTypeArrive,
+                    $tblStudent,
+                    $TransferTypeArrive,
+                    $tblCompany ? $tblCompany : null,
+                    $tblType ? $tblType : null,
+                    $tblCourse ? $tblCourse : null,
+                    $Meta['Transfer'][$TransferTypeArrive->getId()]['Date'],
+                    $Meta['Transfer'][$TransferTypeArrive->getId()]['Remark']
+                );
+            } else {
+                (new Data($this->getBinding()))->createStudentTransfer(
+                    $tblStudent,
+                    $TransferTypeArrive,
+                    $tblCompany ? $tblCompany : null,
+                    $tblType ? $tblType : null,
+                    $tblCourse ? $tblCourse : null,
+                    $Meta['Transfer'][$TransferTypeArrive->getId()]['Date'],
+                    $Meta['Transfer'][$TransferTypeArrive->getId()]['Remark']
+                );
+            }
+
+            $TransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('Leave');
+            $tblStudentTransferByTypeLeave = Student::useService()->getStudentTransferByType(
+                $tblStudent,
+                $TransferTypeLeave
+            );
+            $tblCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeLeave->getId()]['School']);
+            $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeLeave->getId()]['Type']);
+            $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeLeave->getId()]['Course']);
+            if ($tblStudentTransferByTypeLeave) {
+                (new Data($this->getBinding()))->updateStudentTransfer(
+                    $tblStudentTransferByTypeLeave,
+                    $tblStudent,
+                    $TransferTypeLeave,
+                    $tblCompany ? $tblCompany : null,
+                    $tblType ? $tblType : null,
+                    $tblCourse ? $tblCourse : null,
+                    $Meta['Transfer'][$TransferTypeLeave->getId()]['Date'],
+                    $Meta['Transfer'][$TransferTypeLeave->getId()]['Remark']
+                );
+            } else {
+                (new Data($this->getBinding()))->createStudentTransfer(
+                    $tblStudent,
+                    $TransferTypeLeave,
+                    $tblCompany ? $tblCompany : null,
+                    $tblType ? $tblType : null,
+                    $tblCourse ? $tblCourse : null,
+                    $Meta['Transfer'][$TransferTypeLeave->getId()]['Date'],
+                    $Meta['Transfer'][$TransferTypeLeave->getId()]['Remark']
+                );
+            }
+
+            // ToDo JohK Type Process
         }
 
         return new Success('Die Daten wurde erfolgreich gespeichert')

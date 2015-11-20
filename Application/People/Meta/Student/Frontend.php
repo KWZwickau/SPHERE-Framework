@@ -127,55 +127,81 @@ class Frontend extends Extension implements IFrontendInterface
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
+                    $TransferTypeEnrollment = Student::useService()->getStudentTransferTypeByIdentifier('Enrollment');
                     /** @var TblStudentTransfer $tblStudentTransferEnrollment */
                     $tblStudentTransferEnrollment = Student::useService()->getStudentTransferByType(
-                        $tblStudent, Student::useService()->getStudentTransferTypeByIdentifier('Enrollment')
+                        $tblStudent, $TransferTypeEnrollment
                     );
                     if ($tblStudentTransferEnrollment) {
-                        $Global->POST['Meta']['Transfer']['Enrollment']['School'] = (
+                        $Global->POST['Meta']['Transfer'][$TransferTypeEnrollment->getId()]['School'] = (
                         $tblStudentTransferEnrollment->getServiceTblCompany()
                             ? $tblStudentTransferEnrollment->getServiceTblCompany()->getId()
                             : 0
                         );
-                        $Global->POST['Meta']['Transfer']['Enrollment']['Date'] = $tblStudentTransferEnrollment->getTransferDate();
-                        $Global->POST['Meta']['Transfer']['Enrollment']['Remark'] = $tblStudentTransferEnrollment->getRemark();
-                    }
-                    /** @var TblStudentTransfer $tblStudentTransferArrive */
-                    $tblStudentTransferArrive = Student::useService()->getStudentTransferByType(
-                        $tblStudent, Student::useService()->getStudentTransferTypeByIdentifier('Arrive')
-                    );
-                    if ($tblStudentTransferArrive) {
-                        $Global->POST['Meta']['Transfer']['Arrive']['Type'] = (
-                        $tblStudentTransferArrive->getServiceTblType()
-                            ? $tblStudentTransferArrive->getServiceTblType()->getId()
+                        $Global->POST['Meta']['Transfer'][$TransferTypeEnrollment->getId()]['Type'] = (
+                        $tblStudentTransferEnrollment->getServiceTblType()
+                            ? $tblStudentTransferEnrollment->getServiceTblType()->getId()
                             : 0
                         );
-                        $Global->POST['Meta']['Transfer']['Arrive']['School'] = (
+                        $Global->POST['Meta']['Transfer'][$TransferTypeEnrollment->getId()]['Course'] = (
+                        $tblStudentTransferEnrollment->getServiceTblCourse()
+                            ? $tblStudentTransferEnrollment->getServiceTblCourse()->getId()
+                            : 0
+                        );
+                        $Global->POST['Meta']['Transfer'][$TransferTypeEnrollment->getId()]['Date'] = $tblStudentTransferEnrollment->getTransferDate();
+                        $Global->POST['Meta']['Transfer'][$TransferTypeEnrollment->getId()]['Remark'] = $tblStudentTransferEnrollment->getRemark();
+                    }
+
+                    $TransferTypeArrive = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
+                    /** @var TblStudentTransfer $tblStudentTransferArrive */
+                    $tblStudentTransferArrive = Student::useService()->getStudentTransferByType(
+                        $tblStudent, $TransferTypeArrive
+                    );
+                    if ($tblStudentTransferArrive) {
+                        $Global->POST['Meta']['Transfer'][$TransferTypeArrive->getId()]['School'] = (
                         $tblStudentTransferArrive->getServiceTblCompany()
                             ? $tblStudentTransferArrive->getServiceTblCompany()->getId()
                             : 0
                         );
-                        $Global->POST['Meta']['Transfer']['Arrive']['Date'] = $tblStudentTransferArrive->getTransferDate();
-                        $Global->POST['Meta']['Transfer']['Arrive']['Remark'] = $tblStudentTransferArrive->getRemark();
-                    }
-                    /** @var TblStudentTransfer $tblStudentTransferLeave */
-                    $tblStudentTransferLeave = Student::useService()->getStudentTransferByType(
-                        $tblStudent, Student::useService()->getStudentTransferTypeByIdentifier('Leave')
-                    );
-                    if ($tblStudentTransferLeave) {
-                        $Global->POST['Meta']['Transfer']['Leave']['Type'] = (
-                        $tblStudentTransferLeave->getServiceTblType()
-                            ? $tblStudentTransferLeave->getServiceTblType()->getId()
+                        $Global->POST['Meta']['Transfer'][$TransferTypeArrive->getId()]['Type'] = (
+                        $tblStudentTransferArrive->getServiceTblType()
+                            ? $tblStudentTransferArrive->getServiceTblType()->getId()
                             : 0
                         );
-                        $Global->POST['Meta']['Transfer']['Leave']['School'] = (
+                        $Global->POST['Meta']['Transfer'][$TransferTypeArrive->getId()]['Course'] = (
+                        $tblStudentTransferArrive->getServiceTblCourse()
+                            ? $tblStudentTransferArrive->getServiceTblCourse()->getId()
+                            : 0
+                        );
+                        $Global->POST['Meta']['Transfer'][$TransferTypeArrive->getId()]['Date'] = $tblStudentTransferArrive->getTransferDate();
+                        $Global->POST['Meta']['Transfer'][$TransferTypeArrive->getId()]['Remark'] = $tblStudentTransferArrive->getRemark();
+                    }
+
+                    $TransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('Leave');
+                    /** @var TblStudentTransfer $tblStudentTransferLeave */
+                    $tblStudentTransferLeave = Student::useService()->getStudentTransferByType(
+                        $tblStudent, $TransferTypeLeave
+                    );
+                    if ($tblStudentTransferLeave) {
+                        $Global->POST['Meta']['Transfer'][$TransferTypeLeave->getId()]['School'] = (
                         $tblStudentTransferLeave->getServiceTblCompany()
                             ? $tblStudentTransferLeave->getServiceTblCompany()->getId()
                             : 0
                         );
-                        $Global->POST['Meta']['Transfer']['Leave']['Date'] = $tblStudentTransferLeave->getTransferDate();
-                        $Global->POST['Meta']['Transfer']['Leave']['Remark'] = $tblStudentTransferLeave->getRemark();
+                        $Global->POST['Meta']['Transfer'][$TransferTypeLeave->getId()]['Type'] = (
+                        $tblStudentTransferLeave->getServiceTblType()
+                            ? $tblStudentTransferLeave->getServiceTblType()->getId()
+                            : 0
+                        );
+                        $Global->POST['Meta']['Transfer'][$TransferTypeLeave->getId()]['Course'] = (
+                        $tblStudentTransferLeave->getServiceTblCourse()
+                            ? $tblStudentTransferLeave->getServiceTblCourse()->getId()
+                            : 0
+                        );
+                        $Global->POST['Meta']['Transfer'][$TransferTypeLeave->getId()]['Date'] = $tblStudentTransferLeave->getTransferDate();
+                        $Global->POST['Meta']['Transfer'][$TransferTypeLeave->getId()]['Remark'] = $tblStudentTransferLeave->getRemark();
                     }
+
                     $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Process');
                     if ($tblStudentTransferType) {
                         /** @var TblStudentTransfer $tblStudentTransferProcess */
