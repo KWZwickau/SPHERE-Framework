@@ -361,18 +361,24 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $tblStudentLocker = $tblStudent->getTblStudentLocker();
-                    if ($tblStudentLocker)
-                    {
+                    if ($tblStudentLocker) {
                         $Global->POST['Meta']['Additional']['Locker']['Number'] = $tblStudentLocker->getLockerNumber();
                         $Global->POST['Meta']['Additional']['Locker']['Location'] = $tblStudentLocker->getLockerLocation();
                         $Global->POST['Meta']['Additional']['Locker']['Key'] = $tblStudentLocker->getKeyNumber();
                     }
 
                     $tblStudentBaptism = $tblStudent->getTblStudentBaptism();
-                    if ($tblStudentBaptism)
-                    {
+                    if ($tblStudentBaptism) {
                         $Global->POST['Meta']['Additional']['Baptism']['Date'] = $tblStudentBaptism->getBaptismDate();
                         $Global->POST['Meta']['Additional']['Baptism']['Location'] = $tblStudentBaptism->getLocation();
+                    }
+
+                    $tblStudentTransport = $tblStudent->getTblStudentTransport();
+                    if ($tblStudentTransport) {
+                        $Global->POST['Meta']['Transport']['Route'] = $tblStudentTransport->getRoute();
+                        $Global->POST['Meta']['Transport']['Station']['Entrance'] = $tblStudentTransport->getStationEntrance();
+                        $Global->POST['Meta']['Transport']['Station']['Exit'] = $tblStudentTransport->getStationExit();
+                        $Global->POST['Meta']['Transport']['Remark'] = $tblStudentTransport->getRemark();
                     }
 
                     $Global->savePost();

@@ -56,6 +56,8 @@ class Service extends Integration
             return $Form;
         }
 
+        var_dump($Meta['Transport']);
+
         $tblStudent = $this->getStudentByPerson($tblPerson);
 
         $AttendingDoctor = Person::useService()->getPersonById($Meta['MedicalRecord']['AttendingDoctor']);
@@ -89,6 +91,14 @@ class Service extends Integration
                 $Meta['Additional']['Baptism']['Date'],
                 $Meta['Additional']['Baptism']['Location']
             );
+
+            (new Data($this->getBinding()))->updateStudentTransport(
+                $tblStudent->getTblStudentTransport(),
+                $Meta['Transport']['Route'],
+                $Meta['Transport']['Station']['Entrance'],
+                $Meta['Transport']['Station']['Exit'],
+                $Meta['Transport']['Remark']
+            );
         } else {
 
             $tblStudentLocker = (new Data($this->getBinding()))->createStudentLocker(
@@ -110,11 +120,18 @@ class Service extends Integration
                 $Meta['Additional']['Baptism']['Location']
             );
 
+            $tblStudentTransport = (new Data($this->getBinding()))->createStudentTransport(
+                $Meta['Transport']['Route'],
+                $Meta['Transport']['Station']['Entrance'],
+                $Meta['Transport']['Station']['Exit'],
+                $Meta['Transport']['Remark']
+            );
+
             (new Data($this->getBinding()))->createStudent(
                 $tblPerson,
                 $Meta['Student']['Identifier'],
                 $tblStudentMedicalRecord,
-                null,
+                $tblStudentTransport,
                 null,
                 $tblStudentLocker,
                 $tblStudentBaptism
