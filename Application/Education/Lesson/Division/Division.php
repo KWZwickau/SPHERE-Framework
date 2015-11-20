@@ -209,7 +209,7 @@ class Division implements IModuleInterface
                         Main::getDispatcher()->registerWidget($tblLevel->getId(),
                             new Panel('Klassengruppe: '.$tblDivision->getName()
                                 , array(
-                                    new Standard('Klassenansicht', '/Education/Lesson/Division/Show', new EyeOpen(),
+                                    new Standard('&nbsp;Klassenansicht', '/Education/Lesson/Division/Show', new EyeOpen(),
                                         array('Id' => $tblDivision->getId()), 'Klassenansicht')
 //                                    'Anzahl Schüler: '.count($StudentList)
 //                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Student/Add',
@@ -226,10 +226,12 @@ class Division implements IModuleInterface
 //                                    'Zuordnung Fachlehrer'
 //                                    .new PullRight(new Standard('', '/Education/Lesson/Division/SubjectTeacher/Show',
 //                                        new EyeOpen(), array('Id' => $tblDivision->getId()), 'Übersicht Fachlehrer'))
+                                , new Small(new Small('Schüler: '.new Pullright(new Badge(count($StudentList)))))
+                                ,new Small(new Small('Klassenlehrer: '.new Pullright(new Badge(count($TeacherList)))))
+                                ,new Small(new Small('Fächer: '.new Pullright(new Badge(count($SubjectList)))))
                                 ,)
                                 , Panel::PANEL_TYPE_DEFAULT
-                                , new Small(new Small('Schüler: '.new Badge(count($StudentList))))
-                                .new Pullright(new Small(new Small('Klassenlehrer: '.new Badge(count($TeacherList)))))
+
                             )
                         );
                     }
