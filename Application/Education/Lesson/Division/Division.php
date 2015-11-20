@@ -54,8 +54,7 @@ class Division implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Change/Division', __NAMESPACE__.'\Frontend::frontendChangeDivision'
-        )
-        );
+        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Destroy/Division', __NAMESPACE__.'\Frontend::frontendDestroyDivision'
         ));
@@ -91,6 +90,15 @@ class Division implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/SubjectStudent/Remove', __NAMESPACE__.'\Frontend::frontendSubjectStudentRemove'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/SubjectTeacher/Show', __NAMESPACE__.'\Frontend::frontendSubjectTeacherShow'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/SubjectTeacher/Add', __NAMESPACE__.'\Frontend::frontendSubjectTeacherAdd'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/SubjectTeacher/Remove', __NAMESPACE__.'\Frontend::frontendSubjectTeacherRemove'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Show', __NAMESPACE__.'\Frontend::frontendDivisionShow'
@@ -199,9 +207,10 @@ class Division implements IModuleInterface
                         }
 
                         Main::getDispatcher()->registerWidget($tblLevel->getId(),
-                            new Panel(new Standard('', '/Education/Lesson/Division/Show', new EyeOpen(),
-                                    array('Id' => $tblDivision->getId()), 'Klassenansicht').'Gruppe: '.$tblDivision->getName()
+                            new Panel('Gruppe: '.$tblDivision->getName()
                                 , array(
+                                    new Standard('Klassenansicht', '/Education/Lesson/Division/Show', new EyeOpen(),
+                                        array('Id' => $tblDivision->getId()), 'Klassenansicht')
 //                                    'Anzahl Schüler: '.count($StudentList)
 //                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Student/Add',
 //                                        new Group(), array('Id' => $tblDivision->getId()), 'Schüler hinzufügen')),
@@ -211,12 +220,13 @@ class Division implements IModuleInterface
 //                                    'Anzahl Fächer: '.count($SubjectList)
 //                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Subject/Add',
 //                                        new Book(), array('Id' => $tblDivision->getId()), 'Fächer hinzufügen')),
-                                    'Zuordnung Gruppen'
-                                    .new PullRight(new Standard('', '/Education/Lesson/Division/SubjectStudent/Show',
-                                        new EyeOpen(), array('Id' => $tblDivision->getId()), 'Übersicht Gruppen')),
-                                    'Zuordnung Fachlehrer'
-                                    .new PullRight(new Standard('', '',
-                                        new EyeOpen(), array('Id' => $tblDivision->getId()), 'Übersicht Fachlehrer')),)
+//                                    'Zuordnung Gruppen'
+//                                    .new PullRight(new Standard('', '/Education/Lesson/Division/SubjectStudent/Show',
+//                                        new EyeOpen(), array('Id' => $tblDivision->getId()), 'Übersicht Gruppen')),
+//                                    'Zuordnung Fachlehrer'
+//                                    .new PullRight(new Standard('', '/Education/Lesson/Division/SubjectTeacher/Show',
+//                                        new EyeOpen(), array('Id' => $tblDivision->getId()), 'Übersicht Fachlehrer'))
+                                ,)
                                 , Panel::PANEL_TYPE_DEFAULT
                                 , new Small(new Small('Schüler: '.new Badge(count($StudentList))))
                                 .new Pullright(new Small(new Small('Klassenlehrer: '.new Badge(count($TeacherList)))))
