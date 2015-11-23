@@ -2,6 +2,7 @@
 namespace SPHERE\Application\People\Meta\Student;
 
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Service\Data;
@@ -164,13 +165,13 @@ class Service extends Integration
             }
 
             $tblStudentBilling = $tblStudent->getTblStudentBilling();
-            if ($tblStudentBilling){
+            if ($tblStudentBilling) {
                 (new Data($this->getBinding()))->updateStudentBilling(
                     $tblStudentBilling,
                     $SiblingRank ? $SiblingRank : null
                 );
             } else {
-                $tblStudentBilling =  (new Data($this->getBinding()))->createStudentBilling(
+                $tblStudentBilling = (new Data($this->getBinding()))->createStudentBilling(
                     $SiblingRank ? $SiblingRank : null
                 );
             }
@@ -225,7 +226,7 @@ class Service extends Integration
                 $Meta['Integration']['School']['Remark']
             );
 
-            $tblStudentBilling =  (new Data($this->getBinding()))->createStudentBilling(
+            $tblStudentBilling = (new Data($this->getBinding()))->createStudentBilling(
                 $SiblingRank ? $SiblingRank : null
             );
 
@@ -249,8 +250,8 @@ class Service extends Integration
                 }
             }
             if (isset($Meta['Integration']['Disorder'])) {
-                foreach ($Meta['Integration']['Disorder'] as $Key => $Value) {
-                    $tblStudentDisorderType = $this->getStudentDisorderTypeById($Key);
+                foreach ($Meta['Integration']['Disorder'] as $Type => $Subject) {
+                    $tblStudentDisorderType = $this->getStudentDisorderTypeById($Type);
                     if ($tblStudentDisorderType) {
                         (new Data($this->getBinding()))->addStudentDisorder($tblStudent, $tblStudentDisorderType);
                     }
@@ -264,8 +265,8 @@ class Service extends Integration
                 }
             }
             if (isset($Meta['Integration']['Focus'])) {
-                foreach ($Meta['Integration']['Focus'] as $Key => $Value) {
-                    $tblStudentFocusType = $this->getStudentFocusTypeById($Key);
+                foreach ($Meta['Integration']['Focus'] as $Type => $Subject) {
+                    $tblStudentFocusType = $this->getStudentFocusTypeById($Type);
                     if ($tblStudentFocusType) {
                         (new Data($this->getBinding()))->addStudentFocus($tblStudent, $tblStudentFocusType);
                     }
@@ -395,6 +396,34 @@ class Service extends Integration
                     $Meta['Transfer'][$TransferTypeProcess->getId()]['Remark']
                 );
             }
+
+            $tblStudentSubjectAll = $this->getStudentSubjectAllByStudent($tblStudent);
+            if ($tblStudentSubjectAll) {
+                foreach ($tblStudentSubjectAll as $tblStudentSubject) {
+                    (new Data($this->getBinding()))->removeStudentSubject($tblStudentSubject);
+                }
+            }
+
+            if (isset($Meta['Subject'])) {
+                foreach ($Meta['Subject'] as $Type => $Item) {
+                    $tblStudentSubjectType = $this->getStudentSubjectTypeById($Type);
+                    if ($tblStudentSubjectType) {
+                        foreach ($Item as $Ranking => $Subject) {
+                            $tblStudentSubjectRanking = $this->getStudentSubjectRankingById($Ranking);
+                            $tblSubject = Subject::useService()->getSubjectById($Subject);
+                            if ($tblSubject) {
+                                (new Data($this->getBinding()))->addStudentSubject(
+                                    $tblStudent,
+                                    $tblStudentSubjectType,
+                                    $tblStudentSubjectRanking ? $tblStudentSubjectRanking : null,
+                                    $tblSubject
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+
         }
 
         return new Success('Die Daten wurde erfolgreich gespeichert')

@@ -484,6 +484,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Medicine()),
                         new SelectBox('Meta[MedicalRecord][AttendingDoctor]', 'Behandelnder Arzt', array(),
                             new Stethoscope()),
+                        // ToDo -> extra Tabelle für Statustypen
                         new SelectBox('Meta[MedicalRecord][Insurance][State]', 'Versicherungsstatus', array(
                             0 => '',
                             1 => 'Pflicht',
@@ -539,11 +540,13 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+        $Global = $this->getGlobal();
 
-        if ($tblStudent && empty($Meta)) {
+        if ($tblStudent && !isset($Global->POST['Meta']['Subject'])) {
+
             $tblStudentSubjectAll = Student::useService()->getStudentSubjectAllByStudent($tblStudent);
             if ($tblStudentSubjectAll) {
-                $Global = $this->getGlobal();
+
                 array_walk($tblStudentSubjectAll, function (TblStudentSubject $tblStudentSubject) use (&$Global) {
 
                     $Type = $tblStudentSubject->getTblStudentSubjectType()->getId();

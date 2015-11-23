@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Data;
 
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectRanking;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
@@ -147,5 +149,77 @@ abstract class Subject extends Transfer
             'TblStudentSubjectRanking', array(
                 TblStudentSubjectRanking::ATTR_IDENTIFIER => strtoupper($Identifier)
             ));
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentSubjectType $tblStudentSubjectType
+     * @param TblStudentSubjectRanking $tblStudentSubjectRanking
+     * @param TblSubject $tblSubject
+     *
+     * @return TblStudentSubject
+     */
+    public function addStudentSubject(
+        TblStudent $tblStudent,
+        TblStudentSubjectType $tblStudentSubjectType,
+        TblStudentSubjectRanking $tblStudentSubjectRanking,
+        TblSubject $tblSubject
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblStudentSubject $Entity */
+        $Entity = $Manager->getEntity('TblStudentSubject')->findOneBy(array(
+            TblStudentSubject::ATTR_TBL_STUDENT => $tblStudent->getId(),
+            TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_TYPE => $tblStudentSubjectType->getId(),
+            TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_RANKING => $tblStudentSubjectRanking->getId()
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblStudentSubject();
+            $Entity->setTblStudent($tblStudent);
+            $Entity->setTblStudentSubjectType($tblStudentSubjectType);
+            $Entity->setTblStudentSubjectRanking($tblStudentSubjectRanking);
+            $Entity->setServiceTblSubject($tblSubject);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentSubject $tblStudentSubject
+     *
+     * @return bool
+     */
+    public function removeStudentSubject(TblStudentSubject $tblStudentSubject)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblStudentSubject $Entity */
+        $Entity = $Manager->getEntityById('TblStudentSubject', $tblStudentSubject->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     *
+     * @return bool|TblStudentSubject[]
+     */
+    public function getStudentSubjectAllByStudent(TblStudent $tblStudent)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudentSubject', array(TblStudentSubject::ATTR_TBL_STUDENT => $tblStudent->getId())
+        );
     }
 }
