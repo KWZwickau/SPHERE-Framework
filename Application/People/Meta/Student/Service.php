@@ -463,7 +463,7 @@ class Service extends Integration
         }
 
         return new Success('Die Daten wurde erfolgreich gespeichert')
-        . new Redirect('/People/Person', 1, array(
+        . new Redirect('/People/Person', 3, array(
             'Id' => $tblPerson->getId(),
             'Group' => $Group
         ));

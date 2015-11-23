@@ -179,16 +179,16 @@ class Frontend extends Extension implements IFrontendInterface
 
             switch (strtoupper($TabActive)) {
                 case 'COMMON':
-                    $MetaTable = Common::useFrontend()->frontendMeta($tblPerson, $Meta);
+                    $MetaTable = Common::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
                     break;
                 case 'PROSPECT':
-                    $MetaTable = Prospect::useFrontend()->frontendMeta($tblPerson, $Meta);
+                    $MetaTable = Prospect::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
                     break;
                 case 'STUDENT':
                     $MetaTable = Student::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
                     break;
                 case 'CUSTODY':
-                    $MetaTable = Custody::useFrontend()->frontendMeta($tblPerson, $Meta);
+                    $MetaTable = Custody::useFrontend()->frontendMeta($tblPerson, $Meta, $Group);
                     break;
                 default:
                     if (!empty($MetaTabs)) {
