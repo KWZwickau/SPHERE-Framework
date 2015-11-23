@@ -262,7 +262,7 @@ class Division implements IModuleInterface
             });
         }
         $Stage->setContent(
-            new Layout(new LayoutGroup($Content, new Title('Klassen', 'Zusammensetzung')))
+            new Layout(new LayoutGroup($Content))
         );
         return $Stage;
     }
