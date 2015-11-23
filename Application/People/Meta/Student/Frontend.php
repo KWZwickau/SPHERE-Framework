@@ -436,6 +436,15 @@ class Frontend extends Extension implements IFrontendInterface
                         $Global->POST['Meta']['Billing'] = $tblStudentBilling->getServiceTblSiblingRank()->getId();
                     }
 
+                    $tblStudentAgreementAll = Student::useService()->getStudentAgreementAllByStudent($tblStudent);
+                    if ($tblStudentAgreementAll) {
+                        foreach ($tblStudentAgreementAll as $tblStudentAgreement) {
+                            $Global->POST['Meta']['Agreement']
+                            [$tblStudentAgreement->getTblStudentAgreementType()->getTblStudentAgreementCategory()->getId()]
+                            [$tblStudentAgreement->getTblStudentAgreementType()->getId()] = 1;
+                        }
+                    }
+
                     $Global->savePost();
                 }
             }
@@ -458,7 +467,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ) {
 
                         array_push($AgreementPanel,
-                            new CheckBox('Meta[' . $tblStudentAgreementCategory->getId() . '][' . $tblStudentAgreementType->getId() . ']',
+                            new CheckBox('Meta[Agreement][' . $tblStudentAgreementCategory->getId() . '][' . $tblStudentAgreementType->getId() . ']',
                                 $tblStudentAgreementType->getName(), 1)
                         );
                     }
