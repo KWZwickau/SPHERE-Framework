@@ -400,7 +400,12 @@ class Service extends Integration
             $tblStudentSubjectAll = $this->getStudentSubjectAllByStudent($tblStudent);
             if ($tblStudentSubjectAll) {
                 foreach ($tblStudentSubjectAll as $tblStudentSubject) {
-                    (new Data($this->getBinding()))->removeStudentSubject($tblStudentSubject);
+                    if (!Subject::useService()->getSubjectById(
+                        $Meta['Subject'][$tblStudentSubject->getTblStudentSubjectType()->getId()]
+                        [$tblStudentSubject->getTblStudentSubjectRanking()->getId()])
+                    ) {
+                        (new Data($this->getBinding()))->removeStudentSubject($tblStudentSubject);
+                    }
                 }
             }
 

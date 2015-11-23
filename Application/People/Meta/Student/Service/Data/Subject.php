@@ -152,6 +152,8 @@ abstract class Subject extends Transfer
     }
 
     /**
+     * if already exists -> update entry
+     *
      * @param TblStudent $tblStudent
      * @param TblStudentSubjectType $tblStudentSubjectType
      * @param TblStudentSubjectRanking $tblStudentSubjectRanking
@@ -184,6 +186,15 @@ abstract class Subject extends Transfer
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        } else {
+            $Protocol = clone $Entity;
+            $Entity->setTblStudent($tblStudent);
+            $Entity->setTblStudentSubjectType($tblStudentSubjectType);
+            $Entity->setTblStudentSubjectRanking($tblStudentSubjectRanking);
+            $Entity->setServiceTblSubject($tblSubject);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
         }
 
         return $Entity;
