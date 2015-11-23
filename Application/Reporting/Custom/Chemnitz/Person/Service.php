@@ -66,15 +66,20 @@ class Service
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
-                        if (($guardian->getTblType()->getId() == 1)
-                            && ($guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1)
-                        ) {
-                            $father = $guardian->getServiceTblPersonFrom();
-                        }
-                        if (($guardian->getTblType()->getId() == 1)
-                            && ($guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2)
-                        ) {
-                            $mother = $guardian->getServiceTblPersonFrom();
+                        if ($guardian->getTblType()->getId() == 1) {
+                            if (($salutation = $guardian->getServiceTblPersonFrom()->getTblSalutation())) {
+                                if ($salutation->getId() == 1) {
+                                    $father = $guardian->getServiceTblPersonFrom();
+                                } elseif ($salutation->getId() == 2) {
+                                    $mother = $guardian->getServiceTblPersonFrom();
+                                }
+                            } else {
+                                if ($father === null) {
+                                    $father = $guardian->getServiceTblPersonFrom();
+                                } else {
+                                    $mother = $guardian->getServiceTblPersonFrom();
+                                }
+                            }
                         }
                     }
                 }
@@ -642,15 +647,20 @@ class Service
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
-                        if (($guardian->getTblType()->getId() == 1)
-                            && ($guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1)
-                        ) {
-                            $father = $guardian->getServiceTblPersonFrom();
-                        }
-                        if (($guardian->getTblType()->getId() == 1)
-                            && ($guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2)
-                        ) {
-                            $mother = $guardian->getServiceTblPersonFrom();
+                        if ($guardian->getTblType()->getId() == 1) {
+                            if (($salutation = $guardian->getServiceTblPersonFrom()->getTblSalutation())) {
+                                if ($salutation->getId() == 1) {
+                                    $father = $guardian->getServiceTblPersonFrom();
+                                } elseif ($salutation->getId() == 2) {
+                                    $mother = $guardian->getServiceTblPersonFrom();
+                                }
+                            } else {
+                                if ($father === null) {
+                                    $father = $guardian->getServiceTblPersonFrom();
+                                } else {
+                                    $mother = $guardian->getServiceTblPersonFrom();
+                                }
+                            }
                         }
                     }
                 }
@@ -797,15 +807,20 @@ class Service
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
-                        if (($guardian->getTblType()->getId() == 1)
-                            && ($guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1)
-                        ) {
-                            $father = $guardian->getServiceTblPersonFrom();
-                        }
-                        if (($guardian->getTblType()->getId() == 1)
-                            && ($guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2)
-                        ) {
-                            $mother = $guardian->getServiceTblPersonFrom();
+                        if ($guardian->getTblType()->getId() == 1) {
+                            if (($salutation = $guardian->getServiceTblPersonFrom()->getTblSalutation())) {
+                                if ($salutation->getId() == 1) {
+                                    $father = $guardian->getServiceTblPersonFrom();
+                                } elseif ($salutation->getId() == 2) {
+                                    $mother = $guardian->getServiceTblPersonFrom();
+                                }
+                            } else {
+                                if ($father === null) {
+                                    $father = $guardian->getServiceTblPersonFrom();
+                                } else {
+                                    $mother = $guardian->getServiceTblPersonFrom();
+                                }
+                            }
                         }
                     }
                 }

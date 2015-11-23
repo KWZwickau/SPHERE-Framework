@@ -29,7 +29,8 @@ class Common
                 $fileLocation = Person::useService()->createClassListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Chemnitz Klassenliste " . $tblDivision->getName() ." " . date("Y-m-d H:i:s") . ".xls")->__toString();
+                    "Chemnitz Klassenliste " . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()
+                    . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
             }
         }
 
@@ -69,7 +70,7 @@ class Common
                 $fileLocation = Person::useService()->createMedicListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Chemnitz Arztliste " . $tblDivision->getName() ." " . date("Y-m-d H:i:s") . ".xls")->__toString();
+                    "Chemnitz Arztliste " . $tblDivision->getName() . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
             }
         }
 
@@ -90,7 +91,7 @@ class Common
                 $fileLocation = Person::useService()->createParentTeacherConferenceListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Chemnitz Elternabende " . $tblDivision->getName() ." " . date("Y-m-d H:i:s") . ".xls")->__toString();
+                    "Chemnitz Elternabende " . $tblDivision->getName() . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
             }
         }
 
@@ -105,12 +106,11 @@ class Common
 
         $clubMemberList = Person::useService()->createClubMemberList();
 
-        if ($clubMemberList)
-        {
-        $fileLocation = Person::useService()->createClubMemberListExcel($clubMemberList);
+        if ($clubMemberList) {
+            $fileLocation = Person::useService()->createClubMemberListExcel($clubMemberList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(),
-            "Chemnitz Vereinsmitgliederliste " . date("Y-m-d H:i:s") . ".xls")->__toString();
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Chemnitz Vereinsmitgliederliste " . date("Y-m-d H:i:s") . ".xls")->__toString();
         }
 
         return false;
