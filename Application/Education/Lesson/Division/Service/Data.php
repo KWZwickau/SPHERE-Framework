@@ -662,4 +662,16 @@ class Data extends AbstractData
         }
         return false;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @return bool|TblDivisionStudent[]
+     */
+    public function getDivisionStudentAllByPerson(TblPerson $tblPerson)
+    {
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDivisionStudent', array(
+                TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+    }
 }
