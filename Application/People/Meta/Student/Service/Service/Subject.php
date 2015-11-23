@@ -22,10 +22,8 @@ abstract class Subject extends Transfer
      */
     public function getStudentSubjectAllByStudent(TblStudent $tblStudent)
     {
-        return false;
 
-        // ToDo
-//        return (new Data($this->getBinding()))->getStudentSubjectAllByStudent($tblStudent);
+        return (new Data($this->getBinding()))->getStudentSubjectAllByStudent($tblStudent);
     }
 
     /**
