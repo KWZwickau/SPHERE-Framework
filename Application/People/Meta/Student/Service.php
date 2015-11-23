@@ -246,7 +246,9 @@ class Service extends Integration
             $tblStudentDisorderAll = $this->getStudentDisorderAllByStudent($tblStudent);
             if ($tblStudentDisorderAll) {
                 foreach ($tblStudentDisorderAll as $tblStudentDisorder) {
-                    (new Data($this->getBinding()))->removeStudentDisorder($tblStudentDisorder);
+                    if (!isset($Meta['Integration']['Disorder'][$tblStudentDisorder->getTblStudentDisorderType()->getId()])) {
+                        (new Data($this->getBinding()))->removeStudentDisorder($tblStudentDisorder);
+                    }
                 }
             }
             if (isset($Meta['Integration']['Disorder'])) {
@@ -261,7 +263,9 @@ class Service extends Integration
             $tblStudentFocusAll = $this->getStudentFocusAllByStudent($tblStudent);
             if ($tblStudentFocusAll) {
                 foreach ($tblStudentFocusAll as $tblStudentFocus) {
-                    (new Data($this->getBinding()))->removeStudentFocus($tblStudentFocus);
+                    if (!isset($Meta['Integration']['Focus'][$tblStudentFocus->getTblStudentFocusType()->getId()])) {
+                        (new Data($this->getBinding()))->removeStudentFocus($tblStudentFocus);
+                    }
                 }
             }
             if (isset($Meta['Integration']['Focus'])) {
