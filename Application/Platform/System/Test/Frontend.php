@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Platform\System\Test;
 
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Platform\System\Test\Service\Entity\TblTestPicture;
 use SPHERE\Common\Frontend\Form\Repository\Button\Danger;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -75,6 +76,14 @@ class Frontend extends Extension implements IFrontendInterface
             new Standard('Link', new Route(__NAMESPACE__))
         );
 
+        $D1 = new TblDivision();
+        $D1->setName('A');
+        $D1->setId(1);
+        $D2 = new TblDivision();
+        $D2->setName('B');
+        $D2->setId(2);
+        $Check = array($D1, $D2);
+
         $Stage->setContent(
             (new Form(
                 new FormGroup(array(
@@ -111,10 +120,14 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 3),
                     )),
                     new FormRow(array(
-                        new FormColumn(
-                            new SelectBox('SelectBox', 'SelectBox',
-                                array('0' => 'A', '2' => '1', '3' => '2', '4' => '3'))
-                            , 3),
+                        new FormColumn(array(
+                            new SelectBox('SelectBox1', 'SelectBox',
+                                array('0' => 'A', '2' => '1', '3' => '2', '4' => '3')
+                            ),
+                            new SelectBox('SelectBox2', 'SelectBox',
+                                array('{{ Name }}{{ Name }}{{ Name }} {{ Name }}{{ Name }}{{ Name }}' => $Check)
+                            ),
+                        ), 3),
                         new FormColumn(
                             new TextArea('TextArea', 'TextArea', 'TextArea')
                             , 3),
