@@ -52,7 +52,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     new FormRow(array(
                                         new FormColumn(
                                             new SelectBox('Select[Division]', 'Klasse',
-                                                array('{{serviceTblYear.Name}} - {{tblLevel.serviceTblType.Name}} - {{Name}}' => $tblDivisionAll)),
+                                                array(
+                                                    '{{serviceTblYear.Name}} - {{tblLevel.serviceTblType.Name}} - {{tblLevel.Name}} {{Name}}' => $tblDivisionAll
+                                                )),
                                             12
                                         )
                                     )),
@@ -98,7 +100,7 @@ class Frontend extends Extension implements IFrontendInterface
                         Panel::PANEL_TYPE_SUCCESS), 6
                 ),
                 new LayoutColumn(
-                    new Panel('Klasse:', $tblDivision->getName(),
+                    new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
                         Panel::PANEL_TYPE_SUCCESS), 6
                 ),
                 new LayoutColumn(array(
