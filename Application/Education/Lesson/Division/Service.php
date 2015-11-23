@@ -522,8 +522,39 @@ class Service extends AbstractService
 
         $Error = false;
 
+        $tblSubjectAll = Subject::useService()->getSubjectAll();
+        $tblSubjectActivateList = array();
+        foreach ($Subject as $item) {
+            $tblSubjectActivateList[] = Subject::useService()->getSubjectById($item);
+        }
+
+        $tblSubjectList = array();
+        if ($tblSubjectAll && $tblSubjectActivateList) {     // get Deleteable Subjects
+            $tblSubjectList = array_udiff($tblSubjectAll, $tblSubjectActivateList,
+                function (TblSubject $invoiceA, TblSubject $invoiceB) {
+
+                    return $invoiceA->getId() - $invoiceB->getId();
+                });
+        }
+
         if (!$Error) {
-            // Add new Link
+
+            // Remove old SubjectToDivision
+            array_walk($tblSubjectList, function (TblSubject $tblSubject) use ($tblDivision, &$Error) {
+
+                $tblDivisionSubjectList = $this->getDivisionSubjectByDivision($tblDivision);
+                if ($tblDivisionSubjectList) {
+                    foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                        if ($tblDivisionSubject->getServiceTblSubject()->getId() === $tblSubject->getId()) {
+                            (new Data($this->getBinding()))->removeSubjectStudentByDivisionSubject($tblDivisionSubject);
+                            (new Data($this->getBinding()))->removeSubjectTeacherByDivisionSubject($tblDivisionSubject);
+                        }
+                    }
+                }
+
+                $this->removeSubjectToDivision($tblDivision, $tblSubject);
+            });
+            // Add new SubjectToDivision
             array_walk($Subject, function ($Subject) use ($tblDivision, &$Error) {
 
                 if (!(new Data($this->getBinding()))->addDivisionSubject($tblDivision, Subject::useService()->getSubjectById($Subject))) {
@@ -942,12 +973,23 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
+
+            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
+            if (!empty( $tblDivisionSubjectList )) {
+                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                    (new Data($this->getBinding()))->removeSubjectStudentByDivisionSubject($tblDivisionSubject);
+                    (new Data($this->getBinding()))->removeSubjectTeacherByDivisionSubject($tblDivisionSubject);
+                }
+            }
+
             $tblSubjectList = Division::useService()->getSubjectAllByDivision($tblDivision);
             if (!empty( $tblSubjectList )) {
                 foreach ($tblSubjectList as $tblSubject) {
+
                     (new Data($this->getBinding()))->removeSubjectToDivision($tblDivision, $tblSubject);
                 }
             }
+
 
             if ((new Data($this->getBinding()))->destroyDivision($tblDivision)) {
                 return new Success('Die Klassengruppe wurde erfolgreich gelöscht')
@@ -983,6 +1025,11 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getTeacherAllByDivision($tblDivision);
     }
 
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool|TblSubjectTeacher[]
+     */
     public function getTeacherAllByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
     {
 
