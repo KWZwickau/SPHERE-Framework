@@ -7,6 +7,7 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Data;
 use SPHERE\Application\People\Relationship\Service\Entity\TblGroup;
+use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
@@ -406,5 +407,23 @@ class Service extends AbstractService
         } else {
             return false;
         }
+    }
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblSiblingRank
+     */
+    public function getSiblingRankById($Id)
+    {
+        return (new Data($this->getBinding()))->getSiblingRankById($Id);
+    }
+
+    /**
+     * @return bool|TblSiblingRank[]
+     */
+    public function getSiblingRankAll()
+    {
+        return (new Data($this->getBinding()))->getSiblingRankAll();
     }
 }

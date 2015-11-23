@@ -16,7 +16,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -196,6 +196,8 @@ class Division implements IModuleInterface
                         $StudentList = Division::useService()->getStudentAllByDivision($tblDivision);
                         $TeacherList = Division::useService()->getTeacherAllByDivision($tblDivision);
                         $SubjectList = Division::useService()->getSubjectAllByDivision($tblDivision);
+                        $DivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
+                        $SubjectUsedCount = 0;
                         if (!$StudentList) {
                             $StudentList = null;
                         }
@@ -205,11 +207,20 @@ class Division implements IModuleInterface
                         if (!$SubjectList) {
                             $SubjectList = null;
                         }
+                        if (!$DivisionSubjectList) {
+                        } else {
+                            foreach ($DivisionSubjectList as $DivisionSubject) {
+                                $TeacherListUsed = Division::useService()->getSubjectTeacherByDivisionSubject($DivisionSubject);
+                                if (!$TeacherListUsed) {
+                                    $SubjectUsedCount = $SubjectUsedCount + 1;
+                                }
+                            }
+                        }
 
                         Main::getDispatcher()->registerWidget($tblLevel->getId(),
                             new Panel('Klassengruppe: '.$tblDivision->getName()
                                 , array(
-                                    new Standard('Klassenansicht', '/Education/Lesson/Division/Show', new EyeOpen(),
+                                    new Standard('&nbsp;Klassenansicht', '/Education/Lesson/Division/Show', new EyeOpen(),
                                         array('Id' => $tblDivision->getId()), 'Klassenansicht')
 //                                    'Anzahl Schüler: '.count($StudentList)
 //                                    .new PullRight(new Standard('', '/Education/Lesson/Division/Student/Add',
@@ -226,10 +237,15 @@ class Division implements IModuleInterface
 //                                    'Zuordnung Fachlehrer'
 //                                    .new PullRight(new Standard('', '/Education/Lesson/Division/SubjectTeacher/Show',
 //                                        new EyeOpen(), array('Id' => $tblDivision->getId()), 'Übersicht Fachlehrer'))
-                                ,)
+                                , 'Schüler: '.new Pullright(new Badge(count($StudentList)))
+                                , 'Klassenlehrer: '.new Pullright(new Badge(count($TeacherList)))
+                                , 'Fächer: '.new Pullright(new Badge(count($SubjectList)))
+                                , ( $SubjectUsedCount != 0 ) ? new Danger('fehlende Fachlehrer: '
+                                        .new Pullright(new Badge($SubjectUsedCount, Badge::BADGE_TYPE_DANGER)))
+                                        : null
+                                )
                                 , Panel::PANEL_TYPE_DEFAULT
-                                , new Small(new Small('Schüler: '.new Badge(count($StudentList))))
-                                .new Pullright(new Small(new Small('Klassenlehrer: '.new Badge(count($TeacherList)))))
+
                             )
                         );
                     }

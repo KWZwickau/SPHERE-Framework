@@ -211,7 +211,7 @@ abstract class Integration extends Subject
      * @param $CoachingRequired
      * @param $CoachingTime
      * @param $CoachingRemark
-     * 
+     *
      * @return TblStudentIntegration
      */
     public function createStudentIntegration(
@@ -223,16 +223,15 @@ abstract class Integration extends Subject
         $CoachingRequired,
         $CoachingTime,
         $CoachingRemark
-    )
-    {
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = new TblStudentIntegration();
         $Entity->setServiceTblPerson($tblPerson);
         $Entity->setServiceTblCompany($tblCompany);
-        $Entity->setCoachingRequestDate(( $CoachingRequestDate ? new \DateTime($CoachingRequestDate) : null ));
-        $Entity->setCoachingCounselDate(( $CoachingCounselDate ? new \DateTime($CoachingCounselDate) : null ));
-        $Entity->setCoachingDecisionDate(( $CoachingDecisionDate ? new \DateTime($CoachingDecisionDate) : null ));
+        $Entity->setCoachingRequestDate(($CoachingRequestDate ? new \DateTime($CoachingRequestDate) : null));
+        $Entity->setCoachingCounselDate(($CoachingCounselDate ? new \DateTime($CoachingCounselDate) : null));
+        $Entity->setCoachingDecisionDate(($CoachingDecisionDate ? new \DateTime($CoachingDecisionDate) : null));
         $Entity->setCoachingRequired($CoachingRequired);
         $Entity->setCoachingTime($CoachingTime);
         $Entity->setCoachingRemark($CoachingRemark);
@@ -275,15 +274,115 @@ abstract class Integration extends Subject
             $Protocol = clone $Entity;
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblCompany($tblCompany);
-            $Entity->setCoachingRequestDate(( $CoachingRequestDate ? new \DateTime($CoachingRequestDate) : null ));
-            $Entity->setCoachingCounselDate(( $CoachingCounselDate ? new \DateTime($CoachingCounselDate) : null ));
-            $Entity->setCoachingDecisionDate(( $CoachingDecisionDate ? new \DateTime($CoachingDecisionDate) : null ));
+            $Entity->setCoachingRequestDate(($CoachingRequestDate ? new \DateTime($CoachingRequestDate) : null));
+            $Entity->setCoachingCounselDate(($CoachingCounselDate ? new \DateTime($CoachingCounselDate) : null));
+            $Entity->setCoachingDecisionDate(($CoachingDecisionDate ? new \DateTime($CoachingDecisionDate) : null));
             $Entity->setCoachingRequired($CoachingRequired);
             $Entity->setCoachingTime($CoachingTime);
             $Entity->setCoachingRemark($CoachingRemark);
             $Manager->saveEntity($Entity);
 
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentDisorderType $tblStudentDisorderType
+     *
+     * @return TblStudentDisorder
+     */
+    public function addStudentDisorder(
+        TblStudent $tblStudent,
+        TblStudentDisorderType $tblStudentDisorderType
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblStudentDisorder $Entity */
+        $Entity = $Manager->getEntity('TblStudentDisorder')->findOneBy(array(
+            TblStudentDisorder::ATTR_TBL_STUDENT => $tblStudent->getId(),
+            TblStudentDisorder::ATTR_TBL_STUDENT_DISORDER_TYPE => $tblStudentDisorderType->getId()
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblStudentDisorder();
+            $Entity->setTblStudent($tblStudent);
+            $Entity->setTblStudentDisorderType($tblStudentDisorderType);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentDisorder $tblStudentDisorder
+     *
+     * @return bool
+     */
+    public function removeStudentDisorder(TblStudentDisorder $tblStudentDisorder)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblStudentDisorder $Entity */
+        $Entity = $Manager->getEntityById('TblStudentDisorder', $tblStudentDisorder->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentFocusType $tblStudentFocusType
+     *
+     * @return TblStudentFocus
+     */
+    public function addStudentFocus(
+        TblStudent $tblStudent,
+        TblStudentFocusType $tblStudentFocusType
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblStudentFocus $Entity */
+        $Entity = $Manager->getEntity('TblStudentFocus')->findOneBy(array(
+            TblStudentFocus::ATTR_TBL_STUDENT => $tblStudent->getId(),
+            TblStudentFocus::ATTR_TBL_STUDENT_FOCUS_TYPE => $tblStudentFocusType->getId()
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblStudentFocus();
+            $Entity->setTblStudent($tblStudent);
+            $Entity->setTblStudentFocusType($tblStudentFocusType);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentFocus $tblStudentFocus
+     *
+     * @return bool
+     */
+    public function removeStudentFocus(TblStudentFocus $tblStudentFocus)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblStudentFocus $Entity */
+        $Entity = $Manager->getEntityById('TblStudentFocus', $tblStudentFocus->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
             return true;
         }
         return false;
