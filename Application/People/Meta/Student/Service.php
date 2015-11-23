@@ -48,10 +48,11 @@ class Service extends Integration
      * @param IFormInterface $Form
      * @param TblPerson $tblPerson
      * @param array $Meta
-     *
+     * @param $Group
+
      * @return IFormInterface|Redirect
      */
-    public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta)
+    public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group)
     {
 
         /**
@@ -462,7 +463,10 @@ class Service extends Integration
         }
 
         return new Success('Die Daten wurde erfolgreich gespeichert')
-        . new Redirect('/People/Person', 1, array('Id' => $tblPerson->getId()));
+        . new Redirect('/People/Person', 1, array(
+            'Id' => $tblPerson->getId(),
+            'Group' => $Group
+        ));
     }
 
     /**
