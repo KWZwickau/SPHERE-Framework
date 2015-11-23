@@ -202,16 +202,30 @@ class Frontend extends Extension implements IFrontendInterface
                         $Global->POST['Meta']['Transfer'][$TransferTypeLeave->getId()]['Remark'] = $tblStudentTransferLeave->getRemark();
                     }
 
-                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Process');
-                    if ($tblStudentTransferType) {
-                        /** @var TblStudentTransfer $tblStudentTransferProcess */
-                        $tblStudentTransferProcess = Student::useService()->getStudentTransferByType(
-                            $tblStudent, $tblStudentTransferType
+                    $TransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
+                    /** @var TblStudentTransfer $tblStudentTransferProcess */
+                    $tblStudentTransferProcess = Student::useService()->getStudentTransferByType(
+                        $tblStudent, $TransferTypeProcess
+                    );
+                    if ($tblStudentTransferProcess) {
+                        $Global->POST['Meta']['Transfer'][$TransferTypeProcess->getId()]['School'] = (
+                        $tblStudentTransferProcess->getServiceTblCompany()
+                            ? $tblStudentTransferProcess->getServiceTblCompany()->getId()
+                            : 0
                         );
-                        if ($tblStudentTransferProcess) {
-                            $Global->POST['Meta']['Transfer']['Process']['Remark'] = $tblStudentTransferProcess->getRemark();
-                        }
+                        $Global->POST['Meta']['Transfer'][$TransferTypeProcess->getId()]['Type'] = (
+                        $tblStudentTransferProcess->getServiceTblType()
+                            ? $tblStudentTransferProcess->getServiceTblType()->getId()
+                            : 0
+                        );
+                        $Global->POST['Meta']['Transfer'][$TransferTypeProcess->getId()]['Course'] = (
+                        $tblStudentTransferProcess->getServiceTblCourse()
+                            ? $tblStudentTransferProcess->getServiceTblCourse()->getId()
+                            : 0
+                        );
+                        $Global->POST['Meta']['Transfer'][$TransferTypeProcess->getId()]['Remark'] = $tblStudentTransferProcess->getRemark();
                     }
+
                     $Global->savePost();
                 }
             }
@@ -250,6 +264,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblStudentTransferTypeEnrollment = Student::useService()->getStudentTransferTypeByIdentifier('Enrollment');
         $tblStudentTransferTypeArrive = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
         $tblStudentTransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('Leave');
+        $tblStudentTransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
 
         return new FormGroup(array(
             new FormRow(array(
@@ -317,13 +332,17 @@ class Frontend extends Extension implements IFrontendInterface
             new FormRow(array(
                 new FormColumn(array(
                     new Panel('Schulverlauf', array(
-                        new SelectBox('Meta[Transfer][Process][Type]', 'Aktuelle Schulart', array(
+                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeProcess->getId() . '][School]',
+                            'Aktuelle Schule', array(
+                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
+                            ), new Education()),
+                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeProcess->getId() . '][Type]', 'Aktuelle Schulart', array(
                             '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
                         ), new Education()),
-                        new SelectBox('Meta[Transfer][Process][Type]', 'Aktueller Bildungsgang', array(
+                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeProcess->getId() . '][Course]', 'Aktueller Bildungsgang', array(
                             '{{ Name }} {{ Description }}' => $tblSchoolCourseAll,
                         ), new Education()),
-                        new TextArea('Meta[Transfer][Process][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
+                        new TextArea('Meta[Transfer][' . $tblStudentTransferTypeProcess->getId() . '][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
                     ), Panel::PANEL_TYPE_INFO),
                 ), 6),
                 new FormColumn(array(

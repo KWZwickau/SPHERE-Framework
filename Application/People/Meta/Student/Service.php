@@ -349,7 +349,36 @@ class Service extends Integration
                 );
             }
 
-            // ToDo JohK Type Process
+            $TransferTypeProcess = Student::useService()->getStudentTransferTypeByIdentifier('Process');
+            $tblStudentTransferByTypeProcess = Student::useService()->getStudentTransferByType(
+                $tblStudent,
+                $TransferTypeProcess
+            );
+            $tblCompany = Company::useService()->getCompanyById($Meta['Transfer'][$TransferTypeProcess->getId()]['School']);
+            $tblType = Type::useService()->getTypeById($Meta['Transfer'][$TransferTypeProcess->getId()]['Type']);
+            $tblCourse = Course::useService()->getCourseById($Meta['Transfer'][$TransferTypeProcess->getId()]['Course']);
+            if ($tblStudentTransferByTypeProcess) {
+                (new Data($this->getBinding()))->updateStudentTransfer(
+                    $tblStudentTransferByTypeProcess,
+                    $tblStudent,
+                    $TransferTypeProcess,
+                    $tblCompany ? $tblCompany : null,
+                    $tblType ? $tblType : null,
+                    $tblCourse ? $tblCourse : null,
+                    '',
+                    $Meta['Transfer'][$TransferTypeProcess->getId()]['Remark']
+                );
+            } else {
+                (new Data($this->getBinding()))->createStudentTransfer(
+                    $tblStudent,
+                    $TransferTypeProcess,
+                    $tblCompany ? $tblCompany : null,
+                    $tblType ? $tblType : null,
+                    $tblCourse ? $tblCourse : null,
+                    '',
+                    $Meta['Transfer'][$TransferTypeProcess->getId()]['Remark']
+                );
+            }
         }
 
         return new Success('Die Daten wurde erfolgreich gespeichert')

@@ -78,6 +78,7 @@ class Data extends Integration
         $this->createStudentTransferType('ENROLLMENT', 'Einschulung');
         $this->createStudentTransferType('ARRIVE', 'Aufnahme');
         $this->createStudentTransferType('LEAVE', 'Abgabe');
+        $this->createStudentTransferType('PROCESS', 'Process');
     }
 
     /**
