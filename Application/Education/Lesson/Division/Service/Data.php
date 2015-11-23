@@ -679,6 +679,52 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function removeSubjectStudentByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $EntityList = $Manager->getEntity('TblSubjectStudent')->findBy(
+            array(TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()));
+        if ($EntityList) {
+            foreach ($EntityList as $Entity) {
+                /** @var Element $Entity */
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+                $Manager->killEntity($Entity);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function removeSubjectTeacherByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $EntityList = $Manager->getEntity('TblSubjectTeacher')->findBy(
+            array(TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()));
+        if ($EntityList) {
+            foreach ($EntityList as $Entity) {
+                /** @var Element $Entity */
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+                $Manager->killEntity($Entity);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblSubjectTeacher $tblSubjectTeacher
      *
      * @return bool

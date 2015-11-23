@@ -436,6 +436,28 @@ class Service extends AbstractService
 
     /**
      * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function removeSubjectStudentByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        return (new Data($this->getBinding()))->removeSubjectStudentByDivisionSubject($tblDivisionSubject);
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function removeSubjectTeacherByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        return (new Data($this->getBinding()))->removeSubjectTeacherByDivisionSubject($tblDivisionSubject);
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
      * @param TblDivision        $tblDivision
      *
      * @return string
@@ -522,7 +544,38 @@ class Service extends AbstractService
 
         $Error = false;
 
+        $tblSubjectAll = Subject::useService()->getSubjectAll();
+        $tblSubjectActivateList = array();
+        foreach ($Subject as $item) {
+            $tblSubjectActivateList[] = Subject::useService()->getSubjectById($item);
+        }
+
+        $tblSubjectList = array();
+        if ($tblSubjectAll && $tblSubjectActivateList) {     // get Deletebill Subjects
+            $tblSubjectList = array_udiff($tblSubjectAll, $tblSubjectActivateList,
+                function (TblSubject $invoiceA, TblSubject $invoiceB) {
+
+                    return $invoiceA->getId() - $invoiceB->getId();
+                });
+        }
+
         if (!$Error) {
+
+            // Remove old SubjectToDivision
+            array_walk($tblSubjectList, function (TblSubject $tblSubject) use ($tblDivision, &$Error) {
+
+                $tblDivisionSubjectList = $this->getDivisionSubjectByDivision($tblDivision);
+                if ($tblDivisionSubjectList) {
+                    foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                        if ($tblDivisionSubject->getServiceTblSubject()->getId() === $tblSubject->getId()) {
+                            $this->removeSubjectStudentByDivisionSubject($tblDivisionSubject);
+                            $this->removeSubjectTeacherByDivisionSubject($tblDivisionSubject);
+                        }
+                    }
+                }
+
+                $this->removeSubjectToDivision($tblDivision, $tblSubject);
+            });
             // Add new Link
             array_walk($Subject, function ($Subject) use ($tblDivision, &$Error) {
 
@@ -533,7 +586,7 @@ class Service extends AbstractService
 
             if (!$Error) {
                 return new Success('Die Fächer wurden der Klasse erfolgreich hinzugefügt')
-                .new Redirect('/Education/Lesson/Division/Show', 1, array('Id' => $tblDivision->getId()));
+                .new Redirect('/Education/Lesson/Division/Show', 30, array('Id' => $tblDivision->getId()));
             } else {
                 return new Danger('Einige Fächer konnten nicht hinzugefügt werden')
                 .new Redirect('/Education/Lesson/Division', 15, array('Id' => $tblDivision->getId()));

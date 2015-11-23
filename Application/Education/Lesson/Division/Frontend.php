@@ -670,7 +670,16 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblDivision) {
             $Stage = new Stage('Fächer', 'der Klasse '.new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName()).' hinzufügen');
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(), array('Id' => $tblDivision->getId())));
+            $tblSubjectListUsedList = Division::useService()->getSubjectAllByDivision($tblDivision);
 
+            $Global = $this->getGlobal();
+            if ($tblSubjectListUsedList) {
+                foreach ($tblSubjectListUsedList as $tblSubjectListUsed) {
+                    $Global->POST['Subject'][$tblSubjectListUsed->getId()] = true;
+
+                }
+                $Global->savePost();
+            }
 
             $Stage->setContent(new Layout(array(
                     new LayoutGroup(
@@ -703,14 +712,14 @@ class Frontend extends Extension implements IFrontendInterface
         $ListLeft = array();
         $ListRight = array();
         if ($tblSubjectList) {
-            $tblSubjectListUsed = Division::useService()->getSubjectAllByDivision($tblDivision);
-            if ($tblDivision && $tblSubjectListUsed) {
-                $tblSubjectList = array_udiff($tblSubjectList, $tblSubjectListUsed,
-                    function (TblSubject $invoiceA, TblSubject $invoiceB) {
-
-                        return $invoiceA->getId() - $invoiceB->getId();
-                    });
-            }
+//            $tblSubjectListUsed = Division::useService()->getSubjectAllByDivision($tblDivision);
+//            if ($tblDivision && $tblSubjectListUsed) {                            // Ausblenden der vorhandenen Fächer
+//                $tblSubjectList = array_udiff($tblSubjectList, $tblSubjectListUsed,
+//                    function (TblSubject $invoiceA, TblSubject $invoiceB) {
+//
+//                        return $invoiceA->getId() - $invoiceB->getId();
+//                    });
+//            }
 
             if ($tblSubjectList) {
                 foreach ($tblSubjectList as $key => $row) {
@@ -1150,14 +1159,14 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $tblDivisionTeacherList = new LayoutColumn('');
             }
-            $tblDivisionSubjectList = Division::useService()->getSubjectAllByDivision($tblDivision);
-            if ($tblDivisionSubjectList) {
-                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                    $tblDivisionSubject->Option = new Standard('', '/Education/Lesson/Division/Subject/Remove', new Remove(),
-                        array('Id'        => $tblDivision->getId(),
-                              'SubjectId' => $tblDivisionSubject->getId()), 'Fach entfernen');
-                }
-            }
+//            $tblDivisionSubjectList = Division::useService()->getSubjectAllByDivision($tblDivision);
+//            if ($tblDivisionSubjectList) {
+//                foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+//                    $tblDivisionSubject->Option = new Standard('', '/Education/Lesson/Division/Subject/Remove', new Remove(),
+//                        array('Id'        => $tblDivision->getId(),
+//                              'SubjectId' => $tblDivisionSubject->getId()), 'Fach entfernen');
+//                }
+//            }
 
             $Stage->setContent(
                 new Layout(array(
@@ -1178,21 +1187,22 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow($tblDivisionTeacherList),
                         )
                         , new Title('Klassenlehrer:')
-                    ),
-                    new LayoutGroup(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new TableData($tblDivisionSubjectList,
-                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Fächer für die Klasse '
-                                        .$tblDivision->getTblLevel()->getName().$tblDivision->getName()),
-                                    array('Acronym'     => 'Kürzel',
-                                          'Name'        => 'Name',
-                                          'Description' => 'Beschreibung',
-                                          'Option'      => 'Option')
-                                    , true)
-                            )
-                        ))
                     )
+//                ,
+//                    new LayoutGroup(
+//                        new LayoutRow(array(
+//                            new LayoutColumn(
+//                                new TableData($tblDivisionSubjectList,
+//                                    new \SPHERE\Common\Frontend\Table\Repository\Title('Fächer für die Klasse '
+//                                        .$tblDivision->getTblLevel()->getName().$tblDivision->getName()),
+//                                    array('Acronym'     => 'Kürzel',
+//                                          'Name'        => 'Name',
+//                                          'Description' => 'Beschreibung',
+//                                          'Option'      => 'Option')
+//                                    , true)
+//                            )
+//                        ))
+//                    )
                 ))
             );
         } else {
