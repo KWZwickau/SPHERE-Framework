@@ -1,6 +1,9 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Data;
 
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferType;
@@ -77,7 +80,7 @@ abstract class Transfer extends Agreement
     }
 
     /**
-     * @param TblStudent             $tblStudent
+     * @param TblStudent $tblStudent
      * @param TblStudentTransferType $tblStudentTransferType
      *
      * @return bool|TblStudentTransfer
@@ -87,8 +90,99 @@ abstract class Transfer extends Agreement
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblStudentTransfer', array(
-                TblStudentTransfer::ATTR_TBL_STUDENT       => $tblStudent->getId(),
+                TblStudentTransfer::ATTR_TBL_STUDENT => $tblStudent->getId(),
                 TblStudentTransfer::ATTR_TBL_TRANSFER_TYPE => $tblStudentTransferType->getId()
             ));
+    }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentTransferType $tblStudentTransferType
+     * @param TblCompany|null $tblCompany
+     * @param TblType|null $tblType
+     * @param TblCourse|null $tblCourse
+     * @param $TransferDate
+     * @param $Remark
+     *
+     * @return TblStudentTransfer
+     */
+    public function createStudentTransfer(
+        TblStudent $tblStudent,
+        TblStudentTransferType $tblStudentTransferType,
+        TblCompany $tblCompany = null,
+        TblType $tblType = null,
+        TblCourse $tblCourse = null,
+        $TransferDate,
+        $Remark
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblStudentTransfer')->findOneBy(array(
+            TblStudentTransfer::ATTR_TBL_STUDENT => $tblStudent->getId(),
+            TblStudentTransfer::ATTR_TBL_TRANSFER_TYPE => $tblStudentTransferType->getId()
+        ));
+        if (null === $Entity) {
+            $Entity = new TblStudentTransfer();
+
+            $Entity->setTblStudent($tblStudent);
+            $Entity->setTblStudentTransferType($tblStudentTransferType);
+            $Entity->setServiceTblCompany($tblCompany);
+            $Entity->setServiceTblType($tblType);
+            $Entity->setServiceTblCourse($tblCourse);
+            $Entity->setTransferDate(( $TransferDate ? new \DateTime($TransferDate) : null ));
+            $Entity->setRemark($Remark);
+
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentTransfer $tblStudentTransfer
+     * @param TblStudent $tblStudent
+     * @param TblStudentTransferType $tblStudentTransferType
+     * @param TblCompany|null $tblCompany
+     * @param TblType|null $tblType
+     * @param TblCourse|null $tblCourse
+     * @param $TransferDate
+     * @param $Remark
+     *
+     * @return bool
+     */
+    public function updateStudentTransfer(
+        TblStudentTransfer $tblStudentTransfer,
+        TblStudent $tblStudent,
+        TblStudentTransferType $tblStudentTransferType,
+        TblCompany $tblCompany = null,
+        TblType $tblType = null,
+        TblCourse $tblCourse = null,
+        $TransferDate,
+        $Remark
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var null|TblStudentTransfer $Entity */
+        $Entity = $Manager->getEntityById('TblStudentTransfer', $tblStudentTransfer->getId());
+        if (null !== $Entity) {
+            $Protocol = clone $Entity;
+
+            $Entity->setTblStudent($tblStudent);
+            $Entity->setTblStudentTransferType($tblStudentTransferType);
+            $Entity->setServiceTblCompany($tblCompany);
+            $Entity->setServiceTblType($tblType);
+            $Entity->setServiceTblCourse($tblCourse);
+            $Entity->setTransferDate(( $TransferDate ? new \DateTime($TransferDate) : null ));
+            $Entity->setRemark($Remark);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

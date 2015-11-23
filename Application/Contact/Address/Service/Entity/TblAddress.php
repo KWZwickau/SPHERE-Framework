@@ -78,7 +78,7 @@ class TblAddress extends Element
         $Cache = (new \SPHERE\System\Cache\Cache(new Memcached()))->getCache();
         if (false === ( $Return = $Cache->getValue(__METHOD__.$this->getId()) )) {
             $Return = new LayoutAddress($this);
-            $Cache->setValue(__METHOD__.$this->getId(), $Return);
+            $Cache->setValue(__METHOD__.$this->getId(), (string)$Return);
         }
         return $Return;
     }

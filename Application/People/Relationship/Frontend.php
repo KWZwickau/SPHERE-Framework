@@ -258,14 +258,16 @@ class Frontend extends Extension implements IFrontendInterface
         $tblTypeAll = Relationship::useService()->getTypeAllByGroup($tblGroup);
         $tblCompanyAll = Company::useService()->getCompanyAll();
 
-        array_walk($tblCompanyAll, function (TblCompany &$tblCompany) {
+        if ($tblCompanyAll) {
+            array_walk($tblCompanyAll, function (TblCompany &$tblCompany) {
 
-            $tblCompany = new PullClear(new RadioBox('To', $tblCompany->getName().(
-                $tblCompany->getDescription()
-                    ? ' - '.$tblCompany->getDescription()
-                    : '' ),
-                $tblCompany->getId()));
-        });
+                $tblCompany = new PullClear(new RadioBox('To', $tblCompany->getName() . (
+                    $tblCompany->getDescription()
+                        ? ' - ' . $tblCompany->getDescription()
+                        : ''),
+                    $tblCompany->getId()));
+            });
+        }
 
         return new Form(
             new FormGroup(array(

@@ -153,7 +153,9 @@ class Debugger
                 $Dump = 'NULL';
             }
             self::addProtocol('ScreenDump: '.$Dump);
-            print '<pre>'.$Dump.'</pre>';
+            if (self::$Enabled) {
+                print '<pre>'.$Dump.'</pre>';
+            }
         }
     }
 

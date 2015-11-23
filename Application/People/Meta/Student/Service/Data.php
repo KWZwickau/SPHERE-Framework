@@ -8,6 +8,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 
 /**
@@ -77,6 +78,7 @@ class Data extends Integration
         $this->createStudentTransferType('ENROLLMENT', 'Einschulung');
         $this->createStudentTransferType('ARRIVE', 'Aufnahme');
         $this->createStudentTransferType('LEAVE', 'Abgabe');
+        $this->createStudentTransferType('PROCESS', 'Process');
     }
 
     /**
@@ -91,7 +93,7 @@ class Data extends Integration
     public function createStudentMedicalRecord(
         $Disease,
         $Medication,
-        TblPerson $tblPersonAttendingDoctor,
+        TblPerson $tblPersonAttendingDoctor = null,
         $InsuranceState,
         $Insurance
     ) {
@@ -124,7 +126,7 @@ class Data extends Integration
         TblStudentMedicalRecord $tblStudentMedicalRecord,
         $Disease,
         $Medication,
-        TblPerson $tblPersonAttendingDoctor,
+        TblPerson $tblPersonAttendingDoctor = null,
         $InsuranceState,
         $Insurance
     ) {
@@ -233,7 +235,7 @@ class Data extends Integration
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblStudentBilling();
-        $Entity->setServiceTblType($tblSiblingRank);
+        $Entity->setServiceTblSiblingRank($tblSiblingRank);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -256,7 +258,7 @@ class Data extends Integration
         $Entity = $Manager->getEntityById('TblStudentBilling', $tblStudentBilling->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
-            $Entity->setServiceTblType($tblSiblingRank);
+            $Entity->setServiceTblSiblingRank($tblSiblingRank);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
