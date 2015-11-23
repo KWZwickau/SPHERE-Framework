@@ -2,13 +2,13 @@
 namespace SPHERE\Application\People\Meta\Student\Service;
 
 use SPHERE\Application\People\Meta\Student\Service\Data\Integration;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 
 /**
@@ -235,7 +235,7 @@ class Data extends Integration
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblStudentBilling();
-        $Entity->setServiceTblType($tblSiblingRank);
+        $Entity->setServiceTblSiblingRank($tblSiblingRank);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -258,7 +258,7 @@ class Data extends Integration
         $Entity = $Manager->getEntityById('TblStudentBilling', $tblStudentBilling->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
-            $Entity->setServiceTblType($tblSiblingRank);
+            $Entity->setServiceTblSiblingRank($tblSiblingRank);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;

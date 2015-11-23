@@ -14,6 +14,7 @@ use SPHERE\Application\People\Meta\Student\Service\Service\Integration;
 use SPHERE\Application\People\Meta\Student\Service\Setup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -64,10 +65,9 @@ class Service extends Integration
         $AttendingDoctor = Person::useService()->getPersonById($Meta['MedicalRecord']['AttendingDoctor']);
         $IntegrationPerson = Person::useService()->getPersonById($Meta['Integration']['School']['Person']);
         $IntegrationCompany = Company::useService()->getCompanyById($Meta['Integration']['School']['Company']);
+        $SiblingRank = Relationship::useService()->getSiblingRankById($Meta['Billing']);
 
         if ($tblStudent) {
-
-            // ToDo JohK StudentBilling
 
             $tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
             if ($tblStudentMedicalRecord) {
@@ -163,12 +163,24 @@ class Service extends Integration
                 );
             }
 
+            $tblStudentBilling = $tblStudent->getTblStudentBilling();
+            if ($tblStudentBilling){
+                (new Data($this->getBinding()))->updateStudentBilling(
+                    $tblStudentBilling,
+                    $SiblingRank ? $SiblingRank : null
+                );
+            } else {
+                $tblStudentBilling =  (new Data($this->getBinding()))->createStudentBilling(
+                    $SiblingRank ? $SiblingRank : null
+                );
+            }
+
             (new Data($this->getBinding()))->updateStudent(
                 $tblStudent,
                 $Meta['Student']['Identifier'],
                 $tblStudentMedicalRecord,
                 $tblStudentTransport,
-                null,
+                $tblStudentBilling,
                 $tblStudentLocker,
                 $tblStudentBaptism,
                 $tblStudentIntegration
@@ -213,12 +225,16 @@ class Service extends Integration
                 $Meta['Integration']['School']['Remark']
             );
 
+            $tblStudentBilling =  (new Data($this->getBinding()))->createStudentBilling(
+                $SiblingRank ? $SiblingRank : null
+            );
+
             $tblStudent = (new Data($this->getBinding()))->createStudent(
                 $tblPerson,
                 $Meta['Student']['Identifier'],
                 $tblStudentMedicalRecord,
                 $tblStudentTransport,
-                null,
+                $tblStudentBilling,
                 $tblStudentLocker,
                 $tblStudentBaptism,
                 $tblStudentIntegration

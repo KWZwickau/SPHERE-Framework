@@ -5,6 +5,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -15,7 +17,6 @@ use SPHERE\System\Database\Fitting\Element;
 class TblStudentBilling extends Element
 {
 
-    // TODO: Connect to Billing
     /**
      * @Column(type="bigint")
      */
@@ -24,20 +25,20 @@ class TblStudentBilling extends Element
     /**
      * @return bool|TblSiblingRank
      */
-    public function getServiceTblType()
+    public function getServiceTblSiblingRank()
     {
 
         if (null === $this->serviceTblSiblingRank) {
             return false;
         } else {
-            return Type::useService()->getTypeById($this->serviceTblSiblingRank);
+            return Relationship::useService()->getSiblingRankById($this->serviceTblSiblingRank);
         }
     }
 
     /**
      * @param TblSiblingRank|null $tblSiblingRank
      */
-    public function setServiceTblType(TblSiblingRank $tblSiblingRank = null)
+    public function setServiceTblSiblingRank(TblSiblingRank $tblSiblingRank = null)
     {
 
         $this->serviceTblSiblingRank = ( null === $tblSiblingRank ? null : $tblSiblingRank->getId() );

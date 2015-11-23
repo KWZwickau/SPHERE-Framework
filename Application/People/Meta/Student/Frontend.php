@@ -18,6 +18,8 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecor
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Common\Frontend\Form\Repository\Aspect;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -336,13 +338,16 @@ class Frontend extends Extension implements IFrontendInterface
                             'Aktuelle Schule', array(
                                 '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
                             ), new Education()),
-                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeProcess->getId() . '][Type]', 'Aktuelle Schulart', array(
-                            '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
-                        ), new Education()),
-                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeProcess->getId() . '][Course]', 'Aktueller Bildungsgang', array(
-                            '{{ Name }} {{ Description }}' => $tblSchoolCourseAll,
-                        ), new Education()),
-                        new TextArea('Meta[Transfer][' . $tblStudentTransferTypeProcess->getId() . '][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
+                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeProcess->getId() . '][Type]',
+                            'Aktuelle Schulart', array(
+                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
+                            ), new Education()),
+                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeProcess->getId() . '][Course]',
+                            'Aktueller Bildungsgang', array(
+                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll,
+                            ), new Education()),
+                        new TextArea('Meta[Transfer][' . $tblStudentTransferTypeProcess->getId() . '][Remark]',
+                            'Bemerkungen', 'Bemerkungen', new Pencil()),
                     ), Panel::PANEL_TYPE_INFO),
                 ), 6),
                 new FormColumn(array(
@@ -426,6 +431,11 @@ class Frontend extends Extension implements IFrontendInterface
                         $Global->POST['Meta']['Transport']['Remark'] = $tblStudentTransport->getRemark();
                     }
 
+                    $tblStudentBilling = $tblStudent->getTblStudentBilling();
+                    if ($tblStudentBilling) {
+                        $Global->POST['Meta']['Billing'] = $tblStudentBilling->getServiceTblSiblingRank()->getId();
+                    }
+
                     $Global->savePost();
                 }
             }
@@ -458,6 +468,9 @@ class Frontend extends Extension implements IFrontendInterface
         $AgreementPanel = new Panel('Einverständniserklärung zur Datennutzung', $AgreementPanel,
             Panel::PANEL_TYPE_INFO);
 
+        $tblSiblingRankAll = Relationship::useService()->getSiblingRankAll();
+        $tblSiblingRankAll[] = new TblSiblingRank();
+
         /**
          * Form
          */
@@ -484,15 +497,8 @@ class Frontend extends Extension implements IFrontendInterface
                     ), Panel::PANEL_TYPE_DANGER), 3),
                 new FormColumn(array(
                     new Panel('Fakturierung', array(
-                        new SelectBox('Meta[Billing]', 'Geschwisterkind', array(
-                            0 => '',
-                            1 => '1. Geschwisterkind',
-                            2 => '2. Geschwisterkind',
-                            3 => '3. Geschwisterkind',
-                            4 => '4. Geschwisterkind',
-                            5 => '5. Geschwisterkind',
-                            6 => '6. Geschwisterkind',
-                        ), new Child()),
+                        new SelectBox('Meta[Billing]', 'Geschwisterkind', array('{{Name}}' => $tblSiblingRankAll),
+                            new Child()),
                     ), Panel::PANEL_TYPE_INFO),
                     new Panel('Schließfach', array(
                         new TextField('Meta[Additional][Locker][Number]', 'Schließfachnummer', 'Schließfachnummer',
@@ -686,16 +692,14 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $tblStudentDisorderAll = Student::useService()->getStudentDisorderAllByStudent($tblStudent);
-                    if ($tblStudentDisorderAll)
-                    {
+                    if ($tblStudentDisorderAll) {
                         foreach ($tblStudentDisorderAll as $tblStudentDisorder) {
                             $Global->POST['Meta']['Integration']['Disorder'][$tblStudentDisorder->getTblStudentDisorderType()->getId()] = 1;
                         }
                     }
 
                     $tblStudentFocusAll = Student::useService()->getStudentFocusAllByStudent($tblStudent);
-                    if ($tblStudentFocusAll)
-                    {
+                    if ($tblStudentFocusAll) {
                         foreach ($tblStudentFocusAll as $tblStudentFocus) {
                             $Global->POST['Meta']['Integration']['Focus'][$tblStudentFocus->getTblStudentFocusType()->getId()] = 1;
                         }
