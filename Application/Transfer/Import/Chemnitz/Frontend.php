@@ -53,7 +53,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         new FormColumn(
                                             new SelectBox('Select[Division]', 'Klasse',
                                                 array(
-                                                    '{{serviceTblYear.Name}} - {{tblLevel.serviceTblType.Name}} - {{tblLevel.Name}} {{Name}}' => $tblDivisionAll
+                                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }}
+                                                     - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
                                                 )),
                                             12
                                         )
