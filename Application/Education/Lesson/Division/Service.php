@@ -262,7 +262,7 @@ class Service extends AbstractService
 
         if (!$Error) {
             (new Data($this->getBinding()))->createSubjectGroup($SubjectGroup['Name'], $SubjectGroup['Description']);
-            return new Success('Die Gruppe wurde erfolgreich hinzugefügt')
+            return new Success('Die Unterrichtsgruppe wurde erfolgreich hinzugefügt')
             .new Redirect($this->getRequest()->getUrl(), 1);
         }
 

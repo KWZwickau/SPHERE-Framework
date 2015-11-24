@@ -103,12 +103,12 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             Division::useService()->createLevel(
                                 $this->formLevelDivision()
-                                    ->appendFormButton(new Primary('Schulklassen hinzufügen'))
+                                    ->appendFormButton(new Primary('Schulklasse hinzufügen'))
                                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $Level, $Division
                             )
                         )
-                    ), new Title('Klassenstufe hinzufügen')
+                    ), new Title('Schulklasse hinzufügen')
                 ),
             ))
         );
@@ -218,12 +218,12 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             Division::useService()->createSubjectGroup(
                                 $this->formSubjectGroup()
-                                    ->appendFormButton(new Primary('Gruppe hinzufügen'))
+                                    ->appendFormButton(new Primary('Unterrichtsgruppe hinzufügen'))
                                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $SubjectGroup
                             )
                         )
-                    ), new Title('Klassenstufe hinzufügen')
+                    ), new Title('Unterrichtsgruppe hinzufügen')
                 )
             ))
         );
