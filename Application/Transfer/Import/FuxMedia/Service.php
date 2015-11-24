@@ -144,11 +144,12 @@ class Service
                     'Schüler_Geburtsdatum' => null,
                     'Schüler_Geburtsort' => null,
                     'Schüler_Konfession' => null,
-
                     'Schüler_Einschulung_am' => null,
                     'Schüler_Aufnahme_am' => null,
                     'Schüler_Abgang_am' => null,
-
+                    'Schüler_Schließfach_Schlüsselnummer' => null,
+                    'Schüler_Schließfachnummer' => null,
+                    'Schüler_Krankenkasse' => null,
                     'Sorgeberechtigter1_Name' => null,
                     'Sorgeberechtigter1_Vorname' => null,
                     'Sorgeberechtigter1_Straße' => null,
@@ -169,6 +170,8 @@ class Service
                     'Kommunikation_Telefon6' => null,
                     'Kommunikation_Fax' => null,
                     'Kommunikation_Email' => null,
+                    'Beförderung_Fahrtroute' => null,
+                    'Beförderung_Einsteigestelle' => null,
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
@@ -303,14 +306,65 @@ class Service
                             $studentNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schülernummer'],
                                 $RunY)));
 
-                            $tblStudent = Student::useService()->insertStudent($tblPerson, $studentNumber);
-                            if ($tblStudent){
+                            $tblStudentLocker = null;
+                            $LockerNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schließfachnummer'],
+                                $RunY)));
+                            $KeyNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schließfach_Schlüsselnummer'],
+                                $RunY)));
+                            if ($LockerNumber !== '' || $KeyNumber !== '') {
+                                $tblStudentLocker = Student::useService()->insertStudentLocker(
+                                    $LockerNumber,
+                                    '',
+                                    $KeyNumber
+                                );
+                            }
+
+                            $tblStudentMedicalRecord = null;
+                            $insurance = trim($Document->getValue($Document->getCell($Location['Schüler_Krankenkasse'],
+                                $RunY)));
+                            if ($insurance !== '') {
+                                $tblStudentMedicalRecord = Student::useService()->insertStudentMedicalRecord(
+                                    '',
+                                    '',
+                                    $insurance
+                                );
+                            }
+
+                            $tblStudentTransport = null;
+                            $route = trim($Document->getValue($Document->getCell($Location['Beförderung_Fahrtroute'],
+                                $RunY)));
+                            $stationEntrance = trim($Document->getValue($Document->getCell($Location['Beförderung_Einsteigestelle'],
+                                $RunY)));
+                            if ($route !== '' || $stationEntrance !== '') {
+                                $tblStudentTransport = Student::useService()->insertStudentTransport(
+                                    $route,
+                                    $stationEntrance,
+                                    ''
+                                );
+                            }
+
+                            $tblStudentBilling = null;
+                            $tblStudentBaptism = null;
+                            $tblStudentIntegration = null;
+
+                            $tblStudent = Student::useService()->insertStudent(
+                                $tblPerson,
+                                $studentNumber,
+                                $tblStudentMedicalRecord,
+                                $tblStudentTransport,
+                                $tblStudentBilling,
+                                $tblStudentLocker,
+                                $tblStudentBaptism,
+                                $tblStudentIntegration
+                            );
+
+                            if ($tblStudent) {
 
                                 // Schülertransfer
                                 // ToDo JohK Company
                                 $enrollmentDate = trim($Document->getValue($Document->getCell($Location['Schüler_Einschulung_am'],
                                     $RunY)));
-                                if($enrollmentDate !== '' && date_create($enrollmentDate) !== false) {
+                                if ($enrollmentDate !== '' && date_create($enrollmentDate) !== false) {
                                     $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Enrollment');
                                     Student::useService()->insertStudentTransfer(
                                         $tblStudent,
@@ -324,7 +378,7 @@ class Service
                                 }
                                 $arriveDate = trim($Document->getValue($Document->getCell($Location['Schüler_Aufnahme_am'],
                                     $RunY)));
-                                if($arriveDate !== '' && date_create($arriveDate) !== false) {
+                                if ($arriveDate !== '' && date_create($arriveDate) !== false) {
                                     $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
                                     Student::useService()->insertStudentTransfer(
                                         $tblStudent,
@@ -338,7 +392,7 @@ class Service
                                 }
                                 $leaveDate = trim($Document->getValue($Document->getCell($Location['Schüler_Abgang_am'],
                                     $RunY)));
-                                if($leaveDate !== '' && date_create($leaveDate) !== false) {
+                                if ($leaveDate !== '' && date_create($leaveDate) !== false) {
                                     $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Leave');
                                     Student::useService()->insertStudentTransfer(
                                         $tblStudent,
@@ -518,7 +572,7 @@ class Service
                     return
                         new Success('Es wurden ' . $countStudent . ' Schüler erfolgreich angelegt.') .
                         new Success('Es wurden ' . ($countFather + $countMother) . ' Sorgeberechtigte erfolgreich angelegt.') .
-                        ( $countExists > 0 ?
+                        ($countExists > 0 ?
                             new Warning($countExists . ' Sorgeberechtigte exisistieren bereits.') : '');
                 } else {
                     Debugger::screenDump($Location);
