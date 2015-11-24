@@ -29,6 +29,7 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use SPHERE\Application\People\Meta\Student\Student;
 
 class Service
 {
@@ -143,6 +144,11 @@ class Service
                     'Schüler_Geburtsdatum' => null,
                     'Schüler_Geburtsort' => null,
                     'Schüler_Konfession' => null,
+
+                    'Schüler_Einschulung_am' => null,
+                    'Schüler_Aufnahme_am' => null,
+                    'Schüler_Abgang_am' => null,
+
                     'Sorgeberechtigter1_Name' => null,
                     'Sorgeberechtigter1_Vorname' => null,
                     'Sorgeberechtigter1_Straße' => null,
@@ -165,7 +171,7 @@ class Service
                     'Kommunikation_Email' => null,
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
-                    $Value = $Document->getValue($Document->getCell($RunX, 0));
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
                     if (array_key_exists($Value, $Location)) {
                         $Location[$Value] = $RunX;
                     }
@@ -294,6 +300,58 @@ class Service
                             }
 
                             // ToDo JohK Schülerakte (Schülernummer...)
+                            $studentNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schülernummer'],
+                                $RunY)));
+
+                            $tblStudent = Student::useService()->insertStudent($tblPerson, $studentNumber);
+                            if ($tblStudent){
+
+                                // Schülertransfer
+                                // ToDo JohK Company
+                                $enrollmentDate = trim($Document->getValue($Document->getCell($Location['Schüler_Einschulung_am'],
+                                    $RunY)));
+                                if($enrollmentDate !== '' && date_create($enrollmentDate) !== false) {
+                                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Enrollment');
+                                    Student::useService()->insertStudentTransfer(
+                                        $tblStudent,
+                                        $tblStudentTransferType,
+                                        null,
+                                        null,
+                                        null,
+                                        $enrollmentDate,
+                                        ''
+                                    );
+                                }
+                                $arriveDate = trim($Document->getValue($Document->getCell($Location['Schüler_Aufnahme_am'],
+                                    $RunY)));
+                                if($arriveDate !== '' && date_create($arriveDate) !== false) {
+                                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
+                                    Student::useService()->insertStudentTransfer(
+                                        $tblStudent,
+                                        $tblStudentTransferType,
+                                        null,
+                                        null,
+                                        null,
+                                        $arriveDate,
+                                        ''
+                                    );
+                                }
+                                $leaveDate = trim($Document->getValue($Document->getCell($Location['Schüler_Abgang_am'],
+                                    $RunY)));
+                                if($leaveDate !== '' && date_create($leaveDate) !== false) {
+                                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Leave');
+                                    Student::useService()->insertStudentTransfer(
+                                        $tblStudent,
+                                        $tblStudentTransferType,
+                                        null,
+                                        null,
+                                        null,
+                                        $leaveDate,
+                                        ''
+                                    );
+                                }
+                            }
+
                             // ToDo JohK Fächerzugehörigkeit
 
                             // Sorgeberechtigter1
