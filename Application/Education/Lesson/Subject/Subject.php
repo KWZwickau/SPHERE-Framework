@@ -149,12 +149,16 @@ class Subject implements IModuleInterface
             array_walk($tblCategoryAll, function (TblCategory $tblCategory) use (&$Content, $tblGroup) {
 
                 $tblSubjectAll = $this->useService()->getSubjectAllByCategory($tblCategory);
-                array_walk($tblSubjectAll, function (TblSubject &$tblSubject) {
+                if(is_array($tblSubjectAll))
+                {
+                    array_walk($tblSubjectAll, function (TblSubject &$tblSubject) {
 
-                    $tblSubject = new Bold($tblSubject->getAcronym()) . ' - '
-                        . $tblSubject->getName() . ' '
-                        . new Small(new Muted($tblSubject->getDescription()));
-                });
+                        $tblSubject = new Bold($tblSubject->getAcronym()) . ' - '
+                            . $tblSubject->getName() . ' '
+                            . new Small(new Muted($tblSubject->getDescription()));
+                    });
+                }
+
 
                 $Height = floor(((count($tblSubjectAll) + 2) / 3) + 1);
                 Main::getDispatcher()->registerWidget($tblGroup->getIdentifier(),

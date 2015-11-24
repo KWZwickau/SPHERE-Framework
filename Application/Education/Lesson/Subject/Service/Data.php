@@ -496,11 +496,13 @@ class Data extends AbstractData
                 TblCategorySubject::ATTR_TBL_CATEGORY => $tblCategory->getId()
             )
         );
-        array_walk($EntityList, function (TblCategorySubject &$V) {
+        if ($EntityList) {
+            array_walk($EntityList, function (TblCategorySubject &$V) {
 
-            $V = $V->getTblSubject();
-        });
-        return ( null === $EntityList ? false : $EntityList );
+                $V = $V->getTblSubject();
+            });
+        }
+        return $EntityList;
     }
 
     /**

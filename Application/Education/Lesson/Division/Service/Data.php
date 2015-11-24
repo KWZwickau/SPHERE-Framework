@@ -262,6 +262,21 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblYear $tblYear
+     *
+     * @return bool|TblDivision[]
+     */
+    public function getDivisionByYear(TblYear $tblYear)
+    {
+
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblDivision')->findBy(array(
+            TblDivision::ATTR_YEAR => $tblYear->getId()
+        ));
+
+        return empty( $EntityList ) ? false : $EntityList;
+    }
+
+    /**
      * @param TblPerson $tblPerson
      *
      * @return bool|TblSubjectStudent[]
@@ -679,6 +694,52 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function removeSubjectStudentByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $EntityList = $Manager->getEntity('TblSubjectStudent')->findBy(
+            array(TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()));
+        if ($EntityList) {
+            foreach ($EntityList as $Entity) {
+                /** @var Element $Entity */
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+                $Manager->killEntity($Entity);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function removeSubjectTeacherByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $EntityList = $Manager->getEntity('TblSubjectTeacher')->findBy(
+            array(TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()));
+        if ($EntityList) {
+            foreach ($EntityList as $Entity) {
+                /** @var Element $Entity */
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+                $Manager->killEntity($Entity);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblSubjectTeacher $tblSubjectTeacher
      *
      * @return bool
@@ -698,14 +759,11 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblYear     $Year
-     * @param TblLevel    $Level
-     * @param string      $Name
      * @param string      $Description
      *
      * @return bool
      */
-    public function updateDivision(TblDivision $tblDivision, TblYear $Year, TblLevel $Level, $Name, $Description = '')
+    public function updateDivision(TblDivision $tblDivision, $Description = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -714,9 +772,6 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblDivision', $tblDivision->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setServiceTblYear($Year);
-            $Entity->setTblLevel($Level);
-            $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
