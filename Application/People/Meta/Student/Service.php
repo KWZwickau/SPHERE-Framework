@@ -6,7 +6,6 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Service\Data;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
@@ -43,6 +42,72 @@ class Service extends Integration
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
+    }
+
+    /**
+     * @param $LockerNumber
+     * @param $LockerLocation
+     * @param $KeyNumber
+     *
+     * @return TblStudentLocker
+     */
+    public function insertStudentLocker(
+        $LockerNumber,
+        $LockerLocation,
+        $KeyNumber
+    ) {
+        return (new Data($this->getBinding()))->createStudentLocker(
+            $LockerNumber,
+            $LockerLocation,
+            $KeyNumber
+        );
+    }
+
+    /**
+     * @param $Disease
+     * @param $Medication
+     * @param TblPerson|null $tblPersonAttendingDoctor
+     * @param null $InsuranceState
+     * @param $Insurance
+     *
+     * @return TblStudentMedicalRecord
+     */
+    public function insertStudentMedicalRecord(
+        $Disease,
+        $Medication,
+        $Insurance,
+        $InsuranceState = 0,
+        TblPerson $tblPersonAttendingDoctor = null
+    ) {
+        return (new Data($this->getBinding()))->createStudentMedicalRecord(
+            $Disease,
+            $Medication,
+            $tblPersonAttendingDoctor,
+            $InsuranceState,
+            $Insurance
+        );
+    }
+
+    /**
+     * @param $Route
+     * @param $StationEntrance
+     * @param $StationExit
+     * @param string $Remark
+     *
+     * @return TblStudentTransport
+     */
+    public function insertStudentTransport(
+        $Route,
+        $StationEntrance,
+        $StationExit,
+        $Remark = ''
+    ) {
+        return (new Data($this->getBinding()))->createStudentTransport(
+            $Route,
+            $StationEntrance,
+            $StationExit,
+            $Remark
+        );
     }
 
     /**
