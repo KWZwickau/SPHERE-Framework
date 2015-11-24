@@ -26,7 +26,7 @@ abstract class Transfer extends Agreement
     }
 
     /**
-     * @param TblStudent             $tblStudent
+     * @param TblStudent $tblStudent
      * @param TblStudentTransferType $tblStudentTransferType
      *
      * @return bool|TblStudentTransfer
@@ -47,4 +47,15 @@ abstract class Transfer extends Agreement
 
         return (new Data($this->getBinding()))->getStudentTransferTypeByIdentifier($Identifier);
     }
+
+    /**
+     * @param $Id
+     * @return bool|TblStudentTransferType
+     */
+    public function getStudentTransferTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getStudentTransferTypeById($Id);
+    }
+
 }
