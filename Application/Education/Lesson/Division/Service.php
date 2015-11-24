@@ -852,6 +852,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblSubjectStudent[]
+     */
+    public function getSubjectStudentByPerson(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectStudentByPerson($tblPerson);
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param null|array     $Level
      * @param int            $Id

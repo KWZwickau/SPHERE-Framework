@@ -986,6 +986,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function formDivision()
     {
+
         return new Form(
             new FormGroup(
                 new FormRow(
@@ -1029,8 +1030,6 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblDivisionStudent->getSecondName().' '.
                         $tblDivisionStudent->getLastName();
                     $tblDivisionStudent->Option =
-//                        new Standard('', '', new Person(), null, 'Test')
-//                        .new Standard('', '', new Book(), null, 'Test (Fächer)').
                         new Standard('', '/Education/Lesson/Division/Student/Remove', new Remove(),
                             array('Id'        => $tblDivision->getId(),
                                   'StudentId' => $tblDivisionStudent->getId()),
@@ -1042,6 +1041,19 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $tblDivisionStudent->Birthday = 'nicht eingetragen';
                     }
+
+                    $tblSubjectStudentList = Division::useService()->getSubjectStudentByPerson($tblDivisionStudent);
+                    if ($tblSubjectStudentList) {
+                        $GroupList = array();
+                        /** @var TblSubjectStudent $tblSubjectStudent */
+                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                            $GroupList[] = $tblSubjectStudent->getTblDivisionSubject()->getServiceTblSubject()->getName();
+                        }
+                        asort($GroupList);
+                        $tblDivisionStudent->Group = implode(', ', $GroupList);
+                    } else {
+                        $tblDivisionStudent->Group = 'keine Zuordnung';
+                    }
                 }
             }
             $tblDivisionTeacherList = Division::useService()->getTeacherAllByDivision($tblDivision);
@@ -1051,7 +1063,8 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblPhoneList = Phone::useService()->getPhoneAllByPerson($tblDivisionTeacher);
                     if ($tblPhoneList) {
                         foreach ($tblPhoneList as $tblPhone)
-                            array_push($Content, $tblPhone->getTblType()->getName().' - '.$tblPhone->getTblPhone()->getNumber());
+                            if ($tblPhone->getTblType()->getName() === 'Geschäftlich')
+                                array_push($Content, $tblPhone->getTblType()->getName().' - '.$tblPhone->getTblPhone()->getNumber());
                     }
 
                     $tblDivisionTeacher = new LayoutColumn(
@@ -1086,6 +1099,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         .$tblDivision->getTblLevel()->getName().$tblDivision->getName()),
                                     array('FirstName' => 'Vorname',
                                           'LastName'  => 'Nachname',
+                                          'Group'     => 'Zuweisung(en)',
                                           'Option'    => 'Option')
                                     , true)
                             )
