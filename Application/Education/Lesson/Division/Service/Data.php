@@ -54,7 +54,7 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
             return $Entity;
         }
-        return false;
+        return $Entity;
     }
 
     /**
@@ -744,14 +744,11 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblYear     $Year
-     * @param TblLevel    $Level
-     * @param string      $Name
      * @param string      $Description
      *
      * @return bool
      */
-    public function updateDivision(TblDivision $tblDivision, TblYear $Year, TblLevel $Level, $Name, $Description = '')
+    public function updateDivision(TblDivision $tblDivision, $Description = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -760,9 +757,6 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblDivision', $tblDivision->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setServiceTblYear($Year);
-            $Entity->setTblLevel($Level);
-            $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
