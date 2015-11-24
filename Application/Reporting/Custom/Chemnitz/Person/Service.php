@@ -139,8 +139,8 @@ class Service
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Anrede");
-            $export->setValue($export->getCell("1", "0"), "Vorname V.");
-            $export->setValue($export->getCell("2", "0"), "Vorname M.");
+            $export->setValue($export->getCell("1", "0"), "Vorname Sorgeberechtigter 1");
+            $export->setValue($export->getCell("2", "0"), "Vorname Sorgeberechtigter 2");
             $export->setValue($export->getCell("3", "0"), "Name");
             $export->setValue($export->getCell("4", "0"), "Konfession");
             $export->setValue($export->getCell("5", "0"), "Straße");
@@ -720,12 +720,12 @@ class Service
             $export->setValue($export->getCell("14", "0"), "Bekenntnis");
             $export->setValue($export->getCell("15", "0"), "Geschwister");
             $export->setValue($export->getCell("16", "0"), "Hort");
-            $export->setValue($export->getCell("17", "0"), "Anrede V");
-            $export->setValue($export->getCell("18", "0"), "Name V");
-            $export->setValue($export->getCell("19", "0"), "Vorname V");
-            $export->setValue($export->getCell("20", "0"), "Anrede M");
-            $export->setValue($export->getCell("21", "0"), "Name M");
-            $export->setValue($export->getCell("22", "0"), "Vorname M");
+            $export->setValue($export->getCell("17", "0"), "Anrede Sorgeberechtigter 1");
+            $export->setValue($export->getCell("18", "0"), "Name Sorgeberechtigter 1");
+            $export->setValue($export->getCell("19", "0"), "Vorname Sorgeberechtigter 1");
+            $export->setValue($export->getCell("20", "0"), "Anrede Sorgeberechtigter 2");
+            $export->setValue($export->getCell("21", "0"), "Name Sorgeberechtigter 2");
+            $export->setValue($export->getCell("22", "0"), "Vorname Sorgeberechtigter 2");
 
             $Row = 1;
             foreach ($interestedPersonList as $tblPerson) {
@@ -867,12 +867,12 @@ class Service
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Deb.-Nr.");
             $export->setValue($export->getCell("1", "0"), "Bescheid geschickt");
-            $export->setValue($export->getCell("2", "0"), "Anrede V");
-            $export->setValue($export->getCell("3", "0"), "Name V");
-            $export->setValue($export->getCell("4", "0"), "Vorname V");
-            $export->setValue($export->getCell("5", "0"), "Anrede M");
-            $export->setValue($export->getCell("6", "0"), "Name M");
-            $export->setValue($export->getCell("7", "0"), "Vorname M");
+            $export->setValue($export->getCell("2", "0"), "Anrede Sorgeberechtigter 1");
+            $export->setValue($export->getCell("3", "0"), "Name Sorgeberechtigter 1");
+            $export->setValue($export->getCell("4", "0"), "Vorname Sorgeberechtigter 1");
+            $export->setValue($export->getCell("5", "0"), "Anrede Sorgeberechtigter 2");
+            $export->setValue($export->getCell("6", "0"), "Name Sorgeberechtigter 2");
+            $export->setValue($export->getCell("7", "0"), "Vorname Sorgeberechtigter 2");
             $export->setValue($export->getCell("8", "0"), "Unterlagen eingereicht");
             $export->setValue($export->getCell("9", "0"), "SG Vorjahr");
             $export->setValue($export->getCell("10", "0"), "1.Kind");

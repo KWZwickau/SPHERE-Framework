@@ -70,7 +70,8 @@ class Common
                 $fileLocation = Person::useService()->createMedicListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Chemnitz Arztliste " . $tblDivision->getName() . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
+                    "Chemnitz Arztliste " . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()
+                    . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
             }
         }
 
@@ -91,7 +92,8 @@ class Common
                 $fileLocation = Person::useService()->createParentTeacherConferenceListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Chemnitz Elternabende " . $tblDivision->getName() . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
+                    "Chemnitz Elternabende " . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()
+                    . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
             }
         }
 
