@@ -172,7 +172,7 @@ class Division implements IModuleInterface
                         new LayoutColumn(
                             new TableData($tblDivisionList, null, array('Year'        => 'Schuljahr',
                                                                         'Period'      => 'Zeitraum',
-                                                                        'LevelType'   => 'Name',
+                                                                        'LevelType'   => 'Schultyp',
                                                                         'Group'       => 'Schulklasse',
                                                                         'StudentList' => 'Schüler',
                                                                         'TeacherList' => 'Klassenlehrer',

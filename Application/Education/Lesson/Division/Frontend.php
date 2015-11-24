@@ -739,12 +739,15 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Schüler', $tblStudentList, Panel::PANEL_TYPE_INFO)
-                        , 6),
-                    new FormColumn(
-                        new Panel(' Fächer:'
+                        new Panel(' Fach:'
                             , new SelectBox('DivisionSubject', '', array('Name' => $tblDivisionSubjectList)), Panel::PANEL_TYPE_INFO)
                         , 6),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Schüler', $tblStudentList, Panel::PANEL_TYPE_INFO)
+                        , 6),
+
                     new FormColumn(
                         new Panel('Gruppen', new SelectBox('Group', '', array('{{ Name }} {{ Description }}' => $tblGroupList)), Panel::PANEL_TYPE_INFO)
                         , 6)
@@ -1141,8 +1144,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Content[] = new LayoutColumn(
                     new TableData($tblDivisionSubjectList, new \SPHERE\Common\Frontend\Table\Repository\Title('Fächer der Klasse '
                             .$tblDivision->getTblLevel()->getName().$tblDivision->getName())
-                        , array('Subject' => 'Name',
-                                'Teacher' => 'Name',
+                        , array('Subject' => 'Fach',
+                                'Teacher' => 'Fachlehrer',
                                 'Group'   => 'Gruppen',
                                 'Option'  => 'Option'), true)
                 );
