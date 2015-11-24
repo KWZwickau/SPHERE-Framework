@@ -1,5 +1,12 @@
 <?php
-namespace SPHERE\Application\Billing\Inventory\Commodity\Service\Entity;
+/**
+ * Created by PhpStorm.
+ * User: Kauschke
+ * Date: 23.11.2015
+ * Time: 08:40
+ */
+
+namespace SPHERE\Application\People\Relationship\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
@@ -8,12 +15,14 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
- * @Entity
- * @Table(name="tblCommodityType")
+ * @Entity()
+ * @Table(name="tblSiblingRank")
  * @Cache(usage="READ_ONLY")
  */
-class TblCommodityType extends Element
+class TblSiblingRank extends Element
 {
+
+    const ATTR_NAME = 'Name';
 
     /**
      * @Column(type="string")
@@ -25,7 +34,6 @@ class TblCommodityType extends Element
      */
     public function getName()
     {
-
         return $this->Name;
     }
 
@@ -34,7 +42,6 @@ class TblCommodityType extends Element
      */
     public function setName($Name)
     {
-
         $this->Name = $Name;
     }
 }

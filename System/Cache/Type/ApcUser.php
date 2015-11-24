@@ -11,6 +11,8 @@ use SPHERE\System\Cache\ITypeInterface;
 class ApcUser implements ITypeInterface
 {
 
+    /** @var bool $Available */
+    private static $Available = false;
     /** @var array $Status */
     private $Status = array();
 
@@ -40,7 +42,8 @@ class ApcUser implements ITypeInterface
     public function isAvailable()
     {
 
-        if (function_exists('apc_clear_cache')) {
+        if (self::$Available || function_exists('apc_clear_cache')) {
+            self::$Available = true;
             return true;
         }
         return false;

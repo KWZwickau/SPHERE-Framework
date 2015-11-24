@@ -155,7 +155,7 @@ class Data extends AbstractData
     public function getMailAllByCompany(TblCompany $tblCompany)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany',
             array(
                 TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
             ));

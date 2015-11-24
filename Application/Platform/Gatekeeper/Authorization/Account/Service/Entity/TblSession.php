@@ -11,7 +11,7 @@ use SPHERE\System\Database\Fitting\Element;
 /**
  * @Entity
  * @Table(name="tblSession")
- * @Cache(usage="READ_WRITE")
+ * @Cache(usage="READ_ONLY")
  */
 class TblSession extends Element
 {

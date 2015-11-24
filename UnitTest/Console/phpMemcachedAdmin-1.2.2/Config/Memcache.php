@@ -18,9 +18,9 @@ return array (
   array (
     'KREDA-Cache' =>
     array (
-      '127.0.0.1:11211' =>
+      '192.168.10.180:11211' =>
       array (
-        'hostname' => '127.0.0.1',
+        'hostname' => '192.168.10.180',
         'port' => '11211',
       ),
     ),

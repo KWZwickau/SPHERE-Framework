@@ -101,7 +101,11 @@ class DataTables extends Extension
     private function getTableSearch()
     {
 
-        $Search = explode(' ', $this->Request['search']['value']);
+        if (isset( $this->Request['search'] )) {
+            $Search = explode(' ', $this->Request['search']['value']);
+        } else {
+            $Search = array();
+        }
         array_walk($Search, function (&$P) {
 
             if (empty( $P )) {

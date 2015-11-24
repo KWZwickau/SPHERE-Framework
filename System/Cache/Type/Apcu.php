@@ -11,6 +11,8 @@ use SPHERE\System\Cache\ITypeInterface;
 class Apcu implements ITypeInterface
 {
 
+    /** @var bool $Available */
+    private static $Available = false;
     /** @var array $Status */
     private $Status = array();
 
@@ -32,18 +34,6 @@ class Apcu implements ITypeInterface
     {
 
         return true;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isAvailable()
-    {
-
-        if (function_exists('apc_clear_cache')) {
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -131,11 +121,26 @@ class Apcu implements ITypeInterface
     public function setConfiguration($Configuration)
     {
 
-        if (function_exists('apc_sma_info')) {
-            $this->Status += apc_sma_info(true);
+        if ($this->isAvailable() && empty( $this->Status )) {
+            if (function_exists('apc_sma_info')) {
+                $this->Status += apc_sma_info(true);
+            }
+            if (function_exists('apc_cache_info')) {
+                $this->Status += apc_cache_info('user', true);
+            }
         }
-        if (function_exists('apc_cache_info')) {
-            $this->Status += apc_cache_info('user', true);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAvailable()
+    {
+
+        if (self::$Available || function_exists('apc_clear_cache')) {
+            self::$Available = true;
+            return true;
         }
+        return false;
     }
 }

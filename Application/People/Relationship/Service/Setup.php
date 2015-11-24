@@ -29,6 +29,7 @@ class Setup extends AbstractSetup
         $tblType = $this->setTableType($Schema, $tblGroup);
         $this->setTableToPerson($Schema, $tblType);
         $this->setTableToCompany($Schema, $tblType);
+        $this->setTableSiblingRank($Schema);
         /**
          * Migration & Protocol
          */
@@ -124,6 +125,22 @@ class Setup extends AbstractSetup
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
         $this->getConnection()->addForeignKey($Table, $tblType);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableSiblingRank(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblSiblingRank');
+        if (!$this->getConnection()->hasColumn('tblSiblingRank', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+
         return $Table;
     }
 }

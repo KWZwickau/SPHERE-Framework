@@ -125,7 +125,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblAddressAll !== false) {
             array_walk($tblAddressAll, function (TblToCompany &$tblToCompany) {
 
-                $Panel = array($tblToCompany->getTblAddress()->getLayout());
+                $Panel = array($tblToCompany->getTblAddress()->getGuiLayout());
                 if ($tblToCompany->getRemark()) {
                     array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
                 }

@@ -20,6 +20,8 @@ class Table extends Extension implements ITemplateInterface
     protected $TableBody = array();
     /** @var TableFoot[] $TableFoot */
     protected $TableFoot = array();
+    /** @var bool|string|array $Interactive */
+    protected $Interactive = false;
     /** @var IBridgeInterface $Template */
     protected $Template = null;
     /** @var string $Hash */
@@ -39,6 +41,8 @@ class Table extends Extension implements ITemplateInterface
         $Interactive = false,
         TableFoot $TableFoot = null
     ) {
+
+        $this->Interactive = $Interactive;
 
         if (!is_array($TableHead)) {
             $TableHead = array($TableHead);
@@ -114,7 +118,7 @@ class Table extends Extension implements ITemplateInterface
                     $H = serialize($H);
                 }
             });
-            $this->Hash = sha1(json_encode($HeadList).json_encode($BodyList).json_encode($FootList));
+            $this->Hash = sha1(json_encode($HeadList).json_encode($BodyList).json_encode($FootList).json_encode($this->Interactive));
         }
         return $this->Hash;
     }

@@ -14,7 +14,7 @@ use SPHERE\System\Database\Fitting\Element;
 /**
  * @Entity
  * @Table(name="tblArchive")
- * @Cache(usage="READ_WRITE")
+ * @Cache(usage="READ_ONLY")
  */
 class TblArchive extends Element
 {

@@ -139,6 +139,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblToPerson', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson'))) {
+            $Table->addIndex(array('serviceTblPerson'));
+        }
         $this->getConnection()->addForeignKey($Table, $tblAddress);
         $this->getConnection()->addForeignKey($Table, $tblType);
         return $Table;
@@ -160,6 +163,9 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblToCompany', 'serviceTblCompany')) {
             $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblCompany'))) {
+            $Table->addIndex(array('serviceTblCompany'));
         }
         $this->getConnection()->addForeignKey($Table, $tblAddress);
         $this->getConnection()->addForeignKey($Table, $tblType);

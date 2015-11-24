@@ -43,6 +43,18 @@ class Manager
     {
 
         // MUST NOT USE Cache-System
+        return $this->getRepository($ClassName);
+    }
+
+    /**
+     * @param string $ClassName
+     *
+     * @return Repository
+     */
+    final public function getRepository($ClassName)
+    {
+
+        // MUST NOT USE Cache-System
         return $this->EntityManager->getRepository($this->Namespace.$ClassName);
     }
 

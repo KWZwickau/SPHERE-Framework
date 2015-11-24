@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -91,6 +92,21 @@ class Service extends AbstractService
          * Skip to Frontend
          */
         if (null === $Select) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (!isset($Select['Division']))
+        {
+            $Error = true;
+            $Stage .=  new Warning('Klasse nicht gefunden');
+        }
+        if(!isset($Select['Subject'])) {
+            $Error = true;
+            $Stage .=  new Warning('Fach nicht gefunden');
+        }
+        if ($Error)
+        {
             return $Stage;
         }
 
@@ -247,6 +263,29 @@ class Service extends AbstractService
          * Skip to Frontend
          */
         if (null === $Test) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (!isset($Test['Division']))
+        {
+            $Error = true;
+            $Stage .=  new Warning('Klasse nicht gefunden');
+        }
+        if(!isset($Test['Subject'])) {
+            $Error = true;
+            $Stage .=  new Warning('Fach nicht gefunden');
+        }
+        if(!isset($Test['Period'])) {
+            $Error = true;
+            $Stage .=  new Warning('Zeitraum nicht gefunden');
+        }
+        if(!isset($Test['GradeType'])) {
+            $Error = true;
+            $Stage .=  new Warning('Zensuren-Typ nicht gefunden');
+        }
+        if ($Error)
+        {
             return $Stage;
         }
 

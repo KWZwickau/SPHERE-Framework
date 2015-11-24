@@ -4,6 +4,7 @@ namespace SPHERE\Application\People\Relationship\Service;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblGroup;
+use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
@@ -30,9 +31,16 @@ class Data extends AbstractData
         $this->createType('Geschwisterkind', '', $tblGroupPerson);
         $this->createType('Arzt', '', $tblGroupPerson);
         $this->createType('Ehepartner', '', $tblGroupPerson);
-        $this->createType('Lebensabschnittsgefährte', '', $tblGroupPerson);
+        $this->createType('Lebenspartner', '', $tblGroupPerson);
 
         $this->createType('Geschäftsführer', '', $tblGroupCompany);
+
+        $this->createSiblingRank('1. Geschwisterkind');
+        $this->createSiblingRank('2. Geschwisterkind');
+        $this->createSiblingRank('3. Geschwisterkind');
+        $this->createSiblingRank('4. Geschwisterkind');
+        $this->createSiblingRank('5. Geschwisterkind');
+        $this->createSiblingRank('6. Geschwisterkind');
     }
 
     /**
@@ -322,5 +330,48 @@ class Data extends AbstractData
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
+    }
+
+    /**
+     * @param $Name
+     * @return TblSiblingRank
+     */
+    public function createSiblingRank($Name)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblSiblingRank')->findOneBy(array(
+            TblSiblingRank::ATTR_NAME => $Name
+        ));
+        if (null === $Entity) {
+            $Entity = new TblSiblingRank();
+            $Entity->setName($Name);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblSiblingRank
+     */
+    public function getSiblingRankById($Id)
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblSiblingRank', $Id);
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @return bool|TblSiblingRank[]
+     */
+    public function getSiblingRankAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSiblingRank');
     }
 }
