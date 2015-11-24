@@ -1140,4 +1140,15 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionByLevel($tblLevel);
     }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return bool|TblDivision[]
+     */
+    public function getDivisionByYear(TblYear $tblYear)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionByYear($tblYear);
+    }
 }

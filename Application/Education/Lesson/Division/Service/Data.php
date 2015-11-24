@@ -262,6 +262,21 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblYear $tblYear
+     *
+     * @return bool|TblDivision[]
+     */
+    public function getDivisionByYear(TblYear $tblYear)
+    {
+
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblDivision')->findBy(array(
+            TblDivision::ATTR_YEAR => $tblYear->getId()
+        ));
+
+        return empty( $EntityList ) ? false : $EntityList;
+    }
+
+    /**
      * @param TblPerson $tblPerson
      *
      * @return bool|TblSubjectStudent[]

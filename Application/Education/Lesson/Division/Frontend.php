@@ -301,7 +301,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblDivision = Division::useService()->getDivisionById($Id);
         if ($tblDivision) {
             $Stage = new Stage('Schüler', 'der Klasse '.new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName()).' hinzufügen');
-            $Stage->setMessage('Liste aller Schüler die keiner Klasse zugefügt sind.');
+            $Stage->setMessage('Liste aller Schüler die im Schuljahr '.$tblDivision->getServiceTblYear()->getName()
+                .' noch keiner Klasse zugeordnet sind.');
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(), array('Id' => $tblDivision->getId())));
 
 
@@ -340,7 +341,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
 
         $tblStudentList = Group::useService()->getPersonAllByGroup($tblGroup);  // Alle Schüler
-        $tblDivisionList = Division::useService()->getDivisionAll();
+        $tblDivisionList = Division::useService()->getDivisionByYear($tblDivision->getServiceTblYear());
         if ($tblStudentList) {
             if ($tblDivisionList) {
                 foreach ($tblDivisionList as $tblSingleDivision) {
@@ -358,7 +359,7 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblStudentList as &$tblStudent) {
                     $tblStudent = new CheckBox(
                         'Student['.$tblStudent->getId().']',
-                        $tblStudent->getFirstName().' '.$tblStudent->getSecondName().' '.$tblStudent->getLastName(),
+                        $tblStudent->getLastName().', '.$tblStudent->getFirstName().' '.$tblStudent->getSecondName(),
                         $tblStudent->getId()
                     );
                 }
@@ -716,7 +717,7 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblStudentList as &$tblPerson) {
                     $tblPerson = new CheckBox(
                         'Student['.$tblPerson->getId().']',
-                        $tblPerson->getFirstName().' '.$tblPerson->getSecondName().' - '.$tblPerson->getLastName(),
+                        $tblPerson->getLastName().', '.$tblPerson->getFirstName().' '.$tblPerson->getSecondName(),
                         $tblPerson->getId()
                     );
                 }
