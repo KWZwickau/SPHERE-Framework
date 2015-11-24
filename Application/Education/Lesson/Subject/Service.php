@@ -249,12 +249,15 @@ class Service extends AbstractService
 
         // Remove link Subject
         $tblSubjectAll = $tblCategory->getTblSubjectAll();
-        array_walk($tblSubjectAll, function (TblSubject $tblSubject) use ($tblCategory, &$Error) {
+        if ($tblSubjectAll) {
+            array_walk($tblSubjectAll, function (TblSubject $tblSubject) use ($tblCategory, &$Error) {
 
-            if (!$this->removeCategorySubject($tblCategory, $tblSubject)) {
-                $Error = true;
-            }
-        });
+                if (!$this->removeCategorySubject($tblCategory, $tblSubject)) {
+                    $Error = true;
+                }
+            });
+        }
+
         // Remove link Group
         $tblGroupAll = Subject::useService()->getGroupAllByCategory($tblCategory);
         if ($tblGroupAll) {
@@ -727,10 +730,12 @@ class Service extends AbstractService
         $Subject
     ) {
 
+        $Global = $this->getGlobal();
+
         /**
          * Skip to Frontend
          */
-        if (null === $Subject) {
+        if (!isset( $Global->POST['Button']['Submit'] )) {
             return $Form;
         }
 
@@ -740,19 +745,23 @@ class Service extends AbstractService
 
             // Remove old Link
             $tblSubjectAll = $tblCategory->getTblSubjectAll();
-            array_walk($tblSubjectAll, function (TblSubject $tblSubject) use ($tblCategory, &$Error) {
+            if (is_array($tblSubjectAll)) {
+                array_walk($tblSubjectAll, function (TblSubject $tblSubject) use ($tblCategory, &$Error) {
 
-                if (!$this->removeCategorySubject($tblCategory, $tblSubject)) {
-                    $Error = false;
-                }
-            });
+                    if (!$this->removeCategorySubject($tblCategory, $tblSubject)) {
+                        $Error = false;
+                    }
+                });
+            }
             // Add new Link
-            array_walk($Subject, function ($Subject) use ($tblCategory, &$Error) {
+            if (is_array($Subject)) {
+                array_walk($Subject, function ($Subject) use ($tblCategory, &$Error) {
 
-                if (!$this->addCategorySubject($tblCategory, $this->getSubjectById($Subject))) {
-                    $Error = false;
-                }
-            });
+                    if (!$this->addCategorySubject($tblCategory, $this->getSubjectById($Subject))) {
+                        $Error = false;
+                    }
+                });
+            }
 
             if (!$Error) {
                 return new Success('Die Fächer wurden erfolgreich geändert')

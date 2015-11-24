@@ -74,9 +74,9 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($tblYearAll, null, array(
-                                'Name' => 'Name',
+                                'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
-                                'Option' => 'Option',
+                                'Option'      => 'Option',
                             ))
                         )
                     ), new Title('Bestehende Schuljahre')
@@ -280,11 +280,13 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             }
 
-            foreach ($tblPeriodList as &$tblPeriod) {
-                $tblPeriod->Option = new Standard('', '/Education/Lesson/Term/Choose/Period', new Select(),
-                    array('Id'       => $tblYear->getId(),
-                          'PeriodId' => $tblPeriod->getId()), 'Auswählen');
-                $tblPeriod->Period = $tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
+            if ($tblPeriodList) {
+                foreach ($tblPeriodList as &$tblPeriod) {
+                    $tblPeriod->Option = new Standard('', '/Education/Lesson/Term/Choose/Period', new Select(),
+                        array('Id'       => $tblYear->getId(),
+                              'PeriodId' => $tblPeriod->getId()), 'Auswählen');
+                    $tblPeriod->Period = $tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
+                }
             }
 
             if ($tblYear) {
@@ -368,7 +370,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(array(
-                                new Headline('Fach bearbeiten (' . $tblYear->getName() . ' ' . $tblYear->getDescription() . ')'),
+                                new Headline('Fach bearbeiten ('.$tblYear->getName().' '.$tblYear->getDescription().')'),
                                 Term::useService()->changeYear($Form, $tblYear, $Year),
                             ))
                         )

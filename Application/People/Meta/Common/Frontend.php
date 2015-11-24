@@ -38,11 +38,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
-     * @param array     $Meta
-     *
+     * @param array $Meta
+     * @param null $Group
      * @return Stage
      */
-    public function frontendMeta(TblPerson $tblPerson = null, $Meta = array())
+    public function frontendMeta(TblPerson $tblPerson = null, $Meta = array(), $Group = null)
     {
 
         $Stage = new Stage();
@@ -185,7 +185,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )),
                     )),
                 ), new Primary('Informationen speichern')
-                ))->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.'), $tblPerson, $Meta)
+                ))->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.'), $tblPerson, $Meta, $Group)
         );
 
         return $Stage;

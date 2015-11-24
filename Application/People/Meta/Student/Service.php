@@ -48,10 +48,11 @@ class Service extends Integration
      * @param IFormInterface $Form
      * @param TblPerson $tblPerson
      * @param array $Meta
-     *
+     * @param $Group
+
      * @return IFormInterface|Redirect
      */
-    public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta)
+    public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group)
     {
 
         /**
@@ -252,8 +253,8 @@ class Service extends Integration
                 }
             }
             if (isset($Meta['Integration']['Disorder'])) {
-                foreach ($Meta['Integration']['Disorder'] as $Type => $Subject) {
-                    $tblStudentDisorderType = $this->getStudentDisorderTypeById($Type);
+                foreach ($Meta['Integration']['Disorder'] as $Category => $Type) {
+                    $tblStudentDisorderType = $this->getStudentDisorderTypeById($Category);
                     if ($tblStudentDisorderType) {
                         (new Data($this->getBinding()))->addStudentDisorder($tblStudent, $tblStudentDisorderType);
                     }
@@ -269,8 +270,8 @@ class Service extends Integration
                 }
             }
             if (isset($Meta['Integration']['Focus'])) {
-                foreach ($Meta['Integration']['Focus'] as $Type => $Subject) {
-                    $tblStudentFocusType = $this->getStudentFocusTypeById($Type);
+                foreach ($Meta['Integration']['Focus'] as $Category => $Type) {
+                    $tblStudentFocusType = $this->getStudentFocusTypeById($Category);
                     if ($tblStudentFocusType) {
                         (new Data($this->getBinding()))->addStudentFocus($tblStudent, $tblStudentFocusType);
                     }
@@ -412,14 +413,13 @@ class Service extends Integration
                     }
                 }
             }
-
             if (isset($Meta['Subject'])) {
-                foreach ($Meta['Subject'] as $Type => $Item) {
-                    $tblStudentSubjectType = $this->getStudentSubjectTypeById($Type);
+                foreach ($Meta['Subject'] as $Category => $Items) {
+                    $tblStudentSubjectType = $this->getStudentSubjectTypeById($Category);
                     if ($tblStudentSubjectType) {
-                        foreach ($Item as $Ranking => $Subject) {
+                        foreach ($Items as $Ranking => $Type) {
                             $tblStudentSubjectRanking = $this->getStudentSubjectRankingById($Ranking);
-                            $tblSubject = Subject::useService()->getSubjectById($Subject);
+                            $tblSubject = Subject::useService()->getSubjectById($Type);
                             if ($tblSubject) {
                                 (new Data($this->getBinding()))->addStudentSubject(
                                     $tblStudent,
@@ -433,10 +433,40 @@ class Service extends Integration
                 }
             }
 
+            $tblStudentAgreementAllByStudent = $this->getStudentAgreementAllByStudent($tblStudent);
+            if ($tblStudentAgreementAllByStudent) {
+                foreach ($tblStudentAgreementAllByStudent as $tblStudentAgreement) {
+                    if (!isset(
+                        $Meta['Agreement']
+                        [$tblStudentAgreement->getTblStudentAgreementType()->getTblStudentAgreementCategory()->getId()]
+                        [$tblStudentAgreement->getTblStudentAgreementType()->getId()]
+                    )
+                    ) {
+                        (new Data($this->getBinding()))->removeStudentAgreement($tblStudentAgreement);
+                    }
+                }
+            }
+            if (isset($Meta['Agreement'])) {
+                foreach ($Meta['Agreement'] as $Category => $Items) {
+                    $tblStudentAgreementCategory = $this->getStudentAgreementTypeById($Category);
+                    if ($tblStudentAgreementCategory) {
+                        foreach ($Items as $Type => $Value) {
+                            $tblStudentAgreementType = $this->getStudentAgreementTypeById($Type);
+                            if ($tblStudentAgreementType) {
+                                (new Data($this->getBinding()))->addStudentAgreement($tblStudent,
+                                    $tblStudentAgreementType);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         return new Success('Die Daten wurde erfolgreich gespeichert')
-        . new Redirect('/People/Person', 1, array('Id' => $tblPerson->getId()));
+        . new Redirect('/People/Person', 3, array(
+            'Id' => $tblPerson->getId(),
+            'Group' => $Group
+        ));
     }
 
     /**
@@ -444,8 +474,10 @@ class Service extends Integration
      *
      * @return bool|TblStudentMedicalRecord
      */
-    public function getStudentMedicalRecordById($Id)
-    {
+    public
+    function getStudentMedicalRecordById(
+        $Id
+    ) {
 
         return (new Data($this->getBinding()))->getStudentMedicalRecordById($Id);
     }
@@ -455,8 +487,10 @@ class Service extends Integration
      *
      * @return bool|TblStudentBaptism
      */
-    public function getStudentBaptismById($Id)
-    {
+    public
+    function getStudentBaptismById(
+        $Id
+    ) {
 
         return (new Data($this->getBinding()))->getStudentBaptismById($Id);
     }
@@ -466,8 +500,10 @@ class Service extends Integration
      *
      * @return bool|TblStudentBilling
      */
-    public function getStudentBillingById($Id)
-    {
+    public
+    function getStudentBillingById(
+        $Id
+    ) {
 
         return (new Data($this->getBinding()))->getStudentBillingById($Id);
     }
@@ -477,8 +513,10 @@ class Service extends Integration
      *
      * @return bool|TblStudentLocker
      */
-    public function getStudentLockerById($Id)
-    {
+    public
+    function getStudentLockerById(
+        $Id
+    ) {
 
         return (new Data($this->getBinding()))->getStudentLockerById($Id);
     }
@@ -488,8 +526,10 @@ class Service extends Integration
      *
      * @return bool|TblStudentTransport
      */
-    public function getStudentTransportById($Id)
-    {
+    public
+    function getStudentTransportById(
+        $Id
+    ) {
 
         return (new Data($this->getBinding()))->getStudentTransportById($Id);
     }

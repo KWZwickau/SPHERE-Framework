@@ -40,12 +40,10 @@ class SelectBox extends Field implements IFieldInterface
             $Attribute = key($Data);
             $Convert = array();
             // Attribute is Twig-Template ?
-            if (preg_match_all('/\{\%\s*(.*)\s*\%\}|\{\{(?!%)\s*((?:[^\s])*)\s*(?<!%)\}\}/i',
+            if (preg_match_all('/\{\%\s*(.*)\s*\%\}|\{\{(?!%)\s*((?:[^\s])*?)\s*(?<!%)\}\}/i',
                 $Attribute,
                 $Placeholder)
             ) {
-                $this->getDebugger()->screenDump($Attribute);
-                $this->getDebugger()->screenDump($Placeholder);
                 /** @var Element $Entity */
                 foreach ((array)$Data[$Attribute] as $Entity) {
                     if (is_object($Entity)) {
@@ -57,23 +55,18 @@ class SelectBox extends Field implements IFieldInterface
                             $Chain = explode('.', $Variable);
                             if (count($Chain) > 1) {
                                 $Template->setVariable($Chain[0], $Entity->{'get'.$Chain[0]}());
-                                $this->getDebugger()->screenDump('Chain:'.$Chain.':'.$Entity->{'get'.$Chain[0]}());
                             } else {
                                 if (method_exists($Entity, 'get'.$Variable)) {
                                     $Template->setVariable($Variable, $Entity->{'get'.$Variable}());
-                                    $this->getDebugger()->screenDump('Method:'.$Variable.':'.$Entity->{'get'.$Variable}());
                                 } else {
                                     if (property_exists($Entity, $Variable)) {
                                         $Template->setVariable($Variable, $Entity->{$Variable});
-                                        $this->getDebugger()->screenDump('Property:'.$Variable.':'.$Entity->{$Variable}());
                                     } else {
                                         $Template->setVariable($Variable, null);
-                                        $this->getDebugger()->screenDump('Not found: '.$Variable);
                                     }
                                 }
                             }
                         }
-                        $this->getDebugger()->screenDump($Template);
                         $Convert[$Entity->getId()] = $Template->getContent();
                     }
                 }

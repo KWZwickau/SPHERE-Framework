@@ -8,7 +8,6 @@
 
 namespace SPHERE\Application\Transfer\Import\FuxMedia;
 
-
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
@@ -19,18 +18,32 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Transfer\Import\FuxMedia\Service\Person;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
+use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class Service
 {
+
+    /**
+     * @return Person
+     */
+    public static function usePeoplePerson()
+    {
+
+        return new Person(
+            new Identifier('People', 'Person', null, null, Consumer::useService()->getConsumerBySession()),
+            __DIR__ . '/../../../People/Person/Service/Entity', 'SPHERE\Application\People\Person\Service\Entity'
+        );
+    }
 
     /**
      * @param IFormInterface|null $Stage
@@ -49,17 +62,15 @@ class Service
         }
 
         $Error = false;
-        if (!isset($Select['Type']))
-        {
+        if (!isset($Select['Type'])) {
             $Error = true;
-            $Stage .=  new Warning('Schulart nicht gefunden');
+            $Stage .= new Warning('Schulart nicht gefunden');
         }
-        if(!isset($Select['Year'])) {
+        if (!isset($Select['Year'])) {
             $Error = true;
-            $Stage .=  new Warning('Schuljahr nicht gefunden');
+            $Stage .= new Warning('Schuljahr nicht gefunden');
         }
-        if ($Error)
-        {
+        if ($Error) {
             return $Stage;
         }
 
@@ -83,8 +94,6 @@ class Service
         $TypeId = null,
         $YearId = null
     ) {
-
-        var_dump($TypeId, $YearId);
 
         /**
          * Skip to Frontend
@@ -131,7 +140,6 @@ class Service
                     'Schüler_Plz' => null,
                     'Schüler_Wohnort' => null,
                     'Schüler_Ortsteil' => null,
-                    'Schüler_Bundesland' => null,
                     'Schüler_Geburtsdatum' => null,
                     'Schüler_Geburtsort' => null,
                     'Schüler_Konfession' => null,
@@ -169,7 +177,9 @@ class Service
                 if (!in_array(null, $Location, true)) {
                     $countStudent = 0;
                     $countFather = 0;
+                    $countFatherExists = 0;
                     $countMother = 0;
+                    $countMotherExists = 0;
 
                     $tblType = Type::useService()->getTypeById($TypeId);
                     $tblYear = Term::useService()->getYearById($YearId);
@@ -177,8 +187,8 @@ class Service
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
 
                         // Student
-                        $tblPerson = Person::useService()->insertPerson(
-                            Person::useService()->getSalutationById(3),   //Schüler
+                        $tblPerson = $this->usePeoplePerson()->insertPerson(
+                            $this->usePeoplePerson()->getSalutationById(3),   //Schüler
                             '',
                             trim($Document->getValue($Document->getCell($Location['Schüler_Vorname'], $RunY))),
                             '',
@@ -260,6 +270,7 @@ class Service
                                     Mail::useService()->getTypeById(1), '');
                             }
 
+                            // Division
                             if (($Level = trim($Document->getValue($Document->getCell($Location['Schüler_Klassenstufe'],
                                     $RunY)))) != ''
                             ) {
@@ -268,9 +279,14 @@ class Service
                                     $Division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
                                         $RunY)));
                                     if ($Division != '') {
-                                        $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel, $Division);
-                                        if ($tblDivision)
-                                        {
+                                        if (($pos = strpos($Division, $Level)) !== false) {
+                                            if (strlen($Division) > (($start = $pos + strlen($Level)))) {
+                                                $Division = substr($Division, $start);
+                                            }
+                                        }
+                                        $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel,
+                                            $Division);
+                                        if ($tblDivision) {
                                             Division::useService()->insertDivisionStudent($tblDivision, $tblPerson);
                                         }
                                     }
@@ -279,132 +295,173 @@ class Service
 
                             // ToDo JohK Schülerakte (Schülernummer...)
                             // ToDo JohK Fächerzugehörigkeit
-                            // ToDo JohK Prüfung ob Sorgeberechtigter schon vorhanden
 
-                            // Sorgeberechtigter 1
+                            // Sorgeberechtigter1
                             $tblPersonFather = null;
+                            $FatherFirstName = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Vorname'],
+                                $RunY)));
                             $FatherLastName = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Name'],
                                 $RunY)));
+                            $CityCode = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Plz'],
+                                $RunY)));
                             if ($FatherLastName !== '') {
-
-                                $tblPersonFather = Person::useService()->insertPerson(
-                                    null,
-                                    '',
-                                    trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Vorname'],
-                                        $RunY))),
-                                    '',
+                                $tblPersonFatherExists = $this->usePeoplePerson()->getPersonExists(
+                                    $FatherFirstName,
                                     $FatherLastName,
-                                    array(
-                                        0 => Group::useService()->getGroupById(1),          //Personendaten
-                                        1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
-                                    )
+                                    $CityCode
                                 );
+                                if (!$tblPersonFatherExists) {
+                                    $tblPersonFather = $this->usePeoplePerson()->insertPerson(
+                                        null,
+                                        '',
+                                        trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Vorname'],
+                                            $RunY))),
+                                        '',
+                                        $FatherLastName,
+                                        array(
+                                            0 => Group::useService()->getGroupById(1),          //Personendaten
+                                            1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
+                                        )
+                                    );
 
-                                Relationship::useService()->insertRelationshipToPerson(
-                                    $tblPersonFather,
-                                    $tblPerson,
-                                    Relationship::useService()->getTypeById(1),             //Sorgeberechtigt
-                                    ''
-                                );
+                                    Relationship::useService()->insertRelationshipToPerson(
+                                        $tblPersonFather,
+                                        $tblPerson,
+                                        Relationship::useService()->getTypeById(1),             //Sorgeberechtigt
+                                        ''
+                                    );
 
-                                // Sorgeberechtigter1 Address
-                                if (trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Wohnort'],
-                                        $RunY))) != ''
-                                ) {
-                                    $Street = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Straße'],
-                                        $RunY)));
-                                    if (preg_match_all('!\d+!', $Street, $matches)) {
-                                        $pos = strpos($Street, $matches[0][0]);
-                                        if ($pos !== null) {
-                                            $StreetName = trim(substr($Street, 0, $pos));
-                                            $StreetNumber = trim(substr($Street, $pos));
+                                    // Sorgeberechtigter1 Address
+                                    if (trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Wohnort'],
+                                            $RunY))) != ''
+                                    ) {
+                                        $Street = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Straße'],
+                                            $RunY)));
+                                        if (preg_match_all('!\d+!', $Street, $matches)) {
+                                            $pos = strpos($Street, $matches[0][0]);
+                                            if ($pos !== null) {
+                                                $StreetName = trim(substr($Street, 0, $pos));
+                                                $StreetNumber = trim(substr($Street, $pos));
 
-                                            Address::useService()->insertAddressToPerson(
-                                                $tblPersonFather,
-                                                $StreetName,
-                                                $StreetNumber,
-                                                trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Plz'],
-                                                    $RunY))),
-                                                trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Wohnort'],
-                                                    $RunY))),
-                                                trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Ortsteil'],
-                                                    $RunY))),
-                                                '',
-                                                null
-                                            );
+                                                Address::useService()->insertAddressToPerson(
+                                                    $tblPersonFather,
+                                                    $StreetName,
+                                                    $StreetNumber,
+                                                    $CityCode,
+                                                    trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Wohnort'],
+                                                        $RunY))),
+                                                    trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Ortsteil'],
+                                                        $RunY))),
+                                                    '',
+                                                    null
+                                                );
 
+                                            }
                                         }
                                     }
-                                }
 
-                                $countFather++;
+                                    $countFather++;
+                                } else {
+
+                                    Relationship::useService()->insertRelationshipToPerson(
+                                        $tblPersonFatherExists,
+                                        $tblPerson,
+                                        Relationship::useService()->getTypeById(1),             //Sorgeberechtigt
+                                        ''
+                                    );
+
+                                    $countFatherExists++;
+                                }
                             }
 
-                            // Sorgeberechtigter 2
+                            // Sorgeberechtigter2
                             $tblPersonMother = null;
+                            $MotherFirstName = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Vorname'],
+                                $RunY)));
                             $MotherLastName = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Name'],
                                 $RunY)));
+                            $CityCode = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Plz'],
+                                $RunY)));
                             if ($MotherLastName !== '') {
-
-                                $tblPersonMother = Person::useService()->insertPerson(
-                                    null,
-                                    '',
-                                    trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Vorname'],
-                                        $RunY))),
-                                    '',
+                                $tblPersonMotherExists = $this->usePeoplePerson()->getPersonExists(
+                                    $MotherFirstName,
                                     $MotherLastName,
-                                    array(
-                                        0 => Group::useService()->getGroupById(1),          //Personendaten
-                                        1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
-                                    )
+                                    $CityCode
                                 );
+                                if (!$tblPersonMotherExists) {
+                                    $tblPersonMother = $this->usePeoplePerson()->insertPerson(
+                                        null,
+                                        '',
+                                        trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Vorname'],
+                                            $RunY))),
+                                        '',
+                                        $MotherLastName,
+                                        array(
+                                            0 => Group::useService()->getGroupById(1),          //Personendaten
+                                            1 => Group::useService()->getGroupById(4)           //Sorgeberechtigt
+                                        )
+                                    );
 
-                                Relationship::useService()->insertRelationshipToPerson(
-                                    $tblPersonMother,
-                                    $tblPerson,
-                                    Relationship::useService()->getTypeById(1),             //Sorgeberechtigt
-                                    ''
-                                );
+                                    Relationship::useService()->insertRelationshipToPerson(
+                                        $tblPersonMother,
+                                        $tblPerson,
+                                        Relationship::useService()->getTypeById(1),             //Sorgeberechtigt
+                                        ''
+                                    );
 
-                                // Sorgeberechtigter2 Address
-                                if (trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Wohnort'],
-                                        $RunY))) != ''
-                                ) {
-                                    $Street = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Straße'],
-                                        $RunY)));
-                                    if (preg_match_all('!\d+!', $Street, $matches)) {
-                                        $pos = strpos($Street, $matches[0][0]);
-                                        if ($pos !== null) {
-                                            $StreetName = trim(substr($Street, 0, $pos));
-                                            $StreetNumber = trim(substr($Street, $pos));
+                                    // Sorgeberechtigter2 Address
+                                    if (trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Wohnort'],
+                                            $RunY))) != ''
+                                    ) {
+                                        $Street = trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Straße'],
+                                            $RunY)));
+                                        if (preg_match_all('!\d+!', $Street, $matches)) {
+                                            $pos = strpos($Street, $matches[0][0]);
+                                            if ($pos !== null) {
+                                                $StreetName = trim(substr($Street, 0, $pos));
+                                                $StreetNumber = trim(substr($Street, $pos));
 
-                                            Address::useService()->insertAddressToPerson(
-                                                $tblPersonMother,
-                                                $StreetName,
-                                                $StreetNumber,
-                                                trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Plz'],
-                                                    $RunY))),
-                                                trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Wohnort'],
-                                                    $RunY))),
-                                                trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Ortsteil'],
-                                                    $RunY))),
-                                                '',
-                                                null
-                                            );
+                                                Address::useService()->insertAddressToPerson(
+                                                    $tblPersonMother,
+                                                    $StreetName,
+                                                    $StreetNumber,
+                                                    $CityCode,
+                                                    trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Wohnort'],
+                                                        $RunY))),
+                                                    trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Ortsteil'],
+                                                        $RunY))),
+                                                    '',
+                                                    null
+                                                );
 
+                                            }
                                         }
                                     }
-                                }
 
-                                $countMother++;
+                                    $countMother++;
+                                } else {
+
+                                    Relationship::useService()->insertRelationshipToPerson(
+                                        $tblPersonMotherExists,
+                                        $tblPerson,
+                                        Relationship::useService()->getTypeById(1),             //Sorgeberechtigt
+                                        ''
+                                    );
+
+                                    $countMotherExists++;
+                                }
                             }
 
                         }
                     }
 
+                    $countExists = $countFatherExists + $countMotherExists;
+
                     return
                         new Success('Es wurden ' . $countStudent . ' Schüler erfolgreich angelegt.') .
-                        new Success('Es wurden ' . ($countFather + $countMother) . ' Sorgeberechtigte erfolgreich angelegt.');
+                        new Success('Es wurden ' . ($countFather + $countMother) . ' Sorgeberechtigte erfolgreich angelegt.') .
+                        ( $countExists > 0 ?
+                            new Warning($countExists . ' Sorgeberechtigte exisistieren bereits.') : '');
                 } else {
                     Debugger::screenDump($Location);
                     return new Danger(
