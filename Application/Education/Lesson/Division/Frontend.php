@@ -608,30 +608,30 @@ class Frontend extends Extension implements IFrontendInterface
                     $Count++;
                 }
                 /** @var TblSubject $tblSubject */
-                foreach ($ListLeft as &$tblSubject) {
-                    $tblSubject = new CheckBox(
-                        'Subject['.$tblSubject->getId().']',
-                        $tblSubject->getAcronym().' - '.$tblSubject->getName(),
-                        $tblSubject->getId()
-                    );
-                }
-                foreach ($ListRight as &$tblSubject) {
-                    $tblSubject = new CheckBox(
-                        'Subject['.$tblSubject->getId().']',
-                        $tblSubject->getAcronym().' - '.$tblSubject->getName(),
-                        $tblSubject->getId()
-                    );
-                }
-
-//                foreach ($tblSubjectList as &$tblSubject) {
+//                foreach ($ListLeft as &$tblSubject) {
 //                    $tblSubject = new CheckBox(
 //                        'Subject['.$tblSubject->getId().']',
 //                        $tblSubject->getAcronym().' - '.$tblSubject->getName(),
 //                        $tblSubject->getId()
 //                    );
 //                }
+//                foreach ($ListRight as &$tblSubject) {
+//                    $tblSubject = new CheckBox(
+//                        'Subject['.$tblSubject->getId().']',
+//                        $tblSubject->getAcronym().' - '.$tblSubject->getName(),
+//                        $tblSubject->getId()
+//                    );
+//                }
+
+                foreach ($tblSubjectList as &$tblSubject) {
+                    $tblSubject = new CheckBox(
+                        'Subject['.$tblSubject->getId().']',
+                        $tblSubject->getAcronym().' - '.$tblSubject->getName(),
+                        $tblSubject->getId()
+                    );
+                }
             } else {
-                $ListLeft = new Warning('Alle Fächer im System bereits vergeben');
+                $tblSubjectList = new Warning('Alle Fächer im System bereits vergeben');
             }
         }
 
@@ -641,14 +641,14 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Fächer'.
                             new PullRight(new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName()))
-                            , $ListLeft, Panel::PANEL_TYPE_INFO)
+                            , $tblSubjectList, Panel::PANEL_TYPE_INFO)
                         , 6),
-                    ( $ListRight ) ?
-                        new FormColumn(
-                            new Panel('Fächer'.
-                                new PullRight(new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName()))
-                                , $ListRight, Panel::PANEL_TYPE_INFO)
-                            , 6) : null,
+//                    ( $ListRight ) ?
+//                        new FormColumn(
+//                            new Panel('Fächer'.
+//                                new PullRight(new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName()))
+//                                , $ListRight, Panel::PANEL_TYPE_INFO)
+//                            , 6) : null,
                 )),
             ))
         );
