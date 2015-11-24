@@ -78,9 +78,9 @@ class Division implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/SubjectStudent/Remove', __NAMESPACE__.'\Frontend::frontendSubjectStudentRemove'
         ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SubjectTeacher/Show', __NAMESPACE__.'\Frontend::frontendSubjectTeacherShow'
-        ));
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__.'/SubjectTeacher/Show', __NAMESPACE__.'\Frontend::frontendSubjectTeacherShow'
+//        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/SubjectTeacher/Add', __NAMESPACE__.'\Frontend::frontendSubjectTeacherAdd'
         ));
@@ -172,7 +172,7 @@ class Division implements IModuleInterface
                         new LayoutColumn(
                             new TableData($tblDivisionList, null, array('Year'        => 'Schuljahr',
                                                                         'Period'      => 'Zeitraum',
-                                                                        'LevelType'   => 'Name',
+                                                                        'LevelType'   => 'Schultyp',
                                                                         'Group'       => 'Schulklasse',
                                                                         'StudentList' => 'Schüler',
                                                                         'TeacherList' => 'Klassenlehrer',
