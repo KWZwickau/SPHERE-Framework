@@ -5,6 +5,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Data;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStudent;
@@ -383,6 +384,17 @@ class Service extends AbstractService
             }
         }
         return $Form;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     *
+     * @return TblDivisionTeacher
+     */
+    public function insertDivisionTeacher(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->addDivisionTeacher($tblDivision, $tblPerson);
     }
 
     /**
