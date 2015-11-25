@@ -36,7 +36,8 @@
                 </span>
         </button>
         <div class="navbar-header">
-            <a class="navbar-brand" href="/">KREDA&nbsp;
+            <a class="navbar-brand" href="/">
+                KREDA&nbsp;
                 <span style="color: #FF0000; font-weight: bolder;">DEMO</span>&nbsp;
                 <span style="color: #FF0000; font-size: x-small;">Ansicht & Feedback</span>
             </a>
@@ -108,10 +109,12 @@
     </nav>
 {% endif %}
 
-<div class="container-fluid" style="min-height: 300px;">
+<div class="container-fluid">
     <div class="row">
         <div class="col-lg-offset-1 col-lg-10 col-xs-12">
             {#<div class="col-xs-12">#}
+            <span class="loading-indicator"><span class="glyphicon glyphicon-refresh loading-indicator-animate"></span> Zusätzliche Komponenten werden geladen</span>
+            <span class="loading-error"><span class="glyphicon glyphicon-alert text-danger"></span> Einige zusätzliche Komponenten konnten nicht geladen werden</span>
             {{ Content }}
         </div>
     </div>
@@ -141,28 +144,27 @@
     {
         jQuery().ModAlways();
 
+        <!-- Piwik -->
+        var _paq = _paq || [];
+        _paq.push(["setDoNotTrack", true]);
+        _paq.push(["disableCookies"]);
+        _paq.push(['trackPageView']);
+        _paq.push(['enableLinkTracking']);
+        (function ()
+        {
+            var u = "/Library/Piwik/";
+            _paq.push(['setTrackerUrl', u + 'piwik.php']);
+            _paq.push(['setSiteId', 1]);
+            var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+            g.type = 'text/javascript';
+            g.async = true;
+            g.defer = true;
+            g.src = u + 'piwik.js';
+            s.parentNode.insertBefore(g, s);
+        })();
+        <!-- End Piwik Code -->
     });
     //    var Host = jQuery('<a>').prop('href', window.location).prop('hostname');
-
-    <!-- Piwik -->
-    var _paq = _paq || [];
-    _paq.push(["setDoNotTrack", true]);
-    _paq.push(["disableCookies"]);
-    _paq.push(['trackPageView']);
-    _paq.push(['enableLinkTracking']);
-    (function()
-    {
-        var u = "/Library/Piwik/";
-        _paq.push(['setTrackerUrl', u + 'piwik.php']);
-        _paq.push(['setSiteId', 1]);
-        var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
-        g.type = 'text/javascript';
-        g.async = true;
-        g.defer = true;
-        g.src = u + 'piwik.js';
-        s.parentNode.insertBefore(g, s);
-    })();
-    <!-- End Piwik Code -->
 </script>
 </body>
 </html>
