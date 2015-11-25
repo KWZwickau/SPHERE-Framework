@@ -91,17 +91,17 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             new TableData($studentList, null,
                 array(
-                    'Number'        => 'lfd. Nr.',
-                    'Name'          => 'Name, Vorname',
-                    'Gender'        => 'Geschlecht',
-                    'Address'       => 'Adresse',
-                    'Birthday'      => 'Geburtsdatum',
-                    'Birthplace'    => 'Geburtsort',
-                    'StudentNumber' => 'Schülernummer',
-                    'Mother'        => 'Sorgeberechtigte',
-                    'PhoneMother'   => 'Tel. Sorgeber.',
-                    'Father'        => 'Sorgeberechtigter',
-                    'PhoneFather'   => 'Tel. Sorgeber.',
+                    'Number'         => 'lfd. Nr.',
+                    'Name'           => 'Name, Vorname',
+                    'Gender'         => 'Geschlecht',
+                    'Address'        => 'Adresse',
+                    'Birthday'       => 'Geburtsdatum',
+                    'Birthplace'     => 'Geburtsort',
+                    'StudentNumber'  => 'Schülernummer',
+                    'Guardian1'      => 'Sorgeberechtigter',
+                    'PhoneGuardian1' => 'Tel. Sorgeber.',
+                    'Guardian2'      => 'Sorgeberechtigter',
+                    'PhoneGuardian2' => 'Tel. Sorgeber.',
                 ),
                 false
             ).

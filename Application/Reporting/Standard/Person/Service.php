@@ -167,12 +167,17 @@ class Service
                 $tblPerson->Name = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
-                    if ($tblCommon->getTblCommonBirthDates()->getGender() === 1) {
-                        $tblPerson->Gender = 'männlich';
-                        $Man++;
-                    } elseif ($tblCommon->getTblCommonBirthDates()->getGender() === 2) {
-                        $tblPerson->Gender = 'weiblich';
-                        $Woman++;
+                    $tblBirhdates = $tblCommon->getTblCommonBirthDates();
+                    if ($tblBirhdates) {
+                        if ($tblBirhdates->getGender() === 1) {
+                            $tblPerson->Gender = 'männlich';
+                            $Man++;
+                        } elseif ($tblBirhdates->getGender() === 2) {
+                            $tblPerson->Gender = 'weiblich';
+                            $Woman++;
+                        } else {
+                            $tblPerson->Gender = '';
+                        }
                     } else {
                         $tblPerson->Gender = '';
                     }
@@ -210,93 +215,120 @@ class Service
 
                 $tblPerson->StudentNumber = $tblPerson->getId() + 200000; //ToDO StudentNumber
 
-                $father = null;
-                $mother = null;
+                $Guardian1 = null;
+                $Guardian2 = null;
+                unset( $phoneListGuardian1 );
+                unset( $phoneListGuardian2 );
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
+                    $Count = 0;
                     foreach ($guardianList as $guardian) {
-                        if (( $guardian->getTblType()->getId() == 1 )
-                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1 )
-                        ) {
-                            $father = $guardian->getServiceTblPersonFrom();
-                            if ($father) {
-                                $tblPerson->Father = $father->getFullName();
-                            } else {
-                                $tblPerson->Father = '';
+                        if ($Count === 0) {
+                            $Guardian1 = $guardian->getServiceTblPersonFrom();
+                        }
+                        if ($Count === 1) {
+                            $Guardian2 = $guardian->getServiceTblPersonFrom();
+                        }
+                        $Count = $Count + 1;
+                    }
+                }
+                if ($Guardian1 === null) {
+                    $tblPerson->Guardian1 = '';
+                } else {
+                    $tblPerson->Guardian1 = $Guardian1->getFullName();
+                    $Guardian1PhoneList = Phone::useService()->getPhoneAllByPerson($Guardian1);
+                    if ($Guardian1PhoneList) {
+                        foreach ($Guardian1PhoneList as $Guardian1Phone) {
+                            if ($Guardian1Phone->getTblType()->getName() === 'Privat' || $Guardian1Phone->getTblType()->getDescription() === 'Mobil') {
+                                $phoneListGuardian1[] = $Guardian1Phone->getTblPhone()->getNumber();
                             }
                         }
-                        if (( $guardian->getTblType()->getId() == 1 )
-                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2 )
-                        ) {
-                            $mother = $guardian->getServiceTblPersonFrom();
-                            if ($mother) {
-                                $tblPerson->Mother = $mother->getFullName();
-                            } else {
-                                $tblPerson->Mother = '';
-                            }
+//                        foreach ($Guardian1PhoneList as $Guardian1Phone) {
+//                            if ($Guardian1Phone->getTblType()->getName() === 'Privat') {
+//                                $phoneListGuardian1[] = $Guardian1Phone->getTblPhone()->getNumber();
+//                            }
+//                        }
+                        if (isset( $phoneListGuardian1 )) {
+                            $phoneListGuardian1 = array_unique($phoneListGuardian1);
                         }
                     }
                 }
-                if (!isset( $father )) {
-                    $tblPerson->Father = '';
-                }
-                if (!isset( $mother )) {
-                    $tblPerson->Mother = '';
+                if (!isset( $Guardian2 )) {
+                    $tblPerson->Guardian2 = '';
+                } else {
+                    $tblPerson->Guardian2 = $Guardian2->getFullName();
+                    $Guardian2PhoneList = Phone::useService()->getPhoneAllByPerson($Guardian2);
+                    if ($Guardian2PhoneList) {
+                        foreach ($Guardian2PhoneList as $Guardian2Phone) {
+                            if ($Guardian2Phone->getTblType()->getName() === 'Privat' || $Guardian2Phone->getTblType()->getDescription() === 'Mobil') {
+                                $phoneListGuardian2[] = $Guardian2Phone->getTblPhone()->getNumber();
+                            }
+                        }
+//                        foreach ($Guardian1PhoneList as $Guardian1Phone) {
+//                            if ($Guardian1Phone->getTblType()->getName() === 'Privat') {
+//                                $phoneListGuardian1[] = $Guardian1Phone->getTblPhone()->getNumber();
+//                            }
+//                        }
+                        if (isset( $phoneListGuardian2 )) {
+                            $phoneListGuardian2 = array_unique($phoneListGuardian2);
+                        }
+                    }
                 }
 
-                unset( $phoneListMother );
-                unset( $phoneListFather );
-                if ($mother) {
-                    $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
-                    if ($motherPhoneList) {
-                        foreach ($motherPhoneList as $motherPhone) {
-                            if ($motherPhone->getTblType()->getName() === 'Privat' && $motherPhone->getTblType()->getDescription() === 'Mobil') {
-                                $phoneListMother[] = $motherPhone->getTblPhone()->getNumber();
-                            }
-                        }
-                        foreach ($motherPhoneList as $motherPhone) {
-                            if ($motherPhone->getTblType()->getName() === 'Privat') {
-                                $phoneListMother[] = $motherPhone->getTblPhone()->getNumber();
-                            }
-                        }
-                        if (isset( $phoneListMother )) {
-                            $phoneListMother = array_unique($phoneListMother);
-                        }
-                    }
-                }
-                if ($father) {
-                    $fatherPhoneList = Phone::useService()->getPhoneAllByPerson($father);
-                    if ($fatherPhoneList) {
-                        foreach ($fatherPhoneList as $fatherPhone) {
-                            if ($fatherPhone->getTblType()->getName() === 'Privat') {
-                                $phoneListFather[] = $fatherPhone->getTblPhone()->getNumber();
-                            }
-                        }
-                    }
-                }
-                if (isset( $phoneListMother[0] )) {
-                    $tblPerson->PhoneMother = $phoneListMother[0];
-                    if (isset( $phoneListFather[0] )) {
-                        if ($phoneListFather[0] === $phoneListMother[0]) {
-                            if (isset( $phoneListFather[1] )) {
-                                $tblPerson->PhoneFather = $phoneListFather[1];
+
+//                if ($mother) {
+//                    $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
+//                    if ($motherPhoneList) {
+//                        foreach ($motherPhoneList as $motherPhone) {
+//                            if ($motherPhone->getTblType()->getName() === 'Privat' && $motherPhone->getTblType()->getDescription() === 'Mobil') {
+//                                $phoneListMother[] = $motherPhone->getTblPhone()->getNumber();
+//                            }
+//                        }
+//                        foreach ($motherPhoneList as $motherPhone) {
+//                            if ($motherPhone->getTblType()->getName() === 'Privat') {
+//                                $phoneListMother[] = $motherPhone->getTblPhone()->getNumber();
+//                            }
+//                        }
+//                        if (isset( $phoneListMother )) {
+//                            $phoneListMother = array_unique($phoneListMother);
+//                        }
+//                    }
+//                }
+//                if ($father) {
+//                    $fatherPhoneList = Phone::useService()->getPhoneAllByPerson($father);
+//                    if ($fatherPhoneList) {
+//                        foreach ($fatherPhoneList as $fatherPhone) {
+//                            if ($fatherPhone->getTblType()->getName() === 'Privat') {
+//                                $phoneListFather[] = $fatherPhone->getTblPhone()->getNumber();
+//                            }
+//                        }
+//                    }
+//                }
+                if (isset( $phoneListGuardian1[0] )) {
+                    $tblPerson->PhoneGuardian1 = $phoneListGuardian1[0];
+                    if (isset( $phoneListGuardian2[0] )) {
+                        if ($phoneListGuardian2[0] === $phoneListGuardian1[0]) {
+                            if (isset( $phoneListGuardian2[1] )) {
+                                $tblPerson->PhoneGuardian2 = $phoneListGuardian2[1];
                             } else {
-                                $tblPerson->PhoneFather = '';
+                                $tblPerson->PhoneGuardian2 = '';
                             }
                         } else {
-                            if (isset( $phoneListFather[0] )) {
-                                $tblPerson->PhoneFather = $phoneListFather[0];
+                            if (isset( $phoneListGuardian2[0] )) {
+                                $tblPerson->PhoneGuardian2 = $phoneListGuardian2[0];
                             } else {
-                                $tblPerson->PhoneFather = '';
+                                $tblPerson->PhoneGuardian2 = '';
                             }
                         }
+                    } else {
+                        $tblPerson->PhoneGuardian2 = '';
                     }
                 } else {
-                    $tblPerson->PhoneMother = '';
-                    if (isset( $phoneListFather[0] )) {
-                        $tblPerson->PhoneFather = $phoneListFather[0];
+                    $tblPerson->PhoneGuardian1 = '';
+                    if (isset( $phoneListGuardian2[0] )) {
+                        $tblPerson->PhoneGuardian2 = $phoneListGuardian2[0];
                     } else {
-                        $tblPerson->PhoneFather = '';
+                        $tblPerson->PhoneGuardian2 = '';
                     }
                 }
             }
@@ -331,7 +363,7 @@ class Service
             $export->setValue($export->getCell("4", "0"), "Geburtsdatum");
             $export->setValue($export->getCell("5", "0"), "Geburtsort");
             $export->setValue($export->getCell("6", "0"), "Schülernummer");
-            $export->setValue($export->getCell("7", "0"), "Sorgeberechtigte");
+            $export->setValue($export->getCell("7", "0"), "Sorgeberechtigter");
             $export->setValue($export->getCell("8", "0"), "Tel. Sorgeber.");
             $export->setValue($export->getCell("9", "0"), "Sorgeberechtigter");
             $export->setValue($export->getCell("10", "0"), "Tel. Sorgeber.");
@@ -347,10 +379,10 @@ class Service
                 $export->setValue($export->getCell("4", $Row), $tblPerson->Birthday);
                 $export->setValue($export->getCell("5", $Row), $tblPerson->Birthplace);
                 $export->setValue($export->getCell("6", $Row), $tblPerson->StudentNumber);
-                $export->setValue($export->getCell("7", $Row), $tblPerson->Mother);
-                $export->setValue($export->getCell("8", $Row), $tblPerson->PhoneMother);
-                $export->setValue($export->getCell("9", $Row), $tblPerson->Father);
-                $export->setValue($export->getCell("10", $Row), $tblPerson->PhoneFather);
+                $export->setValue($export->getCell("7", $Row), $tblPerson->Guardian1);
+                $export->setValue($export->getCell("8", $Row), $tblPerson->PhoneGuardian1);
+                $export->setValue($export->getCell("9", $Row), $tblPerson->Guardian2);
+                $export->setValue($export->getCell("10", $Row), $tblPerson->PhoneGuardian2);
 
                 $Row++;
             }
@@ -401,12 +433,17 @@ class Service
                 $tblPerson->Name = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
-                    if ($tblCommon->getTblCommonBirthDates()->getGender() === 1) {
-                        $tblPerson->Gender = 'männlich';
-                        $Man++;
-                    } elseif ($tblCommon->getTblCommonBirthDates()->getGender() === 2) {
-                        $tblPerson->Gender = 'weiblich';
-                        $Woman++;
+                    $tblBirhdates = $tblCommon->getTblCommonBirthDates();
+                    if ($tblBirhdates) {
+                        if ($tblBirhdates->getGender() === 1) {
+                            $tblPerson->Gender = 'männlich';
+                            $Man++;
+                        } elseif ($tblBirhdates->getGender() === 2) {
+                            $tblPerson->Gender = 'weiblich';
+                            $Woman++;
+                        } else {
+                            $tblPerson->Gender = '';
+                        }
                     } else {
                         $tblPerson->Gender = '';
                     }
@@ -544,12 +581,17 @@ class Service
                 $tblPerson->Number = $All;
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
-                    if ($tblCommon->getTblCommonBirthDates()->getGender() === 1) {
-                        $tblPerson->Gender = 'männlich';
-                        $Man++;
-                    } elseif ($tblCommon->getTblCommonBirthDates()->getGender() === 2) {
-                        $tblPerson->Gender = 'weiblich';
-                        $Woman++;
+                    $tblBirhdates = $tblCommon->getTblCommonBirthDates();
+                    if ($tblBirhdates) {
+                        if ($tblBirhdates->getGender() === 1) {
+                            $tblPerson->Gender = 'männlich';
+                            $Man++;
+                        } elseif ($tblBirhdates->getGender() === 2) {
+                            $tblPerson->Gender = 'weiblich';
+                            $Woman++;
+                        } else {
+                            $tblPerson->Gender = '';
+                        }
                     } else {
                         $tblPerson->Gender = '';
                     }
@@ -588,47 +630,46 @@ class Service
                 shuffle($krankenkassen);
                 $tblPerson->MedicalInsurance = $krankenkassen[0]; //ToDO Krankenkasse
 
-                $father = null;
-                $mother = null;
+                $Guardian1 = null;
+                $Guardian2 = null;
+
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
+                    $Count = 0;
                     foreach ($guardianList as $guardian) {
-                        if (( $guardian->getTblType()->getId() == 1 )
-                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1 )
-                        ) {
-                            $father = $guardian->getServiceTblPersonFrom();
+                        if ($Count === 0) {
+                            $Guardian1 = $guardian->getServiceTblPersonFrom();
                         }
-                        if (( $guardian->getTblType()->getId() == 1 )
-                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2 )
-                        ) {
-                            $mother = $guardian->getServiceTblPersonFrom();
+                        if ($Count === 1) {
+                            $Guardian2 = $guardian->getServiceTblPersonFrom();
                         }
+                        $Count = $Count + 1;
                     }
                 }
                 $phoneListGuardian = array();
-                if ($mother) {
-                    $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
-                    if ($motherPhoneList) {
-                        foreach ($motherPhoneList as $motherPhone) {
-                            $phoneListGuardian[] = $motherPhone->getTblPhone()->getNumber();
+                if ($Guardian1) {
+                    $PhoneListGuardian1 = Phone::useService()->getPhoneAllByPerson($Guardian1);
+                    if ($PhoneListGuardian1) {
+                        foreach ($PhoneListGuardian1 as $PhoneGuardian1) {
+                            $phoneListGuardian[] = $PhoneGuardian1->getTblPhone()->getNumber();
                         }
                     }
-                    $mother = $mother->getFullName();
+                    $Guardian1 = $Guardian1->getFullName();
                 } else {
-                    $mother = '';
+                    $Guardian1 = '';
                 }
-                if ($father) {
-                    $fatherPhoneList = Phone::useService()->getPhoneAllByPerson($father);
-                    if ($fatherPhoneList) {
-                        foreach ($fatherPhoneList as $fatherPhone) {
-                            $phoneListGuardian[] = $fatherPhone->getTblPhone()->getNumber();
+                if ($Guardian2) {
+                    $PhoneListGuardian2 = Phone::useService()->getPhoneAllByPerson($Guardian2);
+                    if ($PhoneListGuardian2) {
+                        foreach ($PhoneListGuardian2 as $PhoneGuardian2) {
+                            $phoneListGuardian[] = $PhoneGuardian2->getTblPhone()->getNumber();
                         }
                     }
-                    $father = $father->getFullName();
+                    $Guardian2 = $Guardian2->getFullName();
                 } else {
-                    $father = '';
+                    $Guardian2 = '';
                 }
-                $tblPerson->Guardian = $mother.'<br/>'.$father;
+                $tblPerson->Guardian = $Guardian1.'<br/>'.$Guardian2;
 
                 $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
                 $phoneArray = array();
@@ -792,12 +833,17 @@ class Service
                 }
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
-                    if ($tblCommon->getTblCommonBirthDates()->getGender() === 1) {
-                        $tblPerson->Gender = 'männlich';
-                        $Man++;
-                    } elseif ($tblCommon->getTblCommonBirthDates()->getGender() === 2) {
-                        $tblPerson->Gender = 'weiblich';
-                        $Woman++;
+                    $tblBirhdates = $tblCommon->getTblCommonBirthDates();
+                    if ($tblBirhdates) {
+                        if ($tblBirhdates->getGender() === 1) {
+                            $tblPerson->Gender = 'männlich';
+                            $Man++;
+                        } elseif ($tblBirhdates->getGender() === 2) {
+                            $tblPerson->Gender = 'weiblich';
+                            $Woman++;
+                        } else {
+                            $tblPerson->Gender = '';
+                        }
                     } else {
                         $tblPerson->Gender = '';
                     }
