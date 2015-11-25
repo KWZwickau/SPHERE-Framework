@@ -50,10 +50,11 @@ class Service
     /**
      * @param IFormInterface|null $Stage
      * @param null $Select
+     * @param string $Redirect
      *
      * @return IFormInterface|Redirect|string
      */
-    public function getTypeAndYear(IFormInterface $Stage = null, $Select = null)
+    public function getTypeAndYear(IFormInterface $Stage = null, $Select = null, $Redirect = '')
     {
 
         /**
@@ -76,7 +77,7 @@ class Service
             return $Stage;
         }
 
-        return new Redirect('/Transfer/Import/FuxMedia/Student/Import', 0, array(
+        return new Redirect($Redirect, 0, array(
             'TypeId' => $Select['Type'],
             'YearId' => $Select['Year'],
         ));
@@ -814,6 +815,141 @@ class Service
                     }
                     return
                         new Success('Es wurden ' . $countTeacher . ' Lehrer erfolgreich angelegt.');
+                } else {
+                    Debugger::screenDump($Location);
+                    return new Danger(
+                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+        return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     * @param null $TypeId
+     * @param null $YearId
+     *
+     * @return IFormInterface|Danger|Success
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException #
+     */
+    public function createDivisionsFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null,
+        $TypeId = null,
+        $YearId = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File || $TypeId === null || $YearId === null) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Klasse' => null,
+                    'Klassenstufe' => null,
+                    'Klassenlehrer_kurz' => null,
+                    'Stellvertreter_Klassenlehrer_kurz' => null,
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countDivision = 0;
+                    $countAddDivisionTeacher = 0;
+                    $countTeacherNotExists = 0;
+
+                    $tblType = Type::useService()->getTypeById($TypeId);
+                    $tblYear = Term::useService()->getYearById($YearId);
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+
+
+                        if (($Level = trim($Document->getValue($Document->getCell($Location['Klassenstufe'],
+                                $RunY)))) != ''
+                        ) {
+                            $tblLevel = Division::useService()->insertLevel($tblType, $Level);
+                            if ($tblLevel) {
+                                $Division = trim($Document->getValue($Document->getCell($Location['Klasse'],
+                                    $RunY)));
+                                if ($Division != '') {
+                                    if (($pos = strpos($Division, $Level)) !== false) {
+                                        if (strlen($Division) > (($start = $pos + strlen($Level)))) {
+                                            $Division = substr($Division, $start);
+                                        }
+                                    }
+                                    $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel,
+                                        $Division);
+                                    if ($tblDivision) {
+
+                                        $countDivision++;
+                                        $teacherCode = trim($Document->getValue($Document->getCell($Location['Klassenlehrer_kurz'], $RunY)));
+                                        if ($teacherCode !== '') {
+                                            $tblPerson = $this->usePeoplePerson()->getTeacherByRemark($teacherCode);
+                                            if ($tblPerson) {
+                                                Division::useService()->insertDivisionTeacher($tblDivision, $tblPerson);
+                                                $countAddDivisionTeacher++;
+                                            } else {
+                                                $countTeacherNotExists++;
+                                            }
+                                        }
+                                        $teacherCode = trim($Document->getValue($Document->getCell($Location['Stellvertreter_Klassenlehrer_kurz'], $RunY)));
+                                        if ($teacherCode !== '') {
+                                            $tblPerson = $this->usePeoplePerson()->getTeacherByRemark($teacherCode);
+                                            if ($tblPerson) {
+                                                Division::useService()->insertDivisionTeacher($tblDivision, $tblPerson);
+                                                $countAddDivisionTeacher++;
+                                            } else {
+                                                $countTeacherNotExists++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                    return
+                        new Success('Es wurden ' . $countDivision . ' Klassen erfolgreich angelegt.') .
+                        new Success('Es wurden ' . $countAddDivisionTeacher . ' Klassenlehrer und Stellvertreter erfolgreich zugeordnet.') .
+                        ($countTeacherNotExists > 0 ?
+                            new Warning($countTeacherNotExists . ' Lehrer nicht gefunden.') : '');
                 } else {
                     Debugger::screenDump($Location);
                     return new Danger(

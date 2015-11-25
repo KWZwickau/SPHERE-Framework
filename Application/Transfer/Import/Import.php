@@ -51,6 +51,13 @@ class Import implements IApplicationInterface
                 new Standard('', '/Transfer/Import/FuxMedia/Teacher', new Upload(), array(), 'Upload')
             ), 2, 2
         );
+        Main::getDispatcher()->registerWidget('Import',
+            new Thumbnail(
+                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
+                'FuxSchool', 'Klassendaten',
+                new Standard('', '/Transfer/Import/FuxMedia/Division', new Upload(), array(), 'Upload')
+            ), 2, 2
+        );
 
         /*
         * ESZC Chemnitz
