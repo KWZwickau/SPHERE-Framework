@@ -128,7 +128,7 @@ class Database extends Extension
         $ManagerCache = (new Cache(new Memory(), true))->getCache();
         $Manager = $ManagerCache->getValue($this->Identifier);
 
-        if (false === $Manager) {
+        if (true || false === $Manager) {
 
             // Sanitize Namespace
             $EntityNamespace = trim(str_replace(array('/', '\\'), '\\', $EntityNamespace), '\\').'\\';
