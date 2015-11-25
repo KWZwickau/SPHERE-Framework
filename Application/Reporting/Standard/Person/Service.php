@@ -440,11 +440,11 @@ class Service
                     $tblPerson->Birthplace = $common->getTblCommonBirthDates()->getBirthplace();
                     $birthDate = (new \DateTime($common->getTblCommonBirthDates()->getBirthday()));
                     $now = new \DateTime();
-                    if ($birthDate->format('y.m') != $now->format('y.m')) {
+                    if ($birthDate->format('Y.m') != $now->format('Y.m')) {
                         if (( $birthDate->format('m.d') ) <= ( $now->format('m.d') )) {
-                            $tblPerson->Age = $now->format('y') - $birthDate->format('y');
+                            $tblPerson->Age = $now->format('Y') - $birthDate->format('Y');
                         } else {
-                            $tblPerson->Age = ( $now->format('y') - 1 ) - $birthDate->format('y');
+                            $tblPerson->Age = ( $now->format('Y') - 1 ) - $birthDate->format('Y');
                         }
                     } else {
                         $tblPerson->Age = '';
