@@ -39,13 +39,11 @@ class TblAddress extends Element
      */
     protected $PostOfficeBox;
     /**
-     * @Column(type="bigint")
      * @ManyToOne(targetEntity="TblCity",fetch="EAGER")
      * @JoinColumn(name="tblCity",referencedColumnName="Id")
      */
     protected $tblCity;
     /**
-     * @Column(type="bigint")
      * @ManyToOne(targetEntity="TblState",fetch="EAGER")
      * @JoinColumn(name="tblState",referencedColumnName="Id")
      */
@@ -148,7 +146,11 @@ class TblAddress extends Element
         if (null === $this->tblCity) {
             return false;
         } else {
-            return Address::useService()->getCityById($this->tblCity);
+            if (is_object($this->tblCity)) {
+                return $this->tblCity;
+            } else {
+                return Address::useService()->getCityById($this->tblCity);
+            }
         }
     }
 
@@ -158,7 +160,7 @@ class TblAddress extends Element
     public function setTblCity(TblCity $tblCity = null)
     {
 
-        $this->tblCity = (null === $tblCity ? null : $tblCity->getId());
+        $this->tblCity = ( null === $tblCity ? null : $tblCity );
     }
 
     /**
@@ -170,7 +172,11 @@ class TblAddress extends Element
         if (null === $this->tblState) {
             return false;
         } else {
-            return Address::useService()->getStateById($this->tblState);
+            if (is_object($this->tblState)) {
+                return $this->tblState;
+            } else {
+                return Address::useService()->getStateById($this->tblState);
+            }
         }
     }
 
@@ -180,6 +186,6 @@ class TblAddress extends Element
     public function setTblState(TblState $tblState = null)
     {
 
-        $this->tblState = (null === $tblState ? null : $tblState->getId());
+        $this->tblState = ( null === $tblState ? null : $tblState );
     }
 }
