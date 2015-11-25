@@ -14,6 +14,7 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
@@ -172,6 +173,12 @@ class Service
                     'Kommunikation_Email' => null,
                     'Beförderung_Fahrtroute' => null,
                     'Beförderung_Einsteigestelle' => null,
+                    'Fächer_Religionsunterricht' => null,
+                    'Fächer_Fremdsprache1' => null,
+                    'Fächer_Fremdsprache2' => null,
+                    'Fächer_Fremdsprache3' => null,
+                    'Fächer_Fremdsprache4' => null,
+
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
@@ -302,10 +309,9 @@ class Service
                                 }
                             }
 
-                            // ToDo JohK Schülerakte (Schülernummer...)
+                            // Schülerakte
                             $studentNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schülernummer'],
                                 $RunY)));
-
                             $tblStudentLocker = null;
                             $LockerNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schließfachnummer'],
                                 $RunY)));
@@ -318,7 +324,6 @@ class Service
                                     $KeyNumber
                                 );
                             }
-
                             $tblStudentMedicalRecord = null;
                             $insurance = trim($Document->getValue($Document->getCell($Location['Schüler_Krankenkasse'],
                                 $RunY)));
@@ -329,7 +334,6 @@ class Service
                                     $insurance
                                 );
                             }
-
                             $tblStudentTransport = null;
                             $route = trim($Document->getValue($Document->getCell($Location['Beförderung_Fahrtroute'],
                                 $RunY)));
@@ -342,11 +346,10 @@ class Service
                                     ''
                                 );
                             }
-
                             $tblStudentBilling = null;
                             $tblStudentBaptism = null;
+                            // Todo JohK Förderbedarf -> eventuell komplett in die Bemerkungen
                             $tblStudentIntegration = null;
-
                             $tblStudent = Student::useService()->insertStudent(
                                 $tblPerson,
                                 $studentNumber,
@@ -404,9 +407,61 @@ class Service
                                         ''
                                     );
                                 }
-                            }
 
-                            // ToDo JohK Fächerzugehörigkeit
+                                // Fächer
+                                $subjectReligion = trim($Document->getValue($Document->getCell($Location['Fächer_Religionsunterricht'],
+                                    $RunY)));
+                                $tblSubject = false;
+                                if ($subjectReligion !== '') {
+                                    if ($subjectReligion === 'ETH') {
+                                        $tblSubject = Subject::useService()->getSubjectByAcronym('ETH');
+                                    } elseif ($subjectReligion === 'RE/e') {
+                                        $tblSubject = Subject::useService()->getSubjectByAcronym('REV');
+                                    } elseif ($subjectReligion === 'RE/k') {
+                                        $tblSubject = Subject::useService()->getSubjectByAcronym('RKA');
+                                    } elseif ($subjectReligion === 'RE/s') {
+                                        // Todo JohK Subject Religion sonstiges anlegen
+                                    }
+                                    if ($tblSubject) {
+                                        Student::useService()->addStudentSubject(
+                                            $tblStudent,
+                                            Student::useService()->getStudentSubjectTypeByIdentifier('Religion'),
+                                            Student::useService()->getStudentSubjectRankingByIdentifier('1'),
+                                            $tblSubject
+                                        );
+                                    }
+                                }
+
+                                for ($i = 1; $i < 5; $i++) {
+                                    $subjectLanguage = trim($Document->getValue($Document->getCell($Location['Fächer_Fremdsprache' . $i],
+                                        $RunY)));
+                                    $tblSubject = false;
+                                    if ($subjectLanguage !== '') {
+                                        if ($subjectLanguage === 'EN') {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
+                                        } elseif ($subjectLanguage === 'LA') {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('LA');
+                                        } elseif ($subjectLanguage === 'FR') {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('FR');
+                                        } elseif ($subjectLanguage === 'RU') {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('RU');
+                                        } elseif ($subjectLanguage === 'POL') {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('PO');
+                                        } elseif ($subjectLanguage === 'SPA') {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('SP');
+                                        }
+                                        // Todo JohK weitere Subject Language anlegen
+                                        if ($tblSubject) {
+                                            Student::useService()->addStudentSubject(
+                                                $tblStudent,
+                                                Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'),
+                                                Student::useService()->getStudentSubjectRankingByIdentifier($i),
+                                                $tblSubject
+                                            );
+                                        }
+                                    }
+                                }
+                            }
 
                             // Sorgeberechtigter1
                             $tblPersonFather = null;
