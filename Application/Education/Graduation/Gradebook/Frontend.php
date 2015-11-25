@@ -2,7 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeStudentSubjectLink;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -218,13 +218,23 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $division = '';
+        if ($DivisionId !== null && $tblDivision) {
+            $division = $tblDivision->getServiceTblYear()->getName() . ' - ' .
+                $tblDivision->getTblLevel()->getServiceTblType()->getName() . ' - ' .
+                $tblDivision->getTblLevel()->getName() . $tblDivision->getName();
+        }
+
         $Stage->setContent(
             Gradebook::useService()->getGradeBook(
                 new Form(new FormGroup(array(
                     new FormRow(array(
                         new FormColumn(
                             new SelectBox('Select[Division]', 'Klasse',
-                                array('{{serviceTblYear.Name}} - {{tblLevel.serviceTblType.Name}} - {{Name}}' => $tblDivisionAll)),
+                                array(
+                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }}
+                                                     - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
+                                )),
                             6
                         ),
                         new FormColumn(
@@ -237,7 +247,7 @@ class Frontend extends Extension implements IFrontendInterface
             ($DivisionId !== null && $SubjectId !== null ?
                 (new Layout (new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getName(),
+                        new Panel('Klasse:', $division,
                             Panel::PANEL_TYPE_SUCCESS), 6
                     ),
                     new LayoutColumn(
@@ -265,7 +275,16 @@ class Frontend extends Extension implements IFrontendInterface
         $tblTestList = Gradebook::useService()->getTestAll();
         if ($tblTestList) {
             array_walk($tblTestList, function (TblTest &$tblTest) {
-                $tblTest->Division = $tblTest->getServiceTblDivision()->getName();
+                $tblDivision = $tblTest->getServiceTblDivision();
+                if ($tblDivision) {
+                    $tblTest->Division = $tblDivision->getServiceTblYear()->getName() . ' - ' .
+                        $tblDivision->getTblLevel()->getServiceTblType()->getName() . ' - ' .
+                        $tblDivision->getTblLevel()->getName() . $tblDivision->getName();
+                }
+                else
+                {
+                    $tblTest->Division = '';
+                }
                 $tblTest->Subject = $tblTest->getServiceTblSubject()->getName();
                 $tblTest->Period = $tblTest->getServiceTblPeriod()->getName();
                 $tblTest->GradeType = $tblTest->getTblGradeType()->getName();
@@ -333,7 +352,11 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new SelectBox('Test[Division]', 'Klasse', array('Name' => $tblDivisionAll)), 6
+                    new SelectBox('Test[Division]', 'Klasse',
+                        array(
+                            '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }}
+                                                     - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
+                        )), 6
                 ),
                 new FormColumn(
                     new SelectBox('Test[Subject]', 'Fach', array('Name' => $tblSubjectAll)), 6
@@ -413,11 +436,19 @@ class Frontend extends Extension implements IFrontendInterface
                 ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
+            $tblDivision = $tblTest->getServiceTblDivision();
+            $division = '';
+            if ($tblDivision) {
+                $division = $tblDivision->getServiceTblYear()->getName() . ' - ' .
+                    $tblDivision->getTblLevel()->getServiceTblType()->getName() . ' - ' .
+                    $tblDivision->getTblLevel()->getName() . $tblDivision->getName();
+            }
+
             $Stage->setContent(
                 new Layout (new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Klasse:', $tblTest->getServiceTblDivision()->getName(),
+                            new Panel('Klasse:', $division,
                                 Panel::PANEL_TYPE_SUCCESS), 6
                         ),
                         new LayoutColumn(
@@ -468,7 +499,7 @@ class Frontend extends Extension implements IFrontendInterface
             $gradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
             if ($gradeList) {
                 $Global = $this->getGlobal();
-                /** @var TblGradeStudentSubjectLink $grade */
+                /** @var TblGrade $grade */
                 foreach ($gradeList as $grade) {
                     $grade->Student = $grade->getServiceTblPerson()->getFullName();
                     $grade->Grades = new TextField('Grade[' . $grade->getId() . '][Grade]', '', '');
@@ -481,12 +512,20 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $Global->savePost();
 
+                $division = '';
+                $tblDivision = $tblTest->getServiceTblDivision();
+                if ($tblDivision) {
+                    $division = $tblDivision->getServiceTblYear()->getName() . ' - ' .
+                        $tblDivision->getTblLevel()->getServiceTblType()->getName() . ' - ' .
+                        $tblDivision->getTblLevel()->getName() . $tblDivision->getName();
+                }
+
                 $Stage->setContent(
                     new Layout(array(
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Panel('Klasse:', $tblTest->getServiceTblDivision()->getName(),
+                                    new Panel('Klasse:', $division,
                                         Panel::PANEL_TYPE_SUCCESS), 6
                                 ),
                                 new LayoutColumn(

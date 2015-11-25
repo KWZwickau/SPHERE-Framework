@@ -3,7 +3,7 @@
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeStudentSubjectLink;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Setup;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -188,7 +188,7 @@ class Service extends AbstractService
      * @param TblSubject $tblSubject
      * @param TblPeriod $tblPeriod
      *
-     * @return bool|Service\Entity\TblGradeStudentSubjectLink[]
+     * @return bool|Service\Entity\TblGrade[]
      */
     public function getGradesByStudentAndSubjectAndPeriod(
         TblPerson $tblPerson,
@@ -201,35 +201,12 @@ class Service extends AbstractService
 
     /**
      * @param $Id
-     * @return bool|Service\Entity\TblGradeStudentSubjectLink
+     * @return bool|Service\Entity\TblGrade
      */
     public function getGradeById($Id)
     {
 
         return (new Data($this->getBinding()))->getGradeById($Id);
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param $Id
-     * @param $GradeData
-     *
-     * @return IFormInterface
-     */
-    public function updateGrade(
-        IFormInterface $Stage = null,
-        $Id,
-        $GradeData
-    ) {
-
-        var_dump($GradeData);
-        if (null === $GradeData) {
-            return $Stage;
-        }
-
-        (new Data($this->getBinding()))->updateGrade($this->getGradeById($Id), $GradeData[$Id]);
-
-        return $Stage;
     }
 
     /**
@@ -347,7 +324,7 @@ class Service extends AbstractService
      * @param string $Grade
      * @param string $Comment
      *
-     * @return null|Service\Entity\TblGradeStudentSubjectLink
+     * @return null|Service\Entity\TblGrade
      */
     public function createGradeToTest(
         TblTest $tblTest,
@@ -360,7 +337,7 @@ class Service extends AbstractService
 
     /**
      * @param TblTest $tblTest
-     * @return TblGradeStudentSubjectLink[]|bool
+     * @return TblGrade[]|bool
      */
     public function getGradeAllByTest(TblTest $tblTest)
     {
@@ -372,7 +349,7 @@ class Service extends AbstractService
      * @param $Grade
      * @return IFormInterface|Redirect
      */
-    public function updateGradeToTest(IFormInterface $Stage = null, $Grade)
+    public function updateGradeToTest(IFormInterface $Stage = null, $Grade = null)
     {
         /**
          * Skip to Frontend
@@ -382,7 +359,9 @@ class Service extends AbstractService
         }
 
         foreach ($Grade as $key => $value) {
-            (new Data($this->getBinding()))->updateGrade($this->getGradeById($key), $value['Grade'], $value['Comment']);
+            $grade = $this->getGradeById($key);
+//            Debugger::screenDump($key, $grade);
+            (new Data($this->getBinding()))->updateGrade($grade, $value['Grade'], $value['Comment']);
         }
 
         return new Redirect('/Education/Graduation/Gradebook/Test', 0);

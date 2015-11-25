@@ -18,7 +18,7 @@ abstract class Cacheable extends Extension
     /** @var null|IApiInterface $CacheSystem */
     private static $CacheSystem = null;
     /** @var bool $Enabled */
-    private $Enabled = true;
+    private $Enabled = false;
     /** @var bool $Debug */
     private $Debug = false;
 
