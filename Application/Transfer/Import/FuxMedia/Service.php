@@ -14,6 +14,7 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
@@ -29,6 +30,7 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use SPHERE\Application\People\Meta\Student\Student;
 
 class Service
 {
@@ -48,10 +50,11 @@ class Service
     /**
      * @param IFormInterface|null $Stage
      * @param null $Select
+     * @param string $Redirect
      *
      * @return IFormInterface|Redirect|string
      */
-    public function getTypeAndYear(IFormInterface $Stage = null, $Select = null)
+    public function getTypeAndYear(IFormInterface $Stage = null, $Select = null, $Redirect = '')
     {
 
         /**
@@ -74,7 +77,7 @@ class Service
             return $Stage;
         }
 
-        return new Redirect('/Transfer/Import/FuxMedia/Student/Import', 0, array(
+        return new Redirect($Redirect, 0, array(
             'TypeId' => $Select['Type'],
             'YearId' => $Select['Year'],
         ));
@@ -143,6 +146,12 @@ class Service
                     'Schüler_Geburtsdatum' => null,
                     'Schüler_Geburtsort' => null,
                     'Schüler_Konfession' => null,
+                    'Schüler_Einschulung_am' => null,
+                    'Schüler_Aufnahme_am' => null,
+                    'Schüler_Abgang_am' => null,
+                    'Schüler_Schließfach_Schlüsselnummer' => null,
+                    'Schüler_Schließfachnummer' => null,
+                    'Schüler_Krankenkasse' => null,
                     'Sorgeberechtigter1_Name' => null,
                     'Sorgeberechtigter1_Vorname' => null,
                     'Sorgeberechtigter1_Straße' => null,
@@ -163,9 +172,17 @@ class Service
                     'Kommunikation_Telefon6' => null,
                     'Kommunikation_Fax' => null,
                     'Kommunikation_Email' => null,
+                    'Beförderung_Fahrtroute' => null,
+                    'Beförderung_Einsteigestelle' => null,
+                    'Fächer_Religionsunterricht' => null,
+                    'Fächer_Fremdsprache1' => null,
+                    'Fächer_Fremdsprache2' => null,
+                    'Fächer_Fremdsprache3' => null,
+                    'Fächer_Fremdsprache4' => null,
+
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
-                    $Value = $Document->getValue($Document->getCell($RunX, 0));
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
                     if (array_key_exists($Value, $Location)) {
                         $Location[$Value] = $RunX;
                     }
@@ -293,8 +310,159 @@ class Service
                                 }
                             }
 
-                            // ToDo JohK Schülerakte (Schülernummer...)
-                            // ToDo JohK Fächerzugehörigkeit
+                            // Schülerakte
+                            $studentNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schülernummer'],
+                                $RunY)));
+                            $tblStudentLocker = null;
+                            $LockerNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schließfachnummer'],
+                                $RunY)));
+                            $KeyNumber = trim($Document->getValue($Document->getCell($Location['Schüler_Schließfach_Schlüsselnummer'],
+                                $RunY)));
+                            if ($LockerNumber !== '' || $KeyNumber !== '') {
+                                $tblStudentLocker = Student::useService()->insertStudentLocker(
+                                    $LockerNumber,
+                                    '',
+                                    $KeyNumber
+                                );
+                            }
+                            $tblStudentMedicalRecord = null;
+                            $insurance = trim($Document->getValue($Document->getCell($Location['Schüler_Krankenkasse'],
+                                $RunY)));
+                            if ($insurance !== '') {
+                                $tblStudentMedicalRecord = Student::useService()->insertStudentMedicalRecord(
+                                    '',
+                                    '',
+                                    $insurance
+                                );
+                            }
+                            $tblStudentTransport = null;
+                            $route = trim($Document->getValue($Document->getCell($Location['Beförderung_Fahrtroute'],
+                                $RunY)));
+                            $stationEntrance = trim($Document->getValue($Document->getCell($Location['Beförderung_Einsteigestelle'],
+                                $RunY)));
+                            if ($route !== '' || $stationEntrance !== '') {
+                                $tblStudentTransport = Student::useService()->insertStudentTransport(
+                                    $route,
+                                    $stationEntrance,
+                                    ''
+                                );
+                            }
+                            $tblStudentBilling = null;
+                            $tblStudentBaptism = null;
+                            // Todo JohK Förderbedarf -> eventuell komplett in die Bemerkungen
+                            $tblStudentIntegration = null;
+                            $tblStudent = Student::useService()->insertStudent(
+                                $tblPerson,
+                                $studentNumber,
+                                $tblStudentMedicalRecord,
+                                $tblStudentTransport,
+                                $tblStudentBilling,
+                                $tblStudentLocker,
+                                $tblStudentBaptism,
+                                $tblStudentIntegration
+                            );
+
+                            if ($tblStudent) {
+
+                                // Schülertransfer
+                                // ToDo JohK Company
+                                $enrollmentDate = trim($Document->getValue($Document->getCell($Location['Schüler_Einschulung_am'],
+                                    $RunY)));
+                                if ($enrollmentDate !== '' && date_create($enrollmentDate) !== false) {
+                                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Enrollment');
+                                    Student::useService()->insertStudentTransfer(
+                                        $tblStudent,
+                                        $tblStudentTransferType,
+                                        null,
+                                        null,
+                                        null,
+                                        $enrollmentDate,
+                                        ''
+                                    );
+                                }
+                                $arriveDate = trim($Document->getValue($Document->getCell($Location['Schüler_Aufnahme_am'],
+                                    $RunY)));
+                                if ($arriveDate !== '' && date_create($arriveDate) !== false) {
+                                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
+                                    Student::useService()->insertStudentTransfer(
+                                        $tblStudent,
+                                        $tblStudentTransferType,
+                                        null,
+                                        null,
+                                        null,
+                                        $arriveDate,
+                                        ''
+                                    );
+                                }
+                                $leaveDate = trim($Document->getValue($Document->getCell($Location['Schüler_Abgang_am'],
+                                    $RunY)));
+                                if ($leaveDate !== '' && date_create($leaveDate) !== false) {
+                                    $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Leave');
+                                    Student::useService()->insertStudentTransfer(
+                                        $tblStudent,
+                                        $tblStudentTransferType,
+                                        null,
+                                        null,
+                                        null,
+                                        $leaveDate,
+                                        ''
+                                    );
+                                }
+
+                                // Fächer
+                                $subjectReligion = trim($Document->getValue($Document->getCell($Location['Fächer_Religionsunterricht'],
+                                    $RunY)));
+                                $tblSubject = false;
+                                if ($subjectReligion !== '') {
+                                    if ($subjectReligion === 'ETH') {
+                                        $tblSubject = Subject::useService()->getSubjectByAcronym('ETH');
+                                    } elseif ($subjectReligion === 'RE/e') {
+                                        $tblSubject = Subject::useService()->getSubjectByAcronym('REV');
+                                    } elseif ($subjectReligion === 'RE/k') {
+                                        $tblSubject = Subject::useService()->getSubjectByAcronym('RKA');
+                                    } elseif ($subjectReligion === 'RE/s') {
+                                        // Todo JohK Subject Religion sonstiges anlegen
+                                    }
+                                    if ($tblSubject) {
+                                        Student::useService()->addStudentSubject(
+                                            $tblStudent,
+                                            Student::useService()->getStudentSubjectTypeByIdentifier('Religion'),
+                                            Student::useService()->getStudentSubjectRankingByIdentifier('1'),
+                                            $tblSubject
+                                        );
+                                    }
+                                }
+
+                                for ($i = 1; $i < 5; $i++) {
+                                    $subjectLanguage = trim($Document->getValue($Document->getCell($Location['Fächer_Fremdsprache' . $i],
+                                        $RunY)));
+                                    $tblSubject = false;
+                                    if ($subjectLanguage !== '') {
+                                        if ($subjectLanguage === 'EN') {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('EN');
+                                        } elseif ($subjectLanguage === 'LA') {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('LA');
+                                        } elseif ($subjectLanguage === 'FR') {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('FR');
+                                        } elseif ($subjectLanguage === 'RU') {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('RU');
+                                        } elseif ($subjectLanguage === 'POL') {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('PO');
+                                        } elseif ($subjectLanguage === 'SPA') {
+                                            $tblSubject = Subject::useService()->getSubjectByAcronym('SP');
+                                        }
+                                        // Todo JohK weitere Subject Language anlegen
+                                        if ($tblSubject) {
+                                            Student::useService()->addStudentSubject(
+                                                $tblStudent,
+                                                Student::useService()->getStudentSubjectTypeByIdentifier('FOREIGN_LANGUAGE'),
+                                                Student::useService()->getStudentSubjectRankingByIdentifier($i),
+                                                $tblSubject
+                                            );
+                                        }
+                                    }
+                                }
+                            }
 
                             // Sorgeberechtigter1
                             $tblPersonFather = null;
@@ -460,7 +628,7 @@ class Service
                     return
                         new Success('Es wurden ' . $countStudent . ' Schüler erfolgreich angelegt.') .
                         new Success('Es wurden ' . ($countFather + $countMother) . ' Sorgeberechtigte erfolgreich angelegt.') .
-                        ( $countExists > 0 ?
+                        ($countExists > 0 ?
                             new Warning($countExists . ' Sorgeberechtigte exisistieren bereits.') : '');
                 } else {
                     Debugger::screenDump($Location);
@@ -472,4 +640,323 @@ class Service
         return new Danger('File nicht gefunden');
     }
 
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     *
+     * @return IFormInterface|Danger|Success
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException#
+     */
+    public function createTeachersFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Lehrerkürzel' => null,
+                    'Name' => null,
+                    'Vorname' => null,
+                    'Anrede' => null,
+                    'Geschlecht' => null,
+                    'Straße' => null,
+                    'Plz' => null,
+                    'Wohnort' => null,
+                    'Ortsteil' => null,
+                    'Geburtsdatum' => null,
+                    'Geburtsort' => null,
+                    'Geburtsname' => null,
+                    'Konfession' => null,
+                    'Telefon1' => null,
+                    'Telefon2' => null,
+                    'Fax' => null,
+                    'EMail' => null,
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countTeacher = 0;
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                        if ($lastName) {
+
+                            $gender = trim($Document->getValue($Document->getCell($Location['Geschlecht'],
+                                $RunY))) == 'm' ? 1 : 2;
+
+                            $tblPerson = $this->usePeoplePerson()->insertPerson(
+                                $this->usePeoplePerson()->getSalutationById($gender),
+                                '',
+                                trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY))),
+                                '',
+                                $lastName,
+                                array(
+                                    0 => Group::useService()->getGroupById(1),           //Personendaten
+                                    1 => Group::useService()->getGroupById(5)            //Mitarbeiter
+                                ),
+                                trim($Document->getValue($Document->getCell($Location['Geburtsname'], $RunY)))
+                            );
+
+                            if ($tblPerson !== false) {
+                                $countTeacher++;
+
+                                // Teacher Common
+                                Common::useService()->insertMeta(
+                                    $tblPerson,
+                                    trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
+                                        $RunY))),
+                                    trim($Document->getValue($Document->getCell($Location['Geburtsort'],
+                                        $RunY))),
+                                    $gender,
+                                    '',
+                                    trim($Document->getValue($Document->getCell($Location['Konfession'],
+                                        $RunY))),
+                                    0,
+                                    '',
+                                    trim($Document->getValue($Document->getCell($Location['Lehrerkürzel'],
+                                        $RunY)))
+                                );
+
+                                // Teacher Address
+                                if (trim($Document->getValue($Document->getCell($Location['Wohnort'],
+                                        $RunY))) != ''
+                                ) {
+                                    $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                        $RunY)));
+                                    if (preg_match_all('!\d+!', $Street, $matches)) {
+                                        $pos = strpos($Street, $matches[0][0]);
+                                        if ($pos !== null) {
+                                            $StreetName = trim(substr($Street, 0, $pos));
+                                            $StreetNumber = trim(substr($Street, $pos));
+
+                                            Address::useService()->insertAddressToPerson(
+                                                $tblPerson,
+                                                $StreetName,
+                                                $StreetNumber,
+                                                trim($Document->getValue($Document->getCell($Location['Plz'],
+                                                    $RunY))),
+                                                trim($Document->getValue($Document->getCell($Location['Wohnort'],
+                                                    $RunY))),
+                                                trim($Document->getValue($Document->getCell($Location['Ortsteil'],
+                                                    $RunY))),
+                                                '',
+                                                null
+                                            );
+
+                                        }
+                                    }
+                                }
+
+                                // Teacher Contact
+                                for ($i = 1; $i < 3; $i++) {
+                                    $PhoneNumber = trim($Document->getValue($Document->getCell($Location['Telefon' . $i],
+                                        $RunY)));
+                                    if ($PhoneNumber != '') {
+                                        Phone::useService()->insertPhoneToPerson($tblPerson, $PhoneNumber,
+                                            Phone::useService()->getTypeById(1), '');
+                                    }
+                                }
+                                $FaxNumber = trim($Document->getValue($Document->getCell($Location['Fax'],
+                                    $RunY)));
+                                if ($FaxNumber != '') {
+                                    Phone::useService()->insertPhoneToPerson($tblPerson, $FaxNumber,
+                                        Phone::useService()->getTypeById(7), '');
+                                }
+                                $MailAddress = trim($Document->getValue($Document->getCell($Location['EMail'],
+                                    $RunY)));
+                                if ($MailAddress != '') {
+                                    Mail::useService()->insertMailToPerson($tblPerson, $MailAddress,
+                                        Mail::useService()->getTypeById(1), '');
+                                }
+
+                                // ToDo JohK Teacher Meta, wenn vorhanden
+                            }
+                        }
+                    }
+                    return
+                        new Success('Es wurden ' . $countTeacher . ' Lehrer erfolgreich angelegt.');
+                } else {
+                    Debugger::screenDump($Location);
+                    return new Danger(
+                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+        return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     * @param null $TypeId
+     * @param null $YearId
+     *
+     * @return IFormInterface|Danger|Success
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException #
+     */
+    public function createDivisionsFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null,
+        $TypeId = null,
+        $YearId = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File || $TypeId === null || $YearId === null) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Klasse' => null,
+                    'Klassenstufe' => null,
+                    'Klassenlehrer_kurz' => null,
+                    'Stellvertreter_Klassenlehrer_kurz' => null,
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countDivision = 0;
+                    $countAddDivisionTeacher = 0;
+                    $countTeacherNotExists = 0;
+
+                    $tblType = Type::useService()->getTypeById($TypeId);
+                    $tblYear = Term::useService()->getYearById($YearId);
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+
+
+                        if (($Level = trim($Document->getValue($Document->getCell($Location['Klassenstufe'],
+                                $RunY)))) != ''
+                        ) {
+                            $tblLevel = Division::useService()->insertLevel($tblType, $Level);
+                            if ($tblLevel) {
+                                $Division = trim($Document->getValue($Document->getCell($Location['Klasse'],
+                                    $RunY)));
+                                if ($Division != '') {
+                                    if (($pos = strpos($Division, $Level)) !== false) {
+                                        if (strlen($Division) > (($start = $pos + strlen($Level)))) {
+                                            $Division = substr($Division, $start);
+                                        }
+                                    }
+                                    $tblDivision = Division::useService()->insertDivision($tblYear, $tblLevel,
+                                        $Division);
+                                    if ($tblDivision) {
+
+                                        $countDivision++;
+                                        $teacherCode = trim($Document->getValue($Document->getCell($Location['Klassenlehrer_kurz'], $RunY)));
+                                        if ($teacherCode !== '') {
+                                            $tblPerson = $this->usePeoplePerson()->getTeacherByRemark($teacherCode);
+                                            if ($tblPerson) {
+                                                Division::useService()->insertDivisionTeacher($tblDivision, $tblPerson);
+                                                $countAddDivisionTeacher++;
+                                            } else {
+                                                $countTeacherNotExists++;
+                                            }
+                                        }
+                                        $teacherCode = trim($Document->getValue($Document->getCell($Location['Stellvertreter_Klassenlehrer_kurz'], $RunY)));
+                                        if ($teacherCode !== '') {
+                                            $tblPerson = $this->usePeoplePerson()->getTeacherByRemark($teacherCode);
+                                            if ($tblPerson) {
+                                                Division::useService()->insertDivisionTeacher($tblDivision, $tblPerson);
+                                                $countAddDivisionTeacher++;
+                                            } else {
+                                                $countTeacherNotExists++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                    return
+                        new Success('Es wurden ' . $countDivision . ' Klassen erfolgreich angelegt.') .
+                        new Success('Es wurden ' . $countAddDivisionTeacher . ' Klassenlehrer und Stellvertreter erfolgreich zugeordnet.') .
+                        ($countTeacherNotExists > 0 ?
+                            new Warning($countTeacherNotExists . ' Lehrer nicht gefunden.') : '');
+                } else {
+                    Debugger::screenDump($Location);
+                    return new Danger(
+                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+        return new Danger('File nicht gefunden');
+    }
 }

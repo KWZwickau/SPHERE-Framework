@@ -19,7 +19,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -297,8 +296,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutRow(
                                     new LayoutColumn(
                                         new TableData($tblPeriodList, null,
-                                            array('Id'          => 'lfd.Nr.',
-                                                  'Name'        => 'Name',
+                                            array('Name'        => 'Name',
                                                   'Description' => 'Beschreibung',
                                                   'Period'      => 'Zeitraum',
                                                   'Option'      => 'Option')
@@ -327,7 +325,8 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         if ($tblYear) {
-            $Panel = new Panel($tblYear->getDescription().'&nbsp'.new PullRight($tblYear->getName()), '', Panel::PANEL_TYPE_INFO);
+            $Panel = new Panel('<b>'.( ( $tblYear->getDescription() ) ? ( $tblYear->getDescription() ) : 'Schuljahr' ).'&nbsp'
+                .$tblYear->getName().'</b>', '', Panel::PANEL_TYPE_INFO);
             return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($Panel, 6))));
         }
         return false;

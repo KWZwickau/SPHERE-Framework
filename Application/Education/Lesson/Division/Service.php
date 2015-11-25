@@ -5,6 +5,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Data;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStudent;
@@ -387,6 +388,17 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     *
+     * @return TblDivisionTeacher
+     */
+    public function insertDivisionTeacher(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->addDivisionTeacher($tblDivision, $tblPerson);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
      *
      * @return string
@@ -498,10 +510,10 @@ class Service extends AbstractService
         }
         if (!$Error) {
             return new Success('Die Zuordnung wurde erfolgreich entfernt')
-            .new Redirect('/Education/Lesson/Division/SubjectTeacher/Show', 1, array('Id' => $tblDivision->getId()));
+            .new Redirect('/Education/Lesson/Division/Show', 1, array('Id' => $tblDivision->getId()));
         } else {
             return new Danger('Die Zuordnung konnte nicht entfernt werden')
-            .new Redirect('/Education/Lesson/Division/SubjectTeacher/Show', 15, array('Id' => $tblDivision->getId()));
+            .new Redirect('/Education/Lesson/Division/Show', 15, array('Id' => $tblDivision->getId()));
         }
 
 
@@ -704,16 +716,16 @@ class Service extends AbstractService
             array_walk($DivisionSubject, function ($DivisionSubject) use ($Teacher, $tblSubjectGroup, &$Error) {
 
                 if (!(new Data($this->getBinding()))->addSubjectTeacher(Division::useService()->getDivisionSubjectById($DivisionSubject), Person::useService()->getPersonById($Teacher), $tblSubjectGroup)) {
-                    $Error = false;
+                    $Error = true;
                 }
             });
 
             if (!$Error) {
-                return new Success('Die Gruppe mit Personen wurden erfolgreich angelegt')
-                .new Redirect('/Education/Lesson/Division/SubjectTeacher/Show', 1, array('Id' => $DivisionId));
+                return new Success('Der Fachlehrer wurden erfolgreich angelegt')
+                .new Redirect('/Education/Lesson/Division/Show', 1, array('Id' => $DivisionId));
             } else {
-                return new Danger('Einige Personen konnte nicht in der Gruppe angelegt werden')
-                .new Redirect('/Education/Lesson/Division/SubjectTeacher/Show', 15, array('Id' => $DivisionId));
+                return new Danger('Einige Fächer für den Fachlehrer konnten nicht angelegt werden')
+                .new Redirect('/Education/Lesson/Division/Show', 15, array('Id' => $DivisionId));
             }
         }
         return $Form;

@@ -34,6 +34,9 @@ class Import implements IApplicationInterface
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
 
+        /*
+         * FuxMedia
+         */
         Main::getDispatcher()->registerWidget('Import',
             new Thumbnail(
                 FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
@@ -41,28 +44,24 @@ class Import implements IApplicationInterface
                 new Standard('', '/Transfer/Import/FuxMedia/Student', new Upload(), array(), 'Upload')
             ), 2, 2
         );
-//        Main::getDispatcher()->registerWidget('Transfer',
-//            new Thumbnail(
-//                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-//                'FuxSchool', 'Schülerdaten',
-//                new Standard('', '/Transfer/Import/FuxMedia/Student', new Upload(), array(), 'Upload')
-//            ), 2, 2
-//        );
-//        Main::getDispatcher()->registerWidget('Import',
-//            new Thumbnail(
-//                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-//                'FuxSchool', 'Klassendaten',
-//                new Standard('', '/Sphere/Transfer/Import/FuxSchool/Division', new Upload(), array(), 'Upload')
-//            ), 2, 2
-//        );
-//        Main::getDispatcher()->registerWidget('Transfer',
-//            new Thumbnail(
-//                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-//                'FuxSchool', 'Klassendaten',
-//                new Standard('', '/Sphere/Transfer/Import/FuxSchool/Division', new Upload(), array(), 'Upload')
-//            ), 2, 2
-//        );
+        Main::getDispatcher()->registerWidget('Import',
+            new Thumbnail(
+                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
+                'FuxSchool', 'Lehrerdaten',
+                new Standard('', '/Transfer/Import/FuxMedia/Teacher', new Upload(), array(), 'Upload')
+            ), 2, 2
+        );
+        Main::getDispatcher()->registerWidget('Import',
+            new Thumbnail(
+                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
+                'FuxSchool', 'Klassendaten',
+                new Standard('', '/Transfer/Import/FuxMedia/Division', new Upload(), array(), 'Upload')
+            ), 2, 2
+        );
 
+        /*
+        * ESZC Chemnitz
+        */
         Main::getDispatcher()->registerWidget('Import',
             new Thumbnail(
                 FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),

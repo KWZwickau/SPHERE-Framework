@@ -45,11 +45,76 @@ class Service extends Integration
     }
 
     /**
+     * @param $LockerNumber
+     * @param $LockerLocation
+     * @param $KeyNumber
+     *
+     * @return TblStudentLocker
+     */
+    public function insertStudentLocker(
+        $LockerNumber,
+        $LockerLocation,
+        $KeyNumber
+    ) {
+        return (new Data($this->getBinding()))->createStudentLocker(
+            $LockerNumber,
+            $LockerLocation,
+            $KeyNumber
+        );
+    }
+
+    /**
+     * @param $Disease
+     * @param $Medication
+     * @param TblPerson|null $tblPersonAttendingDoctor
+     * @param null $InsuranceState
+     * @param $Insurance
+     *
+     * @return TblStudentMedicalRecord
+     */
+    public function insertStudentMedicalRecord(
+        $Disease,
+        $Medication,
+        $Insurance,
+        $InsuranceState = 0,
+        TblPerson $tblPersonAttendingDoctor = null
+    ) {
+        return (new Data($this->getBinding()))->createStudentMedicalRecord(
+            $Disease,
+            $Medication,
+            $tblPersonAttendingDoctor,
+            $InsuranceState,
+            $Insurance
+        );
+    }
+
+    /**
+     * @param $Route
+     * @param $StationEntrance
+     * @param $StationExit
+     * @param string $Remark
+     *
+     * @return TblStudentTransport
+     */
+    public function insertStudentTransport(
+        $Route,
+        $StationEntrance,
+        $StationExit,
+        $Remark = ''
+    ) {
+        return (new Data($this->getBinding()))->createStudentTransport(
+            $Route,
+            $StationEntrance,
+            $StationExit,
+            $Remark
+        );
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param TblPerson $tblPerson
      * @param array $Meta
      * @param $Group
-
      * @return IFormInterface|Redirect
      */
     public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group)
