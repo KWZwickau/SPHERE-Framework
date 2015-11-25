@@ -639,4 +639,188 @@ class Service
         return new Danger('File nicht gefunden');
     }
 
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     *
+     * @return IFormInterface|Danger|Success
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException#
+     */
+    public function createTeachersFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Lehrerkürzel' => null,
+                    'Name' => null,
+                    'Vorname' => null,
+                    'Anrede' => null,
+                    'Geschlecht' => null,
+                    'Straße' => null,
+                    'Plz' => null,
+                    'Wohnort' => null,
+                    'Ortsteil' => null,
+                    'Geburtsdatum' => null,
+                    'Geburtsort' => null,
+                    'Geburtsname' => null,
+                    'Konfession' => null,
+                    'Telefon1' => null,
+                    'Telefon2' => null,
+                    'Fax' => null,
+                    'EMail' => null,
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countTeacher = 0;
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                        if ($lastName) {
+
+                            $gender = trim($Document->getValue($Document->getCell($Location['Geschlecht'],
+                                $RunY))) == 'm' ? 1 : 2;
+
+                            $tblPerson = $this->usePeoplePerson()->insertPerson(
+                                $this->usePeoplePerson()->getSalutationById($gender),
+                                '',
+                                trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY))),
+                                '',
+                                $lastName,
+                                array(
+                                    0 => Group::useService()->getGroupById(1),           //Personendaten
+                                    1 => Group::useService()->getGroupById(5)            //Mitarbeiter
+                                ),
+                                trim($Document->getValue($Document->getCell($Location['Geburtsname'], $RunY)))
+                            );
+
+                            if ($tblPerson !== false) {
+                                $countTeacher++;
+
+                                // Teacher Common
+                                Common::useService()->insertMeta(
+                                    $tblPerson,
+                                    trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
+                                        $RunY))),
+                                    trim($Document->getValue($Document->getCell($Location['Geburtsort'],
+                                        $RunY))),
+                                    $gender,
+                                    '',
+                                    trim($Document->getValue($Document->getCell($Location['Konfession'],
+                                        $RunY))),
+                                    0,
+                                    '',
+                                    trim($Document->getValue($Document->getCell($Location['Lehrerkürzel'],
+                                        $RunY)))
+                                );
+
+                                // Teacher Address
+                                if (trim($Document->getValue($Document->getCell($Location['Wohnort'],
+                                        $RunY))) != ''
+                                ) {
+                                    $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                        $RunY)));
+                                    if (preg_match_all('!\d+!', $Street, $matches)) {
+                                        $pos = strpos($Street, $matches[0][0]);
+                                        if ($pos !== null) {
+                                            $StreetName = trim(substr($Street, 0, $pos));
+                                            $StreetNumber = trim(substr($Street, $pos));
+
+                                            Address::useService()->insertAddressToPerson(
+                                                $tblPerson,
+                                                $StreetName,
+                                                $StreetNumber,
+                                                trim($Document->getValue($Document->getCell($Location['Plz'],
+                                                    $RunY))),
+                                                trim($Document->getValue($Document->getCell($Location['Wohnort'],
+                                                    $RunY))),
+                                                trim($Document->getValue($Document->getCell($Location['Ortsteil'],
+                                                    $RunY))),
+                                                '',
+                                                null
+                                            );
+
+                                        }
+                                    }
+                                }
+
+                                // Teacher Contact
+                                for ($i = 1; $i < 3; $i++) {
+                                    $PhoneNumber = trim($Document->getValue($Document->getCell($Location['Telefon' . $i],
+                                        $RunY)));
+                                    if ($PhoneNumber != '') {
+                                        Phone::useService()->insertPhoneToPerson($tblPerson, $PhoneNumber,
+                                            Phone::useService()->getTypeById(1), '');
+                                    }
+                                }
+                                $FaxNumber = trim($Document->getValue($Document->getCell($Location['Fax'],
+                                    $RunY)));
+                                if ($FaxNumber != '') {
+                                    Phone::useService()->insertPhoneToPerson($tblPerson, $FaxNumber,
+                                        Phone::useService()->getTypeById(7), '');
+                                }
+                                $MailAddress = trim($Document->getValue($Document->getCell($Location['EMail'],
+                                    $RunY)));
+                                if ($MailAddress != '') {
+                                    Mail::useService()->insertMailToPerson($tblPerson, $MailAddress,
+                                        Mail::useService()->getTypeById(1), '');
+                                }
+
+                                // ToDo JohK Teacher Meta, wenn vorhanden
+                            }
+                        }
+                    }
+                    return
+                        new Success('Es wurden ' . $countTeacher . ' Lehrer erfolgreich angelegt.');
+                } else {
+                    Debugger::screenDump($Location);
+                    return new Danger(
+                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+        return new Danger('File nicht gefunden');
+    }
 }

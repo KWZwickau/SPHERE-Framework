@@ -39,7 +39,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $View = new Stage();
-        $View->setTitle('ESZC Import');
+        $View->setTitle('FuxSchool Import');
         $View->setDescription('Schülerdaten');
 
         $tblYearAll = Term::useService()->getYearAll();
@@ -86,7 +86,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $View = new Stage();
-        $View->setTitle('ESZC Import');
+        $View->setTitle('FuxSchool Import');
         $View->setDescription('Schülerdaten');
         $View->setContent(
             new Layout(
@@ -105,6 +105,46 @@ class Frontend extends Extension implements IFrontendInterface
                                         )
                                         , new Primary('Hochladen')
                                     ), $File, $TypeId, $YearId
+                                )
+                            ,
+                                new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
+                            )
+                        ))
+                )
+            )
+        );
+
+        return $View;
+    }
+
+    /**
+     * @param UploadedFile|null $File
+     *
+     * @return Stage
+     */
+    public function frontendTeacherImport(UploadedFile $File = null)
+    {
+
+        $View = new Stage();
+        $View->setTitle('FuxSchool Import');
+        $View->setDescription('Lehrerdaten');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                                FuxSchool::useService()->createTeachersFromFile(
+                                    new Form(
+                                        new FormGroup(
+                                            new FormRow(
+                                                new FormColumn(
+                                                    new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                        array('showPreview' => false))
+                                                )
+                                            )
+                                        )
+                                        , new Primary('Hochladen')
+                                    ), $File
                                 )
                             ,
                                 new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
