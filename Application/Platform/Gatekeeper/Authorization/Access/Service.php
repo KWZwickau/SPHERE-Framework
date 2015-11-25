@@ -11,8 +11,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Setup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Cache\Cache;
-use SPHERE\System\Cache\Type\Memcached;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -81,8 +80,8 @@ class Service extends AbstractService
 
         if (empty( self::$AuthorizationCache )) {
             if (false !== ( $tblAccount = Account::useService()->getAccountBySession() )) {
-                $Cache = (new Cache(new Memcached()))->getCache();
-                if (!( $AuthorizationCache = $Cache->getValue(__METHOD__.'::'.$tblAccount->getId()) )) {
+                $Cache = $this->getCache(new MemcachedHandler());
+                if (!($AuthorizationCache = $Cache->getValue(__METHOD__ . '::' . $tblAccount->getId(), __METHOD__))) {
                     if (false !== ( $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount) )) {
                         /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization $tblAuthorization */
                         foreach ($tblAuthorizationAll as $tblAuthorization) {
@@ -105,7 +104,8 @@ class Service extends AbstractService
                             }
                         }
                     }
-                    $Cache->setValue(__METHOD__.'::'.$tblAccount->getId(), self::$AuthorizationCache);
+                    $Cache->setValue(__METHOD__ . '::' . $tblAccount->getId(), self::$AuthorizationCache, 0,
+                        __METHOD__);
                 } else {
                     self::$AuthorizationCache = $AuthorizationCache;
                 }

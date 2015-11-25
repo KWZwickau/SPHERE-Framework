@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Common\Frontend\Layout\Repository\Address as LayoutAddress;
-use SPHERE\System\Cache\Type\Memcached;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -75,10 +75,10 @@ class TblAddress extends Element
     public function getGuiLayout()
     {
 
-        $Cache = (new \SPHERE\System\Cache\Cache(new Memcached()))->getCache();
-        if (false === ( $Return = $Cache->getValue(__METHOD__.$this->getId()) )) {
+        $Cache = $this->getCache(new MemcachedHandler());
+        if (null === ($Return = $Cache->getValue(__METHOD__ . $this->getId(), __CLASS__))) {
             $Return = new LayoutAddress($this);
-            $Cache->setValue(__METHOD__.$this->getId(), (string)$Return);
+            $Cache->setValue(__METHOD__ . $this->getId(), (string)$Return, 0, __CLASS__);
         }
         return $Return;
     }
@@ -89,16 +89,16 @@ class TblAddress extends Element
     public function getGuiString()
     {
 
-        $Cache = (new \SPHERE\System\Cache\Cache(new Memcached()))->getCache();
-        if (false === ( $Return = $Cache->getValue(__METHOD__.$this->getId()) )) {
+        $Cache = $this->getCache(new MemcachedHandler());
+        if (null === ($Return = $Cache->getValue(__METHOD__ . $this->getId(), __CLASS__))) {
 
             $Return = $this->getStreetName()
-                .' '.$this->getStreetNumber()
-                .', '.$this->getTblCity()->getCode()
-                .' '.$this->getTblCity()->getName()
-                .( $this->getTblState() ? ' ('.$this->getTblState()->getName().')' : '' );
+                . ' ' . $this->getStreetNumber()
+                . ', ' . $this->getTblCity()->getCode()
+                . ' ' . $this->getTblCity()->getName()
+                . ($this->getTblState() ? ' (' . $this->getTblState()->getName() . ')' : '');
 
-            $Cache->setValue(__METHOD__.$this->getId(), $Return);
+            $Cache->setValue(__METHOD__ . $this->getId(), $Return, 0, __CLASS__);
         }
         return $Return;
     }
@@ -158,7 +158,7 @@ class TblAddress extends Element
     public function setTblCity(TblCity $tblCity = null)
     {
 
-        $this->tblCity = ( null === $tblCity ? null : $tblCity->getId() );
+        $this->tblCity = (null === $tblCity ? null : $tblCity->getId());
     }
 
     /**
@@ -180,6 +180,6 @@ class TblAddress extends Element
     public function setTblState(TblState $tblState = null)
     {
 
-        $this->tblState = ( null === $tblState ? null : $tblState->getId() );
+        $this->tblState = (null === $tblState ? null : $tblState->getId());
     }
 }
