@@ -133,6 +133,7 @@ class Database extends Extension
         $ManagerCache = $this->getCache(new MemoryHandler());
         $Manager = $ManagerCache->getValue((string)$this->Identifier, __METHOD__);
 
+        // TODO: Unit of Work is out of Sync if Manager is cached (sometimes)
         if (true || false === $Manager) {
 
             // Sanitize Namespace
