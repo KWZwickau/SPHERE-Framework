@@ -22,7 +22,8 @@ class TblPerson extends Element
     const ATTR_LAST_NAME = 'LastName';
 
     /**
-     * @ManyToOne(targetEntity="TblSalutation",fetch="EAGER")
+     * @Column(nullable=true)
+     * @ManyToOne(targetEntity="TblSalutation",fetch="EAGER",cascade={"persist"})
      * @JoinColumn(name="tblSalutation", referencedColumnName="Id")
      */
     protected $tblSalutation;

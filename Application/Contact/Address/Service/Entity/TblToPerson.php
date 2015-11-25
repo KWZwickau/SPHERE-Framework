@@ -4,6 +4,8 @@ namespace SPHERE\Application\Contact\Address\Service\Entity;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\JoinColumn;
+use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Person\Person;
@@ -31,11 +33,15 @@ class TblToPerson extends Element
      */
     protected $serviceTblPerson;
     /**
-     * @Column(type="bigint")
+     * @Column(nullable=true)
+     * @ManyToOne(targetEntity="TblType",fetch="EAGER",cascade={"persist"})
+     * @JoinColumn(name="tblType",referencedColumnName="Id")
      */
     protected $tblType;
     /**
-     * @Column(type="bigint")
+     * @Column(nullable=true)
+     * @ManyToOne(targetEntity="TblAddress",fetch="EAGER",cascade={"persist"})
+     * @JoinColumn(name="tblAddress",referencedColumnName="Id")
      */
     protected $tblAddress;
 
@@ -88,7 +94,11 @@ class TblToPerson extends Element
         if (null === $this->tblType) {
             return false;
         } else {
-            return Address::useService()->getTypeById($this->tblType);
+            if (is_object($this->tblType)) {
+                return $this->tblType;
+            } else {
+                return Address::useService()->getTypeById($this->tblType);
+            }
         }
     }
 
@@ -98,7 +108,7 @@ class TblToPerson extends Element
     public function setTblType(TblType $tblType = null)
     {
 
-        $this->tblType = ( null === $tblType ? null : $tblType->getId() );
+        $this->tblType = ( null === $tblType ? null : $tblType );
     }
 
     /**
@@ -110,7 +120,11 @@ class TblToPerson extends Element
         if (null === $this->tblAddress) {
             return false;
         } else {
-            return Address::useService()->getAddressById($this->tblAddress);
+            if (is_object($this->tblAddress)) {
+                return $this->tblAddress;
+            } else {
+                return Address::useService()->getAddressById($this->tblAddress);
+            }
         }
     }
 

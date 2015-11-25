@@ -39,12 +39,13 @@ class TblAddress extends Element
      */
     protected $PostOfficeBox;
     /**
-     * @ManyToOne(targetEntity="TblCity",fetch="EAGER")
+     * @ManyToOne(targetEntity="TblCity",fetch="EAGER",cascade={"persist"})
      * @JoinColumn(name="tblCity",referencedColumnName="Id")
      */
     protected $tblCity;
     /**
-     * @ManyToOne(targetEntity="TblState",fetch="EAGER")
+     * @Column(nullable=true)
+     * @ManyToOne(targetEntity="TblState",fetch="EAGER",cascade={"persist"})
      * @JoinColumn(name="tblState",referencedColumnName="Id")
      */
     protected $tblState;
