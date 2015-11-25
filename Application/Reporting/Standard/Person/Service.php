@@ -223,13 +223,16 @@ class Service
                 if ($guardianList) {
                     $Count = 0;
                     foreach ($guardianList as $guardian) {
-                        if ($Count === 0) {
-                            $Guardian1 = $guardian->getServiceTblPersonFrom();
+                        if ($guardian->getTblType()->getName() == 'Sorgeberechtigt')
+                        {
+                            if ($Count === 0) {
+                                $Guardian1 = $guardian->getServiceTblPersonFrom();
+                            }
+                            if ($Count === 1) {
+                                $Guardian2 = $guardian->getServiceTblPersonFrom();
+                            }
+                            $Count = $Count + 1;
                         }
-                        if ($Count === 1) {
-                            $Guardian2 = $guardian->getServiceTblPersonFrom();
-                        }
-                        $Count = $Count + 1;
                     }
                 }
                 if ($Guardian1 === null) {
@@ -637,13 +640,16 @@ class Service
                 if ($guardianList) {
                     $Count = 0;
                     foreach ($guardianList as $guardian) {
-                        if ($Count === 0) {
-                            $Guardian1 = $guardian->getServiceTblPersonFrom();
+                        if ($guardian->getTblType()->getName() == 'Sorgeberechtigt')
+                        {
+                            if ($Count === 0) {
+                                $Guardian1 = $guardian->getServiceTblPersonFrom();
+                            }
+                            if ($Count === 1) {
+                                $Guardian2 = $guardian->getServiceTblPersonFrom();
+                            }
+                            $Count = $Count + 1;
                         }
-                        if ($Count === 1) {
-                            $Guardian2 = $guardian->getServiceTblPersonFrom();
-                        }
-                        $Count = $Count + 1;
                     }
                 }
                 $phoneListGuardian = array();
