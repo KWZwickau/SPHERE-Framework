@@ -18,7 +18,7 @@ abstract class Cacheable extends Extension
     /** @var null|HandlerInterface $CacheSystem */
     private static $CacheSystem = null;
     /** @var bool $Enabled */
-    private $Enabled = false;
+    private $Enabled = true;
     /** @var bool $Debug */
     private $Debug = false;
 
