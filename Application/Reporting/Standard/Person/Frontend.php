@@ -82,8 +82,7 @@ class Frontend extends Extension implements IFrontendInterface
         $studentList = Person::useService()->createExtendedClassList();
         $Count = count($studentList);
 
-        if($studentList)
-        {
+        if ($studentList) {
             $Man = $studentList[$Count - 1]->Man;
             $Woman = $studentList[$Count - 1]->Woman;
             $All = $studentList[$Count - 1]->All;
@@ -92,17 +91,17 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             new TableData($studentList, null,
                 array(
-                    'Number'        => 'lfd. Nr.',
-                    'Name'          => 'Name, Vorname',
-                    'Gender'        => 'Geschlecht',
-                    'Address'       => 'Adresse',
-                    'Birthday'      => 'Geburtsdatum',
-                    'Birthplace'    => 'Geburtsort',
-                    'StudentNumber' => 'Schülernummer',
-                    'Mother'        => 'Sorgeberechtigte',
-                    'PhoneMother'   => 'Tel. Sorgeber.',
-                    'Father'        => 'Sorgeberechtigter',
-                    'PhoneFather'   => 'Tel. Sorgeber.',
+                    'Number'         => 'lfd. Nr.',
+                    'Name'           => 'Name, Vorname',
+                    'Gender'         => 'Geschlecht',
+                    'Address'        => 'Adresse',
+                    'Birthday'       => 'Geburtsdatum',
+                    'Birthplace'     => 'Geburtsort',
+                    'StudentNumber'  => 'Schülernummer',
+                    'Guardian1'      => 'Sorgeberechtigter',
+                    'PhoneGuardian1' => 'Tel. Sorgeber.',
+                    'Guardian2'      => 'Sorgeberechtigter',
+                    'PhoneGuardian2' => 'Tel. Sorgeber.',
                 ),
                 false
             ).
@@ -142,8 +141,7 @@ class Frontend extends Extension implements IFrontendInterface
         $studentList = Person::useService()->createBirthdayClassList();
         $Count = count($studentList);
 
-        if($studentList)
-        {
+        if ($studentList) {
             $Man = $studentList[$Count - 1]->Man;
             $Woman = $studentList[$Count - 1]->Woman;
             $All = $studentList[$Count - 1]->All;
@@ -197,8 +195,7 @@ class Frontend extends Extension implements IFrontendInterface
         $studentList = Person::useService()->createMedicalInsuranceClassList();
         $Count = count($studentList);
 
-        if($studentList)
-        {
+        if ($studentList) {
             $Man = $studentList[$Count - 1]->Man;
             $Woman = $studentList[$Count - 1]->Woman;
             $All = $studentList[$Count - 1]->All;
@@ -250,8 +247,7 @@ class Frontend extends Extension implements IFrontendInterface
         $All = $Woman = $Man = '0';
         $employeeList = Person::useService()->createEmployeeList();
         $Count = count($employeeList);
-        if($employeeList)
-        {
+        if ($employeeList) {
             $Man = $employeeList[$Count - 1]->Man;
             $Woman = $employeeList[$Count - 1]->Woman;
             $All = $employeeList[$Count - 1]->All;

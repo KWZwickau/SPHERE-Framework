@@ -173,6 +173,18 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
+                            new TableData($tblPeriodAll, null, array(
+                                'Name'        => 'Name',
+                                'Description' => 'Beschreibung',
+                                'Period'      => 'Zeitraum',
+                                'Option'      => 'Optionen',
+                            ))
+                        )
+                    ), new Title('Bestehende Zeiträume')
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
                             Term::useService()->createPeriod(
                                 $this->formPeriod()
                                     ->appendFormButton(new Primary('Zeitraum erstellen'))
@@ -182,18 +194,6 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     ), new Title('Zeitraum erstellen')
                 ),
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new TableData($tblPeriodAll, null, array(
-                                'Name'        => 'Name',
-                                'Description' => 'Beschreibung',
-                                'Period'      => 'Zeitraum',
-                                'Option'      => 'Optionen',
-                            ))
-                        )
-                    ), new Title('Bestehende Zeiträume')
-                )
             ))
         );
 
