@@ -2,7 +2,7 @@
 namespace SPHERE\System\Database\Fitting;
 
 use SPHERE\System\Cache\Handler\HandlerInterface;
-use SPHERE\System\Cache\Handler\MemoryHandler;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Extension\Extension;
@@ -18,7 +18,7 @@ abstract class Cacheable extends Extension
     /** @var null|HandlerInterface $CacheSystem */
     private static $CacheSystem = null;
     /** @var bool $Enabled */
-    private $Enabled = true;
+    private $Enabled = false;
     /** @var bool $Debug */
     private $Debug = false;
 
@@ -39,7 +39,7 @@ abstract class Cacheable extends Extension
         $Entity = null;
         if (!$this->Enabled || null === ($Entity = $Cache->getValue($Key))) {
             $Entity = $EntityManager->getEntityById($EntityName, $Id);
-            $Cache->setValue($Key, $Entity, 300);
+            $Cache->setValue($Key, $Entity);
             $this->debugFactory($__METHOD__, $Entity, $Id);
         } else {
             $this->debugCache($__METHOD__, $Entity, $Id);
@@ -54,7 +54,7 @@ abstract class Cacheable extends Extension
     {
 
         if (null === self::$CacheSystem) {
-            self::$CacheSystem = $this->getCache(new MemoryHandler());
+            self::$CacheSystem = $this->getCache(new MemcachedHandler());
         }
         return self::$CacheSystem;
     }
@@ -124,7 +124,7 @@ abstract class Cacheable extends Extension
         $Entity = null;
         if (!$this->Enabled || null === ($Entity = $Cache->getValue($Key))) {
             $Entity = $EntityManager->getEntity($EntityName)->findOneBy($Parameter);
-            $Cache->setValue($Key, $Entity, 300);
+            $Cache->setValue($Key, $Entity);
             $this->debugFactory($__METHOD__, $Entity, $Parameter);
         } else {
             $this->debugCache($__METHOD__, $Entity, $Parameter);
@@ -149,7 +149,7 @@ abstract class Cacheable extends Extension
         $EntityList = null;
         if (!$this->Enabled || null === ($EntityList = $Cache->getValue($Key))) {
             $EntityList = $EntityManager->getEntity($EntityName)->findBy($Parameter);
-            $Cache->setValue($Key, $EntityList, 300);
+            $Cache->setValue($Key, $EntityList);
             $this->debugFactory($__METHOD__, $EntityList, $Parameter);
         } else {
             $this->debugCache($__METHOD__, $EntityList, $Parameter);
@@ -173,7 +173,7 @@ abstract class Cacheable extends Extension
         $EntityList = null;
         if (!$this->Enabled || null === ($EntityList = $Cache->getValue($Key))) {
             $EntityList = $EntityManager->getEntity($EntityName)->findAll();
-            $Cache->setValue($Key, $EntityList, 300);
+            $Cache->setValue($Key, $EntityList);
             $this->debugFactory($__METHOD__, $EntityList, 'All');
         } else {
             $this->debugCache($__METHOD__, $EntityList, 'All');
