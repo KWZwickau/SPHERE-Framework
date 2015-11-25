@@ -608,30 +608,30 @@ class Frontend extends Extension implements IFrontendInterface
                     $Count++;
                 }
                 /** @var TblSubject $tblSubject */
-//                foreach ($ListLeft as &$tblSubject) {
-//                    $tblSubject = new CheckBox(
-//                        'Subject['.$tblSubject->getId().']',
-//                        $tblSubject->getAcronym().' - '.$tblSubject->getName(),
-//                        $tblSubject->getId()
-//                    );
-//                }
-//                foreach ($ListRight as &$tblSubject) {
-//                    $tblSubject = new CheckBox(
-//                        'Subject['.$tblSubject->getId().']',
-//                        $tblSubject->getAcronym().' - '.$tblSubject->getName(),
-//                        $tblSubject->getId()
-//                    );
-//                }
-
-                foreach ($tblSubjectList as &$tblSubject) {
+                foreach ($ListLeft as &$tblSubject) {
                     $tblSubject = new CheckBox(
                         'Subject['.$tblSubject->getId().']',
                         $tblSubject->getAcronym().' - '.$tblSubject->getName(),
                         $tblSubject->getId()
                     );
                 }
+                foreach ($ListRight as &$tblSubject) {
+                    $tblSubject = new CheckBox(
+                        'Subject['.$tblSubject->getId().']',
+                        $tblSubject->getAcronym().' - '.$tblSubject->getName(),
+                        $tblSubject->getId()
+                    );
+                }
+
+//                foreach ($tblSubjectList as &$tblSubject) {
+//                    $tblSubject = new CheckBox(
+//                        'Subject['.$tblSubject->getId().']',
+//                        $tblSubject->getAcronym().' - '.$tblSubject->getName(),
+//                        $tblSubject->getId()
+//                    );
+//                }
             } else {
-                $tblSubjectList = new Warning('Alle Fächer im System bereits vergeben');
+                $ListLeft = new Warning('Alle Fächer im System bereits vergeben');
             }
         }
 
@@ -639,16 +639,15 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Fächer'.
-                            new PullRight(new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName()))
-                            , $tblSubjectList, Panel::PANEL_TYPE_INFO)
+                        new Panel('Fächer '.
+                            new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName())
+                            , $ListLeft, Panel::PANEL_TYPE_INFO)
                         , 6),
-//                    ( $ListRight ) ?
-//                        new FormColumn(
-//                            new Panel('Fächer'.
-//                                new PullRight(new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName()))
-//                                , $ListRight, Panel::PANEL_TYPE_INFO)
-//                            , 6) : null,
+                    ( $ListRight ) ?
+                        new FormColumn(
+                            new Panel('&nbsp;'
+                                , $ListRight, Panel::PANEL_TYPE_INFO)
+                            , 6) : null,
                 )),
             ))
         );
@@ -683,7 +682,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     , $DivisionSubject, $Student, $Id, $Group
                                 )
                             )
-                        ), new Title('Schüler der Klasse '.$tblDivision->getTblLevel()->getName().$tblDivision->getName())
+                        ), new Title('Fach - Schüler der Klasse '.$tblDivision->getTblLevel()->getName().$tblDivision->getName())
                     )
                 )
             ));
@@ -741,16 +740,16 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel(' Fach:'
                             , new SelectBox('DivisionSubject', '', array('Name' => $tblDivisionSubjectList)), Panel::PANEL_TYPE_INFO)
-                        , 6),
-                )),
-                new FormRow(array(
+                        , 4),
+//                )),
+//                new FormRow(array(
                     new FormColumn(
                         new Panel('Schüler', $tblStudentList, Panel::PANEL_TYPE_INFO)
-                        , 6),
+                        , 4),
 
                     new FormColumn(
                         new Panel('Gruppen', new SelectBox('Group', '', array('{{ Name }} {{ Description }}' => $tblGroupList)), Panel::PANEL_TYPE_INFO)
-                        , 6)
+                        , 4)
                 )),
             ))
         );
@@ -786,7 +785,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     , $DivisionSubject, $Teacher, $Id, $Group
                                 )
                             )
-                        ), new Title('Fachlehrer')
+                        ), new Title('Fachlehrer - Fächer der Klasse '.$tblDivision->getTblLevel()->getName().$tblDivision->getName())
                     )
                 )
             ));
@@ -856,15 +855,15 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel(' Lehrer:'
                             , new SelectBox('Teacher', '', array('Name' => $tblTeacherlist)), Panel::PANEL_TYPE_INFO)
-                        , 6),
-                )),
-                new FormRow(array(
+                        , 4),
+//                )),
+//                new FormRow(array(
                     new FormColumn(
                         new Panel('Fächer', $tblDivisionSubjectList, Panel::PANEL_TYPE_INFO)
-                        , 6),
+                        , 4),
                     new FormColumn(
                         new Panel('Gruppen', new SelectBox('Group', '', array('{{ Name }} {{ Description }}' => $tblGroupList)), Panel::PANEL_TYPE_INFO)
-                        , 6)
+                        , 4)
                 )),
             ))
         );
@@ -1017,7 +1016,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
         $tblDivision = Division::useService()->getDivisionById($Id);
         if ($tblDivision) {
-            $Stage->setMessage($tblDivision->getDescription());
+            $Stage->setDescription($tblDivision->getDescription());
             $Stage->addButton(new Standard('Fächer hinzufügen', '/Education/Lesson/Division/Subject/Add',
                 new Book(), array('Id' => $tblDivision->getId())));
             $Stage->addButton(new Standard('Klassenlehrer hinzufügen', '/Education/Lesson/Division/Teacher/Add',
