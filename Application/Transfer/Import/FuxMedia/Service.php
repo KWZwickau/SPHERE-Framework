@@ -900,7 +900,6 @@ class Service
 
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
 
-
                         if (($Level = trim($Document->getValue($Document->getCell($Location['Klassenstufe'],
                                 $RunY)))) != ''
                         ) {
@@ -950,6 +949,78 @@ class Service
                         new Success('Es wurden ' . $countAddDivisionTeacher . ' Klassenlehrer und Stellvertreter erfolgreich zugeordnet.') .
                         ($countTeacherNotExists > 0 ?
                             new Warning($countTeacherNotExists . ' Lehrer nicht gefunden.') : '');
+                } else {
+                    Debugger::screenDump($Location);
+                    return new Danger(
+                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+        return new Danger('File nicht gefunden');
+    }
+
+    public function createCompanysFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Einrichtungsnummer' => null,
+                    'Einrichtungsname' => null,
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countCompany = 0;
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        $companyName = trim($Document->getValue($Document->getCell($Location['Klasse'], $RunY)));
+
+                       // if ($companyName  )
+                    }
+                    return
+                        new Success('Es wurden ' . $countCompany . ' Firmen erfolgreich angelegt.');
                 } else {
                     Debugger::screenDump($Location);
                     return new Danger(
