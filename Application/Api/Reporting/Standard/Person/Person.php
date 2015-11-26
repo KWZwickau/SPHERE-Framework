@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Api\Reporting\Standard\Person;
 
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
 
 /**
@@ -13,51 +14,95 @@ class Person
 {
 
     /**
-     * @return string
+     * @param null $DivisionId
+     *
+     * @return bool|string
      */
-    public function downloadClassList()
+    public function downloadClassList($DivisionId = null)
     {
 
-        $studentList = ReportingPerson::useService()->createClassList();
-        $fileLocation = ReportingPerson::useService()->createClassListExcel($studentList);
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            $studentList = ReportingPerson::useService()->createClassList($tblDivision);
+            if ($studentList) {
+                $fileLocation = ReportingPerson::useService()->createClassListExcel($studentList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(), "Klassenliste ".date('Y-m-d H:i:s').".xls")->__toString();
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Klassenliste " . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()
+                    . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
+            }
+        }
+
+        return false;
     }
 
     /**
-     * @return string
+     * @param null $DivisionId
+     *
+     * @return bool|string
      */
-    public function downloadExtendedClassList()
+    public function downloadExtendedClassList($DivisionId = null)
     {
 
-        $studentList = ReportingPerson::useService()->createExtendedClassList();
-        $fileLocation = ReportingPerson::useService()->createExtendedClassListExcel($studentList);
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            $studentList = ReportingPerson::useService()->createExtendedClassList($tblDivision);
+            if ($studentList) {
+                $fileLocation = ReportingPerson::useService()->createExtendedClassListExcel($studentList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(), "Erweiterte_Klassenliste ".date('Y-m-d H:i:s').".xls")->__toString();
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Erweiterte_Klassenliste " . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()
+                    . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
+            }
+        }
+
+        return false;
     }
 
     /**
-     * @return string
+     * @param null $DivisionId
+     *
+     * @return bool|string
      */
-    public function downloadBirthdayClassList()
+    public function downloadBirthdayClassList($DivisionId = null)
     {
 
-        $studentList = ReportingPerson::useService()->createBirthdayClassList();
-        $fileLocation = ReportingPerson::useService()->createBirthdayClassListExcel($studentList);
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            $studentList = ReportingPerson::useService()->createBirthdayClassList($tblDivision);
+            if ($studentList) {
+                $fileLocation = ReportingPerson::useService()->createBirthdayClassListExcel($studentList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(), "Birthday_Klassenliste ".date('Y-m-d H:i:s').".xls")->__toString();
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Birthday_Klassenliste " . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()
+                    . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
+            }
+        }
+
+        return false;
     }
 
     /**
-     * @return string
+     * @param null $DivisionId
+     *
+     * @return bool|string
      */
-    public function downloadMedicalInsuranceClassList()
+    public function downloadMedicalInsuranceClassList($DivisionId = null)
     {
 
-        $studentList = ReportingPerson::useService()->createMedicalInsuranceClassList();
-        $fileLocation = ReportingPerson::useService()->createMedicalInsuranceClassListExcel($studentList);
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            $studentList = ReportingPerson::useService()->createMedicalInsuranceClassList($tblDivision);
+            if ($studentList) {
+                $fileLocation = ReportingPerson::useService()->createMedicalInsuranceClassListExcel($studentList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(), "Krankenkasse_Klassenliste ".date('Y-m-d H:i:s').".xls")->__toString();
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Krankenkasse_Klassenliste " . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()
+                    . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -69,7 +114,7 @@ class Person
         $employeeList = ReportingPerson::useService()->createEmployeeList();
         $fileLocation = ReportingPerson::useService()->createEmployeeListExcel($employeeList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(), "Krankenkasse_Klassenliste ".date('Y-m-d H:i:s').".xls")->__toString();
+        return FileSystem::getDownload($fileLocation->getRealPath(), "Mitarbeiterlisteliste ".date('Y-m-d H:i:s').".xls")->__toString();
     }
 
 }
