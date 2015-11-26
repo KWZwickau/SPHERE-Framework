@@ -44,7 +44,6 @@ class TblAddress extends Element
      */
     protected $tblCity;
     /**
-     * @Column(nullable=true)
      * @ManyToOne(targetEntity="TblState",fetch="EAGER",cascade={"persist"})
      * @JoinColumn(name="tblState",referencedColumnName="Id")
      */
@@ -75,9 +74,9 @@ class TblAddress extends Element
     {
 
         $Cache = $this->getCache(new MemcachedHandler());
-        if (null === ($Return = $Cache->getValue(__METHOD__ . $this->getId(), __CLASS__))) {
+        if (null === ($Return = $Cache->getValue( $this->getId(), __METHOD__))) {
             $Return = new LayoutAddress($this);
-            $Cache->setValue(__METHOD__ . $this->getId(), (string)$Return, 0, __CLASS__);
+            $Cache->setValue( $this->getId(), (string)$Return, 0, __METHOD__);
         }
         return $Return;
     }
@@ -89,7 +88,7 @@ class TblAddress extends Element
     {
 
         $Cache = $this->getCache(new MemcachedHandler());
-        if (null === ($Return = $Cache->getValue(__METHOD__ . $this->getId(), __CLASS__))) {
+        if (null === ($Return = $Cache->getValue( $this->getId(), __METHOD__))) {
 
             $Return = $this->getStreetName()
                 . ' ' . $this->getStreetNumber()
@@ -97,7 +96,7 @@ class TblAddress extends Element
                 . ' ' . $this->getTblCity()->getName()
                 . ($this->getTblState() ? ' (' . $this->getTblState()->getName() . ')' : '');
 
-            $Cache->setValue(__METHOD__ . $this->getId(), $Return, 0, __CLASS__);
+            $Cache->setValue( $this->getId(), $Return, 0, __METHOD__);
         }
         return $Return;
     }
