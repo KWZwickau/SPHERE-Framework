@@ -367,6 +367,17 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
+     * @param TblPerson $tblPerson
+     *
+     * @return TblDivisionTeacher
+     */
+    public function insertDivisionTeacher(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+        return (new Data($this->getBinding()))->addDivisionTeacher($tblDivision, $tblPerson);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
      *
      * @return TblDivisionStudent
@@ -1017,4 +1028,16 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionByYear($tblYear);
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblDivisionStudent[]
+     */
+    public function getDivisionStudentAllByPerson(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionStudentAllByPerson($tblPerson);
+    }
+
 }

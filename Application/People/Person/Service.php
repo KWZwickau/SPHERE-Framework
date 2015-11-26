@@ -147,14 +147,15 @@ class Service extends AbstractService
      * @param $SecondName
      * @param $LastName
      * @param $GroupList
+     * @param string $BirthName
      *
      * @return bool|TblPerson
      */
-    public function insertPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $GroupList)
+    public function insertPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $GroupList, $BirthName = '')
     {
 
         if (($tblPerson = (new Data($this->getBinding()))->createPerson(
-            $Salutation, $Title, $FirstName, $SecondName, $LastName))
+            $Salutation, $Title, $FirstName, $SecondName, $LastName, $BirthName))
         ) {
             // Add to Group
             if (!empty($GroupList)) {

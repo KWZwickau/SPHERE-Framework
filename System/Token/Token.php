@@ -1,6 +1,9 @@
 <?php
 namespace SPHERE\System\Token;
 
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+
 /**
  * Class Token
  *
@@ -22,6 +25,7 @@ class Token
 
         $this->Type = $Type;
         if ($this->Type->getConfiguration() !== null) {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__);
             $Configuration = parse_ini_file(__DIR__.'/Configuration.ini', true);
             if (isset( $Configuration[$this->Type->getConfiguration()] )) {
                 $this->Type->setConfiguration($Configuration[$this->Type->getConfiguration()]);

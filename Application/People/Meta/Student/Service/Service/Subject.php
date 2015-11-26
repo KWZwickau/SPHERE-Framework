@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service\Service;
 
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
@@ -14,6 +15,24 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubjectType;
  */
 abstract class Subject extends Transfer
 {
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentSubjectType $tblStudentSubjectType
+     * @param TblStudentSubjectRanking $tblStudentSubjectRanking
+     * @param TblSubject $tblSubject
+     *
+     * @return TblStudentSubject
+     */
+    public function addStudentSubject(
+        TblStudent $tblStudent,
+        TblStudentSubjectType $tblStudentSubjectType,
+        TblStudentSubjectRanking $tblStudentSubjectRanking,
+        TblSubject $tblSubject
+    ) {
+        return (new Data($this->getBinding()))->addStudentSubject($tblStudent, $tblStudentSubjectType,
+            $tblStudentSubjectRanking, $tblSubject);
+    }
 
     /**
      * @param TblStudent $tblStudent

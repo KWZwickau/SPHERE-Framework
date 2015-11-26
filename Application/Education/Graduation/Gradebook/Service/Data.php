@@ -8,7 +8,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeStudentSubjectLink;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -67,7 +67,7 @@ class Data extends AbstractData
      * @param TblGradeType $tblGradeType
      * @param $Grade
      * @param string $Comment
-     * @return null|object|TblGradeStudentSubjectLink
+     * @return null|object|TblGrade
      */
     public function createGrade(
         TblPerson $tblPerson,
@@ -79,17 +79,17 @@ class Data extends AbstractData
     ) {
         $Manager = $this->getConnection()->getEntityManager();
 
-//        $Entity = $Manager->getEntity('TblGradeStudentSubjectLink')
+//        $Entity = $Manager->getEntity('TblGrade')
 //            ->findOneBy(array(
-//                TblGradeStudentSubjectLink::ATTR_DATE => $Date,
-//                TblGradeStudentSubjectLink::ATTR_SERVICE_TBL_PERIOD => $tblPeriod,
-//                TblGradeStudentSubjectLink::ATTR_SERVICE_TBL_PERSON => $tblPerson,
-//                TblGradeStudentSubjectLink::ATTR_SERVICE_TBL_SUBJECT => $tblSubject,
-//                TblGradeStudentSubjectLink::ATTR_TBL_GRADE_TYPE => $tblGradeType
+//                TblGrade::ATTR_DATE => $Date,
+//                TblGrade::ATTR_SERVICE_TBL_PERIOD => $tblPeriod,
+//                TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson,
+//                TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject,
+//                TblGrade::ATTR_TBL_GRADE_TYPE => $tblGradeType
 //            ));
 
 //        if (null === $Entity) {
-        $Entity = new TblGradeStudentSubjectLink();
+        $Entity = new TblGrade();
         $Entity->setServiceTblPerson($tblPerson);
         $Entity->setServiceTblSubject($tblSubject);
         $Entity->setServiceTblPeriod($tblPeriod);
@@ -143,7 +143,7 @@ class Data extends AbstractData
      * @param TblPerson $tblPerson
      * @param TblSubject $tblSubject
      * @param TblPeriod $tblPeriod
-     * @return TblGradeStudentSubjectLink[]|bool
+     * @return TblGrade[]|bool
      */
     public function getGradesByStudentAndSubjectAndPeriod(
         TblPerson $tblPerson,
@@ -151,11 +151,11 @@ class Data extends AbstractData
         TblPeriod $tblPeriod
     ) {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGradeStudentSubjectLink')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGrade')
             ->findBy(array(
-                    TblGradeStudentSubjectLink::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                    TblGradeStudentSubjectLink::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                    TblGradeStudentSubjectLink::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId(),
+                    TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                    TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                    TblGrade::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId(),
                 )
             );
 
@@ -163,19 +163,20 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblGradeStudentSubjectLink $tblGradeStudentSubjectLink
+     * @param TblGrade $tblGrade
      * @param $Grade
      * @param string $Comment
      * @return bool
      */
     public function updateGrade(
-        TblGradeStudentSubjectLink $tblGradeStudentSubjectLink,
+        TblGrade $tblGrade,
         $Grade,
         $Comment = ''
     ) {
         $Manager = $this->getConnection()->getEntityManager();
-        /** @var TblGradeStudentSubjectLink $Entity */
-        $Entity = $Manager->getEntityById('TblGradeStudentSubjectLink', $tblGradeStudentSubjectLink->getId());
+        /** @var TblGrade $Entity */
+        $Entity = $Manager->getEntityById('TblGrade', $tblGrade->getId());
+
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setGrade($Grade);
@@ -192,12 +193,15 @@ class Data extends AbstractData
 
     /**
      * @param $Id
-     * @return bool|TblGradeStudentSubjectLink
+     * @return bool|TblGrade
      */
     public function getGradeById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblGradeStudentSubjectLink', $Id);
+//        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade', $Id);
+//        Debugger::screenDump($EntityManager);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblGrade', $Id);
+//        $Entity = $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade', $Id);
         return (null === $Entity ? false : $Entity);
     }
 
@@ -304,7 +308,7 @@ class Data extends AbstractData
      * @param TblPerson $tblPerson
      * @param string $Grade
      * @param string $Comment
-     * @return null|TblGradeStudentSubjectLink
+     * @return null|TblGrade
      */
     public function createGradeToTest(
         TblTest $tblTest,
@@ -314,14 +318,14 @@ class Data extends AbstractData
     ) {
         $Manager = $this->getConnection()->getEntityManager();
 
-        $Entity = $Manager->getEntity('TblGradeStudentSubjectLink')
+        $Entity = $Manager->getEntity('TblGrade')
             ->findOneBy(array(
-                TblGradeStudentSubjectLink::ATTR_TBL_TEST => $tblTest->getId(),
-                TblGradeStudentSubjectLink::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblGrade::ATTR_TBL_TEST => $tblTest->getId(),
+                TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
             ));
 
         if (null === $Entity) {
-            $Entity = new TblGradeStudentSubjectLink();
+            $Entity = new TblGrade();
             $Entity->setTblTest($tblTest);
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblDivision($tblTest->getServiceTblDivision());
@@ -340,13 +344,13 @@ class Data extends AbstractData
 
     /**
      * @param TblTest $tblTest
-     * @return TblGradeStudentSubjectLink[]|bool
+     * @return TblGrade[]|bool
      */
     public function getGradeAllByTest(TblTest $tblTest)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblGradeStudentSubjectLink')->findBy(array(
-            TblGradeStudentSubjectLink::ATTR_TBL_TEST => $tblTest->getId()
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblGrade')->findBy(array(
+            TblGrade::ATTR_TBL_TEST => $tblTest->getId()
         ));
 
         return empty($EntityList) ? false : $EntityList;

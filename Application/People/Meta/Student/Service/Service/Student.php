@@ -36,4 +36,54 @@ abstract class Student extends AbstractService
 
         return (new Data($this->getBinding()))->getStudentByPerson($tblPerson);
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $Identifier
+     * @param null $tblStudentMedicalRecord
+     * @param null $tblStudentTransport
+     * @param null $tblStudentBilling
+     * @param null $tblStudentLocker
+     * @param null $tblStudentBaptism
+     * @param null $tblStudentIntegration
+     * @return bool|TblStudent
+     */
+    public function insertStudent(
+        TblPerson $tblPerson,
+        $Identifier,
+        $tblStudentMedicalRecord = null,
+        $tblStudentTransport = null,
+        $tblStudentBilling = null,
+        $tblStudentLocker = null,
+        $tblStudentBaptism = null,
+        $tblStudentIntegration = null
+    ) {
+        $tblStudent = $this->getStudentByPerson($tblPerson);
+
+        if ($tblStudent) {
+            (new Data($this->getBinding()))->updateStudent(
+                $tblStudent,
+                $Identifier,
+                $tblStudentMedicalRecord,
+                $tblStudentTransport,
+                $tblStudentBilling,
+                $tblStudentLocker,
+                $tblStudentBaptism,
+                $tblStudentIntegration
+            );
+        } else {
+            $tblStudent = (new Data($this->getBinding()))->createStudent(
+                $tblPerson,
+                $Identifier,
+                $tblStudentMedicalRecord,
+                $tblStudentTransport,
+                $tblStudentBilling,
+                $tblStudentLocker,
+                $tblStudentBaptism,
+                $tblStudentIntegration
+            );
+        }
+
+        return $tblStudent;
+    }
 }

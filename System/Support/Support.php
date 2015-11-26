@@ -1,6 +1,9 @@
 <?php
 namespace SPHERE\System\Support;
 
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+
 /**
  * Class Support
  *
@@ -22,6 +25,7 @@ class Support
 
         $this->Type = $Type;
         if ($this->Type->getConfiguration() !== null) {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__);
             $Configuration = parse_ini_file(__DIR__.'/Configuration.ini', true);
             if (isset( $Configuration[$this->Type->getConfiguration()] )) {
                 $this->Type->setConfiguration($Configuration[$this->Type->getConfiguration()]);

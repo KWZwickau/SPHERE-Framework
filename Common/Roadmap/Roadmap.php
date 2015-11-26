@@ -65,9 +65,9 @@ class Roadmap extends Extension
         $Feature = $Category->createFeature('Fuxschool', 'Import von Daten');
 
         $Feature->createTask('Import von Personendaten', 'Zusätzlich zur Eingabe in Kreda')
-            ->createDuty('Analyse von Fuxschool')
-            ->createDuty('Analyse der Exportfunktion')
-            ->createDuty('Analyse der Daten');
+            ->createDuty('Analyse von Fuxschool', true)
+            ->createDuty('Analyse der Exportfunktion', true)
+            ->createDuty('Analyse der Daten', false);
 
         $Category = $Release->createCategory('Auswertungen');
         $Feature = $Category->createFeature('Dynamische Auswertungen');
@@ -77,13 +77,13 @@ class Roadmap extends Extension
         $Category = $Release->createCategory('Personenverwaltung');
         $Feature = $Category->createFeature('Dashboards');
         $Feature->createTask('Board: People')
-            ->createDuty('Klären welcher Inhalt enthalten sein soll');
+            ->createDuty('Klären welcher Inhalt enthalten sein soll', false);
 
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
         $Feature = $Category->createFeature('Dashboards');
         $Feature->createTask('Board: Corporation')
-            ->createDuty('Klären welcher Inhalt enthalten sein soll');
+            ->createDuty('Klären welcher Inhalt enthalten sein soll', false);
 
         // Bildung
         $Category = $Release->createCategory('Bildung');
@@ -96,9 +96,9 @@ class Roadmap extends Extension
 
         $Feature = $Category->createFeature('Dashboards');
         $Feature->createTask('Board: Education')
-            ->createDuty('Klären welcher Inhalt enthalten sein soll');
+            ->createDuty('Klären welcher Inhalt enthalten sein soll', false);
         $Feature->createTask('Board: Lesson')
-            ->createDuty('Klären welcher Inhalt enthalten sein soll');
+            ->createDuty('Klären welcher Inhalt enthalten sein soll', false);
         $Feature->createTask('Board: Subject')
             ->createDuty('Klären welcher Inhalt enthalten sein soll', false);
 
@@ -106,7 +106,8 @@ class Roadmap extends Extension
         $Category = $Release->createCategory('Diverses');
         $Feature = $Category->createFeature('Letzte Änderung der Daten anzeigen');
         $Feature->createTask('Person')
-            ->createDuty('Metadaten');
+            ->createDuty('in Metadaten')
+            ->createDuty('Klären was / wo wirklich sinnvoll / machbar ist', false);
 
         // Plattform
         $Category = $Release->createCategory('Plattform');
@@ -122,6 +123,15 @@ class Roadmap extends Extension
     {
 
         return $this->Roadmap->getStage();
+    }
+
+    /**
+     * @return string
+     */
+    public function getVersionNumber()
+    {
+
+        return $this->Roadmap->getVersionNumber();
     }
 
     public function pdfMap()

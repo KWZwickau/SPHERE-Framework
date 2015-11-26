@@ -17,6 +17,7 @@ class TblStudentAgreement extends Element
 {
 
     const ATTR_TBL_STUDENT = 'tblStudent';
+    const ATTR_TBL_STUDENT_AGREEMENT_TYPE = 'tblStudentAgreementType';
 
     /**
      * @Column(type="bigint")

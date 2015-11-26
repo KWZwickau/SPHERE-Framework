@@ -2,6 +2,8 @@
 namespace SPHERE\System\Database\Fitting;
 
 use Doctrine\DBAL\Logging\SQLLogger;
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -28,6 +30,19 @@ class Logger extends Extension implements SQLLogger
 
         $this->Data = func_get_args();
         $this->Data[3] = $this->getDebugger()->getTimeGap();
+
+        $Parsed = $sql;
+        $placeholder = '!\?!is';
+        if( is_array($params)) {
+            foreach ($params as $param) {
+                if( !is_object($param) ) {
+                    $Parsed = preg_replace($placeholder, "'" . $param . "'", $Parsed, 1);
+                }
+            }
+        }
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
+            highlight_string($Parsed, true)
+        );
 
         $this->getDebugger()->addProtocol('Parameter: '.print_r($params, true));
         $this->getDebugger()->addProtocol('Types: '.print_r($types, true));

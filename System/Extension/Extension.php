@@ -4,6 +4,10 @@ namespace SPHERE\System\Extension;
 use Markdownify\Converter;
 use MOC\V\Component\Template\Template;
 use MOC\V\Core\HttpKernel\HttpKernel;
+use SPHERE\System\Cache\CacheFactory;
+use SPHERE\System\Cache\Handler\HandlerInterface;
+use SPHERE\System\Config\ConfigFactory;
+use SPHERE\System\Config\Reader\IniReader;
 use SPHERE\System\Database\Fitting\Repository;
 use SPHERE\System\Extension\Repository\DataTables;
 use SPHERE\System\Extension\Repository\Debugger;
@@ -30,6 +34,12 @@ class Extension
         return HttpKernel::getRequest();
     }
 
+    public function getCache(HandlerInterface $Handler)
+    {
+        $Config = (new ConfigFactory())->createReader(__DIR__ . '/../Cache/Configuration.ini', new IniReader());
+        return (new CacheFactory())->createHandler($Handler, $Config);
+    }
+
     /**
      * @return Debugger
      */
@@ -41,7 +51,7 @@ class Extension
 
     /**
      * @param Repository $EntityRepository
-     * @param array      $Filter array( 'ColumnName' => 'Value', ... )
+     * @param array $Filter array( 'ColumnName' => 'Value', ... )
      *
      * @return DataTables
      */
@@ -83,7 +93,7 @@ class Extension
     }
 
     /**
-     * @param string $FileKey  Key-Name in $_FILES
+     * @param string $FileKey Key-Name in $_FILES
      * @param string $Location Storage-Directory
      *
      * @return Upload

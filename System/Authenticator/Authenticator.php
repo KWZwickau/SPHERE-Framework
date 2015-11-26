@@ -1,8 +1,8 @@
 <?php
 namespace SPHERE\System\Authenticator;
 
-use SPHERE\System\Cache\Cache;
-use SPHERE\System\Cache\Type\Memory;
+use SPHERE\System\Config\ConfigFactory;
+use SPHERE\System\Config\Reader\IniReader;
 
 /**
  * Class Authenticator
@@ -25,13 +25,11 @@ class Authenticator
 
         $this->Type = $Type;
         if ($this->Type->getConfiguration() !== null) {
-            $Cache = (new Cache(new Memory(), true))->getCache();
-            if (false === ( $Configuration = $Cache->getValue($this->Type->getConfiguration()) )) {
-                $Configuration = parse_ini_file(__DIR__.'/Configuration.ini', true);
-                $Cache->setValue($this->Type->getConfiguration(), $Configuration);
-            }
-            if (isset( $Configuration[$this->Type->getConfiguration()] )) {
-                $this->Type->setConfiguration($Configuration[$this->Type->getConfiguration()]);
+            $Configuration = (new ConfigFactory())
+                ->createReader(__DIR__ . '/Configuration.ini', new IniReader())
+                ->getConfig();
+            if (null !== $Configuration->getContainer($this->Type->getConfiguration())) {
+                $this->Type->setConfiguration($Configuration->getContainer($this->Type->getConfiguration())->getValue());
             }
         }
     }
