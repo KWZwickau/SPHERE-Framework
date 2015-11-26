@@ -100,7 +100,7 @@ class Main extends Extension
                 Api::registerCluster();
 
                 if ($this->runAuthenticator()) {
-                    if (Access::useService()->getRightByName($this->getRequest()->getPathInfo())) {
+                    if (Access::useService()->existsRightByName($this->getRequest()->getPathInfo())) {
                         echo self::getDispatcher()->fetchRoute(
                             $this->getRequest()->getPathInfo()
                         );

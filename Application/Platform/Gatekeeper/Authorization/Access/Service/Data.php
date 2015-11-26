@@ -9,6 +9,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRoleLevel;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 
 /**
@@ -450,6 +451,29 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblRight', array(
             TblRight::ATTR_ROUTE => $Name
         ));
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool
+     */
+    public function existsRightByName($Name)
+    {
+
+        $Cache = $this->getCache(new MemcachedHandler());
+        if (null === ( $RouteList = $Cache->getValue($Name, __METHOD__) )) {
+            $RouteList = $this->getConnection()->getEntityManager()->getQueryBuilder()
+                ->select('R.Route')
+                ->from(__NAMESPACE__.'\Entity\TblRight', 'R')
+                ->where('R.Route = ?1')
+                ->distinct()
+                ->setParameter(1, $Name)
+                ->getQuery()
+                ->getResult("COLUMN_HYDRATOR");
+            $Cache->setValue($Name, $RouteList, 0, __METHOD__);
+        }
+        return !empty( $RouteList );
     }
 
     /**
