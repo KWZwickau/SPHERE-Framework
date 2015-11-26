@@ -60,7 +60,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblType')->findOneBy(array(
-            TblType::ATTR_NAME        => $Name,
+            TblType::ATTR_NAME => $Name,
             TblType::ATTR_DESCRIPTION => $Description
         ));
         if (null === $Entity) {
@@ -102,6 +102,19 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblState', $Id);
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblState
+     */
+    public function getStateByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblState', array(
+            TblType::ATTR_NAME => $Name,
+        ));
     }
 
     /**
@@ -201,10 +214,10 @@ class Data extends AbstractData
 
     /**
      * @param TblState $tblState
-     * @param TblCity  $tblCity
-     * @param string   $StreetName
-     * @param string   $StreetNumber
-     * @param string   $PostOfficeBox
+     * @param TblCity $tblCity
+     * @param string $StreetName
+     * @param string $StreetNumber
+     * @param string $PostOfficeBox
      *
      * @return TblAddress
      */
@@ -214,16 +227,15 @@ class Data extends AbstractData
         $StreetName,
         $StreetNumber,
         $PostOfficeBox
-    )
-    {
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblAddress')
             ->findOneBy(array(
-                TblAddress::ATTR_TBL_STATE => ( $tblState ? $tblState->getId() : null ),
-                TblAddress::ATTR_TBL_CITY        => $tblCity->getId(),
-                TblAddress::ATTR_STREET_NAME     => $StreetName,
-                TblAddress::ATTR_STREET_NUMBER   => $StreetNumber,
+                TblAddress::ATTR_TBL_STATE => ($tblState ? $tblState->getId() : null),
+                TblAddress::ATTR_TBL_CITY => $tblCity->getId(),
+                TblAddress::ATTR_STREET_NAME => $StreetName,
+                TblAddress::ATTR_STREET_NUMBER => $StreetNumber,
                 TblAddress::ATTR_POST_OFFICE_BOX => $PostOfficeBox
             ));
         if (null === $Entity) {
@@ -240,10 +252,10 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblPerson  $tblPerson
+     * @param TblPerson $tblPerson
      * @param TblAddress $tblAddress
-     * @param TblType    $tblType
-     * @param string     $Remark
+     * @param TblType $tblType
+     * @param string $Remark
      *
      * @return TblToPerson
      */
@@ -254,8 +266,8 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblToPerson')
             ->findOneBy(array(
                 TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
-                TblToPerson::ATT_TBL_ADDRESS    => $tblAddress->getId(),
-                TblToPerson::ATT_TBL_TYPE       => $tblType->getId(),
+                TblToPerson::ATT_TBL_ADDRESS => $tblAddress->getId(),
+                TblToPerson::ATT_TBL_TYPE => $tblType->getId(),
             ));
         if (null === $Entity) {
             $Entity = new TblToPerson();
@@ -294,8 +306,8 @@ class Data extends AbstractData
     /**
      * @param TblCompany $tblCompany
      * @param TblAddress $tblAddress
-     * @param TblType    $tblType
-     * @param string     $Remark
+     * @param TblType $tblType
+     * @param string $Remark
      *
      * @return TblToCompany
      */
@@ -306,8 +318,8 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblToCompany')
             ->findOneBy(array(
                 TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId(),
-                TblToCompany::ATT_TBL_ADDRESS     => $tblAddress->getId(),
-                TblToCompany::ATT_TBL_TYPE        => $tblType->getId(),
+                TblToCompany::ATT_TBL_ADDRESS => $tblAddress->getId(),
+                TblToCompany::ATT_TBL_TYPE => $tblType->getId(),
             ));
         if (null === $Entity) {
             $Entity = new TblToCompany();

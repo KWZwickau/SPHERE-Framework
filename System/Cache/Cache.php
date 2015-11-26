@@ -3,6 +3,8 @@ namespace SPHERE\System\Cache;
 
 use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Cache\Type\Memory;
+use SPHERE\System\Config\ConfigFactory;
+use SPHERE\System\Config\Reader\IniReader;
 
 /**
  * Class Cache
@@ -17,7 +19,7 @@ class Cache
 
     /**
      * @param ITypeInterface $Type
-     * @param bool           $ForceType
+     * @param bool $ForceType
      */
     public function __construct(ITypeInterface $Type = null, $ForceType = false)
     {
@@ -34,20 +36,15 @@ class Cache
         $this->Type = $Type;
         if ($this->Type->needConfiguration()) {
             if ($this->Type->getConfiguration() !== null) {
-                $ConfigCache = new Memory(__METHOD__);
-                $Configuration = $ConfigCache->getValue($this->Type->getConfiguration());
-                if (false !== $Configuration) {
-                    $this->Type->setConfiguration($Configuration);
+                $Configuration = (new ConfigFactory())
+                    ->createReader(__DIR__ . '/Configuration.ini', new IniReader())
+                    ->getConfig();
+                if (null !== $Configuration->getContainer($this->Type->getConfiguration())) {
+                    $Configuration = $Configuration->getContainer($this->Type->getConfiguration());
                 } else {
-                    $Configuration = parse_ini_file(__DIR__.'/Configuration.ini', true);
-                    if (isset( $Configuration[$this->Type->getConfiguration()] )) {
-                        $Configuration = $Configuration[$this->Type->getConfiguration()];
-                    } else {
-                        $Configuration = null;
-                    }
-                    $ConfigCache->setValue($this->Type->getConfiguration(), $Configuration);
-                    $this->Type->setConfiguration($Configuration);
+                    $Configuration = null;
                 }
+                $this->Type->setConfiguration($Configuration);
             } else {
                 $this->Type->setConfiguration(null);
             }

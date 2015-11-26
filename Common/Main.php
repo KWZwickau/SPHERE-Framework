@@ -27,13 +27,12 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Authenticator\Authenticator;
 use SPHERE\System\Authenticator\Type\Get;
 use SPHERE\System\Authenticator\Type\Post;
-use SPHERE\System\Cache\Cache;
-use SPHERE\System\Cache\Type\ApcSma;
-use SPHERE\System\Cache\Type\Apcu;
-use SPHERE\System\Cache\Type\ApcUser;
-use SPHERE\System\Cache\Type\Memcached;
-use SPHERE\System\Cache\Type\Memory;
-use SPHERE\System\Cache\Type\OpCache;
+use SPHERE\System\Cache\Handler\APCuHandler;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\MemoryHandler;
+use SPHERE\System\Cache\Handler\OpCacheHandler;
+use SPHERE\System\Cache\Handler\SmartyHandler;
+use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -116,7 +115,7 @@ class Main extends Extension
                 } else {
                     header('HTTP/1.0 400 Bad Request');
                 }
-                exit( 0 );
+                exit(0);
             } catch (\Exception $Exception) {
                 $this->runSelfHeal($Exception);
             }
@@ -157,12 +156,12 @@ class Main extends Extension
         } catch (PDOException $Exception) {
             $this->runSelfHeal($Exception);
         } catch (InvalidFieldNameException $Exception) {
-            (new Cache(new ApcSma()))->getCache()->clearCache();
-            (new Cache(new Apcu()))->getCache()->clearCache();
-            (new Cache(new ApcUser()))->getCache()->clearCache();
-            (new Cache(new Memcached()))->getCache()->clearCache();
-            (new Cache(new Memory()))->getCache()->clearCache();
-            (new Cache(new OpCache()))->getCache()->clearCache();
+            $this->getCache(new APCuHandler())->clearCache();
+            $this->getCache(new MemcachedHandler())->clearCache();
+            $this->getCache(new MemoryHandler())->clearCache();
+            $this->getCache(new OpCacheHandler())->clearCache();
+            $this->getCache(new TwigHandler())->clearCache();
+            $this->getCache(new SmartyHandler())->clearCache();
             $this->runSelfHeal($Exception);
         } catch (TableNotFoundException $Exception) {
             $this->runSelfHeal($Exception);
@@ -176,7 +175,7 @@ class Main extends Extension
 
         try {
             echo self::getDisplay()->getContent();
-            exit( 0 );
+            exit(0);
         } catch (\Exception $Exception) {
             $this->runSelfHeal($Exception);
         }
@@ -232,7 +231,7 @@ class Main extends Extension
 
         $Get = (new Authenticator(new Get()))->getAuthenticator();
         $Post = (new Authenticator(new Post()))->getAuthenticator();
-        if (!( $Get->validateSignature() && $Post->validateSignature() )) {
+        if (!($Get->validateSignature() && $Post->validateSignature())) {
             self::getDisplay()->setClusterNavigation();
             self::getDisplay()->setApplicationNavigation();
             self::getDisplay()->setModuleNavigation();
@@ -254,14 +253,14 @@ class Main extends Extension
 
         $Display = new Display();
         $Display->setContent(
-            ( $Exception
+            ($Exception
                 ? new Error($Exception->getCode(), $Exception->getMessage())
                 : ''
-            ).
+            ) .
             (new System\Database\Database())->frontendSetup(false, true)
-            .(new Redirect(self::getRequest()->getPathInfo(), 60))
+            . (new Redirect(self::getRequest()->getPathInfo(), 60))
         );
         echo $Display->getContent(true);
-        exit( 0 );
+        exit(0);
     }
 }

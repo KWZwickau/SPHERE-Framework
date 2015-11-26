@@ -19,7 +19,7 @@
 
 <!-- Navigation (Level:Cluster/Service) -->
 <nav class="navbar navbar-inverse" role="navigation"
-     style="border-radius: inherit; margin: inherit;">
+     style="border-radius: inherit;">
     <div class="container-fluid">
         <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
                 data-target="#LevelClient"
@@ -55,7 +55,7 @@
 {% if( NavigationApplication is not empty ) %}
     <!-- Navigation (Level:Application) -->
     <nav class="navbar navbar-default" role="navigation"
-         style="border-radius: inherit; margin: inherit; border-width: 0; border-bottom-width: 1px;">
+         style="border-radius: inherit;border-width: 0; border-bottom-width: 1px;">
         <div class="container-fluid">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
                     data-target="#LevelApplication"
@@ -83,7 +83,7 @@
 {% if( NavigationModule is not empty ) %}
     <!-- Navigation (Level:Module) -->
     <nav class="navbar navbar-default" role="navigation"
-         style="border-radius: inherit; margin: inherit; border-width: 0; border-bottom-width: 1px;">
+         style="border-radius: inherit; border-width: 0; border-bottom-width: 1px;">
         <div class="container-fluid">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
                     data-target="#LevelModule"
@@ -108,16 +108,18 @@
     </nav>
 {% endif %}
 
-<div class="container-fluid" style="min-height: 300px;">
+<div class="container-fluid">
     <div class="row">
         <div class="col-lg-offset-1 col-lg-10 col-xs-12">
             {#<div class="col-xs-12">#}
+            <span class="loading-indicator"><span class="glyphicon glyphicon-refresh loading-indicator-animate"></span> Zusätzliche Komponenten werden geladen</span>
+            <span class="loading-error"><span class="glyphicon glyphicon-alert text-danger"></span> Einige zusätzliche Komponenten konnten nicht geladen werden</span>
             {{ Content }}
         </div>
     </div>
 </div>
 
-<div class="container-fluid hidden-print">
+<div class="container-fluid hidden-print footer">
     <div class="row">
         <div class="col-xs-12 small" style="border-top: 1px solid #E7E7E7;">
             <div class="text-center small" style="padding: 5px;">
@@ -125,8 +127,7 @@
                 <br/>
                 © 2014 - {{ "now"|date("Y") }} | Erstellt in {{ DebuggerRuntime }} | {{ DebuggerHost }}
                 <br/>
-                <a href="/Roadmap/Current">Version 0.8.0.1</a>
-
+                <a href="/Roadmap/Current">Version {{ RoadmapVersion }}</a>
                 <div class="text-left">
                     {{ DebuggerProtocol }}
                 </div>
@@ -141,28 +142,27 @@
     {
         jQuery().ModAlways();
 
+        <!-- Piwik -->
+        var _paq = _paq || [];
+        _paq.push(["setDoNotTrack", true]);
+        _paq.push(["disableCookies"]);
+        _paq.push(['trackPageView']);
+        _paq.push(['enableLinkTracking']);
+        (function ()
+        {
+            var u = "/Library/Piwik/";
+            _paq.push(['setTrackerUrl', u + 'piwik.php']);
+            _paq.push(['setSiteId', 1]);
+            var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+            g.type = 'text/javascript';
+            g.async = true;
+            g.defer = true;
+            g.src = u + 'piwik.js';
+            s.parentNode.insertBefore(g, s);
+        })();
+        <!-- End Piwik Code -->
     });
     //    var Host = jQuery('<a>').prop('href', window.location).prop('hostname');
-
-    <!-- Piwik -->
-    var _paq = _paq || [];
-    _paq.push(["setDoNotTrack", true]);
-    _paq.push(["disableCookies"]);
-    _paq.push(['trackPageView']);
-    _paq.push(['enableLinkTracking']);
-    (function()
-    {
-        var u = "/Library/Piwik/";
-        _paq.push(['setTrackerUrl', u + 'piwik.php']);
-        _paq.push(['setSiteId', 1]);
-        var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
-        g.type = 'text/javascript';
-        g.async = true;
-        g.defer = true;
-        g.src = u + 'piwik.js';
-        s.parentNode.insertBefore(g, s);
-    })();
-    <!-- End Piwik Code -->
 </script>
 </body>
 </html>

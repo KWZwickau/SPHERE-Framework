@@ -6,7 +6,11 @@ use SPHERE\Application\People\Group\Service\Entity\TblMember;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Cache\CacheFactory;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 
 /**
  * Class Data
@@ -24,13 +28,14 @@ class Data extends AbstractData
         $this->createGroup('Schüler', 'Alle aktiv verfügbaren Schüler', '', true, 'STUDENT');
         $this->createGroup('Sorgeberechtigt', '', '', true, 'CUSTODY');
         $this->createGroup('Mitarbeiter', '', '', true, 'STAFF');
+        $this->createGroup('Lehrer', '', '', true, 'TEACHER');
     }
 
     /**
      * @param string $Name
      * @param string $Description
      * @param string $Remark
-     * @param bool   $IsLocked
+     * @param bool $IsLocked
      * @param string $MetaTable
      *
      * @return TblGroup
@@ -42,7 +47,7 @@ class Data extends AbstractData
 
         if ($IsLocked) {
             $Entity = $Manager->getEntity('TblGroup')->findOneBy(array(
-                TblGroup::ATTR_IS_LOCKED  => $IsLocked,
+                TblGroup::ATTR_IS_LOCKED => $IsLocked,
                 TblGroup::ATTR_META_TABLE => $MetaTable
             ));
         } else {
@@ -66,9 +71,9 @@ class Data extends AbstractData
 
     /**
      * @param TblGroup $tblGroup
-     * @param string   $Name
-     * @param string   $Description
-     * @param string   $Remark
+     * @param string $Name
+     * @param string $Description
+     * @param string $Remark
      *
      * @return bool
      */
@@ -120,7 +125,7 @@ class Data extends AbstractData
 
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGroup')
             ->findOneBy(array(TblGroup::ATTR_NAME => $Name));
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -134,9 +139,9 @@ class Data extends AbstractData
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGroup')
             ->findOneBy(array(
                 TblGroup::ATTR_META_TABLE => $MetaTable,
-                TblGroup::ATTR_IS_LOCKED  => true
+                TblGroup::ATTR_IS_LOCKED => true
             ));
-        return ( null === $Entity ? false : $Entity );
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -161,16 +166,27 @@ class Data extends AbstractData
      */
     public function getPersonAllByGroup(TblGroup $tblGroup)
     {
-
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' Start');
         /** @var TblMember[] $EntityList */
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblMember')->findBy(array(
-            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
-        ));
-        array_walk($EntityList, function (TblMember &$V) {
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
+            array(
+                TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+            ));
 
-            $V = $V->getServiceTblPerson();
-        });
-        return ( null === $EntityList ? false : $EntityList );
+        $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
+        if (null === ($ResultList = $Cache->getValue($tblGroup->getId(), __METHOD__))
+            && !empty($EntityList)
+        ) {
+            array_walk($EntityList, function (TblMember &$V) {
+
+                $V = $V->getServiceTblPerson();
+            });
+            $Cache->setValue($tblGroup->getId(), $EntityList, 0, __METHOD__);
+        } else {
+            $EntityList = $ResultList;
+        }
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' Stop');
+        return (null === $EntityList ? false : $EntityList);
     }
 
     /**
@@ -199,7 +215,7 @@ class Data extends AbstractData
         } else {
             $EntityList = null;
         }
-        return ( null === $EntityList ? false : $EntityList );
+        return (null === $EntityList ? false : $EntityList);
     }
 
     /**
@@ -219,11 +235,11 @@ class Data extends AbstractData
 
             $V = $V->getTblGroup();
         });
-        return ( null === $EntityList ? false : $EntityList );
+        return (null === $EntityList ? false : $EntityList);
     }
 
     /**
-     * @param TblGroup  $tblGroup
+     * @param TblGroup $tblGroup
      * @param TblPerson $tblPerson
      *
      * @return TblMember
@@ -234,7 +250,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblMember')
             ->findOneBy(array(
-                TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
+                TblMember::ATTR_TBL_GROUP => $tblGroup->getId(),
                 TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null === $Entity) {
@@ -248,7 +264,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblGroup  $tblGroup
+     * @param TblGroup $tblGroup
      * @param TblPerson $tblPerson
      *
      * @return bool
@@ -260,7 +276,7 @@ class Data extends AbstractData
         /** @var TblMember $Entity */
         $Entity = $Manager->getEntity('TblMember')
             ->findOneBy(array(
-                TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
+                TblMember::ATTR_TBL_GROUP => $tblGroup->getId(),
                 TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null !== $Entity) {
