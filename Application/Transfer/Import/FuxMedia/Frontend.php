@@ -284,7 +284,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(array(
-                                FuxSchool::useService()->createTeachersFromFile(
+                                FuxSchool::useService()->createCompanysFromFile(
                                     new Form(
                                         new FormGroup(
                                             new FormRow(

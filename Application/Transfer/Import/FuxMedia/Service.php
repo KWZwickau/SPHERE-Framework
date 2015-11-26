@@ -13,6 +13,7 @@ use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -24,6 +25,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Transfer\Import\FuxMedia\Service\Person;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
@@ -918,7 +920,8 @@ class Service
                                     if ($tblDivision) {
 
                                         $countDivision++;
-                                        $teacherCode = trim($Document->getValue($Document->getCell($Location['Klassenlehrer_kurz'], $RunY)));
+                                        $teacherCode = trim($Document->getValue($Document->getCell($Location['Klassenlehrer_kurz'],
+                                            $RunY)));
                                         if ($teacherCode !== '') {
                                             $tblPerson = $this->usePeoplePerson()->getTeacherByRemark($teacherCode);
                                             if ($tblPerson) {
@@ -928,7 +931,8 @@ class Service
                                                 $countTeacherNotExists++;
                                             }
                                         }
-                                        $teacherCode = trim($Document->getValue($Document->getCell($Location['Stellvertreter_Klassenlehrer_kurz'], $RunY)));
+                                        $teacherCode = trim($Document->getValue($Document->getCell($Location['Stellvertreter_Klassenlehrer_kurz'],
+                                            $RunY)));
                                         if ($teacherCode !== '') {
                                             $tblPerson = $this->usePeoplePerson()->getTeacherByRemark($teacherCode);
                                             if ($tblPerson) {
@@ -1015,15 +1019,30 @@ class Service
                     $countCompany = 0;
 
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
-                        $companyName = trim($Document->getValue($Document->getCell($Location['Klasse'], $RunY)));
+                        $companyName = trim($Document->getValue($Document->getCell($Location['Einrichtungsname'],
+                            $RunY)));
 
-                       // if ($companyName  )
+                        if ($companyName) {
+                            $tblCompany = Company::useService()->insertCompany(
+                                $companyName,
+                                trim($Document->getValue($Document->getCell($Location['Einrichtungsnummer'], $RunY)))
+                            );
+                            if ($tblCompany) {
+                                $countCompany++;
+
+                                \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
+                                    \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable('COMMON'),
+                                    $tblCompany
+                                );
+                            }
+                        }
                     }
                     return
                         new Success('Es wurden ' . $countCompany . ' Firmen erfolgreich angelegt.');
                 } else {
                     Debugger::screenDump($Location);
-                    return new Danger(
+                    return new Info(json_encode($Location)) .
+                    new Danger(
                         "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }

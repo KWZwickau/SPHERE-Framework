@@ -16,6 +16,7 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblCompany extends Element
 {
+    const ATTR_NAME = 'Name';
 
     /**
      * @Column(type="string")

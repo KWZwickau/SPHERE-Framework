@@ -26,13 +26,17 @@ class Data extends AbstractData
      */
     public function createCompany($Name, $Description = '')
     {
-
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = new TblCompany();
-        $Entity->setName($Name);
-        $Entity->setDescription($Description);
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        $Entity = $Manager->getEntity('TblCompany')->findOneBy(array(
+            TblCompany::ATTR_NAME => $Name,
+        ));
+        if (null === $Entity) {
+            $Entity = new TblCompany();
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
         return $Entity;
     }
 
