@@ -3,6 +3,7 @@ namespace SPHERE\Application\People\Meta\Student;
 
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\School\Course\Course;
@@ -75,9 +76,10 @@ class Frontend extends Extension implements IFrontendInterface
      * @param TblPerson $tblPerson
      * @param array $Meta
      *
+     * @param null $Group
      * @return Stage
      */
-    public function frontendMeta(TblPerson $tblPerson = null, $Meta = array())
+    public function frontendMeta(TblPerson $tblPerson = null, $Meta = array(), $Group = null)
     {
 
         $Stage = new Stage();
@@ -107,7 +109,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $this->formGroupIntegration($tblPerson, $Meta),
                 ), new Primary('Informationen speichern'))
                 )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
-                , $tblPerson, $Meta
+                , $tblPerson, $Meta, $Group
             )
         );
 
@@ -233,6 +235,39 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $VisitedDivisions = array();
+        $RepeatedLevels = array();
+        if ($tblPerson !== null) {
+            $tblDivisionStudentAllByPerson = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+            if ($tblDivisionStudentAllByPerson) {
+                foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudent) {
+                    $tblDivisionStudent->Name = '';
+                    $tblDivision = $tblDivisionStudent->getTblDivision();
+                    if ($tblDivision) {
+                        $tblLevel = $tblDivision->getTblLevel();
+                        $tblYear = $tblDivision->getServiceTblYear();
+                        if ($tblLevel && $tblYear) {
+                            $VisitedDivisions[] = $tblYear->getName() . ' Klasse ' . $tblLevel->getName() . $tblDivision->getName();
+
+                            foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudentTemp) {
+                                if ($tblDivisionStudent->getId() !== $tblDivisionStudentTemp->getId()
+                                    && $tblDivisionStudent->getTblDivision()->getTblLevel()->getId()
+                                    === $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getId()
+                                ) {
+                                    $RepeatedLevels[] = $tblYear->getName() . ' Klasse ' . $tblLevel->getName();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!empty($VisitedDivisions)) {
+                    rsort($VisitedDivisions);
+                    $VisitedDivisions[0] = new Bold($VisitedDivisions[0]);
+                }
+            }
+        }
+
         $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
             Group::useService()->getGroupByMetaTable('SCHOOL')
         );
@@ -304,7 +339,8 @@ class Frontend extends Extension implements IFrontendInterface
                             'Letzter Bildungsgang', array(
                                 '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
                             ), new Education()),
-                        new DatePicker('Meta[Transfer][' . $tblStudentTransferTypeArrive->getId() . '][Date]', 'Datum',
+                        new DatePicker('Meta[Transfer][' . $tblStudentTransferTypeArrive->getId() . '][Date]',
+                            'Datum',
                             'Datum', new Calendar()),
                         new TextArea('Meta[Transfer][' . $tblStudentTransferTypeArrive->getId() . '][Remark]',
                             'Bemerkungen', 'Bemerkungen', new Pencil()),
@@ -324,7 +360,8 @@ class Frontend extends Extension implements IFrontendInterface
                             'Letzter Bildungsgang', array(
                                 '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
                             ), new Education()),
-                        new DatePicker('Meta[Transfer][' . $tblStudentTransferTypeLeave->getId() . '][Date]', 'Datum',
+                        new DatePicker('Meta[Transfer][' . $tblStudentTransferTypeLeave->getId() . '][Date]',
+                            'Datum',
                             'Datum', new Calendar()),
                         new TextArea('Meta[Transfer][' . $tblStudentTransferTypeLeave->getId() . '][Remark]',
                             'Bemerkungen', 'Bemerkungen', new Pencil()),
@@ -351,23 +388,18 @@ class Frontend extends Extension implements IFrontendInterface
                     ), Panel::PANEL_TYPE_INFO),
                 ), 6),
                 new FormColumn(array(
-                    // TODO:
-                    new Panel('Besuchte Schulklassen', array(
-                        new Bold('Aktuelle Klasse 10b'),
-                        '2016/2017 Klasse 9b',
-                        '2015/2016 Klasse 8a',
-                    ), Panel::PANEL_TYPE_DEFAULT,
+                    new Panel('Besuchte Schulklassen',
+                        $VisitedDivisions,
+                        Panel::PANEL_TYPE_DEFAULT,
                         new Warning(
                             'Vom System erkannte Besuche. Wird bei Klassen&shy;zuordnung in Schuljahren erzeugt'
                         )
                     ),
                 ), 3),
                 new FormColumn(array(
-                    // TODO:
-                    new Panel('Aktuelle Schuljahrwiederholungen', array(
-                        '2015/2016 Klassenstufe 8',
-                        '2017/2018 Klassenstufe 10'
-                    ), Panel::PANEL_TYPE_DEFAULT,
+                    new Panel('Aktuelle Schuljahrwiederholungen',
+                        $RepeatedLevels,
+                        Panel::PANEL_TYPE_DEFAULT,
                         new Warning(
                             'Vom System erkannte Schuljahr&shy;wiederholungen.'
                             . 'Wird bei wiederholter Klassen&shy;zuordnung in verschiedenen Schuljahren erzeugt'
@@ -384,8 +416,11 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return FormGroup
      */
-    private function formGroupGeneral(TblPerson $tblPerson = null, $Meta = array())
-    {
+    private
+    function formGroupGeneral(
+        TblPerson $tblPerson = null,
+        $Meta = array()
+    ) {
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
@@ -433,7 +468,18 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $tblStudentBilling = $tblStudent->getTblStudentBilling();
                     if ($tblStudentBilling) {
-                        $Global->POST['Meta']['Billing'] = $tblStudentBilling->getServiceTblSiblingRank()->getId();
+                        if ($tblStudentBilling->getServiceTblSiblingRank()) {
+                            $Global->POST['Meta']['Billing'] = $tblStudentBilling->getServiceTblSiblingRank()->getId();
+                        }
+                    }
+
+                    $tblStudentAgreementAll = Student::useService()->getStudentAgreementAllByStudent($tblStudent);
+                    if ($tblStudentAgreementAll) {
+                        foreach ($tblStudentAgreementAll as $tblStudentAgreement) {
+                            $Global->POST['Meta']['Agreement']
+                            [$tblStudentAgreement->getTblStudentAgreementType()->getTblStudentAgreementCategory()->getId()]
+                            [$tblStudentAgreement->getTblStudentAgreementType()->getId()] = 1;
+                        }
                     }
 
                     $Global->savePost();
@@ -458,7 +504,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ) {
 
                         array_push($AgreementPanel,
-                            new CheckBox('Meta[' . $tblStudentAgreementCategory->getId() . '][' . $tblStudentAgreementType->getId() . ']',
+                            new CheckBox('Meta[Agreement][' . $tblStudentAgreementCategory->getId() . '][' . $tblStudentAgreementType->getId() . ']',
                                 $tblStudentAgreementType->getName(), 1)
                         );
                     }
@@ -536,8 +582,11 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return FormGroup
      */
-    private function formGroupSubject(TblPerson $tblPerson = null, $Meta = array())
-    {
+    private
+    function formGroupSubject(
+        TblPerson $tblPerson = null,
+        $Meta = array()
+    ) {
 
         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
         $Global = $this->getGlobal();
@@ -619,13 +668,17 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblSubjectForeignLanguage, 4),
                 ), 3),
                 new FormColumn(array(
-                    $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation, 1),
+                    $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation,
+                        1),
                     $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 2),
-                    $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 3),
+                    $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll,
+                        3),
                 ), 3),
                 new FormColumn(array(
-                    $this->panelSubjectList('ADVANCED', 'Vertiefungskurse', 'Vertiefungskurs', $tblSubjectAdvanced, 1),
-                    $this->panelSubjectList('TRACK_INTENSIVE', 'Leistungskurse', 'Leistungskurs', $tblSubjectAll, 2),
+                    $this->panelSubjectList('ADVANCED', 'Vertiefungskurse', 'Vertiefungskurs', $tblSubjectAdvanced,
+                        1),
+                    $this->panelSubjectList('TRACK_INTENSIVE', 'Leistungskurse', 'Leistungskurs', $tblSubjectAll,
+                        2),
                 ), 3),
                 new FormColumn(array(
                     $this->panelSubjectList('TRACK_BASIC', 'Grundkurse', 'Grundkurs', $tblSubjectAll, 8),
@@ -643,8 +696,14 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Panel
      */
-    private function panelSubjectList($Identifier, $Title, $Label, $SubjectList, $Count = 1)
-    {
+    private
+    function panelSubjectList(
+        $Identifier,
+        $Title,
+        $Label,
+        $SubjectList,
+        $Count = 1
+    ) {
 
         $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier(strtoupper($Identifier));
         $Panel = array();
@@ -668,8 +727,11 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return FormGroup
      */
-    private function formGroupIntegration(TblPerson $tblPerson = null, $Meta = array())
-    {
+    private
+    function formGroupIntegration(
+        TblPerson $tblPerson = null,
+        $Meta = array()
+    ) {
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
             if (!isset($Global->POST['Meta']['Integration'])) {
@@ -771,7 +833,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new Person()),
                         new NumberField('Meta[Integration][School][Time]', 'Stundenbedarf pro Woche',
                             'Stundenbedarf pro Woche', new Clock()),
-                        new TextArea('Meta[Integration][School][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
+                        new TextArea('Meta[Integration][School][Remark]', 'Bemerkungen', 'Bemerkungen',
+                            new Pencil()),
 
                     ), Panel::PANEL_TYPE_INFO), 3),
                 new FormColumn($PanelFocus, 3),

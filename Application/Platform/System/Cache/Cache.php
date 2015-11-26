@@ -16,8 +16,13 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Cache\Cache as CacheType;
+use SPHERE\System\Cache\Handler\APCuHandler;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\MemoryHandler;
+use SPHERE\System\Cache\Handler\OpCacheHandler;
+use SPHERE\System\Cache\Handler\SmartyHandler;
+use SPHERE\System\Cache\Handler\TwigHandler;
 use SPHERE\System\Cache\Type\Apcu;
-use SPHERE\System\Cache\Type\ApcUser;
 use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Cache\Type\OpCache;
@@ -84,12 +89,12 @@ class Cache extends Extension implements IModuleInterface
             $this->getRequest()->getPathBase().'/UnitTest/Console/phpMemcachedAdmin-1.2.2'));
 
         if ($Clear) {
-            (new CacheType(new ApcUser(), true))->getCache()->clearCache();
-            (new CacheType(new Apcu(), true))->getCache()->clearCache();
-            (new CacheType(new Memcached(), true))->getCache()->clearCache(true);
-            (new CacheType(new OpCache(), true))->getCache()->clearCache();
-            (new CacheType(new TwigCache(), true))->getCache()->clearCache();
-            (new CacheType(new SmartyCache(), true))->getCache()->clearCache();
+            $this->getCache(new APCuHandler())->clearCache();
+            $this->getCache(new MemcachedHandler())->clearCache();
+            $this->getCache(new MemoryHandler())->clearCache();
+            $this->getCache(new OpCacheHandler())->clearCache();
+            $this->getCache(new TwigHandler())->clearCache();
+            $this->getCache(new SmartyHandler())->clearCache();
         }
         $Stage->setContent(
             new Layout(array(

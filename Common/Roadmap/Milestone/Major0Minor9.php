@@ -57,12 +57,10 @@ class Major0Minor9
         $Feature = $Category->createFeature('Unterricht');
         $Feature->createTask('Fächer')
             ->createDuty('Fach hinzufügen', true)
-            ->createDuty('Fach bearbeiten', true)
-            ->createDuty('Fach löschen', false);
+            ->createDuty('Fach bearbeiten', true);
         $Feature->createTask('Fach-Kategorie')
             ->createDuty('Kategorie hinzufügen', true)
-            ->createDuty('Kategorie bearbeiten', true)
-            ->createDuty('Kategorie löschen', false);
+            ->createDuty('Kategorie bearbeiten', true);
         $Feature->createTask('Fach-Kategorie zuweisen')
             ->createDuty('Verknüpfung hinzufügen', true)
             ->createDuty('Verknüpfung löschen', true);
@@ -76,16 +74,16 @@ class Major0Minor9
         $Feature->createTask('Klassenstufe')
             ->createDuty('Klassenstufe hinzufügen', true)
             ->createDuty('Klassenstufe löschen', false)
-            ->createDuty('Schulform verknüpfen', false);
+            ->createDuty('Schulform verknüpfen', true);
         $Feature->createTask('Klassen')
             ->createDuty('Klasse hinzufügen', true)
             ->createDuty('Klasse löschen', false)
             ->createDuty('Schuljahr verknüpfen', true)
             ->createDuty('Klassenstufe verknüpfen', true)
-            ->createDuty('Fachklasse verknüpfen', false)
-            ->createDuty('Klassen-Schüler verknüpfen')
-            ->createDuty('Klassen-Lehrer verknüpfen')
-            ->createDuty('Fach-Schüler verknüpfen')
-            ->createDuty('Fach-Lehrer verknüpfen');
+            ->createDuty('Fachklasse verknüpfen', true)
+            ->createDuty('Klassen-Schüler verknüpfen', true)
+            ->createDuty('Klassen-Lehrer verknüpfen', true)
+            ->createDuty('Fach-Schüler verknüpfen', false)
+            ->createDuty('Fach-Lehrer verknüpfen', false);
     }
 }

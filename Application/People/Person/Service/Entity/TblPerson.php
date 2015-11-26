@@ -22,8 +22,8 @@ class TblPerson extends Element
     const ATTR_LAST_NAME = 'LastName';
 
     /**
-     * @Column(type="bigint")
-     * @ManyToOne(targetEntity="TblSalutation",fetch="EAGER")
+     * @Column(nullable=true)
+     * @ManyToOne(targetEntity="TblSalutation",fetch="EAGER",cascade={"persist"})
      * @JoinColumn(name="tblSalutation", referencedColumnName="Id")
      */
     protected $tblSalutation;
@@ -83,7 +83,11 @@ class TblPerson extends Element
         if (null === $this->tblSalutation) {
             return false;
         } else {
-            return Person::useService()->getSalutationById($this->tblSalutation);
+            if (is_object($this->tblSalutation)) {
+                return $this->tblSalutation;
+            } else {
+                return Person::useService()->getSalutationById($this->tblSalutation);
+            }
         }
     }
 
@@ -93,7 +97,7 @@ class TblPerson extends Element
     public function setTblSalutation(TblSalutation $tblSalutation = null)
     {
 
-        $this->tblSalutation = ( null === $tblSalutation ? null : $tblSalutation->getId() );
+        $this->tblSalutation = ( null === $tblSalutation ? null : $tblSalutation );
     }
 
     /**

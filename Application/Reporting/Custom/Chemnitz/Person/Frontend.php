@@ -85,7 +85,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new Form(new FormGroup(array(
                     new FormRow(array(
                         new FormColumn(
-                            new SelectBox('Select[Division]', 'Klasse', array('Name' => $tblDivisionAll)), 12
+                            new SelectBox('Select[Division]', 'Klasse', array(
+                                '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
+                            )), 12
                         )
                     )),
                 )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
@@ -94,7 +96,7 @@ class Frontend extends Extension implements IFrontendInterface
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
                             Panel::PANEL_TYPE_SUCCESS), 12
                     ),
                 )))))
@@ -102,8 +104,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new TableData($studentList, null,
                     array(
                         'Salutation' => 'Anrede',
-                        'Father' => 'Vorname Vater',
-                        'Mother' => 'Vorname Mutter',
+                        'Father' => 'Vorname Sorgeberechtigter 1',
+                        'Mother' => 'Vorname Sorgeberechtigter 2',
                         'LastName' => 'Name',
                         'Denomination' => 'Konfession',
                         'Address' => 'Adresse',
@@ -202,7 +204,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new Form(new FormGroup(array(
                     new FormRow(array(
                         new FormColumn(
-                            new SelectBox('Select[Division]', 'Klasse', array('Name' => $tblDivisionAll)), 12
+                            new SelectBox('Select[Division]', 'Klasse', array(
+                                '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
+                            )), 12
                         )
                     )),
                 )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
@@ -211,7 +215,7 @@ class Frontend extends Extension implements IFrontendInterface
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
                             Panel::PANEL_TYPE_SUCCESS), 12
                     ),
                 )))))
@@ -262,7 +266,8 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($studentList) {
                     $View->addButton(
                         new Primary('Herunterladen',
-                            '/Api/Reporting/Custom/Chemnitz/Common/ParentTeacherConferenceList/Download', new Download(),
+                            '/Api/Reporting/Custom/Chemnitz/Common/ParentTeacherConferenceList/Download',
+                            new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
                 }
@@ -274,7 +279,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new Form(new FormGroup(array(
                     new FormRow(array(
                         new FormColumn(
-                            new SelectBox('Select[Division]', 'Klasse', array('Name' => $tblDivisionAll)), 12
+                            new SelectBox('Select[Division]', 'Klasse', array(
+                                '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
+                            )), 12
                         )
                     )),
                 )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
@@ -283,7 +290,7 @@ class Frontend extends Extension implements IFrontendInterface
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
                             Panel::PANEL_TYPE_SUCCESS), 12
                     ),
                 )))))
@@ -376,11 +383,11 @@ class Frontend extends Extension implements IFrontendInterface
                     'Denomination' => 'Bekenntnis',
                     'Siblings' => 'Geschwister',
                     'Hoard' => 'Hort',
-                    'Father' => 'Vater',
+                    'Father' => 'Sorgeberechtigter 1',
 //                    'FatherSalutation'         => 'Anrede V',
 //                    'FatherLastName'         => 'Name V',
 //                    'FatherFirstName'         => 'Vorname V',
-                    'Mother' => 'Mutter',
+                    'Mother' => 'Sorgeberechtigter 2',
 //                    'MotherSalutation'         => 'Anrede M',
 //                    'MotherLastName'         => 'Name M',
 //                    'MotherFirstName'         => 'Vorname M',
@@ -413,11 +420,11 @@ class Frontend extends Extension implements IFrontendInterface
                 array(
                     'DebtorNumber' => 'Deb.-Nr.',
                     'Reply' => 'Bescheid geschickt',
-                    'Father' => 'Vater',
+                    'Father' => 'Sorgeberechtigter 1',
 //                    'FatherSalutation'     => 'Anrede V',
 //                    'FatherLastName'         => 'Name V',
 //                    'FatherFirstName'         => 'Vorname V',
-                    'Mother' => 'Mutter',
+                    'Mother' => 'Sorgeberechtigter 2',
 //                    'MotherSalutation'         => 'Anrede M',
 //                    'MotherLastName'         => 'Name M',
 //                    'MotherFirstName'         => 'Vorname M',

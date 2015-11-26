@@ -2,6 +2,7 @@
 namespace SPHERE\System\Extension\Repository;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
+use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Template\Template;
 use SPHERE\Common\Window\Stage;
@@ -43,7 +44,7 @@ class Roadmap
         );
         Debugger::screenDump(__METHOD__);
 
-        $Document->saveFile(new \MOC\V\Component\Document\Component\Parameter\Repository\FileParameter('Roadmap.pdf'));
+        $Document->saveFile(new FileParameter('Roadmap.pdf'));
 
         Debugger::screenDump(__METHOD__);
 
@@ -62,6 +63,29 @@ class Roadmap
         $Release = new Release($Version, $Description, $isDone);
         array_push($this->Release, $Release);
         return $Release;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVersionNumber()
+    {
+
+        $Last = null;
+        foreach ($this->Release as $Release) {
+            if ($Release->isDone()) {
+                $Last = $Release;
+            } else {
+                if (!$Last) {
+                    $Last = $Release;
+                }
+            }
+        }
+        if ($Last) {
+            return $Last->getVersion();
+        } else {
+            return 'x.x.x';
+        }
     }
 }
 

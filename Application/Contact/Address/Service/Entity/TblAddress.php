@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Common\Frontend\Layout\Repository\Address as LayoutAddress;
-use SPHERE\System\Cache\Type\Memcached;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -39,14 +39,12 @@ class TblAddress extends Element
      */
     protected $PostOfficeBox;
     /**
-     * @Column(type="bigint")
-     * @ManyToOne(targetEntity="TblCity",fetch="EAGER")
+     * @ManyToOne(targetEntity="TblCity",fetch="EAGER",cascade={"persist"})
      * @JoinColumn(name="tblCity",referencedColumnName="Id")
      */
     protected $tblCity;
     /**
-     * @Column(type="bigint")
-     * @ManyToOne(targetEntity="TblState",fetch="EAGER")
+     * @ManyToOne(targetEntity="TblState",fetch="EAGER",cascade={"persist"})
      * @JoinColumn(name="tblState",referencedColumnName="Id")
      */
     protected $tblState;
@@ -75,10 +73,10 @@ class TblAddress extends Element
     public function getGuiLayout()
     {
 
-        $Cache = (new \SPHERE\System\Cache\Cache(new Memcached()))->getCache();
-        if (false === ( $Return = $Cache->getValue(__METHOD__.$this->getId()) )) {
+        $Cache = $this->getCache(new MemcachedHandler());
+        if (null === ($Return = $Cache->getValue( $this->getId(), __METHOD__))) {
             $Return = new LayoutAddress($this);
-            $Cache->setValue(__METHOD__.$this->getId(), (string)$Return);
+            $Cache->setValue( $this->getId(), (string)$Return, 0, __METHOD__);
         }
         return $Return;
     }
@@ -89,16 +87,16 @@ class TblAddress extends Element
     public function getGuiString()
     {
 
-        $Cache = (new \SPHERE\System\Cache\Cache(new Memcached()))->getCache();
-        if (false === ( $Return = $Cache->getValue(__METHOD__.$this->getId()) )) {
+        $Cache = $this->getCache(new MemcachedHandler());
+        if (null === ($Return = $Cache->getValue( $this->getId(), __METHOD__))) {
 
             $Return = $this->getStreetName()
-                .' '.$this->getStreetNumber()
-                .', '.$this->getTblCity()->getCode()
-                .' '.$this->getTblCity()->getName()
-                .( $this->getTblState() ? ' ('.$this->getTblState()->getName().')' : '' );
+                . ' ' . $this->getStreetNumber()
+                . ', ' . $this->getTblCity()->getCode()
+                . ' ' . $this->getTblCity()->getName()
+                . ($this->getTblState() ? ' (' . $this->getTblState()->getName() . ')' : '');
 
-            $Cache->setValue(__METHOD__.$this->getId(), $Return);
+            $Cache->setValue( $this->getId(), $Return, 0, __METHOD__);
         }
         return $Return;
     }
@@ -148,7 +146,11 @@ class TblAddress extends Element
         if (null === $this->tblCity) {
             return false;
         } else {
-            return Address::useService()->getCityById($this->tblCity);
+            if (is_object($this->tblCity)) {
+                return $this->tblCity;
+            } else {
+                return Address::useService()->getCityById($this->tblCity);
+            }
         }
     }
 
@@ -158,7 +160,7 @@ class TblAddress extends Element
     public function setTblCity(TblCity $tblCity = null)
     {
 
-        $this->tblCity = ( null === $tblCity ? null : $tblCity->getId() );
+        $this->tblCity = ( null === $tblCity ? null : $tblCity );
     }
 
     /**
@@ -170,7 +172,11 @@ class TblAddress extends Element
         if (null === $this->tblState) {
             return false;
         } else {
-            return Address::useService()->getStateById($this->tblState);
+            if (is_object($this->tblState)) {
+                return $this->tblState;
+            } else {
+                return Address::useService()->getStateById($this->tblState);
+            }
         }
     }
 
@@ -180,6 +186,6 @@ class TblAddress extends Element
     public function setTblState(TblState $tblState = null)
     {
 
-        $this->tblState = ( null === $tblState ? null : $tblState->getId() );
+        $this->tblState = ( null === $tblState ? null : $tblState );
     }
 }

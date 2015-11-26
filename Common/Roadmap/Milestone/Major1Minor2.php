@@ -23,9 +23,9 @@ class Major1Minor2
         $Release = $Roadmap->createRelease('1.2.0', 'KREDA (Ziel Q1 2016)');
 
         $Category = $Release->createCategory('Fakturierung');
-        $Category->createFeature('Leistungen');
-        $Category->createFeature('Buchhaltung');
-        $Category->createFeature('Rechnungswesen');
+        $Category->createFeature('Leistungen', '', true);
+        $Category->createFeature('Buchhaltung', '', false);
+        $Category->createFeature('Rechnungswesen', '', false);
 
         $Category = $Release->createCategory('Auswertungen');
         $Category->createFeature('Statistik / Berichte (ähnlich Fuxschool)');

@@ -1,7 +1,19 @@
 <?php
 namespace SPHERE\Common\Window;
 
-use MOC\V\Component\Template\Component\IBridgeInterface;use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;use SPHERE\Common\Frontend\ITemplateInterface;use SPHERE\Common\Frontend\Layout\Repository\Accordion;use SPHERE\Common\Script;use SPHERE\Common\Style;use SPHERE\Common\Window\Navigation\Link;use SPHERE\System\Extension\Extension;
+use MOC\V\Component\Template\Component\IBridgeInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\ITemplateInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Roadmap\Roadmap;
+use SPHERE\Common\Script;
+use SPHERE\Common\Style;
+use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Debugger\Logger\ErrorLogger;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Display
@@ -278,11 +290,20 @@ class Display extends Extension implements ITemplateInterface
         $Protocol = $Debug->getProtocol();
         if (!empty($Protocol)) {
             $this->Template->setVariable('DebuggerProtocol',
-                (new Accordion())->addItem('Debug Protocol ' . $Runtime, $Protocol)
+                (new Accordion())
+                    ->addItem('Debug Protocol ' . $Runtime, $Protocol)
+                    ->addItem('Debugger (Error)',
+                        implode('<br/>',(new DebuggerFactory())->createLogger(new ErrorLogger())->getLog())
+                    )
+                    ->addItem('Debugger (Benchmark)',
+                        implode('<br/>',(new DebuggerFactory())->createLogger(new BenchmarkLogger())->getLog())
+                    )
             );
         }
         $this->Template->setVariable('DebuggerHost', gethostname());
         $this->Template->setVariable('DebuggerRuntime', $Runtime);
+
+        $this->Template->setVariable('RoadmapVersion', (new Roadmap())->getVersionNumber());
 
         $this->Template->setVariable('Content', implode('', $this->Content));
         $this->Template->setVariable('PathBase', $this->getRequest()->getPathBase());
@@ -294,9 +315,9 @@ class Display extends Extension implements ITemplateInterface
         }
 
         $this->Template->setVariable('SeoTitle',
-            ( !trim(trim($this->getRequest()->getPathInfo(), '/'))
+            (!trim(trim($this->getRequest()->getPathInfo(), '/'))
                 ? ''
-                : ': '.str_replace('/', ' - ', trim($this->getRequest()->getPathInfo(), '/'))
+                : ': ' . str_replace('/', ' - ', trim($this->getRequest()->getPathInfo(), '/'))
             )
         );
 

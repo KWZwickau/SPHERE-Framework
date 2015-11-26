@@ -155,4 +155,54 @@ abstract class Agreement extends Student
             'TblStudentAgreementCategory'
         );
     }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentAgreementType $tblStudentAgreementType
+     *
+     * @return TblStudentAgreement
+     */
+    public function addStudentAgreement(
+        TblStudent $tblStudent,
+        TblStudentAgreementType $tblStudentAgreementType
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblStudentAgreement $Entity */
+        $Entity = $Manager->getEntity('TblStudentAgreement')->findOneBy(array(
+            TblStudentAgreement::ATTR_TBL_STUDENT => $tblStudent->getId(),
+            TblStudentAgreement::ATTR_TBL_STUDENT_AGREEMENT_TYPE => $tblStudentAgreementType->getId()
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblStudentAgreement();
+            $Entity->setTblStudent($tblStudent);
+            $Entity->setTblStudentAgreementType($tblStudentAgreementType);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblStudentAgreement $tblStudentAgreement
+     *
+     * @return bool
+     */
+    public function removeStudentAgreement(TblStudentAgreement $tblStudentAgreement)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblStudentAgreement $Entity */
+        $Entity = $Manager->getEntityById('TblStudentAgreement', $tblStudentAgreement->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
 }

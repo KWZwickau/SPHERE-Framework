@@ -4,6 +4,8 @@ namespace SPHERE\Application\People\Meta\Common\Service\Entity;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\JoinColumn;
+use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Person;
@@ -29,11 +31,15 @@ class TblCommon extends Element
      */
     protected $Remark;
     /**
-     * @Column(type="bigint")
+     * @Column(nullable=true)
+     * @ManyToOne(targetEntity="TblCommonBirthDates",fetch="EAGER",cascade={"persist"})
+     * @JoinColumn(name="tblCommonBirthDates",referencedColumnName="Id")
      */
     protected $tblCommonBirthDates;
     /**
-     * @Column(type="bigint")
+     * @Column(nullable=true)
+     * @ManyToOne(targetEntity="TblCommonInformation",fetch="EAGER",cascade={"persist"})
+     * @JoinColumn(name="tblCommonInformation",referencedColumnName="Id")
      */
     protected $tblCommonInformation;
 
@@ -64,7 +70,11 @@ class TblCommon extends Element
         if (null === $this->tblCommonBirthDates) {
             return false;
         } else {
-            return Common::useService()->getCommonBirthDatesById($this->tblCommonBirthDates);
+            if (is_object($this->tblCommonBirthDates)) {
+                return $this->tblCommonBirthDates;
+            } else {
+                return Common::useService()->getCommonBirthDatesById($this->tblCommonBirthDates);
+            }
         }
     }
 
@@ -74,7 +84,7 @@ class TblCommon extends Element
     public function setTblCommonBirthDates(TblCommonBirthDates $tblCommonBirthDates = null)
     {
 
-        $this->tblCommonBirthDates = ( null === $tblCommonBirthDates ? null : $tblCommonBirthDates->getId() );
+        $this->tblCommonBirthDates = (null === $tblCommonBirthDates ? null : $tblCommonBirthDates);
     }
 
     /**
@@ -86,7 +96,11 @@ class TblCommon extends Element
         if (null === $this->tblCommonInformation) {
             return false;
         } else {
-            return Common::useService()->getCommonInformationById($this->tblCommonInformation);
+            if (is_object($this->tblCommonInformation)) {
+                return $this->tblCommonInformation;
+            } else {
+                return Common::useService()->getCommonInformationById($this->tblCommonInformation);
+            }
         }
     }
 
@@ -96,7 +110,7 @@ class TblCommon extends Element
     public function setTblCommonInformation(TblCommonInformation $tblCommonInformation = null)
     {
 
-        $this->tblCommonInformation = ( null === $tblCommonInformation ? null : $tblCommonInformation->getId() );
+        $this->tblCommonInformation = (null === $tblCommonInformation ? null : $tblCommonInformation);
     }
 
     /**

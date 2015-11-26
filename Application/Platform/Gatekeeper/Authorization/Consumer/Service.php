@@ -6,8 +6,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Cache\Cache;
-use SPHERE\System\Cache\Type\Memory;
+use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -77,14 +76,14 @@ class Service extends AbstractService
     public function getConsumerBySession($Session = null)
     {
 
-        $Cache = (new Cache(new Memory(__METHOD__)))->getCache();
-        if (false === ( $tblConsumer = $Cache->getValue($Session) )) {
+        $Cache = $this->getCache(new MemoryHandler());
+        if (null === ($tblConsumer = $Cache->getValue($Session, __METHOD__))) {
             $tblConsumer = (new Data($this->getBinding()))->getConsumerBySession($Session);
             if ($tblConsumer) {
-                $Cache->setValue($Session, $tblConsumer);
+                $Cache->setValue($Session, $tblConsumer, 0, __METHOD__);
             } else {
                 $tblConsumer = (new Data($this->getBinding()))->getConsumerById(1);
-                $Cache->setValue($Session, $tblConsumer);
+                $Cache->setValue($Session, $tblConsumer, 0, __METHOD__);
             }
             return $tblConsumer;
         } else {
@@ -103,8 +102,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param string         $ConsumerAcronym
-     * @param string         $ConsumerName
+     * @param string $ConsumerAcronym
+     * @param string $ConsumerName
      *
      * @return IFormInterface|Redirect
      */
@@ -121,7 +120,7 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (null !== $ConsumerAcronym && empty( $ConsumerAcronym )) {
+        if (null !== $ConsumerAcronym && empty($ConsumerAcronym)) {
             $Form->setError('ConsumerAcronym', 'Bitte geben Sie ein Mandantenkürzel an');
             $Error = true;
         }
@@ -129,7 +128,7 @@ class Service extends AbstractService
             $Form->setError('ConsumerAcronym', 'Das Mandantenkürzel muss einzigartig sein');
             $Error = true;
         }
-        if (null !== $ConsumerName && empty( $ConsumerName )) {
+        if (null !== $ConsumerName && empty($ConsumerName)) {
             $Form->setError('ConsumerName', 'Bitte geben Sie einen gültigen Mandantenname ein');
             $Error = true;
         }

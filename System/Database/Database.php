@@ -23,9 +23,11 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\System\Cache\Cache;
+use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Cache\Type\Apcu;
 use SPHERE\System\Cache\Type\Memcached;
-use SPHERE\System\Cache\Type\Memory;
+use SPHERE\System\Config\ConfigFactory;
+use SPHERE\System\Config\Reader\IniReader;
 use SPHERE\System\Database\Fitting\Logger;
 use SPHERE\System\Database\Fitting\Manager;
 use SPHERE\System\Database\Link\Connection;
@@ -63,50 +65,53 @@ class Database extends Extension
         $this->Identifier = $Identifier;
         $Register = new Register();
         if (!$Register->hasConnection($this->Identifier)) {
-            $Configuration = parse_ini_file(__DIR__.'/Configuration.ini', true);
-            if (isset( $Configuration[$this->Identifier->getConfiguration(true)] )) {
-                $this->Configuration = $Configuration[$this->Identifier->getConfiguration(true)];
-                $Driver = '\\SPHERE\\System\\Database\\Type\\'.$this->Configuration['Driver'];
+            $Configuration = (new ConfigFactory())
+                ->createReader(__DIR__ . '/Configuration.ini', new IniReader())
+                ->getConfig();
+
+            if (null !== $Configuration->getContainer($this->Identifier->getConfiguration(true))) {
+                $this->Configuration = $Configuration->getContainer($this->Identifier->getConfiguration(true));
+                $Driver = '\\SPHERE\\System\\Database\\Type\\' . $this->Configuration->getContainer('Driver')->getValue();
                 $Register->addConnection(
                     $this->Identifier,
                     new Connection(
                         $this->Identifier,
                         new $Driver,
-                        $this->Configuration['Username'],
-                        $this->Configuration['Password'],
-                        empty( $this->Configuration['Database'] )
+                        $this->Configuration->getContainer('Username')->getValue(),
+                        $this->Configuration->getContainer('Password')->getValue(),
+                        (null === $this->Configuration->getContainer('Database')
                             ? str_replace(':', '', $this->Identifier->getConfiguration(false))
-                            : $this->Configuration['Database'],
-                        $this->Configuration['Host'],
-                        empty( $this->Configuration['Port'] )
+                            : $this->Configuration->getContainer('Database')->getValue()),
+                        $this->Configuration->getContainer('Host')->getValue(),
+                        (null === $this->Configuration->getContainer('Port')
                             ? null
-                            : $this->Configuration['Port'],
+                            : $this->Configuration->getContainer('Port')->getValue()),
                         $this->Timeout
                     )
                 );
             } else {
-                if (isset( $Configuration[$this->Identifier->getConfiguration(false)] )) {
-                    $this->Configuration = $Configuration[$this->Identifier->getConfiguration(false)];
-                    $Driver = '\\SPHERE\\System\\Database\\Type\\'.$this->Configuration['Driver'];
+                if (null !== $Configuration->getContainer($this->Identifier->getConfiguration(false))) {
+                    $this->Configuration = $Configuration->getContainer($this->Identifier->getConfiguration(false));
+                    $Driver = '\\SPHERE\\System\\Database\\Type\\' . $this->Configuration->getContainer('Driver')->getValue();
                     $Register->addConnection(
                         $this->Identifier,
                         new Connection(
                             $this->Identifier,
                             new $Driver,
-                            $this->Configuration['Username'],
-                            $this->Configuration['Password'],
-                            empty( $this->Configuration['Database'] )
+                            $this->Configuration->getContainer('Username')->getValue(),
+                            $this->Configuration->getContainer('Password')->getValue(),
+                            (null === $this->Configuration->getContainer('Database')
                                 ? str_replace(':', '', $this->Identifier->getConfiguration(false))
-                                : $this->Configuration['Database'],
-                            $this->Configuration['Host'],
-                            empty( $this->Configuration['Port'] )
+                                : $this->Configuration->getContainer('Database')->getValue()),
+                            $this->Configuration->getContainer('Host')->getValue(),
+                            (null === $this->Configuration->getContainer('Port')
                                 ? null
-                                : $this->Configuration['Port'],
+                                : $this->Configuration->getContainer('Port')->getValue()),
                             $this->Timeout
                         )
                     );
                 } else {
-                    throw new \Exception(__CLASS__.' > Missing Configuration: ('.$this->Identifier->getConfiguration().')');
+                    throw new \Exception(__CLASS__ . ' > Missing Configuration: (' . $this->Identifier->getConfiguration() . ')');
                 }
             }
         }
@@ -125,13 +130,14 @@ class Database extends Extension
 
         // Manager Cache
         /** @var Memcached $SystemMemcached */
-        $ManagerCache = (new Cache(new Memory(), true))->getCache();
-        $Manager = $ManagerCache->getValue($this->Identifier);
+        $ManagerCache = $this->getCache(new MemoryHandler());
+        $Manager = $ManagerCache->getValue((string)$this->Identifier, __METHOD__);
 
-        if (false === $Manager) {
+        // TODO: Unit of Work is out of Sync if Manager is cached (sometimes)
+        if (true || false === $Manager) {
 
             // Sanitize Namespace
-            $EntityNamespace = trim(str_replace(array('/', '\\'), '\\', $EntityNamespace), '\\').'\\';
+            $EntityNamespace = trim(str_replace(array('/', '\\'), '\\', $EntityNamespace), '\\') . '\\';
 
             // System Cache
             /** @var Memcached $SystemMemcached */
@@ -180,7 +186,7 @@ class Database extends Extension
                 EntityManager::create($this->getConnection()->getConnection(), $MetadataConfiguration), $EntityNamespace
             );
 
-            $ManagerCache->setValue($this->Identifier, $Manager);
+            $ManagerCache->setValue((string)$this->Identifier, $Manager, 0, __METHOD__);
         }
         return $Manager;
     }
@@ -312,10 +318,10 @@ class Database extends Extension
     public function addProtocol($Item)
     {
 
-        if (empty( $this->Protocol )) {
-            $this->Protocol[] = '<samp>'.$Item.'</samp>';
+        if (empty($this->Protocol)) {
+            $this->Protocol[] = '<samp>' . $Item . '</samp>';
         } else {
-            $this->Protocol[] = '<div>'.new Transfer().'&nbsp;<samp>'.$Item.'</samp></div>';
+            $this->Protocol[] = '<div>' . new Transfer() . '&nbsp;<samp>' . $Item . '</samp></div>';
         }
     }
 
@@ -331,18 +337,18 @@ class Database extends Extension
         if (count($this->Protocol) == 1) {
             $Protocol = new Success(
                 new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(new Ok().'&nbsp'.implode('', $this->Protocol), 9),
-                    new LayoutColumn(new Off().'&nbsp;Kein Update notwendig', 3)
+                    new LayoutColumn(new Ok() . '&nbsp' . implode('', $this->Protocol), 9),
+                    new LayoutColumn(new Off() . '&nbsp;Kein Update notwendig', 3)
                 ))))
             );
         } else {
             $Protocol = new Info(
                 new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(new Flash().'&nbsp;'.implode('', $this->Protocol), 9),
+                    new LayoutColumn(new Flash() . '&nbsp;' . implode('', $this->Protocol), 9),
                     new LayoutColumn(
-                        ( $Simulate
-                            ? new Warning().'&nbsp;Update notwendig'
-                            : new Ok().'&nbsp;Update durchgeführt'
+                        ($Simulate
+                            ? new Warning() . '&nbsp;Update notwendig'
+                            : new Ok() . '&nbsp;Update durchgeführt'
                         ), 3)
                 ))))
             );
