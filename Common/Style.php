@@ -80,6 +80,7 @@ class Style extends Extension
         }
 
         $this->setSource('/Common/Style/PhpInfo.css');
+        $this->setSource('/Common/Style/Addition.css');
     }
 
     /**

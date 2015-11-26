@@ -34,7 +34,7 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblGradeType = $this->setTableGradeType($Schema);
         $tblTest = $this->setTableTest($Schema, $tblGradeType);
-        $this->setTableGradeStudentSubjectLink($Schema, $tblGradeType, $tblTest);
+        $this->setTableGrade($Schema, $tblGradeType, $tblTest);
 
         /**
          * Migration & Protocol
@@ -114,26 +114,26 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableGradeStudentSubjectLink(Schema &$Schema, Table $tblGradeType, Table $tblTest)
+    private function setTableGrade(Schema &$Schema, Table $tblGradeType, Table $tblTest)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblGradeStudentSubjectLink');
-        if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'Grade')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblGrade');
+        if (!$this->getConnection()->hasColumn('tblGrade', 'Grade')) {
             $Table->addColumn('Grade', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'Comment')) {
+        if (!$this->getConnection()->hasColumn('tblGrade', 'Comment')) {
             $Table->addColumn('Comment', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'serviceTblPerson')) {
+        if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'serviceTblSubject')) {
+        if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblSubject')) {
             $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'serviceTblPeriod')) {
+        if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblPeriod')) {
             $Table->addColumn('serviceTblPeriod', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'serviceTblDivision')) {
+        if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblDivision')) {
             $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));
         }
 

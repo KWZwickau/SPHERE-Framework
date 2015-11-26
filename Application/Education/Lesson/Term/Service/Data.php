@@ -5,8 +5,12 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYearPeriod;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Cache\CacheFactory;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 
 /**
  * Class Data
@@ -57,9 +61,9 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblPeriod')->findOneBy(array(
-            TblPeriod::ATTR_NAME        => $Name,
-            TblPeriod::ATTR_FROM_DATE   => (new \DateTime($From)),
-            TblPeriod::ATTR_TO_DATE     => (new \DateTime($To)),
+            TblPeriod::ATTR_NAME => $Name,
+            TblPeriod::ATTR_FROM_DATE => (new \DateTime($From)),
+            TblPeriod::ATTR_TO_DATE => (new \DateTime($To)),
             TblPeriod::ATTR_DESCRIPTION => $Description
         ));
         if (null === $Entity) {
@@ -176,7 +180,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblYear   $tblYear
+     * @param TblYear $tblYear
      * @param TblPeriod $tblPeriod
      *
      * @return TblYearPeriod
@@ -187,7 +191,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblYearPeriod')
             ->findOneBy(array(
-                TblYearPeriod::ATTR_TBL_YEAR   => $tblYear->getId(),
+                TblYearPeriod::ATTR_TBL_YEAR => $tblYear->getId(),
                 TblYearPeriod::ATTR_TBL_PERIOD => $tblPeriod->getId()
             ));
         if (null === $Entity) {
@@ -201,7 +205,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblYear   $tblYear
+     * @param TblYear $tblYear
      * @param TblPeriod $tblPeriod
      *
      * @return bool
@@ -213,7 +217,7 @@ class Data extends AbstractData
         /** @var TblYearPeriod $Entity */
         $Entity = $Manager->getEntity('TblYearPeriod')
             ->findOneBy(array(
-                TblYearPeriod::ATTR_TBL_YEAR   => $tblYear->getId(),
+                TblYearPeriod::ATTR_TBL_YEAR => $tblYear->getId(),
                 TblYearPeriod::ATTR_TBL_PERIOD => $tblPeriod->getId()
             ));
         if (null !== $Entity) {
@@ -231,16 +235,27 @@ class Data extends AbstractData
      */
     public function getPeriodAllByYear(TblYear $tblYear)
     {
-
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' Start');
         /** @var TblYearPeriod[] $EntityList */
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblYearPeriod')->findBy(array(
-            TblYearPeriod::ATTR_TBL_YEAR => $tblYear->getId()
-        ));
-        array_walk($EntityList, function (TblYearPeriod &$V) {
+        $EntityList = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYearPeriod',
+            array(
+                TblYearPeriod::ATTR_TBL_YEAR => $tblYear->getId()
+            ));
+        $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
+        if (null === ($ResultList = $Cache->getValue($tblYear->getId(), __METHOD__))
+            && !empty($EntityList)
+        ) {
 
-            $V = $V->getTblPeriod();
-        });
-        return ( null === $EntityList ? false : $EntityList );
+            array_walk($EntityList, function (TblYearPeriod &$V) {
+
+                $V = $V->getTblPeriod();
+            });
+            $Cache->setValue($tblYear->getId(), $EntityList, 0, __METHOD__);
+        } else {
+            $EntityList = $ResultList;
+        }
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' Stop');
+        return (null === $EntityList ? false : $EntityList);
     }
 
     /**
@@ -254,7 +269,7 @@ class Data extends AbstractData
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblYearPeriod')->findOneBy(array(
             TblYearPeriod::ATTR_TBL_PERIOD => $tblPeriod->getId()
         ));
-        return ( null === $Entity ? false : true );
+        return (null === $Entity ? false : true);
     }
 
     /**

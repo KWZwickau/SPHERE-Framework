@@ -6,16 +6,16 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\TransactionRequiredException;
-use SPHERE\System\Cache\Cache;
-use SPHERE\System\Cache\Type\Memcached;
-use SPHERE\System\Cache\Type\Memory;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\MemoryHandler;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Manager
  *
  * @package SPHERE\System\Database\Fitting
  */
-class Manager
+class Manager extends Extension
 {
 
     /** @var EntityManager $EntityManager */
@@ -25,7 +25,7 @@ class Manager
 
     /**
      * @param EntityManager $EntityManager
-     * @param string        $Namespace
+     * @param string $Namespace
      */
     final function __construct(EntityManager $EntityManager, $Namespace)
     {
@@ -55,12 +55,12 @@ class Manager
     {
 
         // MUST NOT USE Cache-System
-        return $this->EntityManager->getRepository($this->Namespace.$ClassName);
+        return $this->EntityManager->getRepository($this->Namespace . $ClassName);
     }
 
     /**
      * @param string $ClassName
-     * @param int    $Id
+     * @param int $Id
      *
      * @throws ORMException
      * @throws OptimisticLockException
@@ -71,7 +71,7 @@ class Manager
     {
 
         // MUST NOT USE Cache-System
-        return $Entity = $this->EntityManager->find($this->Namespace.$ClassName, $Id);
+        return $Entity = $this->EntityManager->find($this->Namespace . $ClassName, $Id);
     }
 
     /**
@@ -95,8 +95,8 @@ class Manager
 
         $this->EntityManager->flush();
         // Clear distributed Cache-System (if possible)
-        (new Cache(new Memcached()))->getCache()->clearCache();
-        (new Cache(new Memory()))->getCache()->clearCache();
+        $this->getCache(new MemcachedHandler())->clearCache();
+        $this->getCache(new MemoryHandler())->clearCache();
         return $this;
     }
 

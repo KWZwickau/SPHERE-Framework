@@ -2,6 +2,7 @@
 namespace SPHERE\System\Cache\Type;
 
 use SPHERE\System\Cache\IApiInterface;
+use SPHERE\System\Config\ConfigContainer;
 use SPHERE\System\Extension\Repository\Debugger;
 
 /**
@@ -175,13 +176,13 @@ class Memcached implements IApiInterface
     }
 
     /**
-     * @param array $Configuration
+     * @param ConfigContainer $Configuration
      */
     public function setConfiguration($Configuration)
     {
 
-        self::$Host = (string)$Configuration['Host'];
-        self::$Port = (integer)$Configuration['Port'];
+        self::$Host = (string)$Configuration->getContainer('Host')->getValue();
+        self::$Port = (integer)$Configuration->getContainer('Port')->getValue();
 
         if (self::$Host && self::$Port) {
             if ($this->isAvailable() && null === self::$Server) {

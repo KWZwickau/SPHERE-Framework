@@ -587,12 +587,21 @@ class Data extends AbstractData
     {
 
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblSubjectTeacher')
-            ->findOneBy(array(
-                TblSubjectTeacher::ATTR_SERVICE_TBL_PERSON   => $tblPerson->getId(),
-                TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
-                //ToDO lehrer in verschiedenen Gruppen?
-            ));
+        if (null !== $tblSubjectGroup) {
+            $Entity = $Manager->getEntity('TblSubjectTeacher')
+                ->findOneBy(array(
+                    TblSubjectTeacher::ATTR_SERVICE_TBL_PERSON   => $tblPerson->getId(),
+                    TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
+                    TblSubjectTeacher::ATTR_TBL_SUBJECT_GROUP    => $tblSubjectGroup->getId(),
+                ));
+        } else {
+            $Entity = $Manager->getEntity('TblSubjectTeacher')
+                ->findOneBy(array(
+                    TblSubjectTeacher::ATTR_SERVICE_TBL_PERSON   => $tblPerson->getId(),
+                    TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
+                ));
+        }
+
         if (null === $Entity) {
             $Entity = new TblSubjectTeacher();
             $Entity->setServiceTblPerson($tblPerson);

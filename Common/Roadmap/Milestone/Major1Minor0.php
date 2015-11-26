@@ -26,9 +26,18 @@ class Major1Minor0
         $Category = $Release->createCategory('Bildung');
         $Feature = $Category->createFeature('Zensuren');
         $Task = $Feature->createTask('Elektronisches Notenbuch')
-            ->createDuty('Basisfunktionalitäten', false)
-            ->createDuty('Eingabe/Ausgabe von Zensuren', false)
+            ->createDuty('Basisfunktionalitäten', true)
+            ->createDuty('Eingabe/Ausgabe von Zensuren', true)
             ->createDuty('Anlegen & Auswahl von Leistungsüberprüfungen', true);
+
+        // Einstellungen
+        $Category = $Release->createCategory('Einstellungen');
+
+        $Feature = $Category->createFeature('Benutzer');
+        $Feature->createTask('Benutzerkonten')
+            ->createDuty('Benutzerkonten bearbeiten', false);
+        $Feature->createTask('Mein Benutzerkonto')
+            ->createDuty('Informationen anzeigen (Vervollständigen)', false);
 
         // Auswertungen
         $Release->createCategory('Auswertungen')

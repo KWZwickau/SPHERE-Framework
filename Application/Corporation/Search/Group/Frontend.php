@@ -1,12 +1,14 @@
 <?php
 namespace SPHERE\Application\Corporation\Search\Group;
 
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
+use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -17,16 +19,21 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Italic;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
  *
  * @package SPHERE\Application\Corporation\Search\Group
  */
-class Frontend implements IFrontendInterface
+class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
@@ -36,17 +43,19 @@ class Frontend implements IFrontendInterface
      */
     public function frontendSearch($Id = false)
     {
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':LoadFrontend');
 
         $Stage = new Stage('Suche', 'nach Gruppe');
 
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartMenu');
         $tblGroupAll = Group::useService()->getGroupAll();
-        if (!empty( $tblGroupAll )) {
+        if (!empty($tblGroupAll)) {
             /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblGroupAll, function (TblGroup &$tblGroup, $Index, Stage $Stage) {
 
                 $Stage->addButton(
                     new Standard(
-                        $tblGroup->getName(),
+                        $tblGroup->getName() . '&nbsp;&nbsp;' . new Label(Group::useService()->countCompanyAllByGroup($tblGroup)),
                         new Route(__NAMESPACE__), new PersonGroup(),
                         array(
                             'Id' => $tblGroup->getId()
@@ -54,36 +63,66 @@ class Frontend implements IFrontendInterface
                 );
             }, $Stage);
         }
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopMenu');
 
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartContent');
         $tblGroup = Group::useService()->getGroupById($Id);
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':GroupLoaded');
         if ($tblGroup) {
 
             $tblCompanyAll = Group::useService()->getCompanyAllByGroup($tblGroup);
-
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':ListLoaded');
+            $Result = array();
             if ($tblCompanyAll) {
-                array_walk($tblCompanyAll, function (TblCompany &$tblCompany) use ($tblGroup) {
+                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartRun');
+                array_walk($tblCompanyAll, function (TblCompany &$tblCompany) use ($tblGroup, &$Result) {
+
+                    $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
+                    if ($tblAddressAll) {
+                        $tblToPerson = $tblAddressAll[0];
+                        $tblAddressAll = $tblToPerson->getTblAddress()->getGuiString()
+                            . ($tblToPerson->getRemark()
+                                ? '<br/>' . new Small(new Muted($tblToPerson->getRemark()))
+                                : ''
+                            );
+                    }
+
+                    array_push($Result, array(
+                        'Name' => $tblCompany->getName(),
+                        'Address' => ($tblAddressAll
+                            ? $tblAddressAll
+                            : new Warning('Keine Adresse hinterlegt')
+                        ),
+                        'Option' => new Standard('', '/People/Person', new Pencil(), array(
+                            'Id' => $tblCompany->getId(),
+                            'Group' => $tblGroup->getId()
+                        ), 'Bearbeiten'),
+                        'Description' => $tblCompany->getDescription()
+                    ));
 
                     $tblCompany->Option = new Standard('', '/Corporation/Company', new Pencil(),
                         array('Id' => $tblCompany->getId(), 'Group' => $tblGroup->getId()), 'Bearbeiten');
                 });
+                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopRun');
             }
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(
-                        new Panel(new PersonGroup().' Gruppe', array(
+                        new Panel(new PersonGroup() . ' Gruppe', array(
                             new Bold($tblGroup->getName()),
-                            ( $tblGroup->getDescription() ? new Small($tblGroup->getDescription()) : '' ),
-                            ( $tblGroup->getRemark() ? new Danger(new Italic(nl2br($tblGroup->getRemark()))) : '' )
+                            ($tblGroup->getDescription() ? new Small($tblGroup->getDescription()) : ''),
+                            ($tblGroup->getRemark() ? new Danger(new Italic(nl2br($tblGroup->getRemark()))) : '')
                         ), Panel::PANEL_TYPE_SUCCESS
                         )
                     )),
                     new LayoutRow(new LayoutColumn(array(
                         new Headline('Verfügbare Firmen', 'in dieser Gruppe'),
-                        new TableData($tblCompanyAll, null,
+                        new TableData($Result, null,
                             array(
-                                'Name'        => 'Name',
+                                'Name' => 'Name',
+                                'Address' => 'Adresse',
                                 'Description' => 'Beschreibung',
-                                'Option'      => 'Optionen',
+                                'Option' => 'Optionen',
                             )
                         )
                     )))

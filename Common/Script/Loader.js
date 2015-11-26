@@ -1,9 +1,9 @@
-var Client = (function()
+var Client = (function ()
 {
     'use strict';
     var useDelay = 30;
     var useConfig = {};
-    var setModule = function(Module, Depending)
+    var setModule = function (Module, Depending)
     {
         useConfig[Module] = {
             Depending: Depending,
@@ -13,14 +13,14 @@ var Client = (function()
             /**
              * @return {boolean}
              */
-            Test: function()
+            Test: function ()
             {
                 return 'undefined' !== typeof jQuery.fn[Module];
             },
             isUsed: false,
             isLoaded: false,
             Retry: 0,
-            isReady: function(Callback)
+            isReady: function (Callback)
             {
                 var dependingModule, dependingSize = this.Depending.length - 1;
                 for (dependingSize; 0 <= dependingSize; dependingSize--) {
@@ -46,11 +46,11 @@ var Client = (function()
             }
         };
     };
-    var setSource = function(Module, Source, Test)
+    var setSource = function (Module, Source, Test)
     {
         defineSource(Module, [], Source, Test);
     };
-    var defineSource = function(Module, Depending, Source, Test)
+    var defineSource = function (Module, Depending, Source, Test)
     {
         useConfig[Module] = {
             Depending: Depending,
@@ -59,7 +59,7 @@ var Client = (function()
             isUsed: false,
             isLoaded: false,
             Retry: 0,
-            isReady: function(Callback)
+            isReady: function (Callback)
             {
                 var dependingModule;
                 var dependingSize = this.Depending.length - 1;
@@ -87,33 +87,37 @@ var Client = (function()
             }
         };
     };
-    var loadScript = function(Source)
+    var loadScript = function (Source)
     {
         var htmlElement = document.createElement("script");
         htmlElement.src = Source;
         document.body.appendChild(htmlElement);
     };
-    var loadModule = function(Module)
+    var loadModule = function (Module)
     {
         if (!useConfig[Module].isUsed) {
             loadScript(useConfig[Module].Source);
             useConfig[Module].isUsed = true;
         }
     };
-    var waitModule = function(Module, Callback)
+    var waitModule = function (Module, Callback)
     {
         if (useConfig[Module].isReady(Callback)) {
             return Callback();
         } else {
-            if (1000 < useConfig[Module].Retry) {
+            if (2000 < useConfig[Module].Retry) {
                 if (console && console.log) {
                     console.log('Unable to load ' + Module)
+                }
+                if ('undefined' != typeof jQuery) {
+                    jQuery('span.loading-indicator').hide();
+                    jQuery('span.loading-error').show();
                 }
                 return false;
             } else {
                 useConfig[Module].Retry++;
             }
-            window.setTimeout(function()
+            window.setTimeout(function ()
             {
                 waitModule(Module, Callback);
             }, useDelay);
@@ -130,6 +134,26 @@ var Client = (function()
         }
         return waitModule(Module, Callback);
     };
+    var useIndicator = function useIndicator()
+    {
+        window.setTimeout(function ()
+        {
+            var isFinished = true;
+            for (var Index in useConfig) {
+                if (useConfig.hasOwnProperty(Index)) {
+                    if (useConfig[Index].isUsed && !useConfig[Index].isLoaded) {
+                        isFinished = false;
+                    }
+                }
+            }
+            if (!isFinished || 'undefined' == typeof jQuery) {
+                useIndicator();
+            } else {
+                jQuery('span.loading-indicator').hide();
+            }
+        }, useDelay);
+    };
+    useIndicator();
     return {
         Module: setModule,
         Source: setSource,

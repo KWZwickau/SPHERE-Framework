@@ -9,6 +9,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
+use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -24,13 +25,17 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
  *
  * @package SPHERE\Application\People\Search\Group
  */
-class Frontend implements IFrontendInterface
+class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
@@ -40,9 +45,11 @@ class Frontend implements IFrontendInterface
      */
     public function frontendSearch($Id = false)
     {
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':LoadFrontend');
 
         $Stage = new Stage('Suche', 'nach Gruppe');
 
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartMenu');
         $tblGroupAll = Group::useService()->getGroupAll();
         if (!empty( $tblGroupAll )) {
             /** @noinspection PhpUnusedParameterInspection */
@@ -50,7 +57,7 @@ class Frontend implements IFrontendInterface
 
                 $Stage->addButton(
                     new Standard(
-                        $tblGroup->getName(),
+                        $tblGroup->getName() . '&nbsp;&nbsp;' . new Label(Group::useService()->countPersonAllByGroup($tblGroup)),
                         new Route(__NAMESPACE__), new PersonGroup(),
                         array(
                             'Id' => $tblGroup->getId()
@@ -58,40 +65,51 @@ class Frontend implements IFrontendInterface
                 );
             }, $Stage);
         }
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopMenu');
 
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartContent');
         $tblGroup = Group::useService()->getGroupById($Id);
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':GroupLoaded');
         if ($tblGroup) {
 
             $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':ListLoaded');
 
-            $Result = array();
-            if ($tblPersonAll) {
-                array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result) {
+            $Cache = $this->getCache(new MemcachedHandler());
+            if (null === ($Result = $Cache->getValue($Id, __METHOD__))) {
+                $Result = array();
+                if ($tblPersonAll) {
+                    (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartRun');
+                    array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result) {
 
 
-                    $tblAddressAll = Address::useService()->getAddressAllByPerson($tblPerson);
-                    if ($tblAddressAll) {
-                        $tblToPerson = $tblAddressAll[0];
-                        $tblAddressAll = $tblToPerson->getTblAddress()->getGuiString()
-                            .( $tblToPerson->getRemark()
-                                ? '<br/>'.new Small(new Muted($tblToPerson->getRemark()))
-                                : ''
-                            );
-                    }
+                        $tblAddressAll = Address::useService()->getAddressAllByPerson($tblPerson);
+                        if ($tblAddressAll) {
+                            $tblToPerson = $tblAddressAll[0];
+                            $tblAddressAll = $tblToPerson->getTblAddress()->getGuiString()
+                                . ($tblToPerson->getRemark()
+                                    ? '<br/>' . new Small(new Muted($tblToPerson->getRemark()))
+                                    : ''
+                                );
+                        }
 
-                    array_push($Result, array(
-                        'FullName' => $tblPerson->getFullName(),
-                        'Address'  => ( $tblAddressAll
-                            ? $tblAddressAll
-                            : new Warning('Keine Adresse hinterlegt')
-                        ),
-                        'Option'   => new Standard('', '/People/Person', new Pencil(), array(
-                            'Id'    => $tblPerson->getId(),
-                            'Group' => $tblGroup->getId()
-                        ), 'Bearbeiten'),
-                        'Remark'   => ( ( $Common = Common::useService()->getCommonByPerson($tblPerson) ) ? $Common->getRemark() : '' )
-                    ));
-                });
+                        array_push($Result, array(
+                            'FullName' => $tblPerson->getFullName(),
+                            'Address' => ($tblAddressAll
+                                ? $tblAddressAll
+                                : new Warning('Keine Adresse hinterlegt')
+                            ),
+                            'Option' => new Standard('', '/People/Person', new Pencil(), array(
+                                'Id' => $tblPerson->getId(),
+                                'Group' => $tblGroup->getId()
+                            ), 'Bearbeiten'),
+                            'Remark' => (($Common = Common::useService()->getCommonByPerson($tblPerson)) ? $Common->getRemark() : '')
+                        ));
+                    });
+                    (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopRun');
+
+                    $Cache->setValue($Id, $Result, 0, __METHOD__);
+                }
             }
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(

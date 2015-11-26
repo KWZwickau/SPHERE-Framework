@@ -29,11 +29,11 @@ class Major1Minor1
         $Task->createDuty('Konfiguration', true);
         $Task->createDuty('Performance', true);
         $Task = $Feature->createTask('ApcU');
-        $Task->createDuty('Konfiguration');
+        $Task->createDuty('Konfiguration', true);
         $Feature = $Category->createFeature('Database System');
         $Task = $Feature->createTask('MySql');
-        $Task->createDuty('Konfiguration');
-        $Task->createDuty('Performance');
+        $Task->createDuty('Konfiguration', true);
+        $Task->createDuty('Performance', true);
         $Feature = $Category->createFeature('Code Style');
         $Feature->createTask('PSR-1/PSR2');
         $Category->createFeature('Code Performance', '', false);
@@ -42,6 +42,12 @@ class Major1Minor1
         $Category = $Release->createCategory('Bildung');
         $Feature = $Category->createFeature('Zensuren');
         $Feature->createTask('Zeugnisdruck (vorerst feste Zeugnislayouts)');
+
+        $Feature = $Category->createFeature('Unterricht');
+        $Feature->createTask('Fächer')
+            ->createDuty('Fach löschen');
+        $Feature->createTask('Fach-Kategorie')
+            ->createDuty('Kategorie löschen');
 
         // Personenverwaltung
         $Category = $Release->createCategory('Personenverwaltung');

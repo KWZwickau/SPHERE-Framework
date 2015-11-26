@@ -60,24 +60,6 @@ abstract class Element extends Extension
     }
 
     /**
-     * @return integer
-     */
-    final public function getId()
-    {
-
-        return $this->Id;
-    }
-
-    /**
-     * @param integer $Id
-     */
-    final public function setId($Id)
-    {
-
-        $this->Id = $Id;
-    }
-
-    /**
      * @throws \Exception
      */
     final public function __toArray()
@@ -112,5 +94,34 @@ abstract class Element extends Extension
     {
 
         return $this->EntityUpdate;
+    }
+
+    /**
+     * Return Object-Id
+     * Fix: Doctrine - Entity can't be converted to 'string' while getting Entity-Id
+     *
+     * @return string
+     */
+    final public function __toString()
+    {
+        return strval( $this->getId() );
+    }
+
+    /**
+     * @return integer
+     */
+    final public function getId()
+    {
+
+        return $this->Id;
+    }
+
+    /**
+     * @param integer $Id
+     */
+    final public function setId($Id)
+    {
+
+        $this->Id = $Id;
     }
 }

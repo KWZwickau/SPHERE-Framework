@@ -75,6 +75,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblMember', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasIndex($Table, array('serviceTblPerson'))) {
+            $Table->addIndex(array('serviceTblPerson'));
+        }
         $this->getConnection()->addForeignKey($Table, $tblGroup);
         return $Table;
     }

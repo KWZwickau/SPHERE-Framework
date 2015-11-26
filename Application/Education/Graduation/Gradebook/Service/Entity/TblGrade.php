@@ -25,10 +25,10 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity()
- * @Table(name="tblGradeStudentSubjectLink")
+ * @Table(name="tblGrade")
  * @Cache(usage="READ_ONLY")
  */
-class TblGradeStudentSubjectLink extends Element
+class TblGrade extends Element
 {
 
     const ATTR_TBL_GRADE_TYPE = 'tblGradeType';
