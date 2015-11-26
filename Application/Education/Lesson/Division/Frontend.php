@@ -1318,8 +1318,8 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $tblDivisionSubject->Teacher = $teacherString;
 
-                    }
                 }
+            }
 
 //            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
 //            $Content = array();
@@ -1377,10 +1377,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
-                                new TableData($tblDivisionSubjectList, null, array('Name'    => 'Name',
-                                                                                   'Acronym' => 'Kürzel',
+                                new TableData($tblDivisionSubjectList, null, array('Acronym' => 'Kürzel',
+                                                                                   'Name'    => 'Name',
                                                                                    'Teacher' => 'Lehrer',
-                                                                                   'Option'  => 'Lehrer Zuweisen'))
+                                                                                   'Option'  => 'Lehrer Zuweisung'))
                             )
                         )
                     )
