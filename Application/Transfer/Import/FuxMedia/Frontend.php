@@ -267,4 +267,44 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $View;
     }
+
+    /**
+     * @param UploadedFile|null $File
+     *
+     * @return Stage
+     */
+    public function frontendCompanyImport(UploadedFile $File = null)
+    {
+
+        $View = new Stage();
+        $View->setTitle('FuxSchool Import');
+        $View->setDescription('Firmendaten');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                                FuxSchool::useService()->createTeachersFromFile(
+                                    new Form(
+                                        new FormGroup(
+                                            new FormRow(
+                                                new FormColumn(
+                                                    new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                        array('showPreview' => false))
+                                                )
+                                            )
+                                        )
+                                        , new Primary('Hochladen')
+                                    ), $File
+                                )
+                            ,
+                                new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
+                            )
+                        ))
+                )
+            )
+        );
+
+        return $View;
+    }
 }

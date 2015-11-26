@@ -31,6 +31,9 @@ class FuxSchool implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Division/Import', __NAMESPACE__.'\Frontend::frontendDivisionImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Company', __NAMESPACE__.'\Frontend::frontendCompanyImport'
+        ));
     }
 
     /**
