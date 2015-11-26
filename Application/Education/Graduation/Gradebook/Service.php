@@ -4,6 +4,13 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGradeTypeList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroup;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Setup;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -360,10 +367,73 @@ class Service extends AbstractService
 
         foreach ($Grade as $key => $value) {
             $grade = $this->getGradeById($key);
-//            Debugger::screenDump($key, $grade);
             (new Data($this->getBinding()))->updateGrade($grade, $value['Grade'], $value['Comment']);
         }
 
         return new Redirect('/Education/Graduation/Gradebook/Test', 0);
     }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreGroup
+     */
+    public function getScoreGroupById($Id)
+    {
+        return (new Data($this->getBinding()))->getScoreGroupById($Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreCondition
+     */
+    public function getScoreConditionById($Id)
+    {
+        return (new Data($this->getBinding()))->getScoreConditionById($Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreRule
+     */
+    public function getScoreRuleById($Id)
+    {
+        return (new Data($this->getBinding()))->getScoreRuleById($Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreRuleConditionList
+     */
+    public function getScoreRuleConditionListById($Id)
+    {
+        return (new Data($this->getBinding()))->getScoreRuleConditionListById($Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreConditionGradeTypeList
+     */
+    public function getScoreConditionGradeTypeListById($Id)
+    {
+        return (new Data($this->getBinding()))->getScoreConditionGradeTypeListById($Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreConditionGroupList
+     */
+    public function getScoreConditionGroupListById($Id)
+    {
+        return (new Data($this->getBinding()))->getScoreConditionGroupListById($Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreGroupGradeTypeList
+     */
+    public function getScoreGroupGradeTypeListById($Id)
+    {
+        return (new Data($this->getBinding()))->getScoreGroupGradeTypeListById($Id);
+    }
+
 }

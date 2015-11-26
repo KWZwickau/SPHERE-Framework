@@ -10,6 +10,13 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGradeTypeList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroup;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -356,4 +363,73 @@ class Data extends AbstractData
         return empty($EntityList) ? false : $EntityList;
     }
 
+    /**
+     * @param $Id
+     * @return bool|TblScoreGroup
+     */
+    public function getScoreGroupById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreGroup', $Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreCondition
+     */
+    public function getScoreConditionById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreCondition', $Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreRule
+     */
+    public function getScoreRuleById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreRule', $Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreRuleConditionList
+     */
+    public function getScoreRuleConditionListById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreRuleConditionList', $Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreConditionGradeTypeList
+     */
+    public function getScoreConditionGradeTypeListById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreConditionGradeTypeList', $Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreConditionGroupList
+     */
+    public function getScoreConditionGroupListById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreConditionGroupList', $Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreGroupGradeTypeList
+     */
+    public function getScoreGroupGradeTypeListById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreGroupGradeTypeList', $Id);
+    }
 }
