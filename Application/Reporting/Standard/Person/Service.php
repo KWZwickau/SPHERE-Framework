@@ -11,6 +11,7 @@ use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Search\Group\Group;
@@ -193,7 +194,7 @@ class Service
 
             foreach ($studentList as $tblPerson) {
                 $All++;
-                $tblPerson->Number = $All;
+                $tblPerson->Number = '';
                 $tblPerson->Name = $tblPerson->getLastName() . ', ' . $tblPerson->getFirstName();
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
@@ -211,6 +212,13 @@ class Service
                     } else {
                         $tblPerson->Gender = '';
                     }
+
+                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                    if($tblStudent)
+                    {
+                        $tblPerson->Number = $tblStudent->getIdentifier();
+                    }
+
                 } else {
                     $tblPerson->Gender = '';
                 }
@@ -388,7 +396,7 @@ class Service
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell("0", "0"), "lfd. Nr.");
+            $export->setValue($export->getCell("0", "0"), "Schülernummer");
             $export->setValue($export->getCell("1", "0"), "Name, Vorname");
             $export->setValue($export->getCell("2", "0"), "Geschlecht");
             $export->setValue($export->getCell("3", "0"), "Adresse");
@@ -610,7 +618,8 @@ class Service
             foreach ($studentList as $tblPerson) {
 
                 $All++;
-                $tblPerson->Number = $All;
+                $tblPerson->MedicalInsurance = '';
+                $tblPerson->Number = '';
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
                     $tblBirhdates = $tblCommon->getTblCommonBirthDates();
@@ -626,6 +635,13 @@ class Service
                         }
                     } else {
                         $tblPerson->Gender = '';
+                    }
+
+                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                    if($tblStudent)
+                    {
+                        $tblPerson->MedicalInsurance = $tblStudent->getTblStudentMedicalRecord()->getInsurance();
+                        $tblPerson->Number = $tblStudent->getIdentifier();
                     }
                 } else {
                     $tblPerson->Gender = '';
@@ -658,13 +674,8 @@ class Service
                     $tblPerson->Birthday = $tblPerson->Birthplace = '';
                 }
 
-                $krankenkassen = array('AOK', 'BKK', 'Barmer', 'TKK', 'DAK', 'Signal-Iduna', 'LKK', 'IKK', 'KKH', 'TK');
-                shuffle($krankenkassen);
-                $tblPerson->MedicalInsurance = $krankenkassen[0]; //ToDO Krankenkasse
-
                 $Guardian1 = null;
                 $Guardian2 = null;
-
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     $Count = 0;
@@ -751,7 +762,7 @@ class Service
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell("0", "0"), "lfd. Nr.");
+            $export->setValue($export->getCell("0", "0"), "Schülernummer");
             $export->setValue($export->getCell("1", "0"), "Name, Vorname");
             $export->setValue($export->getCell("2", "0"), "Anschrift");
             $export->setValue($export->getCell("3", "0"), "Geburtsdatum");
