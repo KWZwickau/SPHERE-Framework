@@ -4,6 +4,7 @@ namespace SPHERE\System\Cache\Handler;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Config\Reader\ReaderInterface;
 use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 
 /**
@@ -71,7 +72,8 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     public function setValue($Key, $Value, $Timeout = 0, $Region = 'Default')
     {
         if ($this->isValid()) {
-            $this->Connection->set($Key, $Value, (!$Timeout ? null : time() + $Timeout));
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' - ' . $Region . '#' . $Key);
+            $this->Connection->set($Region . '#' . $Key, $Value, (!$Timeout ? null : time() + $Timeout));
         }
         return $this;
     }
@@ -92,7 +94,8 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     public function getValue($Key, $Region = 'Default')
     {
         if ($this->isValid()) {
-            $Value = $this->Connection->get($Key);
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' - ' . $Region . '#' . $Key);
+            $Value = $this->Connection->get($Region . '#' . $Key);
             // 0 = MEMCACHED_SUCCESS
             if (0 == ($Code = $this->Connection->getResultCode())) {
                 return $Value;

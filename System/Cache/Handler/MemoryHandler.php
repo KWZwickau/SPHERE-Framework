@@ -72,11 +72,16 @@ class MemoryHandler extends AbstractHandler implements HandlerInterface
     }
 
     /**
+     * @param null|string $Region
      * @return MemoryHandler
      */
-    public function clearCache()
+    public function clearCache($Region = null)
     {
-        $this->MemoryRegister = array();
+        if (null === $Region) {
+            $this->MemoryRegister = array();
+        } else {
+            $this->MemoryRegister[$Region] = array();
+        }
         return $this;
     }
 }
