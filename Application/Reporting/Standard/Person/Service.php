@@ -223,8 +223,7 @@ class Service
                 if ($guardianList) {
                     $Count = 0;
                     foreach ($guardianList as $guardian) {
-                        if ($guardian->getTblType()->getName() == 'Sorgeberechtigt')
-                        {
+                        if ($guardian->getTblType()->getName() == 'Sorgeberechtigt') {
                             if ($Count === 0) {
                                 $Guardian1 = $guardian->getServiceTblPersonFrom();
                             }
@@ -242,15 +241,15 @@ class Service
                     $Guardian1PhoneList = Phone::useService()->getPhoneAllByPerson($Guardian1);
                     if ($Guardian1PhoneList) {
                         foreach ($Guardian1PhoneList as $Guardian1Phone) {
-                            if ($Guardian1Phone->getTblType()->getName() === 'Privat' || $Guardian1Phone->getTblType()->getDescription() === 'Mobil') {
+                            if ($Guardian1Phone->getTblType()->getName() === 'Privat' && $Guardian1Phone->getTblType()->getDescription() === 'Mobil') {
                                 $phoneListGuardian1[] = $Guardian1Phone->getTblPhone()->getNumber();
                             }
                         }
-//                        foreach ($Guardian1PhoneList as $Guardian1Phone) {
-//                            if ($Guardian1Phone->getTblType()->getName() === 'Privat') {
-//                                $phoneListGuardian1[] = $Guardian1Phone->getTblPhone()->getNumber();
-//                            }
-//                        }
+                        foreach ($Guardian1PhoneList as $Guardian1Phone) {
+                            if ($Guardian1Phone->getTblType()->getName() === 'Privat') {
+                                $phoneListGuardian1[] = $Guardian1Phone->getTblPhone()->getNumber();
+                            }
+                        }
                         if (isset( $phoneListGuardian1 )) {
                             $phoneListGuardian1 = array_unique($phoneListGuardian1);
                         }
@@ -263,15 +262,15 @@ class Service
                     $Guardian2PhoneList = Phone::useService()->getPhoneAllByPerson($Guardian2);
                     if ($Guardian2PhoneList) {
                         foreach ($Guardian2PhoneList as $Guardian2Phone) {
-                            if ($Guardian2Phone->getTblType()->getName() === 'Privat' || $Guardian2Phone->getTblType()->getDescription() === 'Mobil') {
+                            if ($Guardian2Phone->getTblType()->getName() === 'Privat' && $Guardian2Phone->getTblType()->getDescription() === 'Mobil') {
                                 $phoneListGuardian2[] = $Guardian2Phone->getTblPhone()->getNumber();
                             }
                         }
-//                        foreach ($Guardian1PhoneList as $Guardian1Phone) {
-//                            if ($Guardian1Phone->getTblType()->getName() === 'Privat') {
-//                                $phoneListGuardian1[] = $Guardian1Phone->getTblPhone()->getNumber();
-//                            }
-//                        }
+                        foreach ($Guardian2PhoneList as $Guardian2Phone) {
+                            if ($Guardian2Phone->getTblType()->getName() === 'Privat') {
+                                $phoneListGuardian2[] = $Guardian2Phone->getTblPhone()->getNumber();
+                            }
+                        }
                         if (isset( $phoneListGuardian2 )) {
                             $phoneListGuardian2 = array_unique($phoneListGuardian2);
                         }
@@ -640,8 +639,7 @@ class Service
                 if ($guardianList) {
                     $Count = 0;
                     foreach ($guardianList as $guardian) {
-                        if ($guardian->getTblType()->getName() == 'Sorgeberechtigt')
-                        {
+                        if ($guardian->getTblType()->getName() == 'Sorgeberechtigt') {
                             if ($Count === 0) {
                                 $Guardian1 = $guardian->getServiceTblPersonFrom();
                             }
