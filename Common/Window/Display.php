@@ -6,6 +6,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Roadmap\Roadmap;
 use SPHERE\Common\Script;
 use SPHERE\Common\Style;
 use SPHERE\Common\Window\Navigation\Link;
@@ -301,6 +302,8 @@ class Display extends Extension implements ITemplateInterface
         }
         $this->Template->setVariable('DebuggerHost', gethostname());
         $this->Template->setVariable('DebuggerRuntime', $Runtime);
+
+        $this->Template->setVariable('RoadmapVersion', (new Roadmap())->getVersionNumber());
 
         $this->Template->setVariable('Content', implode('', $this->Content));
         $this->Template->setVariable('PathBase', $this->getRequest()->getPathBase());

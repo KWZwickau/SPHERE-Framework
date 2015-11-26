@@ -106,10 +106,10 @@ class Release
 
         $Toggle = uniqid();
         $Content = new Title(( $this->isDone === true
-                ? new Success(new TileBig().' Release: '.$this->Version)
+                ? new Success(new TileBig() . ' ' . $this->getTitle() . ': ' . $this->Version)
                 : ( $this->isDone === false
-                    ? new Danger(new TileBig().' Release: '.$this->Version)
-                    : new Muted(new TileBig().' Release: '.$this->Version)
+                    ? new Danger(new TileBig() . ' ' . $this->getTitle() . ': ' . $this->Version)
+                    : new Muted(new TileBig() . ' ' . $this->getTitle() . ': ' . $this->Version)
                 )
             ), $this->Description)
             .new Small($this->isDone === true
@@ -154,5 +154,59 @@ class Release
                 )),
             ))
         );
+    }
+
+    /**
+     * @return string
+     */
+    private function getTitle()
+    {
+
+        if (false === strpos($this->Version, 'x')) {
+            return 'Release';
+        } else {
+            return 'Pool';
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDone()
+    {
+
+        if (!empty($this->Category)) {
+            /** @var Category $Category */
+            foreach ((array)$this->Category as $Category) {
+                $this->Status->addPlan($Category->getStatus()->getPlan());
+                $this->Status->addWork($Category->getStatus()->getWork());
+                $this->Status->addDone($Category->getStatus()->getDone());
+            }
+        } else {
+            if ($this->isDone === true) {
+                $this->Status->addDone();
+            } else {
+                if ($this->isDone === false) {
+                    $this->Status->addWork();
+                } else {
+                    $this->Status->addPlan();
+                }
+            }
+        }
+
+        if ($this->Status->getState() == Status::STATE_DONE) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getVersion()
+    {
+
+        return $this->Version;
     }
 }
