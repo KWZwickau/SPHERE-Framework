@@ -237,7 +237,8 @@ class Data extends AbstractData
     {
         (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' Start');
         /** @var TblYearPeriod[] $EntityList */
-        $EntityList = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYearPeriod',
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblYearPeriod',
             array(
                 TblYearPeriod::ATTR_TBL_YEAR => $tblYear->getId()
             ));
