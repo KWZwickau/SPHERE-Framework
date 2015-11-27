@@ -93,7 +93,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ? $tblAddressAll
                             : new Warning('Keine Adresse hinterlegt')
                         ),
-                        'Option' => new Standard('', '/People/Person', new Pencil(), array(
+                        'Option' => new Standard('', '/Corporation/Company', new Pencil(), array(
                             'Id' => $tblCompany->getId(),
                             'Group' => $tblGroup->getId()
                         ), 'Bearbeiten'),
