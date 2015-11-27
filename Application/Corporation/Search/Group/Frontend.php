@@ -43,11 +43,8 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendSearch($Id = false)
     {
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':LoadFrontend');
-
         $Stage = new Stage('Suche', 'nach Gruppe');
 
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartMenu');
         $tblGroupAll = Group::useService()->getGroupAll();
         if (!empty($tblGroupAll)) {
             /** @noinspection PhpUnusedParameterInspection */
@@ -63,15 +60,11 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             }, $Stage);
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopMenu');
 
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartContent');
         $tblGroup = Group::useService()->getGroupById($Id);
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':GroupLoaded');
         if ($tblGroup) {
 
             $tblCompanyAll = Group::useService()->getCompanyAllByGroup($tblGroup);
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':ListLoaded');
             $Result = array();
             if ($tblCompanyAll) {
                 (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartRun');
@@ -93,15 +86,12 @@ class Frontend extends Extension implements IFrontendInterface
                             ? $tblAddressAll
                             : new Warning('Keine Adresse hinterlegt')
                         ),
-                        'Option' => new Standard('', '/People/Person', new Pencil(), array(
+                        'Option' => new Standard('', '/Corporation/Company', new Pencil(), array(
                             'Id' => $tblCompany->getId(),
                             'Group' => $tblGroup->getId()
                         ), 'Bearbeiten'),
                         'Description' => $tblCompany->getDescription()
                     ));
-
-                    $tblCompany->Option = new Standard('', '/Corporation/Company', new Pencil(),
-                        array('Id' => $tblCompany->getId(), 'Group' => $tblGroup->getId()), 'Bearbeiten');
                 });
                 (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopRun');
             }

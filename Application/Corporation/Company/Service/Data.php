@@ -89,7 +89,6 @@ class Data extends AbstractData
     public function getCompanyById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblCompany', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCompany', $Id);
     }
 }

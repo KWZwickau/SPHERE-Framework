@@ -4,8 +4,6 @@ namespace SPHERE\Application\Contact\Address\Service\Entity;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
-use Doctrine\ORM\Mapping\JoinColumn;
-use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Person\Person;
@@ -33,14 +31,11 @@ class TblToPerson extends Element
      */
     protected $serviceTblPerson;
     /**
-     * @ManyToOne(targetEntity="TblType",fetch="EAGER",cascade={"persist"})
-     * @JoinColumn(name="tblType",referencedColumnName="Id")
+     * @Column(type="bigint")
      */
     protected $tblType;
     /**
-     * @Column(nullable=true)
-     * @ManyToOne(targetEntity="TblAddress",fetch="EAGER",cascade={"persist"})
-     * @JoinColumn(name="tblAddress",referencedColumnName="Id")
+     * @Column(type="bigint")
      */
     protected $tblAddress;
 
@@ -93,11 +88,7 @@ class TblToPerson extends Element
         if (null === $this->tblType) {
             return false;
         } else {
-            if (is_object($this->tblType)) {
-                return $this->tblType;
-            } else {
-                return Address::useService()->getTypeById($this->tblType);
-            }
+            return Address::useService()->getTypeById($this->tblType);
         }
     }
 
@@ -107,7 +98,7 @@ class TblToPerson extends Element
     public function setTblType(TblType $tblType = null)
     {
 
-        $this->tblType = (null === $tblType ? null : $tblType);
+        $this->tblType = (null === $tblType ? null : $tblType->getId());
     }
 
     /**
@@ -119,11 +110,7 @@ class TblToPerson extends Element
         if (null === $this->tblAddress) {
             return false;
         } else {
-            if (is_object($this->tblAddress)) {
-                return $this->tblAddress;
-            } else {
-                return Address::useService()->getAddressById($this->tblAddress);
-            }
+            return Address::useService()->getAddressById($this->tblAddress);
         }
     }
 
@@ -133,6 +120,6 @@ class TblToPerson extends Element
     public function setTblAddress(TblAddress $tblAddress = null)
     {
 
-        $this->tblAddress = (null === $tblAddress ? null : $tblAddress);
+        $this->tblAddress = (null === $tblAddress ? null : $tblAddress->getId());
     }
 }

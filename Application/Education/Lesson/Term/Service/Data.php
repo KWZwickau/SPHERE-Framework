@@ -9,8 +9,6 @@ use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
-use SPHERE\System\Debugger\DebuggerFactory;
-use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 
 /**
  * Class Data
@@ -235,7 +233,6 @@ class Data extends AbstractData
      */
     public function getPeriodAllByYear(TblYear $tblYear)
     {
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' Start');
         /** @var TblYearPeriod[] $EntityList */
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblYearPeriod',
@@ -255,7 +252,6 @@ class Data extends AbstractData
         } else {
             $EntityList = $ResultList;
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' Stop');
         return (null === $EntityList ? false : $EntityList);
     }
 

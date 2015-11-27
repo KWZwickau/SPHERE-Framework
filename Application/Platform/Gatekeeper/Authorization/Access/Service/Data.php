@@ -10,6 +10,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRoleLevel;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 
 /**
@@ -461,19 +462,23 @@ class Data extends AbstractData
     public function existsRightByName($Name)
     {
 
-        $Cache = $this->getCache(new MemcachedHandler());
-        if (null === ( $RouteList = $Cache->getValue($Name, __METHOD__) )) {
-            $RouteList = $this->getConnection()->getEntityManager()->getQueryBuilder()
-                ->select('R.Route')
-                ->from(__NAMESPACE__.'\Entity\TblRight', 'R')
-                ->where('R.Route = ?1')
-                ->distinct()
-                ->setParameter(1, $Name)
-                ->getQuery()
-                ->getResult("COLUMN_HYDRATOR");
-            $Cache->setValue($Name, $RouteList, 0, __METHOD__);
+        // 1. Level Cache
+        $Memory = $this->getCache(new MemoryHandler());
+        if (null === ($RouteList = $Memory->getValue(__METHOD__, __METHOD__))) {
+            // 2. Level Cache
+            $Cache = $this->getCache(new MemcachedHandler());
+            if (null === ($RouteList = $Cache->getValue(__METHOD__, __METHOD__))) {
+                $RouteList = $this->getConnection()->getEntityManager()->getQueryBuilder()
+                    ->select('R.Route')
+                    ->from(__NAMESPACE__ . '\Entity\TblRight', 'R')
+                    ->distinct()
+                    ->getQuery()
+                    ->getResult("COLUMN_HYDRATOR");
+                $Cache->setValue(__METHOD__, $RouteList, 0, __METHOD__);
+            }
+            $Memory->setValue(__METHOD__, $RouteList, 0, __METHOD__);
         }
-        return !empty( $RouteList );
+        return in_array($Name, $RouteList);
     }
 
     /**

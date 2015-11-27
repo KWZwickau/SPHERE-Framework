@@ -28,9 +28,7 @@ class Data extends AbstractData
     public function getSchoolById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblSchool', $Id);
-
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchool', $Id);
     }
 
     /**
@@ -39,9 +37,7 @@ class Data extends AbstractData
     public function getSchoolAll()
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblSchool')->findAll();
-
-        return ( empty ( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSchool');
     }
 
 

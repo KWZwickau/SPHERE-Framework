@@ -527,6 +527,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblAddress
+     */
+    public function getAddressByPerson(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getAddressByPerson($tblPerson);
+    }
+
+    /**
      * @param TblCompany $tblCompany
      *
      * @return bool|TblToCompany[]

@@ -17,6 +17,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 
 /**
@@ -558,15 +559,21 @@ class Data extends AbstractData
             $Session = session_id();
         }
 
-        /** @var false|TblSession $Entity */
-        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSession', array(
-            TblSession::ATTR_SESSION => $Session
-        ));
+        // 1. Level Cache
+        $Memory = $this->getCache(new MemoryHandler());
+        if (null === ($Entity = $Memory->getValue($Session, __METHOD__))) {
+            /** @var false|TblSession $Entity */
+            $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSession',
+                array(
+                    TblSession::ATTR_SESSION => $Session
+                ));
 
-        if ($Entity) {
-            return $Entity->getTblAccount();
+            if ($Entity) {
+                $Entity = $Entity->getTblAccount();
+                $Memory->setValue($Session, $Entity, 0, __METHOD__);
+            }
         }
-        return $Entity;
+        return ($Entity ? $Entity : false);
     }
 
     /**
