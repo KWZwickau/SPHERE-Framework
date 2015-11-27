@@ -587,17 +587,28 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param null $ScoreCondition
      * @return Stage
      */
     public function frontendScore($ScoreCondition = null)
     {
 
-        $Stage = new Stage('Zensuren', 'Berechnungsvorschriften');
-//        $Stage->addButton(
-//            new Standard('Zensuren-Typ anlegen', '/Education/Graduation/Gradebook/GradeType/Create', new Plus())
-//        );
+        $Stage = new Stage('Zensuren-Berechnung', 'Berechnungsvorschriften');
+        $Stage->addButton(
+            new Standard('Zensuren-Gruppen', '/Education/Graduation/Gradebook/Score/Group', null, null, 'Erstellen/Berarbeiten')
+        );
 
-        $tblScoreCondition = Gradebook::useService()->getScoreConditionAll();
+        $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
+        if ($tblScoreConditionAll) {
+            foreach($tblScoreConditionAll as &$tblScoreCondition){
+                $tblScoreCondition->Option =
+//                    (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Edit', new Pencil(),
+//                        array('Id' => $tblScoreCondition->getId()), 'Bearbeiten')) .
+                     (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Group/Select', new Listing(),
+                        array('Id' => $tblScoreCondition->getId()), 'Zensuren-Typen-Gruppen bearbeiten'));
+            }
+        }
+
 
         $Form = $this->formScoreCondition()
             ->appendFormButton(new Primary('Hinzufügen', new Plus()))
@@ -608,10 +619,11 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new TableData($tblScoreCondition, null, array(
+                            new TableData($tblScoreConditionAll, null, array(
                                 'Name' => 'Name',
                                 'Priority' => 'Priorität',
                                 'Round' => 'Runden',
+                                'Option' => 'Optionen',
                             ))
                         ))
                     ))
@@ -641,6 +653,79 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
                 new FormColumn(
                     new NumberField('ScoreCondition[Priority]', '1', 'Priorität'), 2
+                )
+            ))
+        )));
+    }
+
+    /**
+     * @param null $ScoreGroup
+     * @return Stage
+     */
+    public function frontendScoreGroup($ScoreGroup = null)
+    {
+
+        $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Gruppen');
+        $Stage->addButton(
+            new Standard('Zurück', '/Education/Graduation/Gradebook/Score', new ChevronLeft())
+        );
+
+        $tblScoreGroupAll = Gradebook::useService()->getScoreGroupAll();
+        if ($tblScoreGroupAll) {
+            foreach($tblScoreGroupAll as &$tblScoreGroup){
+                $tblScoreGroup->MultiplierString = $tblScoreGroup->getMultiplier() . '%';
+                $tblScoreGroup->Option =
+//                    (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Edit', new Pencil(),
+//                        array('Id' => $tblScoreGroup->getId()), 'Bearbeiten')) .
+                    (new Standard('', '/Education/Graduation/Gradebook/Score/Group/GradeType/Select', new Listing(),
+                        array('Id' => $tblScoreGroup->getId()), 'Zensuren-Typen bearbeiten'));
+            }
+        }
+
+
+        $Form = $this->formScoreGroup()
+            ->appendFormButton(new Primary('Hinzufügen', new Plus()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new TableData($tblScoreGroupAll, null, array(
+                                'Name' => 'Name',
+                                'Round' => 'Runden',
+                                'MultiplierString' => 'Faktor',
+                                'Option' => 'Optionen',
+                            ))
+                        ))
+                    ))
+                ), new Title('Übersicht')),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            Gradebook::useService()->createScoreGroup($Form, $ScoreGroup)
+                        ))
+                    ))
+                ), new Title('Hinzufügen'))
+            ))
+        );
+
+        return $Stage;
+    }
+
+    private function formScoreGroup()
+    {
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new TextField('ScoreGroup[Name]', 'Rest', 'Name'), 8
+                ),
+                new FormColumn(
+                    new TextField('ScoreGroup[Round]', '', 'Rundung'), 2
+                ),
+                new FormColumn(
+                    new TextField('ScoreGroup[Multiplier]', 'Anteil in %', 'Faktor'), 2
                 )
             ))
         )));

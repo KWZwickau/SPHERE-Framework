@@ -383,6 +383,14 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblScoreGroup[]
+     */
+    public function getScoreGroupAll()
+    {
+        return (new Data($this->getBinding()))->getScoreGroupAll();
+    }
+
+    /**
      * @param $Id
      * @return bool|TblScoreCondition
      */
@@ -480,6 +488,45 @@ class Service extends AbstractService
             );
             return new Stage('Die Berechnungsvorschrift ist erfasst worden')
             . new Redirect('/Education/Graduation/Gradebook/Score', 0);
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $ScoreGroup
+     *
+     * @return IFormInterface|string
+     */
+    public function createScoreGroup(IFormInterface $Stage = null, $ScoreGroup = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ScoreGroup) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($ScoreGroup['Name']) && empty($ScoreGroup['Name'])) {
+            $Stage->setError('ScoreGroup[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+        if (isset($ScoreGroup['Multiplier']) && empty($ScoreGroup['Multiplier'])) {
+            $Stage->setError('ScoreGroup[Multiplier]', 'Bitte geben sie einen Faktor in Prozent an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->createScoreGroup(
+                $ScoreGroup['Name'],
+                $ScoreGroup['Round'],
+                $ScoreGroup['Multiplier']
+            );
+            return new Stage('Die Zensuren-Gruppe ist erfasst worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score/Group', 0);
         }
 
         return $Stage;

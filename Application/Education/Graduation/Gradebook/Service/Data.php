@@ -374,6 +374,16 @@ class Data extends AbstractData
     }
 
     /**
+     * @return bool|TblScoreGroup[]
+     */
+    public function getScoreGroupAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreGroup');
+    }
+
+
+    /**
      * @param $Id
      * @return bool|TblScoreCondition
      */

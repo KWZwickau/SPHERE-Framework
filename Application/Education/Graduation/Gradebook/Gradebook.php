@@ -79,9 +79,16 @@ class Gradebook implements IModuleInterface
                 ->setParameterDefault('Grade', null)
         );
 
+        /*
+         * Score
+         */
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score',
                 __NAMESPACE__ . '\Frontend::frontendScore')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score\Group',
+                __NAMESPACE__ . '\Frontend::frontendScoreGroup')
         );
     }
 
