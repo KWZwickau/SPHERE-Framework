@@ -186,7 +186,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('Round', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblScoreCondition', 'Priority')) {
-            $Table->addColumn('Priority', 'string');
+            $Table->addColumn('Priority', 'integer');
         }
 
         return $Table;

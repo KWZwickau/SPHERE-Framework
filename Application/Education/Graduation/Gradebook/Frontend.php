@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -280,9 +281,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblTest->Division = $tblDivision->getServiceTblYear()->getName() . ' - ' .
                         $tblDivision->getTblLevel()->getServiceTblType()->getName() . ' - ' .
                         $tblDivision->getTblLevel()->getName() . $tblDivision->getName();
-                }
-                else
-                {
+                } else {
                     $tblTest->Division = '';
                 }
                 $tblTest->Subject = $tblTest->getServiceTblSubject()->getName();
@@ -585,5 +584,65 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $Stage;
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendScore($ScoreCondition = null)
+    {
+
+        $Stage = new Stage('Zensuren', 'Berechnungsvorschriften');
+//        $Stage->addButton(
+//            new Standard('Zensuren-Typ anlegen', '/Education/Graduation/Gradebook/GradeType/Create', new Plus())
+//        );
+
+        $tblScoreCondition = Gradebook::useService()->getScoreConditionAll();
+
+        $Form = $this->formScoreCondition()
+            ->appendFormButton(new Primary('Hinzufügen', new Plus()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new TableData($tblScoreCondition, null, array(
+                                'Name' => 'Name',
+                                'Priority' => 'Priorität',
+                                'Round' => 'Runden',
+                            ))
+                        ))
+                    ))
+                ), new Title('Übersicht')),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            Gradebook::useService()->createScoreCondition($Form, $ScoreCondition)
+                        ))
+                    ))
+                ), new Title('Hinzufügen'))
+            ))
+        );
+
+        return $Stage;
+    }
+
+    private function formScoreCondition()
+    {
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new TextField('ScoreCondition[Name]', 'Klassenarbeit 60% : Rest 40%', 'Name'), 8
+                ),
+                new FormColumn(
+                    new TextField('ScoreCondition[Round]', '', 'Rundung'), 2
+                ),
+                new FormColumn(
+                    new NumberField('ScoreCondition[Priority]', '1', 'Priorität'), 2
+                )
+            ))
+        )));
     }
 }

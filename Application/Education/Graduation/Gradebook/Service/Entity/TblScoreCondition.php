@@ -55,7 +55,7 @@ class TblScoreCondition extends Element
     }
 
     /**
-     * @return string
+     * @return integer
      */
     public function getPriority()
     {
@@ -63,7 +63,7 @@ class TblScoreCondition extends Element
     }
 
     /**
-     * @param string $Priority
+     * @param integer $Priority
      */
     public function setPriority($Priority)
     {

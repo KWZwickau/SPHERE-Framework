@@ -392,6 +392,14 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblScoreCondition[]
+     */
+    public function getScoreConditionAll()
+    {
+        return (new Data($this->getBinding()))->getScoreConditionAll();
+    }
+
+    /**
      * @param $Id
      * @return bool|TblScoreRule
      */
@@ -436,4 +444,44 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getScoreGroupGradeTypeListById($Id);
     }
 
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $ScoreCondition
+     *
+     * @return IFormInterface|string
+     */
+    public function createScoreCondition(IFormInterface $Stage = null, $ScoreCondition = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ScoreCondition) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($ScoreCondition['Name']) && empty($ScoreCondition['Name'])) {
+            $Stage->setError('ScoreCondition[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        if ($ScoreCondition['Priority'] == ''){
+            $priority = 1;
+        } else {
+            $priority = $ScoreCondition['Priority'];
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->createScoreCondition(
+                $ScoreCondition['Name'],
+                $ScoreCondition['Round'],
+                $priority
+            );
+            return new Stage('Die Berechnungsvorschrift ist erfasst worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score', 0);
+        }
+
+        return $Stage;
+    }
 }

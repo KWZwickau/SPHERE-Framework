@@ -385,6 +385,15 @@ class Data extends AbstractData
     }
 
     /**
+     * @return bool|TblScoreCondition[]
+     */
+    public function getScoreConditionAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreCondition');
+    }
+
+    /**
      * @param $Id
      * @return bool|TblScoreRule
      */

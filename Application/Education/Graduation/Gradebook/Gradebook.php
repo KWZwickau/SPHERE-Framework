@@ -26,6 +26,10 @@ class Gradebook implements IModuleInterface
                 new Link\Icon(new Tag()))
         );
         Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__ . '\Score'), new Link\Name('Zensuren-Berechnung'),
+                new Link\Icon(new Book()))
+        );
+        Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__ . '\Test'), new Link\Name('Test'),
                 new Link\Icon(new Document()))
         );
@@ -73,6 +77,11 @@ class Gradebook implements IModuleInterface
                 __NAMESPACE__ . '\Frontend::frontendEditTestGrade')
                 ->setParameterDefault('Id', null)
                 ->setParameterDefault('Grade', null)
+        );
+
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score',
+                __NAMESPACE__ . '\Frontend::frontendScore')
         );
     }
 
