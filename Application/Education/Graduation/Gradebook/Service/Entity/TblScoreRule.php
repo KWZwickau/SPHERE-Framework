@@ -1,27 +1,34 @@
 <?php
-namespace SPHERE\Application\Corporation\Company\Service\Entity;
+/**
+ * Created by PhpStorm.
+ * User: Kauschke
+ * Date: 26.11.2015
+ * Time: 14:18
+ */
+
+namespace SPHERE\Application\Education\Graduation\Gradebook\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Corporation\Group\Group;
-use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
- * @Entity
- * @Table(name="tblCompany")
+ * @Entity()
+ * @Table(name="tblScoreRule")
  * @Cache(usage="READ_ONLY")
  */
-class TblCompany extends Element
+class TblScoreRule extends Element
 {
+
     const ATTR_NAME = 'Name';
 
     /**
      * @Column(type="string")
      */
     protected $Name;
+
     /**
      * @Column(type="string")
      */
@@ -32,7 +39,6 @@ class TblCompany extends Element
      */
     public function getName()
     {
-
         return $this->Name;
     }
 
@@ -41,17 +47,7 @@ class TblCompany extends Element
      */
     public function setName($Name)
     {
-
         $this->Name = $Name;
-    }
-
-    /**
-     * @return bool|TblGroup[]
-     */
-    public function fetchTblGroupAll()
-    {
-
-        return Group::useService()->getGroupAllByCompany($this);
     }
 
     /**
@@ -59,7 +55,6 @@ class TblCompany extends Element
      */
     public function getDescription()
     {
-
         return $this->Description;
     }
 
@@ -68,7 +63,6 @@ class TblCompany extends Element
      */
     public function setDescription($Description)
     {
-
         $this->Description = $Description;
     }
 }

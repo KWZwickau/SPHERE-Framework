@@ -147,7 +147,6 @@ class TblGrade extends Element
      */
     public function setTblTest($tblTest)
     {
-        var_dump($tblTest->getId());
         $this->tblTest = (null === $tblTest ? null : $tblTest->getId());
     }
 
