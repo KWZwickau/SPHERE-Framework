@@ -442,6 +442,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblScoreCondition $tblScoreCondition
+     * @return bool|TblScoreConditionGroupList[]
+     */
+    public function getScoreConditionGroupListByCondition(TblScoreCondition $tblScoreCondition)
+    {
+        return (new Data($this->getBinding()))->getScoreConditionGroupListByCondition($tblScoreCondition);
+    }
+
+    /**
      * @param $Id
      * @return bool|TblScoreGroupGradeTypeList
      */
@@ -579,6 +588,47 @@ class Service extends AbstractService
             return new Warning('Konnte nicht entfernt werden.') .
             new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', 0,
                 array('Id' => $tblScoreGroup->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     * @param TblScoreGroup $tblScoreGroup
+     *
+     * @return string
+     */
+    public function addScoreConditionGroupList(
+        TblScoreCondition $tblScoreCondition,
+        TblScoreGroup $tblScoreGroup
+    ) {
+        if ((new Data($this->getBinding()))->addScoreConditionGroupList($tblScoreCondition, $tblScoreGroup)) {
+            return new Success('Erfolgreich hinzugefügt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', 0,
+                array('Id' => $tblScoreCondition->getId()));
+        } else {
+            return new Warning('Konnte nicht hinzugefügt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', 0,
+                array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreConditionGroupList $tblScoreConditionGroupList
+     *
+     * @return string
+     */
+    public function removeScoreConditionGroupList(
+        TblScoreConditionGroupList $tblScoreConditionGroupList
+    ) {
+        $tblScoreCondition = $tblScoreConditionGroupList->getTblScoreGroup();
+        if ((new Data($this->getBinding()))->removeScoreConditionGroupList($tblScoreConditionGroupList)) {
+            return new Success('Erfolgreich entfernt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', 0,
+                array('Id' => $tblScoreCondition->getId()));
+        } else {
+            return new Warning('Konnte nicht entfernt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', 0,
+                array('Id' => $tblScoreCondition->getId()));
         }
     }
 }

@@ -23,8 +23,8 @@ use SPHERE\System\Database\Fitting\Element;
 class TblScoreConditionGroupList extends Element
 {
 
-    const ATTR_TBL_SCORE_GROUP = 'TblScoreGroup';
-    const ATTR_TBL_SCORE_CONDITION = 'TblScoreCondition';
+    const ATTR_TBL_SCORE_GROUP = 'tblScoreGroup';
+    const ATTR_TBL_SCORE_CONDITION = 'tblScoreCondition';
 
     /**
      * @Column(type="bigint")

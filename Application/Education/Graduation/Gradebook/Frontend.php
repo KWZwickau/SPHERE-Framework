@@ -4,6 +4,8 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroup;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
 use SPHERE\Application\Education\Lesson\Division\Division;
@@ -610,7 +612,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblScoreCondition->Option =
 //                    (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Edit', new Pencil(),
 //                        array('Id' => $tblScoreCondition->getId()), 'Bearbeiten')) .
-                    (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Group/Select', new Listing(),
+                    (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Select', new Listing(),
                         array('Id' => $tblScoreCondition->getId()), 'Zensuren-Typen-Gruppen bearbeiten'));
             }
         }
@@ -901,6 +903,151 @@ class Frontend extends Extension implements IFrontendInterface
         $tblScoreGroupGradeTypeList = Gradebook::useService()->getScoreGroupGradeTypeListById($Id);
         if ($tblScoreGroupGradeTypeList) {
             $Stage->setContent(Gradebook::useService()->removeScoreGroupGradeTypeList($tblScoreGroupGradeTypeList));
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return Stage
+     */
+    public function frontendScoreGroupSelect($Id = null)
+    {
+
+        $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Gruppen einer Berechnungsvorschrift zuordnen');
+
+        $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Gradebook/Score', new ChevronLeft()));
+
+        if (empty($Id)) {
+            $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
+        } else {
+            $tblScoreCondition = Gradebook::useService()->getScoreConditionById($Id);
+            if (empty($tblScoreCondition)) {
+                $Stage->setContent(new Warning('Die Zensuren-Gruppe konnte nicht abgerufen werden'));
+            } else {
+                $tblScoreConditionGroupListByCondition = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition);
+                $tblScoreGroupAll = Gradebook::useService()->getScoreGroupAll();
+                $tblScoreGroupAllByCondition = array();
+                if ($tblScoreConditionGroupListByCondition) {
+                    /** @var TblScoreConditionGroupList $tblScoreConditionGroup */
+                    foreach ($tblScoreConditionGroupListByCondition as $tblScoreConditionGroup) {
+                        $tblScoreGroupAllByCondition[] = $tblScoreConditionGroup->getTblScoreGroup();
+                    }
+                }
+
+                if (!empty($tblScoreGroupAllByCondition) && $tblScoreGroupAll) {
+                    $tblScoreGroupAll = array_udiff($tblScoreGroupAll, $tblScoreGroupAllByCondition,
+                        function (TblScoreGroup $ObjectA, TblScoreGroup $ObjectB) {
+
+                            return $ObjectA->getId() - $ObjectB->getId();
+                        }
+                    );
+                }
+
+                if ($tblScoreConditionGroupListByCondition) {
+                    foreach ($tblScoreConditionGroupListByCondition as &$tblScoreConditionGroupList) {
+                        $tblScoreConditionGroupList->Name = $tblScoreConditionGroupList->getTblScoreGroup()->getName();
+                        $tblScoreConditionGroupList->Option =
+                            (new Danger('Entfernen', '/Education/Graduation/Gradebook/Score/Group/Remove',
+                                new Minus(), array(
+                                    'Id' => $tblScoreConditionGroupList->getId()
+                                )))->__toString();
+                    }
+                }
+
+                if ($tblScoreGroupAll) {
+                    foreach ($tblScoreGroupAll as $tblScoreGroup) {
+                        $tblScoreGroup->Option =
+                            (new Form(
+                                new FormGroup(
+                                    new FormRow(array(
+                                        new FormColumn(
+                                            new Primary('Hinzufügen',
+                                                new Plus())
+                                            , 5)
+                                    ))
+                                ), null,
+                                '/Education/Graduation/Gradebook/Score/Group/Add', array(
+                                    'tblScoreGroupId' => $tblScoreGroup->getId(),
+                                    'tblScoreConditionId' => $tblScoreCondition->getId()
+                                )
+                            ))->__toString();
+                    }
+                }
+
+                $Stage->setContent(
+                    new Layout(array(
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Panel('Berechnungsvorschrift', $tblScoreCondition->getName(), Panel::PANEL_TYPE_SUCCESS), 12
+                                ),
+                            ))
+                        )),
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(array(
+                                    new TableData($tblScoreConditionGroupListByCondition, null,
+                                        array(
+                                            'Name' => 'Name',
+                                            'Option' => 'Option'
+                                        )
+                                    )
+                                ), 6
+                                ),
+                                new LayoutColumn(array(
+                                    new TableData($tblScoreGroupAll, null,
+                                        array(
+                                            'Name' => 'Name',
+                                            'Option' => 'Option'
+                                        )
+                                    )
+                                ), 6
+                                )
+                            )),
+                        )),
+                    ))
+                );
+            }
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $tblScoreGroupId
+     * @param null $tblScoreConditionId
+     *
+     * @return Stage
+     */
+    public function frontendScoreGroupAdd($tblScoreGroupId = null, $tblScoreConditionId = null)
+    {
+        $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Gruppe einer Berechnungsvorschrift hinzufügen');
+
+        $tblScoreGroup = Gradebook::useService()->getScoreGroupById($tblScoreGroupId);
+        $tblScoreCondition = Gradebook::useService()->getScoreConditionById($tblScoreConditionId);
+
+        if ($tblScoreGroup && $tblScoreCondition) {
+            $Stage->setContent(Gradebook::useService()->addScoreConditionGroupList($tblScoreCondition, $tblScoreGroup));
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return Stage
+     */
+    public function frontendScoreGroupRemove($Id)
+    {
+        $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Gruppe von einer Berechnungsvorschrift entfernen');
+
+        $tblScoreConditionGroupList = Gradebook::useService()->getScoreConditionGroupListById($Id);
+        if ($tblScoreConditionGroupList) {
+            $Stage->setContent(Gradebook::useService()->removeScoreConditionGroupList($tblScoreConditionGroupList));
         }
 
         return $Stage;

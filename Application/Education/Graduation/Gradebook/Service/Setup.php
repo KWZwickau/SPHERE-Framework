@@ -41,7 +41,7 @@ class Setup extends AbstractSetup
         $tblScoreGroup = $this->setTableScoreGroup($Schema);
         $this->setTableScoreRuleConditionList($Schema, $tblScoreRule, $tblScoreCondition);
         $this->setTableScoreConditionGradeTypeList($Schema, $tblGradeType, $tblScoreCondition);
-        $this->setTableScoreConditionGroupList($Schema, $tblGradeType, $tblScoreGroup);
+        $this->setTableScoreConditionGroupList($Schema, $tblScoreCondition, $tblScoreGroup);
         $this->setTableScoreGroupGradeTypeList($Schema, $tblGradeType, $tblScoreGroup);
 
         /**
@@ -250,16 +250,16 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblGradeType
+     * @param Table $tblScoreCondition
      * @param Table $tblScoreGroup
      * @return Table
      */
-    private function setTableScoreConditionGroupList(Schema &$Schema, Table $tblGradeType, Table $tblScoreGroup)
+    private function setTableScoreConditionGroupList(Schema &$Schema, Table $tblScoreCondition, Table $tblScoreGroup)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblScoreConditionGroupList');
 
-        $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
+        $this->getConnection()->addForeignKey($Table, $tblScoreCondition, true);
         $this->getConnection()->addForeignKey($Table, $tblScoreGroup, true);
 
         return $Table;

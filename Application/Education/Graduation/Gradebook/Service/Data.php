@@ -447,6 +447,19 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblScoreCondition $tblScoreCondition
+     * @return bool|TblScoreConditionGroupList[]
+     */
+    public function getScoreConditionGroupListByCondition(TblScoreCondition $tblScoreCondition)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblScoreConditionGroupList',
+            array(TblScoreConditionGroupList::ATTR_TBL_SCORE_CONDITION => $tblScoreCondition->getId())
+        );
+    }
+
+    /**
      * @param $Id
      * @return bool|TblScoreGroupGradeTypeList
      */
@@ -698,6 +711,25 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblScoreGroupGradeTypeList $Entity */
         $Entity = $Manager->getEntityById('TblScoreGroupGradeTypeList', $tblScoreGroupGradeTypeList->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblScoreConditionGroupList $tblScoreConditionGroupList
+     *
+     * @return bool
+     */
+    public function removeScoreConditionGroupList(TblScoreConditionGroupList $tblScoreConditionGroupList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblScoreConditionGroupList $Entity */
+        $Entity = $Manager->getEntityById('TblScoreConditionGroupList', $tblScoreConditionGroupList->getId());
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
