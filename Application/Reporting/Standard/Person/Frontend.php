@@ -66,8 +66,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->savePost();
             }
 
-            //ToDo JohK Schuljahr
-
             $tblDivision = Division::useService()->getDivisionById($DivisionId);
             if ($tblDivision) {
                 $studentList = Person::useService()->createClassList($tblDivision);
@@ -142,8 +140,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->savePost();
             }
 
-            //ToDo JohK Schuljahr
-
             $tblDivision = Division::useService()->getDivisionById($DivisionId);
             if ($tblDivision) {
                 $studentList = Person::useService()->createClassList($tblDivision);
@@ -189,7 +185,7 @@ class Frontend extends Extension implements IFrontendInterface
                 .
                 new TableData($studentList, null,
                     array(
-                        'Number' => 'lfd. Nr.',
+                        'Number' => 'Schülernummer',
                         'Name' => 'Name, Vorname',
                         'Gender' => 'Geschlecht',
                         'Address' => 'Adresse',
@@ -247,8 +243,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->POST['Select']['Division'] = $DivisionId;
                 $Global->savePost();
             }
-
-            //ToDo JohK Schuljahr
 
             $tblDivision = Division::useService()->getDivisionById($DivisionId);
             if ($tblDivision) {
@@ -349,8 +343,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->savePost();
             }
 
-            //ToDo JohK Schuljahr
-
             $tblDivision = Division::useService()->getDivisionById($DivisionId);
             if ($tblDivision) {
                 $studentList = Person::useService()->createClassList($tblDivision);
@@ -396,7 +388,7 @@ class Frontend extends Extension implements IFrontendInterface
                 .
                 new TableData($studentList, null,
                     array(
-                        'Number' => 'lfd. Nr.',
+                        'Number' => 'Schülernummer',
                         'Name' => 'Name,<br/>Vorname',
                         'Address' => 'Anschrift',
                         'Birthday' => 'Geburtsdatum<br/>Geburtsort',
@@ -429,6 +421,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendEmployeeList()
     {
 

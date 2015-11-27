@@ -10,6 +10,13 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGradeTypeList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroup;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -356,4 +363,378 @@ class Data extends AbstractData
         return empty($EntityList) ? false : $EntityList;
     }
 
+    /**
+     * @param $Id
+     * @return bool|TblScoreGroup
+     */
+    public function getScoreGroupById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreGroup', $Id);
+    }
+
+    /**
+     * @return bool|TblScoreGroup[]
+     */
+    public function getScoreGroupAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreGroup');
+    }
+
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreCondition
+     */
+    public function getScoreConditionById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreCondition',
+            $Id);
+    }
+
+    /**
+     * @return bool|TblScoreCondition[]
+     */
+    public function getScoreConditionAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreCondition');
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreRule
+     */
+    public function getScoreRuleById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreRule', $Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreRuleConditionList
+     */
+    public function getScoreRuleConditionListById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblScoreRuleConditionList', $Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreConditionGradeTypeList
+     */
+    public function getScoreConditionGradeTypeListById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblScoreConditionGradeTypeList', $Id);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreConditionGroupList
+     */
+    public function getScoreConditionGroupListById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblScoreConditionGroupList', $Id);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     * @return bool|TblScoreConditionGroupList[]
+     */
+    public function getScoreConditionGroupListByCondition(TblScoreCondition $tblScoreCondition)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblScoreConditionGroupList',
+            array(TblScoreConditionGroupList::ATTR_TBL_SCORE_CONDITION => $tblScoreCondition->getId())
+        );
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblScoreGroupGradeTypeList
+     */
+    public function getScoreGroupGradeTypeListById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblScoreGroupGradeTypeList', $Id);
+    }
+
+    /**
+     * @param TblScoreGroup $tblScoreGroup
+     * @return bool|TblScoreGroupGradeTypeList[]
+     */
+    public function getScoreGroupGradeTypeListByGroup(TblScoreGroup $tblScoreGroup)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblScoreGroupGradeTypeList',
+            array(TblScoreGroupGradeTypeList::ATTR_TBL_SCORE_GROUP => $tblScoreGroup->getId())
+        );
+    }
+
+    /**
+     * @param $Name
+     * @param string $Description
+     *
+     * @return TblScoreRule
+     */
+    public function createScoreRule(
+        $Name,
+        $Description = ''
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblScoreRule')
+            ->findOneBy(array(
+                TblScoreRule::ATTR_NAME => $Name,
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblScoreRule();
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param $Name
+     * @param $Round
+     * @param $Priority
+     *
+     * @return TblScoreCondition
+     */
+    public function createScoreCondition(
+        $Name,
+        $Round,
+        $Priority
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblScoreCondition')
+            ->findOneBy(array(
+                TblScoreCondition::ATTR_NAME => $Name,
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblScoreCondition();
+            $Entity->setName($Name);
+            $Entity->setRound($Round);
+            $Entity->setPriority($Priority);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param $Name
+     * @param $Round
+     * @param $Multiplier
+     *
+     * @return TblScoreGroup
+     */
+    public function createScoreGroup(
+        $Name,
+        $Round,
+        $Multiplier
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblScoreGroup')
+            ->findOneBy(array(
+                TblScoreGroup::ATTR_NAME => $Name,
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblScoreGroup();
+            $Entity->setName($Name);
+            $Entity->setRound($Round);
+            $Entity->setMultiplier($Multiplier);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return TblScoreRuleConditionList
+     */
+    public function addScoreRuleConditionList(
+        TblScoreRule $tblScoreRule,
+        TblScoreCondition $tblScoreCondition
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblScoreRuleConditionList')
+            ->findOneBy(array(
+                TblScoreRuleConditionList::ATTR_TBL_SCORE_RULE => $tblScoreRule->getId(),
+                TblScoreRuleConditionList::ATTR_TBL_SCORE_CONDITION => $tblScoreCondition->getId(),
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblScoreRuleConditionList();
+            $Entity->setTblScoreRule($tblScoreRule);
+            $Entity->setTblScoreCondition($tblScoreCondition);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return TblScoreConditionGradeTypeList
+     */
+    public function addScoreConditionGradeTypeList(
+        TblGradeType $tblGradeType,
+        TblScoreCondition $tblScoreCondition
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblScoreConditionGradeTypeList')
+            ->findOneBy(array(
+                TblScoreConditionGradeTypeList::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId(),
+                TblScoreConditionGradeTypeList::ATTR_TBL_SCORE_CONDITION => $tblScoreCondition->getId(),
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblScoreConditionGradeTypeList();
+            $Entity->setTblGradeType($tblGradeType);
+            $Entity->setTblScoreCondition($tblScoreCondition);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     * @param TblScoreGroup $tblScoreGroup
+     *
+     * @return TblScoreConditionGroupList
+     */
+    public function addScoreConditionGroupList(
+        TblScoreCondition $tblScoreCondition,
+        TblScoreGroup $tblScoreGroup
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblScoreConditionGroupList')
+            ->findOneBy(array(
+                TblScoreConditionGroupList::ATTR_TBL_SCORE_GROUP => $tblScoreGroup->getId(),
+                TblScoreConditionGroupList::ATTR_TBL_SCORE_CONDITION => $tblScoreCondition->getId(),
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblScoreConditionGroupList();
+            $Entity->setTblScoreGroup($tblScoreGroup);
+            $Entity->setTblScoreCondition($tblScoreCondition);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     * @param TblScoreGroup $tblScoreGroup
+     * @param $Multiplier
+     *
+     * @return TblScoreGroupGradeTypeList
+     */
+    public function addScoreGroupGradeTypeList(
+        TblGradeType $tblGradeType,
+        TblScoreGroup $tblScoreGroup,
+        $Multiplier
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblScoreGroupGradeTypeList')
+            ->findOneBy(array(
+                TblScoreGroupGradeTypeList::ATTR_TBL_SCORE_GROUP => $tblScoreGroup->getId(),
+                TblScoreGroupGradeTypeList::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId(),
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblScoreGroupGradeTypeList();
+            $Entity->setTblScoreGroup($tblScoreGroup);
+            $Entity->setTblGradeType($tblGradeType);
+            $Entity->setMultiplier($Multiplier);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblScoreGroupGradeTypeList $tblScoreGroupGradeTypeList
+     *
+     * @return bool
+     */
+    public function removeScoreGroupGradeTypeList(TblScoreGroupGradeTypeList $tblScoreGroupGradeTypeList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblScoreGroupGradeTypeList $Entity */
+        $Entity = $Manager->getEntityById('TblScoreGroupGradeTypeList', $tblScoreGroupGradeTypeList->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblScoreConditionGroupList $tblScoreConditionGroupList
+     *
+     * @return bool
+     */
+    public function removeScoreConditionGroupList(TblScoreConditionGroupList $tblScoreConditionGroupList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblScoreConditionGroupList $Entity */
+        $Entity = $Manager->getEntityById('TblScoreConditionGroupList', $tblScoreConditionGroupList->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
 }
