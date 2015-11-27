@@ -8,6 +8,7 @@ use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketItem;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketPerson;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -486,6 +487,15 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblBasketItem->TotalPriceString = $tblBasketItem->getTotalPriceString();
                 $tblBasketItem->QuantityString = str_replace('.', ',', $tblBasketItem->getQuantity());
                 $tblBasketItem->PriceString = $tblBasketItem->getPriceString();
+                $tblBasketItem->Type = '';
+                $tblBasketItem->Rank = '';
+                if ($tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getServiceStudentType()) {
+                    $tblBasketItem->Type = $tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getServiceStudentType()->getName();
+                }
+                if ($tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getServiceStudentChildRank()) {
+                    $tblBasketItem->Rank = $tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getServiceStudentChildRank()->getName();
+                }
+
                 $tblBasketItem->Option =
                     (new Standard('Bearbeiten', '/Billing/Accounting/Basket/Item/Change',
                         new Edit(), array(
@@ -527,6 +537,8 @@ class Frontend extends Extension implements IFrontendInterface
                                         'PriceString'      => 'Preis',
                                         'QuantityString'   => 'Menge',
                                         'TotalPriceString' => 'Gesamtpreis',
+                                        'Type'             => 'Typ',
+                                        'Rank'             => 'Geschwister',
                                         'Option'           => 'Option'
                                     )
                                 )
@@ -813,6 +825,27 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasket = Basket::useService()->getBasketById($Id);
         $tblBasketItemAll = Basket::useService()->getBasketItemAllByBasket($tblBasket);
         $tblPersonByBasketList = Basket::useService()->getPersonAllByBasket($tblBasket);
+        if (!empty( $tblPersonByBasketList )) {
+            /** @var TblPerson $tblPerson */
+            foreach ($tblPersonByBasketList as &$tblPerson) {
+                $tblPerson->Type = '';
+                $tblPerson->Rank = '';
+                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                if ($tblStudent) {
+                    if ($tblStudent->getTblStudentBilling()->getServiceTblSiblingRank()) {
+                        $tblPerson->Rank = $tblStudent->getTblStudentBilling()->getServiceTblSiblingRank()->getName();
+                    }
+                    $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                    if ($tblTransferType) {
+                        $Type = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType);
+                        if ($Type) {
+                            if ($Type->getServiceTblType())
+                                $tblPerson->Type = $Type->getServiceTblType()->getName();
+                        }
+                    }
+                }
+            }
+        }
 
         if (!empty( $tblBasketItemAll )) {
             array_walk($tblBasketItemAll, function (TblBasketItem &$tblBasketItem) {
@@ -821,6 +854,15 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblItem = $tblBasketItem->getServiceBillingCommodityItem()->getTblItem();
                 $tblBasketItem->CommodityName = $tblCommodity->getName();
                 $tblBasketItem->ItemName = $tblItem->getName();
+                $tblBasketItem->Type = '';
+                $tblBasketItem->Rank = '';
+                if ($tblItem->getServiceStudentType()) {
+                    $tblBasketItem->Type = $tblItem->getServiceStudentType()->getName();
+                }
+                if ($tblItem->getServiceStudentChildRank()) {
+                    $tblBasketItem->Rank = $tblItem->getServiceStudentChildRank()->getName();
+                }
+
                 $tblBasketItem->TotalPriceString = $tblBasketItem->getTotalPriceString();
                 $tblBasketItem->QuantityString = str_replace('.', ',', $tblBasketItem->getQuantity());
                 $tblBasketItem->PriceString = $tblBasketItem->getPriceString();
@@ -878,6 +920,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     array(
                                         'CommodityName'    => 'Leistung',
                                         'ItemName'         => 'Artikel',
+                                        'Type'             => 'Typ',
+                                        'Rank'             => 'Geschwister',
                                         'PriceString'      => 'Preis',
                                         'QuantityString'   => 'Menge',
                                         'TotalPriceString' => 'Gesamtpreis'
@@ -902,7 +946,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 new TableData($tblPersonByBasketList, null,
                                     array(
                                         'FirstName' => 'Vorname',
-                                        'LastName'  => 'Nachname'
+                                        'LastName'  => 'Nachname',
+                                        'Type'      => 'Typ',
+                                        'Rank'      => 'Geschwister',
                                     )
                                 )
                             )
