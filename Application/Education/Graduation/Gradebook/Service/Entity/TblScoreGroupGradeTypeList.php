@@ -24,7 +24,7 @@ class TblScoreGroupGradeTypeList extends Element
 {
 
     const ATTR_TBL_GRADE_TYPE = 'tblGradeType';
-    const ATTR_TBL_SCORE_GROUP = 'TblScoreGroup';
+    const ATTR_TBL_SCORE_GROUP = 'tblScoreGroup';
 
     /**
      * @Column(type="string")

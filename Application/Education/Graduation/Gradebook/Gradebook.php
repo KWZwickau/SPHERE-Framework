@@ -90,6 +90,18 @@ class Gradebook implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score\Group',
                 __NAMESPACE__ . '\Frontend::frontendScoreGroup')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score\Group\GradeType\Select',
+                __NAMESPACE__ . '\Frontend::frontendScoreGroupGradeTypeSelect')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score\Group\GradeType\Add',
+                __NAMESPACE__ . '\Frontend::frontendScoreGroupGradeTypeAdd')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score\Group\GradeType\Remove',
+                __NAMESPACE__ . '\Frontend::frontendScoreGroupGradeTypeRemove')
+        );
     }
 
     /**

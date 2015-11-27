@@ -3,6 +3,8 @@
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -22,8 +24,10 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Quantity;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -35,6 +39,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -595,16 +600,17 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Zensuren-Berechnung', 'Berechnungsvorschriften');
         $Stage->addButton(
-            new Standard('Zensuren-Gruppen', '/Education/Graduation/Gradebook/Score/Group', null, null, 'Erstellen/Berarbeiten')
+            new Standard('Zensuren-Gruppen', '/Education/Graduation/Gradebook/Score/Group', null, null,
+                'Erstellen/Berarbeiten')
         );
 
         $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
         if ($tblScoreConditionAll) {
-            foreach($tblScoreConditionAll as &$tblScoreCondition){
+            foreach ($tblScoreConditionAll as &$tblScoreCondition) {
                 $tblScoreCondition->Option =
 //                    (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Edit', new Pencil(),
 //                        array('Id' => $tblScoreCondition->getId()), 'Bearbeiten')) .
-                     (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Group/Select', new Listing(),
+                    (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Group/Select', new Listing(),
                         array('Id' => $tblScoreCondition->getId()), 'Zensuren-Typen-Gruppen bearbeiten'));
             }
         }
@@ -672,7 +678,18 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblScoreGroupAll = Gradebook::useService()->getScoreGroupAll();
         if ($tblScoreGroupAll) {
-            foreach($tblScoreGroupAll as &$tblScoreGroup){
+            foreach ($tblScoreGroupAll as &$tblScoreGroup) {
+                $gradeTypes = '';
+                $tblScoreGroupGradeTypes = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup);
+                if($tblScoreGroupGradeTypes) {
+                    foreach ($tblScoreGroupGradeTypes as $tblScoreGroupGradeType){
+                        $gradeTypes .= $tblScoreGroupGradeType->getTblGradeType()->getName() . ', ';
+                    }
+                }
+                if (($length = strlen($gradeTypes)) > 2) {
+                    $gradeTypes = substr($gradeTypes, 0, $length - 2);
+                }
+                $tblScoreGroup->GradeTypes = $gradeTypes;
                 $tblScoreGroup->MultiplierString = $tblScoreGroup->getMultiplier() . '%';
                 $tblScoreGroup->Option =
 //                    (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Edit', new Pencil(),
@@ -694,6 +711,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new TableData($tblScoreGroupAll, null, array(
                                 'Name' => 'Name',
+                                'GradeTypes' => 'Zensuren-Typen',
                                 'Round' => 'Runden',
                                 'MultiplierString' => 'Faktor',
                                 'Option' => 'Optionen',
@@ -729,5 +747,162 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             ))
         )));
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return Stage
+     */
+    public function frontendScoreGroupGradeTypeSelect($Id = null)
+    {
+
+        $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Typen einer Zensuren-Gruppe zuordnen');
+
+        $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Gradebook/Score/Group', new ChevronLeft()));
+
+        if (empty($Id)) {
+            $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
+        } else {
+            $tblScoreGroup = Gradebook::useService()->getScoreGroupById($Id);
+            if (empty($tblScoreGroup)) {
+                $Stage->setContent(new Warning('Die Zensuren-Gruppe konnte nicht abgerufen werden'));
+            } else {
+                $tblScoreGroupGradeTypeListByGroup = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup);
+                $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAll();
+                $tblGradeTypeAllByGroup = array();
+                if ($tblScoreGroupGradeTypeListByGroup) {
+                    /** @var TblScoreGroupGradeTypeList $tblScoreGroupGradeType */
+                    foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeType) {
+                        $tblGradeTypeAllByGroup[] = $tblScoreGroupGradeType->getTblGradeType();
+                    }
+                }
+
+                if (!empty($tblGradeTypeAllByGroup) && $tblGradeTypeAll) {
+                    $tblGradeTypeAll = array_udiff($tblGradeTypeAll, $tblGradeTypeAllByGroup,
+                        function (TblGradeType $ObjectA, TblGradeType $ObjectB) {
+
+                            return $ObjectA->getId() - $ObjectB->getId();
+                        }
+                    );
+                }
+
+                if ($tblScoreGroupGradeTypeListByGroup) {
+                    foreach ($tblScoreGroupGradeTypeListByGroup as &$tblScoreGroupGradeTypeList) {
+                        $tblScoreGroupGradeTypeList->Name = $tblScoreGroupGradeTypeList->getTblGradeType()->getName();
+                        $tblScoreGroupGradeTypeList->Option =
+                            (new Danger('Entfernen', '/Education/Graduation/Gradebook/Score/Group/GradeType/Remove',
+                                new Minus(), array(
+                                    'Id' => $tblScoreGroupGradeTypeList->getId()
+                                )))->__toString();
+                    }
+                }
+
+                if ($tblGradeTypeAll) {
+                    foreach ($tblGradeTypeAll as $tblGradeType) {
+                        $tblGradeType->Option =
+                            (new Form(
+                                new FormGroup(
+                                    new FormRow(array(
+                                        new FormColumn(
+                                            new TextField('GradeType[Multiplier]', 'Faktor', '', new Quantity()
+                                            )
+                                            , 7),
+                                        new FormColumn(
+                                            new Primary('Hinzufügen',
+                                                new Plus())
+                                            , 5)
+                                    ))
+                                ), null,
+                                '/Education/Graduation/Gradebook/Score/Group/GradeType/Add', array(
+                                    'tblScoreGroupId' => $tblScoreGroup->getId(),
+                                    'tblGradeTypeId' => $tblGradeType->getId()
+                                )
+                            ))->__toString();
+                    }
+                }
+
+                $Stage->setContent(
+                    new Layout(array(
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Panel('Zensuren-Gruppe', $tblScoreGroup->getName(), Panel::PANEL_TYPE_SUCCESS), 12
+                                ),
+                            ))
+                        )),
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(array(
+                                    new TableData($tblScoreGroupGradeTypeListByGroup, null,
+                                        array(
+                                            'Name' => 'Name',
+                                            'Multiplier' => 'Faktor',
+                                            'Option' => 'Option'
+                                        )
+                                    )
+                                ), 6
+                                ),
+                                new LayoutColumn(array(
+                                    new TableData($tblGradeTypeAll, null,
+                                        array(
+                                            'Name' => 'Name',
+                                            'Option' => 'Option'
+                                        )
+                                    )
+                                ), 6
+                                )
+                            )),
+                        )),
+                    ))
+                );
+            }
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $tblScoreGroupId
+     * @param null $tblGradeTypeId
+     * @param null $GradeType
+     *
+     * @return Stage
+     */
+    public function frontendScoreGroupGradeTypeAdd($tblScoreGroupId = null, $tblGradeTypeId = null, $GradeType = null)
+    {
+        $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Typ einer Zenuseren-Gruppe hinzufügen');
+
+        $tblScoreGroup = Gradebook::useService()->getScoreGroupById($tblScoreGroupId);
+        $tblGradeType = Gradebook::useService()->getGradeTypeById($tblGradeTypeId);
+
+        if ($GradeType['Multiplier'] == ''){
+            $multiplier = 1;
+        } else {
+            $multiplier = $GradeType['Multiplier'];
+        }
+
+        if ($tblScoreGroup && $tblGradeType) {
+            $Stage->setContent(Gradebook::useService()->addScoreGroupGradeTypeList($tblGradeType, $tblScoreGroup, $multiplier));
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return Stage
+     */
+    public function frontendScoreGroupGradeTypeRemove($Id)
+    {
+        $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Typ von einer Zenuseren-Gruppe entfernen');
+
+        $tblScoreGroupGradeTypeList = Gradebook::useService()->getScoreGroupGradeTypeListById($Id);
+        if ($tblScoreGroupGradeTypeList) {
+            $Stage->setContent(Gradebook::useService()->removeScoreGroupGradeTypeList($tblScoreGroupGradeTypeList));
+        }
+
+        return $Stage;
     }
 }

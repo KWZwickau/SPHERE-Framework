@@ -458,6 +458,19 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblScoreGroup $tblScoreGroup
+     * @return bool|TblScoreGroupGradeTypeList[]
+     */
+    public function getScoreGroupGradeTypeListByGroup(TblScoreGroup $tblScoreGroup)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblScoreGroupGradeTypeList',
+            array(TblScoreGroupGradeTypeList::ATTR_TBL_SCORE_GROUP => $tblScoreGroup->getId())
+        );
+    }
+
+    /**
      * @param $Name
      * @param string $Description
      *
@@ -672,5 +685,24 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblScoreGroupGradeTypeList $tblScoreGroupGradeTypeList
+     *
+     * @return bool
+     */
+    public function removeScoreGroupGradeTypeList(TblScoreGroupGradeTypeList $tblScoreGroupGradeTypeList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblScoreGroupGradeTypeList $Entity */
+        $Entity = $Manager->getEntityById('TblScoreGroupGradeTypeList', $tblScoreGroupGradeTypeList->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 }

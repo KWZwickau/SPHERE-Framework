@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupList;
@@ -21,6 +22,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -103,17 +105,15 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (!isset($Select['Division']))
-        {
+        if (!isset($Select['Division'])) {
             $Error = true;
-            $Stage .=  new Warning('Klasse nicht gefunden');
+            $Stage .= new Warning('Klasse nicht gefunden');
         }
-        if(!isset($Select['Subject'])) {
+        if (!isset($Select['Subject'])) {
             $Error = true;
-            $Stage .=  new Warning('Fach nicht gefunden');
+            $Stage .= new Warning('Fach nicht gefunden');
         }
-        if ($Error)
-        {
+        if ($Error) {
             return $Stage;
         }
 
@@ -251,25 +251,23 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (!isset($Test['Division']))
-        {
+        if (!isset($Test['Division'])) {
             $Error = true;
-            $Stage .=  new Warning('Klasse nicht gefunden');
+            $Stage .= new Warning('Klasse nicht gefunden');
         }
-        if(!isset($Test['Subject'])) {
+        if (!isset($Test['Subject'])) {
             $Error = true;
-            $Stage .=  new Warning('Fach nicht gefunden');
+            $Stage .= new Warning('Fach nicht gefunden');
         }
-        if(!isset($Test['Period'])) {
+        if (!isset($Test['Period'])) {
             $Error = true;
-            $Stage .=  new Warning('Zeitraum nicht gefunden');
+            $Stage .= new Warning('Zeitraum nicht gefunden');
         }
-        if(!isset($Test['GradeType'])) {
+        if (!isset($Test['GradeType'])) {
             $Error = true;
-            $Stage .=  new Warning('Zensuren-Typ nicht gefunden');
+            $Stage .= new Warning('Zensuren-Typ nicht gefunden');
         }
-        if ($Error)
-        {
+        if ($Error) {
             return $Stage;
         }
 
@@ -453,6 +451,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblScoreGroup $tblScoreGroup
+     * @return bool|TblScoreGroupGradeTypeList[]
+     */
+    public function getScoreGroupGradeTypeListByGroup(TblScoreGroup $tblScoreGroup)
+    {
+        return (new Data($this->getBinding()))->getScoreGroupGradeTypeListByGroup($tblScoreGroup);
+    }
+
+    /**
      * @param IFormInterface|null $Stage
      * @param $ScoreCondition
      *
@@ -474,7 +481,7 @@ class Service extends AbstractService
             $Error = true;
         }
 
-        if ($ScoreCondition['Priority'] == ''){
+        if ($ScoreCondition['Priority'] == '') {
             $priority = 1;
         } else {
             $priority = $ScoreCondition['Priority'];
@@ -530,5 +537,48 @@ class Service extends AbstractService
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     * @param TblScoreGroup $tblScoreGroup
+     * @param $Multiplier
+     *
+     * @return TblScoreGroupGradeTypeList
+     */
+    public function addScoreGroupGradeTypeList(
+        TblGradeType $tblGradeType,
+        TblScoreGroup $tblScoreGroup,
+        $Multiplier
+    ) {
+        if ((new Data($this->getBinding()))->addScoreGroupGradeTypeList($tblGradeType, $tblScoreGroup, $Multiplier)) {
+            return new Success('Erfolgreich hinzugefügt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', 0,
+                array('Id' => $tblScoreGroup->getId()));
+        } else {
+            return new Warning('Konnte nicht hinzugefügt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', 0,
+                array('Id' => $tblScoreGroup->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreGroupGradeTypeList $tblScoreGroupGradeTypeList
+     *
+     * @return string
+     */
+    public function removeScoreGroupGradeTypeList(
+        TblScoreGroupGradeTypeList $tblScoreGroupGradeTypeList
+    ) {
+        $tblScoreGroup = $tblScoreGroupGradeTypeList->getTblScoreGroup();
+        if ((new Data($this->getBinding()))->removeScoreGroupGradeTypeList($tblScoreGroupGradeTypeList)) {
+            return new Success('Erfolgreich entfernt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', 0,
+                array('Id' => $tblScoreGroup->getId()));
+        } else {
+            return new Warning('Konnte nicht entfernt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', 0,
+                array('Id' => $tblScoreGroup->getId()));
+        }
     }
 }
