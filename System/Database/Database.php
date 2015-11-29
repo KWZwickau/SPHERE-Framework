@@ -28,6 +28,8 @@ use SPHERE\System\Cache\Type\Apcu;
 use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Config\ConfigFactory;
 use SPHERE\System\Config\Reader\IniReader;
+use SPHERE\System\Database\Fitting\ColumnHydrator;
+use SPHERE\System\Database\Fitting\IdHydrator;
 use SPHERE\System\Database\Fitting\Logger;
 use SPHERE\System\Database\Fitting\Manager;
 use SPHERE\System\Database\Link\Connection;
@@ -148,7 +150,10 @@ class Database extends Extension
             $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration(array($EntityPath));
             $MetadataConfiguration->setDefaultRepositoryClassName('\SPHERE\System\Database\Fitting\Repository');
             $MetadataConfiguration->addCustomHydrationMode(
-                'COLUMN_HYDRATOR', '\SPHERE\System\Database\Fitting\ColumnHydrator'
+                ColumnHydrator::HYDRATION_MODE, '\SPHERE\System\Database\Fitting\ColumnHydrator'
+            );
+            $MetadataConfiguration->addCustomHydrationMode(
+                IdHydrator::HYDRATION_MODE, '\SPHERE\System\Database\Fitting\IdHydrator'
             );
 
 //            $MetadataConfiguration->setAutoGenerateProxyClasses(true);

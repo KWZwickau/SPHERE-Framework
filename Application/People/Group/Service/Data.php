@@ -9,6 +9,7 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\ColumnHydrator;
 
 /**
  * Class Data
@@ -298,5 +299,22 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @return array of TblPerson->Id
+     */
+    public function fetchIdPersonAllByGroup(TblGroup $tblGroup)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Builder = $Manager->getQueryBuilder();
+        $Query = $Builder->select('M.serviceTblPerson')
+            ->from(__NAMESPACE__ . '\Entity\TblMember', 'M')
+            ->where($Builder->expr()->eq('M.tblGroup', '?1'))
+            ->setParameter(1, $tblGroup->getId())
+            ->getQuery();
+        return $AddressList = $Query->getResult(ColumnHydrator::HYDRATION_MODE);
     }
 }

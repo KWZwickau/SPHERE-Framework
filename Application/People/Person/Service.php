@@ -248,4 +248,13 @@ class Service extends AbstractService
 
         return $Form;
     }
+
+    /**
+     * @param array $IdArray of TblPerson->Id
+     * @return TblPerson[]
+     */
+    public function fetchPersonAllByIdList($IdArray)
+    {
+        return (new Data($this->getBinding()))->fetchPersonAllByIdList($IdArray);
+    }
 }
