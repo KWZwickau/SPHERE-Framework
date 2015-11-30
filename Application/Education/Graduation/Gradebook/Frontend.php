@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroup;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
@@ -136,7 +137,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $Select
      * @return string
      */
-    public function frontendSelectedGradeBook($DivisionId, $SubjectId, $Select)
+    public function frontendSelectedGradeBook($DivisionId, $SubjectId, $ScoreConditionId, $Select)
     {
         $Stage = new Stage('Zensuren', 'Notenbuch');
 
@@ -144,21 +145,25 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblSubjectAll = Subject::useService()->getSubjectAll();
+        $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
 
         $tblDivision = new TblDivision();
         $tblSubject = new TblSubject();
+        $tblScoreCondition = new TblScoreCondition();
         $rowList = array();
-        if ($DivisionId !== null && $SubjectId !== null) {
+        if ($DivisionId !== null && $SubjectId !== null && $ScoreConditionId !== null) {
 
             $Global = $this->getGlobal();
             if (!$Global->POST) {
                 $Global->POST['Select']['Division'] = $DivisionId;
                 $Global->POST['Select']['Subject'] = $SubjectId;
+                $Global->POST['Select']['ScoreCondition'] = $ScoreConditionId;
                 $Global->savePost();
             }
 
             $tblDivision = Division::useService()->getDivisionById($DivisionId);
             $tblSubject = Subject::useService()->getSubjectById($SubjectId);
+            $tblScoreCondition = Gradebook::useService()->getScoreConditionById($ScoreConditionId);
             $tblYear = $tblDivision->getServiceTblYear();
             $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
             $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
@@ -217,10 +222,13 @@ class Frontend extends Extension implements IFrontendInterface
                                         , 1);
                                     $count++;
                                 }
-                                // ToDo JohK select ScoreCondition
-                                $tblScoreCondition = Gradebook::useService()->getScoreConditionById(1);
-                                $average = Gradebook::useService()->calcStudentGrade($tblPerson, $tblSubject, $tblPeriod, $tblScoreCondition);
-                                $columnSubList[] = new LayoutColumn(new Container(new Bold($average)),1);
+
+                                /*
+                                 * Calc Average
+                                 */
+                                $average = Gradebook::useService()->calcStudentGrade($tblPerson, $tblSubject,
+                                    $tblPeriod, $tblScoreCondition);
+                                $columnSubList[] = new LayoutColumn(new Container(new Bold($average)), 1);
 
                                 $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
                                     $width);
@@ -251,24 +259,35 @@ class Frontend extends Extension implements IFrontendInterface
                                     '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }}
                                                      - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
                                 )),
-                            6
+                            4
                         ),
                         new FormColumn(
-                            new SelectBox('Select[Subject]', 'Fach', array('Name' => $tblSubjectAll)), 6
-                        )
+                            new SelectBox('Select[Subject]', 'Fach', array('Name' => $tblSubjectAll)), 4
+                        ),
+                        new FormColumn(
+                            new SelectBox('Select[ScoreCondition]', 'Berechnungsvorschrift',
+                                array(
+                                    '{{ Name }}' => $tblScoreConditionAll
+                                )),
+                            4
+                        ),
                     )),
                 )), new Primary('Auswählen', new Select()))
                 , $Select)
             .
-            ($DivisionId !== null && $SubjectId !== null ?
+            ($DivisionId !== null && $SubjectId !== null && $ScoreConditionId !== null ?
                 (new Layout (new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Klasse:', $division,
-                            Panel::PANEL_TYPE_SUCCESS), 6
+                            Panel::PANEL_TYPE_SUCCESS), 4
                     ),
                     new LayoutColumn(
                         new Panel('Fach:', $tblSubject->getName(),
-                            Panel::PANEL_TYPE_SUCCESS), 6
+                            Panel::PANEL_TYPE_SUCCESS), 4
+                    ),
+                    new LayoutColumn(
+                        new Panel('Berechnungsvorschrift:', $tblScoreCondition->getName(),
+                            Panel::PANEL_TYPE_SUCCESS), 4
                     )
                 )))))
                 . new Layout(new LayoutGroup($rowList)) : '')
@@ -619,8 +638,8 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblScoreConditionAll as &$tblScoreCondition) {
                 $scoreGroups = '';
                 $tblScoreGroups = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition);
-                if($tblScoreGroups) {
-                    foreach ($tblScoreGroups as $tblScoreGroup){
+                if ($tblScoreGroups) {
+                    foreach ($tblScoreGroups as $tblScoreGroup) {
                         $scoreGroups .= $tblScoreGroup->getTblScoreGroup()->getName() . ', ';
                     }
                 }
@@ -703,8 +722,8 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblScoreGroupAll as &$tblScoreGroup) {
                 $gradeTypes = '';
                 $tblScoreGroupGradeTypes = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup);
-                if($tblScoreGroupGradeTypes) {
-                    foreach ($tblScoreGroupGradeTypes as $tblScoreGroupGradeType){
+                if ($tblScoreGroupGradeTypes) {
+                    foreach ($tblScoreGroupGradeTypes as $tblScoreGroupGradeType) {
                         $gradeTypes .= $tblScoreGroupGradeType->getTblGradeType()->getName() . ', ';
                     }
                 }
@@ -848,7 +867,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Panel('Zensuren-Gruppe', $tblScoreGroup->getName(), Panel::PANEL_TYPE_SUCCESS), 12
+                                    new Panel('Zensuren-Gruppe', $tblScoreGroup->getName(), Panel::PANEL_TYPE_SUCCESS),
+                                    12
                                 ),
                             ))
                         )),
@@ -897,14 +917,15 @@ class Frontend extends Extension implements IFrontendInterface
         $tblScoreGroup = Gradebook::useService()->getScoreGroupById($tblScoreGroupId);
         $tblGradeType = Gradebook::useService()->getGradeTypeById($tblGradeTypeId);
 
-        if ($GradeType['Multiplier'] == ''){
+        if ($GradeType['Multiplier'] == '') {
             $multiplier = 1;
         } else {
             $multiplier = $GradeType['Multiplier'];
         }
 
         if ($tblScoreGroup && $tblGradeType) {
-            $Stage->setContent(Gradebook::useService()->addScoreGroupGradeTypeList($tblGradeType, $tblScoreGroup, $multiplier));
+            $Stage->setContent(Gradebook::useService()->addScoreGroupGradeTypeList($tblGradeType, $tblScoreGroup,
+                $multiplier));
         }
 
         return $Stage;
@@ -1002,7 +1023,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Panel('Berechnungsvorschrift', $tblScoreCondition->getName(), Panel::PANEL_TYPE_SUCCESS), 12
+                                    new Panel('Berechnungsvorschrift', $tblScoreCondition->getName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 12
                                 ),
                             ))
                         )),

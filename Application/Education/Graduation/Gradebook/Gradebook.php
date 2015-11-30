@@ -53,6 +53,7 @@ class Gradebook implements IModuleInterface
                 __NAMESPACE__ . '\Frontend::frontendSelectedGradebook')
                 ->setParameterDefault('DivisionId', null)
                 ->setParameterDefault('SubjectId', null)
+                ->setParameterDefault('ScoreConditionId', null)
                 ->setParameterDefault('Select', null)
         );
 

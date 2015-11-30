@@ -113,16 +113,22 @@ class Service extends AbstractService
             $Error = true;
             $Stage .= new Warning('Fach nicht gefunden');
         }
+        if (!isset($Select['ScoreCondition'])) {
+            $Error = true;
+            $Stage .= new Warning('Berechnungsvorschrift nicht gefunden');
+        }
         if ($Error) {
             return $Stage;
         }
 
         $tblDivision = Division::useService()->getDivisionById($Select['Division']);
         $tblSubject = Subject::useService()->getSubjectById($Select['Subject']);
+        $tblScoreCondition = Gradebook::useService()->getScoreConditionById($Select['ScoreCondition']);
 
         return new Redirect('/Education/Graduation/Gradebook/Selected', 0, array(
             'DivisionId' => $tblDivision->getId(),
             'SubjectId' => $tblSubject->getId(),
+            'ScoreConditionId' => $tblScoreCondition->getId()
         ));
     }
 
@@ -648,7 +654,7 @@ class Service extends AbstractService
         $grades = (new Data($this->getBinding()))->getGradesByStudentAndSubjectAndPeriod($tblPerson, $tblSubject,
             $tblPeriod);
 
-        // ToDo JohK pregmatch grade = zahl
+        // ToDo JohK isfloat grade = zahl
         // ToDo JohK round
         // ToDo JohK fehler bei nicht vorhandenen Typ
         if ($grades) {
