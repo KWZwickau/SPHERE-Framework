@@ -22,6 +22,8 @@ class TblDivisionSubject extends Element
 
     const ATTR_TBL_DIVISION = 'tblDivision';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+    const ATTR_TBL_SUBJECT_GROUP = 'tblSubjectGroup';
+
 
     /**
      * @Column(type="bigint")
@@ -31,6 +33,10 @@ class TblDivisionSubject extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblSubject;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblSubjectGroup;
 
     /**
      * @return bool|TblDivision
@@ -74,5 +80,27 @@ class TblDivisionSubject extends Element
     {
 
         $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
+    }
+
+    /**
+     * @return bool|TblSubjectGroup
+     */
+    public function getTblSubjectGroup()
+    {
+
+        if (null === $this->tblSubjectGroup) {
+            return false;
+        } else {
+            return Division::useService()->getSubjectGroupById($this->tblSubjectGroup);
+        }
+    }
+
+    /**
+     * @param null|TblSubjectGroup $tblSubjectGroup
+     */
+    public function setTblSubjectGroup(TblSubjectGroup $tblSubjectGroup = null)
+    {
+
+        $this->tblSubjectGroup = ( null === $tblSubjectGroup ? null : $tblSubjectGroup->getId() );
     }
 }
