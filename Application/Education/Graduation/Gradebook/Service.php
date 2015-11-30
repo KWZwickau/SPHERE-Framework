@@ -641,19 +641,57 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param TblSubject $tblSubject
-     * @param TblPeriod $tblPeriod
      * @param TblScoreCondition $tblScoreCondition
+     * @param TblPeriod|null $tblPeriod
+     * @param TblDivision $tblDivision
      * @return bool|float|string
      */
     public function calcStudentGrade(
         TblPerson $tblPerson,
         TblSubject $tblSubject,
-        TblPeriod $tblPeriod,
-        TblScoreCondition $tblScoreCondition
+        TblScoreCondition $tblScoreCondition,
+        TblPeriod $tblPeriod = null,
+        TblDivision $tblDivision = null
     ) {
-        $grades = (new Data($this->getBinding()))->getGradesByStudentAndSubjectAndPeriod($tblPerson, $tblSubject,
-            $tblPeriod);
+        $grades = false;
+        if ($tblPeriod !== null) {
+            $grades = (new Data($this->getBinding()))->getGradesByStudentAndSubjectAndPeriod($tblPerson, $tblSubject,
+                $tblPeriod);
+        } elseif ($tblDivision !== null) {
+            if (($tblYear = $tblDivision->getServiceTblYear())) {
+                if (($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear))) {
+                    $grades = array();
+                    foreach ($tblPeriodList as $tblPeriod) {
+                        if (($gradesByPeriod = (new Data($this->getBinding()))->getGradesByStudentAndSubjectAndPeriod($tblPerson,
+                            $tblSubject,
+                            $tblPeriod))
+                        ) {
+                            if (!empty($grades)) {
+                                $grades = array_merge($grades, $gradesByPeriod);
+                            } else {
+                                $grades = $gradesByPeriod;
+                            }
+                        }
+                    }
+                }
+            } else {
+                return false;
+            }
 
+        } else {
+            return false;
+        }
+
+        return $this->calcAverageFromGrades($tblScoreCondition, $grades);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     * @param $grades
+     * @return bool|float|string
+     */
+    private function calcAverageFromGrades(TblScoreCondition $tblScoreCondition, $grades)
+    {
         // ToDo JohK isfloat grade = zahl
         // ToDo JohK round
         // ToDo JohK fehler bei nicht vorhandenen Typ
@@ -662,6 +700,7 @@ class Service extends AbstractService
             $averageGroup = array();
             $resultAverage = '';
             $count = 0;
+            /** @var TblGrade $tblGrade */
             foreach ($grades as $tblGrade) {
                 if ($tblScoreCondition) {
                     if (($tblScoreConditionGroupListByCondition
@@ -706,17 +745,17 @@ class Service extends AbstractService
                     }
                 }
 
-                if (!empty($averageGroup[$tblScoreCondition->getId()])){
+                if (!empty($averageGroup[$tblScoreCondition->getId()])) {
                     $average = 0;
                     $totalMultiplier = 0;
-                    foreach ($averageGroup[$tblScoreCondition->getId()] as $groupId => $group){
+                    foreach ($averageGroup[$tblScoreCondition->getId()] as $groupId => $group) {
                         $tblScoreGroup = Gradebook::useService()->getScoreGroupById($groupId);
                         $multiplier = floatval($tblScoreGroup->getMultiplier());
                         $totalMultiplier += $multiplier;
-                        $average += $multiplier * ($group['Value']/$group['Count']);
+                        $average += $multiplier * ($group['Value'] / $group['Count']);
                     }
 
-                    $average = $average/$totalMultiplier;
+                    $average = $average / $totalMultiplier;
                     $resultAverage = round($average, 2);
                 }
             }

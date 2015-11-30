@@ -37,6 +37,7 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -195,7 +196,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     , 1);
                                 $count++;
                             }
-                            $columnSubList[] = new LayoutColumn(new Header('&#216;'), 1);
+                            $columnSubList[] = new LayoutColumn(new Header(new Bold('&#216;')), 1);
                             $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
                                 $width);
                         } else {
@@ -209,7 +210,11 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($tblStudentList as $tblPerson) {
                         $count = 1;
                         $columnList = array();
-                        $columnList[] = new LayoutColumn(new Container($tblPerson->getFullName()), 2);
+                        $totalAverage = Gradebook::useService()->calcStudentGrade($tblPerson, $tblSubject,
+                            $tblScoreCondition, null, $tblDivision);
+                        $columnList[] = new LayoutColumn(
+                            new Container($tblPerson->getFullName() . '   '. new Bold('&#216; ' . $totalAverage))
+                            , 2);
                         foreach ($tblPeriodList as $tblPeriod) {
                             $gradeList = Gradebook::useService()->getGradesByStudentAndSubjectAndPeriod($tblPerson,
                                 $tblSubject, $tblPeriod);
@@ -227,7 +232,7 @@ class Frontend extends Extension implements IFrontendInterface
                                  * Calc Average
                                  */
                                 $average = Gradebook::useService()->calcStudentGrade($tblPerson, $tblSubject,
-                                    $tblPeriod, $tblScoreCondition);
+                                    $tblScoreCondition, $tblPeriod);
                                 $columnSubList[] = new LayoutColumn(new Container(new Bold($average)), 1);
 
                                 $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
