@@ -4,7 +4,6 @@ namespace SPHERE\System\Cache\Handler;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Config\Reader\ReaderInterface;
 use SPHERE\System\Debugger\DebuggerFactory;
-use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 
 /**
@@ -72,8 +71,8 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     public function setValue($Key, $Value, $Timeout = 0, $Region = 'Default')
     {
         if ($this->isValid()) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' - ' . $Region . '#' . $Key);
-            $this->Connection->set($Region . '#' . $Key, $Value, (!$Timeout ? null : time() + $Timeout));
+            $this->Connection->set($this->getSlot() . ':' . $Region . '#' . $Key, $Value,
+                (!$Timeout ? null : time() + $Timeout));
         }
         return $this;
     }
@@ -86,6 +85,14 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
         return (null === $this->Connection ? false : true);
     }
 
+    public function getSlot()
+    {
+        if (isset($_SESSION['Memcached-Slot'])) {
+            return $_SESSION['Memcached-Slot'];
+        }
+        return 'PUBLIC';
+    }
+
     /**
      * @param string $Key
      * @param string $Region
@@ -94,8 +101,7 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     public function getValue($Key, $Region = 'Default')
     {
         if ($this->isValid()) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' - ' . $Region . '#' . $Key);
-            $Value = $this->Connection->get($Region . '#' . $Key);
+            $Value = $this->Connection->get($this->getSlot() . ':' . $Region . '#' . $Key);
             // 0 = MEMCACHED_SUCCESS
             if (0 == ($Code = $this->Connection->getResultCode())) {
                 return $Value;

@@ -27,9 +27,8 @@ class Data extends AbstractData
     public function getResponsibilityById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblResponsibility', $Id);
-
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblResponsibility',
+            $Id);
     }
 
     /**
@@ -38,9 +37,7 @@ class Data extends AbstractData
     public function getResponsibilityAll()
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblResponsibility')->findAll();
-
-        return ( empty ( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblResponsibility');
     }
 
     /**

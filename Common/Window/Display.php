@@ -10,6 +10,7 @@ use SPHERE\Common\Roadmap\Roadmap;
 use SPHERE\Common\Script;
 use SPHERE\Common\Style;
 use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
@@ -291,13 +292,13 @@ class Display extends Extension implements ITemplateInterface
         if (!empty($Protocol)) {
             $this->Template->setVariable('DebuggerProtocol',
                 (new Accordion())
-                    ->addItem('Debug Protocol ' . $Runtime, $Protocol)
+//                    ->addItem('Debug Protocol ' . $Runtime, $Protocol)
+                    ->addItem('Debugger (Benchmark)',
+                        implode('<br/>', (new DebuggerFactory())->createLogger(new BenchmarkLogger())->getLog())
+                        , true)
                     ->addItem('Debugger (Error)',
                         implode('<br/>',(new DebuggerFactory())->createLogger(new ErrorLogger())->getLog())
-                    )
-                    ->addItem('Debugger (Benchmark)',
-                        implode('<br/>',(new DebuggerFactory())->createLogger(new BenchmarkLogger())->getLog())
-                    )
+                        , true)
             );
         }
         $this->Template->setVariable('DebuggerHost', gethostname());
@@ -306,6 +307,7 @@ class Display extends Extension implements ITemplateInterface
         $this->Template->setVariable('RoadmapVersion', (new Roadmap())->getVersionNumber());
 
         $this->Template->setVariable('Content', implode('', $this->Content));
+        $this->Template->setVariable('CacheSlot', (new MemcachedHandler())->getSlot());
         $this->Template->setVariable('PathBase', $this->getRequest()->getPathBase());
         if (!$NoConnection) {
             $this->Template->setVariable('Consumer',

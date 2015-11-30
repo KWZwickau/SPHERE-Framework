@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 
 /**
@@ -105,10 +106,17 @@ class Data extends AbstractData
     public function getConsumerBySession($Session = null)
     {
 
-        if (false !== ( $tblAccount = Account::useService()->getAccountBySession($Session) )) {
-            return $tblAccount->getServiceTblConsumer();
-        } else {
-            return false;
+        // 1. Level Cache
+        $Memory = $this->getCache(new MemoryHandler());
+        if (null === ($Entity = $Memory->getValue($Session, __METHOD__))) {
+
+            if (false !== ($tblAccount = Account::useService()->getAccountBySession($Session))) {
+                $Entity = $tblAccount->getServiceTblConsumer();
+                $Memory->setValue($Session, $Entity, 0, __METHOD__);
+            } else {
+                $Entity = false;
+            }
         }
+        return $Entity;
     }
 }

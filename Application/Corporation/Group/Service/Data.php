@@ -9,8 +9,6 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractData;
-use SPHERE\System\Debugger\DebuggerFactory;
-use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 
 /**
  * Class Data
@@ -98,8 +96,7 @@ class Data extends AbstractData
     public function getGroupAll()
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGroup')->findAll();
-        return (empty($Entity) ? false : $Entity);
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup');
     }
 
     /**
@@ -110,8 +107,7 @@ class Data extends AbstractData
     public function getGroupById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblGroup', $Id);
-        return (null === $Entity ? false : $Entity);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', $Id);
     }
 
     /**
@@ -122,9 +118,9 @@ class Data extends AbstractData
     public function getGroupByName($Name)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGroup')
-            ->findOneBy(array(TblGroup::ATTR_NAME => $Name));
-        return (null === $Entity ? false : $Entity);
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', array(
+            TblGroup::ATTR_NAME => $Name
+        ));
     }
 
     /**
@@ -150,10 +146,9 @@ class Data extends AbstractData
     public function countCompanyAllByGroup(TblGroup $tblGroup)
     {
 
-        $Count = $this->getConnection()->getEntityManager()->getEntity('TblMember')->countBy(array(
+        return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', array(
             TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
         ));
-        return $Count;
     }
 
     /**
@@ -163,7 +158,6 @@ class Data extends AbstractData
      */
     public function getCompanyAllByGroup(TblGroup $tblGroup)
     {
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' Start');
         /** @var TblMember[] $EntityList */
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
             array(
@@ -182,7 +176,6 @@ class Data extends AbstractData
         } else {
             $EntityList = $ResultList;
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' Stop');
         return (null === $EntityList ? false : $EntityList);
     }
 
@@ -225,13 +218,23 @@ class Data extends AbstractData
     {
 
         /** @var TblMember[] $EntityList */
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblMember')->findBy(array(
-            TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
-        ));
-        array_walk($EntityList, function (TblMember &$V) {
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
+            array(
+                TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
+            ));
+        $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
+        if (null === ($ResultList = $Cache->getValue($tblCompany->getId(), __METHOD__))
+            && !empty($EntityList)
+        ) {
 
-            $V = $V->getTblGroup();
-        });
+            array_walk($EntityList, function (TblMember &$V) {
+
+                $V = $V->getTblGroup();
+            });
+            $Cache->setValue($tblCompany->getId(), $EntityList, 0, __METHOD__);
+        } else {
+            $EntityList = $ResultList;
+        }
         return (null === $EntityList ? false : $EntityList);
     }
 

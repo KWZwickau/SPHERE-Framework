@@ -131,17 +131,6 @@ class Data extends AbstractData
     /**
      * @param integer $Id
      *
-     * @return bool|TblType
-     */
-    public function getTypeById($Id)
-    {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType', $Id);
-    }
-
-    /**
-     * @param integer $Id
-     *
      * @return bool|TblAddress
      */
     public function getAddressById($Id)
@@ -345,6 +334,39 @@ class Data extends AbstractData
             array(
                 TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblAddress
+     */
+    public function getAddressByPerson(TblPerson $tblPerson)
+    {
+        // TODO: Persistent Types
+        $Type = $this->getTypeById(1);
+        /** @var TblToPerson $Entity */
+        if ($Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+            array(
+                TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblToPerson::ATT_TBL_TYPE => $Type->getId()
+            ))
+        ) {
+            return $Entity->getTblAddress();
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblType
+     */
+    public function getTypeById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType', $Id);
     }
 
     /**
