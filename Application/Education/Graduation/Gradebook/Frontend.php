@@ -923,8 +923,10 @@ class Frontend extends Extension implements IFrontendInterface
         if (empty($Id)) {
             $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
         } else {
+
             $tblScoreCondition = Gradebook::useService()->getScoreConditionById($Id);
-            if (empty($tblScoreCondition)) {
+            var_dump($tblScoreCondition);
+            if (!$tblScoreCondition) {
                 $Stage->setContent(new Warning('Die Zensuren-Gruppe konnte nicht abgerufen werden'));
             } else {
                 $tblScoreConditionGroupListByCondition = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition);

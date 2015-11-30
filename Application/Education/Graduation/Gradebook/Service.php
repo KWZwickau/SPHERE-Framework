@@ -620,7 +620,7 @@ class Service extends AbstractService
     public function removeScoreConditionGroupList(
         TblScoreConditionGroupList $tblScoreConditionGroupList
     ) {
-        $tblScoreCondition = $tblScoreConditionGroupList->getTblScoreGroup();
+        $tblScoreCondition = $tblScoreConditionGroupList->getTblScoreCondition();
         if ((new Data($this->getBinding()))->removeScoreConditionGroupList($tblScoreConditionGroupList)) {
             return new Success('Erfolgreich entfernt.') .
             new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', 0,
