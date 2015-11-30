@@ -36,6 +36,14 @@ class Setup extends AbstractSetup
         $tblTest = $this->setTableTest($Schema, $tblGradeType);
         $this->setTableGrade($Schema, $tblGradeType, $tblTest);
 
+        $tblScoreRule = $this->setTableScoreRule($Schema);
+        $tblScoreCondition = $this->setTableScoreCondition($Schema);
+        $tblScoreGroup = $this->setTableScoreGroup($Schema);
+        $this->setTableScoreRuleConditionList($Schema, $tblScoreRule, $tblScoreCondition);
+        $this->setTableScoreConditionGradeTypeList($Schema, $tblGradeType, $tblScoreCondition);
+        $this->setTableScoreConditionGroupList($Schema, $tblScoreCondition, $tblScoreGroup);
+        $this->setTableScoreGroupGradeTypeList($Schema, $tblGradeType, $tblScoreGroup);
+
         /**
          * Migration & Protocol
          */
@@ -139,6 +147,140 @@ class Setup extends AbstractSetup
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
         $this->getConnection()->addForeignKey($Table, $tblTest, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableScoreRule(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreRule');
+        if (!$this->getConnection()->hasColumn('tblScoreRule', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreRule', 'Description')) {
+            $Table->addColumn('Description', 'string');
+        }
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableScoreCondition(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreCondition');
+        if (!$this->getConnection()->hasColumn('tblScoreCondition', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreCondition', 'Round')) {
+            $Table->addColumn('Round', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreCondition', 'Priority')) {
+            $Table->addColumn('Priority', 'integer');
+        }
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableScoreGroup(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreGroup');
+        if (!$this->getConnection()->hasColumn('tblScoreGroup', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreGroup', 'Round')) {
+            $Table->addColumn('Round', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreGroup', 'Multiplier')) {
+            $Table->addColumn('Multiplier', 'string');
+        }
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblScoreRule
+     * @param Table $tblScoreCondition
+     * @return Table
+     */
+    private function setTableScoreRuleConditionList(Schema &$Schema, Table $tblScoreRule, Table $tblScoreCondition)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreRuleConditionList');
+
+        $this->getConnection()->addForeignKey($Table, $tblScoreRule, true);
+        $this->getConnection()->addForeignKey($Table, $tblScoreCondition, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblGradeType
+     * @param Table $tblScoreCondition
+     * @return Table
+     */
+    private function setTableScoreConditionGradeTypeList(Schema &$Schema, Table $tblGradeType, Table $tblScoreCondition)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreConditionGradeTypeList');
+
+        $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
+        $this->getConnection()->addForeignKey($Table, $tblScoreCondition, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblScoreCondition
+     * @param Table $tblScoreGroup
+     * @return Table
+     */
+    private function setTableScoreConditionGroupList(Schema &$Schema, Table $tblScoreCondition, Table $tblScoreGroup)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreConditionGroupList');
+
+        $this->getConnection()->addForeignKey($Table, $tblScoreCondition, true);
+        $this->getConnection()->addForeignKey($Table, $tblScoreGroup, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblGradeType
+     * @param Table $tblScoreGroup
+     * @return Table
+     */
+    private function setTableScoreGroupGradeTypeList(Schema &$Schema, Table $tblGradeType, Table $tblScoreGroup)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreGroupGradeTypeList');
+        if (!$this->getConnection()->hasColumn('tblScoreGroupGradeTypeList', 'Multiplier')) {
+            $Table->addColumn('Multiplier', 'string');
+        }
+
+        $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
+        $this->getConnection()->addForeignKey($Table, $tblScoreGroup, true);
 
         return $Table;
     }

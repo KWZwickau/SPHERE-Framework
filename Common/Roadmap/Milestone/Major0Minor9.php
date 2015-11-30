@@ -73,11 +73,9 @@ class Major0Minor9
             ->createDuty('Abschnitt verknüpfen', true);
         $Feature->createTask('Klassenstufe')
             ->createDuty('Klassenstufe hinzufügen', true)
-            ->createDuty('Klassenstufe löschen', false)
             ->createDuty('Schulform verknüpfen', true);
         $Feature->createTask('Klassen')
             ->createDuty('Klasse hinzufügen', true)
-            ->createDuty('Klasse löschen', false)
             ->createDuty('Schuljahr verknüpfen', true)
             ->createDuty('Klassenstufe verknüpfen', true)
             ->createDuty('Fachklasse verknüpfen', true)
