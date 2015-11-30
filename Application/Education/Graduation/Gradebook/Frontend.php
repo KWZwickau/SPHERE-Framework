@@ -140,6 +140,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $Stage = new Stage('Zensuren', 'Notenbuch');
 
+        // ToDo Johk Gesamtdurchschnitt der Schüler
+
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblSubjectAll = Subject::useService()->getSubjectAll();
 
@@ -188,6 +190,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     , 1);
                                 $count++;
                             }
+                            $columnSubList[] = new LayoutColumn(new Header('&#216;'), 1);
                             $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
                                 $width);
                         } else {
@@ -214,6 +217,11 @@ class Frontend extends Extension implements IFrontendInterface
                                         , 1);
                                     $count++;
                                 }
+                                // ToDo JohK select ScoreCondition
+                                $tblScoreCondition = Gradebook::useService()->getScoreConditionById(1);
+                                $average = Gradebook::useService()->calcStudentGrade($tblPerson, $tblSubject, $tblPeriod, $tblScoreCondition);
+                                $columnSubList[] = new LayoutColumn(new Container(new Bold($average)),1);
+
                                 $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
                                     $width);
                             } else {
@@ -221,9 +229,6 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
                         $rowList[] = new LayoutRow($columnList);
-
-                        $tblScoreCondition = Gradebook::useService()->getScoreConditionById(1);
-                        Gradebook::useService()->calcStudentGrade($tblPerson, $tblSubject, $tblPeriodList[0], $tblScoreCondition);
                     }
                 }
             }

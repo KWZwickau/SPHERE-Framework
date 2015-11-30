@@ -20,7 +20,6 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -28,7 +27,6 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -634,6 +632,13 @@ class Service extends AbstractService
         }
     }
 
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblPeriod $tblPeriod
+     * @param TblScoreCondition $tblScoreCondition
+     * @return bool|float|string
+     */
     public function calcStudentGrade(
         TblPerson $tblPerson,
         TblSubject $tblSubject,
@@ -645,29 +650,27 @@ class Service extends AbstractService
 
         // ToDo JohK pregmatch grade = zahl
         // ToDo JohK round
+        // ToDo JohK fehler bei nicht vorhandenen Typ
         if ($grades) {
             $result = array();
             $averageGroup = array();
-            $average = '';
+            $resultAverage = '';
             $count = 0;
             foreach ($grades as $tblGrade) {
-//                Debugger::screenDump($tblGrade);
                 if ($tblScoreCondition) {
                     if (($tblScoreConditionGroupListByCondition
                         = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition))
                     ) {
-                        foreach ($tblScoreConditionGroupListByCondition as $tblScoreConditionGroupList) {
+                        foreach ($tblScoreConditionGroupListByCondition as $tblScoreGroup) {
                             if (($tblScoreGroupGradeTypeListByGroup
-                                = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreConditionGroupList->getTblScoreGroup()))
+                                = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup->getTblScoreGroup()))
                             ) {
 
                                 foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeTypeList) {
-//                                    Debugger::screenDump($tblGrade);
                                     if ($tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()) {
                                         $count++;
-                                        $result[$tblScoreCondition->getId()][$tblScoreConditionGroupList->getTblScoreGroup()->getId()][]
-                                            = $tblGrade->getGrade() * $tblScoreGroupGradeTypeList->getMultiplier();
-                                        Debugger::screenDump($tblGrade);
+                                        $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][]
+                                            = floatval($tblGrade->getGrade()) * floatval($tblScoreGroupGradeTypeList->getMultiplier());
                                     }
                                 }
                             }
@@ -679,25 +682,41 @@ class Service extends AbstractService
             }
 
             if (!empty($result)) {
-                Debugger::screenDump($result);
                 foreach ($result as $conditionId => $groups) {
                     if (!empty($groups)) {
-                        foreach ($groups as $groupId => $value) {
-                            $tblScoreGroup = Gradebook::useService()->getScoreGroupById($groupId);
-                            if (isset($averageGroup[$groupId])){
-                                $averageGroup[$groupId]['Value'] += $value;
-                                $averageGroup[$groupId]['Count']++;
-                            } else {
-                                $averageGroup[$groupId]['Value'] = $value;
-                                $averageGroup[$groupId]['Count'] = 1;
+                        foreach ($groups as $groupId => $group) {
+                            if (!empty($group)) {
+                                foreach ($group as $value) {
+                                    if (isset($averageGroup[$conditionId][$groupId])) {
+                                        $averageGroup[$conditionId][$groupId]['Value'] += $value;
+                                        $averageGroup[$conditionId][$groupId]['Count']++;
+                                    } else {
+                                        $averageGroup[$conditionId][$groupId]['Value'] = $value;
+                                        $averageGroup[$conditionId][$groupId]['Count'] = 1;
+                                    }
+                                }
                             }
                         }
                     }
-                    //Debugger::screenDump($averageGroup);
+                }
+
+                if (!empty($averageGroup[$tblScoreCondition->getId()])){
+                    $average = 0;
+                    $totalMultiplier = 0;
+                    foreach ($averageGroup[$tblScoreCondition->getId()] as $groupId => $group){
+                        $tblScoreGroup = Gradebook::useService()->getScoreGroupById($groupId);
+                        $multiplier = floatval($tblScoreGroup->getMultiplier());
+                        $totalMultiplier += $multiplier;
+                        $average += $multiplier * ($group['Value']/$group['Count']);
+                    }
+
+                    $average = $average/$totalMultiplier;
+                    $resultAverage = round($average, 2);
                 }
             }
 
-            return true;
+            return $resultAverage;
+
         } else {
             return false;
         }
