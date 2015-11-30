@@ -45,8 +45,9 @@ $Main = new Main();
 
 if (false) {
     $CacheConfig = (new ConfigFactory())->createReader(__DIR__ . '/System/Cache/Configuration.ini', new IniReader());
-    (new CacheFactory())->createHandler(new APCuHandler(), $CacheConfig)->clearCache();
+    (new CacheFactory())->createHandler(new CouchbaseHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new MemcachedHandler(), $CacheConfig)->clearCache();
+    (new CacheFactory())->createHandler(new APCuHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new MemoryHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new OpCacheHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new TwigHandler(), $CacheConfig)->clearCache();
@@ -168,9 +169,4 @@ class FakePerson
 //    $Person->createAddress();
 //}
 
-$CacheConfig = (new ConfigFactory())->createReader(__DIR__ . '/System/Cache/Configuration.ini', new IniReader());
-
-Debugger::screenDump((new CacheFactory())->createHandler(new CouchbaseHandler(), $CacheConfig, 'Couchbase'));
-
-//$Main->runPlatform();
-
+$Main->runPlatform();

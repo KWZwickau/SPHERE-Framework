@@ -2,10 +2,10 @@
 namespace SPHERE\System\Cache\Handler;
 
 use SPHERE\System\Cache\CacheFactory;
+use SPHERE\System\Cache\CacheStatus;
 use SPHERE\System\Config\Reader\ReaderInterface;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class CouchbaseHandler
@@ -13,7 +13,8 @@ use SPHERE\System\Extension\Repository\Debugger;
  */
 class CouchbaseHandler extends AbstractHandler implements HandlerInterface
 {
-    /** @var null|\Couchbase $Connection */
+
+    /** @var null|\CouchbaseCluster $Connection */
     private $Connection = null;
 
     /**
@@ -24,8 +25,6 @@ class CouchbaseHandler extends AbstractHandler implements HandlerInterface
     public function setConfig($Name, ReaderInterface $Config = null)
     {
 
-        Debugger::screenDump(func_get_args(), class_exists('\CouchbaseCluster'));
-
         if (null === $this->Connection
             && null !== $Config
             && class_exists('\CouchbaseCluster', false)
@@ -35,6 +34,10 @@ class CouchbaseHandler extends AbstractHandler implements HandlerInterface
                 $Host = $Value->getContainer('Host');
                 if ($Host) {
                     $this->Connection = new \CouchbaseCluster('couchbase://' . (string)$Host);
+
+                    (new DebuggerFactory())->createLogger(new ErrorLogger())
+                        ->addLog(__METHOD__.' Error: Server not available -> Fallback');
+
 
                     return $this;
                 } else {
@@ -49,9 +52,12 @@ class CouchbaseHandler extends AbstractHandler implements HandlerInterface
             if (null === $Config) {
                 (new DebuggerFactory())->createLogger(new ErrorLogger())
                     ->addLog(__METHOD__ . ' Error: Configuration not available -> Fallback');
+            } else {
+                (new DebuggerFactory())->createLogger(new ErrorLogger())
+                    ->addLog(__METHOD__.' Error: Server not available -> Fallback');
             }
         }
-        return (new CacheFactory())->createHandler(new DefaultHandler());
+        return (new CacheFactory())->createHandler(new MemcachedHandler());
     }
 
     /**
@@ -85,5 +91,23 @@ class CouchbaseHandler extends AbstractHandler implements HandlerInterface
     {
 
         return $this;
+    }
+
+    /**
+     * @return CacheStatus
+     */
+    public function getStatus()
+    {
+
+        if (false) {
+            $Status = $this->Connection->getStats();
+            $Status = $Status[$this->Host.':'.$this->Port];
+            return new CacheStatus(
+                $Status['get_hits'], $Status['get_misses'], $Status['limit_maxbytes'],
+                $Status['bytes'], $Status['limit_maxbytes'] - $Status['bytes'], 0
+            );
+        } else {
+            return new CacheStatus();
+        }
     }
 }
