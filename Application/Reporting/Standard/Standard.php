@@ -16,7 +16,7 @@ class Standard implements IApplicationInterface
         Person::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'\Person'), new Link\Name('Personen'))
+            new Link(new Link\Route(__NAMESPACE__.'\Person'), new Link\Name('Personen (allgemein)'))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'

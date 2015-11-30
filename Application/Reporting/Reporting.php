@@ -20,17 +20,17 @@ class Reporting implements IClusterInterface
     public static function registerCluster()
     {
 
-        if (Consumer::useService()->getConsumerBySession()->getAcronym() == 'ESZC') {
+        Standard::registerApplication();
+        $consumerAcronym = Consumer::useService()->getConsumerBySession()->getAcronym();
+        if ($consumerAcronym === 'ESZC' || $consumerAcronym === 'DEMO') {
             Custom::registerApplication();
-        } else {
-            Standard::registerApplication();
         }
 
         Main::getDisplay()->addClusterNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Auswertung'))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__.'::frontendDashboard'
+            __NAMESPACE__, __CLASS__ . '::frontendDashboard'
         ));
     }
 
