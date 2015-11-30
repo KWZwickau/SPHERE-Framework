@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -27,6 +28,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -629,6 +631,75 @@ class Service extends AbstractService
             return new Warning('Konnte nicht entfernt werden.') .
             new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', 0,
                 array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    public function calcStudentGrade(
+        TblPerson $tblPerson,
+        TblSubject $tblSubject,
+        TblPeriod $tblPeriod,
+        TblScoreCondition $tblScoreCondition
+    ) {
+        $grades = (new Data($this->getBinding()))->getGradesByStudentAndSubjectAndPeriod($tblPerson, $tblSubject,
+            $tblPeriod);
+
+        // ToDo JohK pregmatch grade = zahl
+        // ToDo JohK round
+        if ($grades) {
+            $result = array();
+            $averageGroup = array();
+            $average = '';
+            $count = 0;
+            foreach ($grades as $tblGrade) {
+//                Debugger::screenDump($tblGrade);
+                if ($tblScoreCondition) {
+                    if (($tblScoreConditionGroupListByCondition
+                        = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition))
+                    ) {
+                        foreach ($tblScoreConditionGroupListByCondition as $tblScoreConditionGroupList) {
+                            if (($tblScoreGroupGradeTypeListByGroup
+                                = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreConditionGroupList->getTblScoreGroup()))
+                            ) {
+
+                                foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeTypeList) {
+//                                    Debugger::screenDump($tblGrade);
+                                    if ($tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()) {
+                                        $count++;
+                                        $result[$tblScoreCondition->getId()][$tblScoreConditionGroupList->getTblScoreGroup()->getId()][]
+                                            = $tblGrade->getGrade() * $tblScoreGroupGradeTypeList->getMultiplier();
+                                        Debugger::screenDump($tblGrade);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+
+                }
+            }
+
+            if (!empty($result)) {
+                Debugger::screenDump($result);
+                foreach ($result as $conditionId => $groups) {
+                    if (!empty($groups)) {
+                        foreach ($groups as $groupId => $value) {
+                            $tblScoreGroup = Gradebook::useService()->getScoreGroupById($groupId);
+                            if (isset($averageGroup[$groupId])){
+                                $averageGroup[$groupId]['Value'] += $value;
+                                $averageGroup[$groupId]['Count']++;
+                            } else {
+                                $averageGroup[$groupId]['Value'] = $value;
+                                $averageGroup[$groupId]['Count'] = 1;
+                            }
+                        }
+                    }
+                    //Debugger::screenDump($averageGroup);
+                }
+            }
+
+            return true;
+        } else {
+            return false;
         }
     }
 }

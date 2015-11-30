@@ -221,6 +221,9 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
                         $rowList[] = new LayoutRow($columnList);
+
+                        $tblScoreCondition = Gradebook::useService()->getScoreConditionById(1);
+                        Gradebook::useService()->calcStudentGrade($tblPerson, $tblSubject, $tblPeriodList[0], $tblScoreCondition);
                     }
                 }
             }
