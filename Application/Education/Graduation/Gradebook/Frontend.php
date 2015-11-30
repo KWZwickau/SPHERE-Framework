@@ -609,6 +609,17 @@ class Frontend extends Extension implements IFrontendInterface
         $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
         if ($tblScoreConditionAll) {
             foreach ($tblScoreConditionAll as &$tblScoreCondition) {
+                $scoreGroups = '';
+                $tblScoreGroups = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition);
+                if($tblScoreGroups) {
+                    foreach ($tblScoreGroups as $tblScoreGroup){
+                        $scoreGroups .= $tblScoreGroup->getTblScoreGroup()->getName() . ', ';
+                    }
+                }
+                if (($length = strlen($scoreGroups)) > 2) {
+                    $scoreGroups = substr($scoreGroups, 0, $length - 2);
+                }
+                $tblScoreCondition->ScoreGroups = $scoreGroups;
                 $tblScoreCondition->Option =
 //                    (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Edit', new Pencil(),
 //                        array('Id' => $tblScoreCondition->getId()), 'Bearbeiten')) .
@@ -629,6 +640,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new TableData($tblScoreConditionAll, null, array(
                                 'Name' => 'Name',
+                                'ScoreGroups' => 'Zensuren-Gruppen',
                                 'Priority' => 'Priorität',
                                 'Round' => 'Runden',
                                 'Option' => 'Optionen',
@@ -692,7 +704,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $gradeTypes = substr($gradeTypes, 0, $length - 2);
                 }
                 $tblScoreGroup->GradeTypes = $gradeTypes;
-                $tblScoreGroup->MultiplierString = $tblScoreGroup->getMultiplier() . '%';
                 $tblScoreGroup->Option =
 //                    (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Edit', new Pencil(),
 //                        array('Id' => $tblScoreGroup->getId()), 'Bearbeiten')) .
@@ -714,8 +725,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($tblScoreGroupAll, null, array(
                                 'Name' => 'Name',
                                 'GradeTypes' => 'Zensuren-Typen',
+                                'Multiplier' => 'Faktor',
                                 'Round' => 'Runden',
-                                'MultiplierString' => 'Faktor',
                                 'Option' => 'Optionen',
                             ))
                         ))
@@ -745,7 +756,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new TextField('ScoreGroup[Round]', '', 'Rundung'), 2
                 ),
                 new FormColumn(
-                    new TextField('ScoreGroup[Multiplier]', 'Anteil in %', 'Faktor'), 2
+                    new TextField('ScoreGroup[Multiplier]', 'z.B. 40 für 40%', 'Faktor'), 2
                 )
             ))
         )));
