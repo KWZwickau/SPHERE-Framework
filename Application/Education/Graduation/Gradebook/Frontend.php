@@ -925,7 +925,6 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
 
             $tblScoreCondition = Gradebook::useService()->getScoreConditionById($Id);
-            var_dump($tblScoreCondition);
             if (!$tblScoreCondition) {
                 $Stage->setContent(new Warning('Die Zensuren-Gruppe konnte nicht abgerufen werden'));
             } else {
