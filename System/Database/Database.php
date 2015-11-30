@@ -150,6 +150,9 @@ class Database extends Extension
             $MetadataConfiguration->addCustomHydrationMode(
                 'COLUMN_HYDRATOR', '\SPHERE\System\Database\Fitting\ColumnHydrator'
             );
+
+//            $MetadataConfiguration->setAutoGenerateProxyClasses(true);
+
             $ConnectionConfig = $this->getConnection()->getConnection()->getConfiguration();
 
             if ($this->UseCache) {

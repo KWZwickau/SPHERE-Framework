@@ -40,6 +40,25 @@ AutoLoader::getNamespaceAutoLoader('SPHERE', __DIR__ . '/', 'SPHERE');
 AutoLoader::getNamespaceAutoLoader('Markdownify', __DIR__ . '/Library/Markdownify/2.1.6/src');
 AutoLoader::getNamespaceAutoLoader('Faker', __DIR__ . '/System/Faker/Vendor', 'Faker');
 
+///**
+// * Fix: Load Doctrine-Proxy Classes
+// */
+//AutoLoader::getNamespaceAutoLoader('Doctrine\ORM', __DIR__.'/Library/MOC-V/Component/Database/Vendor/Doctrine2ORM/2.5.0/lib');
+//AutoLoader::getNamespaceAutoLoader('Doctrine\Common', __DIR__.'/Library/MOC-V/Component/Database/Vendor/Doctrine2Common/2.5.0/lib');
+//if (false !== ( $Path = realpath( sys_get_temp_dir() ) )) {
+//    $Iterator = new \RecursiveIteratorIterator(
+//        new \RecursiveDirectoryIterator($Path, \RecursiveDirectoryIterator::SKIP_DOTS),
+//        \RecursiveIteratorIterator::CHILD_FIRST
+//    );
+//    /** @var \SplFileInfo $FileInfo */
+//    foreach ($Iterator as $FileInfo) {
+//        if (strpos( $FileInfo->getBasename(), '__CG__SPHERE') === 0 ) {
+//            require_once($FileInfo->getPathname());
+//        }
+//    }
+//}
+
+
 $Main = new Main();
 
 if (false) {
@@ -52,7 +71,7 @@ if (false) {
     (new CacheFactory())->createHandler(new SmartyHandler(), $CacheConfig)->clearCache();
 }
 
-Debugger::$Enabled = false;
+Debugger::$Enabled = true;
 
 class FakePerson
 {

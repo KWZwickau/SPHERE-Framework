@@ -27,9 +27,8 @@ class Data extends AbstractData
     public function getSponsorAssociationById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblSponsorAssociation', $Id);
-
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblSponsorAssociation', $Id);
     }
 
     /**
@@ -38,9 +37,8 @@ class Data extends AbstractData
     public function getSponsorAssociationAll()
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblSponsorAssociation')->findAll();
-
-        return ( empty ( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblSponsorAssociation');
     }
 
     /**

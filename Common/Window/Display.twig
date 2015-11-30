@@ -10,8 +10,37 @@
     <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"/>
     <link rel="schema.DCTERMS" href="http://purl.org/dc/terms/"/>
     {{ ManagerStyle }}
-    {#<link rel="shortcut icon" type="image/x-icon" href="{{ PathBase }}/favicon.ico"/>#}
-    {#<link rel="apple-touch-icon" href="{{ PathBase }}/apple-touch-icon.png"/>#}
+    <link rel="apple-touch-icon" sizes="57x57"
+          href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60"
+          href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72"
+          href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76"
+          href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114"
+          href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120"
+          href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144"
+          href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152"
+          href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180"
+          href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"
+          href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32"
+          href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96"
+          href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16"
+          href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/favicon-16x16.png">
+    <link rel="manifest" href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage"
+          content="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
     <script src="{{ PathBase }}/Common/Script/Loader.js"></script>
     {{ ManagerScript }}
 </head>
@@ -123,7 +152,7 @@
     <div class="row">
         <div class="col-xs-12 small" style="border-top: 1px solid #E7E7E7;">
             <div class="text-center small" style="padding: 5px;">
-                Mandant: {{ Consumer }}
+                Mandant: {{ Consumer }} | Slot: {{ CacheSlot }}
                 <br/>
                 © 2014 - {{ "now"|date("Y") }} | Erstellt in {{ DebuggerRuntime }} | {{ DebuggerHost }}
                 <br/>

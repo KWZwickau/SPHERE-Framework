@@ -4,9 +4,9 @@ namespace SPHERE\Application\People\Person\Service\Entity;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
-use Doctrine\ORM\Mapping\JoinColumn;
-use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -22,9 +22,7 @@ class TblPerson extends Element
     const ATTR_LAST_NAME = 'LastName';
 
     /**
-     * @Column(nullable=true)
-     * @ManyToOne(targetEntity="TblSalutation",fetch="EAGER",cascade={"persist"})
-     * @JoinColumn(name="tblSalutation", referencedColumnName="Id")
+     * @Column(type="bigint")
      */
     protected $tblSalutation;
     /**
@@ -83,11 +81,7 @@ class TblPerson extends Element
         if (null === $this->tblSalutation) {
             return false;
         } else {
-            if (is_object($this->tblSalutation)) {
-                return $this->tblSalutation;
-            } else {
-                return Person::useService()->getSalutationById($this->tblSalutation);
-            }
+            return Person::useService()->getSalutationById($this->tblSalutation);
         }
     }
 
@@ -97,7 +91,7 @@ class TblPerson extends Element
     public function setTblSalutation(TblSalutation $tblSalutation = null)
     {
 
-        $this->tblSalutation = ( null === $tblSalutation ? null : $tblSalutation );
+        $this->tblSalutation = (null === $tblSalutation ? null : $tblSalutation->getId());
     }
 
     /**
@@ -188,5 +182,13 @@ class TblPerson extends Element
     {
 
         $this->BirthName = $BirthName;
+    }
+
+    /**
+     * @return bool|TblAddress
+     */
+    public function fetchMainAddress()
+    {
+        return Address::useService()->getAddressByPerson($this);
     }
 }

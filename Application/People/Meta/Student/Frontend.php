@@ -659,7 +659,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         // All
         $tblSubjectAll = Subject::useService()->getSubjectAll();
-        array_push($tblSubjectAll, new TblSubject());
+        if ($tblSubjectAll) {
+            array_push($tblSubjectAll, new TblSubject());
+        } else {
+            $tblSubjectAll = array(new TblSubject());
+        }
 
         return new FormGroup(array(
             new FormRow(array(
@@ -779,10 +783,11 @@ class Frontend extends Extension implements IFrontendInterface
         $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
             Group::useService()->getGroupByMetaTable('SCHOOL')
         );
-        if (!$tblCompanyAllSchool){
+        if ($tblCompanyAllSchool) {
+            array_push($tblCompanyAllSchool, new TblCompany());
+        } else {
             $tblCompanyAllSchool = array();
         }
-        array_push($tblCompanyAllSchool, new TblCompany());
 
         $PanelDisorder = array();
         $tblStudentDisorderType = Student::useService()->getStudentDisorderTypeAll();

@@ -57,7 +57,7 @@ class Dispatcher
                     if (!preg_match('!^/?Api/!is', $Route->getPath())) {
                         self::$Router->addRoute($Route);
                     } else {
-                        if (Access::useService()->getRightByName('/' . $Route->getPath())) {
+                        if (Access::useService()->existsRightByName('/'.$Route->getPath())) {
                             self::$Router->addRoute($Route);
                         } else {
                             $Route = Main::getDispatcher()->createRoute(
@@ -69,7 +69,7 @@ class Dispatcher
                     }
                 }
             }
-            if (!Access::useService()->getRightByName('/' . $Route->getPath())) {
+            if (!Access::useService()->existsRightByName('/'.$Route->getPath())) {
                 if (!in_array($Route->getPath(), self::$PublicRoutes)) {
                     array_push(self::$PublicRoutes, '/' . $Route->getPath());
                 }

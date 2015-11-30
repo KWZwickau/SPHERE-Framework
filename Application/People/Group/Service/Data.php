@@ -9,8 +9,6 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractData;
-use SPHERE\System\Debugger\DebuggerFactory;
-use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 
 /**
  * Class Data
@@ -152,11 +150,9 @@ class Data extends AbstractData
      */
     public function countPersonAllByGroup(TblGroup $tblGroup)
     {
-
-        $Count = $this->getConnection()->getEntityManager()->getEntity('TblMember')->countBy(array(
+        return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', array(
             TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
         ));
-        return $Count;
     }
 
     /**
@@ -166,7 +162,6 @@ class Data extends AbstractData
      */
     public function getPersonAllByGroup(TblGroup $tblGroup)
     {
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' Start');
         /** @var TblMember[] $EntityList */
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
             array(
@@ -185,7 +180,6 @@ class Data extends AbstractData
         } else {
             $EntityList = $ResultList;
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ' Stop');
         return (null === $EntityList ? false : $EntityList);
     }
 
