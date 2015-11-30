@@ -10,6 +10,7 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -46,6 +47,30 @@ class Service
 
         return new Redirect($Redirect, 0, array(
             'DivisionId' => $tblDivision->getId(),
+        ));
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param null $Select
+     * @param $Redirect
+     *
+     * @return IFormInterface|Redirect
+     */
+    public function getGroup(IFormInterface $Stage = null, $Select = null, $Redirect)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Select) {
+            return $Stage;
+        }
+
+        $tblGroup = Group::useService()->getGroupById($Select['Group']);
+
+        return new Redirect($Redirect, 0, array(
+            'GroupId' => $tblGroup->getId(),
         ));
     }
 
@@ -837,25 +862,29 @@ class Service
         return false;
     }
 
-    public function createEmployeeList()
+    /**
+     * @param TblGroup $tblGroup
+     * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
+     */
+    public function createGroupList(TblGroup $tblGroup)
     {
 
-        $employeeList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Mitarbeiter'));
+        $groupList = Group::useService()->getPersonAllByGroup($tblGroup);
 
-        if (!empty($employeeList)) {
+        if (!empty($groupList)) {
 
-            foreach ($employeeList as $key => $row) {
+            foreach ($groupList as $key => $row) {
                 $lastName[$key] = strtoupper($row->getLastName());
                 $firstName[$key] = strtoupper($row->getFirstName());
                 $id[$key] = $row->getId();
             }
-            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $employeeList);
+            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $groupList);
 
             $Man = 0;
             $Woman = 0;
             $All = 0;
 
-            foreach ($employeeList as $tblPerson) {
+            foreach ($groupList as $tblPerson) {
 
                 $All++;
                 $tblPerson->Number = $All;
@@ -943,26 +972,26 @@ class Service
                     $tblPerson->Mail = '';
                 }
             }
-            $Count = count($employeeList);
-            $employeeList[$Count - 1]->Woman = $Woman;
-            $employeeList[$Count - 1]->Man = $Man;
-            $employeeList[$Count - 1]->All = $All;
+            $Count = count($groupList);
+            $groupList[$Count - 1]->Woman = $Woman;
+            $groupList[$Count - 1]->Man = $Man;
+            $groupList[$Count - 1]->All = $All;
         }
 
-        return $employeeList;
+        return $groupList;
     }
 
     /**
-     * @param $employeeList
+     * @param $groupList
      *
      * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createEmployeeListExcel($employeeList)
+    public function createGroupListExcel($groupList)
     {
 
-        if (!empty($employeeList)) {
+        if (!empty($groupList)) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -979,7 +1008,7 @@ class Service
 
             $Row = 1;
 
-            foreach ($employeeList as $tblPerson) {
+            foreach ($groupList as $tblPerson) {
 
                 $export->setValue($export->getCell("0", $Row), $tblPerson->Number);
                 $export->setValue($export->getCell("1", $Row), $tblPerson->Salutation);
@@ -996,16 +1025,16 @@ class Service
                 $Row++;
             }
 
-            $Count = count($employeeList);
+            $Count = count($groupList);
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Gesamt:');
-            $export->setValue($export->getCell("1", $Row), $employeeList[$Count - 1]->All);
+            $export->setValue($export->getCell("1", $Row), $groupList[$Count - 1]->All);
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Frauen:');
-            $export->setValue($export->getCell("1", $Row), $employeeList[$Count - 1]->Woman);
+            $export->setValue($export->getCell("1", $Row), $groupList[$Count - 1]->Woman);
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Männer:');
-            $export->setValue($export->getCell("1", $Row), $employeeList[$Count - 1]->Man);
+            $export->setValue($export->getCell("1", $Row), $groupList[$Count - 1]->Man);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 

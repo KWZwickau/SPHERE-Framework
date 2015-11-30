@@ -3,6 +3,8 @@ namespace SPHERE\Application\Reporting\Standard\Person;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Search\Group\Group;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -429,55 +431,97 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendEmployeeList()
+    public function frontendGroupList($GroupId = null, $Select = null)
     {
 
-        $Stage = new Stage('Mitarbeiter');
-
+        $Stage = new Stage('Auswertung', 'Gruppenliste');
+        $tblGroupAll = Group::useService()->getGroupAll();
+        $tblGroup = new TblGroup('');
+        $groupList = array();
         $All = $Woman = $Man = '0';
-        $employeeList = Person::useService()->createEmployeeList();
-        if ($employeeList){
-            $Stage->addButton(
-                new Primary('Herunterladen',
-                    '/Api/Reporting/Standard/Person/EmployeeList/Download', new Download())
-            );
-        }
-        $Count = count($employeeList);
-        if ($employeeList) {
-            $Man = $employeeList[$Count - 1]->Man;
-            $Woman = $employeeList[$Count - 1]->Woman;
-            $All = $employeeList[$Count - 1]->All;
+
+        if ($GroupId !== null) {
+
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                $Global->POST['Select']['Group'] = $GroupId;
+                $Global->savePost();
+            }
+
+            //ToDo JohK Schuljahr
+
+            $tblGroup = Group::useService()->getGroupById($GroupId);
+            if ($tblGroup) {
+                $groupList = Person::useService()->createGroupList($tblGroup);
+                if ($groupList) {
+                    $Stage->addButton(
+                        new Primary('Herunterladen',
+                            '/Api/Reporting/Standard/Person/GroupList/Download', new Download(),
+                            array('GroupId' => $tblGroup->getId()))
+                    );
+                }
+
+                $Count = count($groupList);
+
+                if ($groupList) {
+                    $Man = $groupList[$Count - 1]->Man;
+                    $Woman = $groupList[$Count - 1]->Woman;
+                    $All = $groupList[$Count - 1]->All;
+                }
+            }
         }
 
         $Stage->setContent(
-            new TableData($employeeList, null,
-                array(
-                    'Number' => 'lfd. Nr.',
-                    'Salutation' => 'Anrede',
-                    'FirstName' => 'Vorname',
-                    'LastName' => 'Nachname',
-                    'Birthday' => 'Geburtstag',
-                    'Address' => 'Anschrift',
-                    'PhoneNumber' => 'Telefon Festnetz',
-                    'MobilPhoneNumber' => 'Telefon Mobil',
-                    'Mail' => 'E-mail',
-                ),
-                false
-            )
-            . new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Gesamt' . new PullRight($All), '', Panel::PANEL_TYPE_INFO), 2
-                        ),
-                        new LayoutColumn(
-                            new Panel('Frauen' . new PullRight($Woman), '', Panel::PANEL_TYPE_INFO), 2
-                        ),
-                        new LayoutColumn(
-                            new Panel('Männer' . new PullRight($Man), '', Panel::PANEL_TYPE_INFO), 2
-                        ),
-                    ))
+            Person::useService()->getGroup(
+                new Form(new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn(
+                            new SelectBox('Select[Group]', 'Gruppe', array(
+                                '{{ Name }}' => $tblGroupAll
+                            )), 12
+                        )
+                    )),
+                )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                , $Select, '/Reporting/Standard/Person/GroupList')
+            .
+            ($GroupId !== null ?
+                (new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Gruppe:', $tblGroup->getName(),
+                            Panel::PANEL_TYPE_SUCCESS), 12
+                    ),
+                )))))
+                .
+                new TableData($groupList, null,
+                    array(
+                        'Number' => 'lfd. Nr.',
+                        'Salutation' => 'Anrede',
+                        'FirstName' => 'Vorname',
+                        'LastName' => 'Nachname',
+                        'Birthday' => 'Geburtstag',
+                        'Address' => 'Anschrift',
+                        'PhoneNumber' => 'Telefon Festnetz',
+                        'MobilPhoneNumber' => 'Telefon Mobil',
+                        'Mail' => 'E-mail',
+                    ),
+                    false
+                ) .
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel('Personen' . new PullRight($All), '', Panel::PANEL_TYPE_INFO), 2
+                            ),
+                            new LayoutColumn(
+                                new Panel('Frauen' . new PullRight($Woman), '', Panel::PANEL_TYPE_INFO), 2
+                            ),
+                            new LayoutColumn(
+                                new Panel('Männer' . new PullRight($Man), '', Panel::PANEL_TYPE_INFO), 2
+                            ),
+                        ))
+                    )
                 )
+                : ''
             )
         );
 

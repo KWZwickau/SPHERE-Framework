@@ -29,7 +29,7 @@ class Person implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__.'/MedicalInsuranceClassList'), new Link\Name('Klassenliste Krankenkasse'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/EmployeeList'), new Link\Name('Mitarbeiterliste'))
+            new Link(new Link\Route(__NAMESPACE__.'/GroupList'), new Link\Name('Gruppenliste'))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -48,7 +48,7 @@ class Person implements IModuleInterface
             __NAMESPACE__.'/MedicalInsuranceClassList', __NAMESPACE__.'\Frontend::frontendMedicalInsuranceClassList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/EmployeeList', __NAMESPACE__.'\Frontend::frontendEmployeeList'
+            __NAMESPACE__.'/GroupList', __NAMESPACE__.'\Frontend::frontendGroupList'
         ));
     }
 
