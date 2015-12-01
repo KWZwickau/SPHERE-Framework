@@ -37,7 +37,6 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -51,6 +50,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -169,7 +169,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
             $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
 
-            $columnList[] = new LayoutColumn(new Title(new Bold('Sch&uuml;ler')), 2);
+            $columnList[] = new LayoutColumn(new Title(new Bold('Schüler')), 2);
             if ($tblPeriodList) {
                 $width = floor(10 / count($tblPeriodList));
                 $count = 1;
@@ -182,28 +182,44 @@ class Frontend extends Extension implements IFrontendInterface
                 $rowList[] = new LayoutRow($columnList);
                 $columnList = array();
                 $columnList[] = new LayoutColumn(new Header(' '), 2);
+                $columnSecondList[] = new LayoutColumn(new Header(' '), 2);
                 foreach ($tblPeriodList as $tblPeriod) {
                     if ($tblStudentList) {
                         $gradeList = Gradebook::useService()->getGradesByStudentAndSubjectAndPeriod($tblStudentList[0],
                             $tblSubject, $tblPeriod);
                         if ($gradeList) {
                             $columnSubList = array();
+                            $columnSecondSubList = array();
                             foreach ($gradeList as $grade) {
                                 $columnSubList[] = new LayoutColumn(
                                     new Header(
                                         $grade->getTblGradeType()->getIsHighlighted()
                                             ? new Bold($grade->getTblGradeType()->getCode()) : $grade->getTblGradeType()->getCode())
                                     , 1);
+                                $date = $grade->getTblTest()->getDate();
+                                if (strlen($date) > 6){
+                                    $date = substr($date, 0 , 6);
+                                }
+                                $columnSecondSubList[] = new LayoutColumn(
+                                    new Header(
+                                        $grade->getTblGradeType()->getIsHighlighted()
+                                            ? new Bold($date) : $date)
+                                    , 1);
+                                Debugger::screenDump($grade->getTblTest()->getDate());
                                 $count++;
                             }
                             $columnSubList[] = new LayoutColumn(new Header(new Bold('&#216;')), 1);
                             $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
                                 $width);
+                            $columnSecondList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSecondSubList))),
+                                $width);
                         } else {
                             $columnList[] = new LayoutColumn(new Header(' '), $width);
+                            $columnSecondList[] = new LayoutColumn(new Header(' '), $width);
                         }
                     }
                 }
+                $rowList[] = new LayoutRow($columnSecondList);
                 $rowList[] = new LayoutRow($columnList);
 
                 if ($tblStudentList) {
@@ -213,7 +229,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $totalAverage = Gradebook::useService()->calcStudentGrade($tblPerson, $tblSubject,
                             $tblScoreCondition, null, $tblDivision);
                         $columnList[] = new LayoutColumn(
-                            new Container($tblPerson->getFullName() . '   '. new Bold('&#216; ' . $totalAverage))
+                            new Container($tblPerson->getFullName() . '   ' . new Bold('&#216; ' . $totalAverage))
                             , 2);
                         foreach ($tblPeriodList as $tblPeriod) {
                             $gradeList = Gradebook::useService()->getGradesByStudentAndSubjectAndPeriod($tblPerson,
