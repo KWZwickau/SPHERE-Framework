@@ -713,9 +713,12 @@ class Service extends AbstractService
 
                                 foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeTypeList) {
                                     if ($tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()) {
+
                                         $count++;
-                                        $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][]
+                                        $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Value']
                                             = floatval($tblGrade->getGrade()) * floatval($tblScoreGroupGradeTypeList->getMultiplier());
+                                        $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Multiplier']
+                                            = floatval($tblScoreGroupGradeTypeList->getMultiplier());
                                     }
                                 }
                             }
@@ -733,11 +736,11 @@ class Service extends AbstractService
                             if (!empty($group)) {
                                 foreach ($group as $value) {
                                     if (isset($averageGroup[$conditionId][$groupId])) {
-                                        $averageGroup[$conditionId][$groupId]['Value'] += $value;
-                                        $averageGroup[$conditionId][$groupId]['Count']++;
+                                        $averageGroup[$conditionId][$groupId]['Value'] += $value['Value'];
+                                        $averageGroup[$conditionId][$groupId]['Multiplier'] += $value['Multiplier'];
                                     } else {
-                                        $averageGroup[$conditionId][$groupId]['Value'] = $value;
-                                        $averageGroup[$conditionId][$groupId]['Count'] = 1;
+                                        $averageGroup[$conditionId][$groupId]['Value'] = $value['Value'];
+                                        $averageGroup[$conditionId][$groupId]['Multiplier'] = $value['Multiplier'];
                                     }
                                 }
                             }
@@ -752,7 +755,7 @@ class Service extends AbstractService
                         $tblScoreGroup = Gradebook::useService()->getScoreGroupById($groupId);
                         $multiplier = floatval($tblScoreGroup->getMultiplier());
                         $totalMultiplier += $multiplier;
-                        $average += $multiplier * ($group['Value'] / $group['Count']);
+                        $average += $multiplier * ($group['Value'] / $group['Multiplier']);
                     }
 
                     $average = $average / $totalMultiplier;
