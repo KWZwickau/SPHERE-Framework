@@ -700,7 +700,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ( empty( $tblSubjectUsedList )
                                     ? new Warning('Keine Fächer zugewiesen')
                                     : new TableData($tblSubjectUsedList, null,
-                                        array('Name'        => 'Fach',
+                                        array('Acronym'     => 'Kürzel',
+                                              'Name'        => 'Fach',
                                               'Description' => 'Beschreibung',
                                               'Option'      => 'Optionen'))
                                 )
@@ -710,7 +711,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ( empty( $tblSubjectAvailable )
                                     ? new \SPHERE\Common\Frontend\Message\Repository\Info('Keine weiteren Fächer verfügbar')
                                     : new TableData($tblSubjectAvailable, null,
-                                        array('Name'        => 'Fach',
+                                        array('Acronym'     => 'Kürzel',
+                                              'Name'        => 'Fach',
                                               'Description' => 'Beschreibung',
                                               'Option'      => 'Optionen'))
                                 )
@@ -750,6 +752,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage = new Stage('Schüler', 'der Klasse '.$Titel.' auswählen');
                 $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
                     array('Id' => $Id)));
+                $Stage->setMessage(new \SPHERE\Common\Frontend\Text\Repository\Warning('"Schüler in Gelb"')
+                    .' sind bereits in einer anderen Gruppe in diesem Fach angelegt.');
 
 
                 $Stage->setContent(new Layout(array(
@@ -811,10 +815,38 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $tblStudentList);
 
+                $tblDivisionSubjectControlList = Division::useService()->
+                getDivisionSubjectBySubjectAndDivision($tblDivisionSubject->getServiceTblSubject(), $tblDivisionSubject->getTblDivision());
+                if ($tblDivisionSubjectControlList) {
+                    /** @var TblDivisionSubject $tblDivisionSubjectControl */
+                    $PersonId = array();
+                    foreach ($tblDivisionSubjectControlList as $tblDivisionSubjectControl) {
+                        if ($tblDivisionSubjectControl->getId() !== $tblDivisionSubject->getId()) {
+                            $tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectControl);
+                            if ($tblSubjectStudentList) {
+                                foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                                    $PersonId[] = $tblSubjectStudent->getServiceTblPerson()->getId();
+                                }
+                            }
+                        }
+                    }
+                }
+
                 foreach ($tblStudentList as &$tblPerson) {
+                    $trigger = false;
+                    if (isset( $PersonId )) {
+                        foreach ($PersonId as $Person) {
+
+                            if ($Person === $tblPerson->getId()) {
+                                $trigger = true;
+                            }
+                        }
+                    }
                     $tblPerson = new CheckBox(
                         'Student['.$tblPerson->getId().']',
-                        $tblPerson->getLastName().', '.$tblPerson->getFirstName().' '.$tblPerson->getSecondName(),
+                        ( ( $trigger ) ? new \SPHERE\Common\Frontend\Text\Repository\Warning($tblPerson->getLastName().', '.$tblPerson->getFirstName().' '.$tblPerson->getSecondName())
+                            : $tblPerson->getLastName().', '.$tblPerson->getFirstName().' '.$tblPerson->getSecondName() )
+                        ,
                         $tblPerson->getId()
                     );
                 }
@@ -1011,19 +1043,20 @@ class Frontend extends Extension implements IFrontendInterface
 
 
             $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($tblDivisionSubjectList, null,
-                                    array('Name'        => 'Fach',
-                                          'GroupName'   => 'Gruppe',
-                                          'Description' => 'Beschreibung',
-                                          'Option'      => 'Optionen',))
-                            )
+                ( ( !empty( $tblDivisionSubjectList ) ) ?
+                    new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    new TableData($tblDivisionSubjectList, null,
+                                        array('Name'        => 'Fach',
+                                              'GroupName'   => 'Gruppe',
+                                              'Description' => 'Beschreibung',
+                                              'Option'      => 'Optionen',), false)
+                                )
+                            ), new Title('Vorhandene Gruppen')
                         )
-                    )
-                )
+                    ) : null )
                 .Division::useService()->addSubjectToDivisionWithGroup(
                     $this->formSubjectGroupAdd($tblSubject)
                         ->appendFormButton(new Primary('Gruppe hinzufügen'))
