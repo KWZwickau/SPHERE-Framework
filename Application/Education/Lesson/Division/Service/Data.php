@@ -196,7 +196,6 @@ class Data extends AbstractData
 
         $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblDivisionSubject')->findBy(array(
             TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId(),
-//            TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => null
         ));
 
         return empty( $EntityList ) ? false : $EntityList;
@@ -208,7 +207,6 @@ class Data extends AbstractData
         $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblDivisionSubject')->findBy(array(
             TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
             TblDivisionSubject::ATTR_TBL_DIVISION        => $tblDivision->getId(),
-//            TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => null
         ));
 
         return empty( $EntityList ) ? false : $EntityList;
@@ -488,7 +486,9 @@ class Data extends AbstractData
         if (!empty ( $TempList )) {
             /** @var TblDivisionSubject $tblDivisionSubject */
             foreach ($TempList as $tblDivisionSubject) {
-                array_push($EntityList, $tblDivisionSubject->getServiceTblSubject());
+                if (!$tblDivisionSubject->getTblSubjectGroup()) {
+                    array_push($EntityList, $tblDivisionSubject->getServiceTblSubject());
+                }
             }
         }
         return empty( $EntityList ) ? false : $EntityList;
@@ -702,6 +702,24 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function removeDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntityById('TblDivisionSubject', $tblDivisionSubject->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param TblSubjectStudent $tblSubjectStudent
      *
      * @return bool
@@ -775,6 +793,24 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntityById('TblSubjectTeacher', $tblSubjectTeacher->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSubjectGroup $tblSubjectGroup
+     *
+     * @return bool
+     */
+    public function removeSubjectGroup(TblSubjectGroup $tblSubjectGroup)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntityById('TblSubjectGroup', $tblSubjectGroup->getId());
         if (null !== $Entity) {
             $Manager->killEntity($Entity);
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);

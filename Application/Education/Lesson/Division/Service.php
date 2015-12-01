@@ -22,6 +22,7 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -448,21 +449,25 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return mixed
+     */
+    public function removeDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        return (new Data($this->getBinding()))->removeDivisionSubject($tblDivisionSubject);
+    }
+
+    /**
      * @param TblSubjectStudent $tblSubjectStudent
-     * @param TblDivision       $tblDivision
      *
      * @return string
      */
-    public function removeSubjectStudent(TblSubjectStudent $tblSubjectStudent, TblDivision $tblDivision)
+    public function removeSubjectStudent(TblSubjectStudent $tblSubjectStudent)
     {
 
-        if ((new Data($this->getBinding()))->removeSubjectStudent($tblSubjectStudent)) {
-            return new Success('Die Zuordnung wurde erfolgreich entfernt')
-            .new Redirect('/Education/Lesson/Division/SubjectStudent/Show', 1, array('Id' => $tblDivision->getId()));
-        } else {
-            return new Danger('Die Zuordnung konnte nicht entfernt werden')
-            .new Redirect('/Education/Lesson/Division/SubjectStudent/Show', 15, array('Id' => $tblDivision->getId()));
-        }
+        return (new Data($this->getBinding()))->removeSubjectStudent($tblSubjectStudent);
     }
 
     /**
@@ -474,6 +479,23 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->removeSubjectTeacher($tblSubjectTeacher);
+    }
+
+    /**
+     * @param TblSubjectGroup    $tblSubjectGroup
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool
+     */
+    public function removeSubjectGroup(TblSubjectGroup $tblSubjectGroup, TblDivisionSubject $tblDivisionSubject)
+    {
+
+        if ($tblDivisionSubject->getTblSubjectGroup()->getId() === $tblSubjectGroup->getId()) {
+            (new Data($this->getBinding()))->removeSubjectStudentByDivisionSubject($tblDivisionSubject);
+            (new Data($this->getBinding()))->removeSubjectTeacherByDivisionSubject($tblDivisionSubject);
+        }
+
+        return (new Data($this->getBinding()))->removeSubjectGroup($tblSubjectGroup);
     }
 
     /**
@@ -527,9 +549,16 @@ class Service extends AbstractService
         if (!$Error) {
             $tblGroup = (new Data($this->getBinding()))->createSubjectGroup($Group['Name'], $Group['Description']);
             if ($tblGroup) {
-                return (new Data($this->getBinding()))->addDivisionSubject($tblDivision, $tblSubject, $tblGroup)
-                .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', 1, array('Id'                => $tblDivision->getId(),
-                                                                                      'DivisionSubjectId' => $DivisionSubjectId));
+                if ((new Data($this->getBinding()))->addDivisionSubject($tblDivision, $tblSubject, $tblGroup)) {
+                    return new Success('Die Gruppe '.new Bold($Group['Name']).' wurde erfolgreich angelegt')
+                    .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', 1, array('Id'                => $tblDivision->getId(),
+                                                                                          'DivisionSubjectId' => $DivisionSubjectId));
+                } else {
+                    return new Danger('Die Gruppe '.new Bold($Group['Name']).' wurde nicht angelegt')
+                    .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', 1, array('Id'                => $tblDivision->getId(),
+                                                                                          'DivisionSubjectId' => $DivisionSubjectId));
+                }
+
             }
         }
         return $Form;
@@ -540,17 +569,18 @@ class Service extends AbstractService
      * @param int            $DivisionSubject
      * @param array          $Student
      * @param int            $DivisionId
-     * @param null           $Group
      *
      * @return IFormInterface|string
      */
-    public function addSubjectStudent(IFormInterface $Form, $DivisionSubject, $Student, $DivisionId, $Group = null)
+    public function addSubjectStudent(IFormInterface $Form, $DivisionSubject, $Student, $DivisionId)
     {
+
+        $Global = $this->getGlobal();
 
         /**
          * Skip to Frontend
          */
-        if (null === $Student) {
+        if (!isset( $Global->POST['Button']['Submit'] )) {
             return $Form;
         }
 
@@ -562,26 +592,34 @@ class Service extends AbstractService
 
         if (!$Error) {
 
-            $tblSubjectGroup = Division::useService()->getSubjectGroupById($Group);
-            if ($tblSubjectGroup === false) {
-                $tblSubjectGroup = null;
+            // Remove old Link
+            $tblDivision = Division::useService()->getDivisionById($DivisionId);
+            $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubject);
+            $tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+            if (is_array($tblSubjectStudentList)) {
+                array_walk($tblSubjectStudentList, function ($tblSubjectStudentList) {
+
+                    if (!$this->removeSubjectStudent($tblSubjectStudentList)) {
+                    }
+                });
             }
 
-            $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubject);
             // Add new Link
-            array_walk($Student, function ($Student) use ($tblDivisionSubject, $tblSubjectGroup, &$Error) {
+            if (is_array($Student)) {
+                array_walk($Student, function ($Student) use ($tblDivisionSubject, &$Error) {
 
-                if (!(new Data($this->getBinding()))->addSubjectStudent(Person::useService()->getPersonById($Student), $tblDivisionSubject)) {
-                    $Error = false;
-                }
-            });
+                    if (!(new Data($this->getBinding()))->addSubjectStudent(Person::useService()->getPersonById($Student), $tblDivisionSubject)) {
+                        $Error = false;
+                    }
+                });
+            }
 
             if (!$Error) {
                 return new Success('Die Gruppe mit Personen wurden erfolgreich angelegt')
-                .new Redirect('/Education/Lesson/Division/SubjectStudent/Show', 1, array('Id' => $DivisionId));
+                .new Redirect('/Education/Lesson/Division/Show', 1, array('Id' => $tblDivision->getId()));
             } else {
                 return new Danger('Einige Personen konnte nicht in der Gruppe angelegt werden')
-                .new Redirect('/Education/Lesson/Division/SubjectStudent/Show', 15, array('Id' => $DivisionId));
+                .new Redirect('/Education/Lesson/Division/Show', 15, array('Id' => $tblDivision->getId()));
             }
         }
         return $Form;
@@ -853,18 +891,20 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param                $SubjectGroup
+     * @param                $Group
      * @param                $Id
+     * @param                $DivisionId
+     * @param                $DivisionSubjectId
      *
      * @return IFormInterface|string
      */
-    public function changeSubjectGroup(IFormInterface $Form, $SubjectGroup, $Id)
+    public function changeSubjectGroup(IFormInterface $Form, $Group, $Id, $DivisionId, $DivisionSubjectId)
     {
 
         /**
          * Skip to Frontend
          */
-        if (null === $SubjectGroup) {
+        if (null === $Group) {
             return $Form;
         }
 
@@ -873,14 +913,14 @@ class Service extends AbstractService
         $tblSubjectGroup = Division::useService()->getSubjectGroupById($Id);
 
         if (isset( $SubjectGroup['Name'] ) && empty( $SubjectGroup['Name'] )) {
-            $Form->setError('SubjectGroup[Name]', 'Bitte geben sie einen Namen an');
+            $Form->setError('Group[Name]', 'Bitte geben sie einen Namen an');
             $Error = true;
         } else {
-            $SubjectGroupTest = Division::useService()->checkSubjectGroupExists($SubjectGroup['Name'], $SubjectGroup['Description']);
+            $SubjectGroupTest = Division::useService()->checkSubjectGroupExists($Group['Name'], $Group['Description']);
             if ($SubjectGroupTest) {
                 if ($SubjectGroupTest->getId() !== $tblSubjectGroup->getId()) {
-                    $Form->setError('SubjectGroup[Name]', 'Kombination schon vergeben');
-                    $Form->setError('SubjectGroup[Description]', 'Beschreibung oder Gruppenname ändern');
+                    $Form->setError('Group[Name]', 'Kombination schon vergeben');
+                    $Form->setError('Group[Description]', 'Beschreibung oder Gruppenname ändern');
                     $Error = true;
                 }
             }
@@ -891,18 +931,21 @@ class Service extends AbstractService
 
             if ($tblSubjectGroup) {
                 if ((new Data($this->getBinding()))->updateSubjectGroup(
-                    $tblSubjectGroup, $SubjectGroup['Name'], $SubjectGroup['Description']
+                    $tblSubjectGroup, $Group['Name'], $Group['Description']
                 )
                 ) {
                     return new Success('Die Gruppe wurde erfolgreich geändert')
-                    .new Redirect('/Education/Lesson/Division/Create/SubjectGroup', 1);
+                    .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', 1, array('Id'                => $DivisionId,
+                                                                                          'DivisionSubjectId' => $DivisionSubjectId));
                 } else {
                     return new Danger('Die Gruppe konnte nicht geändert werden')
-                    .new Redirect('/Education/Lesson/Division/Create/SubjectGroup');
+                    .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', 15, array('Id'                => $DivisionId,
+                                                                                           'DivisionSubjectId' => $DivisionSubjectId));
                 }
             } else {
                 return new Danger('Die Gruppe wurde nicht gefunden')
-                .new Redirect('/Education/Lesson/Division/Create/SubjectGroup');
+                .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', 15, array('Id'                => $DivisionId,
+                                                                                       'DivisionSubjectId' => $DivisionSubjectId));
             }
         }
         return $Form;

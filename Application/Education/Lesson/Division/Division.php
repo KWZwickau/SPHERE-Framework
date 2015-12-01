@@ -63,12 +63,12 @@ class Division implements IModuleInterface
 //        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
 //            __NAMESPACE__.'/SubjectStudent/Show', __NAMESPACE__.'\Frontend::frontendSubjectStudentShow'
 //        ));
-//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-//            __NAMESPACE__.'/SubjectStudent/Add', __NAMESPACE__.'\Frontend::frontendSubjectStudentAdd'
-//        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SubjectStudent/Remove', __NAMESPACE__.'\Frontend::frontendSubjectStudentRemove'
+            __NAMESPACE__.'/SubjectStudent/Add', __NAMESPACE__.'\Frontend::frontendSubjectStudentAdd'
         ));
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__.'/SubjectStudent/Remove', __NAMESPACE__.'\Frontend::frontendSubjectStudentRemove'
+//        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/SubjectTeacher/Show', __NAMESPACE__.'\Frontend::frontendSubjectTeacherShow'
         ));
@@ -121,7 +121,7 @@ class Division implements IModuleInterface
                     $tblDivision->Group = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
                     $tblDivision->LevelType = $tblDivision->getTblLevel()->getServiceTblType()->getName();
                 } else {
-                    $tblDivision->Group = '';
+                    $tblDivision->Group = $tblDivision->getName();
                     $tblDivision->LevelType = '';
                 }
 
