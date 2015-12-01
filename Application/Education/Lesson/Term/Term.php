@@ -126,14 +126,12 @@ class Term implements IModuleInterface
                     'Schuljahr' => $tblYear->getName().'<br/>'.new Muted($tblYear->getDescription()),
                     'Zeiträume' => new Panel(
                         ( empty( $tblPeriodAll ) ?
-                            new Standard('', __NAMESPACE__.'\Choose\Period', new Clock(),
-                                array('Id' => $tblYear->getId()), 'Zeitraum hinzufügen'
-                            ).'Keine Zeiträume hinterlegt'
-                            : new Standard('', __NAMESPACE__.'\Choose\Period', new Clock(),
-                                array('Id' => $tblYear->getId()), 'Zeitraum hinzufügen'
-                            ).count($tblPeriodAll).' Zeiträume' ),
-                        $tblPeriodAll,
-                        ( empty( $tblPeriodAll ) ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT )),
+                            'Keine Zeiträume hinterlegt'
+                            : count($tblPeriodAll).' Zeiträume' ),
+                        $tblPeriodAll, ( empty( $tblPeriodAll ) ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT )
+                        , new Standard('', __NAMESPACE__.'\Choose\Period', new Clock(),
+                        array('Id' => $tblYear->getId()), 'Zeitraum hinzufügen'
+                    )),
 //                    'Optionen'  =>
 //                        new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
 //                            array('Id' => $tblYear->getId()), 'Bearbeiten'

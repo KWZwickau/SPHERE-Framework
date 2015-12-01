@@ -100,12 +100,9 @@ class Service extends AbstractService
 
         $tblType = Type::useService()->getTypeById($Level['Type']);
 
-        if (isset( $Level['Name'] ) && empty( $Level['Name'] )) {
-            $Form->setError('Level[Name]', 'Bitte geben Sie eine Klassenstufe für die Schulart an');
-            $Error = true;
-        }
         if (isset( $Division['Name'] ) && empty( $Division['Name'] )) {
             $Form->setError('Division[Name]', 'Bitte geben Sie eine Klassengruppe an');
+            $Error = true;
         }
 //        else {
 //            if ($this->checkLevelExists($tblType, $Level['Name'])) {
@@ -114,6 +111,12 @@ class Service extends AbstractService
 //            }
 //        }
         if (isset( $Division['Name'] ) && !empty( $Division['Name'] ) && isset( $Level['Name'] ) && empty( $Level['Name'] )) {
+
+            if (Division::useService()->getDivisionByGroupAndLevelAndYear($Division['Name'], null, $Division['Year'])) {
+                $Form->setError('Division[Name]', 'Name in diesem Schuljahr schon vergeben');
+                $Error = true;
+            }
+
             if (isset( $Division['Year'] )) {
                 $tblYear = Term::useService()->getYearById($Division['Year']);
                 if (empty( $tblYear )) {
@@ -125,18 +128,25 @@ class Service extends AbstractService
                 $Error = true;
             }
             if (isset( $Division['Year'] )) {
+
                 $tblYear = Term::useService()->getYearById($Division['Year']);
                 if (empty( $tblYear )) {
                     $Form->setError('Division[Year]', 'Schuljahr nicht gefunden');
                     $Error = true;
                 }
             }
-            if ($Error) {
+            if (!$Error) {
+
                 $tblYear = Term::useService()->getYearById($Division['Year']);
                 (new Data($this->getBinding()))->createDivision($tblYear, null, $Division['Name'], $Division['Description']);
                 return new Success('Die KlassenGruppe wurde erfolgreich hinzugefügt')
                 .new Redirect($this->getRequest()->getUrl(), 1);
             }
+        }
+
+        if (isset( $Level['Name'] ) && empty( $Level['Name'] )) {
+            $Form->setError('Level[Name]', 'Bitte geben Sie eine Klassenstufe für die Schulart an');
+            $Error = true;
         }
 
         if (!$Error) {
@@ -344,16 +354,20 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Name
-     * @param $Level
-     * @param $Year
+     * @param      $Name
+     * @param null $Level
+     * @param      $Year
      *
-     * @return bool|TblDivision
+     * @return bool|false|\SPHERE\System\Database\Fitting\Element
      */
-    public function getDivisionByGroupAndLevelAndYear($Name, $Level, $Year)
+    public function getDivisionByGroupAndLevelAndYear($Name, $Level = null, $Year)
     {
 
-        $tblLevel = $this->getLevelById($Level);
+        if ($Level !== null) {
+            $tblLevel = $this->getLevelById($Level);
+        } else {
+            $tblLevel = null;
+        }
         $tblYear = Term::useService()->getYearById($Year);
         return (new Data($this->getBinding()))->getDivisionByGroupAndLevelAndYear($Name, $tblLevel, $tblYear);
     }
@@ -786,6 +800,12 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getDivisionSubjectByDivision($tblDivision);
     }
 
+    /**
+     * @param TblSubject  $tblSubject
+     * @param TblDivision $tblDivision
+     *
+     * @return array|bool
+     */
     public function getDivisionSubjectBySubject(TblSubject $tblSubject, TblDivision $tblDivision)
     {
 

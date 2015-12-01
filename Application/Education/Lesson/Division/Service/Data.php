@@ -227,29 +227,6 @@ class Data extends AbstractData
         return empty( $EntityList ) ? false : $EntityList;
     }
 
-//    /**
-//     * @param TblDivisionSubject $tblDivisionSubject
-//     *
-//     * @return bool|TblSubjectGroup[]
-//     */
-//    public function getSubjectGroupByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
-//    {
-//
-//        $TempList = $this->getConnection()->getEntityManager()->getEntity('TblSubjectTeacher')->findBy(array(
-//            TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()
-//        ));
-//
-//        $EntityList = array();
-//
-//        if (!empty ( $TempList )) {
-//            /** @var TblSubjectTeacher $tblSubjectTeacher */
-//            foreach ($TempList as $tblSubjectTeacher) {
-//                array_push($EntityList, $tblSubjectTeacher->getTblSubjectGroup());
-//            }
-//        }
-//        return empty( $EntityList ) ? false : $EntityList;
-//    }
-
     /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
@@ -311,20 +288,28 @@ class Data extends AbstractData
     }
 
     /**
-     * @param          $Name
-     * @param TblLevel $tblLevel
-     * @param TblYear  $tblYear
+     * @param               $Name
+     * @param TblLevel|null $tblLevel
+     * @param TblYear       $tblYear
      *
      * @return bool|false|Element
      */
-    public function getDivisionByGroupAndLevelAndYear($Name, TblLevel $tblLevel, TblYear $tblYear)
+    public function getDivisionByGroupAndLevelAndYear($Name, TblLevel $tblLevel = null, TblYear $tblYear)
     {
 
-        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision', array(
-            TblDivision::ATTR_NAME  => $Name,
-            TblDivision::ATTR_LEVEL => $tblLevel->getId(),
-            TblDivision::ATTR_YEAR  => $tblYear->getId(),
-        ));
+        if ($tblLevel === null) {
+            $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision', array(
+                TblDivision::ATTR_NAME => $Name,
+                TblDivision::ATTR_YEAR => $tblYear->getId(),
+            ));
+        } else {
+            $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision', array(
+                TblDivision::ATTR_NAME  => $Name,
+                TblDivision::ATTR_LEVEL => $tblLevel->getId(),
+                TblDivision::ATTR_YEAR  => $tblYear->getId(),
+            ));
+        }
+
         return ( $Entity ? $Entity : false );
     }
 
