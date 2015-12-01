@@ -4,8 +4,6 @@ namespace SPHERE\Application\Contact\Address\Service\Entity;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
-use Doctrine\ORM\Mapping\JoinColumn;
-use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Common\Frontend\Layout\Repository\Address as LayoutAddress;
@@ -39,13 +37,11 @@ class TblAddress extends Element
      */
     protected $PostOfficeBox;
     /**
-     * @ManyToOne(targetEntity="TblCity",fetch="EAGER",cascade={"persist"})
-     * @JoinColumn(name="tblCity",referencedColumnName="Id")
+     * @Column(type="bigint")
      */
     protected $tblCity;
     /**
-     * @ManyToOne(targetEntity="TblState",fetch="EAGER",cascade={"persist"})
-     * @JoinColumn(name="tblState",referencedColumnName="Id")
+     * @Column(type="bigint")
      */
     protected $tblState;
 
@@ -74,9 +70,9 @@ class TblAddress extends Element
     {
 
         $Cache = $this->getCache(new MemcachedHandler());
-        if (null === ($Return = $Cache->getValue( $this->getId(), __METHOD__))) {
+        if (null === ($Return = $Cache->getValue($this->getId(), __METHOD__))) {
             $Return = new LayoutAddress($this);
-            $Cache->setValue( $this->getId(), (string)$Return, 0, __METHOD__);
+            $Cache->setValue($this->getId(), (string)$Return, 0, __METHOD__);
         }
         return $Return;
     }
@@ -88,7 +84,7 @@ class TblAddress extends Element
     {
 
         $Cache = $this->getCache(new MemcachedHandler());
-        if (null === ($Return = $Cache->getValue( $this->getId(), __METHOD__))) {
+        if (null === ($Return = $Cache->getValue($this->getId(), __METHOD__))) {
 
             $Return = $this->getStreetName()
                 . ' ' . $this->getStreetNumber()
@@ -96,7 +92,7 @@ class TblAddress extends Element
                 . ' ' . $this->getTblCity()->getName()
                 . ($this->getTblState() ? ' (' . $this->getTblState()->getName() . ')' : '');
 
-            $Cache->setValue( $this->getId(), $Return, 0, __METHOD__);
+            $Cache->setValue($this->getId(), $Return, 0, __METHOD__);
         }
         return $Return;
     }
@@ -146,11 +142,7 @@ class TblAddress extends Element
         if (null === $this->tblCity) {
             return false;
         } else {
-            if (is_object($this->tblCity)) {
-                return $this->tblCity;
-            } else {
-                return Address::useService()->getCityById($this->tblCity);
-            }
+            return Address::useService()->getCityById($this->tblCity);
         }
     }
 
@@ -160,7 +152,7 @@ class TblAddress extends Element
     public function setTblCity(TblCity $tblCity = null)
     {
 
-        $this->tblCity = ( null === $tblCity ? null : $tblCity );
+        $this->tblCity = (null === $tblCity ? null : $tblCity->getId());
     }
 
     /**
@@ -172,11 +164,7 @@ class TblAddress extends Element
         if (null === $this->tblState) {
             return false;
         } else {
-            if (is_object($this->tblState)) {
-                return $this->tblState;
-            } else {
-                return Address::useService()->getStateById($this->tblState);
-            }
+            return Address::useService()->getStateById($this->tblState);
         }
     }
 
@@ -186,6 +174,6 @@ class TblAddress extends Element
     public function setTblState(TblState $tblState = null)
     {
 
-        $this->tblState = ( null === $tblState ? null : $tblState );
+        $this->tblState = (null === $tblState ? null : $tblState->getId());
     }
 }

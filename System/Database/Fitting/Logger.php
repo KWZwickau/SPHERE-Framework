@@ -19,9 +19,9 @@ class Logger extends Extension implements SQLLogger
     /**
      * Logs a SQL statement somewhere.
      *
-     * @param string     $sql    The SQL to be executed.
+     * @param string $sql The SQL to be executed.
      * @param array|null $params The SQL parameters.
-     * @param array|null $types  The SQL parameter types.
+     * @param array|null $types The SQL parameter types.
      *
      * @return void
      */
@@ -35,13 +35,17 @@ class Logger extends Extension implements SQLLogger
         $placeholder = '!\?!is';
         if( is_array($params)) {
             foreach ($params as $param) {
-                if( !is_object($param) ) {
+                if (!is_object($param) && !is_array($param)) {
                     $Parsed = preg_replace($placeholder, "'" . $param . "'", $Parsed, 1);
+                } elseif (is_array($param) && count($param) == 1) {
+                    $Parsed = preg_replace($placeholder, "'" . current($param) . "'", $Parsed, 1);
+                } else {
+                    $Parsed = preg_replace($placeholder, "'" . json_encode($param) . "'", $Parsed, 1);
                 }
             }
         }
         (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
-            highlight_string($Parsed, true)
+            'Query: ' . $Parsed
         );
 
         $this->getDebugger()->addProtocol('Parameter: '.print_r($params, true));
@@ -58,8 +62,9 @@ class Logger extends Extension implements SQLLogger
     {
 
         $this->getDebugger()->addProtocol(
-            'Query Timing: '.number_format(( $this->getDebugger()->getTimeGap() - $this->Data[3] ) * 1000, 3, ',',
-                '').'ms'
+            'Query Timing: '
+            . number_format(($this->getDebugger()->getTimeGap() - $this->Data[3]) * 1000, 3, ',', '')
+            . 'ms'
         );
     }
 }

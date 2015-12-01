@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\People\Search\Group;
 
-use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -20,7 +19,6 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Italic;
-use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
@@ -45,11 +43,8 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendSearch($Id = false)
     {
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':LoadFrontend');
-
         $Stage = new Stage('Suche', 'nach Gruppe');
 
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartMenu');
         $tblGroupAll = Group::useService()->getGroupAll();
         if (!empty( $tblGroupAll )) {
             /** @noinspection PhpUnusedParameterInspection */
@@ -65,16 +60,11 @@ class Frontend extends Extension implements IFrontendInterface
                 );
             }, $Stage);
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopMenu');
 
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartContent');
         $tblGroup = Group::useService()->getGroupById($Id);
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':GroupLoaded');
         if ($tblGroup) {
 
             $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':ListLoaded');
-
             $Cache = $this->getCache(new MemcachedHandler());
             if (null === ($Result = $Cache->getValue($Id, __METHOD__))) {
                 $Result = array();
@@ -83,20 +73,15 @@ class Frontend extends Extension implements IFrontendInterface
                     array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result) {
 
 
-                        $tblAddressAll = Address::useService()->getAddressAllByPerson($tblPerson);
-                        if ($tblAddressAll) {
-                            $tblToPerson = $tblAddressAll[0];
-                            $tblAddressAll = $tblToPerson->getTblAddress()->getGuiString()
-                                . ($tblToPerson->getRemark()
-                                    ? '<br/>' . new Small(new Muted($tblToPerson->getRemark()))
-                                    : ''
-                                );
+                        $tblAddress = $tblPerson->fetchMainAddress();
+                        if ($tblAddress) {
+                            $tblAddress = $tblAddress->getGuiString();
                         }
 
                         array_push($Result, array(
                             'FullName' => $tblPerson->getFullName(),
-                            'Address' => ($tblAddressAll
-                                ? $tblAddressAll
+                            'Address' => ($tblAddress
+                                ? $tblAddress
                                 : new Warning('Keine Adresse hinterlegt')
                             ),
                             'Option' => new Standard('', '/People/Person', new Pencil(), array(

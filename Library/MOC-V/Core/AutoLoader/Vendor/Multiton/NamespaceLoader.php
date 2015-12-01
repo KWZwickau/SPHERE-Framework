@@ -9,6 +9,9 @@ namespace MOC\V\Core\AutoLoader\Vendor\Multiton;
 class NamespaceLoader
 {
 
+    /** @var bool|null $Cacheable */
+    private static $Cacheable = null;
+
     /** @var null|string $Namespace */
     private $Namespace = null;
     /** @var null|string $Path */
@@ -36,6 +39,13 @@ class NamespaceLoader
             $this->Prefix = $Prefix;
         }
         $this->Hash = $this->getLoaderHash();
+        if ( self::$Cacheable === null ) {
+            if( function_exists('apc_fetch') ) {
+                self::$Cacheable = true;
+            } else {
+                self::$Cacheable = false;
+            }
+        }
     }
 
     /**
@@ -67,7 +77,7 @@ class NamespaceLoader
             return true;
         }
 
-        if (function_exists('apc_fetch')) {
+        if ( self::$Cacheable ) {
             $Hash = sha1($this->Namespace.$this->Path.$this->Separator.$this->Extension.$this->Prefix);
             // @codeCoverageIgnoreStart
             if (false === ( $Result = apc_fetch($Hash.'#'.$ClassName) )) {

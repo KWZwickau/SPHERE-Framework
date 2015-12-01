@@ -113,16 +113,22 @@ class Service extends AbstractService
             $Error = true;
             $Stage .= new Warning('Fach nicht gefunden');
         }
+        if (!isset($Select['ScoreCondition'])) {
+            $Error = true;
+            $Stage .= new Warning('Berechnungsvorschrift nicht gefunden');
+        }
         if ($Error) {
             return $Stage;
         }
 
         $tblDivision = Division::useService()->getDivisionById($Select['Division']);
         $tblSubject = Subject::useService()->getSubjectById($Select['Subject']);
+        $tblScoreCondition = Gradebook::useService()->getScoreConditionById($Select['ScoreCondition']);
 
         return new Redirect('/Education/Graduation/Gradebook/Selected', 0, array(
             'DivisionId' => $tblDivision->getId(),
             'SubjectId' => $tblSubject->getId(),
+            'ScoreConditionId' => $tblScoreCondition->getId()
         ));
     }
 
@@ -620,7 +626,7 @@ class Service extends AbstractService
     public function removeScoreConditionGroupList(
         TblScoreConditionGroupList $tblScoreConditionGroupList
     ) {
-        $tblScoreCondition = $tblScoreConditionGroupList->getTblScoreGroup();
+        $tblScoreCondition = $tblScoreConditionGroupList->getTblScoreCondition();
         if ((new Data($this->getBinding()))->removeScoreConditionGroupList($tblScoreConditionGroupList)) {
             return new Success('Erfolgreich entfernt.') .
             new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', 0,
@@ -629,6 +635,138 @@ class Service extends AbstractService
             return new Warning('Konnte nicht entfernt werden.') .
             new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', 0,
                 array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblScoreCondition $tblScoreCondition
+     * @param TblPeriod|null $tblPeriod
+     * @param TblDivision $tblDivision
+     * @return bool|float|string
+     */
+    public function calcStudentGrade(
+        TblPerson $tblPerson,
+        TblSubject $tblSubject,
+        TblScoreCondition $tblScoreCondition,
+        TblPeriod $tblPeriod = null,
+        TblDivision $tblDivision = null
+    ) {
+        $grades = false;
+        if ($tblPeriod !== null) {
+            $grades = (new Data($this->getBinding()))->getGradesByStudentAndSubjectAndPeriod($tblPerson, $tblSubject,
+                $tblPeriod);
+        } elseif ($tblDivision !== null) {
+            if (($tblYear = $tblDivision->getServiceTblYear())) {
+                if (($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear))) {
+                    $grades = array();
+                    foreach ($tblPeriodList as $tblPeriod) {
+                        if (($gradesByPeriod = (new Data($this->getBinding()))->getGradesByStudentAndSubjectAndPeriod($tblPerson,
+                            $tblSubject,
+                            $tblPeriod))
+                        ) {
+                            if (!empty($grades)) {
+                                $grades = array_merge($grades, $gradesByPeriod);
+                            } else {
+                                $grades = $gradesByPeriod;
+                            }
+                        }
+                    }
+                }
+            } else {
+                return false;
+            }
+
+        } else {
+            return false;
+        }
+
+        return $this->calcAverageFromGrades($tblScoreCondition, $grades);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     * @param $grades
+     * @return bool|float|string
+     */
+    private function calcAverageFromGrades(TblScoreCondition $tblScoreCondition, $grades)
+    {
+        // ToDo JohK isfloat grade = zahl
+        // ToDo JohK round
+        // ToDo JohK fehler bei nicht vorhandenen Typ
+        if ($grades) {
+            $result = array();
+            $averageGroup = array();
+            $resultAverage = '';
+            $count = 0;
+            /** @var TblGrade $tblGrade */
+            foreach ($grades as $tblGrade) {
+                if ($tblScoreCondition) {
+                    if (($tblScoreConditionGroupListByCondition
+                        = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition))
+                    ) {
+                        foreach ($tblScoreConditionGroupListByCondition as $tblScoreGroup) {
+                            if (($tblScoreGroupGradeTypeListByGroup
+                                = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup->getTblScoreGroup()))
+                            ) {
+
+                                foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeTypeList) {
+                                    if ($tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()) {
+
+                                        $count++;
+                                        $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Value']
+                                            = floatval($tblGrade->getGrade()) * floatval($tblScoreGroupGradeTypeList->getMultiplier());
+                                        $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Multiplier']
+                                            = floatval($tblScoreGroupGradeTypeList->getMultiplier());
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+
+                }
+            }
+
+            if (!empty($result)) {
+                foreach ($result as $conditionId => $groups) {
+                    if (!empty($groups)) {
+                        foreach ($groups as $groupId => $group) {
+                            if (!empty($group)) {
+                                foreach ($group as $value) {
+                                    if (isset($averageGroup[$conditionId][$groupId])) {
+                                        $averageGroup[$conditionId][$groupId]['Value'] += $value['Value'];
+                                        $averageGroup[$conditionId][$groupId]['Multiplier'] += $value['Multiplier'];
+                                    } else {
+                                        $averageGroup[$conditionId][$groupId]['Value'] = $value['Value'];
+                                        $averageGroup[$conditionId][$groupId]['Multiplier'] = $value['Multiplier'];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!empty($averageGroup[$tblScoreCondition->getId()])) {
+                    $average = 0;
+                    $totalMultiplier = 0;
+                    foreach ($averageGroup[$tblScoreCondition->getId()] as $groupId => $group) {
+                        $tblScoreGroup = Gradebook::useService()->getScoreGroupById($groupId);
+                        $multiplier = floatval($tblScoreGroup->getMultiplier());
+                        $totalMultiplier += $multiplier;
+                        $average += $multiplier * ($group['Value'] / $group['Multiplier']);
+                    }
+
+                    $average = $average / $totalMultiplier;
+                    $resultAverage = round($average, 2);
+                }
+            }
+
+            return $resultAverage;
+
+        } else {
+            return false;
         }
     }
 }

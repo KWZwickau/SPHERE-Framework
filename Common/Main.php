@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Education;
 use SPHERE\Application\Manual\Manual;
 use SPHERE\Application\People\People;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Platform;
 use SPHERE\Application\Platform\System;
 use SPHERE\Application\Reporting\Reporting;
@@ -53,6 +54,7 @@ class Main extends Extension
      */
     public function __construct()
     {
+        self::initCloudCache();
 
         if (self::getDisplay() === null) {
             self::$Display = new Display();
@@ -60,6 +62,18 @@ class Main extends Extension
         if (self::getDispatcher() === null) {
             self::$Dispatcher = new Dispatcher(new UniversalRouter());
         }
+    }
+
+    public static function initCloudCache()
+    {
+        if (!isset($_SESSION['Memcached-Slot'])) {
+            if (Consumer::useService()->getConsumerBySession()) {
+                $_SESSION['Memcached-Slot'] = Consumer::useService()->getConsumerBySession()->getAcronym();
+            } else {
+                $_SESSION['Memcached-Slot'] = 'PUBLIC';
+            }
+        }
+        return $_SESSION['Memcached-Slot'];
     }
 
     /**
@@ -100,7 +114,7 @@ class Main extends Extension
                 Api::registerCluster();
 
                 if ($this->runAuthenticator()) {
-                    if (Access::useService()->getRightByName($this->getRequest()->getPathInfo())) {
+                    if (Access::useService()->existsRightByName($this->getRequest()->getPathInfo())) {
                         echo self::getDispatcher()->fetchRoute(
                             $this->getRequest()->getPathInfo()
                         );

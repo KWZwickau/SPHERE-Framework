@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Reporting\Standard\Person;
 
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
 
 /**
@@ -106,15 +107,25 @@ class Person
     }
 
     /**
-     * @return string
+     * @param null $GroupId
+     * @return bool|string
      */
-    public function downloadEmployeeList()
+    public function downloadGroupList($GroupId = null)
     {
 
-        $employeeList = ReportingPerson::useService()->createEmployeeList();
-        $fileLocation = ReportingPerson::useService()->createEmployeeListExcel($employeeList);
+        $tblGroup = Group::useService()->getGroupById($GroupId);
+        if ($tblGroup) {
+            $groupList = ReportingPerson::useService()->createGroupList($tblGroup);
+            if ($groupList) {
+                $fileLocation = ReportingPerson::useService()->createGroupListExcel($groupList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(), "Mitarbeiterlisteliste ".date('Y-m-d H:i:s').".xls")->__toString();
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Gruppenliste " . $tblGroup->getName()
+                    . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
+            }
+        }
+
+        return false;
     }
 
 }

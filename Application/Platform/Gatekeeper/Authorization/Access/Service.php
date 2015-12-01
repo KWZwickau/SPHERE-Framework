@@ -65,7 +65,7 @@ class Service extends AbstractService
         if (in_array($Route, self::$AuthorizationCache) || in_array($Route, self::$AuthorizationRequest)) {
             return true;
         }
-        if (false === ( $tblRight = $this->getRightByName($Route) )) {
+        if (!$this->existsRightByName($Route)) {
             // Access valid PUBLIC -> Access granted
             self::$AuthorizationRequest[] = $Route;
             return true;
@@ -110,6 +110,17 @@ class Service extends AbstractService
                 }
             }
         }
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool
+     */
+    public function existsRightByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->existsRightByName($Name);
     }
 
     /**

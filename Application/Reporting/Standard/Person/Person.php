@@ -8,28 +8,30 @@ use SPHERE\Common\Window\Navigation\Link;
 /**
  * Class Person
  *
- * @package SPHERE\Application\Reporting\Custom\Chemnitz\Person
+ * @package SPHERE\Application\Reporting\Standard\Person
  */
 class Person implements IModuleInterface
 {
 
     public static function registerModule()
     {
-
+//        Main::getDisplay()->addApplicationNavigation(
+//            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Personen (allgemein)'))
+//        );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/ClassList'), new Link\Name('Klassenlisten'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/ExtendedClassList'), new Link\Name('Klassenliste Erweitert'))
+            new Link(new Link\Route(__NAMESPACE__.'/ExtendedClassList'), new Link\Name('Klassenlisten Erweitert'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/BirthdayClassList'), new Link\Name('Klassenliste Geburtstag'))
+            new Link(new Link\Route(__NAMESPACE__.'/BirthdayClassList'), new Link\Name('Klassenlisten Geburtstag'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/MedicalInsuranceClassList'), new Link\Name('Klassenliste Krankenkasse'))
+            new Link(new Link\Route(__NAMESPACE__.'/MedicalInsuranceClassList'), new Link\Name('Klassenlisten Krankenkasse'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/EmployeeList'), new Link\Name('Mitarbeiterliste'))
+            new Link(new Link\Route(__NAMESPACE__.'/GroupList'), new Link\Name('Personengruppenlisten'))
         );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -48,7 +50,7 @@ class Person implements IModuleInterface
             __NAMESPACE__.'/MedicalInsuranceClassList', __NAMESPACE__.'\Frontend::frontendMedicalInsuranceClassList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/EmployeeList', __NAMESPACE__.'\Frontend::frontendEmployeeList'
+            __NAMESPACE__.'/GroupList', __NAMESPACE__.'\Frontend::frontendGroupList'
         ));
     }
 
