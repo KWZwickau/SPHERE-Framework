@@ -6,6 +6,8 @@ use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
+use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
@@ -83,18 +85,19 @@ class Data extends AbstractData
      * @param $Description
      * @param $Price
      * @param $CostUnit
+     * @param $Course
+     * @param $ChildRank
      *
      * @return TblItem
-     */                         //ToDO $Course, $ChildRank
+     */
     public function createItem(
         $Name,
         $Description,
         $Price,
-        $CostUnit //,
-//        $Course,
-//        $ChildRank
-    )
-    {
+        $CostUnit,
+        $Course,
+        $ChildRank
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -103,14 +106,12 @@ class Data extends AbstractData
         $Entity->setDescription($Description);
         $Entity->setPrice(str_replace(',', '.', $Price));
         $Entity->setCostUnit($CostUnit);
-//        if (Management::serviceCourse()->entityCourseById($Course))
-//        {
-//            $Entity->setServiceManagementCourse(Management::serviceCourse()->entityCourseById($Course));
-//        }
-//        if (Management::serviceStudent()->entityChildRankById($ChildRank))
-//        {
-//            $Entity->setServiceManagementStudentChildRank(Management::serviceStudent()->entityChildRankById($ChildRank));
-//        }
+        if (Type::useService()->getTypeById($Course)) {
+            $Entity->setServiceStudentType(Type::useService()->getTypeById($Course));
+        }
+        if (Relationship::useService()->getSiblingRankById($ChildRank)) {
+            $Entity->setServiceStudentSiblingRank(Relationship::useService()->getSiblingRankById($ChildRank));
+        }
         $Manager->saveEntity($Entity);
 
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -133,11 +134,10 @@ class Data extends AbstractData
         $Name,
         $Description,
         $Price,
-        $CostUnit //,
-//        $Course,
-//        $ChildRank
-    )
-    {
+        $CostUnit,
+        $Course,
+        $ChildRank
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -149,22 +149,16 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Entity->setPrice(str_replace(',', '.', $Price));
             $Entity->setCostUnit($CostUnit);
-//            if (Management::serviceCourse()->entityCourseById($Course))
-//            {
-//                $Entity->setServiceManagementCourse(Management::serviceCourse()->entityCourseById($Course));
-//            }
-//            else
-//            {
-//                $Entity->setServiceManagementCourse(null);
-//            }
-//            if (Management::serviceStudent()->entityChildRankById($ChildRank))
-//            {
-//                $Entity->setServiceManagementStudentChildRank(Management::serviceStudent()->entityChildRankById($ChildRank));
-//            }
-//            else
-//            {
-//                $Entity->setServiceManagementStudentChildRank(null);
-//            }
+            if (Type::useService()->getTypeById($Course)) {
+                $Entity->setServiceStudentType(Type::useService()->getTypeById($Course));
+            } else {
+                $Entity->setServiceStudentType(null);
+            }
+            if (Relationship::useService()->getSiblingRankById($ChildRank)) {
+                $Entity->setServiceStudentSiblingRank(Relationship::useService()->getSiblingRankById($ChildRank));
+            } else {
+                $Entity->setServiceStudentSiblingRank(null);
+            }
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
