@@ -34,6 +34,20 @@ class Data extends AbstractData
         $this->createType('Lebenspartner', '', $tblGroupPerson);
 
         $this->createType('Geschäftsführer', '', $tblGroupCompany);
+        $this->createType('Assistenz der Geschäftsleitung', '', $tblGroupCompany);
+        $this->createType('Aufsichtsrat', '', $tblGroupCompany);
+        $this->createType('Bereichsleiter', '', $tblGroupCompany);
+        $this->createType('Betriebsleiter', '', $tblGroupCompany);
+        $this->createType('Buchhaltung', '', $tblGroupCompany);
+        $this->createType('Gesellschafter', '', $tblGroupCompany);
+        $this->createType('Handlungsbevollmächtigter', '', $tblGroupCompany);
+        $this->createType('Kindergartenleiter', '', $tblGroupCompany);
+        $this->createType('Personalleiter', '', $tblGroupCompany);
+        $this->createType('Prokurist', '', $tblGroupCompany);
+        $this->createType('Sachgebietsleiter', '', $tblGroupCompany);
+        $this->createType('Sekretariat', '', $tblGroupCompany);
+        $this->createType('Schulleiter', '', $tblGroupCompany);
+        $this->createType('Vorstandsmitglied', '', $tblGroupCompany);
 
         $this->createSiblingRank('1. Geschwisterkind');
         $this->createSiblingRank('2. Geschwisterkind');

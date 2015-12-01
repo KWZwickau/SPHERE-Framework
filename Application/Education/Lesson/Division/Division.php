@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division;
 
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
@@ -43,10 +44,13 @@ class Division implements IModuleInterface
             __NAMESPACE__.'/Destroy/Division', __NAMESPACE__.'\Frontend::frontendDestroyDivision'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Create/SubjectGroup', __NAMESPACE__.'\Frontend::frontendCreateSubjectGroup'
+            __NAMESPACE__.'/SubjectGroup/Add', __NAMESPACE__.'\Frontend::frontendSubjectGroupAdd'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Change/SubjectGroup', __NAMESPACE__.'\Frontend::frontendChangeSubjectGroup'
+            __NAMESPACE__.'/SubjectGroup/Change', __NAMESPACE__.'\Frontend::frontendSubjectGroupChange'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/SubjectGroup/Remove', __NAMESPACE__.'\Frontend::frontendSubjectGroupRemove'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Student/Add', __NAMESPACE__.'\Frontend::frontendStudentAdd'
@@ -58,22 +62,13 @@ class Division implements IModuleInterface
             __NAMESPACE__.'/Subject/Add', __NAMESPACE__.'\Frontend::frontendSubjectAdd'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SubjectStudent/Show', __NAMESPACE__.'\Frontend::frontendSubjectStudentShow'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/SubjectStudent/Add', __NAMESPACE__.'\Frontend::frontendSubjectStudentAdd'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SubjectStudent/Remove', __NAMESPACE__.'\Frontend::frontendSubjectStudentRemove'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/SubjectTeacher/Show', __NAMESPACE__.'\Frontend::frontendSubjectTeacherShow'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/SubjectTeacher/Add', __NAMESPACE__.'\Frontend::frontendSubjectTeacherAdd'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SubjectTeacher/Remove', __NAMESPACE__.'\Frontend::frontendSubjectTeacherRemove'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Show', __NAMESPACE__.'\Frontend::frontendDivisionShow'
@@ -98,7 +93,6 @@ class Division implements IModuleInterface
         $Stage = new Stage('Dashboard', 'Klassen');
 
         $Stage->addButton(new Standard('Schulklasse', __NAMESPACE__.'\Create\LevelDivision', null, null, 'erstellen / bearbeiten'));
-        $Stage->addButton(new Standard('Unterrichtsgruppen', __NAMESPACE__.'\Create\SubjectGroup', null, null, 'erstellen / bearbeiten'));
 
         $tblDivisionList = $this->useService()->getDivisionAll();
         if ($tblDivisionList) {
@@ -114,8 +108,14 @@ class Division implements IModuleInterface
                 } else {
                     $tblDivision->Period = 'fehlt';
                 }
-                $tblDivision->Group = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
-                $tblDivision->LevelType = $tblDivision->getTblLevel()->getServiceTblType()->getName();
+                if ($tblDivision->getTblLevel()) {
+                    $tblDivision->Group = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                    $tblDivision->LevelType = $tblDivision->getTblLevel()->getServiceTblType()->getName();
+                } else {
+                    $tblDivision->Group = $tblDivision->getName();
+                    $tblDivision->LevelType = '';
+                }
+
 
                 $StudentList = Division::useService()->getStudentAllByDivision($tblDivision);
                 $TeacherList = Division::useService()->getTeacherAllByDivision($tblDivision);
@@ -134,10 +134,32 @@ class Division implements IModuleInterface
                 if (!$DivisionSubjectList) {
                 } else {
                     foreach ($DivisionSubjectList as $DivisionSubject) {
-                        $TeacherListUsed = Division::useService()->getSubjectTeacherByDivisionSubject($DivisionSubject);
-                        if (!$TeacherListUsed) {
-                            $SubjectUsedCount = $SubjectUsedCount + 1;
+
+                        if (!$DivisionSubject->getTblSubjectGroup()) {
+                            $tblDivisionSubjectActiveList = Division::useService()->getDivisionSubjectBySubjectAndDivision($DivisionSubject->getServiceTblSubject(), $tblDivision);
+                            $TeacherGroup = array();
+                            if ($tblDivisionSubjectActiveList) {
+                                /**@var TblDivisionSubject $tblDivisionSubjectActive */
+                                foreach ($tblDivisionSubjectActiveList as $tblDivisionSubjectActive) {
+                                    $TempList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubjectActive);
+                                    if ($TempList) {
+                                        foreach ($TempList as $Temp)
+                                            array_push($TeacherGroup, $Temp->getServiceTblPerson()->getFullName());
+                                    }
+                                }
+                                if (empty( $TeacherGroup )) {
+                                    $SubjectUsedCount = $SubjectUsedCount + 1;
+                                }
+                            }
                         }
+
+
+//                        $TeacherListUsed = Division::useService()->getSubjectTeacherByDivisionSubject($DivisionSubject);
+//                        if (!$DivisionSubject->getTblSubjectGroup()) {
+//                            if (!$TeacherListUsed) {
+//                                $SubjectUsedCount = $SubjectUsedCount + 1;
+//                            }
+//                        }
                     }
                 }
                 $tblDivision->StudentList = count($StudentList);

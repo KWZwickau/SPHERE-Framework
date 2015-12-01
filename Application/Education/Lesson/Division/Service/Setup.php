@@ -22,8 +22,8 @@ class Setup extends AbstractSetup
     {
 
         $Schema = clone $this->getConnection()->getSchema();
-        $tblLevel = $this->setTableLevel($Schema);
-        $tblDivision = $this->setTableDivision($Schema, $tblLevel);
+        $this->setTableLevel($Schema);
+        $tblDivision = $this->setTableDivision($Schema);
         $tblDivisionSubject = $this->setTableDivisionSubject($Schema, $tblDivision);
         $this->setTableDivisionStudent($Schema, $tblDivision);
         $this->setTableDivisionTeacher($Schema, $tblDivision);
@@ -61,11 +61,10 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table  $tblLevel
      *
      * @return Table
      */
-    private function setTableDivision(Schema &$Schema, Table $tblLevel)
+    private function setTableDivision(Schema &$Schema)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblDivision');
@@ -78,7 +77,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblDivision', 'serviceTblYear')) {
             $Table->addColumn('serviceTblYear', 'bigint', array('notnull' => false));
         }
-        $this->getConnection()->addForeignKey($Table, $tblLevel);
+        if (!$this->getConnection()->hasColumn('tblDivision', 'tblLevel')) {
+            $Table->addColumn('tblLevel', 'bigint', array('notnull' => false));
+        }
         return $Table;
     }
 
@@ -94,6 +95,9 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblDivisionSubject');
         if (!$this->getConnection()->hasColumn('tblDivisionSubject', 'serviceTblSubject')) {
             $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblDivisionSubject', 'tblSubjectGroup')) {
+            $Table->addColumn('tblSubjectGroup', 'bigint', array('notnull' => false));
         }
         $this->getConnection()->addForeignKey($Table, $tblDivision);
         return $Table;
@@ -164,9 +168,6 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblSubjectStudent', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblSubjectStudent', 'tblSubjectGroup')) {
-            $Table->addColumn('tblSubjectGroup', 'bigint', array('notnull' => false));
-        }
         $this->getConnection()->addForeignKey($Table, $tblDivisionSubject);
         return $Table;
     }
@@ -183,9 +184,6 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblSubjectTeacher');
         if (!$this->getConnection()->hasColumn('tblSubjectTeacher', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblSubjectTeacher', 'tblSubjectGroup')) {
-            $Table->addColumn('tblSubjectGroup', 'bigint', array('notnull' => false));
         }
         $this->getConnection()->addForeignKey($Table, $tblDivisionSubject);
         return $Table;
