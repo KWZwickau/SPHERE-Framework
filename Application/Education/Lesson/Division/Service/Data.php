@@ -105,18 +105,13 @@ class Data extends AbstractData
     {
 
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblSubjectGroup')->findOneBy(array(
-            TblSubjectGroup::ATTR_NAME        => $Name,
-            TblSubjectGroup::ATTR_DESCRIPTION => $Description
-        ));
-        if (null === $Entity) {
-            $Entity = new TblSubjectGroup();
-            $Entity->setName($Name);
-            $Entity->setDescription($Description);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-            return $Entity;
-        }
+
+        $Entity = new TblSubjectGroup();
+        $Entity->setName($Name);
+        $Entity->setDescription($Description);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
         return $Entity;
     }
 
@@ -625,6 +620,8 @@ class Data extends AbstractData
      */
     public function removeStudentToDivision(TblDivision $tblDivision, TblPerson $tblPerson)
     {
+
+        var_dump($tblDivision->getId().' - '.$tblPerson->getId());
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDivisionStudent')

@@ -289,11 +289,11 @@ class Service extends AbstractService
             $Form->setError('SubjectGroup[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         } else {
-            if (Division::useService()->checkSubjectGroupExists($SubjectGroup['Name'], $SubjectGroup['Description'])) {
-                $Form->setError('SubjectGroup[Name]', 'Kombination schon vergeben');
-                $Form->setError('SubjectGroup[Description]', 'Beschreibung oder Gruppenname ändern');
-                $Error = true;
-            }
+//            if (Division::useService()->checkSubjectGroupExists($SubjectGroup['Name'], $SubjectGroup['Description'])) {
+//                $Form->setError('SubjectGroup[Name]', 'Kombination schon vergeben');
+//                $Form->setError('SubjectGroup[Description]', 'Beschreibung oder Gruppenname ändern');
+//                $Error = true;
+//            }
         }
 
         if (!$Error) {
@@ -939,14 +939,14 @@ class Service extends AbstractService
             $Form->setError('Group[Name]', 'Bitte geben sie einen Namen an');
             $Error = true;
         } else {
-            $SubjectGroupTest = Division::useService()->checkSubjectGroupExists($Group['Name'], $Group['Description']);
-            if ($SubjectGroupTest) {
-                if ($SubjectGroupTest->getId() !== $tblSubjectGroup->getId()) {
-                    $Form->setError('Group[Name]', 'Kombination schon vergeben');
-                    $Form->setError('Group[Description]', 'Beschreibung oder Gruppenname ändern');
-                    $Error = true;
-                }
-            }
+//            $SubjectGroupTest = Division::useService()->checkSubjectGroupExists($Group['Name'], $Group['Description']);   // Test auf doppelte Namen sinnvoll?
+//            if ($SubjectGroupTest) {
+//                if ($SubjectGroupTest->getId() !== $tblSubjectGroup->getId()) {
+//                    $Form->setError('Group[Name]', 'Kombination schon vergeben');
+//                    $Form->setError('Group[Description]', 'Beschreibung oder Gruppenname ändern');
+//                    $Error = true;
+//                }
+//            }
 
         }
 

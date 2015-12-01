@@ -340,18 +340,11 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblDivision->getTblLevel()) {
                     $tblDivisionList = Division::useService()->getDivisionByYear($tblDivision->getServiceTblYear());
                     if ($tblStudentList) {
-                        foreach ($tblDivisionList as $Index => $tblDivision) {
-                            if ($tblDivision->getTblLevel()) {
-                            } else {
-                                $tblDivisionList[$Index] = false;
-                            }
-                        }
-                        $tblDivisionList = array_filter($tblDivisionList);
 
                         if ($tblDivisionList) {
                             foreach ($tblDivisionList as $tblSingleDivision) {
                                 $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblSingleDivision);
-                                if ($tblSingleDivision && $tblDivisionStudentList) {
+                                if ($tblSingleDivision->getTblLevel() && $tblDivisionStudentList) {
                                     $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
                                         function (TblPerson $invoiceA, TblPerson $invoiceB) {
 
@@ -764,7 +757,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(
                                 new LayoutColumn(
                                     Division::useService()->addSubjectStudent(
-                                        $this->formSubjectStudentAdd($tblDivision)
+                                        $this->formSubjectStudentAdd($tblDivisionSubject)
                                             ->appendFormButton(new Primary('Schühler auswählen'))
                                             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                         , $DivisionSubjectId, $Student, $Id
@@ -791,14 +784,24 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param TblDivision $tblDivision
+     * @param TblDivisionSubject $tblDivisionSubject
      *
      * @return Form
      */
-    public function formSubjectStudentAdd(TblDivision $tblDivision)
+    public function formSubjectStudentAdd(TblDivisionSubject $tblDivisionSubject)
     {
 
-        $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);  // Alle Schüler der Klasse
+        $tblSubjectStudentAllSelected = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+        if ($tblSubjectStudentAllSelected) {
+            $Global = $this->getGlobal();
+            array_walk($tblSubjectStudentAllSelected, function (TblSubjectStudent &$tblSubjectStudent) use (&$Global) {
+
+                $Global->POST['Student'][$tblSubjectStudent->getServiceTblPerson()->getId()] = $tblSubjectStudent->getServiceTblPerson()->getId();
+            });
+            $Global->savePost();
+        }
+
+        $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivisionSubject->getTblDivision());  // Alle Schüler der Klasse
         if ($tblStudentList) {
 
             if ($tblStudentList) {
@@ -1047,7 +1050,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Gruppe', 'bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/SubjectGroup/Add', new ChevronLeft(),
-            array('Id'                => $Id,
+            array('Id'                => $DivisionId,
                   'DivisionSubjectId' => $DivisionSubjectId)));
 
         $tblSubjectGroup = Division::useService()->getDivisionSubjectById($DivisionSubjectId)->getTblSubjectGroup();
@@ -1243,13 +1246,14 @@ class Frontend extends Extension implements IFrontendInterface
                 new Person(), array('Id' => $tblDivision->getId())));
             $Stage->addButton(new Standard('Schüler', '/Education/Lesson/Division/Student/Add',
                 new \SPHERE\Common\Frontend\Icon\Repository\Group(), array('Id' => $tblDivision->getId())));
-
+            $StudentTableCount = 0;
             $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
             if ($tblDivisionStudentList) {
                 foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                     $tblDivisionStudent->FullName = $tblDivisionStudent->getFirstName().' '.
                         $tblDivisionStudent->getSecondName().' '.
                         $tblDivisionStudent->getLastName();
+                    $StudentTableCount = $StudentTableCount + 1;
 
                     $tblCommon = Common::useService()->getCommonByPerson($tblDivisionStudent);
                     if ($tblCommon) {
@@ -1376,7 +1380,22 @@ class Frontend extends Extension implements IFrontendInterface
                             ( ( !empty( $TeacherGroup ) ) ?
                                 new Panel('Gruppenlehrer', $TeacherGroup) : null );
 
-                        $tblDivisionSubject->Student = new Panel('Alle Schüler', 'aus der Klasse', Panel::PANEL_TYPE_INFO);
+                        $StudentCount = 0;
+                        $tblDivisionSubjectStudentList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblDivisionSubject->getServiceTblSubject(), $tblDivision);
+                        if (count($tblDivisionSubjectStudentList) >= 2) {
+                            foreach ($tblDivisionSubjectStudentList as $tblDivisionSubjectStudent) {
+                                $tblSubjectStudentCountList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectStudent);
+                                if (is_array($tblSubjectStudentCountList)) {
+                                    $StudentCount = $StudentCount + count($tblSubjectStudentCountList);
+                                }
+                            }
+                        }
+
+                        if ($StudentCount >= 1 && $StudentCount < $StudentTableCount) {
+                            $tblDivisionSubject->Student = new Panel($StudentCount.' Schüler', 'aus der Klasse', Panel::PANEL_TYPE_INFO);
+                        } else {
+                            $tblDivisionSubject->Student = new Panel('Alle Schüler', 'aus der Klasse', Panel::PANEL_TYPE_INFO);
+                        }
                     } else {
                         $tblDivisionSubjectList[$Index] = false;
                     }
