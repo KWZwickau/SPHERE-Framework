@@ -21,8 +21,8 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblElementType extends Element
 {
-    const NAME = 'Name';
-    const IDENTIFIER = 'IDENTIFIER';
+    const ATTR_NAME = 'Name';
+    const ATTR_IDENTIFIER = 'Identifier';
 
     /**
      * @Column(type="string")

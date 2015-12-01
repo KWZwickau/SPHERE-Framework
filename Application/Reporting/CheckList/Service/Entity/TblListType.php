@@ -22,7 +22,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblListType extends Element
 {
     const ATTR_NAME = 'Name';
-    const ATTR_IDENTIFIER = 'IDENTIFIER';
+    const ATTR_IDENTIFIER = 'Identifier';
 
     /**
      * @Column(type="string")

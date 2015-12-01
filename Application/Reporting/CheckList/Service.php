@@ -61,6 +61,26 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Identifier
+     *
+     * @return bool|TblListType
+     */
+    public function getListTypeByIdentifier($Identifier)
+    {
+
+        return (new Data($this->getBinding()))->getListTypeByIdentifier($Identifier);
+    }
+
+    /**
+     * @return false|TblListType[]
+     */
+    public function getListTypeAll()
+    {
+
+        return (new Data($this->getBinding()))->getListTypeAll();
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblListElementList
@@ -80,5 +100,25 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getElementTypeById($Id);
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return bool|TblElementType
+     */
+    public function getElementTypeByIdentifier($Identifier)
+    {
+
+        return (new Data($this->getBinding()))->getElementTypeByIdentifier($Identifier);
+    }
+
+    /**
+     * @return false|TblElementType[]
+     */
+    public function getElementTypeAll()
+    {
+
+        return (new Data($this->getBinding()))->getElementTypeAll();
     }
 }

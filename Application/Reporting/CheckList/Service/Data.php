@@ -24,7 +24,12 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        $this->createListType('Personen', 'PERSON');
+        $this->createListType('Firmen', 'COMPANY');
 
+        $this->createElementType('CheckBox', 'CHECKBOX');
+        $this->createElementType('Datum', 'DATE');
+        $this->createElementType('Text', 'TEXT');
     }
 
     /**
@@ -35,8 +40,7 @@ class Data extends AbstractData
     public function getListById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblList', $Id);
-        return (null === $Entity ? false : $Entity);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblList', $Id);
     }
 
     /**
@@ -47,8 +51,30 @@ class Data extends AbstractData
     public function getListTypeById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblListType', $Id);
-        return (null === $Entity ? false : $Entity);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListType', $Id);
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return bool|TblListType
+     */
+    public function getListTypeByIdentifier($Identifier)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListType',
+            array(
+                TblListType::ATTR_IDENTIFIER => $Identifier
+            ));
+    }
+
+    /**
+     * @return false|TblListType[]
+     */
+    public function getListTypeAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListType');
     }
 
     /**
@@ -59,8 +85,7 @@ class Data extends AbstractData
     public function getListElementListById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblListElementList', $Id);
-        return (null === $Entity ? false : $Entity);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListElementList', $Id);
     }
 
     /**
@@ -71,7 +96,89 @@ class Data extends AbstractData
     public function getElementTypeById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblElementType', $Id);
-        return (null === $Entity ? false : $Entity);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblElementType', $Id);
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return bool|TblElementType
+     */
+    public function getElementTypeByIdentifier($Identifier)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblElementType',
+            array(
+                TblElementType::ATTR_IDENTIFIER => $Identifier
+            ));
+    }
+
+    /**
+     * @return false|TblElementType[]
+     */
+    public function getElementTypeAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblElementType');
+    }
+
+    /**
+     * @param $Name
+     * @param $Identifier
+     *
+     * @return TblListType
+     */
+    public function createListType(
+        $Name,
+        $Identifier
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblListType')
+            ->findOneBy(array(
+                TblListType::ATTR_NAME => $Name,
+                TblListType::ATTR_IDENTIFIER => $Identifier
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblListType();
+            $Entity->setName($Name);
+            $Entity->setIdentifier($Identifier);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param $Name
+     * @param $Identifier
+     *
+     * @return TblElementType
+     */
+    public function createElementType(
+        $Name,
+        $Identifier
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblElementType')
+            ->findOneBy(array(
+                TblElementType::ATTR_NAME => $Name,
+                TblElementType::ATTR_IDENTIFIER => $Identifier
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblElementType();
+            $Entity->setName($Name);
+            $Entity->setIdentifier($Identifier);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 }
