@@ -26,8 +26,15 @@ class CheckList implements IApplicationInterface, IModuleInterface
         );
 
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ ,
-                __NAMESPACE__ . '\Frontend::frontendList')
+            Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendList')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Element/Select',
+                __NAMESPACE__ . '\Frontend::frontendListElementSelect')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Element/Remove',
+                __NAMESPACE__ . '\Frontend::frontendListElementRemove')
         );
     }
 
@@ -44,7 +51,7 @@ class CheckList implements IApplicationInterface, IModuleInterface
 
         return new Service(
             new Identifier('Reporting', 'CheckList', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
+            __DIR__ . '/Service/Entity', __NAMESPACE__ . '\Service\Entity'
         );
     }
 

@@ -104,6 +104,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblList $tblList
+     * @return bool|TblListElementList[]
+     */
+    public function getListElementListByList(TblList $tblList)
+    {
+
+        return (new Data($this->getBinding()))->getListElementListByList($tblList);
+    }
+
+
+    /**
      * @param $Id
      *
      * @return bool|TblElementType
@@ -167,5 +178,57 @@ class Service extends AbstractService
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Id
+     * @param $Element
+     * @return IFormInterface|string
+     */
+    public function addElementToList(IFormInterface $Stage = null, $Id, $Element)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Id || null === $Element) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($Element['Name']) && empty($Element['Name'])) {
+            $Stage->setError('List[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->addElementToList(
+                $this->getListById($Id),
+                $this->getElementTypeById($Element['Type']),
+                $Element['Name']
+            );
+            return new Stage('Das Element ist zur Check-Liste hingefügt worden.')
+            . new Redirect('/Reporting/CheckList/Element/Select', 0, array('Id' => $Id));
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @return string
+     */
+    public function removeElementFromList($Id = null)
+    {
+        $tblListElementList = $this->getListElementListById($Id);
+        $tblList = $tblListElementList->getTblList();
+        if ((new Data($this->getBinding()))->removeElementFromList($tblListElementList)){
+            return new Stage('Das Element ist von Check-Liste entfernt worden.')
+            . new Redirect('/Reporting/CheckList/Element/Select', 0, array('Id' => $tblList->getId()));
+        } else {
+            return new Stage('Das Element konnte nicht von Check-Liste entfernt werden.')
+            . new Redirect('/Reporting/CheckList/Element/Select', 0, array('Id' => $tblList->getId()));
+        }
     }
 }

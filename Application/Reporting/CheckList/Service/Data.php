@@ -98,6 +98,17 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblList $tblList
+     * @return bool|TblListElementList[]
+     */
+    public function getListElementListByList(TblList $tblList)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListElementList',
+            array(TblListElementList::ATTR_TBL_LIST => $tblList->getId()));
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblElementType
@@ -220,5 +231,47 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblList $tblList
+     * @param TblElementType $tblElementType
+     * @param $Name
+     *
+     * @return TblListElementList
+     */
+    public function addElementToList(
+        TblList $tblList,
+        TblElementType $tblElementType,
+        $Name
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = new TblListElementList();
+        $Entity->setTblList($tblList);
+        $Entity->setTblElementType($tblElementType);
+        $Entity->setName($Name);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        return $Entity;
+    }
+
+    /**
+     * @param TblListElementList $TblListElementList
+     *
+     * @return bool
+     */
+    public function removeElementFromList(TblListElementList $TblListElementList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblListElementList $Entity */
+        $Entity = $Manager->getEntityById('TblListElementList', $TblListElementList->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 }
