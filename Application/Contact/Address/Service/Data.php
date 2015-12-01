@@ -11,6 +11,8 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\ColumnHydrator;
+use SPHERE\System\Database\Fitting\IdHydrator;
 
 /**
  * Class Data
@@ -419,5 +421,39 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @return array of TblAddress->Id
+     */
+    public function fetchIdAddressAllByPerson( TblPerson $tblPerson )
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Builder = $Manager->getQueryBuilder();
+        $Query = $Builder->select( 'L.tblAddress' )
+            ->from( __NAMESPACE__.'\Entity\TblToPerson', 'L' )
+            ->where( $Builder->expr()->eq( 'L.serviceTblPerson', '?1' ) )
+            ->setParameter( 1, $tblPerson->getId() )
+            ->getQuery();
+        return $Query->getResult( ColumnHydrator::HYDRATION_MODE );
+    }
+
+    /**
+     * @param array $IdArray of TblAddress->Id
+     * @return TblAddress[]
+     */
+    public function fetchAddressAllByIdList($IdArray)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Builder = $Manager->getQueryBuilder();
+        $Query = $Builder->select( 'A' )
+            ->from( __NAMESPACE__.'\Entity\TblAddress', 'A' )
+            ->where( $Builder->expr()->in( 'A.Id', '?1' ) )
+            ->setParameter( 1, $IdArray )
+            ->getQuery();
+        return $Query->getResult( IdHydrator::HYDRATION_MODE );
     }
 }
