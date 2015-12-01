@@ -21,6 +21,7 @@ class Reporting implements IClusterInterface
     {
 
         Standard::registerApplication();
+
         $consumerAcronym = Consumer::useService()->getConsumerBySession()->getAcronym();
         if ($consumerAcronym === 'ESZC' || $consumerAcronym === 'DEMO') {
             Custom::registerApplication();

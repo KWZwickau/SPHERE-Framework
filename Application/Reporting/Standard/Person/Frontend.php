@@ -54,7 +54,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendClassList($DivisionId = null, $Select = null)
     {
 
-        $Stage = new Stage('Auswertung', 'Klassenliste');
+        $Stage = new Stage('Auswertung', 'Klassenlisten');
 
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblDivision = new TblDivision();
@@ -130,7 +130,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendExtendedClassList($DivisionId = null, $Select = null)
     {
 
-        $Stage = new Stage('Auswertung', 'erweiterte Klassenliste');
+        $Stage = new Stage('Auswertung', 'erweiterte Klassenlisten');
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblDivision = new TblDivision();
         $studentList = array();
@@ -236,7 +236,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendBirthdayClassList($DivisionId = null, $Select = null)
     {
 
-        $Stage = new Stage('Auswertung', 'Klassenliste Geburtstage');
+        $Stage = new Stage('Auswertung', 'Klassenlisten Geburtstag');
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblDivision = new TblDivision();
         $studentList = array();
@@ -337,7 +337,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendMedicalInsuranceClassList($DivisionId = null, $Select = null)
     {
 
-        $Stage = new Stage('Auswertung', 'Klassenliste Krankenkasse');
+        $Stage = new Stage('Auswertung', 'Klassenlisten Krankenkasse');
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblDivision = new TblDivision();
         $studentList = array();
@@ -431,10 +431,16 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param null $GroupId
+     * @param null $Select
+     *
+     * @return Stage
+     */
     public function frontendGroupList($GroupId = null, $Select = null)
     {
 
-        $Stage = new Stage('Auswertung', 'Gruppenliste');
+        $Stage = new Stage('Auswertung', 'Personengruppenlisten');
         $tblGroupAll = Group::useService()->getGroupAll();
         $tblGroup = new TblGroup('');
         $groupList = array();

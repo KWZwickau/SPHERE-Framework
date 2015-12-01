@@ -16,7 +16,7 @@ class Custom implements IApplicationInterface
         Person::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'\Chemnitz\Person'), new Link\Name('Personen (individuell)'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Individual'))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
@@ -29,7 +29,7 @@ class Custom implements IApplicationInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Dashboard', 'Auswertung');
+        $Stage = new Stage('Dashboard', 'Individual-Auswertung');
 
         $Stage->setContent(Main::getDispatcher()->fetchDashboard('Auswertung'));
 
