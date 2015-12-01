@@ -44,6 +44,15 @@ class Data extends AbstractData
     }
 
     /**
+     * @return bool|TblList[]
+     */
+    public function getListAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblList');
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblListType
@@ -174,6 +183,37 @@ class Data extends AbstractData
             $Entity = new TblElementType();
             $Entity->setName($Name);
             $Entity->setIdentifier($Identifier);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblListType $tblListType
+     * @param $Name
+     * @param string $Description
+     * @return TblList
+     */
+    public function createList(
+        TblListType $tblListType,
+        $Name,
+        $Description = ''
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblList')
+            ->findOneBy(array(
+                TblList::ATTR_NAME => $Name,
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblList();
+            $Entity->setTblListType($tblListType);
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);

@@ -14,6 +14,9 @@ use SPHERE\Application\Reporting\CheckList\Service\Entity\TblList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListElementList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListType;
 use SPHERE\Application\Reporting\CheckList\Service\Setup;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Window\Redirect;
+use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -47,6 +50,15 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getListById($Id);
+    }
+
+    /**
+     * @return bool|TblList[]
+     */
+    public function getListAll()
+    {
+
+        return (new Data($this->getBinding()))->getListAll();
     }
 
     /**
@@ -120,5 +132,40 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getElementTypeAll();
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $List
+     *
+     * @return IFormInterface|string
+     */
+    public function createList(IFormInterface $Stage = null, $List)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $List) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($List['Name']) && empty($List['Name'])) {
+            $Stage->setError('List[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->createList(
+                $this->getListTypeById($List['Type']),
+                $List['Name'],
+                $List['Description']
+            );
+            return new Stage('Die Check-Liste ist erfasst worden')
+            . new Redirect('/Reporting/CheckList', 0);
+        }
+
+        return $Stage;
     }
 }

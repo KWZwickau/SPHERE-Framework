@@ -24,6 +24,11 @@ class CheckList implements IApplicationInterface, IModuleInterface
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Check-Listen'))
         );
+
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ ,
+                __NAMESPACE__ . '\Frontend::frontendList')
+        );
     }
 
     public static function registerModule()
