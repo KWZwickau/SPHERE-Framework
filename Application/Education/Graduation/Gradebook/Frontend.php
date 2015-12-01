@@ -50,7 +50,6 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -205,7 +204,6 @@ class Frontend extends Extension implements IFrontendInterface
                                         $grade->getTblGradeType()->getIsHighlighted()
                                             ? new Bold($date) : $date)
                                     , 1);
-                                Debugger::screenDump($grade->getTblTest()->getDate());
                                 $count++;
                             }
                             $columnSubList[] = new LayoutColumn(new Header(new Bold('&#216;')), 1);
