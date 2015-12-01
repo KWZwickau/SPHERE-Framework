@@ -977,7 +977,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblDivision = Division::useService()->getDivisionById($Id);
             $tblSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId)->getServiceTblSubject();
 
-            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubject($tblSubject, $tblDivision);
+            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject, $tblDivision);
             if ($tblDivisionSubjectList) {
                 /** @var TblDivisionSubject $tblDivisionSubject */
                 foreach ($tblDivisionSubjectList as $Index => $tblDivisionSubject) {
@@ -1243,10 +1243,6 @@ class Frontend extends Extension implements IFrontendInterface
                 new Person(), array('Id' => $tblDivision->getId())));
             $Stage->addButton(new Standard('Schüler', '/Education/Lesson/Division/Student/Add',
                 new \SPHERE\Common\Frontend\Icon\Repository\Group(), array('Id' => $tblDivision->getId())));
-//            $Stage->addButton(new Standard('Fachlehrer hinzufügen', '/Education/Lesson/Division/SubjectTeacher/Show',
-//                new EyeOpen(), array('Id' => $tblDivision->getId())));
-//            $Stage->addButton(new Standard('Übersicht Zuweisung', '/Education/Lesson/Division/SubjectStudent/Show',
-//                new EyeOpen(), array('Id' => $tblDivision->getId())));
 
             $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
             if ($tblDivisionStudentList) {
@@ -1352,15 +1348,33 @@ class Frontend extends Extension implements IFrontendInterface
                                 $teacherArray[] = $Teacher->getFirstName().' '.$Teacher->getLastName();
                             }
                         }
+
+                        $tblDivisionSubjectActiveList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblDivisionSubject->getServiceTblSubject(), $tblDivision);
+                        $TeacherGroup = array();
+                        if ($tblDivisionSubjectActiveList) {
+                            /**@var TblDivisionSubject $tblDivisionSubjectActive */
+                            foreach ($tblDivisionSubjectActiveList as $tblDivisionSubjectActive) {
+                                if ($tblDivisionSubjectActive->getTblSubjectGroup()) {
+                                    $TempList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubjectActive);
+                                    if ($TempList) {
+                                        foreach ($TempList as $Temp)
+                                            array_push($TeacherGroup, $Temp->getServiceTblPerson()->getFullName());
+                                    }
+                                }
+                            }
+                            $TeacherGroup = array_unique($TeacherGroup);
+                        }
                         $tblDivisionSubject->Subject = new Panel($tblDivisionSubject->getServiceTblSubject()->getName(),
                             new Standard('Gruppe', '/Education/Lesson/Division/SubjectGroup/Add', new Pencil(),
                                 array('Id'                => $tblDivision->getId(),
                                       'DivisionSubjectId' => $tblDivisionSubject->getId())), Panel::PANEL_TYPE_INFO);
 
                         $tblDivisionSubject->Teacher = new Panel('Fachlehrer', $teacherArray, Panel::PANEL_TYPE_INFO,
-                            new Standard('Lehrer', '/Education/Lesson/Division/SubjectTeacher/Add', new Pencil(),
-                                array('Id'                => $tblDivision->getId(),
-                                      'DivisionSubjectId' => $tblDivisionSubject->getId())));
+                                new Standard('Lehrer', '/Education/Lesson/Division/SubjectTeacher/Add', new Pencil(),
+                                    array('Id'                => $tblDivision->getId(),
+                                          'DivisionSubjectId' => $tblDivisionSubject->getId()))).
+                            ( ( !empty( $TeacherGroup ) ) ?
+                                new Panel('Gruppenlehrer', $TeacherGroup) : null );
 
                         $tblDivisionSubject->Student = new Panel('Alle Schüler', 'aus der Klasse', Panel::PANEL_TYPE_INFO);
                     } else {
@@ -1394,8 +1408,6 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(array(
                             new LayoutRow($tblDivisionTeacherList),
                         )
-                    // , new Title('Klassenlehrer der Klasse '
-                    //    .$tblDivision->getTblLevel()->getName().$tblDivision->getName())
                     ),
                 ))
                 .new Layout(

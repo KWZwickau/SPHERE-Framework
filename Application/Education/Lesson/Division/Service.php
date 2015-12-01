@@ -456,6 +456,9 @@ class Service extends AbstractService
                 if ($tblDivisionSubject->getServiceTblSubject()->getId() === $tblSubject->getId()) {
                     (new Data($this->getBinding()))->removeSubjectStudentByDivisionSubject($tblDivisionSubject);
                     (new Data($this->getBinding()))->removeSubjectTeacherByDivisionSubject($tblDivisionSubject);
+                    if ($tblDivisionSubject->getTblSubjectGroup()) {
+                        (new Data($this->getBinding()))->removeSubjectGroup($tblDivisionSubject->getTblSubjectGroup());
+                    }
                 }
             }
         }
@@ -806,10 +809,10 @@ class Service extends AbstractService
      *
      * @return array|bool
      */
-    public function getDivisionSubjectBySubject(TblSubject $tblSubject, TblDivision $tblDivision)
+    public function getDivisionSubjectBySubjectAndDivision(TblSubject $tblSubject, TblDivision $tblDivision)
     {
 
-        return (new Data($this->getBinding()))->getDivisionSubjectBySubject($tblSubject, $tblDivision);
+        return (new Data($this->getBinding()))->getDivisionSubjectBySubjectAndDivision($tblSubject, $tblDivision);
     }
 
     /**

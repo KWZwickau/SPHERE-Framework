@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division;
 
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
@@ -133,12 +134,32 @@ class Division implements IModuleInterface
                 if (!$DivisionSubjectList) {
                 } else {
                     foreach ($DivisionSubjectList as $DivisionSubject) {
-                        $TeacherListUsed = Division::useService()->getSubjectTeacherByDivisionSubject($DivisionSubject);
+
                         if (!$DivisionSubject->getTblSubjectGroup()) {
-                            if (!$TeacherListUsed) {
-                                $SubjectUsedCount = $SubjectUsedCount + 1;
+                            $tblDivisionSubjectActiveList = Division::useService()->getDivisionSubjectBySubjectAndDivision($DivisionSubject->getServiceTblSubject(), $tblDivision);
+                            $TeacherGroup = array();
+                            if ($tblDivisionSubjectActiveList) {
+                                /**@var TblDivisionSubject $tblDivisionSubjectActive */
+                                foreach ($tblDivisionSubjectActiveList as $tblDivisionSubjectActive) {
+                                    $TempList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubjectActive);
+                                    if ($TempList) {
+                                        foreach ($TempList as $Temp)
+                                            array_push($TeacherGroup, $Temp->getServiceTblPerson()->getFullName());
+                                    }
+                                }
+                                if (empty( $TeacherGroup )) {
+                                    $SubjectUsedCount = $SubjectUsedCount + 1;
+                                }
                             }
                         }
+
+
+//                        $TeacherListUsed = Division::useService()->getSubjectTeacherByDivisionSubject($DivisionSubject);
+//                        if (!$DivisionSubject->getTblSubjectGroup()) {
+//                            if (!$TeacherListUsed) {
+//                                $SubjectUsedCount = $SubjectUsedCount + 1;
+//                            }
+//                        }
                     }
                 }
                 $tblDivision->StudentList = count($StudentList);

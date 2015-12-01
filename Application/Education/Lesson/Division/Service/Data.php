@@ -201,7 +201,7 @@ class Data extends AbstractData
         return empty( $EntityList ) ? false : $EntityList;
     }
 
-    public function getDivisionSubjectBySubject(TblSubject $tblSubject, TblDivision $tblDivision)
+    public function getDivisionSubjectBySubjectAndDivision(TblSubject $tblSubject, TblDivision $tblDivision)
     {
 
         $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblDivisionSubject')->findBy(array(
@@ -673,14 +673,16 @@ class Data extends AbstractData
     {
 
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblDivisionSubject')
-            ->findOneBy(array(
+        $EntityList = $Manager->getEntity('TblDivisionSubject')
+            ->findBy(array(
                 TblDivisionSubject::ATTR_TBL_DIVISION        => $tblDivision->getId(),
                 TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
             ));
-        if (null !== $Entity) {
-            $Manager->killEntity($Entity);
-            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+        if ($EntityList) {
+            foreach ($EntityList as $Entity) {
+                $Manager->killEntity($Entity);
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            }
             return true;
         }
         return false;
