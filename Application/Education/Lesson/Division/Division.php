@@ -43,10 +43,13 @@ class Division implements IModuleInterface
             __NAMESPACE__.'/Destroy/Division', __NAMESPACE__.'\Frontend::frontendDestroyDivision'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Create/SubjectGroup', __NAMESPACE__.'\Frontend::frontendCreateSubjectGroup'
+            __NAMESPACE__.'/SubjectGroup/Add', __NAMESPACE__.'\Frontend::frontendSubjectGroupAdd'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Change/SubjectGroup', __NAMESPACE__.'\Frontend::frontendChangeSubjectGroup'
+            __NAMESPACE__.'/SubjectGroup/Change', __NAMESPACE__.'\Frontend::frontendSubjectGroupChange'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/SubjectGroup/Remove', __NAMESPACE__.'\Frontend::frontendSubjectGroupRemove'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Student/Add', __NAMESPACE__.'\Frontend::frontendStudentAdd'
@@ -57,24 +60,24 @@ class Division implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Subject/Add', __NAMESPACE__.'\Frontend::frontendSubjectAdd'
         ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SubjectStudent/Show', __NAMESPACE__.'\Frontend::frontendSubjectStudentShow'
-        ));
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__.'/SubjectStudent/Show', __NAMESPACE__.'\Frontend::frontendSubjectStudentShow'
+//        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/SubjectStudent/Add', __NAMESPACE__.'\Frontend::frontendSubjectStudentAdd'
         ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SubjectStudent/Remove', __NAMESPACE__.'\Frontend::frontendSubjectStudentRemove'
-        ));
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__.'/SubjectStudent/Remove', __NAMESPACE__.'\Frontend::frontendSubjectStudentRemove'
+//        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/SubjectTeacher/Show', __NAMESPACE__.'\Frontend::frontendSubjectTeacherShow'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/SubjectTeacher/Add', __NAMESPACE__.'\Frontend::frontendSubjectTeacherAdd'
         ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SubjectTeacher/Remove', __NAMESPACE__.'\Frontend::frontendSubjectTeacherRemove'
-        ));
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__.'/SubjectTeacher/Remove', __NAMESPACE__.'\Frontend::frontendSubjectTeacherRemove'
+//        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Show', __NAMESPACE__.'\Frontend::frontendDivisionShow'
         ));
@@ -114,8 +117,14 @@ class Division implements IModuleInterface
                 } else {
                     $tblDivision->Period = 'fehlt';
                 }
-                $tblDivision->Group = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
-                $tblDivision->LevelType = $tblDivision->getTblLevel()->getServiceTblType()->getName();
+                if ($tblDivision->getTblLevel()) {
+                    $tblDivision->Group = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                    $tblDivision->LevelType = $tblDivision->getTblLevel()->getServiceTblType()->getName();
+                } else {
+                    $tblDivision->Group = $tblDivision->getName();
+                    $tblDivision->LevelType = '';
+                }
+
 
                 $StudentList = Division::useService()->getStudentAllByDivision($tblDivision);
                 $TeacherList = Division::useService()->getTeacherAllByDivision($tblDivision);
