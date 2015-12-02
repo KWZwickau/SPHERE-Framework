@@ -15,6 +15,7 @@ use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListElementList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListObjectList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblObjectType;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -292,7 +293,7 @@ class Data extends AbstractData
     /**
      * @param TblList $tblList
      * @param TblObjectType $tblObjectType
-     * @param $tblObject
+     * @param Element $tblObject
      * @return TblListElementList
      */
     public function addObjectToList(
@@ -302,8 +303,11 @@ class Data extends AbstractData
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntityById('TblListObjectList', $tblObjectType->getId());
-        if (null !== $Entity) {
+        $Entity = $Manager->getEntity('TblListObjectList')->findOneBy(array(
+            TblListObjectList::ATTR_TBL_OBJECT_TYPE => $tblObjectType->getId(),
+            TblListObjectList::ATTR_SERVICE_TBL_OBJECT => $tblObject->getId()
+        ));
+        if (null === $Entity) {
             $Entity = new TblListObjectList();
             $Entity->setTblList($tblList);
             $Entity->setServiceTblObject($tblObject);

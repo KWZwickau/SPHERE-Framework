@@ -12,12 +12,15 @@ use SPHERE\Application\Reporting\CheckList\Service\Data;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblElementType;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListElementList;
+use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListObjectList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblObjectType;
 use SPHERE\Application\Reporting\CheckList\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Service
@@ -111,6 +114,16 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getListElementListByList($tblList);
+    }
+
+    /**
+     * @param TblList $tblList
+     * @return bool|TblListObjectList[]
+     */
+    public function getListObjectListByList(TblList $tblList)
+    {
+
+        return (new Data($this->getBinding()))->getListObjectListByList($tblList);
     }
 
     /**
@@ -230,35 +243,55 @@ class Service extends AbstractService
         }
     }
 
-//    /**
-//     * @param IFormInterface|null $Stage
-//     * @param $Id
-//     * @param $Group
-//     * @return IFormInterface|string
-//     */
-//    public function addGroupToList(IFormInterface $Stage = null, $Id, $Group)
-//    {
-//
-//        /**
-//         * Skip to Frontend
-//         */
-//        if (null === $Id || null === $Group) {
-//            return $Stage;
-//        }
-//
-//        $tblList = $this->getListById($Id);
-//        if ($tblList->getTblObjectType()->getIdentifier() === 'PERSON') {
-//            $group = Group::useService()->getGroupById($Group['Group']);
-//        } else {
-//            $group = \SPHERE\Application\Corporation\Group\Group::useService()->getGroupById($Group['Group']);
-//        }
-//
-//        (new Data($this->getBinding()))->addGroupToList(
-//            $tblList,
-//            $group
-//        );
-//        return new Stage('Die Gruppe ist zur Check-Liste hinzugefügt worden.')
-//        . new Redirect('/Reporting/CheckList/Group/Select', 0, array('Id' => $Id));
-//
-//    }
+    /**
+     * @param IFormInterface|null $Stage
+     * @param null $ListId
+     * @param null $ObjectTypeSelect
+     *
+     * @return IFormInterface|Redirect|string
+     */
+    public function getObjectType(IFormInterface $Stage = null, $ListId = null, $ObjectTypeSelect = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ListId || null === $ObjectTypeSelect) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (!isset($ObjectTypeSelect['Id'])) {
+            $Error = true;
+            $Stage .= new Warning('Objekt-Typ nicht gefunden');
+        }
+
+        if ($Error) {
+            return $Stage;
+        }
+
+        $tblList = $this->getListById($ListId);
+        $tblObjectType = $this->getObjectTypeById($ObjectTypeSelect['Id']);
+
+        return new Redirect('/Reporting/CheckList/Object/Select', 0, array(
+            'ListId' => $tblList->getId(),
+            'ObjectTypeId' => $tblObjectType->getId()
+        ));
+    }
+
+    /**
+     * @param TblList $tblList
+     * @param TblObjectType $tblObjectType
+     * @param Element $tblObject
+     *
+     * @return TblListElementList
+     */
+    public function addObjectToList(
+        TblList $tblList,
+        TblObjectType $tblObjectType,
+        Element $tblObject
+    ) {
+
+        return (new Data($this->getBinding()))->addObjectToList($tblList, $tblObjectType, $tblObject);
+    }
 }

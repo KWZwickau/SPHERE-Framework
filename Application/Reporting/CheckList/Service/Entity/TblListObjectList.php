@@ -78,11 +78,11 @@ class TblListObjectList extends Element
         } else {
             if ($this->getTblObjectType()->getIdentifier() === 'PERSON') {
                 return Person::useService()->getPersonById($this->serviceTblObject);
-            } else if ($this->getTblObjectType()->getIdentifier() === 'COMPANY') {
+            } elseif ($this->getTblObjectType()->getIdentifier() === 'COMPANY') {
                 return Company::useService()->getCompanyById($this->serviceTblObject);
-            } else if ($this->getTblObjectType()->getIdentifier() === 'PERSONGROUP') {
+            } elseif ($this->getTblObjectType()->getIdentifier() === 'PERSONGROUP') {
                 return PersonGroup::useService()->getGroupById($this->serviceTblObject);
-            } else if ($this->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
+            } elseif ($this->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
                 return CompanyGroup::useService()->getGroupById($this->serviceTblObject);
             }
         }
@@ -91,7 +91,7 @@ class TblListObjectList extends Element
     }
 
     /**
-     * @param TblCompany|TblPerson $serviceTblObject
+     * @param Element $serviceTblObject
      */
     public function setServiceTblObject($serviceTblObject)
     {

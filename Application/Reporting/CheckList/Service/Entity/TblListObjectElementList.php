@@ -101,7 +101,7 @@ class TblListObjectElementList extends Element
         } else {
             if ($this->getTblObjectType()->getIdentifier() === 'PERSON') {
                 return Person::useService()->getPersonById($this->serviceTblObject);
-            } else if ($this->getTblObjectType()->getIdentifier() === 'COMPANY') {
+            } elseif ($this->getTblObjectType()->getIdentifier() === 'COMPANY') {
                 return Company::useService()->getCompanyById($this->serviceTblObject);
             }
         }

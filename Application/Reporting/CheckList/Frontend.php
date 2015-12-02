@@ -8,6 +8,12 @@
 
 namespace SPHERE\Application\Reporting\CheckList;
 
+use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup as CompanyGroupEntity;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup as PersonGroupEntity;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -19,6 +25,8 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Select;
+use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -29,9 +37,13 @@ use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\Application\People\Group\Group as PersonGroup;
+use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
+use SPHERE\System\Extension\Extension;
 
-class Frontend
+class Frontend extends Extension implements IFrontendInterface
 {
     /**
      * @param null $List
@@ -48,8 +60,8 @@ class Frontend
                 $tblList->Option =
                     (new Standard('', '/Reporting/CheckList/Element/Select', new Listing(),
                         array('Id' => $tblList->getId()), 'Elemente (CheckBox, Datum ...) bearbeiten'))
-                    . (new Standard('', '/Reporting/CheckList/Group/Select', new Listing(),
-                        array('Id' => $tblList->getId()), 'Objekte (Personen, Firmen) bearbeiten'));
+                    . (new Standard('', '/Reporting/CheckList/Object/Select', new Listing(),
+                        array('ListId' => $tblList->getId()), 'Objekte (Personen, Firmen) bearbeiten'));
             }
         }
 
@@ -116,6 +128,7 @@ class Frontend
             if (empty($tblList)) {
                 $Stage->setContent(new Warning('Die Check-Liste konnte nicht abgerufen werden'));
             } else {
+
                 $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
 
                 if ($tblListElementListByList) {
@@ -199,104 +212,264 @@ class Frontend
         return CheckList::useService()->removeElementFromList($Id);
     }
 
-//    /**
-//     * @param null $Id
-//     * @param null $Group
-//     * @return Stage
-//     */
-//    public function frontendListGroupSelect($Id = null, $Group = null)
-//    {
-//
-//        $Stage = new Stage('Check-Listen', 'Eine Gruppe einer Check-Liste zuordnen');
-//
-//        $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
-//
-//        if (empty($Id)) {
-//            $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
-//        } else {
-//            $tblList = CheckList::useService()->getListById($Id);
-//            if (empty($tblList)) {
-//                $Stage->setContent(new Warning('Die Check-Liste konnte nicht abgerufen werden'));
-//            } else {
-//                $tblListObjectListByListWhereGroup = CheckList::useService()->getListObjectListByListWhereGroup($tblList);
-//                if ($tblListObjectListByListWhereGroup) {
-//                    foreach ($tblListObjectListByListWhereGroup as &$tblListObjectList) {
-//                        $tblListObjectList->Name = $tblListObjectList->getServiceTblGroup()->getName();
-//                        $tblListObjectList->Option =
-//                            (new Danger('Entfernen', '/Reporting/CheckList/Group/Remove',
-//                                new Minus(), array(
-//                                    'Id' => $tblListObjectList->getId()
-//                                )))->__toString();
-//                    }
-//                }
-//
-//                if ($tblList->getTblListType()->getIdentifier() === 'PERSON') {
-//                    $groupList = Group::useService()->getGroupAll();
-//                } else {
-//                    $groupList = \SPHERE\Application\Corporation\Group\Group::useService()->getGroupAll();
-//                }
-//                $Form = $this->formGroup($groupList)
-//                    ->appendFormButton(new Primary('Hinzufügen', new Plus()))
-//                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-//
-//                $Stage->setContent(
-//                    new Layout(array(
-//                        new LayoutGroup(array(
-//                            new LayoutRow(array(
-//                                new LayoutColumn(
-//                                    new Panel('Check-Liste', $tblList->getName(), Panel::PANEL_TYPE_SUCCESS),
-//                                    12
-//                                ),
-//                            ))
-//                        )),
-//                        new LayoutGroup(array(
-//                            new LayoutRow(array(
-//                                new LayoutColumn(array(
-//                                    new TableData($tblListObjectListByListWhereGroup, null,
-//                                        array(
-//                                            'Name' => 'Name',
-//                                            'Type' => 'Typ',
-//                                            'Option' => 'Option'
-//                                        )
-//                                    )
-//                                ))
-//                            ))
-//                        ), new Title('Übersicht')),
-//                        new LayoutGroup(array(
-//                            new LayoutRow(array(
-//                                new LayoutColumn(array(
-//                                    CheckList::useService()->addGroupToList($Form, $Id, $Group)
-//                                ))
-//                            ))
-//                        ), new Title('Hinzufügen'))
-//                    ))
-//                );
-//            }
+    /**
+     * @param null $ListId
+     * @param null $ObjectTypeId
+     * @param null $ObjectTypeSelect
+     * @param null $Object
+     *
+     * @return Stage
+     */
+    public function frontendListObjectSelect(
+        $ListId = null,
+        $ObjectTypeId = null,
+        $ObjectTypeSelect = null,
+        $Object = null
+    ) {
+
+        $Stage = new Stage('Check-Listen', 'Eine Gruppe einer Check-Liste zuordnen');
+
+        $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
+
+        if (empty($ListId)) {
+            $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
+        } else {
+            $tblList = CheckList::useService()->getListById($ListId);
+            if (empty($tblList)) {
+                $Stage->setContent(new Warning('Die Check-Liste konnte nicht abgerufen werden'));
+            } else {
+
+                $tblListObjectListByList = CheckList::useService()->getListObjectListByList($tblList);
+                if ($tblListObjectListByList) {
+                    foreach ($tblListObjectListByList as &$tblListObjectList) {
+                        if (($tblObject = $tblListObjectList->getServiceTblObject())) {
+                            if ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSON') {
+                                /** @var TblPerson $tblObject */
+                                $tblListObjectList->Name = $tblObject->getFullName();
+                            } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANY') {
+                                /** @var TblCompany $tblObject */
+                                $tblListObjectList->Name = $tblObject->getName();
+                            } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSONGROUP') {
+                                /** @var PersonGroupEntity/TblGroup $tblObject */
+                                $tblListObjectList->Name = $tblObject->getName();
+                            } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
+                                /** @var CompanyGroupEntity/TblGroup $tblObject */
+                                $tblListObjectList->Name = $tblObject->getName();
+                            } else {
+                                $tblListObjectList->Name = '';
+                            }
+                        } else {
+                            $tblListObjectList->Name = '';
+                        }
+
+                        $tblListObjectList->Type = $tblListObjectList->getTblObjectType()->getName();
+                        $tblListObjectList->Option =
+                            (new Danger('Entfernen', '/Reporting/CheckList/Object/Remove',
+                                new Minus(), array(
+                                    'Id' => $tblListObjectList->getId()
+                                )))->__toString();
+                    }
+                }
+
+                $tblObjectTypeAll = CheckList::useService()->getObjectTypeAll();
+                $tblObjectType = false;
+                $selectList = array();
+
+                if ($ObjectTypeId !== null) {
+                    $Global = $this->getGlobal();
+                    if (!$Global->POST) {
+                        $Global->POST['ObjectTypeSelect']['Id'] = $ObjectTypeId;
+                        $Global->savePost();
+                    }
+
+                    $tblObjectType = CheckList::useService()->getObjectTypeById($ObjectTypeId);
+                    if ($tblObjectType) {
+                        if ($tblObjectType->getIdentifier() === 'PERSON') {
+                            $tblPersonAll = Person::useService()->getPersonAll();
+                            if ($tblPersonAll) {
+                                foreach ($tblPersonAll as $tblPerson) {
+                                    $tblPerson->Name = $tblPerson->getFullName();
+                                    $tblPerson->Option =
+                                        (new Form(
+                                            new FormGroup(
+                                                new FormRow(array(
+                                                    new FormColumn(
+                                                        new Primary('Hinzufügen',
+                                                            new Plus())
+                                                        , 5)
+                                                ))
+                                            ), null,
+                                            '/Reporting/CheckList/Object/Add', array(
+                                                'ListId' => $tblList->getId(),
+                                                'ObjectId' => $tblPerson->getId(),
+                                                'ObjectTypeId' => $tblObjectType->getId()
+                                            )
+                                        ))->__toString();
+                                }
+                                $selectList = $tblPersonAll;
+                            }
+                        } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
+                            $tblCompanyAll = Company::useService()->getCompanyAll();
+                            if ($tblCompanyAll) {
+                                foreach ($tblCompanyAll as $tblCompany) {
+                                    $tblCompany->Option =
+                                        (new Form(
+                                            new FormGroup(
+                                                new FormRow(array(
+                                                    new FormColumn(
+                                                        new Primary('Hinzufügen',
+                                                            new Plus())
+                                                        , 5)
+                                                ))
+                                            ), null,
+                                            '/Reporting/CheckList/Object/Add', array(
+                                                'ListId' => $tblList->getId(),
+                                                'ObjectId' => $tblCompany->getId(),
+                                                'ObjectTypeId' => $tblObjectType->getId()
+                                            )
+                                        ))->__toString();
+                                }
+                                $selectList = $tblCompanyAll;
+                            }
+                        }
+                    }
+
+                }
+
+                $Stage->setContent(
+                    new Layout(array(
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Panel('Check-Liste', $tblList->getName(), Panel::PANEL_TYPE_SUCCESS),
+                                    12
+                                ),
+                                new LayoutColumn(
+                                    CheckList::useService()->getObjectType(
+                                        new Form(new FormGroup(array(
+                                            new FormRow(array(
+                                                new FormColumn(
+                                                    new SelectBox('ObjectTypeSelect[Id]', 'Objekt-Typ',
+                                                        array(
+                                                            '{{ Name }}' => $tblObjectTypeAll
+                                                        )),
+                                                    12
+                                                ),
+                                            )),
+                                        )), new Primary('Auswählen', new Select()))
+                                        , $tblList->getId(), $ObjectTypeSelect)
+                                )
+                            ))
+                        ))
+                    ))
+                    . ($tblObjectType ?
+                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                            new Panel('Objekt-Typ:',
+                                $tblObjectType->getName(),
+                                Panel::PANEL_TYPE_SUCCESS), 12
+                        ))))
+                        . new Layout(new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(array(
+                                    new TableData($tblListObjectListByList, null,
+                                        array(
+                                            'Name' => 'Name',
+                                            'Type' => 'Typ',
+                                            'Option' => 'Option'
+                                        )
+                                    )
+                                ), 6),
+                                new LayoutColumn(array(
+                                    new TableData($selectList, null,
+                                        array(
+                                            'Name' => 'Name',
+                                            'Option' => 'Option'
+                                        )
+                                    )
+                                ), 6),
+                            ))
+                        )))
+                        : new Layout(new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(array(
+                                    new TableData($tblListObjectListByList, null,
+                                        array(
+                                            'Name' => 'Name',
+                                            'Type' => 'Typ',
+                                            'Option' => 'Option'
+                                        )
+                                    )
+                                ), 12)
+                            ))
+                        ))))
+                );
+            }
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $ListId
+     * @param null $ObjectId
+     * @param null $ObjectTypeId
+     * @return Stage
+     */
+    public function frontendListObjectAdd($ListId = null, $ObjectId = null, $ObjectTypeId = null)
+    {
+        $Stage = new Stage('Check-Listen', 'Zensuren-Gruppe einer Berechnungsvorschrift hinzufügen');
+
+        if ($ListId === null || $ObjectId === null || $ObjectTypeId === null){
+            return $Stage;
+        }
+
+        $tblList = CheckList::useService()->getListById($ListId);
+        $tblObjectType = CheckList::useService()->getObjectTypeById($ObjectTypeId);
+
+        if ($tblList && $tblObjectType && $ObjectId !== null) {
+            if ($tblObjectType->getIdentifier() === 'PERSON') {
+                $tblPerson = Person::useService()->getPersonById($ObjectId);
+                if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblPerson)){
+                    return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
+                    . new Redirect('/Reporting/CheckList/Object/Select', 0,
+                        array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                } else {
+                    return new Stage('Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
+                    . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                        array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                }
+            } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
+                $tblCompany = Company::useService()->getCompanyById($ObjectId);
+                if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblCompany)){
+                    return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
+                    . new Redirect('/Reporting/CheckList/Object/Select', 0,
+                        array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                } else {
+                    return new Stage('Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
+                    . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                        array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                }
+            }
+
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return Stage
+     */
+    public function frontendListObjectRemove($Id)
+    {
+        $Stage = new Stage('Check-Listen', 'Zensuren-Gruppe von einer Berechnungsvorschrift entfernen');
+
+//        $tblScoreConditionGroupList = Gradebook::useService()->getScoreConditionGroupListById($Id);
+//        if ($tblScoreConditionGroupList) {
+//            $Stage->setContent(Gradebook::useService()->removeScoreConditionGroupList($tblScoreConditionGroupList));
 //        }
-//
-//        return $Stage;
-//    }
-//
-//    private function formGroup($groupList)
-//    {
-//
-//        return new Form(new FormGroup(array(
-//            new FormRow(array(
-//                new FormColumn(
-//                    new SelectBox('Group[Group]', 'Typ', array('{{ Name }}' => $groupList)), 12
-//                ),
-//            ))
-//        )));
-//    }
-//
-//    /**
-//     * @param $Id
-//     *
-//     * @return Stage
-//     */
-//    public function frontendListGroupRemove($Id)
-//    {
-//
-////        return CheckList::useService()->removeGroupFromList($Id);
-//    }
+
+        return $Stage;
+    }
 }
