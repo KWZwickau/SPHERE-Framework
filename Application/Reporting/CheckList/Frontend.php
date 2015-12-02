@@ -8,7 +8,6 @@
 
 namespace SPHERE\Application\Reporting\CheckList;
 
-
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -46,10 +45,11 @@ class Frontend
 
         if ($tblListAll) {
             foreach ($tblListAll as &$tblList) {
-                $tblList->Type = $tblList->getTblListType()->getName();
                 $tblList->Option =
                     (new Standard('', '/Reporting/CheckList/Element/Select', new Listing(),
-                        array('Id' => $tblList->getId()), 'Elemente bearbeiten'));
+                        array('Id' => $tblList->getId()), 'Elemente (CheckBox, Datum ...) bearbeiten'))
+                    . (new Standard('', '/Reporting/CheckList/Group/Select', new Listing(),
+                        array('Id' => $tblList->getId()), 'Objekte (Personen, Firmen) bearbeiten'));
             }
         }
 
@@ -65,7 +65,6 @@ class Frontend
                             new TableData($tblListAll, null, array(
                                 'Name' => 'Name',
                                 'Description' => 'Beschreibung',
-                                'Type' => 'Typ',
                                 'Option' => 'Optionen',
                             ))
                         ))
@@ -86,15 +85,10 @@ class Frontend
 
     private function formList()
     {
-        $tblListTypeAll = CheckList::useService()->getListTypeAll();
-
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new TextField('List[Name]', 'Name', 'Name'), 6
-                ),
-                new FormColumn(
-                    new SelectBox('List[Type]', 'Typ', array('{{ Name }}' => $tblListTypeAll)), 6
+                    new TextField('List[Name]', 'Name', 'Name'), 12
                 ),
                 new FormColumn(
                     new TextField('List[Description]', 'Beschreibung', 'Beschreibung'), 12
@@ -204,4 +198,105 @@ class Frontend
 
         return CheckList::useService()->removeElementFromList($Id);
     }
+
+//    /**
+//     * @param null $Id
+//     * @param null $Group
+//     * @return Stage
+//     */
+//    public function frontendListGroupSelect($Id = null, $Group = null)
+//    {
+//
+//        $Stage = new Stage('Check-Listen', 'Eine Gruppe einer Check-Liste zuordnen');
+//
+//        $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
+//
+//        if (empty($Id)) {
+//            $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
+//        } else {
+//            $tblList = CheckList::useService()->getListById($Id);
+//            if (empty($tblList)) {
+//                $Stage->setContent(new Warning('Die Check-Liste konnte nicht abgerufen werden'));
+//            } else {
+//                $tblListObjectListByListWhereGroup = CheckList::useService()->getListObjectListByListWhereGroup($tblList);
+//                if ($tblListObjectListByListWhereGroup) {
+//                    foreach ($tblListObjectListByListWhereGroup as &$tblListObjectList) {
+//                        $tblListObjectList->Name = $tblListObjectList->getServiceTblGroup()->getName();
+//                        $tblListObjectList->Option =
+//                            (new Danger('Entfernen', '/Reporting/CheckList/Group/Remove',
+//                                new Minus(), array(
+//                                    'Id' => $tblListObjectList->getId()
+//                                )))->__toString();
+//                    }
+//                }
+//
+//                if ($tblList->getTblListType()->getIdentifier() === 'PERSON') {
+//                    $groupList = Group::useService()->getGroupAll();
+//                } else {
+//                    $groupList = \SPHERE\Application\Corporation\Group\Group::useService()->getGroupAll();
+//                }
+//                $Form = $this->formGroup($groupList)
+//                    ->appendFormButton(new Primary('Hinzufügen', new Plus()))
+//                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+//
+//                $Stage->setContent(
+//                    new Layout(array(
+//                        new LayoutGroup(array(
+//                            new LayoutRow(array(
+//                                new LayoutColumn(
+//                                    new Panel('Check-Liste', $tblList->getName(), Panel::PANEL_TYPE_SUCCESS),
+//                                    12
+//                                ),
+//                            ))
+//                        )),
+//                        new LayoutGroup(array(
+//                            new LayoutRow(array(
+//                                new LayoutColumn(array(
+//                                    new TableData($tblListObjectListByListWhereGroup, null,
+//                                        array(
+//                                            'Name' => 'Name',
+//                                            'Type' => 'Typ',
+//                                            'Option' => 'Option'
+//                                        )
+//                                    )
+//                                ))
+//                            ))
+//                        ), new Title('Übersicht')),
+//                        new LayoutGroup(array(
+//                            new LayoutRow(array(
+//                                new LayoutColumn(array(
+//                                    CheckList::useService()->addGroupToList($Form, $Id, $Group)
+//                                ))
+//                            ))
+//                        ), new Title('Hinzufügen'))
+//                    ))
+//                );
+//            }
+//        }
+//
+//        return $Stage;
+//    }
+//
+//    private function formGroup($groupList)
+//    {
+//
+//        return new Form(new FormGroup(array(
+//            new FormRow(array(
+//                new FormColumn(
+//                    new SelectBox('Group[Group]', 'Typ', array('{{ Name }}' => $groupList)), 12
+//                ),
+//            ))
+//        )));
+//    }
+//
+//    /**
+//     * @param $Id
+//     *
+//     * @return Stage
+//     */
+//    public function frontendListGroupRemove($Id)
+//    {
+//
+////        return CheckList::useService()->removeGroupFromList($Id);
+//    }
 }

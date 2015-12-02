@@ -12,7 +12,8 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblElementType;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListElementList;
-use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListType;
+use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListObjectList;
+use SPHERE\Application\Reporting\CheckList\Service\Entity\TblObjectType;
 use SPHERE\System\Database\Binding\AbstractData;
 
 /**
@@ -24,8 +25,10 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createListType('Personen', 'PERSON');
-        $this->createListType('Firmen', 'COMPANY');
+        $this->createObjectType('Einzel-Person', 'PERSON');
+        $this->createObjectType('Einzel-Firma', 'COMPANY');
+        $this->createObjectType('Personengruppe', 'PERSONGROUP');
+        $this->createObjectType('Firmengruppe', 'COMPANYGROUP');
 
         $this->createElementType('CheckBox', 'CHECKBOX');
         $this->createElementType('Datum', 'DATE');
@@ -55,35 +58,35 @@ class Data extends AbstractData
     /**
      * @param $Id
      *
-     * @return bool|TblListType
+     * @return bool|TblObjectType
      */
-    public function getListTypeById($Id)
+    public function getObjectTypeById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListType', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblObjectType', $Id);
     }
 
     /**
      * @param $Identifier
      *
-     * @return bool|TblListType
+     * @return bool|TblObjectType
      */
-    public function getListTypeByIdentifier($Identifier)
+    public function getObjectTypeByIdentifier($Identifier)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListType',
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblObjectType',
             array(
-                TblListType::ATTR_IDENTIFIER => $Identifier
+                TblObjectType::ATTR_IDENTIFIER => $Identifier
             ));
     }
 
     /**
-     * @return false|TblListType[]
+     * @return false|TblObjectType[]
      */
-    public function getListTypeAll()
+    public function getObjectTypeAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListType');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblObjectType');
     }
 
     /**
@@ -94,7 +97,8 @@ class Data extends AbstractData
     public function getListElementListById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListElementList', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListElementList',
+            $Id);
     }
 
     /**
@@ -104,8 +108,20 @@ class Data extends AbstractData
     public function getListElementListByList(TblList $tblList)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListElementList',
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblListElementList',
             array(TblListElementList::ATTR_TBL_LIST => $tblList->getId()));
+    }
+
+    /**
+     * @param TblList $tblList
+     * @return bool|TblListObjectList[]
+     */
+    public function getListObjectListByList(TblList $tblList)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListObjectList',
+            array(TblListObjectList::ATTR_TBL_LIST => $tblList->getId()));
     }
 
     /**
@@ -116,7 +132,8 @@ class Data extends AbstractData
     public function getElementTypeById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblElementType', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblElementType',
+            $Id);
     }
 
     /**
@@ -146,22 +163,22 @@ class Data extends AbstractData
      * @param $Name
      * @param $Identifier
      *
-     * @return TblListType
+     * @return TblObjectType
      */
-    public function createListType(
+    public function createObjectType(
         $Name,
         $Identifier
     ) {
         $Manager = $this->getConnection()->getEntityManager();
 
-        $Entity = $Manager->getEntity('TblListType')
+        $Entity = $Manager->getEntity('TblObjectType')
             ->findOneBy(array(
-                TblListType::ATTR_NAME => $Name,
-                TblListType::ATTR_IDENTIFIER => $Identifier
+                TblObjectType::ATTR_NAME => $Name,
+                TblObjectType::ATTR_IDENTIFIER => $Identifier
             ));
 
         if (null === $Entity) {
-            $Entity = new TblListType();
+            $Entity = new TblObjectType();
             $Entity->setName($Name);
             $Entity->setIdentifier($Identifier);
 
@@ -203,13 +220,11 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblListType $tblListType
      * @param $Name
      * @param string $Description
      * @return TblList
      */
     public function createList(
-        TblListType $tblListType,
         $Name,
         $Description = ''
     ) {
@@ -222,7 +237,6 @@ class Data extends AbstractData
 
         if (null === $Entity) {
             $Entity = new TblList();
-            $Entity->setTblListType($tblListType);
             $Entity->setName($Name);
             $Entity->setDescription($Description);
 
@@ -273,5 +287,30 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param TblList $tblList
+     * @param TblObjectType $tblObjectType
+     * @param $tblObject
+     * @return TblListElementList
+     */
+    public function addObjectToList(
+        TblList $tblList,
+        TblObjectType $tblObjectType,
+        $tblObject
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntityById('TblListObjectList', $tblObjectType->getId());
+        if (null !== $Entity) {
+            $Entity = new TblListObjectList();
+            $Entity->setTblList($tblList);
+            $Entity->setServiceTblObject($tblObject);
+            $Entity->setTblObjectType($tblObjectType);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
     }
 }

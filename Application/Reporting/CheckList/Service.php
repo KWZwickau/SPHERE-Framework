@@ -12,7 +12,7 @@ use SPHERE\Application\Reporting\CheckList\Service\Data;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblElementType;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListElementList;
-use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListType;
+use SPHERE\Application\Reporting\CheckList\Service\Entity\TblObjectType;
 use SPHERE\Application\Reporting\CheckList\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
@@ -64,32 +64,32 @@ class Service extends AbstractService
     /**
      * @param $Id
      *
-     * @return bool|TblListType
+     * @return bool|TblObjectType
      */
-    public function getListTypeById($Id)
+    public function getObjectTypeById($Id)
     {
 
-        return (new Data($this->getBinding()))->getListTypeById($Id);
+        return (new Data($this->getBinding()))->getObjectTypeById($Id);
     }
 
     /**
      * @param $Identifier
      *
-     * @return bool|TblListType
+     * @return bool|TblObjectType
      */
-    public function getListTypeByIdentifier($Identifier)
+    public function getObjectTypeByIdentifier($Identifier)
     {
 
-        return (new Data($this->getBinding()))->getListTypeByIdentifier($Identifier);
+        return (new Data($this->getBinding()))->getObjectTypeByIdentifier($Identifier);
     }
 
     /**
-     * @return false|TblListType[]
+     * @return false|TblObjectType[]
      */
-    public function getListTypeAll()
+    public function getObjectTypeAll()
     {
 
-        return (new Data($this->getBinding()))->getListTypeAll();
+        return (new Data($this->getBinding()))->getObjectTypeAll();
     }
 
     /**
@@ -112,7 +112,6 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getListElementListByList($tblList);
     }
-
 
     /**
      * @param $Id
@@ -169,7 +168,6 @@ class Service extends AbstractService
 
         if (!$Error) {
             (new Data($this->getBinding()))->createList(
-                $this->getListTypeById($List['Type']),
                 $List['Name'],
                 $List['Description']
             );
@@ -223,7 +221,7 @@ class Service extends AbstractService
     {
         $tblListElementList = $this->getListElementListById($Id);
         $tblList = $tblListElementList->getTblList();
-        if ((new Data($this->getBinding()))->removeElementFromList($tblListElementList)){
+        if ((new Data($this->getBinding()))->removeElementFromList($tblListElementList)) {
             return new Stage('Das Element ist von Check-Liste entfernt worden.')
             . new Redirect('/Reporting/CheckList/Element/Select', 0, array('Id' => $tblList->getId()));
         } else {
@@ -231,4 +229,36 @@ class Service extends AbstractService
             . new Redirect('/Reporting/CheckList/Element/Select', 0, array('Id' => $tblList->getId()));
         }
     }
+
+//    /**
+//     * @param IFormInterface|null $Stage
+//     * @param $Id
+//     * @param $Group
+//     * @return IFormInterface|string
+//     */
+//    public function addGroupToList(IFormInterface $Stage = null, $Id, $Group)
+//    {
+//
+//        /**
+//         * Skip to Frontend
+//         */
+//        if (null === $Id || null === $Group) {
+//            return $Stage;
+//        }
+//
+//        $tblList = $this->getListById($Id);
+//        if ($tblList->getTblObjectType()->getIdentifier() === 'PERSON') {
+//            $group = Group::useService()->getGroupById($Group['Group']);
+//        } else {
+//            $group = \SPHERE\Application\Corporation\Group\Group::useService()->getGroupById($Group['Group']);
+//        }
+//
+//        (new Data($this->getBinding()))->addGroupToList(
+//            $tblList,
+//            $group
+//        );
+//        return new Stage('Die Gruppe ist zur Check-Liste hinzugefügt worden.')
+//        . new Redirect('/Reporting/CheckList/Group/Select', 0, array('Id' => $Id));
+//
+//    }
 }
