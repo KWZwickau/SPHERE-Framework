@@ -47,6 +47,7 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 class Frontend extends Extension implements IFrontendInterface
 {
@@ -519,6 +520,19 @@ class Frontend extends Extension implements IFrontendInterface
             $tblListObjectListByList = CheckList::useService()->getListObjectListByList($tblList);
             $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
             if ($tblListObjectListByList) {
+
+                $tblListObjectElementList = CheckList::useService()->getListObjectElementListByList($tblList);
+                if ($tblListObjectElementList) {
+                    $Global = $this->getGlobal();
+                    foreach ($tblListObjectElementList as $item) {
+                        $tblListObjectList = CheckList::useService()->getListObjectListByListAndObjectTypeAndObject($tblList,
+                            $item->getTblObjectType(), $item->getServiceTblObject());
+                        $Global->POST['Data'][$tblListObjectList->getId()][$item->getTblListElementList()->getId()] = $item->getValue();
+                    }
+
+                    $Global->savePost();
+                }
+
                 $hasColumnDefinitions = false;
                 foreach ($tblListObjectListByList as &$tblListObjectList) {
                     if (($tblObject = $tblListObjectList->getServiceTblObject())) {
@@ -568,19 +582,6 @@ class Frontend extends Extension implements IFrontendInterface
                         $hasColumnDefinitions = true;
                     }
                 }
-            }
-
-            $tblListObjectElementList = CheckList::useService()->getListObjectElementListByList($tblList);
-            if ($tblListObjectElementList) {
-                $Global = $this->getGlobal();
-                foreach ($tblListObjectElementList as $item) {
-                    $tblListObjectList = CheckList::useService()->getListObjectListByListAndObjectTypeAndObject($tblList,
-                        $item->getTblObjectType(), $item->getServiceTblObject());
-                    $Global->POST['Data'][$tblListObjectList->getId()][$item->getTblListElementList()->getId()] = $item->getValue();
-                    // ToDo JohK CheckBoxen
-                }
-
-                $Global->savePost();
             }
         }
 

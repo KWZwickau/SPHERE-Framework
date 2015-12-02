@@ -383,14 +383,30 @@ class Service extends AbstractService
 
         $tblList = CheckList::useService()->getListById($Id);
 
+        // Reset CheckBoxen
+        $tblListObjectElementListByList = CheckList::useService()->getListObjectElementListByList($tblList);
+        if ($tblListObjectElementListByList) {
+            foreach ($tblListObjectElementListByList as $tblListObjectElementList) {
+                $tblListObjectList = CheckList::useService()->getListObjectListByListAndObjectTypeAndObject($tblList,
+                    $tblListObjectElementList->getTblObjectType(), $tblListObjectElementList->getServiceTblObject());
+                if (!isset($Data[$tblListObjectList->getId()][$tblListObjectElementList->getTblListElementList()->getId()])){
+                    (new Data($this->getBinding()))->updateObjectElementToList(
+                        $tblList,
+                        $tblListObjectElementList->getTblObjectType(),
+                        $tblListObjectElementList->getTblListElementList(),
+                        $tblListObjectList->getServiceTblObject(),
+                        '0'
+                    );
+                }
+            }
+        }
+
         foreach ($Data as $ListObjectList => $ListElement) {
             $tblListObjectList = CheckList::useService()->getListObjectListById($ListObjectList);
             if (!empty($ListElement)) {
                 foreach ($ListElement as $ListElementList => $Value) {
                     $tblListElementList = CheckList::useService()->getListElementListById($ListElementList);
                     $tblObjectType = $tblListObjectList->getTblObjectType();
-                    $tblElementType = $tblListElementList->getTblElementType();
-//                    if ($tblElementType->getIdentifier() !== 'CHECKBOX') {
                     (new Data($this->getBinding()))->updateObjectElementToList(
                         $tblList,
                         $tblObjectType,
@@ -398,9 +414,6 @@ class Service extends AbstractService
                         $tblListObjectList->getServiceTblObject(),
                         $Value
                     );
-//                    }
-
-                    // ToDo JohK CheckBox
                 }
             }
         }
