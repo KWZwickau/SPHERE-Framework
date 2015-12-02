@@ -57,11 +57,11 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblItem', 'CostUnit')) {
             $Table->addColumn('CostUnit', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblItem', 'serviceManagement_Student_ChildRank')) {
-            $Table->addColumn('serviceManagement_Student_ChildRank', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblItem', 'serviceStudentSiblingRank')) {
+            $Table->addColumn('serviceStudentSiblingRank', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblItem', 'serviceManagement_Course')) {
-            $Table->addColumn('serviceManagement_Course', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblItem', 'serviceSchoolTblType')) {
+            $Table->addColumn('serviceSchoolTblType', 'bigint', array('notnull' => false));
         }
 
         return $Table;

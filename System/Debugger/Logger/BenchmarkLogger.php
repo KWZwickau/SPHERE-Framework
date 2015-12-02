@@ -1,6 +1,10 @@
 <?php
 namespace SPHERE\System\Debugger\Logger;
 
+use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
+
 /**
  * Class BenchmarkLogger
  * @package SPHERE\System\Debugger\Logger
@@ -43,6 +47,15 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
      */
     public function addLog($Content)
     {
+        if (strpos($Content, 'Memory') === 0) {
+            $Content = new Success($Content);
+        }
+        if (strpos($Content, 'Cache') === 0) {
+            $Content = new Warning($Content);
+        }
+        if (strpos($Content, 'Query') === 0) {
+            $Content = new Danger($Content);
+        }
         return parent::addLog($this->getTimer() . ' (' . $this->getGap() . ') ' . $Content);
     }
 

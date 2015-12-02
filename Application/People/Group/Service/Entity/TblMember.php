@@ -4,8 +4,6 @@ namespace SPHERE\Application\People\Group\Service\Entity;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
-use Doctrine\ORM\Mapping\JoinColumn;
-use Doctrine\ORM\Mapping\ManyToOne;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
@@ -24,9 +22,7 @@ class TblMember extends Element
     const SERVICE_TBL_PERSON = 'serviceTblPerson';
 
     /**
-     * @Column(nullable=true)
-     * @ManyToOne(targetEntity="TblGroup",fetch="EAGER",cascade={"persist"})
-     * @JoinColumn(name="tblGroup",referencedColumnName="Id")
+     * @Column(type="bigint")
      */
     protected $tblGroup;
     /**
@@ -65,11 +61,7 @@ class TblMember extends Element
         if (null === $this->tblGroup) {
             return false;
         } else {
-            if (is_object($this->tblGroup)) {
-                return $this->tblGroup;
-            } else {
-                return Group::useService()->getGroupById($this->tblGroup);
-            }
+            return Group::useService()->getGroupById($this->tblGroup);
         }
     }
 
@@ -79,6 +71,6 @@ class TblMember extends Element
     public function setTblGroup(TblGroup $tblGroup = null)
     {
 
-        $this->tblGroup = (null === $tblGroup ? null : $tblGroup);
+        $this->tblGroup = (null === $tblGroup ? null : $tblGroup->getId());
     }
 }

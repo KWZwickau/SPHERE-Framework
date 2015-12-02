@@ -26,13 +26,17 @@ class Data extends AbstractData
      */
     public function createCompany($Name, $Description = '')
     {
-
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = new TblCompany();
-        $Entity->setName($Name);
-        $Entity->setDescription($Description);
-        $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        $Entity = $Manager->getEntity('TblCompany')->findOneBy(array(
+            TblCompany::ATTR_NAME => $Name,
+        ));
+        if (null === $Entity) {
+            $Entity = new TblCompany();
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
         return $Entity;
     }
 
@@ -89,7 +93,6 @@ class Data extends AbstractData
     public function getCompanyById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblCompany', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCompany', $Id);
     }
 }

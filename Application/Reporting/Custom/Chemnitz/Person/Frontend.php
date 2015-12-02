@@ -129,12 +129,13 @@ class Frontend extends Extension implements IFrontendInterface
         $View->setTitle('ESZC Auswertung');
         $View->setDescription('Liste der Mitarbeiter');
 
-        $View->addButton(
-            new Primary('Herunterladen',
-                '/Api/Reporting/Custom/Chemnitz/Common/StaffList/Download', new Download())
-        );
-
         $staffList = Person::useService()->createStaffList();
+        if ($staffList) {
+            $View->addButton(
+                new Primary('Herunterladen',
+                    '/Api/Reporting/Custom/Chemnitz/Common/StaffList/Download', new Download())
+            );
+        }
 
         $View->setContent(
             new TableData($staffList, null,
@@ -317,12 +318,13 @@ class Frontend extends Extension implements IFrontendInterface
         $View->setTitle('ESZC Auswertung');
         $View->setDescription('Liste der Vereinsmitglieder');
 
-        $View->addButton(
-            new Primary('Herunterladen',
-                '/Api/Reporting/Custom/Chemnitz/Common/ClubMemberList/Download', new Download())
-        );
-
         $clubMemberList = Person::useService()->createClubMemberList();
+        if ($clubMemberList) {
+            $View->addButton(
+                new Primary('Herunterladen',
+                    '/Api/Reporting/Custom/Chemnitz/Common/ClubMemberList/Download', new Download())
+            );
+        }
 
         $View->setContent(
             new TableData($clubMemberList, null,
@@ -355,12 +357,13 @@ class Frontend extends Extension implements IFrontendInterface
         $View->setTitle('ESZC Auswertung');
         $View->setDescription('Neuanmeldungen/Interessenten');
 
-        $View->addButton(
-            new Primary('Herunterladen',
-                '/Api/Reporting/Custom/Chemnitz/Common/InterestedPersonList/Download', new Download())
-        );
-
         $interestedPersonList = Person::useService()->createInterestedPersonList();
+        if ($interestedPersonList) {
+            $View->addButton(
+                new Primary('Herunterladen',
+                    '/Api/Reporting/Custom/Chemnitz/Common/InterestedPersonList/Download', new Download())
+            );
+        }
 
         $View->setContent(
             new TableData($interestedPersonList, null,

@@ -26,6 +26,10 @@ class Gradebook implements IModuleInterface
                 new Link\Icon(new Tag()))
         );
         Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__ . '\Score'), new Link\Name('Zensuren-Berechnung'),
+                new Link\Icon(new Book()))
+        );
+        Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__ . '\Test'), new Link\Name('Test'),
                 new Link\Icon(new Document()))
         );
@@ -49,6 +53,7 @@ class Gradebook implements IModuleInterface
                 __NAMESPACE__ . '\Frontend::frontendSelectedGradebook')
                 ->setParameterDefault('DivisionId', null)
                 ->setParameterDefault('SubjectId', null)
+                ->setParameterDefault('ScoreConditionId', null)
                 ->setParameterDefault('Select', null)
         );
 
@@ -73,6 +78,42 @@ class Gradebook implements IModuleInterface
                 __NAMESPACE__ . '\Frontend::frontendEditTestGrade')
                 ->setParameterDefault('Id', null)
                 ->setParameterDefault('Grade', null)
+        );
+
+        /*
+         * Score
+         */
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score',
+                __NAMESPACE__ . '\Frontend::frontendScore')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score\Group',
+                __NAMESPACE__ . '\Frontend::frontendScoreGroup')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score\Group\Select',
+                __NAMESPACE__ . '\Frontend::frontendScoreGroupSelect')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score\Group\Add',
+                __NAMESPACE__ . '\Frontend::frontendScoreGroupAdd')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score\Group\Remove',
+                __NAMESPACE__ . '\Frontend::frontendScoreGroupRemove')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score\Group\GradeType\Select',
+                __NAMESPACE__ . '\Frontend::frontendScoreGroupGradeTypeSelect')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score\Group\GradeType\Add',
+                __NAMESPACE__ . '\Frontend::frontendScoreGroupGradeTypeAdd')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Score\Group\GradeType\Remove',
+                __NAMESPACE__ . '\Frontend::frontendScoreGroupGradeTypeRemove')
         );
     }
 

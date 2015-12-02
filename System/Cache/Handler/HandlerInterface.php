@@ -2,6 +2,7 @@
 namespace SPHERE\System\Cache\Handler;
 
 use SPHERE\System\Cache\CacheInterface;
+use SPHERE\System\Cache\CacheStatus;
 use SPHERE\System\Config\Reader\ReaderInterface;
 
 /**
@@ -37,4 +38,9 @@ interface HandlerInterface extends CacheInterface
      * @return HandlerInterface
      */
     public function clearCache();
+
+    /**
+     * @return CacheStatus
+     */
+    public function getStatus();
 }

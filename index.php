@@ -9,6 +9,7 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\APCuHandler;
+use SPHERE\System\Cache\Handler\CouchbaseHandler;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Cache\Handler\OpCacheHandler;
@@ -44,15 +45,16 @@ $Main = new Main();
 
 if (false) {
     $CacheConfig = (new ConfigFactory())->createReader(__DIR__ . '/System/Cache/Configuration.ini', new IniReader());
-    (new CacheFactory())->createHandler(new APCuHandler(), $CacheConfig)->clearCache();
+    (new CacheFactory())->createHandler(new CouchbaseHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new MemcachedHandler(), $CacheConfig)->clearCache();
+    (new CacheFactory())->createHandler(new APCuHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new MemoryHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new OpCacheHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new TwigHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new SmartyHandler(), $CacheConfig)->clearCache();
 }
 
-Debugger::$Enabled = false;
+Debugger::$Enabled = true;
 
 class FakePerson
 {
@@ -168,4 +170,3 @@ class FakePerson
 //}
 
 $Main->runPlatform();
-

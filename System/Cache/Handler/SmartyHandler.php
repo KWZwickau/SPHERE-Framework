@@ -2,6 +2,7 @@
 namespace SPHERE\System\Cache\Handler;
 
 use MOC\V\Component\Template\Component\Bridge\Repository\SmartyTemplate;
+use SPHERE\System\Cache\CacheStatus;
 use SPHERE\System\Config\Reader\ReaderInterface;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
@@ -12,6 +13,8 @@ use SPHERE\System\Debugger\Logger\ErrorLogger;
  */
 class SmartyHandler extends AbstractHandler implements HandlerInterface
 {
+
+    private static $Cache = '/../../../Library/MOC-V/Component/Template/Component/Bridge/Repository/SmartyTemplate';
 
     /**
      * @param $Name
@@ -59,5 +62,42 @@ class SmartyHandler extends AbstractHandler implements HandlerInterface
     {
         (new SmartyTemplate())->createInstance()->clearAllCache();
         return $this;
+    }
+
+    /**
+     * @return CacheStatus
+     */
+    public function getStatus()
+    {
+
+        return new CacheStatus(-1, -1, $this->calcStatusAvailable(), $this->calcStatusUsed(), $this->calcStatusFree(),
+            $this->calcStatusAvailable() - $this->calcStatusFree() - $this->calcStatusUsed()
+        );
+    }
+
+    private function calcStatusAvailable()
+    {
+
+        return ( disk_total_space(__DIR__) );
+    }
+
+    private function calcStatusUsed()
+    {
+
+        $Total = 0;
+        $Path = realpath(__DIR__.self::$Cache);
+        if ($Path !== false) {
+            foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($Path,
+                \FilesystemIterator::SKIP_DOTS)) as $Object) {
+                $Total += $Object->getSize() * 1024;
+            }
+        }
+        return $Total;
+    }
+
+    private function calcStatusFree()
+    {
+
+        return ( disk_free_space(__DIR__) );
     }
 }

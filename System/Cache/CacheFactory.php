@@ -20,9 +20,10 @@ class CacheFactory
     /**
      * @param HandlerInterface $Handler
      * @param ConfigInterface $Config
+     * @param string $Name
      * @return HandlerInterface
      */
-    public function createHandler(HandlerInterface $Handler = null, ConfigInterface $Config = null)
+    public function createHandler(HandlerInterface $Handler = null, ConfigInterface $Config = null, $Name = 'Memcached')
     {
 
         if (!$this->isAvailable($Handler)) {
@@ -30,7 +31,7 @@ class CacheFactory
                 $Handler = new DefaultHandler();
             }
             (new DebuggerFactory())->createLogger()->addLog(__METHOD__ . ': ' . get_class($Handler));
-            $this->setHandler($Handler, 'Memcached', $Config);
+            $this->setHandler($Handler, $Name, $Config);
         }
         return $this->getHandler($Handler);
     }

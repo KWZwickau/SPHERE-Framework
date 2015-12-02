@@ -5,6 +5,10 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -15,8 +19,8 @@ use SPHERE\System\Database\Fitting\Element;
 class TblItem extends Element
 {
 
-    const ATTR_SERVICE_MANAGEMENT_COURSE = 'serviceManagement_Course';
-    const ATTR_SERVICE_MANAGEMENT_STUDENT_CHILD_RANK = 'serviceManagement_Student_ChildRank';
+    const ATTR_SERVICE_SCHOOL_TYPE = 'serviceSchoolTblType';
+    const ATTR_SERVICE_STUDENT_SIBLING_RANK = 'serviceStudentSiblingRank';
     const ATTR_NAME = 'Name';
 
     /**
@@ -38,11 +42,11 @@ class TblItem extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceManagement_Course;
+    protected $serviceSchoolTblType;
     /**
      * @Column(type="bigint")
      */
-    protected $serviceManagement_Student_ChildRank;
+    protected $serviceStudentSiblingRank;
 
     /**
      * @return string
@@ -127,46 +131,46 @@ class TblItem extends Element
     }
 
     /**
-     * @return bool|TblCourse   // todo
+     * @return bool|TblType
      */
-    public function getServiceManagementCourse()
+    public function getServiceStudentType()
     {
 
-        if (null === $this->serviceManagement_Course) {
+        if (null === $this->serviceSchoolTblType) {
             return false;
         } else {
-            return Management::serviceCourse()->entityCourseById($this->serviceManagement_Course);
+            return Type::useService()->getTypeById($this->serviceSchoolTblType);
         }
     }
 
     /**
-     * @param null|TblCourse $tblCourse
+     * @param null|TblType $tblType
      */
-    public function setServiceManagementCourse(TblCourse $tblCourse = null)
+    public function setServiceStudentType(TblType $tblType = null)
     {
 
-        $this->serviceManagement_Course = ( null === $tblCourse ? null : $tblCourse->getId() );
+        $this->serviceSchoolTblType = ( null === $tblType ? null : $tblType->getId() );
     }
 
     /**
-     * @return bool|TblChildRank    // todo
+     * @return bool|TblSiblingRank
      */
-    public function getServiceManagementStudentChildRank()
+    public function getServiceStudentChildRank()
     {
 
-        if (null === $this->serviceManagement_Student_ChildRank) {
+        if (null === $this->serviceStudentSiblingRank) {
             return false;
         } else {
-            return Management::serviceStudent()->entityChildRankById($this->serviceManagement_Student_ChildRank);
+            return Relationship::useService()->getSiblingRankById($this->serviceStudentSiblingRank);
         }
     }
 
     /**
-     * @param null|TblChildRank $tblChildRank
+     * @param null|TblSiblingRank $tblSiblingRank
      */
-    public function setServiceManagementStudentChildRank(TblChildRank $tblChildRank = null)
+    public function setServiceStudentSiblingRank(TblSiblingRank $tblSiblingRank = null)
     {
 
-        $this->serviceManagement_Student_ChildRank = ( null === $tblChildRank ? null : $tblChildRank->getId() );
+        $this->serviceStudentSiblingRank = ( null === $tblSiblingRank ? null : $tblSiblingRank->getId() );
     }
 }
