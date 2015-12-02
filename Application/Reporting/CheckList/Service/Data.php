@@ -91,6 +91,32 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblList $tblList
+     * @param TblObjectType $tblObjectType
+     * @return bool|Element[]
+     */
+    public function getObjectAllByListAndObjectType(TblList $tblList, TblObjectType $tblObjectType)
+    {
+
+        $tblListObjectList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblListObjectList',
+            array(
+                TblListObjectList::ATTR_TBL_LIST => $tblList->getId(),
+                TblListObjectList::ATTR_TBL_OBJECT_TYPE => $tblObjectType->getId()
+            ));
+
+        $returnList = array();
+        if ($tblListObjectList) {
+            /** @var TblListObjectList $item */
+            foreach ($tblListObjectList as $item) {
+                $returnList[] = $item->getServiceTblObject();
+            }
+        }
+
+        return empty($returnList) ? false : $returnList;
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblListElementList

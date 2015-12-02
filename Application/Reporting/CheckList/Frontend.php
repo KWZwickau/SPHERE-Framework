@@ -285,7 +285,18 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblObjectType = CheckList::useService()->getObjectTypeById($ObjectTypeId);
                     if ($tblObjectType) {
                         if ($tblObjectType->getIdentifier() === 'PERSON') {
+
                             $tblPersonAll = Person::useService()->getPersonAll();
+                            $tblPersonInList = CheckList::useService()->getObjectAllByListAndObjectType($tblList, $tblObjectType);
+                            if ($tblPersonAll && $tblPersonInList) {
+                                $tblPersonAll = array_udiff($tblPersonAll, $tblPersonInList,
+                                    function (TblPerson $ObjectA, TblPerson $ObjectB) {
+
+                                        return $ObjectA->getId() - $ObjectB->getId();
+                                    }
+                                );
+                            }
+
                             if ($tblPersonAll) {
                                 foreach ($tblPersonAll as $tblPerson) {
                                     $tblPerson->Name = $tblPerson->getFullName();
@@ -309,7 +320,18 @@ class Frontend extends Extension implements IFrontendInterface
                                 $selectList = $tblPersonAll;
                             }
                         } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
+
                             $tblCompanyAll = Company::useService()->getCompanyAll();
+                            $tblCompanyInList = CheckList::useService()->getObjectAllByListAndObjectType($tblList, $tblObjectType);
+                            if ($tblCompanyAll && $tblCompanyInList) {
+                                $tblCompanyAll = array_udiff($tblCompanyAll, $tblCompanyInList,
+                                    function (TblCompany $ObjectA, TblCompany $ObjectB) {
+
+                                        return $ObjectA->getId() - $ObjectB->getId();
+                                    }
+                                );
+                            }
+
                             if ($tblCompanyAll) {
                                 foreach ($tblCompanyAll as $tblCompany) {
                                     $tblCompany->Option =

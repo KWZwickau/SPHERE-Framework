@@ -127,6 +127,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblList $tblList
+     * @param TblObjectType $tblObjectType
+     * @return bool|Element[]
+     */
+    public function getObjectAllByListAndObjectType(TblList $tblList, TblObjectType $tblObjectType)
+    {
+
+        return (new Data($this->getBinding()))->getObjectAllByListAndObjectType($tblList, $tblObjectType);
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblElementType
