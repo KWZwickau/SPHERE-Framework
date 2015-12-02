@@ -117,6 +117,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Id
+     *
+     * @return bool|TblListObjectList
+     */
+    public function getListObjectListById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getListObjectListById($Id);
+    }
+
+    /**
      * @param TblList $tblList
      * @return bool|TblListObjectList[]
      */
@@ -304,5 +315,25 @@ class Service extends AbstractService
     ) {
 
         return (new Data($this->getBinding()))->addObjectToList($tblList, $tblObjectType, $tblObject);
+    }
+
+    /**
+     * @param null $Id
+     * @return string
+     */
+    public function removeObjectFromList($Id = null)
+    {
+        $tblListObjectList = $this->getListObjectListById($Id);
+        $tblList = $tblListObjectList->getTblList();
+        $tblObjectType = $tblListObjectList->getTblObjectType();
+        if ((new Data($this->getBinding()))->removeObjectFromList($tblListObjectList)) {
+            return new Stage('Die ' . $tblObjectType->getName() .' ist von Check-Liste entfernt worden.')
+            . new Redirect('/Reporting/CheckList/Object/Select', 0,
+                array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+        } else {
+            return new Stage('Die ' . $tblObjectType->getName() .' konnte nicht von Check-Liste entfernt werden.')
+            . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+        }
     }
 }

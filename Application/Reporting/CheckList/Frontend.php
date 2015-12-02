@@ -485,13 +485,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendListObjectRemove($Id)
     {
-        $Stage = new Stage('Check-Listen', 'Zensuren-Gruppe von einer Berechnungsvorschrift entfernen');
 
-//        $tblScoreConditionGroupList = Gradebook::useService()->getScoreConditionGroupListById($Id);
-//        if ($tblScoreConditionGroupList) {
-//            $Stage->setContent(Gradebook::useService()->removeScoreConditionGroupList($tblScoreConditionGroupList));
-//        }
-
-        return $Stage;
+        return CheckList::useService()->removeObjectFromList($Id);
     }
 }

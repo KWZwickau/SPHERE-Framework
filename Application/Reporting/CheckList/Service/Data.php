@@ -141,6 +141,18 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Id
+     *
+     * @return bool|TblListObjectList
+     */
+    public function getListObjectListById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListObjectList',
+            $Id);
+    }
+
+    /**
      * @param TblList $tblList
      * @return bool|TblListObjectList[]
      */
@@ -342,5 +354,24 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param TblListObjectList $TblListObjectList
+     *
+     * @return bool
+     */
+    public function removeObjectFromList(TblListObjectList $TblListObjectList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblListObjectList $Entity */
+        $Entity = $Manager->getEntityById('TblListObjectList', $TblListObjectList->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 }
