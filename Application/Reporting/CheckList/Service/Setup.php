@@ -155,6 +155,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblListObjectElementList', 'serviceTblObject')) {
             $Table->addColumn('serviceTblObject', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblListObjectElementList', 'Value')) {
+            $Table->addColumn('Value', 'string', array('notnull' => false));
+        }
 
         $this->getConnection()->addForeignKey($Table, $tblList, true);
         $this->getConnection()->addForeignKey($Table, $tblListElementList, true);

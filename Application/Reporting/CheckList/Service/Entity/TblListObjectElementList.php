@@ -52,6 +52,11 @@ class TblListObjectElementList extends Element
     protected $tblObjectType;
 
     /**
+     * @Column(type="string")
+     */
+    protected $Value;
+
+    /**
      * @return bool|TblList
      */
     public function getTblList()
@@ -110,7 +115,7 @@ class TblListObjectElementList extends Element
     }
 
     /**
-     * @param TblCompany|TblPerson $serviceTblObject
+     * @param Element $serviceTblObject
      */
     public function setServiceTblObject($serviceTblObject)
     {
@@ -135,5 +140,21 @@ class TblListObjectElementList extends Element
     public function setTblObjectType($tblObjectType)
     {
         $this->tblObjectType = (null === $tblObjectType ? null : $tblObjectType->getId());
+    }
+
+    /**
+     * @return string
+     */
+    public function getValue()
+    {
+        return $this->Value;
+    }
+
+    /**
+     * @param string $Value
+     */
+    public function setValue($Value)
+    {
+        $this->Value = $Value;
     }
 }

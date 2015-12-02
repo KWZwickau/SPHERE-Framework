@@ -12,6 +12,7 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblElementType;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListElementList;
+use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListObjectElementList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListObjectList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblObjectType;
 use SPHERE\System\Database\Binding\AbstractData;
@@ -161,6 +162,39 @@ class Data extends AbstractData
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListObjectList',
             array(TblListObjectList::ATTR_TBL_LIST => $tblList->getId()));
+    }
+
+    /**
+     * @param TblList $tblList
+     * @param TblObjectType $tblObjectType
+     * @param Element $tblObject
+     * @return bool|TblListObjectList
+     */
+    public function getListObjectListByListAndObjectTypeAndObject(
+        TblList $tblList,
+        TblObjectType $tblObjectType,
+        Element $tblObject
+    ) {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblListObjectList',
+            array(
+                TblListObjectList::ATTR_TBL_LIST => $tblList->getId(),
+                TblListObjectList::ATTR_TBL_OBJECT_TYPE => $tblObjectType->getId(),
+                TblListObjectList::ATTR_SERVICE_TBL_OBJECT => $tblObject->getId()
+            ));
+    }
+
+    /**
+     * @param TblList $tblList
+     * @return bool|TblListObjectElementList[]
+     */
+    public function getListObjectElementListByList(TblList $tblList)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblListObjectElementList',
+            array(TblListObjectElementList::ATTR_TBL_LIST => $tblList->getId()));
     }
 
     /**
@@ -373,5 +407,49 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * add Entity if not exists
+     *
+     * @param TblList $tblList
+     * @param TblObjectType $tblObjectType
+     * @param TblListElementList $tblListElementList
+     * @param Element $tblObject
+     * @param $Value
+     * @return TblListElementList
+     */
+    public function updateObjectElementToList(
+        TblList $tblList,
+        TblObjectType $tblObjectType,
+        TblListElementList $tblListElementList,
+        Element $tblObject,
+        $Value
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblListObjectElementList $Entity */
+        $Entity = $Manager->getEntity('TblListObjectElementList')->findOneBy(array(
+            TblListObjectElementList::ATTR_TBL_LIST => $tblList->getId(),
+            TblListObjectElementList::ATTR_TBL_OBJECT_TYPE => $tblObjectType->getId(),
+            TblListObjectElementList::ATTR_TBL_LIST_ELEMENT_LIST => $tblListElementList->getId(),
+            TblListObjectElementList::ATTR_SERVICE_TBL_OBJECT => $tblObject->getId()
+        ));
+        if (null === $Entity) {
+            $Entity = new TblListObjectElementList();
+            $Entity->setTblList($tblList);
+            $Entity->setTblObjectType($tblObjectType);
+            $Entity->setTblListElementList($tblListElementList);
+            $Entity->setServiceTblObject($tblObject);
+            $Entity->setValue($Value);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        } else {
+            $Protocol = clone $Entity;
+            $Entity->setValue($Value);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
+        return $Entity;
     }
 }

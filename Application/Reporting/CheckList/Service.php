@@ -12,6 +12,7 @@ use SPHERE\Application\Reporting\CheckList\Service\Data;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblElementType;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListElementList;
+use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListObjectElementList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListObjectList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblObjectType;
 use SPHERE\Application\Reporting\CheckList\Service\Setup;
@@ -21,6 +22,7 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -135,6 +137,33 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getListObjectListByList($tblList);
+    }
+
+    /**
+     * @param TblList $tblList
+     * @param TblObjectType $tblObjectType
+     * @param Element $tblObject
+     * @return bool|TblListObjectList
+     */
+    public function getListObjectListByListAndObjectTypeAndObject(
+        TblList $tblList,
+        TblObjectType $tblObjectType,
+        Element $tblObject
+    ) {
+
+        return (new Data($this->getBinding()))->getListObjectListByListAndObjectTypeAndObject(
+            $tblList, $tblObjectType, $tblObject
+        );
+    }
+
+    /**
+     * @param TblList $tblList
+     * @return bool|TblListObjectElementList[]
+     */
+    public function getListObjectElementListByList(TblList $tblList)
+    {
+
+        return (new Data($this->getBinding()))->getListObjectElementListByList($tblList);
     }
 
     /**
@@ -327,13 +356,55 @@ class Service extends AbstractService
         $tblList = $tblListObjectList->getTblList();
         $tblObjectType = $tblListObjectList->getTblObjectType();
         if ((new Data($this->getBinding()))->removeObjectFromList($tblListObjectList)) {
-            return new Stage('Die ' . $tblObjectType->getName() .' ist von Check-Liste entfernt worden.')
+            return new Stage('Die ' . $tblObjectType->getName() . ' ist von Check-Liste entfernt worden.')
             . new Redirect('/Reporting/CheckList/Object/Select', 0,
                 array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
         } else {
-            return new Stage('Die ' . $tblObjectType->getName() .' konnte nicht von Check-Liste entfernt werden.')
+            return new Stage('Die ' . $tblObjectType->getName() . ' konnte nicht von Check-Liste entfernt werden.')
             . new Redirect('/Reporting/CheckList/Object/Select', 3,
                 array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
         }
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param null $Id
+     * @param null $Data
+     * @return IFormInterface|Redirect
+     */
+    public function updateListObjectElementList(IFormInterface $Stage = null, $Id = null, $Data = null)
+    {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Id || null === $Data) {
+            return $Stage;
+        }
+
+        $tblList = CheckList::useService()->getListById($Id);
+
+        foreach ($Data as $ListObjectList => $ListElement) {
+            $tblListObjectList = CheckList::useService()->getListObjectListById($ListObjectList);
+            if (!empty($ListElement)) {
+                foreach ($ListElement as $ListElementList => $Value) {
+                    $tblListElementList = CheckList::useService()->getListElementListById($ListElementList);
+                    $tblObjectType = $tblListObjectList->getTblObjectType();
+                    $tblElementType = $tblListElementList->getTblElementType();
+//                    if ($tblElementType->getIdentifier() !== 'CHECKBOX') {
+                    (new Data($this->getBinding()))->updateObjectElementToList(
+                        $tblList,
+                        $tblObjectType,
+                        $tblListElementList,
+                        $tblListObjectList->getServiceTblObject(),
+                        $Value
+                    );
+//                    }
+
+                    // ToDo JohK CheckBox
+                }
+            }
+        }
+
+        return new Redirect('/Reporting/CheckList/Object/Element/Edit', 0, array('Id' => $Id));
     }
 }

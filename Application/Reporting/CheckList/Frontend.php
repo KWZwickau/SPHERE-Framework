@@ -15,16 +15,21 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup as PersonGroupEntity
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -59,9 +64,11 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblListAll as &$tblList) {
                 $tblList->Option =
                     (new Standard('', '/Reporting/CheckList/Element/Select', new Listing(),
-                        array('Id' => $tblList->getId()), 'Elemente (CheckBox, Datum ...) bearbeiten'))
+                        array('Id' => $tblList->getId()), 'Elemente (CheckBox, Datum ...) auswählen'))
                     . (new Standard('', '/Reporting/CheckList/Object/Select', new Listing(),
-                        array('ListId' => $tblList->getId()), 'Objekte (Personen, Firmen) bearbeiten'));
+                        array('ListId' => $tblList->getId()), 'Objekte (Personen, Firmen) auswählen'))
+                    . (new Standard('', '/Reporting/CheckList/Object/Element/Edit', new Edit(),
+                        array('Id' => $tblList->getId()), 'Bearbeiten'));
             }
         }
 
@@ -287,7 +294,8 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblObjectType->getIdentifier() === 'PERSON') {
 
                             $tblPersonAll = Person::useService()->getPersonAll();
-                            $tblPersonInList = CheckList::useService()->getObjectAllByListAndObjectType($tblList, $tblObjectType);
+                            $tblPersonInList = CheckList::useService()->getObjectAllByListAndObjectType($tblList,
+                                $tblObjectType);
                             if ($tblPersonAll && $tblPersonInList) {
                                 $tblPersonAll = array_udiff($tblPersonAll, $tblPersonInList,
                                     function (TblPerson $ObjectA, TblPerson $ObjectB) {
@@ -322,7 +330,8 @@ class Frontend extends Extension implements IFrontendInterface
                         } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
 
                             $tblCompanyAll = Company::useService()->getCompanyAll();
-                            $tblCompanyInList = CheckList::useService()->getObjectAllByListAndObjectType($tblList, $tblObjectType);
+                            $tblCompanyInList = CheckList::useService()->getObjectAllByListAndObjectType($tblList,
+                                $tblObjectType);
                             if ($tblCompanyAll && $tblCompanyInList) {
                                 $tblCompanyAll = array_udiff($tblCompanyAll, $tblCompanyInList,
                                     function (TblCompany $ObjectA, TblCompany $ObjectB) {
@@ -441,7 +450,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $Stage = new Stage('Check-Listen', 'Zensuren-Gruppe einer Berechnungsvorschrift hinzufügen');
 
-        if ($ListId === null || $ObjectId === null || $ObjectTypeId === null){
+        if ($ListId === null || $ObjectId === null || $ObjectTypeId === null) {
             return $Stage;
         }
 
@@ -451,7 +460,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblList && $tblObjectType && $ObjectId !== null) {
             if ($tblObjectType->getIdentifier() === 'PERSON') {
                 $tblPerson = Person::useService()->getPersonById($ObjectId);
-                if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblPerson)){
+                if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblPerson)) {
                     return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
                     . new Redirect('/Reporting/CheckList/Object/Select', 0,
                         array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
@@ -462,7 +471,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
                 $tblCompany = Company::useService()->getCompanyById($ObjectId);
-                if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblCompany)){
+                if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblCompany)) {
                     return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
                     . new Redirect('/Reporting/CheckList/Object/Select', 0,
                         array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
@@ -487,5 +496,125 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         return CheckList::useService()->removeObjectFromList($Id);
+    }
+
+    /**
+     * @param $Id
+     * @param null $Data
+     * @return Stage
+     */
+    public function frontendListObjectElementEdit($Id, $Data = null)
+    {
+        $Stage = new Stage('Check-Listen', 'Bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
+
+        $columnDefinition = array(
+            'Name' => 'Name',
+            'Type' => 'Typ'
+        );
+        $list = array();
+
+        $tblList = CheckList::useService()->getListById($Id);
+        if ($tblList) {
+            $tblListObjectListByList = CheckList::useService()->getListObjectListByList($tblList);
+            $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
+            if ($tblListObjectListByList) {
+                $hasColumnDefinitions = false;
+                foreach ($tblListObjectListByList as &$tblListObjectList) {
+                    if (($tblObject = $tblListObjectList->getServiceTblObject())) {
+                        if ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSON') {
+                            /** @var TblPerson $tblObject */
+                            $list[$tblListObjectList->getId()]['Name'] = $tblObject->getFullName();
+                        } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANY') {
+                            /** @var TblCompany $tblObject */
+                            $list[$tblListObjectList->getId()]['Name'] = $tblObject->getName();
+                        } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSONGROUP') {
+                            /** @var PersonGroupEntity/TblGroup $tblObject */
+                            $list[$tblListObjectList->getId()]['Name'] = $tblObject->getName();
+                        } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
+                            /** @var CompanyGroupEntity/TblGroup $tblObject */
+                            $list[$tblListObjectList->getId()]['Name'] = $tblObject->getName();
+                        } else {
+                            $list[$tblListObjectList->getId()]['Name'] = '';
+                        }
+                    } else {
+                        $list[$tblListObjectList->getId()]['Name'] = '';
+                    }
+
+                    $list[$tblListObjectList->getId()]['Type'] = $tblListObjectList->getTblObjectType()->getName();
+
+                    if ($tblListElementListByList) {
+                        foreach ($tblListElementListByList as $tblListElementList) {
+                            if (!$hasColumnDefinitions) {
+                                $columnDefinition['Field' . $tblListElementList->getId()] = $tblListElementList->getName();
+                            }
+
+                            if ($tblListElementList->getTblElementType()->getIdentifier() === 'CHECKBOX') {
+                                $list[$tblListObjectList->getId()]['Field' . $tblListElementList->getId()] = new CheckBox(
+                                    'Data[' . $tblListObjectList->getId() . '][' . $tblListElementList->getId() . ']',
+                                    ' ', 1
+                                );
+                            } elseif ($tblListElementList->getTblElementType()->getIdentifier() === 'DATE') {
+                                $list[$tblListObjectList->getId()]['Field' . $tblListElementList->getId()] = new DatePicker(
+                                    'Data[' . $tblListObjectList->getId() . '][' . $tblListElementList->getId() . ']',
+                                    '', '', new Calendar()
+                                );
+                            } elseif ($tblListElementList->getTblElementType()->getIdentifier() === 'TEXT') {
+                                $list[$tblListObjectList->getId()]['Field' . $tblListElementList->getId()] = new TextField(
+                                    'Data[' . $tblListObjectList->getId() . '][' . $tblListElementList->getId() . ']'
+                                );
+                            }
+                        }
+                        $hasColumnDefinitions = true;
+                    }
+                }
+            }
+
+            $tblListObjectElementList = CheckList::useService()->getListObjectElementListByList($tblList);
+            if ($tblListObjectElementList) {
+                $Global = $this->getGlobal();
+                foreach ($tblListObjectElementList as $item) {
+                    $tblListObjectList = CheckList::useService()->getListObjectListByListAndObjectTypeAndObject($tblList,
+                        $item->getTblObjectType(), $item->getServiceTblObject());
+                    $Global->POST['Data'][$tblListObjectList->getId()][$item->getTblListElementList()->getId()] = $item->getValue();
+                    // ToDo JohK CheckBoxen
+                }
+
+                $Global->savePost();
+            }
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Check-Liste', $tblList ? $tblList->getName() : '', Panel::PANEL_TYPE_SUCCESS),
+                            12
+                        ),
+                    ))
+                )),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            CheckList::useService()->updateListObjectElementList(
+                                new Form(
+                                    new FormGroup(array(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new TableData($list, null, $columnDefinition, false)
+                                            )
+                                        ),
+                                    ))
+                                    , new Primary('Speichern', new Save()))
+                                , $Id, $Data
+                            )
+                        )
+                    ))
+                ))
+            ))
+        );
+
+        return $Stage;
     }
 }
