@@ -397,6 +397,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblListObjectList')->findOneBy(array(
+            TblListObjectList::ATTR_TBL_LIST => $tblList->getId(),
             TblListObjectList::ATTR_TBL_OBJECT_TYPE => $tblObjectType->getId(),
             TblListObjectList::ATTR_SERVICE_TBL_OBJECT => $tblObject->getId()
         ));
