@@ -41,6 +41,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Redirect;
@@ -48,7 +49,6 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 class Frontend extends Extension implements IFrontendInterface
 {
@@ -225,18 +225,19 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $ListId
      * @param null $ObjectTypeId
      * @param null $ObjectTypeSelect
-     * @param null $Object
      *
      * @return Stage
      */
     public function frontendListObjectSelect(
         $ListId = null,
         $ObjectTypeId = null,
-        $ObjectTypeSelect = null,
-        $Object = null
+        $ObjectTypeSelect = null
     ) {
 
-        $Stage = new Stage('Check-Listen', 'Eine Gruppe einer Check-Liste zuordnen');
+        $Stage = new Stage('Check-Listen', 'Ein Object einer Check-Liste zuordnen');
+        $Stage->setMessage('Bei Gruppen können entweder alle Objekte dieser Gruppe zum aktuellen Stand hinzugefügt
+         werden oder die Gruppe direkt der Check-Liste zugeordnet (dynamisch -> Ändern sich die Mitglieder dieser Gruppe,
+         ändern sich auch die Objekte in der Check-Liste mit).');
 
         $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
 
@@ -364,6 +365,84 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                                 $selectList = $tblCompanyAll;
                             }
+                        } elseif ($tblObjectType->getIdentifier() === 'PERSONGROUP') {
+
+                            $tblPersonGroupAll = PersonGroup::useService()->getGroupAll();
+                            $tblPersonGroupInList = CheckList::useService()->getObjectAllByListAndObjectType($tblList,
+                                $tblObjectType);
+                            if ($tblPersonGroupAll && $tblPersonGroupInList) {
+                                $tblPersonGroupAll = array_udiff($tblPersonGroupAll, $tblPersonGroupInList,
+                                    function (PersonGroupEntity $ObjectA, PersonGroupEntity $ObjectB) {
+
+                                        return $ObjectA->getId() - $ObjectB->getId();
+                                    }
+                                );
+                            }
+
+                            if ($tblPersonGroupAll) {
+                                foreach ($tblPersonGroupAll as $tblPersonGroup) {
+                                    $tblPersonGroup->Option =
+                                        (new Form(
+                                            new FormGroup(
+                                                new FormRow(array(
+                                                    new FormColumn(
+                                                        new CheckBox('Option[' . $tblPersonGroup->getId() . ']',
+                                                            'dynamisch', 1)
+                                                        , 7),
+                                                    new FormColumn(
+                                                        new Primary('Hinzufügen',
+                                                            new Plus())
+                                                        , 5)
+                                                ))
+                                            ), null,
+                                            '/Reporting/CheckList/Object/Add', array(
+                                                'ListId' => $tblList->getId(),
+                                                'ObjectId' => $tblPersonGroup->getId(),
+                                                'ObjectTypeId' => $tblObjectType->getId()
+                                            )
+                                        ))->__toString();
+                                }
+                                $selectList = $tblPersonGroupAll;
+                            }
+                        } elseif ($tblObjectType->getIdentifier() === 'COMPANYGROUP') {
+
+                            $tblCompanyGroupAll = CompanyGroup::useService()->getGroupAll();
+                            $tblCompanyGroupInList = CheckList::useService()->getObjectAllByListAndObjectType($tblList,
+                                $tblObjectType);
+                            if ($tblCompanyGroupAll && $tblCompanyGroupInList) {
+                                $tblCompanyGroupAll = array_udiff($tblCompanyGroupAll, $tblCompanyGroupInList,
+                                    function (CompanyGroupEntity $ObjectA, CompanyGroupEntity $ObjectB) {
+
+                                        return $ObjectA->getId() - $ObjectB->getId();
+                                    }
+                                );
+                            }
+
+                            if ($tblCompanyGroupAll) {
+                                foreach ($tblCompanyGroupAll as $tblCompanyGroup) {
+                                    $tblCompanyGroup->Option =
+                                        (new Form(
+                                            new FormGroup(
+                                                new FormRow(array(
+                                                    new FormColumn(
+                                                        new CheckBox('Option[' . $tblCompanyGroup->getId() . ']',
+                                                            'dynamisch', 1)
+                                                        , 7),
+                                                    new FormColumn(
+                                                        new Primary('Hinzufügen',
+                                                            new Plus())
+                                                        , 5)
+                                                ))
+                                            ), null,
+                                            '/Reporting/CheckList/Object/Add', array(
+                                                'ListId' => $tblList->getId(),
+                                                'ObjectId' => $tblCompanyGroup->getId(),
+                                                'ObjectTypeId' => $tblObjectType->getId()
+                                            )
+                                        ))->__toString();
+                                }
+                                $selectList = $tblCompanyGroupAll;
+                            }
                         }
                     }
 
@@ -446,11 +525,12 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $ListId
      * @param null $ObjectId
      * @param null $ObjectTypeId
+     * @param null $Option
      * @return Stage
      */
-    public function frontendListObjectAdd($ListId = null, $ObjectId = null, $ObjectTypeId = null)
+    public function frontendListObjectAdd($ListId = null, $ObjectId = null, $ObjectTypeId = null, $Option = null)
     {
-        $Stage = new Stage('Check-Listen', 'Zensuren-Gruppe einer Berechnungsvorschrift hinzufügen');
+        $Stage = new Stage('Check-Listen', 'Ein Object einer Check-Liste hinzufügen');
 
         if ($ListId === null || $ObjectId === null || $ObjectTypeId === null) {
             return $Stage;
@@ -479,6 +559,64 @@ class Frontend extends Extension implements IFrontendInterface
                         array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                 } else {
                     return new Stage('Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
+                    . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                        array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                }
+            } elseif ($tblObjectType->getIdentifier() === 'PERSONGROUP') {
+                $tblPersonGroup = PersonGroup::useService()->getGroupById($ObjectId);
+
+                if (isset($Option[$tblPersonGroup->getId()])) {
+                    // ToDo JohK dynamische Gruppen
+                } else {
+                    $tblPersonByGroup = PersonGroup::useService()->getPersonAllByGroup($tblPersonGroup);
+                    $countAdd = 0;
+                    $countExists = 0;
+                    if ($tblPersonByGroup) {
+                        foreach ($tblPersonByGroup as $tblPerson) {
+                            if (CheckList::useService()->getListObjectListByListAndObjectTypeAndObject(
+                                $tblList, CheckList::useService()->getObjectTypeByIdentifier('PERSON'), $tblPerson)
+                            ) {
+                                $countExists++;
+                            } else {
+                                CheckList::useService()->addObjectToList($tblList,
+                                    CheckList::useService()->getObjectTypeByIdentifier('PERSON'), $tblPerson);
+                                $countAdd++;
+                            }
+                        }
+                    }
+
+                    return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
+                    . new Success($countAdd . ' Person/en hinzugefügt.')
+                    . ($countExists > 0 ? new Warning($countExists . ' Person/en existierten bereits in der Check-Liste') : '')
+                    . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                        array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                }
+            } elseif ($tblObjectType->getIdentifier() === 'COMPANYGROUP') {
+                $tblCompanyGroup = CompanyGroup::useService()->getGroupById($ObjectId);
+
+                if (isset($Option[$tblCompanyGroup->getId()])) {
+                    // ToDo JohK dynamische Gruppen
+                } else {
+                    $tblCompanyByGroup = CompanyGroup::useService()->getCompanyAllByGroup($tblCompanyGroup);
+                    $countAdd = 0;
+                    $countExists = 0;
+                    if ($tblCompanyByGroup) {
+                        foreach ($tblCompanyByGroup as $tblCompany) {
+                            if (CheckList::useService()->getListObjectListByListAndObjectTypeAndObject(
+                                $tblList, CheckList::useService()->getObjectTypeByIdentifier('COMPANY'), $tblCompany)
+                            ) {
+                                $countExists++;
+                            } else {
+                                CheckList::useService()->addObjectToList($tblList,
+                                    CheckList::useService()->getObjectTypeByIdentifier('COMPANY'), $tblCompany);
+                                $countAdd++;
+                            }
+                        }
+                    }
+
+                    return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
+                    . new Success($countAdd . ' Firma/en hinzugefügt.')
+                    . ($countExists > 0 ? new Warning($countExists . ' Firma/en existierten bereits in der Check-Liste') : '')
                     . new Redirect('/Reporting/CheckList/Object/Select', 3,
                         array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                 }
@@ -586,7 +724,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if (!empty($list)){
+        if (!empty($list)) {
             $Stage->addButton(
                 new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen',
                     '/Api/Reporting/CheckList/Download', new Download(), array('ListId' => $tblList->getId()))

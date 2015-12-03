@@ -441,77 +441,81 @@ class Service extends AbstractService
         return new Redirect('/Reporting/CheckList/Object/Element/Edit', 0, array('Id' => $Id));
     }
 
+    /**
+     * @param $tblList
+     * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
+     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
     public function createCheckListExcel($tblList)
     {
         if ($tblList) {
-            $tblListObjectElementList = $this->getListObjectElementListByList($tblList);
-            if ($tblListObjectElementList) {
 
-                $fileLocation = Storage::useWriter()->getTemporary('xls');
-                /** @var PhpExcel $export */
-                $export = Document::getDocument($fileLocation->getFileLocation());
+            $fileLocation = Storage::useWriter()->getTemporary('xls');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
 
-                $columnCount = 0;
-                $rowCount = 0;
-                $tblListElementListByList = $this->getListElementListByList($tblList);
-                if ($tblListElementListByList) {
-                    $export->setValue($export->getCell($columnCount++, $rowCount), 'Name');
-                    $export->setValue($export->getCell($columnCount++, $rowCount), 'Typ');
-                    foreach ($tblListElementListByList as $tblListElementList) {
-                        // Header
-                        $export->setValue($export->getCell($columnCount++, $rowCount),
-                            $tblListElementList->getName());
-                    }
+            $columnCount = 0;
+            $rowCount = 0;
+            $tblListElementListByList = $this->getListElementListByList($tblList);
+            if ($tblListElementListByList) {
+                $export->setValue($export->getCell($columnCount++, $rowCount), 'Name');
+                $export->setValue($export->getCell($columnCount++, $rowCount), 'Typ');
+                foreach ($tblListElementListByList as $tblListElementList) {
+                    // Header
+                    $export->setValue($export->getCell($columnCount++, $rowCount),
+                        $tblListElementList->getName());
+                }
 
-                    $tblListObjectListByList = $this->getListObjectListByList($tblList);
-                    if ($tblListObjectListByList) {
-                        foreach ($tblListObjectListByList as $tblListObjectList) {
-                            $columnCount = 0;
-                            $tblObject = $tblListObjectList->getServiceTblObject();
-                            $tblObjectType = $tblListObjectList->getTblObjectType();
-                            if (strpos($tblObjectType->getIdentifier(), 'GROUP') === false) {
+                $tblListObjectListByList = $this->getListObjectListByList($tblList);
+                if ($tblListObjectListByList) {
+                    foreach ($tblListObjectListByList as $tblListObjectList) {
+                        $columnCount = 0;
+                        $tblObject = $tblListObjectList->getServiceTblObject();
+                        $tblObjectType = $tblListObjectList->getTblObjectType();
+                        if (strpos($tblObjectType->getIdentifier(), 'GROUP') === false) {
 
-                                $rowCount++;
-                                $name = '';
-                                if ($tblObjectType->getIdentifier() === 'PERSON') {
-                                    $name = $tblObject->getFullName();
-                                } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
-                                    $name = $tblObject->getName();
-                                }
-                                $export->setValue($export->getCell($columnCount++, $rowCount),
-                                    trim($name));
-                                $export->setValue($export->getCell($columnCount, $rowCount),
-                                    $tblObjectType->getName());
+                            $rowCount++;
+                            $name = '';
+                            if ($tblObjectType->getIdentifier() === 'PERSON') {
+                                $name = $tblObject->getFullName();
+                            } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
+                                $name = $tblObject->getName();
+                            }
+                            $export->setValue($export->getCell($columnCount++, $rowCount),
+                                trim($name));
+                            $export->setValue($export->getCell($columnCount, $rowCount),
+                                $tblObjectType->getName());
 
-                                $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
-                                    $tblList, $tblObjectType, $tblObject
-                                );
-                                if ($tblListObjectElementList) {
-                                    foreach ($tblListObjectElementList as $item) {
-                                        $columnCount = 2;
-                                        foreach ($tblListElementListByList as $tblListElementList) {
-                                            if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
-                                                $export->setValue($export->getCell($columnCount, $rowCount),
-                                                    $item->getValue());
-                                                break;
-                                            } else {
-                                                $columnCount++;
-                                            }
+                            $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
+                                $tblList, $tblObjectType, $tblObject
+                            );
+                            if ($tblListObjectElementList) {
+                                foreach ($tblListObjectElementList as $item) {
+                                    $columnCount = 2;
+                                    foreach ($tblListElementListByList as $tblListElementList) {
+                                        if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
+                                            $export->setValue($export->getCell($columnCount, $rowCount),
+                                                $item->getValue());
+                                            break;
+                                        } else {
+                                            $columnCount++;
                                         }
                                     }
                                 }
-                            } else {
-                                // ToDo JohK Group
                             }
-
+                        } else {
+                            // ToDo JohK Group
                         }
 
-                        $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
-
-                        return $fileLocation;
                     }
                 }
             }
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+
         }
 
         return false;
