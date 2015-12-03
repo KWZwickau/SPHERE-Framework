@@ -8,6 +8,10 @@
 
 namespace SPHERE\Application\Reporting\CheckList;
 
+use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use MOC\V\Component\Document\Document;
+use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\Reporting\CheckList\Service\Data;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblElementType;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblList;
@@ -22,7 +26,6 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Fitting\Element;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -164,6 +167,23 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getListObjectElementListByList($tblList);
+    }
+
+    /**
+     * @param TblList $tblList
+     * @param TblObjectType $tblObjectType
+     * @param Element $tblObject
+     * @return bool|TblListObjectElementList[]
+     */
+    public function getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
+        TblList $tblList,
+        TblObjectType $tblObjectType,
+        Element $tblObject
+    ) {
+
+        return (new Data($this->getBinding()))->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
+            $tblList, $tblObjectType, $tblObject
+        );
     }
 
     /**
@@ -389,7 +409,7 @@ class Service extends AbstractService
             foreach ($tblListObjectElementListByList as $tblListObjectElementList) {
                 $tblListObjectList = CheckList::useService()->getListObjectListByListAndObjectTypeAndObject($tblList,
                     $tblListObjectElementList->getTblObjectType(), $tblListObjectElementList->getServiceTblObject());
-                if (!isset($Data[$tblListObjectList->getId()][$tblListObjectElementList->getTblListElementList()->getId()])){
+                if (!isset($Data[$tblListObjectList->getId()][$tblListObjectElementList->getTblListElementList()->getId()])) {
                     (new Data($this->getBinding()))->updateObjectElementToList(
                         $tblList,
                         $tblListObjectElementList->getTblObjectType(),
@@ -419,5 +439,81 @@ class Service extends AbstractService
         }
 
         return new Redirect('/Reporting/CheckList/Object/Element/Edit', 0, array('Id' => $Id));
+    }
+
+    public function createCheckListExcel($tblList)
+    {
+        if ($tblList) {
+            $tblListObjectElementList = $this->getListObjectElementListByList($tblList);
+            if ($tblListObjectElementList) {
+
+                $fileLocation = Storage::useWriter()->getTemporary('xls');
+                /** @var PhpExcel $export */
+                $export = Document::getDocument($fileLocation->getFileLocation());
+
+                $columnCount = 0;
+                $rowCount = 0;
+                $tblListElementListByList = $this->getListElementListByList($tblList);
+                if ($tblListElementListByList) {
+                    $export->setValue($export->getCell($columnCount++, $rowCount), 'Name');
+                    $export->setValue($export->getCell($columnCount++, $rowCount), 'Typ');
+                    foreach ($tblListElementListByList as $tblListElementList) {
+                        // Header
+                        $export->setValue($export->getCell($columnCount++, $rowCount),
+                            $tblListElementList->getName());
+                    }
+
+                    $tblListObjectListByList = $this->getListObjectListByList($tblList);
+                    if ($tblListObjectListByList) {
+                        foreach ($tblListObjectListByList as $tblListObjectList) {
+                            $columnCount = 0;
+                            $tblObject = $tblListObjectList->getServiceTblObject();
+                            $tblObjectType = $tblListObjectList->getTblObjectType();
+                            if (strpos($tblObjectType->getIdentifier(), 'GROUP') === false) {
+
+                                $rowCount++;
+                                $name = '';
+                                if ($tblObjectType->getIdentifier() === 'PERSON') {
+                                    $name = $tblObject->getFullName();
+                                } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
+                                    $name = $tblObject->getName();
+                                }
+                                $export->setValue($export->getCell($columnCount++, $rowCount),
+                                    trim($name));
+                                $export->setValue($export->getCell($columnCount, $rowCount),
+                                    $tblObjectType->getName());
+
+                                $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
+                                    $tblList, $tblObjectType, $tblObject
+                                );
+                                if ($tblListObjectElementList) {
+                                    foreach ($tblListObjectElementList as $item) {
+                                        $columnCount = 2;
+                                        foreach ($tblListElementListByList as $tblListElementList) {
+                                            if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
+                                                $export->setValue($export->getCell($columnCount, $rowCount),
+                                                    $item->getValue());
+                                                break;
+                                            } else {
+                                                $columnCount++;
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                // ToDo JohK Group
+                            }
+
+                        }
+
+                        $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+                        return $fileLocation;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 }

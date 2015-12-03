@@ -198,6 +198,27 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblList $tblList
+     * @param TblObjectType $tblObjectType
+     * @param Element $tblObject
+     * @return bool|TblListObjectElementList[]
+     */
+    public function getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
+        TblList $tblList,
+        TblObjectType $tblObjectType,
+        Element $tblObject
+    ) {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblListObjectElementList',
+            array(
+                TblListObjectElementList::ATTR_TBL_LIST => $tblList->getId(),
+                TblListObjectElementList::ATTR_TBL_OBJECT_TYPE => $tblObjectType->getId(),
+                TblListObjectElementList::ATTR_SERVICE_TBL_OBJECT => $tblObject->getId()
+            ));
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblElementType

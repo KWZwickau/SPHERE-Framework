@@ -25,6 +25,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
@@ -583,6 +584,13 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
             }
+        }
+
+        if (!empty($list)){
+            $Stage->addButton(
+                new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen',
+                    '/Api/Reporting/CheckList/Download', new Download(), array('ListId' => $tblList->getId()))
+            );
         }
 
         $Stage->setContent(
