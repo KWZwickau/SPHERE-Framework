@@ -255,16 +255,18 @@ class Frontend extends Extension implements IFrontendInterface
                         if (($tblObject = $tblListObjectList->getServiceTblObject())) {
                             if ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSON') {
                                 /** @var TblPerson $tblObject */
-                                $tblListObjectList->Name = $tblObject->getFullName();
+                                $tblListObjectList->DisplayName = $tblObject->getFullName();
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANY') {
                                 /** @var TblCompany $tblObject */
-                                $tblListObjectList->Name = $tblObject->getName();
+                                $tblListObjectList->DisplayName = $tblObject->getName();
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSONGROUP') {
-                                /** @var PersonGroupEntity/TblGroup $tblObject */
-                                $tblListObjectList->Name = $tblObject->getName();
+                                /** @var PersonGroupEntity $tblObject */
+                                $tblListObjectList->DisplayName = $tblObject->getName()
+                                    . ' ('. PersonGroup::useService()->countPersonAllByGroup($tblObject) .')';
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
-                                /** @var CompanyGroupEntity/TblGroup $tblObject */
-                                $tblListObjectList->Name = $tblObject->getName();
+                                /** @var CompanyGroupEntity $tblObject */
+                                $tblListObjectList->DisplayName = $tblObject->getName()
+                                    . ' ('. CompanyGroup::useService()->countCompanyAllByGroup($tblObject) .')';
                             } else {
                                 $tblListObjectList->Name = '';
                             }
@@ -310,7 +312,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                             if ($tblPersonAll) {
                                 foreach ($tblPersonAll as $tblPerson) {
-                                    $tblPerson->Name = $tblPerson->getFullName();
+                                    $tblPerson->DisplayName = $tblPerson->getFullName();
                                     $tblPerson->Option =
                                         (new Form(
                                             new FormGroup(
@@ -346,6 +348,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                             if ($tblCompanyAll) {
                                 foreach ($tblCompanyAll as $tblCompany) {
+                                    $tblCompany->DisplayName = $tblCompany->getName();
                                     $tblCompany->Option =
                                         (new Form(
                                             new FormGroup(
@@ -381,6 +384,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                             if ($tblPersonGroupAll) {
                                 foreach ($tblPersonGroupAll as $tblPersonGroup) {
+                                    $tblPersonGroup->DisplayName = $tblPersonGroup->getName()
+                                        . ' ('. PersonGroup::useService()->countPersonAllByGroup($tblPersonGroup) .')';
                                     $tblPersonGroup->Option =
                                         (new Form(
                                             new FormGroup(
@@ -420,6 +425,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                             if ($tblCompanyGroupAll) {
                                 foreach ($tblCompanyGroupAll as $tblCompanyGroup) {
+                                    $tblCompanyGroup->DisplayName = $tblCompanyGroup->getName()
+                                        . ' ('. CompanyGroup::useService()->countCompanyAllByGroup($tblCompanyGroup) .')';
                                     $tblCompanyGroup->Option =
                                         (new Form(
                                             new FormGroup(
@@ -485,7 +492,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(array(
                                     new TableData($tblListObjectListByList, null,
                                         array(
-                                            'Name' => 'Name',
+                                            'DisplayName' => 'Name',
                                             'Type' => 'Typ',
                                             'Option' => 'Option'
                                         )
@@ -494,7 +501,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(array(
                                     new TableData($selectList, null,
                                         array(
-                                            'Name' => 'Name',
+                                            'DisplayName' => 'Name',
                                             'Option' => 'Option'
                                         )
                                     )
@@ -682,10 +689,10 @@ class Frontend extends Extension implements IFrontendInterface
                             /** @var TblCompany $tblObject */
                             $list[$tblListObjectList->getId()]['Name'] = $tblObject->getName();
                         } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSONGROUP') {
-                            /** @var PersonGroupEntity/TblGroup $tblObject */
+                            /** @var PersonGroupEntity $tblObject */
                             $list[$tblListObjectList->getId()]['Name'] = $tblObject->getName();
                         } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
-                            /** @var CompanyGroupEntity/TblGroup $tblObject */
+                            /** @var CompanyGroupEntity $tblObject */
                             $list[$tblListObjectList->getId()]['Name'] = $tblObject->getName();
                         } else {
                             $list[$tblListObjectList->getId()]['Name'] = '';

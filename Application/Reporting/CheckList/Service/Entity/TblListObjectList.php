@@ -69,7 +69,7 @@ class TblListObjectList extends Element
     }
 
     /**
-     * @return bool|TblCompany|TblPerson
+     * @return bool|Element
      */
     public function getServiceTblObject()
     {
