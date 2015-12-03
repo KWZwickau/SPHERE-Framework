@@ -235,9 +235,9 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $Stage = new Stage('Check-Listen', 'Ein Object einer Check-Liste zuordnen');
-        $Stage->setMessage('Bei Gruppen können entweder alle Objekte dieser Gruppe zum aktuellen Stand hinzugefügt
-         werden oder die Gruppe direkt der Check-Liste zugeordnet (dynamisch -> Ändern sich die Mitglieder dieser Gruppe,
-         ändern sich auch die Objekte in der Check-Liste mit).');
+//        $Stage->setMessage('Bei Gruppen können entweder alle Objekte dieser Gruppe zum aktuellen Stand hinzugefügt
+//         werden oder die Gruppe direkt der Check-Liste zugeordnet (dynamisch -> Ändern sich die Mitglieder dieser Gruppe,
+//         ändern sich auch die Objekte in der Check-Liste mit).');
 
         $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
 
@@ -390,10 +390,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         (new Form(
                                             new FormGroup(
                                                 new FormRow(array(
-                                                    new FormColumn(
-                                                        new CheckBox('Option[' . $tblPersonGroup->getId() . ']',
-                                                            'dynamisch', 1)
-                                                        , 7),
+//                                                    new FormColumn(
+//                                                        new CheckBox('Option[' . $tblPersonGroup->getId() . ']',
+//                                                            'dynamisch', 1)
+//                                                        , 7),
                                                     new FormColumn(
                                                         new Primary('Hinzufügen',
                                                             new Plus())
@@ -431,10 +431,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         (new Form(
                                             new FormGroup(
                                                 new FormRow(array(
-                                                    new FormColumn(
-                                                        new CheckBox('Option[' . $tblCompanyGroup->getId() . ']',
-                                                            'dynamisch', 1)
-                                                        , 7),
+//                                                    new FormColumn(
+//                                                        new CheckBox('Option[' . $tblCompanyGroup->getId() . ']',
+//                                                            'dynamisch', 1)
+//                                                        , 7),
                                                     new FormColumn(
                                                         new Primary('Hinzufügen',
                                                             new Plus())
@@ -513,7 +513,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(array(
                                     new TableData($tblListObjectListByList, null,
                                         array(
-                                            'Name' => 'Name',
+                                            'DisplayName' => 'Name',
                                             'Type' => 'Typ',
                                             'Option' => 'Option'
                                         )
@@ -573,7 +573,17 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPersonGroup = PersonGroup::useService()->getGroupById($ObjectId);
 
                 if (isset($Option[$tblPersonGroup->getId()])) {
-                    // ToDo JohK dynamische Gruppen
+
+                    if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblPersonGroup)) {
+                        return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
+                        . new Redirect('/Reporting/CheckList/Object/Select', 0,
+                            array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                    } else {
+                        return new Stage('Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
+                        . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                            array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                    }
+
                 } else {
                     $tblPersonByGroup = PersonGroup::useService()->getPersonAllByGroup($tblPersonGroup);
                     $countAdd = 0;
@@ -602,7 +612,17 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblCompanyGroup = CompanyGroup::useService()->getGroupById($ObjectId);
 
                 if (isset($Option[$tblCompanyGroup->getId()])) {
-                    // ToDo JohK dynamische Gruppen
+
+                    if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblCompanyGroup)) {
+                        return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
+                        . new Redirect('/Reporting/CheckList/Object/Select', 0,
+                            array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                    } else {
+                        return new Stage('Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
+                        . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                            array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                    }
+
                 } else {
                     $tblCompanyByGroup = CompanyGroup::useService()->getCompanyAllByGroup($tblCompanyGroup);
                     $countAdd = 0;
@@ -678,6 +698,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $Global->savePost();
                 }
+
+                // ToDo JohK Groups
 
                 $hasColumnDefinitions = false;
                 foreach ($tblListObjectListByList as &$tblListObjectList) {

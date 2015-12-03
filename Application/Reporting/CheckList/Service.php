@@ -11,7 +11,9 @@ namespace SPHERE\Application\Reporting\CheckList;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Reporting\CheckList\Service\Data;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblElementType;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblList;
@@ -478,8 +480,10 @@ class Service extends AbstractService
                             $rowCount++;
                             $name = '';
                             if ($tblObjectType->getIdentifier() === 'PERSON') {
+                                /** @var TblPerson $tblObject */
                                 $name = $tblObject->getFullName();
                             } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
+                                /** @var TblCompany $tblObject */
                                 $name = $tblObject->getName();
                             }
                             $export->setValue($export->getCell($columnCount++, $rowCount),
