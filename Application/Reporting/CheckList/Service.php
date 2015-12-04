@@ -11,8 +11,10 @@ namespace SPHERE\Application\Reporting\CheckList;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Reporting\CheckList\Service\Data;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblElementType;
@@ -28,6 +30,10 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\Application\People\Group\Group as PersonGroup;
+use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
+use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup as CompanyGroupEntity;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup as PersonGroupEntity;
 
 /**
  * Class Service
@@ -409,33 +415,44 @@ class Service extends AbstractService
         $tblListObjectElementListByList = CheckList::useService()->getListObjectElementListByList($tblList);
         if ($tblListObjectElementListByList) {
             foreach ($tblListObjectElementListByList as $tblListObjectElementList) {
-                $tblListObjectList = CheckList::useService()->getListObjectListByListAndObjectTypeAndObject($tblList,
-                    $tblListObjectElementList->getTblObjectType(), $tblListObjectElementList->getServiceTblObject());
-                if (!isset($Data[$tblListObjectList->getId()][$tblListObjectElementList->getTblListElementList()->getId()])) {
+                if (!isset($Data[$tblListObjectElementList->getTblObjectType()->getId()]
+                    [$tblListObjectElementList->getServiceTblObject()->getId()]
+                    [$tblListObjectElementList->getTblListElementList()->getId()])
+                ) {
                     (new Data($this->getBinding()))->updateObjectElementToList(
                         $tblList,
                         $tblListObjectElementList->getTblObjectType(),
                         $tblListObjectElementList->getTblListElementList(),
-                        $tblListObjectList->getServiceTblObject(),
-                        '0'
+                        $tblListObjectElementList->getServiceTblObject(),
+                        ''
                     );
                 }
             }
         }
 
-        foreach ($Data as $ListObjectList => $ListElement) {
-            $tblListObjectList = CheckList::useService()->getListObjectListById($ListObjectList);
-            if (!empty($ListElement)) {
-                foreach ($ListElement as $ListElementList => $Value) {
-                    $tblListElementList = CheckList::useService()->getListElementListById($ListElementList);
-                    $tblObjectType = $tblListObjectList->getTblObjectType();
-                    (new Data($this->getBinding()))->updateObjectElementToList(
-                        $tblList,
-                        $tblObjectType,
-                        $tblListElementList,
-                        $tblListObjectList->getServiceTblObject(),
-                        $Value
-                    );
+        if (!empty($Data)) {
+            foreach ($Data as $objectTypeId => $objects) {
+                $tblObjectType = $this->getObjectTypeById($objectTypeId);
+                if (!empty($objects)) {
+                    foreach ($objects as $objectId => $elements) {
+                        if ($tblObjectType->getIdentifier() === 'PERSON') {
+                            $tblObject = Person::useService()->getPersonById($objectId);
+                        } else {   // COMPANY
+                            $tblObject = Company::useService()->getCompanyById($objectId);
+                        }
+                        if (!empty($elements)) {
+                            foreach ($elements as $elementId => $value) {
+                                $tblListElementList = CheckList::useService()->getListElementListById($elementId);
+                                (new Data($this->getBinding()))->updateObjectElementToList(
+                                    $tblList,
+                                    $tblObjectType,
+                                    $tblListElementList,
+                                    $tblObject,
+                                    $value
+                                );
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -509,9 +526,85 @@ class Service extends AbstractService
                                 }
                             }
                         } else {
-                            // ToDo JohK Group
-                        }
 
+                            if ($tblObjectType->getIdentifier() === 'PERSONGROUP') {
+                                /** @var PersonGroupEntity $tblObject */
+                                $tblPersonAllByGroup = PersonGroup::useService()->getPersonAllByGroup($tblObject);
+                                if ($tblPersonAllByGroup) {
+                                    foreach ($tblPersonAllByGroup as $tblPerson) {
+
+                                        $personObjectType = $this->getObjectTypeByIdentifier('PERSON');
+                                        if (!$this->getListObjectListByListAndObjectTypeAndObject(
+                                            $tblList, $personObjectType, $tblPerson
+                                        )
+                                        ) {
+                                            $rowCount++;
+                                            $columnCount = 0;
+                                            $export->setValue($export->getCell($columnCount++, $rowCount),
+                                                trim($tblPerson->getFullName()));
+                                            $export->setValue($export->getCell($columnCount, $rowCount),
+                                                $personObjectType->getName());
+
+                                            $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
+                                                $tblList, $personObjectType, $tblPerson
+                                            );
+                                            if ($tblListObjectElementList) {
+                                                foreach ($tblListObjectElementList as $item) {
+                                                    $columnCount = 2;
+                                                    foreach ($tblListElementListByList as $tblListElementList) {
+                                                        if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
+                                                            $export->setValue($export->getCell($columnCount, $rowCount),
+                                                                $item->getValue());
+                                                            break;
+                                                        } else {
+                                                            $columnCount++;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } elseif ($tblObjectType->getIdentifier() === 'COMPANYGROUP') {
+                                /** @var CompanyGroupEntity $tblObject */
+                                $tblCompanyAllByGroup = CompanyGroup::useService()->getCompanyAllByGroup($tblObject);
+                                if ($tblCompanyAllByGroup) {
+                                    foreach ($tblCompanyAllByGroup as $tblCompany) {
+
+                                        $companyObjectType = $this->getObjectTypeByIdentifier('COMPANY');
+                                        if (!$this->getListObjectListByListAndObjectTypeAndObject(
+                                            $tblList, $companyObjectType, $tblCompany
+                                        )
+                                        ) {
+                                            $rowCount++;
+                                            $columnCount = 0;
+                                            $export->setValue($export->getCell($columnCount++, $rowCount),
+                                                trim($tblCompany->getName()));
+                                            $export->setValue($export->getCell($columnCount, $rowCount),
+                                               $companyObjectType->getName());
+
+                                            $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
+                                                $tblList, $companyObjectType, $tblCompany
+                                            );
+                                            if ($tblListObjectElementList) {
+                                                foreach ($tblListObjectElementList as $item) {
+                                                    $columnCount = 2;
+                                                    foreach ($tblListElementListByList as $tblListElementList) {
+                                                        if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
+                                                            $export->setValue($export->getCell($columnCount, $rowCount),
+                                                                $item->getValue());
+                                                            break;
+                                                        } else {
+                                                            $columnCount++;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

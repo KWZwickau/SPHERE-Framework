@@ -235,9 +235,9 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $Stage = new Stage('Check-Listen', 'Ein Object einer Check-Liste zuordnen');
-//        $Stage->setMessage('Bei Gruppen können entweder alle Objekte dieser Gruppe zum aktuellen Stand hinzugefügt
-//         werden oder die Gruppe direkt der Check-Liste zugeordnet (dynamisch -> Ändern sich die Mitglieder dieser Gruppe,
-//         ändern sich auch die Objekte in der Check-Liste mit).');
+        $Stage->setMessage('Bei Gruppen können entweder alle Objekte dieser Gruppe zum aktuellen Stand hinzugefügt
+         werden oder die Gruppe direkt der Check-Liste zugeordnet (dynamisch -> Ändern sich die Mitglieder dieser Gruppe,
+         ändern sich auch die Objekte in der Check-Liste mit).');
 
         $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
 
@@ -262,11 +262,11 @@ class Frontend extends Extension implements IFrontendInterface
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSONGROUP') {
                                 /** @var PersonGroupEntity $tblObject */
                                 $tblListObjectList->DisplayName = $tblObject->getName()
-                                    . ' ('. PersonGroup::useService()->countPersonAllByGroup($tblObject) .')';
+                                    . ' (' . PersonGroup::useService()->countPersonAllByGroup($tblObject) . ')';
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
                                 /** @var CompanyGroupEntity $tblObject */
                                 $tblListObjectList->DisplayName = $tblObject->getName()
-                                    . ' ('. CompanyGroup::useService()->countCompanyAllByGroup($tblObject) .')';
+                                    . ' (' . CompanyGroup::useService()->countCompanyAllByGroup($tblObject) . ')';
                             } else {
                                 $tblListObjectList->Name = '';
                             }
@@ -385,15 +385,15 @@ class Frontend extends Extension implements IFrontendInterface
                             if ($tblPersonGroupAll) {
                                 foreach ($tblPersonGroupAll as $tblPersonGroup) {
                                     $tblPersonGroup->DisplayName = $tblPersonGroup->getName()
-                                        . ' ('. PersonGroup::useService()->countPersonAllByGroup($tblPersonGroup) .')';
+                                        . ' (' . PersonGroup::useService()->countPersonAllByGroup($tblPersonGroup) . ')';
                                     $tblPersonGroup->Option =
                                         (new Form(
                                             new FormGroup(
                                                 new FormRow(array(
-//                                                    new FormColumn(
-//                                                        new CheckBox('Option[' . $tblPersonGroup->getId() . ']',
-//                                                            'dynamisch', 1)
-//                                                        , 7),
+                                                    new FormColumn(
+                                                        new CheckBox('Option[' . $tblPersonGroup->getId() . ']',
+                                                            'dynamisch', 1)
+                                                        , 7),
                                                     new FormColumn(
                                                         new Primary('Hinzufügen',
                                                             new Plus())
@@ -426,15 +426,15 @@ class Frontend extends Extension implements IFrontendInterface
                             if ($tblCompanyGroupAll) {
                                 foreach ($tblCompanyGroupAll as $tblCompanyGroup) {
                                     $tblCompanyGroup->DisplayName = $tblCompanyGroup->getName()
-                                        . ' ('. CompanyGroup::useService()->countCompanyAllByGroup($tblCompanyGroup) .')';
+                                        . ' (' . CompanyGroup::useService()->countCompanyAllByGroup($tblCompanyGroup) . ')';
                                     $tblCompanyGroup->Option =
                                         (new Form(
                                             new FormGroup(
                                                 new FormRow(array(
-//                                                    new FormColumn(
-//                                                        new CheckBox('Option[' . $tblCompanyGroup->getId() . ']',
-//                                                            'dynamisch', 1)
-//                                                        , 7),
+                                                    new FormColumn(
+                                                        new CheckBox('Option[' . $tblCompanyGroup->getId() . ']',
+                                                            'dynamisch', 1)
+                                                        , 7),
                                                     new FormColumn(
                                                         new Primary('Hinzufügen',
                                                             new Plus())
@@ -683,71 +683,104 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblList = CheckList::useService()->getListById($Id);
         if ($tblList) {
-            $tblListObjectListByList = CheckList::useService()->getListObjectListByList($tblList);
+
+            // set Header
             $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
-            if ($tblListObjectListByList) {
+            if ($tblListElementListByList) {
+                foreach ($tblListElementListByList as $tblListElementList) {
+                    $columnDefinition['Field' . $tblListElementList->getId()] = $tblListElementList->getName();
+                }
+            }
 
-                $tblListObjectElementList = CheckList::useService()->getListObjectElementListByList($tblList);
-                if ($tblListObjectElementList) {
-                    $Global = $this->getGlobal();
-                    foreach ($tblListObjectElementList as $item) {
-                        $tblListObjectList = CheckList::useService()->getListObjectListByListAndObjectTypeAndObject($tblList,
-                            $item->getTblObjectType(), $item->getServiceTblObject());
-                        $Global->POST['Data'][$tblListObjectList->getId()][$item->getTblListElementList()->getId()] = $item->getValue();
-                    }
+            // set Post
+            $tblListObjectElementList = CheckList::useService()->getListObjectElementListByList($tblList);
+            if ($tblListObjectElementList) {
+                $Global = $this->getGlobal();
+                foreach ($tblListObjectElementList as $item) {
 
-                    $Global->savePost();
+                    $Global->POST['Data'][$item->getTblObjectType()->getId()][$item->getServiceTblObject()->getId()]
+                    [$item->getTblListElementList()->getId()] = $item->getValue();
                 }
 
-                // ToDo JohK Groups
+                $Global->savePost();
+            }
 
-                $hasColumnDefinitions = false;
+            $tblListObjectListByList = CheckList::useService()->getListObjectListByList($tblList);
+            $objectList = array();
+
+            // get Objects
+            if ($tblListObjectListByList) {
                 foreach ($tblListObjectListByList as &$tblListObjectList) {
                     if (($tblObject = $tblListObjectList->getServiceTblObject())) {
                         if ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSON') {
                             /** @var TblPerson $tblObject */
-                            $list[$tblListObjectList->getId()]['Name'] = $tblObject->getFullName();
+                            $objectList[$tblListObjectList->getTblObjectType()->getId()][$tblObject->getId()] = 1;
                         } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANY') {
                             /** @var TblCompany $tblObject */
-                            $list[$tblListObjectList->getId()]['Name'] = $tblObject->getName();
+                            $objectList[$tblListObjectList->getTblObjectType()->getId()][$tblObject->getId()] = 1;
                         } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSONGROUP') {
                             /** @var PersonGroupEntity $tblObject */
-                            $list[$tblListObjectList->getId()]['Name'] = $tblObject->getName();
+                            $tblPersonAllByGroup = PersonGroup::useService()->getPersonAllByGroup($tblObject);
+                            if ($tblPersonAllByGroup) {
+                                foreach ($tblPersonAllByGroup as $tblPerson) {
+                                    $objectList[CheckList::useService()->getObjectTypeByIdentifier('PERSON')->getId()]
+                                    [$tblPerson->getId()] = 1;
+                                }
+                            }
                         } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
                             /** @var CompanyGroupEntity $tblObject */
-                            $list[$tblListObjectList->getId()]['Name'] = $tblObject->getName();
-                        } else {
-                            $list[$tblListObjectList->getId()]['Name'] = '';
+                            $tblCompanyAllByGroup = CompanyGroup::useService()->getCompanyAllByGroup($tblObject);
+                            if ($tblCompanyAllByGroup) {
+                                foreach ($tblCompanyAllByGroup as $tblCompany) {
+                                    $objectList[CheckList::useService()->getObjectTypeByIdentifier('COMPANY')->getId()]
+                                    [$tblCompany->getId()] = 1;
+                                }
+                            }
                         }
-                    } else {
-                        $list[$tblListObjectList->getId()]['Name'] = '';
                     }
+                }
+            }
 
-                    $list[$tblListObjectList->getId()]['Type'] = $tblListObjectList->getTblObjectType()->getName();
-
-                    if ($tblListElementListByList) {
-                        foreach ($tblListElementListByList as $tblListElementList) {
-                            if (!$hasColumnDefinitions) {
-                                $columnDefinition['Field' . $tblListElementList->getId()] = $tblListElementList->getName();
+            if (!empty($objectList)) {
+                $count = 0;
+                foreach ($objectList as $objectTypeId => $objects) {
+                    $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
+                    if (!empty($objects)) {
+                        foreach ($objects as $objectId => $value) {
+                            if ($tblObjectType->getIdentifier() === 'PERSON') {
+                                $tblPerson = Person::useService()->getPersonById($objectId);
+                                $list[$count]['Name'] = $tblPerson->getFullName();
+                            } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
+                                $tblCompany = Company::useService()->getCompanyById($objectId);
+                                $list[$count]['Name'] = $tblCompany->getName();
+                            } else {
+                                $list[$count]['Name'] = '';
                             }
 
-                            if ($tblListElementList->getTblElementType()->getIdentifier() === 'CHECKBOX') {
-                                $list[$tblListObjectList->getId()]['Field' . $tblListElementList->getId()] = new CheckBox(
-                                    'Data[' . $tblListObjectList->getId() . '][' . $tblListElementList->getId() . ']',
-                                    ' ', 1
-                                );
-                            } elseif ($tblListElementList->getTblElementType()->getIdentifier() === 'DATE') {
-                                $list[$tblListObjectList->getId()]['Field' . $tblListElementList->getId()] = new DatePicker(
-                                    'Data[' . $tblListObjectList->getId() . '][' . $tblListElementList->getId() . ']',
-                                    '', '', new Calendar()
-                                );
-                            } elseif ($tblListElementList->getTblElementType()->getIdentifier() === 'TEXT') {
-                                $list[$tblListObjectList->getId()]['Field' . $tblListElementList->getId()] = new TextField(
-                                    'Data[' . $tblListObjectList->getId() . '][' . $tblListElementList->getId() . ']'
-                                );
+                            $list[$count]['Type'] = $tblObjectType->getName();
+
+                            if ($tblListElementListByList) {
+                                foreach ($tblListElementListByList as $tblListElementList) {
+
+                                    if ($tblListElementList->getTblElementType()->getIdentifier() === 'CHECKBOX') {
+                                        $list[$count]['Field' . $tblListElementList->getId()] = new CheckBox(
+                                            'Data[' . $objectTypeId . '][' . $objectId . '][' . $tblListElementList->getId() . ']',
+                                            ' ', 1
+                                        );
+                                    } elseif ($tblListElementList->getTblElementType()->getIdentifier() === 'DATE') {
+                                        $list[$count]['Field' . $tblListElementList->getId()] = new DatePicker(
+                                            'Data[' . $objectTypeId . '][' . $objectId . '][' . $tblListElementList->getId() . ']',
+                                            '', '', new Calendar()
+                                        );
+                                    } elseif ($tblListElementList->getTblElementType()->getIdentifier() === 'TEXT') {
+                                        $list[$count]['Field' . $tblListElementList->getId()] = new TextField(
+                                            'Data[' . $objectTypeId . '][' . $objectId . '][' . $tblListElementList->getId() . ']'
+                                        );
+                                    }
+                                }
                             }
+                            $count++;
                         }
-                        $hasColumnDefinitions = true;
                     }
                 }
             }
