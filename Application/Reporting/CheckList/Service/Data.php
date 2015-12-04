@@ -50,6 +50,18 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Name
+     *
+     * @return bool|TblList
+     */
+    public function getListByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblList',
+            array(TblList::ATTR_NAME => $Name));
+    }
+
+    /**
      * @return bool|TblList[]
      */
     public function getListAll()
@@ -252,6 +264,32 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblElementType');
+    }
+
+    /**
+     * @param TblList $tblList
+     * @return int
+     */
+    public function countListElementListByList(TblList $tblList)
+    {
+
+        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListElementList',
+            array(TblListElementList::ATTR_TBL_LIST => $tblList->getId()));
+
+        return $result ? $result : 0;
+    }
+
+    /**
+     * @param TblList $tblList
+     * @return int
+     */
+    public function countListObjectListByList(TblList $tblList)
+    {
+
+        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListObjectList',
+            array(TblListObjectList::ATTR_TBL_LIST => $tblList->getId()));
+
+        return $result ? $result : 0;
     }
 
     /**

@@ -71,6 +71,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Name
+     *
+     * @return bool|TblList
+     */
+    public function getListByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getListByName($Name);
+    }
+
+    /**
      * @return bool|TblList[]
      */
     public function getListAll()
@@ -239,6 +250,26 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblList $tblList
+     * @return int
+     */
+    public function countListElementListByList(TblList $tblList)
+    {
+
+        return (new Data($this->getBinding()))->countListElementListByList($tblList);
+    }
+
+    /**
+     * @param TblList $tblList
+     * @return int
+     */
+    public function countListObjectListByList(TblList $tblList)
+    {
+
+        return (new Data($this->getBinding()))->countListObjectListByList($tblList);
+    }
+
+    /**
      * @param IFormInterface|null $Stage
      * @param $List
      *
@@ -258,12 +289,15 @@ class Service extends AbstractService
         if (isset($List['Name']) && empty($List['Name'])) {
             $Stage->setError('List[Name]', 'Bitte geben sie einen Namen an');
             $Error = true;
+        } elseif (isset($List['Name']) && $this->getListByName(trim($List['Name']))){
+            $Stage->setError('List[Name]', 'Der Name ist schon vorhanden. Bitte geben sie einen anderen Namen an');
+            $Error = true;
         }
 
         if (!$Error) {
             (new Data($this->getBinding()))->createList(
-                $List['Name'],
-                $List['Description']
+                trim($List['Name']),
+                trim($List['Description'])
             );
             return new Stage('Die Check-Liste ist erfasst worden')
             . new Redirect('/Reporting/CheckList', 0);

@@ -50,6 +50,9 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\Application\People\Group\Group as PersonGroup;
@@ -71,9 +74,11 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblListAll) {
             foreach ($tblListAll as &$tblList) {
                 $tblList->Option =
-                    (new Standard('', '/Reporting/CheckList/Element/Select', new Equalizer(),
+                    (new Standard('(' . CheckList::useService()->countListElementListByList($tblList) . ')',
+                        '/Reporting/CheckList/Element/Select', new Equalizer(),
                         array('Id' => $tblList->getId()), 'Elemente (CheckBox, Datum ...) auswählen'))
-                    . (new Standard('', '/Reporting/CheckList/Object/Select', new Listing(),
+                    . (new Standard('(' . CheckList::useService()->countListObjectListByList($tblList) . ')',
+                        '/Reporting/CheckList/Object/Select', new Listing(),
                         array('ListId' => $tblList->getId()), 'Objekte (Personen, Firmen) auswählen'))
                     . (new Standard(new Edit(), '/Reporting/CheckList/Object/Element/Edit', new CommodityItem(),
                         array('Id' => $tblList->getId()), 'Check-Listen-Inhalt bearbeiten'));
@@ -166,7 +171,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Panel('Check-Liste', $tblList->getName(), Panel::PANEL_TYPE_SUCCESS),
+                                    new Panel('Check-Liste', new Bold($tblList->getName()) .
+                                        ($tblList->getDescription() !== '' ? ' ' . new Muted(new Small($tblList->getDescription())) : ''),
+                                        Panel::PANEL_TYPE_SUCCESS),
                                     12
                                 ),
                             ))
@@ -515,7 +522,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Panel('Check-Liste', $tblList->getName(), Panel::PANEL_TYPE_SUCCESS),
+                                    new Panel('Check-Liste', new Bold($tblList->getName()) .
+                                        ($tblList->getDescription() !== '' ? ' ' . new Muted(new Small($tblList->getDescription())) : ''),
+                                        Panel::PANEL_TYPE_SUCCESS),
                                     12
                                 ),
                                 new LayoutColumn(
@@ -903,7 +912,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Check-Liste', $tblList ? $tblList->getName() : '', Panel::PANEL_TYPE_SUCCESS),
+                            new Panel('Check-Liste', new Bold($tblList->getName()) .
+                                ($tblList->getDescription() !== '' ? ' ' . new Muted(new Small($tblList->getDescription())) : ''),
+                                Panel::PANEL_TYPE_SUCCESS),
                             12
                         ),
                     ))
