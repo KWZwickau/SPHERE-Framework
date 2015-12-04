@@ -178,6 +178,9 @@ class Script extends Extension
             'ModCheckBox', array('jQuery.CheckBox', 'jQuery')
         );
         $this->setModule(
+            'ModInputCheckBox', array('jQuery.CheckBox', 'jQuery')
+        );
+        $this->setModule(
             'ModMathJax', array('MathJax', 'jQuery')
         );
         $this->setModule(
