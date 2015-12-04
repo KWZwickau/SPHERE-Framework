@@ -96,6 +96,8 @@ class Service extends AbstractService
             return $Form;
         }
 
+        var_dump($Level);
+
         $Error = false;
 
         $tblType = Type::useService()->getTypeById($Level['Type']);
@@ -110,7 +112,7 @@ class Service extends AbstractService
 //                $Error = true;
 //            }
 //        }
-        if (isset( $Division['Name'] ) && !empty( $Division['Name'] ) && isset( $Level['Name'] ) && empty( $Level['Name'] )) {
+        if (isset( $Division['Name'] ) && !empty( $Division['Name'] ) && !isset( $Level['Name'] )) {
 
             if (Division::useService()->getDivisionByGroupAndLevelAndYear($Division['Name'], null, $Division['Year'])) {
                 $Form->setError('Division[Name]', 'Name in diesem Schuljahr schon vergeben');
@@ -145,7 +147,7 @@ class Service extends AbstractService
         }
 
         if (isset( $Level['Name'] ) && empty( $Level['Name'] )) {
-            $Form->setError('Level[Name]', 'Bitte geben Sie eine Klassenstufe für die Schulart an');
+            $Form->setError('Level[Name]', 'Bitte geben Sie eine Klassenstufe für die Schulart an <br/>');
             $Error = true;
         }
 
@@ -519,9 +521,9 @@ class Service extends AbstractService
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
      *
-     * @return null|TblDivisionTeacher
+     * @return null|object|TblDivisionTeacher
      */
-    public function addTeacherToDivision(TblDivision $tblDivision, TblPerson $tblPerson)
+    public function addDivisionTeacher(TblDivision $tblDivision, TblPerson $tblPerson)
     {
 
         return (new Data($this->getBinding()))->addDivisionTeacher($tblDivision, $tblPerson);
