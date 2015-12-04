@@ -13,11 +13,10 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Corporation\Company\Company;
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Reporting\CheckList\CheckList;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -84,6 +83,8 @@ class TblListObjectList extends Element
                 return PersonGroup::useService()->getGroupById($this->serviceTblObject);
             } elseif ($this->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
                 return CompanyGroup::useService()->getGroupById($this->serviceTblObject);
+            } elseif ($this->getTblObjectType()->getIdentifier() === 'DIVISIONGROUP') {
+                return Division::useService()->getDivisionById($this->serviceTblObject);
             }
         }
 

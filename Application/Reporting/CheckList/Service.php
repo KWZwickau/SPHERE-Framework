@@ -14,6 +14,8 @@ use MOC\V\Component\Document\Document;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Reporting\CheckList\Service\Data;
@@ -400,12 +402,12 @@ class Service extends AbstractService
      * @param null $Data
      * @return IFormInterface|Redirect
      */
-    public function updateListObjectElementList(IFormInterface $Stage = null, $Id = null, $Data = null)
+    public function updateListObjectElementList(IFormInterface $Stage = null, $Id = null, $Data = null, $HasData = null)
     {
         /**
          * Skip to Frontend
          */
-        if (null === $Id || null === $Data) {
+        if (null === $Id || (null === $Data && null === $HasData)) {
             return $Stage;
         }
 
@@ -433,23 +435,25 @@ class Service extends AbstractService
         if (!empty($Data)) {
             foreach ($Data as $objectTypeId => $objects) {
                 $tblObjectType = $this->getObjectTypeById($objectTypeId);
-                if (!empty($objects)) {
-                    foreach ($objects as $objectId => $elements) {
-                        if ($tblObjectType->getIdentifier() === 'PERSON') {
-                            $tblObject = Person::useService()->getPersonById($objectId);
-                        } else {   // COMPANY
-                            $tblObject = Company::useService()->getCompanyById($objectId);
-                        }
-                        if (!empty($elements)) {
-                            foreach ($elements as $elementId => $value) {
-                                $tblListElementList = CheckList::useService()->getListElementListById($elementId);
-                                (new Data($this->getBinding()))->updateObjectElementToList(
-                                    $tblList,
-                                    $tblObjectType,
-                                    $tblListElementList,
-                                    $tblObject,
-                                    $value
-                                );
+                if ($tblObjectType) {
+                    if (!empty($objects)) {
+                        foreach ($objects as $objectId => $elements) {
+                            if ($tblObjectType->getIdentifier() === 'PERSON') {
+                                $tblObject = Person::useService()->getPersonById($objectId);
+                            } else {   // COMPANY
+                                $tblObject = Company::useService()->getCompanyById($objectId);
+                            }
+                            if (!empty($elements)) {
+                                foreach ($elements as $elementId => $value) {
+                                    $tblListElementList = CheckList::useService()->getListElementListById($elementId);
+                                    (new Data($this->getBinding()))->updateObjectElementToList(
+                                        $tblList,
+                                        $tblObjectType,
+                                        $tblListElementList,
+                                        $tblObject,
+                                        $value
+                                    );
+                                }
                             }
                         }
                     }
@@ -585,6 +589,44 @@ class Service extends AbstractService
 
                                             $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
                                                 $tblList, $companyObjectType, $tblCompany
+                                            );
+                                            if ($tblListObjectElementList) {
+                                                foreach ($tblListObjectElementList as $item) {
+                                                    $columnCount = 2;
+                                                    foreach ($tblListElementListByList as $tblListElementList) {
+                                                        if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
+                                                            $export->setValue($export->getCell($columnCount, $rowCount),
+                                                                $item->getValue());
+                                                            break;
+                                                        } else {
+                                                            $columnCount++;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } elseif ($tblObjectType->getIdentifier() === 'DIVISIONGROUP') {
+                                /** @var TblDivision $tblObject */
+                                $tblStudentAllByDivision = Division::useService()->getStudentAllByDivision($tblObject);
+                                if ($tblStudentAllByDivision) {
+                                    foreach ($tblStudentAllByDivision as $tblPerson) {
+
+                                        $personObjectType = $this->getObjectTypeByIdentifier('PERSON');
+                                        if (!$this->getListObjectListByListAndObjectTypeAndObject(
+                                            $tblList, $personObjectType, $tblPerson
+                                        )
+                                        ) {
+                                            $rowCount++;
+                                            $columnCount = 0;
+                                            $export->setValue($export->getCell($columnCount++, $rowCount),
+                                                trim($tblPerson->getFullName()));
+                                            $export->setValue($export->getCell($columnCount, $rowCount),
+                                                $personObjectType->getName());
+
+                                            $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
+                                                $tblList, $personObjectType, $tblPerson
                                             );
                                             if ($tblListObjectElementList) {
                                                 foreach ($tblListObjectElementList as $item) {

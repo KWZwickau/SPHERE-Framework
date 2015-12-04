@@ -31,6 +31,7 @@ class Data extends AbstractData
         $this->createObjectType('Einzel-Firma', 'COMPANY');
         $this->createObjectType('Personengruppe', 'PERSONGROUP');
         $this->createObjectType('Firmengruppe', 'COMPANYGROUP');
+        $this->createObjectType('Klassen', 'DIVISIONGROUP');
 
         $this->createElementType('CheckBox', 'CHECKBOX');
         $this->createElementType('Datum', 'DATE');
