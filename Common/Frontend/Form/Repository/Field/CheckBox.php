@@ -16,11 +16,13 @@ class CheckBox extends Field implements IFieldInterface
      * @param string $Name
      * @param string $Label
      * @param mixed  $Value
+     * @param array  $ToggleTarget
      */
     public function __construct(
         $Name,
         $Label,
-        $Value
+        $Value,
+        $ToggleTarget = array()
     ) {
 
         $this->Name = $Name;
@@ -28,6 +30,7 @@ class CheckBox extends Field implements IFieldInterface
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementLabel', $Label);
         $this->Template->setVariable('ElementValue', $Value);
+        $this->Template->setVariable('ElementToggleTarget', $ToggleTarget);
         $this->Template->setVariable('ElementHash', sha1($Name.$Label.$Value.(new \DateTime())->getTimestamp()));
         if ($this->isChecked($this->getName(), $Value)) {
             $this->Template->setVariable('ElementChecked', 'checked="checked"');

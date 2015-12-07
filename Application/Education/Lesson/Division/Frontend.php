@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division;
 
-use Doctrine\Common\Cache\ArrayCache;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
@@ -17,7 +16,6 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
-use SPHERE\Common\Frontend\Form\Repository\Field\InputCheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -37,6 +35,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -118,17 +117,18 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     )
-                ),
+                    , new Title('Schulklassen')),
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
+                            new Well(
                             Division::useService()->createLevel(
                                 $this->formLevelDivision()
                                     ->appendFormButton(new Primary('Schulklasse hinzufügen'))
                                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $Level, $Division
                             )
-                        )
+                            ))
                     ), new Title('Schulklasse hinzufügen')
                 ),
             ))
@@ -180,7 +180,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Klassenstufe',
                             array(
-                                new InputCheckBox('Level[Check]', 'Stufenübergreifende Klassengruppe anlegen', 1, array('Level[Name]',
+                                new CheckBox('Level[Check]', 'Stufenübergreifende Klassengruppe anlegen', 1, array(
+                                    'Level[Name]',
                                     'Level[Type]')),
                                 new SelectBox('Level[Type]', 'Schulart', array(
                                     '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
@@ -985,6 +986,29 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param TblSubject $tblSubject
+     *
+     * @return Form
+     */
+    public function formSubjectGroupAdd(TblSubject $tblSubject)
+    {
+
+        return new Form(
+            new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Group[Name]', '', 'Gruppenname')
+                        , 6),
+                    new FormColumn(
+                        new TextField('Group[Description]', '', 'Beschreibung')
+                        , 6),
+                ))
+                ,
+                new \SPHERE\Common\Frontend\Form\Repository\Title('Eine Gruppe für das Fach '.$tblSubject->getName().' erstellen'))
+        );
+    }
+
+    /**
      * @param      $Id
      * @param      $SubjectId
      * @param      $DivisionId
@@ -998,8 +1022,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Gruppe', 'bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/SubjectGroup/Add', new ChevronLeft(),
-            array('Id'                => $DivisionId,
-                  'DivisionSubjectId' => $DivisionSubjectId)));
+            array(
+                'Id'                => $DivisionId,
+                'DivisionSubjectId' => $DivisionSubjectId
+            )));
 
         $tblSubjectGroup = Division::useService()->getDivisionSubjectById($DivisionSubjectId)->getTblSubjectGroup();
         if ($tblSubjectGroup) {
@@ -1063,30 +1089,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(new Warning('Klasse nicht gefunden'));
         }
 
-
         return $Stage;
-    }
-
-    /**
-     * @param TblSubject $tblSubject
-     *
-     * @return Form
-     */
-    public function formSubjectGroupAdd(TblSubject $tblSubject)
-    {
-
-        return new Form(
-            new FormGroup(
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField('Group[Name]', '', 'Gruppenname')
-                        , 6),
-                    new FormColumn(
-                        new TextField('Group[Description]', '', 'Beschreibung')
-                        , 6),
-                ))
-                , new \SPHERE\Common\Frontend\Form\Repository\Title('Eine Gruppe für das Fach '.$tblSubject->getName().' erstellen'))
-        );
     }
 
     /**
