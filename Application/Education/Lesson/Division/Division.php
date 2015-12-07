@@ -44,34 +44,34 @@ class Division implements IModuleInterface
             __NAMESPACE__.'/Destroy/Division', __NAMESPACE__.'\Frontend::frontendDestroyDivision'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SubjectGroup/Add', __NAMESPACE__.'\Frontend::frontendSubjectGroupAdd'
+            __NAMESPACE__.'/SubjectGroup/Add', __NAMESPACE__.'\Frontend::frontendAddSubjectGroup'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SubjectGroup/Change', __NAMESPACE__.'\Frontend::frontendSubjectGroupChange'
+            __NAMESPACE__.'/SubjectGroup/Change', __NAMESPACE__.'\Frontend::frontendChangeSubjectGroup'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SubjectGroup/Remove', __NAMESPACE__.'\Frontend::frontendSubjectGroupRemove'
+            __NAMESPACE__.'/SubjectGroup/Remove', __NAMESPACE__.'\Frontend::frontendRemoveSubjectGroup'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Student/Add', __NAMESPACE__.'\Frontend::frontendStudentAdd'
+            __NAMESPACE__.'/Student/Add', __NAMESPACE__.'\Frontend::frontendAddStudent'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Teacher/Add', __NAMESPACE__.'\Frontend::frontendTeacherAdd'
+            __NAMESPACE__.'/Teacher/Add', __NAMESPACE__.'\Frontend::frontendAddTeacher'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Subject/Add', __NAMESPACE__.'\Frontend::frontendSubjectAdd'
+            __NAMESPACE__.'/Subject/Add', __NAMESPACE__.'\Frontend::frontendAddSubject'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SubjectStudent/Add', __NAMESPACE__.'\Frontend::frontendSubjectStudentAdd'
+            __NAMESPACE__.'/SubjectStudent/Add', __NAMESPACE__.'\Frontend::frontendAddSubjectStudent'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SubjectTeacher/Show', __NAMESPACE__.'\Frontend::frontendSubjectTeacherShow'
+            __NAMESPACE__.'/SubjectTeacher/Show', __NAMESPACE__.'\Frontend::frontendShowSubjectTeacher'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SubjectTeacher/Add', __NAMESPACE__.'\Frontend::frontendSubjectTeacherAdd'
+            __NAMESPACE__.'/SubjectTeacher/Add', __NAMESPACE__.'\Frontend::frontendAddSubjectTeacher'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Show', __NAMESPACE__.'\Frontend::frontendDivisionShow'
+            __NAMESPACE__.'/Show', __NAMESPACE__.'\Frontend::frontendShowDivision'
         ));
     }
 

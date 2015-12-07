@@ -13,3 +13,27 @@
     {{ ElementFeedbackMessage }}
 </div>
 {% endif %}
+
+{% if( ElementToggleTarget is not empty ) %}
+    <script type="text/javascript">
+        Client.Use('ModCheckBox', function()
+        {
+            var toggleTargets = function()
+            {
+                {% for ToggleTarget in ElementToggleTarget %}
+                jQuery('[name="{{ ToggleTarget }}"]:eq(0)').prop('disabled', function(i, v)
+                {
+                    return !v;
+                });
+                {% endfor %}
+            };
+            if (jQuery('#{{ ElementHash }}').prop('checked')) {
+                toggleTargets();
+            }
+            jQuery('#{{ ElementHash }}').on('click', function()
+            {
+                toggleTargets();
+            });
+        });
+    </script>
+{% endif %}

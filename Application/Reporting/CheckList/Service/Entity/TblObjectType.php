@@ -16,10 +16,10 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity()
- * @Table(name="tblListType")
+ * @Table(name="tblObjectType")
  * @Cache(usage="READ_ONLY")
  */
-class TblListType extends Element
+class TblObjectType extends Element
 {
     const ATTR_NAME = 'Name';
     const ATTR_IDENTIFIER = 'Identifier';

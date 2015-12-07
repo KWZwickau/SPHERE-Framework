@@ -692,7 +692,7 @@ class Service extends AbstractService
      */
     private function calcAverageFromGrades(TblScoreCondition $tblScoreCondition, $grades)
     {
-        // ToDo JohK isfloat grade = zahl
+
         // ToDo JohK round
         // ToDo JohK fehler bei nicht vorhandenen Typ
         if ($grades) {
@@ -713,12 +713,13 @@ class Service extends AbstractService
 
                                 foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeTypeList) {
                                     if ($tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()) {
-
-                                        $count++;
-                                        $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Value']
-                                            = floatval($tblGrade->getGrade()) * floatval($tblScoreGroupGradeTypeList->getMultiplier());
-                                        $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Multiplier']
-                                            = floatval($tblScoreGroupGradeTypeList->getMultiplier());
+                                        if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                                            $count++;
+                                            $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Value']
+                                                = floatval($tblGrade->getGrade()) * floatval($tblScoreGroupGradeTypeList->getMultiplier());
+                                            $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Multiplier']
+                                                = floatval($tblScoreGroupGradeTypeList->getMultiplier());
+                                        }
                                     }
                                 }
                             }
@@ -754,12 +755,18 @@ class Service extends AbstractService
                     foreach ($averageGroup[$tblScoreCondition->getId()] as $groupId => $group) {
                         $tblScoreGroup = Gradebook::useService()->getScoreGroupById($groupId);
                         $multiplier = floatval($tblScoreGroup->getMultiplier());
-                        $totalMultiplier += $multiplier;
-                        $average += $multiplier * ($group['Value'] / $group['Multiplier']);
+                        if ($group['Value'] > 0) {
+                            $totalMultiplier += $multiplier;
+                            $average += $multiplier * ($group['Value'] / $group['Multiplier']);
+                        }
                     }
 
-                    $average = $average / $totalMultiplier;
-                    $resultAverage = round($average, 2);
+                    if ($totalMultiplier > 0) {
+                        $average = $average / $totalMultiplier;
+                        $resultAverage = round($average, 2);
+                    } else {
+                        $resultAverage = '';
+                    }
                 }
             }
 

@@ -90,7 +90,7 @@ class TableData extends Table
             $V = new TableColumn($V);
         });
 
-        if (count($DataList) > 500) {
+        if (count($DataList) > 500 && $Interactive) {
             // JS Table Data
             $ObjectList = array();
             array_walk($DataList, function (&$Row) use (&$ObjectList, $ColumnDefinition) {

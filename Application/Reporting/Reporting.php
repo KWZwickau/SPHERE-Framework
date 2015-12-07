@@ -28,7 +28,7 @@ class Reporting implements IClusterInterface
             Custom::registerApplication();
         }
 
-//        CheckList::registerApplication();
+        CheckList::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Auswertung'))

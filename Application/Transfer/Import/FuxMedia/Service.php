@@ -151,6 +151,8 @@ class Service
                     'Schüler_Einschulung_am' => null,
                     'Schüler_Aufnahme_am' => null,
                     'Schüler_Abgang_am' => null,
+                    'Schüler_abgebende_Schule_ID' => null,
+                    'Schüler_aufnehmende_Schule_ID' => null,
                     'Schüler_Schließfach_Schlüsselnummer' => null,
                     'Schüler_Schließfachnummer' => null,
                     'Schüler_Krankenkasse' => null,
@@ -367,7 +369,6 @@ class Service
                             if ($tblStudent) {
 
                                 // Schülertransfer
-                                // ToDo JohK Company
                                 $enrollmentDate = trim($Document->getValue($Document->getCell($Location['Schüler_Einschulung_am'],
                                     $RunY)));
                                 if ($enrollmentDate !== '' && date_create($enrollmentDate) !== false) {
@@ -384,17 +385,31 @@ class Service
                                 }
                                 $arriveDate = trim($Document->getValue($Document->getCell($Location['Schüler_Aufnahme_am'],
                                     $RunY)));
+                                $arriveSchool = null;
+                                if (($company = Company::useService()->getCompanyByDescription(trim(
+                                    $Document->getValue($Document->getCell($Location['Schüler_aufnehmende_Schule_ID'],
+                                        $RunY)))))
+                                ) {
+                                    $arriveSchool = $company;
+                                }
                                 if ($arriveDate !== '' && date_create($arriveDate) !== false) {
                                     $tblStudentTransferType = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
                                     Student::useService()->insertStudentTransfer(
                                         $tblStudent,
                                         $tblStudentTransferType,
-                                        null,
+                                        $arriveSchool,
                                         null,
                                         null,
                                         $arriveDate,
                                         ''
                                     );
+                                }
+                                $leaveSchool = null;
+                                if (($company = Company::useService()->getCompanyByDescription(trim(
+                                    $Document->getValue($Document->getCell($Location['Schüler_abgebende_Schule_ID'],
+                                        $RunY)))))
+                                ) {
+                                    $leaveSchool = $company;
                                 }
                                 $leaveDate = trim($Document->getValue($Document->getCell($Location['Schüler_Abgang_am'],
                                     $RunY)));
@@ -403,7 +418,7 @@ class Service
                                     Student::useService()->insertStudentTransfer(
                                         $tblStudent,
                                         $tblStudentTransferType,
-                                        null,
+                                        $leaveSchool,
                                         null,
                                         null,
                                         $leaveDate,

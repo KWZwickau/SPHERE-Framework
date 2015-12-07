@@ -120,6 +120,10 @@ $Less->parse('@border-radius-small: 2px;');
 
 $Less->parse('@form-group-margin-bottom: 10px;');
 
+$Less->parse('@btn-default-bg: rgb(231, 231, 231);');
+
+$Less->parse('@well-bg: rgb(242, 242, 242);');
+
 $Style = FileSystem::getFileWriter(__DIR__.'/Bootstrap.css')->getLocation();
 file_put_contents($Style, $Less->getCss());
 

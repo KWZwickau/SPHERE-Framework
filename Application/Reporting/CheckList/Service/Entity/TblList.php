@@ -12,7 +12,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Reporting\CheckList\CheckList;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -23,8 +22,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblList extends Element
 {
     const ATTR_NAME = 'Name';
-    const ATTR_DESCRIPTION = 'DESCRIPTION';
-    const ATTR_TBL_LIST_TYPE = 'tblListType';
+    const ATTR_DESCRIPTION = 'Description';
 
     /**
      * @Column(type="string")
@@ -35,11 +33,6 @@ class TblList extends Element
      * @Column(type="string")
      */
     protected $Description;
-
-    /**
-     * @Column(type="bigint")
-     */
-    protected $tblListType;
 
     /**
      * @return string
@@ -71,25 +64,5 @@ class TblList extends Element
     public function setDescription($Description)
     {
         $this->Description = $Description;
-    }
-
-    /**
-     * @return bool|TblListType
-     */
-    public function getTblListType()
-    {
-        if (null === $this->tblListType) {
-            return false;
-        } else {
-            return CheckList::useService()->getListTypeById($this->tblListType);
-        }
-    }
-
-    /**
-     * @param TblListType|null $tblListType
-     */
-    public function setTblListType($tblListType)
-    {
-        $this->tblListType = (null === $tblListType ? null : $tblListType->getId());
     }
 }
