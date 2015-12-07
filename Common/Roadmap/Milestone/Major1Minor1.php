@@ -48,6 +48,10 @@ class Major1Minor1
             ->createDuty('Fach löschen');
         $Feature->createTask('Fach-Kategorie')
             ->createDuty('Kategorie löschen');
+        $Feature->createTask('Klassenstufe')
+            ->createDuty('Klassenstufe löschen', false);
+        $Feature->createTask('Klassen')
+            ->createDuty('Klasse löschen', false);
 
         // Personenverwaltung
         $Category = $Release->createCategory('Personenverwaltung');

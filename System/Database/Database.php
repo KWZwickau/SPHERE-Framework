@@ -22,12 +22,13 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Frontend\Text\Repository\Success;
-use SPHERE\System\Cache\Cache;
+use SPHERE\System\Cache\Handler\APCuHandler;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
-use SPHERE\System\Cache\Type\Apcu;
-use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Config\ConfigFactory;
 use SPHERE\System\Config\Reader\IniReader;
+use SPHERE\System\Database\Fitting\ColumnHydrator;
+use SPHERE\System\Database\Fitting\IdHydrator;
 use SPHERE\System\Database\Fitting\Logger;
 use SPHERE\System\Database\Fitting\Manager;
 use SPHERE\System\Database\Link\Connection;
@@ -129,7 +130,7 @@ class Database extends Extension
     {
 
         // Manager Cache
-        /** @var Memcached $SystemMemcached */
+        /** @var MemoryHandler $SystemMemcached */
         $ManagerCache = $this->getCache(new MemoryHandler());
         $Manager = $ManagerCache->getValue((string)$this->Identifier, __METHOD__);
 
@@ -140,29 +141,28 @@ class Database extends Extension
             $EntityNamespace = trim(str_replace(array('/', '\\'), '\\', $EntityNamespace), '\\') . '\\';
 
             // System Cache
-            /** @var Memcached $SystemMemcached */
-            $SystemMemcached = (new Cache(new Memcached(), true))->getCache();
-            /** @var Apcu $SystemApc */
-            $SystemApc = (new Cache(new Apcu(), true))->getCache();
+            $MemcachedHandler = $this->getCache(new MemcachedHandler());
+            $APCuHandler = $this->getCache(new APCuHandler());
 
             $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration(array($EntityPath));
             $MetadataConfiguration->setDefaultRepositoryClassName('\SPHERE\System\Database\Fitting\Repository');
             $MetadataConfiguration->addCustomHydrationMode(
-                'COLUMN_HYDRATOR', '\SPHERE\System\Database\Fitting\ColumnHydrator'
+                ColumnHydrator::HYDRATION_MODE, '\SPHERE\System\Database\Fitting\ColumnHydrator'
             );
-
-//            $MetadataConfiguration->setAutoGenerateProxyClasses(true);
+            $MetadataConfiguration->addCustomHydrationMode(
+                IdHydrator::HYDRATION_MODE, '\SPHERE\System\Database\Fitting\IdHydrator'
+            );
 
             $ConnectionConfig = $this->getConnection()->getConnection()->getConfiguration();
 
             if ($this->UseCache) {
-                if ($SystemMemcached->isAvailable()) {
+                if ($MemcachedHandler instanceof MemcachedHandler) {
                     $Cache = new MemcachedCache();
-                    $Cache->setMemcached($SystemMemcached->getServer());
+                    $Cache->setMemcached($MemcachedHandler->getCache());
                     $Cache->setNamespace($EntityPath);
                     $ConnectionConfig->setResultCacheImpl($Cache);
                     $MetadataConfiguration->setHydrationCacheImpl($Cache);
-                    if ($SystemApc->isAvailable()) {
+                    if ($APCuHandler instanceof APCuHandler) {
                         $MetadataConfiguration->setMetadataCacheImpl(new ApcCache());
                         $MetadataConfiguration->setQueryCacheImpl(new ApcCache());
                     } else {
@@ -170,7 +170,7 @@ class Database extends Extension
                         $MetadataConfiguration->setQueryCacheImpl(new ArrayCache());
                     }
                 } else {
-                    if ($SystemApc->isAvailable()) {
+                    if ($APCuHandler instanceof APCuHandler) {
                         $MetadataConfiguration->setMetadataCacheImpl(new ApcCache());
                     } else {
                         $MetadataConfiguration->setMetadataCacheImpl(new ArrayCache());

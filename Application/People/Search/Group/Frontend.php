@@ -1,8 +1,10 @@
 <?php
 namespace SPHERE\Application\People\Search\Group;
 
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
@@ -23,7 +25,6 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Extension\Extension;
@@ -43,6 +44,9 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendSearch($Id = false)
     {
+
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->enableLog();
+
         $Stage = new Stage('Suche', 'nach Gruppe');
 
         $tblGroupAll = Group::useService()->getGroupAll();
@@ -64,18 +68,22 @@ class Frontend extends Extension implements IFrontendInterface
         $tblGroup = Group::useService()->getGroupById($Id);
         if ($tblGroup) {
 
-            $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
-            $Cache = $this->getCache(new MemcachedHandler());
-            if (null === ($Result = $Cache->getValue($Id, __METHOD__))) {
+            $idPersonAll = Group::useService()->fetchIdPersonAllByGroup( $tblGroup );
+            $tblPersonAll = Person::useService()->fetchPersonAllByIdList( $idPersonAll );
+//            $Cache = $this->getCache(new MemcachedHandler());
+//            if (null === ($Result = $Cache->getValue($Id, __METHOD__))) {
                 $Result = array();
                 if ($tblPersonAll) {
                     (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartRun');
                     array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result) {
 
 
-                        $tblAddress = $tblPerson->fetchMainAddress();
-                        if ($tblAddress) {
-                            $tblAddress = $tblAddress->getGuiString();
+                        $idAddressAll = Address::useService()->fetchIdAddressAllByPerson( $tblPerson );
+                        $tblAddressAll = Address::useService()->fetchAddressAllByIdList( $idAddressAll );
+                        if (!empty($tblAddressAll)) {
+                            $tblAddress = current($tblAddressAll)->getGuiString();
+                        } else {
+                            $tblAddress = false;
                         }
 
                         array_push($Result, array(
@@ -93,8 +101,8 @@ class Frontend extends Extension implements IFrontendInterface
                     });
                     (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopRun');
 
-                    $Cache->setValue($Id, $Result, 0, __METHOD__);
-                }
+//                    $Cache->setValue($Id, $Result, 0, __METHOD__);
+//                }
             }
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(

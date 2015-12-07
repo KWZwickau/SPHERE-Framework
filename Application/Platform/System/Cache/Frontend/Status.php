@@ -2,7 +2,7 @@
 namespace SPHERE\Application\Platform\System\Cache\Frontend;
 
 use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\System\Cache\ITypeInterface;
+use SPHERE\System\Cache\CacheStatus;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -17,9 +17,9 @@ class Status extends Extension implements ITemplateInterface
     private $Stage = '';
 
     /**
-     * @param ITypeInterface $Cache
+     * @param CacheStatus $Cache
      */
-    public function __construct(ITypeInterface $Cache)
+    public function __construct(CacheStatus $Cache)
     {
 
         $Rate = $this->getTemplate(__DIR__.'/Rate.twig');

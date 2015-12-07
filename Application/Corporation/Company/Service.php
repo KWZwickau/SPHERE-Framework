@@ -115,6 +115,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Name
+     * @param string $Description
+     *
+     * @return TblCompany
+     */
+    public function insertCompany($Name, $Description = '')
+    {
+        return (new Data($this->getBinding()))->createCompany($Name, $Description);
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblCompany
@@ -186,5 +197,16 @@ class Service extends AbstractService
         }
 
         return $Form;
+    }
+
+    /**
+     * @param string $Description
+     *
+     * @return bool|TblCompany
+     */
+    public function getCompanyByDescription($Description)
+    {
+
+        return (new Data($this->getBinding()))->getCompanyByDescription($Description);
     }
 }

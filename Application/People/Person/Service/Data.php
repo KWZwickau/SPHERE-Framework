@@ -5,6 +5,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\IdHydrator;
 
 /**
  * Class Data
@@ -179,5 +180,22 @@ class Data extends AbstractData
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
 //        return $this->getConnection()->getEntityManager()->getEntityById('TblPerson', $Id);
+    }
+
+    /**
+     * @param array $IdArray of TblPerson->Id
+     * @return TblPerson[]
+     */
+    public function fetchPersonAllByIdList($IdArray)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Builder = $Manager->getQueryBuilder();
+        $Query = $Builder->select('P')
+            ->from(__NAMESPACE__ . '\Entity\TblPerson', 'P')
+            ->where($Builder->expr()->in('P.Id', '?1'))
+            ->setParameter(1, $IdArray)
+            ->getQuery();
+        return $Query->getResult(IdHydrator::HYDRATION_MODE);
     }
 }

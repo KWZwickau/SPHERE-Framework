@@ -4,7 +4,12 @@ namespace SPHERE\Application\Billing\Inventory\Item;
 
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -62,6 +67,19 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty( $tblItemAll )) {
             array_walk($tblItemAll, function (TblItem $tblItem) {
 
+                $tblItem->Type = '';
+                $tblItem->Rank = '';
+                $tblCourse = $tblItem->getServiceStudentType();
+                if($tblCourse)
+                {
+                    $tblItem->Type = $tblCourse->getName();
+                }
+                $tblRank = $tblItem->getServiceStudentChildRank();
+                if($tblRank)
+                {
+                    $tblItem->Rank = $tblRank->getName();
+                }
+
                 $tblItem->PriceString = $tblItem->getPriceString();
                 if (Commodity::useService()->getCommodityItemAllByItem($tblItem)) {
                     $tblItem->Option =
@@ -97,6 +115,8 @@ class Frontend extends Extension implements IFrontendInterface
                     'Name'        => 'Name',
                     'Description' => 'Beschreibung',
                     'PriceString' => 'Preis',
+                    'Type'        => 'Schulart',
+                    'Rank'        => 'Geschwisterkind',
                     'Option'      => 'Option'
                 )
             )
@@ -129,10 +149,10 @@ class Frontend extends Extension implements IFrontendInterface
             new ChevronLeft()
         ));
 
-        //        $tblCourseAll = Management::serviceCourse()->entityCourseAll();   //todo
-        //        array_unshift( $tblCourseAll, new TblCourse( '' ) );
-        //        $tblChildRankAll = Management::serviceStudent()->entityChildRankAll();
-        //        array_unshift( $tblChildRankAll, new TblChildRank( '' ) );
+//        $tblCourseAll = Management::serviceCourse()->entityCourseAll();   //todo
+//        array_unshift( $tblCourseAll, new TblCourse( '' ) );
+//        $tblChildRankAll = Management::serviceStudent()->entityChildRankAll();
+//        array_unshift( $tblChildRankAll, new TblChildRank( '' ) );
 
         $Form = $this->formItem()
             ->appendFormButton(new Primary('Hinzufügen'))
@@ -145,6 +165,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     public function formItem()
     {
+
+        $tblSchoolTypeAll = Type::useService()->getTypeAll();
+        $tblSchoolTypeAll[] = new TblType('');
+        $tblChildRankAll = Relationship::useService()->getSiblingRankAll();
+        $tblChildRankAll[] = new TblSiblingRank('');
 
         return new Form(array(
             new FormGroup(array(
@@ -164,18 +189,18 @@ class Frontend extends Extension implements IFrontendInterface
                         new TextField('Item[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
                         ), 12)
                 )),
-                //                    new FormRow( array(       //todo
-                //                        new FormColumn(
-                //                            new SelectBox( 'Item[Course]', 'Bedingung Bildungsgang',
-                //                                array('Name' => $tblCourseAll
-                //                                ) )
-                //                            , 6 ),
-                //                        new FormColumn(
-                //                            new SelectBox( 'Item[ChildRank]', 'Bedingung Kind-Reihenfolge',
-                //                                array('Description' => $tblChildRankAll
-                //                                ) )
-                //                            , 6 )
-                //                    ) )
+                new FormRow(array(
+                    new FormColumn(
+                        new SelectBox('Item[Course]', 'Bedingung Bildungsgang',
+                            array('Name' => $tblSchoolTypeAll
+                            ))
+                        , 6),
+                    new FormColumn(
+                        new SelectBox('Item[ChildRank]', 'Bedingung Kind-Reihenfolge',
+                            array('Name' => $tblChildRankAll
+                            ))
+                        , 6)
+                ))
             ))
         ));
     }
@@ -253,23 +278,18 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Artikel');
         $Stage->setDescription('Bearbeiten');
-//        $Stage->setMessage(
-//            '<b>Hinweis:</b> <br>
-//            Ist ein Bildungsgang unter der <i>Bedingung Bildungsgang</i> ausgewählt, wird der Artikel nur für
-//            Personen (Schüler) berechnet welche diesem Bildungsgang angehören. <br>
-//            Ist eine Kind-Reihenfolge unter der <i>Bedingung Kind-Reihenfolge</i> ausgewählt, wird der Artikel nur für
-//            Personen (Schüler) berechnet welche dieser Kind-Reihenfolge entsprechen. <br>
-//            Beide Bedingungen können einzeln ausgewählt werden, bei der Wahl beider Bedingungen werden diese
-//            <b>Und</b> verknüpft.
-//        ');
+        $Stage->setMessage(
+            '<b>Hinweis:</b> <br>
+            Ist ein Bildungsgang unter der <i>Bedingung Bildungsgang</i> ausgewählt, wird der Artikel nur für
+            Personen (Schüler) berechnet welche diesem Bildungsgang angehören. <br>
+            Ist eine Kind-Reihenfolge unter der <i>Bedingung Kind-Reihenfolge</i> ausgewählt, wird der Artikel nur für
+            Personen (Schüler) berechnet welche dieser Kind-Reihenfolge entsprechen. <br>
+            Beide Bedingungen können einzeln ausgewählt werden, bei der Wahl beider Bedingungen werden diese
+            <b>Und</b> verknüpft.
+        ');
         $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item',
             new ChevronLeft()
         ));
-
-        //        $tblCourseAll = Management::serviceCourse()->entityCourseAll();   //todo
-        //        array_unshift( $tblCourseAll, new TblCourse( '' ) );
-        //        $tblChildRankAll = Management::serviceStudent()->entityChildRankAll();
-        //        array_unshift( $tblChildRankAll, new TblChildRank( '' ) );
 
         if (empty( $Id )) {
             $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
@@ -285,12 +305,12 @@ class Frontend extends Extension implements IFrontendInterface
                     $Global->POST['Item']['Description'] = $tblItem->getDescription();
                     $Global->POST['Item']['Price'] = str_replace('.', ',', $tblItem->getPrice());
                     $Global->POST['Item']['CostUnit'] = $tblItem->getCostUnit();
-                    //                    if ( $tblItem->getServiceManagementCourse() ) {
-                    //                        $Global->POST['Item']['Course'] = $tblItem->getServiceManagementCourse()->getId();
-                    //                    }
-                    //                    if ( $tblItem->getServiceManagementStudentChildRank() ) {
-                    //                        $Global->POST['Item']['ChildRank'] = $tblItem->getServiceManagementStudentChildRank()->getId();
-                    //                    }
+                    if ($tblItem->getServiceStudentType()) {
+                        $Global->POST['Item']['Course'] = $tblItem->getServiceStudentType()->getId();
+                    }
+                    if ($tblItem->getServiceStudentChildRank()) {
+                        $Global->POST['Item']['ChildRank'] = $tblItem->getServiceStudentChildRank()->getId();
+                    }
                     $Global->savePost();
                 }
 
