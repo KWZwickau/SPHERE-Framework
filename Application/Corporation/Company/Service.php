@@ -198,4 +198,15 @@ class Service extends AbstractService
 
         return $Form;
     }
+
+    /**
+     * @param string $Description
+     *
+     * @return bool|TblCompany
+     */
+    public function getCompanyByDescription($Description)
+    {
+
+        return (new Data($this->getBinding()))->getCompanyByDescription($Description);
+    }
 }
