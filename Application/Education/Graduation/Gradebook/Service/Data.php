@@ -68,6 +68,42 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblGradeType $tblGradeType
+     * @param $Name
+     * @param $Code
+     * @param $Description
+     * @param $IsHighlighted
+     *
+     * @return bool
+     */
+    public function updateGradeType(
+        TblGradeType $tblGradeType,
+        $Name,
+        $Code,
+        $Description,
+        $IsHighlighted
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblGradeType $Entity */
+        $Entity = $Manager->getEntityById('TblGradeType', $tblGradeType->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setCode($Code);
+            $Entity->setDescription($Description);
+            $Entity->setIsHighlighted($IsHighlighted);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblSubject $tblSubject
      * @param TblPeriod $tblPeriod

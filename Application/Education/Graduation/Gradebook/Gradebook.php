@@ -43,9 +43,8 @@ class Gradebook implements IModuleInterface
                 __NAMESPACE__ . '\Frontend::frontendGradeType')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\GradeType\Create',
-                __NAMESPACE__ . '\Frontend::frontendCreateGradeType')
-                ->setParameterDefault('GradeType', null)
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\GradeType\Edit',
+                __NAMESPACE__ . '\Frontend::frontendEditGradeType')
         );
 
         Main::getDispatcher()->registerRoute(

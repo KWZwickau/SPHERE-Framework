@@ -26,18 +26,24 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -47,6 +53,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Info;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -59,27 +66,52 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
+     * @param null $GradeType
+     * @param bool $IsOpen
      * @return Stage
      */
-    public function frontendGradeType()
+    public function frontendGradeType($GradeType = null, $IsOpen = false)
     {
 
         $Stage = new Stage('Zensuren', 'Zensuren-Typen');
-        $Stage->addButton(
-            new Standard('Zensuren-Typ anlegen', '/Education/Graduation/Gradebook/GradeType/Create', new Plus())
-        );
 
-        $tblGradeType = Gradebook::useService()->getGradeTypeAll();
+        $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAll();
+        if ($tblGradeTypeAll) {
+            foreach ($tblGradeTypeAll as $tblGradeType) {
+                $tblGradeType->DisplayName = $tblGradeType->getIsHighlighted()
+                    ? new Bold($tblGradeType->getName()) : $tblGradeType->getName();
+                $tblGradeType->DisplayCode = $tblGradeType->getIsHighlighted()
+                    ? new Bold($tblGradeType->getCode()) : $tblGradeType->getCode();
+                $tblGradeType->Option = new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit',
+                    new Edit(),
+                    array(
+                        'Id' => $tblGradeType->getId(),
+                        'IsOpen' => $IsOpen
+                    ),
+                    'Zensuren-Typ bearbeiten'
+                );
+            }
+        }
+
+        $Form = $this->formGradeType()
+            ->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $Stage->setContent(
-            new Form(array(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(array(
-                            new TableData($tblGradeType, null, array(
-                                'Name' => 'Name',
-                                'Code' => 'Abk&uuml;rzung',
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            (new Accordion())->addItem(
+                                (new Info(new Bold(new Plus() . ' Zensuren-Typ anlegen')))->__toString(),
+                                new Well(Gradebook::useService()->createGradeType($Form, $GradeType, true)), $IsOpen)
+                        ),
+                        new LayoutColumn(array(
+                            new TableData($tblGradeTypeAll, null, array(
+                                'DisplayName' => 'Name',
+                                'DisplayCode' => 'Abk&uuml;rzung',
                                 'Description' => 'Beschreibung',
+                                'Option' => 'Option'
                             ))
                         ))
                     ))
@@ -91,22 +123,79 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param null $Id
      * @param $GradeType
+     * @param bool $IsOpen
      * @return Stage
      */
-    public function frontendCreateGradeType($GradeType)
+    public function frontendEditGradeType($Id = null, $GradeType = null, $IsOpen = false)
     {
-        $Stage = new Stage('Zensuren', 'Zensuren-Typ anlegen');
+        $Stage = new Stage('Zensuren', 'Zensuren-Typ bearbeiten');
         $Stage->addButton(
-            new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/GradeType', new ChevronLeft())
+            new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/GradeType', new ChevronLeft(),
+                array('IsOpen' => $IsOpen))
         );
 
-        $Form = $this->formGradeType()
-            ->appendFormButton(new Primary('Speichern', new Save()))
-            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-        $Stage->setContent(Gradebook::useService()->createGradeType($Form, $GradeType));
+        $tblGradeType = Gradebook::useService()->getGradeTypeById($Id);
+        if ($tblGradeType) {
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                $Global->POST['GradeType']['Name'] = $tblGradeType->getName();
+                $Global->POST['GradeType']['Code'] = $tblGradeType->getCode();
+                $Global->POST['GradeType']['IsHighlighted'] = $tblGradeType->getIsHighlighted();
+                $Global->POST['GradeType']['Description'] = $tblGradeType->getDescription();
+                $Global->savePost();
+            }
 
-        return $Stage;
+            $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAll();
+            if ($tblGradeTypeAll) {
+                foreach ($tblGradeTypeAll as $tblGradeType) {
+                    $name = $tblGradeType->getId() === $Id ? new Info($tblGradeType->getName()) : $tblGradeType->getName();
+                    $code = $tblGradeType->getId() === $Id ? new Info($tblGradeType->getCode()) : $tblGradeType->getCode();
+                    $tblGradeType->DisplayName = $tblGradeType->getIsHighlighted()
+                        ? new Bold($name) : $name;
+                    $tblGradeType->DisplayCode = $tblGradeType->getIsHighlighted()
+                        ? new Bold($code) : $code;
+                    $tblGradeType->Option = $tblGradeType->getId() !== $Id ? (new Standard('',
+                        '/Education/Graduation/Gradebook/GradeType/Edit',
+                        new Edit(),
+                        array(
+                            'Id' => $tblGradeType->getId(),
+                            'IsOpen' => $IsOpen
+                        ),
+                        'Zensuren-Typ bearbeiten'
+                    )) : '';
+                }
+            }
+
+            $Form = $this->formGradeType()
+                ->appendFormButton(new Primary('Speichern', new Save()))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Well(Gradebook::useService()->updateGradeType($Form, $Id, $GradeType, $IsOpen))
+                            ),
+                            new LayoutColumn(array(
+                                new TableData($tblGradeTypeAll, null, array(
+                                    'DisplayName' => 'Name',
+                                    'DisplayCode' => 'Abk&uuml;rzung',
+                                    'Description' => 'Beschreibung',
+                                    'Option' => 'Option'
+                                ))
+                            ))
+                        ))
+                    ))
+                ))
+            );
+
+            return $Stage;
+        } else {
+            return new Stage('Zensuren-Typ nicht gefunden')
+            . new Redirect('/Education/Graduation/Gradebook/GradeType', 2, array('IsOpen' => $IsOpen));
+        }
     }
 
     private function formGradeType()
@@ -118,16 +207,16 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
                 new FormColumn(
                     new TextField('GradeType[Code]', 'LK', 'Abk&uuml;rzung'), 3
-                )
+                ),
             )),
             new FormRow(array(
                 new FormColumn(
                     new TextField('GradeType[Description]', '', 'Beschreibung'), 12
                 ),
                 new FormColumn(
-                    new CheckBox('GradeType[IsHighlighted]', 'Fett markiert', 1), 3
+                    new CheckBox('GradeType[IsHighlighted]', 'Fett markiert', 1), 2
                 )
-            ))
+            )),
         )));
     }
 
@@ -196,8 +285,8 @@ class Frontend extends Extension implements IFrontendInterface
                                             ? new Bold($grade->getTblGradeType()->getCode()) : $grade->getTblGradeType()->getCode())
                                     , 1);
                                 $date = $grade->getTblTest()->getDate();
-                                if (strlen($date) > 6){
-                                    $date = substr($date, 0 , 6);
+                                if (strlen($date) > 6) {
+                                    $date = substr($date, 0, 6);
                                 }
                                 $columnSecondSubList[] = new LayoutColumn(
                                     new Header(
@@ -693,14 +782,14 @@ class Frontend extends Extension implements IFrontendInterface
                             ))
                         ))
                     ))
-                ), new Title('Übersicht')),
+                ), new Title(new ListingTable() . ' Übersicht')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            Gradebook::useService()->createScoreCondition($Form, $ScoreCondition)
+                            new Well(Gradebook::useService()->createScoreCondition($Form, $ScoreCondition))
                         ))
                     ))
-                ), new Title('Hinzufügen'))
+                ), new Title(new PlusSign() . ' Hinzufügen'))
             ))
         );
 

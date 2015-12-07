@@ -53,9 +53,10 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Stage
      * @param $GradeType
+     * @param bool $IsOpen
      * @return IFormInterface|string
      */
-    public function createGradeType(IFormInterface $Stage = null, $GradeType)
+    public function createGradeType(IFormInterface $Stage = null, $GradeType, $IsOpen = false)
     {
 
         /**
@@ -83,7 +84,55 @@ class Service extends AbstractService
                 isset($GradeType['IsHighlighted']) ? true : false
             );
             return new Stage('Der Zensuren-Typ ist erfasst worden')
-            . new Redirect('/Education/Graduation/Gradebook/GradeType', 0);
+            . new Redirect('/Education/Graduation/Gradebook/GradeType', 0, array('IsOpen' => $IsOpen));
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Id
+     * @param $GradeType
+     * @param bool $IsOpen
+     * @return IFormInterface|string
+     */
+    public function updateGradeType(IFormInterface $Stage = null, $Id,  $GradeType, $IsOpen = false)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $GradeType || null === $Id ) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($GradeType['Name']) && empty($GradeType['Name'])) {
+            $Stage->setError('GradeType[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+        if (isset($GradeType['Code']) && empty($GradeType['Code'])) {
+            $Stage->setError('GradeType[Code]', 'Bitte geben sie eine Abk&uuml;rzung an');
+            $Error = true;
+        }
+
+        $tblGradeType = $this->getGradeTypeById($Id);
+        if (!$tblGradeType){
+            return new Stage('Zensuren-Typ nicht gefunden')
+            . new Redirect('/Education/Graduation/Gradebook/GradeType', 2, array('IsOpen' => $IsOpen));
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->updateGradeType(
+                $tblGradeType,
+                $GradeType['Name'],
+                $GradeType['Code'],
+                $GradeType['Description'],
+                isset($GradeType['IsHighlighted']) ? true : false
+            );
+            return new Stage('Der Zensuren-Typ ist erfasst worden')
+            . new Redirect('/Education/Graduation/Gradebook/GradeType', 0, array('IsOpen' => $IsOpen));
         }
 
         return $Stage;
