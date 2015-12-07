@@ -31,11 +31,11 @@ class Division implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Klassen'))
         );
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__, __CLASS__.'::frontendDashboard'
+//        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__.'::frontendDashboard'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Create/LevelDivision', __NAMESPACE__.'\Frontend::frontendCreateLevelDivision'
+            __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendCreateLevelDivision'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Change/Division', __NAMESPACE__.'\Frontend::frontendChangeDivision'

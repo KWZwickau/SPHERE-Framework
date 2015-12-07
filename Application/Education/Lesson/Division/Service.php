@@ -96,11 +96,7 @@ class Service extends AbstractService
             return $Form;
         }
 
-        var_dump($Level);
-
         $Error = false;
-
-        $tblType = Type::useService()->getTypeById($Level['Type']);
 
         if (isset( $Division['Name'] ) && empty( $Division['Name'] )) {
             $Form->setError('Division[Name]', 'Bitte geben Sie eine Klassengruppe an');
@@ -152,6 +148,7 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
+            $tblType = Type::useService()->getTypeById($Level['Type']);
             $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, $Level['Name']);
 
             $Error = false;
@@ -759,14 +756,14 @@ class Service extends AbstractService
                 )
                 ) {
                     return new Success('Die Beschreibung wurde erfolgreich geändert')
-                    .new Redirect('/Education/Lesson/Division/Create/LevelDivision', 1);
+                    .new Redirect('/Education/Lesson/Division', 1);
                 } else {
                     return new Danger('Die Beschreibung konnte nicht geändert werden')
-                    .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+                    .new Redirect('/Education/Lesson/Division');
                 }
             } else {
                 return new Danger('Die Klassen wurde nicht gefunden')
-                .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+                .new Redirect('/Education/Lesson/Division');
             }
         }
         return $Form;
@@ -861,58 +858,58 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getSubjectStudentByPerson($tblPerson);
     }
 
-    /**
-     * @param IFormInterface $Form
-     * @param null|array     $Level
-     * @param int            $Id
-     *
-     * @return IFormInterface|string
-     */
-    public function changeLevel(IFormInterface $Form, $Level, $Id)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Level) {
-            return $Form;
-        }
-
-        $Error = false;
-        $tblType = Type::useService()->getTypeById($Level['Type']);
-        $tblLevel = Division::useService()->getLevelById($Id);
-
-        if (isset( $Level['Name'] ) && empty( $Level['Name'] )) {
-            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
-            $Error = true;
-        } else {
-            $tblLevelTest = $this->checkLevelExists($tblType, $Level['Name']);
-            if ($tblLevelTest->getId() !== $tblLevel->getId()) {
-                $Form->setError('Level[Name]', 'Diese Klassenstufe wird in <b>'.$tblType->getName().'</b> bereits verwendet');
-                $Error = true;
-            }
-        }
-
-        if (!$Error) {
-
-            if ($tblLevel) {
-                if ((new Data($this->getBinding()))->updateLevel(
-                    $tblLevel, $tblType, $Level['Name'], $Level['Description']
-                )
-                ) {
-                    return new Success('Die Klassenstufe wurde erfolgreich geändert')
-                    .new Redirect('/Education/Lesson/Division/Create/LevelDivision', 1);
-                } else {
-                    return new Danger('Die Klassenstufe konnte nicht geändert werden')
-                    .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
-                }
-            } else {
-                return new Danger('Die Klassenstufe wurde nicht gefunden')
-                .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
-            }
-        }
-        return $Form;
-    }
+//    /**
+//     * @param IFormInterface $Form
+//     * @param null|array     $Level
+//     * @param int            $Id
+//     *
+//     * @return IFormInterface|string
+//     */
+//    public function changeLevel(IFormInterface $Form, $Level, $Id)
+//    {
+//
+//        /**
+//         * Skip to Frontend
+//         */
+//        if (null === $Level) {
+//            return $Form;
+//        }
+//
+//        $Error = false;
+//        $tblType = Type::useService()->getTypeById($Level['Type']);
+//        $tblLevel = Division::useService()->getLevelById($Id);
+//
+//        if (isset( $Level['Name'] ) && empty( $Level['Name'] )) {
+//            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
+//            $Error = true;
+//        } else {
+//            $tblLevelTest = $this->checkLevelExists($tblType, $Level['Name']);
+//            if ($tblLevelTest->getId() !== $tblLevel->getId()) {
+//                $Form->setError('Level[Name]', 'Diese Klassenstufe wird in <b>'.$tblType->getName().'</b> bereits verwendet');
+//                $Error = true;
+//            }
+//        }
+//
+//        if (!$Error) {
+//
+//            if ($tblLevel) {
+//                if ((new Data($this->getBinding()))->updateLevel(
+//                    $tblLevel, $tblType, $Level['Name'], $Level['Description']
+//                )
+//                ) {
+//                    return new Success('Die Klassenstufe wurde erfolgreich geändert')
+//                    .new Redirect('/Education/Lesson/Division/Create/LevelDivision', 1);
+//                } else {
+//                    return new Danger('Die Klassenstufe konnte nicht geändert werden')
+//                    .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+//                }
+//            } else {
+//                return new Danger('Die Klassenstufe wurde nicht gefunden')
+//                .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+//            }
+//        }
+//        return $Form;
+//    }
 
     /**
      * @param IFormInterface $Form
@@ -1040,14 +1037,14 @@ class Service extends AbstractService
 
             if ((new Data($this->getBinding()))->destroyDivision($tblDivision)) {
                 return new Success('Die Klassengruppe wurde erfolgreich gelöscht')
-                .new Redirect('/Education/Lesson/Division/Create/LevelDivision', 1);
+                .new Redirect('/Education/Lesson/Division', 1);
             } else {
                 return new Danger('Die Klassengruppe konnte nicht gelöscht werden')
-                .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+                .new Redirect('/Education/Lesson/Division');
             }
         }
         return new Danger('Die Klassengruppe konnte nicht gelöscht werden, da Personen zugeordnet sind')
-        .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+        .new Redirect('/Education/Lesson/Division');
     }
 
     /**

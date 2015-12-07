@@ -225,29 +225,6 @@ class Data extends AbstractData
     /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
-     * @return bool|TblSubjectGroup[]
-     */
-    public function getSubjectGroupByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
-    {
-
-        $TempList = $this->getConnection()->getEntityManager()->getEntity('TblSubjectTeacher')->findBy(array(
-            TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()
-        ));
-
-        $EntityList = array();
-
-        if (!empty ($TempList)) {
-            /** @var TblSubjectTeacher $tblSubjectTeacher */
-            foreach ($TempList as $tblSubjectTeacher) {
-                array_push($EntityList, $tblSubjectTeacher->getTblSubjectGroup());
-            }
-        }
-        return empty($EntityList) ? false : $EntityList;
-    }
-
-    /**
-     * @param TblDivisionSubject $tblDivisionSubject
-     *
      * @return bool|TblSubjectStudent[]
      */
     public function getSubjectStudentByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
