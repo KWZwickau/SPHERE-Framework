@@ -592,4 +592,22 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->removeAddressToCompany($tblToCompany);
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @return array of TblAddress->Id
+     */
+    public function fetchIdAddressAllByPerson( TblPerson $tblPerson )
+    {
+        return (new Data($this->getBinding()))->fetchIdAddressAllByPerson($tblPerson);
+    }
+
+    /**
+     * @param array $IdArray of TblAddress->Id
+     * @return TblAddress[]
+     */
+    public function fetchAddressAllByIdList($IdArray)
+    {
+        return (new Data($this->getBinding()))->fetchAddressAllByIdList($IdArray);
+    }
 }

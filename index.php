@@ -9,6 +9,7 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\APCuHandler;
+use SPHERE\System\Cache\Handler\CouchbaseHandler;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Cache\Handler\OpCacheHandler;
@@ -40,31 +41,13 @@ AutoLoader::getNamespaceAutoLoader('SPHERE', __DIR__ . '/', 'SPHERE');
 AutoLoader::getNamespaceAutoLoader('Markdownify', __DIR__ . '/Library/Markdownify/2.1.6/src');
 AutoLoader::getNamespaceAutoLoader('Faker', __DIR__ . '/System/Faker/Vendor', 'Faker');
 
-///**
-// * Fix: Load Doctrine-Proxy Classes
-// */
-//AutoLoader::getNamespaceAutoLoader('Doctrine\ORM', __DIR__.'/Library/MOC-V/Component/Database/Vendor/Doctrine2ORM/2.5.0/lib');
-//AutoLoader::getNamespaceAutoLoader('Doctrine\Common', __DIR__.'/Library/MOC-V/Component/Database/Vendor/Doctrine2Common/2.5.0/lib');
-//if (false !== ( $Path = realpath( sys_get_temp_dir() ) )) {
-//    $Iterator = new \RecursiveIteratorIterator(
-//        new \RecursiveDirectoryIterator($Path, \RecursiveDirectoryIterator::SKIP_DOTS),
-//        \RecursiveIteratorIterator::CHILD_FIRST
-//    );
-//    /** @var \SplFileInfo $FileInfo */
-//    foreach ($Iterator as $FileInfo) {
-//        if (strpos( $FileInfo->getBasename(), '__CG__SPHERE') === 0 ) {
-//            require_once($FileInfo->getPathname());
-//        }
-//    }
-//}
-
-
 $Main = new Main();
 
 if (false) {
     $CacheConfig = (new ConfigFactory())->createReader(__DIR__ . '/System/Cache/Configuration.ini', new IniReader());
-    (new CacheFactory())->createHandler(new APCuHandler(), $CacheConfig)->clearCache();
+    (new CacheFactory())->createHandler(new CouchbaseHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new MemcachedHandler(), $CacheConfig)->clearCache();
+    (new CacheFactory())->createHandler(new APCuHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new MemoryHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new OpCacheHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new TwigHandler(), $CacheConfig)->clearCache();
@@ -187,4 +170,3 @@ class FakePerson
 //}
 
 $Main->runPlatform();
-

@@ -109,9 +109,9 @@ class Service extends AbstractService
                 $Item['Name'],
                 $Item['Description'],
                 $Item['Price'],
-                $Item['CostUnit'] //,
-//                $Item['Course'],
-//                $Item['ChildRank']
+                $Item['CostUnit'],
+                $Item['Course'],
+                $Item['ChildRank']
             );
             return new Success('Der Artikel wurde erfolgreich angelegt')
             .new Redirect('/Billing/Inventory/Item', 1);
@@ -178,9 +178,9 @@ class Service extends AbstractService
                 $Item['Name'],
                 $Item['Description'],
                 $Item['Price'],
-                $Item['CostUnit'] //,
-//                $Item['Course'],
-//                $Item['ChildRank']
+                $Item['CostUnit'] ,
+                $Item['Course'],
+                $Item['ChildRank']
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')

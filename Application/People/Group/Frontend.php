@@ -24,6 +24,7 @@ use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -115,13 +116,14 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
+                            new Well(
                             Group::useService()->createGroup(
                                 $this->formGroup()
                                     ->appendFormButton(new Primary('Hinzufügen'))
                                     ->setConfirm('Die neue Gruppe wurde noch nicht gespeichert')
                                 , $Group
                             )
-                        )
+                            ))
                     ), new Title('Gruppe hinzufügen')
                 ),
             ))

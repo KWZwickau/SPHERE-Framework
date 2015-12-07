@@ -39,7 +39,7 @@ abstract class Cacheable extends Extension
         $Key = $this->getKeyHash($EntityName, $Id);
 
         $Memory = (new CacheFactory())->createHandler(new MemoryHandler());
-        if (null === ($Entity = $Memory->getValue($Key, $__METHOD__))) {
+        if (!$this->Enabled || null === ($Entity = $Memory->getValue($Key, $__METHOD__))) {
 
             $Cache = self::getCacheSystem();
             $Entity = null;
@@ -133,7 +133,7 @@ abstract class Cacheable extends Extension
         $Key = $this->getKeyHash($EntityName, $Parameter);
 
         $Memory = (new CacheFactory())->createHandler(new MemoryHandler());
-        if (null === ($Entity = $Memory->getValue($Key, $__METHOD__))) {
+        if (!$this->Enabled || null === ($Entity = $Memory->getValue($Key, $__METHOD__))) {
 
             $Cache = self::getCacheSystem();
             $Entity = null;
@@ -169,7 +169,7 @@ abstract class Cacheable extends Extension
         $Key = $this->getKeyHash($EntityName, $Parameter);
 
         $Memory = (new CacheFactory())->createHandler(new MemoryHandler());
-        if (null === ($EntityList = $Memory->getValue($Key, $__METHOD__))) {
+        if (!$this->Enabled || null === ($EntityList = $Memory->getValue($Key, $__METHOD__))) {
 
             $Cache = self::getCacheSystem();
             $EntityList = null;
@@ -201,7 +201,7 @@ abstract class Cacheable extends Extension
         $Key = $this->getKeyHash($EntityName, 'All');
 
         $Memory = (new CacheFactory())->createHandler(new MemoryHandler());
-        if (null === ($EntityList = $Memory->getValue($Key, $__METHOD__))) {
+        if (!$this->Enabled || null === ($EntityList = $Memory->getValue($Key, $__METHOD__))) {
 
             $Cache = self::getCacheSystem();
             $EntityList = null;
@@ -234,7 +234,7 @@ abstract class Cacheable extends Extension
         $Key = $this->getKeyHash($EntityName, $Parameter);
 
         $Memory = (new CacheFactory())->createHandler(new MemoryHandler());
-        if (null === ($Entity = $Memory->getValue($Key, $__METHOD__))) {
+        if (!$this->Enabled || null === ($Entity = $Memory->getValue($Key, $__METHOD__))) {
 
             $Cache = self::getCacheSystem();
             $Entity = null;
