@@ -5,6 +5,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Search\Group\Group;
+use SPHERE\Common\Frontend\Form\Repository\Button\Standard;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -487,7 +488,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )), 12
                         )
                     )),
-                )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                )), new Standard('Auswählen', new Select()))
                 , $Select, '/Reporting/Standard/Person/GroupList')
             .
             ($GroupId !== null ?
