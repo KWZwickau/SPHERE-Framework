@@ -225,6 +225,29 @@ class Data extends AbstractData
     /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
+     * @return bool|TblSubjectGroup[]
+     */
+    public function getSubjectGroupByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        $TempList = $this->getConnection()->getEntityManager()->getEntity('TblSubjectTeacher')->findBy(array(
+            TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()
+        ));
+
+        $EntityList = array();
+
+        if (!empty ($TempList)) {
+            /** @var TblSubjectTeacher $tblSubjectTeacher */
+            foreach ($TempList as $tblSubjectTeacher) {
+                array_push($EntityList, $tblSubjectTeacher->getTblSubjectGroup());
+            }
+        }
+        return empty($EntityList) ? false : $EntityList;
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
      * @return bool|TblSubjectStudent[]
      */
     public function getSubjectStudentByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
@@ -621,8 +644,6 @@ class Data extends AbstractData
     public function removeStudentToDivision(TblDivision $tblDivision, TblPerson $tblPerson)
     {
 
-        var_dump($tblDivision->getId().' - '.$tblPerson->getId());
-
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDivisionStudent')
             ->findOneBy(array(
@@ -946,7 +967,6 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     *
      * @return bool|TblDivisionStudent[]
      */
     public function getDivisionStudentAllByPerson(TblPerson $tblPerson)
@@ -956,5 +976,18 @@ class Data extends AbstractData
             'TblDivisionStudent', array(
                 TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @return int
+     */
+    public function countDivisionStudentAllByDivision(TblDivision $tblDivision)
+    {
+
+        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionStudent',
+            array(TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()));
+
+        return $result ? $result : 0;
     }
 }

@@ -13,11 +13,10 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Corporation\Company\Company;
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\People\Group\Group as PersonGroup;
+use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
 use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Reporting\CheckList\CheckList;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -31,7 +30,7 @@ class TblListObjectList extends Element
 
     const ATTR_TBL_LIST = 'tblList';
     const ATTR_SERVICE_TBL_OBJECT = 'serviceTblObject';
-    const ATTR_SERVICE_TBL_GROUP = 'serviceTblGroup';
+    const ATTR_TBL_OBJECT_TYPE = 'tblObjectType';
 
     /**
      * @Column(type="bigint")
@@ -46,7 +45,7 @@ class TblListObjectList extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblGroup;
+    protected $tblObjectType;
 
     /**
      * @return bool|TblList
@@ -69,32 +68,31 @@ class TblListObjectList extends Element
     }
 
     /**
-     * @return bool|TblCompany|TblPerson
+     * @return bool|Element
      */
     public function getServiceTblObject()
     {
         if (null === $this->serviceTblObject) {
             return false;
         } else {
-            $tblList = $this->getTblList();
-            if ($tblList) {
-                $tblListType = $tblList->getTblListType();
-                if ($tblListType) {
-                    if ($tblListType->getIdentifier() === 'PERSON') {
-                        return Person::useService()->getPersonById($this->serviceTblObject);
-                    } else if ($tblListType->getIdentifier() === 'COMPANY') {
-                        return Company::useService()->getCompanyById($this->serviceTblObject);
-                    }
-                }
+            if ($this->getTblObjectType()->getIdentifier() === 'PERSON') {
+                return Person::useService()->getPersonById($this->serviceTblObject);
+            } elseif ($this->getTblObjectType()->getIdentifier() === 'COMPANY') {
+                return Company::useService()->getCompanyById($this->serviceTblObject);
+            } elseif ($this->getTblObjectType()->getIdentifier() === 'PERSONGROUP') {
+                return PersonGroup::useService()->getGroupById($this->serviceTblObject);
+            } elseif ($this->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
+                return CompanyGroup::useService()->getGroupById($this->serviceTblObject);
+            } elseif ($this->getTblObjectType()->getIdentifier() === 'DIVISIONGROUP') {
+                return Division::useService()->getDivisionById($this->serviceTblObject);
             }
-
         }
 
         return false;
     }
 
     /**
-     * @param TblCompany|TblPerson $serviceTblObject
+     * @param Element $serviceTblObject
      */
     public function setServiceTblObject($serviceTblObject)
     {
@@ -102,35 +100,22 @@ class TblListObjectList extends Element
     }
 
     /**
-     * @return bool|\SPHERE\Application\Corporation\Group\Service\Entity\TblGroup|TblGroup $serviceTblGroup
+     * @return bool|TblObjectType
      */
-    public function getServiceTblGroup()
+    public function getTblObjectType()
     {
-        if (null === $this->serviceTblGroup) {
+        if (null === $this->tblObjectType) {
             return false;
         } else {
-            $tblList = $this->getTblList();
-            if ($tblList) {
-                $tblListType = $tblList->getTblListType();
-                if ($tblListType) {
-                    if ($tblListType->getIdentifier() === 'PERSON') {
-                        return Group::useService()->getGroupById($this->serviceTblGroup);
-                    } else if ($tblListType->getIdentifier() === 'COMPANY') {
-                        return \SPHERE\Application\Corporation\Group\Group::useService()->getGroupById($this->serviceTblGroup);
-                    }
-                }
-            }
-
+            return CheckList::useService()->getObjectTypeById($this->tblObjectType);
         }
-
-        return false;
     }
 
     /**
-     * @param \SPHERE\Application\Corporation\Group\Service\Entity\TblGroup|TblGroup $serviceTblGroup
+     * @param TblObjectType|null $tblObjectType
      */
-    public function setServiceTblGroup($serviceTblGroup)
+    public function setTblObjectType($tblObjectType)
     {
-        $this->serviceTblGroup = (null === $serviceTblGroup ? null : $serviceTblGroup->getId());
+        $this->tblObjectType = (null === $tblObjectType ? null : $tblObjectType->getId());
     }
 }

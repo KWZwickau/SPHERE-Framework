@@ -1154,4 +1154,14 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getDivisionStudentAllByPerson($tblPerson);
     }
 
+    /**
+     * @param TblDivision $tblDivision
+     * @return int
+     */
+    public function countDivisionStudentAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->countDivisionStudentAllByDivision($tblDivision);
+    }
+
 }

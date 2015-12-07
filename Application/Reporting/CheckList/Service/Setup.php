@@ -30,12 +30,12 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $tblListType = $this->setTableListType($Schema);
+        $tblObjectType = $this->setTableObjectType($Schema);
         $tblElementType = $this->setTableElementType($Schema);
-        $tblList = $this->setTableList($Schema, $tblListType);
-        $this->setTableListObjectList($Schema, $tblList);
+        $tblList = $this->setTableList($Schema);
+        $this->setTableListObjectList($Schema, $tblList, $tblObjectType);
         $tblListElementList = $this->setTableListElementList($Schema, $tblList, $tblElementType);
-        $this->setTableListObjectElementList($Schema, $tblList, $tblListElementList);
+        $this->setTableListObjectElementList($Schema, $tblList, $tblListElementList, $tblObjectType);
 
         /**
          * Migration & Protocol
@@ -50,14 +50,14 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableListType(Schema &$Schema)
+    private function setTableObjectType(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblListType');
-        if (!$this->getConnection()->hasColumn('tblListType', 'Name')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblObjectType');
+        if (!$this->getConnection()->hasColumn('tblObjectType', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblListType', 'Identifier')) {
+        if (!$this->getConnection()->hasColumn('tblObjectType', 'Identifier')) {
             $Table->addColumn('Identifier', 'string');
         }
 
@@ -85,10 +85,9 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblListType
      * @return Table
      */
-    private function setTableList(Schema &$Schema, Table $tblListType)
+    private function setTableList(Schema &$Schema)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblList');
@@ -99,28 +98,25 @@ class Setup extends AbstractSetup
             $Table->addColumn('Description', 'string');
         }
 
-        $this->getConnection()->addForeignKey($Table, $tblListType, true);
-
         return $Table;
     }
 
     /**
      * @param Schema $Schema
      * @param Table $tblList
+     * @param Table $tblObjectType
      * @return Table
      */
-    private function setTableListObjectList(Schema &$Schema, Table $tblList)
+    private function setTableListObjectList(Schema &$Schema, Table $tblList, Table $tblObjectType)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblListObjectList');
-        if (!$this->getConnection()->hasColumn('tblListObjectList', 'serviceTblGroup')) {
-            $Table->addColumn('serviceTblGroup', 'bigint', array('notnull' => false));
-        }
         if (!$this->getConnection()->hasColumn('tblListObjectList', 'serviceTblObject')) {
             $Table->addColumn('serviceTblObject', 'bigint', array('notnull' => false));
         }
 
         $this->getConnection()->addForeignKey($Table, $tblList, true);
+        $this->getConnection()->addForeignKey($Table, $tblObjectType, true);
 
         return $Table;
     }
@@ -149,18 +145,23 @@ class Setup extends AbstractSetup
      * @param Schema $Schema
      * @param Table $tblList
      * @param Table $tblListElementList
+     * @param Table $tblObjectType
      * @return Table
      */
-    private function setTableListObjectElementList(Schema &$Schema, Table $tblList, Table $tblListElementList)
+    private function setTableListObjectElementList(Schema &$Schema, Table $tblList, Table $tblListElementList, Table $tblObjectType)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblListObjectElementList');
         if (!$this->getConnection()->hasColumn('tblListObjectElementList', 'serviceTblObject')) {
             $Table->addColumn('serviceTblObject', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblListObjectElementList', 'Value')) {
+            $Table->addColumn('Value', 'string', array('notnull' => false));
+        }
 
         $this->getConnection()->addForeignKey($Table, $tblList, true);
         $this->getConnection()->addForeignKey($Table, $tblListElementList, true);
+        $this->getConnection()->addForeignKey($Table, $tblObjectType, true);
 
         return $Table;
     }

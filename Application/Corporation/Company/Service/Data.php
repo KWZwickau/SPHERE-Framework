@@ -42,8 +42,8 @@ class Data extends AbstractData
 
     /**
      * @param TblCompany $tblCompany
-     * @param string     $Name
-     * @param string     $Description
+     * @param string $Name
+     * @param string $Description
      *
      * @return TblCompany
      */
@@ -94,5 +94,25 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCompany', $Id);
+    }
+
+    /**
+     * @param string $Description
+     *
+     * @return bool|TblCompany
+     */
+    public function getCompanyByDescription($Description)
+    {
+
+        $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCompany',
+            array(TblCompany::ATTR_DESCRIPTION => $Description));
+
+        if ($list){
+            if (count($list) === 1){
+                return $list[0];
+            }
+        }
+
+        return false;
     }
 }

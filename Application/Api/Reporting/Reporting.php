@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Api\Reporting;
 
+use SPHERE\Application\Api\Reporting\CheckList\CheckList;
 use SPHERE\Application\Api\Reporting\Custom\Custom;
 use SPHERE\Application\Api\Reporting\Standard\Standard;
 use SPHERE\Application\IApplicationInterface;
@@ -21,5 +22,6 @@ class Reporting implements IApplicationInterface
             Custom::registerModule();
         }
         Standard::registerModule();
+        CheckList::registerModule();
     }
 }
