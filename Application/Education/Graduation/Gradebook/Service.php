@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGro
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Setup;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -48,6 +49,17 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblTestType
+     */
+    public function getTestTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getTestTypeById($Id);
     }
 
     /**

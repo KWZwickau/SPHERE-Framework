@@ -18,6 +18,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGro
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
@@ -35,7 +36,8 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-
+        $this->createTestType('Test', 'TEST');
+        $this->createTestType('Task', 'TASK');
     }
 
     /**
@@ -267,6 +269,31 @@ class Data extends AbstractData
 
         $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblTest')->findAll();
         return (empty($EntityList) ? false : $EntityList);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblTestType
+     */
+    public function getTestTypeById($Id)
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTestType', $Id);
+        return (null === $Entity ? false : $Entity);
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return bool|TblTestType
+     */
+    public function getTestTypeByIdentifier($Identifier)
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblTestType')
+            ->findOneBy(array(TblTestType::ATTR_IDENTIFIER => $Identifier));
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -772,5 +799,30 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param $Name
+     * @param $Identifier
+     * @return null|TblGradeType
+     */
+    public function createTestType($Name, $Identifier)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblTestType')
+            ->findOneBy(array(TblTestType::ATTR_IDENTIFIER => $Identifier));
+
+        if (null === $Entity) {
+            $Entity = new TblTestType();
+            $Entity->setName($Name);
+            $Entity->setIdentifier(strtoupper($Identifier));
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 }

@@ -32,9 +32,10 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $tblGradeType = $this->setTableGradeType($Schema);
-        $tblTest = $this->setTableTest($Schema, $tblGradeType);
-        $this->setTableGrade($Schema, $tblGradeType, $tblTest);
+        $tblTestType = $this->setTableTestType($Schema);
+        $tblGradeType = $this->setTableGradeType($Schema, $tblTestType);
+        $tblTest = $this->setTableTest($Schema, $tblGradeType, $tblTestType);
+        $this->setTableGrade($Schema, $tblGradeType, $tblTest, $tblTestType);
 
         $tblScoreRule = $this->setTableScoreRule($Schema);
         $tblScoreCondition = $this->setTableScoreCondition($Schema);
@@ -52,13 +53,32 @@ class Setup extends AbstractSetup
         return $this->getConnection()->getProtocol($Simulate);
     }
 
-
     /**
      * @param Schema $Schema
      *
      * @return Table
      */
-    private function setTableGradeType(Schema &$Schema)
+    private function setTableTestType(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblTestType');
+        if (!$this->getConnection()->hasColumn('tblTestType', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblTestType', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblTestType
+     *
+     * @return Table
+     */
+    private function setTableGradeType(Schema &$Schema, Table $tblTestType)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblGradeType');
@@ -75,16 +95,19 @@ class Setup extends AbstractSetup
             $Table->addColumn('IsHighlighted', 'boolean');
         }
 
+        $this->getConnection()->addForeignKey($Table, $tblTestType, true);
+
         return $Table;
     }
 
     /**
      * @param Schema $Schema
      * @param Table $tblGradeType
+     * @param Table $tblTestType
      *
      * @return Table
      */
-    private function setTableTest(Schema &$Schema, Table $tblGradeType)
+    private function setTableTest(Schema &$Schema, Table $tblGradeType, Table $tblTestType)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblTest');
@@ -111,6 +134,7 @@ class Setup extends AbstractSetup
         }
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
+        $this->getConnection()->addForeignKey($Table, $tblTestType, true);
 
         return $Table;
     }
@@ -119,10 +143,11 @@ class Setup extends AbstractSetup
      * @param Schema $Schema
      * @param Table $tblGradeType
      * @param Table $tblTest
+     * @param Table $tblTestType
      *
      * @return Table
      */
-    private function setTableGrade(Schema &$Schema, Table $tblGradeType, Table $tblTest)
+    private function setTableGrade(Schema &$Schema, Table $tblGradeType, Table $tblTest, Table $tblTestType)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblGrade');
@@ -147,6 +172,7 @@ class Setup extends AbstractSetup
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
         $this->getConnection()->addForeignKey($Table, $tblTest, true);
+        $this->getConnection()->addForeignKey($Table, $tblTestType, true);
 
         return $Table;
     }

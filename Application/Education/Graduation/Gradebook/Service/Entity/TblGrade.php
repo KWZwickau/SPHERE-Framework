@@ -33,6 +33,7 @@ class TblGrade extends Element
 
     const ATTR_TBL_GRADE_TYPE = 'tblGradeType';
     const ATTR_TBL_TEST = 'tblTest';
+    const ATTR_TBL_TEST_TYPE = 'tblTestType';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_SERVICE_TBL_PERIOD = 'serviceTblPeriod';
@@ -57,6 +58,11 @@ class TblGrade extends Element
      * @Column(type="bigint")
      */
     protected $tblTest;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblTestType;
 
     /**
      * @Column(type="bigint")
@@ -148,6 +154,26 @@ class TblGrade extends Element
     public function setTblTest($tblTest)
     {
         $this->tblTest = (null === $tblTest ? null : $tblTest->getId());
+    }
+
+    /**
+     * @return bool|TblTestType
+     */
+    public function getTblTestType()
+    {
+        if (null === $this->tblTestType) {
+            return false;
+        } else {
+            return Gradebook::useService()->getTestTypeById($this->tblTestType);
+        }
+    }
+
+    /**
+     * @param TblTestType|null $tblTestType
+     */
+    public function setTblTestType($tblTestType)
+    {
+        $this->tblTestType = (null === $tblTestType ? null : $tblTestType->getId());
     }
 
     /**
