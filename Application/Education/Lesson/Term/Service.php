@@ -272,10 +272,11 @@ class Service extends AbstractService
             $Stage->setError('Year[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         } else {
-            if ($this->getYearByName($Year['Name'])) {
-                $Stage->setError('Year[Name]', 'Dieser Name wird bereits verwendet');
-                $Error = true;
-            }
+            if ($TempYear = $this->getYearByName($Year['Name']))
+                if ($TempYear->getId() !== $tblYear->getId()) {
+                    $Stage->setError('Year[Name]', 'Dieser Name wird bereits verwendet');
+                    $Error = true;
+                }
         }
 
         if (!$Error) {
