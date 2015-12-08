@@ -372,6 +372,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson   $tblPerson
+     *
+     * @return bool|TblDivisionTeacher
+     */
+    public function getDivisionTeacherByDivisionAndTeacher(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson);
+    }
+
+    /**
      * @param TblYear  $tblYear
      * @param TblLevel $tblLevel
      * @param string   $Name
@@ -517,13 +529,14 @@ class Service extends AbstractService
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
+     * @param             $Description
      *
      * @return null|object|TblDivisionTeacher
      */
-    public function addDivisionTeacher(TblDivision $tblDivision, TblPerson $tblPerson)
+    public function addDivisionTeacher(TblDivision $tblDivision, TblPerson $tblPerson, $Description)
     {
 
-        return (new Data($this->getBinding()))->addDivisionTeacher($tblDivision, $tblPerson);
+        return (new Data($this->getBinding()))->addDivisionTeacher($tblDivision, $tblPerson, $Description);
     }
 
     /**

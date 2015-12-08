@@ -51,6 +51,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -164,7 +165,7 @@ class Frontend extends Extension implements IFrontendInterface
                                       'StudentList' => 'Schüler',
                                       'TeacherList' => 'Klassenlehrer',
                                       'SubjectList' => 'Fächer',
-                                      'Option'      => 'Option',
+                                      'Option'      => '',
                                 )
                             )
                         )
@@ -402,18 +403,18 @@ class Frontend extends Extension implements IFrontendInterface
                                         array('FirstName' => 'Vorname',
                                               'LastName'  => 'Nachname',
 //                                              'Description' => 'Beschreibung',
-                                              'Option'    => 'Optionen'))
+                                              'Option'    => ''))
                                 )
                             ), 6),
                             new LayoutColumn(array(
                                 new Title('Verfügbar', 'Schüler'),
                                 ( empty( $tblStudentAvailable )
-                                    ? new \SPHERE\Common\Frontend\Message\Repository\Info('Keine weiteren Schüler verfügbar')
+                                    ? new Info('Keine weiteren Schüler verfügbar')
                                     : new TableData($tblStudentAvailable, null,
                                         array('FirstName' => 'Vorname',
                                               'LastName'  => 'Nachname',
 //                                              'Description' => 'Beschreibung',
-                                              'Option'    => 'Optionen'))
+                                              'Option'    => ''))
                                 )
                             ), 6)
                         ))
@@ -433,10 +434,11 @@ class Frontend extends Extension implements IFrontendInterface
      * @param      $Id
      * @param null $TeacherId
      * @param null $Remove
+     * @param null $Description
      *
      * @return Stage
      */
-    public function frontendAddTeacher($Id, $TeacherId = null, $Remove = null)
+    public function frontendAddTeacher($Id, $TeacherId = null, $Remove = null, $Description = null)
     {
 
         $tblDivision = Division::useService()->getDivisionById($Id);
@@ -461,7 +463,7 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                     return $Stage;
                 } else {
-                    Division::useService()->addDivisionTeacher($tblDivision, $tblPerson);
+                    Division::useService()->addDivisionTeacher($tblDivision, $tblPerson, $Description);
                     $Stage->setContent(
                         new Redirect('/Education/Lesson/Division/Teacher/Add', 0,
                             array('Id' => $Id))
@@ -490,7 +492,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             /** @noinspection PhpUnusedParameterInspection */
             if (is_array($tblDivisionTeacherActive)) {
-                array_walk($tblDivisionTeacherActive, function (TblPerson &$Entity) use ($Id) {
+                array_walk($tblDivisionTeacherActive, function (TblPerson &$Entity) use ($Id, $tblDivision) {
 
                     /** @noinspection PhpUndefinedFieldInspection */
                     $Entity->Option = new PullRight(
@@ -501,6 +503,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Remove'    => true
                             ))
                     );
+                    $Entity->Description = Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $Entity)->getDescription();
                 });
             }
 
@@ -508,14 +511,24 @@ class Frontend extends Extension implements IFrontendInterface
             if (isset( $tblDivisionTeacherAll ) && !empty( $tblDivisionTeacherAll )) {
                 array_walk($tblDivisionTeacherAll, function (TblPerson &$Entity) use ($Id) {
 
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $Entity->Option = new PullRight(
-                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Education/Lesson/Division/Teacher/Add', new Plus(),
-                            array(
-                                'Id'        => $Id,
-                                'TeacherId' => $Entity->getId()
+                    $Entity->Options = (new Form(
+                        new FormGroup(
+                            new FormRow(array(
+                                new FormColumn(
+                                    new TextField('Description', 'z.B.: Stellvertreter', '', new Person()
+                                    )
+                                    , 7),
+                                new FormColumn(
+                                    new Primary('Hinzufügen',
+                                        new Plus())
+                                    , 5)
                             ))
-                    );
+                        ), null,
+                        '/Education/Lesson/Division/Teacher/Add',
+                        array(
+                            'Id'        => $Id,
+                            'TeacherId' => $Entity->getId())
+                    ))->__toString();
                 });
             }
 
@@ -531,10 +544,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 ( empty( $tblDivisionTeacherActive )
                                     ? new Warning('Keine Lehrer zugewiesen')
                                     : new TableData($tblDivisionTeacherActive, null,
-                                        array('FirstName' => 'Vorname',
-                                              'LastName'  => 'Nachname',
-//                                              'Description' => 'Beschreibung',
-                                              'Option'    => 'Optionen'))
+                                        array('FirstName'   => 'Vorname',
+                                              'LastName'    => 'Nachname',
+                                              'Description' => 'Beschreibung',
+                                              'Option'      => ''))
                                 )
                             ), 6),
                             new LayoutColumn(array(
@@ -545,7 +558,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array('FirstName' => 'Vorname',
                                               'LastName'  => 'Nachname',
 //                                              'Description' => 'Beschreibung',
-                                              'Option'    => 'Optionen'))
+                                              'Options'   => 'Beschreibung'))
                                 )
                             ), 6)
                         ))
@@ -671,7 +684,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array('Acronym'     => 'Kürzel',
                                               'Name'        => 'Fach',
                                               'Description' => 'Beschreibung',
-                                              'Option'      => 'Optionen'))
+                                              'Option'      => ''))
                                 )
                             ), 6),
                             new LayoutColumn(array(
@@ -682,7 +695,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array('Acronym'     => 'Kürzel',
                                               'Name'        => 'Fach',
                                               'Description' => 'Beschreibung',
-                                              'Option'      => 'Optionen'))
+                                              'Option'      => ''))
                                 )
                             ), 6)
                         ))
@@ -1332,15 +1345,16 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $tblDivisionStudentList = array();
             }
-            $tblDivisionTeacherList = Division::useService()->getTeacherAllByDivision($tblDivision);
-            if ($tblDivisionTeacherList) {
+            $tblPersonList = Division::useService()->getTeacherAllByDivision($tblDivision);
+            if ($tblPersonList) {
 
-                foreach ($tblDivisionTeacherList as &$tblDivisionTeacher) {
-                    $tblDivisionTeacher = new Panel('Klassenlehrer', $tblDivisionTeacher->getFullName(), Panel::PANEL_TYPE_INFO);
+                foreach ($tblPersonList as &$tblPerson) {
+                    $Description = Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson)->getDescription();
+                    $tblPerson = new Panel('Klassenlehrer', $tblPerson->getFullName().' '.new Muted($Description), Panel::PANEL_TYPE_INFO);
                 }
             } else {
 
-                $tblDivisionTeacherList = new Warning('Kein Klassenlehrer festgelegt');
+                $tblPersonList = new Warning('Kein Klassenlehrer festgelegt');
             }
 
 //            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
@@ -1654,7 +1668,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     : new Warning('Keine Schüer der Klasse zugewiesen') )
                             ,
                             ), 6),
-                            new LayoutColumn($tblDivisionTeacherList, 5)
+                            new LayoutColumn($tblPersonList, 5)
                         )), new Title($TitleClass)
                     )
                 ).

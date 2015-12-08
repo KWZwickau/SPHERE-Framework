@@ -309,6 +309,22 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson   $tblPerson
+     *
+     * @return bool|TblDivisionTeacher
+     */
+    public function getDivisionTeacherByDivisionAndTeacher(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+
+        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher', array(
+            TblDivisionTeacher::ATTR_TBL_DIVISION       => $tblDivision->getId(),
+            TblDivisionTeacher::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+        ));
+        return ( $Entity ? $Entity : false );
+    }
+
+    /**
      * @param string $Name
      * @param string $Description
      *
@@ -502,10 +518,11 @@ class Data extends AbstractData
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
+     * @param null        $Description
      *
      * @return null|object|TblDivisionTeacher
      */
-    public function addDivisionTeacher(TblDivision $tblDivision, TblPerson $tblPerson)
+    public function addDivisionTeacher(TblDivision $tblDivision, TblPerson $tblPerson, $Description = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -518,6 +535,7 @@ class Data extends AbstractData
             $Entity = new TblDivisionTeacher();
             $Entity->setTblDivision($tblDivision);
             $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }

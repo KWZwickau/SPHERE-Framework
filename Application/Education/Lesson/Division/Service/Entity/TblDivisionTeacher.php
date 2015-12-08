@@ -31,6 +31,10 @@ class TblDivisionTeacher extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPerson;
+    /**
+     * @Column(type="string")
+     */
+    protected $Description;
 
     /**
      * @return bool|TblDivision
@@ -74,5 +78,23 @@ class TblDivisionTeacher extends Element
     {
 
         $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription($Description)
+    {
+
+        $this->Description = $Description;
     }
 }
