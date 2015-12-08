@@ -97,7 +97,7 @@ class Term implements IModuleInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Dashboard', 'Schuljahr');
+        $Stage = new Stage('Schuljahr', 'Dashboard');
 
         $Stage->addButton(new Standard('Schuljahr', __NAMESPACE__.'\Create\Year', new Calendar(), null, 'erstellen / bearbeiten'));
         $Stage->addButton(new Standard('Zeitraum', __NAMESPACE__.'\Create\Period', new Time(), null, 'erstellen / bearbeiten'));

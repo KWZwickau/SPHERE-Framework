@@ -944,6 +944,7 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     *
      * @return bool|TblDivisionStudent[]
      */
     public function getDivisionStudentAllByPerson(TblPerson $tblPerson)
@@ -957,6 +958,7 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
+     *
      * @return int
      */
     public function countDivisionStudentAllByDivision(TblDivision $tblDivision)

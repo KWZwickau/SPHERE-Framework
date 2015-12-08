@@ -93,7 +93,7 @@ class Subject implements IModuleInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Dashboard', 'Fächer');
+        $Stage = new Stage('Fächer', 'Dashboard');
 
         $Stage->addButton(new Standard('Fächer', __NAMESPACE__.'\Create\Subject', new Education(), null,
             'erstellen / bearbeiten'));

@@ -62,7 +62,7 @@ class Division implements IModuleInterface
             __NAMESPACE__.'/SubjectTeacher/Add', __NAMESPACE__.'\Frontend::frontendAddSubjectTeacher'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Show', __NAMESPACE__.'\Frontend::frontendShowDivision'
+            __NAMESPACE__.'/Show', __NAMESPACE__.'\Frontend::frontendDivisionShow'
         ));
     }
 

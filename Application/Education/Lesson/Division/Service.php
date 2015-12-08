@@ -1155,6 +1155,7 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
+     *
      * @return int
      */
     public function countDivisionStudentAllByDivision(TblDivision $tblDivision)
