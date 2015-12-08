@@ -977,7 +977,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
-                                    new Title('Ausgewählte Zensuren-Gruppen'),
+                                    new Title('Ausgewählte', 'Zensuren-Typen'),
                                     new TableData($tblScoreGroupGradeTypeListByGroup, null,
                                         array(
                                             'Name' => 'Name',
@@ -988,7 +988,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ), 6
                                 ),
                                 new LayoutColumn(array(
-                                    new Title('Verfügbare Zensuren-Gruppen'),
+                                    new Title('Verfügbare', 'Zensuren-Typen'),
                                     new TableData($tblGradeTypeAll, null,
                                         array(
                                             'Name' => 'Name',
@@ -1136,7 +1136,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
-                                    new Title('Ausgewählte Zensuren-Gruppen'),
+                                    new Title('Ausgewählte', 'Zensuren-Gruppen'),
                                     new TableData($tblScoreConditionGroupListByCondition, null,
                                         array(
                                             'Name' => 'Name',
@@ -1146,7 +1146,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ), 6
                                 ),
                                 new LayoutColumn(array(
-                                    new Title('Verfügbare Zensuren-Gruppen'),
+                                    new Title('Verfügbare', 'Zensuren-Gruppen'),
                                     new TableData($tblScoreGroupAll, null,
                                         array(
                                             'Name' => 'Name',
