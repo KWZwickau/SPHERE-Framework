@@ -1052,7 +1052,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array('Name'        => 'Fach',
                                               'GroupName'   => 'Gruppe',
                                               'Description' => 'Beschreibung',
-                                              'Option'      => 'Optionen',), false)
+                                              'Option'      => '',), false)
                                 )
                             ), new Title(new Listing().' Übersicht')
                         )

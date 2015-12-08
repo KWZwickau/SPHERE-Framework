@@ -77,7 +77,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Acronym'     => 'Kürzel',
                                 'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
-                                'Option'      => 'Optionen',
+                                'Option'      => '',
                             ))
                         )
                     ), new Title(new Listing().' Übersicht')
@@ -229,7 +229,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($tblCategoryAll, null, array(
                                 'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
-                                'Option'      => 'Optionen',
+                                'Option'      => '',
                             ))
                         )
                     ), new Title(new Listing().' Übersicht')

@@ -84,7 +84,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($tblYearAll, null, array(
                                 'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
-                                'Option'      => 'Option',
+                                'Option'      => '',
                             ))
                         )
                     ), new Title(new Listing().' Übersicht')
@@ -188,7 +188,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
                                 'Period'      => 'Zeitraum',
-                                'Option'      => 'Optionen',
+                                'Option'      => '',
                             ))
                         )
                     ), new Title(new Listing().' Übersicht')
@@ -357,7 +357,7 @@ class Frontend extends Extension implements IFrontendInterface
                                               'FromDate'    => 'Von',
                                               'ToDate'      => 'Bis',
                                               'Description' => 'Beschreibung',
-                                              'Option'      => 'Optionen'))
+                                              'Option'      => ''))
                                 )
                             ), 6),
                             new LayoutColumn(array(
@@ -369,7 +369,7 @@ class Frontend extends Extension implements IFrontendInterface
                                               'FromDate'    => 'Von',
                                               'ToDate'      => 'Bis',
                                               'Description' => 'Beschreibung',
-                                              'Option'      => 'Optionen'))
+                                              'Option'      => ''))
                                 )
                             ), 6)
                         ))
