@@ -41,7 +41,6 @@ use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -75,7 +74,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Zensuren', 'Zensuren-Typen');
 
-        $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAll();
+        $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAllWhereTest();
         if ($tblGradeTypeAll) {
             foreach ($tblGradeTypeAll as $tblGradeType) {
                 $tblGradeType->DisplayName = $tblGradeType->getIsHighlighted()
@@ -104,7 +103,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             (new Accordion())->addItem(
                                 (new Info(new Bold(new Plus() . ' Zensuren-Typ anlegen')))->__toString(),
-                                new Well(Gradebook::useService()->createGradeType($Form, $GradeType, true)), $IsOpen)
+                                new Well(Gradebook::useService()->createGradeTypeWhereTest($Form, $GradeType, true)), $IsOpen)
                         ),
                         new LayoutColumn(array(
                             new TableData($tblGradeTypeAll, null, array(
@@ -147,7 +146,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->savePost();
             }
 
-            $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAll();
+            $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAllWhereTest();
             if ($tblGradeTypeAll) {
                 foreach ($tblGradeTypeAll as $tblGradeType) {
                     $name = $tblGradeType->getId() === $Id ? new Info($tblGradeType->getName()) : $tblGradeType->getName();
@@ -273,7 +272,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnSecondList[] = new LayoutColumn(new Header(' '), 2);
                 foreach ($tblPeriodList as $tblPeriod) {
                     if ($tblStudentList) {
-                        $gradeList = Gradebook::useService()->getGradesByStudentAndSubjectAndPeriod($tblStudentList[0],
+                        $gradeList = Gradebook::useService()->getGradesByStudentAndSubjectAndPeriodWhereTest($tblStudentList[0],
                             $tblSubject, $tblPeriod);
                         if ($gradeList) {
                             $columnSubList = array();
@@ -319,7 +318,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Container($tblPerson->getFullName() . '   ' . new Bold('&#216; ' . $totalAverage))
                             , 2);
                         foreach ($tblPeriodList as $tblPeriod) {
-                            $gradeList = Gradebook::useService()->getGradesByStudentAndSubjectAndPeriod($tblPerson,
+                            $gradeList = Gradebook::useService()->getGradesByStudentAndSubjectAndPeriodWhereTest($tblPerson,
                                 $tblSubject, $tblPeriod);
                             if ($gradeList) {
                                 $columnSubList = array();
@@ -415,7 +414,7 @@ class Frontend extends Extension implements IFrontendInterface
             new Standard('Test anlegen', '/Education/Graduation/Gradebook/Test/Create', new Plus())
         );
 
-        $tblTestList = Gradebook::useService()->getTestAll();
+        $tblTestList = Gradebook::useService()->getTestAllWhereTest();
         if ($tblTestList) {
             array_walk($tblTestList, function (TblTest &$tblTest) {
                 $tblDivision = $tblTest->getServiceTblDivision();
@@ -475,7 +474,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Form = $this->formTest()
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-        $Stage->setContent(Gradebook::useService()->createTest($Form, $Test));
+        $Stage->setContent(Gradebook::useService()->createTestWhereTest($Form, $Test));
 
         return $Stage;
     }
@@ -485,7 +484,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function formTest()
     {
-        $tblGradeTypeList = Gradebook::useService()->getGradeTypeAll();
+        $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllWhereTest();
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblSubjectAll = Subject::useService()->getSubjectAll();
         $tblPeriodList = Term::useService()->getPeriodAll();
@@ -917,7 +916,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(new Warning('Die Zensuren-Gruppe konnte nicht abgerufen werden'));
             } else {
                 $tblScoreGroupGradeTypeListByGroup = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup);
-                $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAll();
+                $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAllWhereTest();
                 $tblGradeTypeAllByGroup = array();
                 if ($tblScoreGroupGradeTypeListByGroup) {
                     /** @var TblScoreGroupGradeTypeList $tblScoreGroupGradeType */
