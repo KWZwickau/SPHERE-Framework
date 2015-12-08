@@ -103,7 +103,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             (new Accordion())->addItem(
                                 (new Info(new Bold(new Plus() . ' Zensuren-Typ anlegen')))->__toString(),
-                                new Well(Gradebook::useService()->createGradeTypeWhereTest($Form, $GradeType, true)), $IsOpen)
+                                new Well(Gradebook::useService()->createGradeTypeWhereTest($Form, $GradeType, true)),
+                                $IsOpen)
                         ),
                         new LayoutColumn(array(
                             new TableData($tblGradeTypeAll, null, array(
@@ -229,8 +230,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $Stage = new Stage('Zensuren', 'Notenbuch');
 
-        // ToDo Johk Gesamtdurchschnitt der Schüler
-
         $tblDivisionAll = Division::useService()->getDivisionAll();
         $tblSubjectAll = Subject::useService()->getSubjectAll();
         $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
@@ -256,10 +255,11 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
             $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
 
+            $gradePositions = array();
+
             $columnList[] = new LayoutColumn(new Title(new Bold('Schüler')), 2);
             if ($tblPeriodList) {
                 $width = floor(10 / count($tblPeriodList));
-                $count = 1;
                 foreach ($tblPeriodList as $tblPeriod) {
                     $columnList[] = new LayoutColumn(
                         new Title(new Bold($tblPeriod->getName()))
@@ -277,7 +277,9 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($gradeList) {
                             $columnSubList = array();
                             $columnSecondSubList = array();
+                            $pos = 0;
                             foreach ($gradeList as $grade) {
+                                $gradePositions[$tblPeriod->getId()][$pos++] = $grade->getTblTest()->getId();
                                 $columnSubList[] = new LayoutColumn(
                                     new Header(
                                         $grade->getTblGradeType()->getIsHighlighted()
@@ -292,7 +294,6 @@ class Frontend extends Extension implements IFrontendInterface
                                         $grade->getTblGradeType()->getIsHighlighted()
                                             ? new Bold($date) : $date)
                                     , 1);
-                                $count++;
                             }
                             $columnSubList[] = new LayoutColumn(new Header(new Bold('&#216;')), 1);
                             $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
@@ -310,24 +311,35 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if ($tblStudentList) {
                     foreach ($tblStudentList as $tblPerson) {
-                        $count = 1;
                         $columnList = array();
                         $totalAverage = Gradebook::useService()->calcStudentGrade($tblPerson, $tblSubject,
                             $tblScoreCondition, null, $tblDivision);
                         $columnList[] = new LayoutColumn(
-                            new Container($tblPerson->getFullName() . '   ' . new Bold('&#216; ' . $totalAverage))
+                            new Container($tblPerson->getFirstName() . ' ' . $tblPerson->getFirstName()
+                                . ' ' . new Bold('&#216; ' . $totalAverage))
                             , 2);
                         foreach ($tblPeriodList as $tblPeriod) {
                             $gradeList = Gradebook::useService()->getGradesByStudentAndSubjectAndPeriodWhereTest($tblPerson,
                                 $tblSubject, $tblPeriod);
                             if ($gradeList) {
                                 $columnSubList = array();
-                                foreach ($gradeList as $grade) {
-                                    $columnSubList[] = new LayoutColumn(
-                                        new Container($grade->getTblGradeType()->getIsHighlighted()
-                                            ? new Bold($grade->getGrade()) : $grade->getGrade())
-                                        , 1);
-                                    $count++;
+                                foreach ($gradePositions[$tblPeriod->getId()] as $pos => $testId) {
+                                    $hasFound = false;
+                                    foreach ($gradeList as $grade) {
+                                        if ($testId === $grade->getTblTest()->getId()){
+                                            $columnSubList[] = new LayoutColumn(
+                                                new Container($grade->getTblGradeType()->getIsHighlighted()
+                                                    ? new Bold($grade->getGrade()) : $grade->getGrade())
+                                                , 1);
+                                            $hasFound = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!$hasFound){
+                                        $columnSubList[] = new LayoutColumn(
+                                            new Container(' '), 1
+                                        );
+                                    }
                                 }
 
                                 /*

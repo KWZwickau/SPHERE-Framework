@@ -784,7 +784,6 @@ class Service extends AbstractService
                             if (($tblScoreGroupGradeTypeListByGroup
                                 = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup->getTblScoreGroup()))
                             ) {
-
                                 foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeTypeList) {
                                     if ($tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()) {
                                         if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
@@ -799,8 +798,6 @@ class Service extends AbstractService
                             }
                         }
                     }
-
-
                 }
             }
 
