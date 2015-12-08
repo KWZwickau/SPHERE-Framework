@@ -79,7 +79,7 @@ class Service extends AbstractService
      * @param bool $IsOpen
      * @return IFormInterface|string
      */
-    public function createGradeTypeWhereTest(IFormInterface $Stage = null, $GradeType, $IsOpen = false)
+    public function createGradeTypeWhereTest(IFormInterface $Stage = null, $GradeType)
     {
 
         /**
@@ -108,7 +108,7 @@ class Service extends AbstractService
                 $this->getTestTypeByIdentifier('TEST')
             );
             return new Stage('Der Zensuren-Typ ist erfasst worden')
-            . new Redirect('/Education/Graduation/Gradebook/GradeType', 0, array('IsOpen' => $IsOpen));
+            . new Redirect('/Education/Graduation/Gradebook/GradeType', 0);
         }
 
         return $Stage;
