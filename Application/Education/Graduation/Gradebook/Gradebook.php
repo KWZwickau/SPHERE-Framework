@@ -22,15 +22,15 @@ class Gradebook implements IModuleInterface
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '\GradeType'), new Link\Name('Zensuren-Typen'),
+            new Link(new Link\Route(__NAMESPACE__ . '\GradeType'), new Link\Name('Zensuren-Typ'),
                 new Link\Icon(new Tag()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '\Score'), new Link\Name('Zensuren-Berechnung'),
+            new Link(new Link\Route(__NAMESPACE__ . '\Score'), new Link\Name('Berechnungsvorschrift'),
                 new Link\Icon(new Book()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '\Test'), new Link\Name('Test'),
+            new Link(new Link\Route(__NAMESPACE__ . '\Test'), new Link\Name('Leistungsermittlung'),
                 new Link\Icon(new Document()))
         );
         Main::getDisplay()->addModuleNavigation(
@@ -43,9 +43,8 @@ class Gradebook implements IModuleInterface
                 __NAMESPACE__ . '\Frontend::frontendGradeType')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\GradeType\Create',
-                __NAMESPACE__ . '\Frontend::frontendCreateGradeType')
-                ->setParameterDefault('GradeType', null)
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\GradeType\Edit',
+                __NAMESPACE__ . '\Frontend::frontendEditGradeType')
         );
 
         Main::getDispatcher()->registerRoute(

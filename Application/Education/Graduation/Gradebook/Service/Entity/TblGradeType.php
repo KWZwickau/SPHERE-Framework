@@ -8,11 +8,11 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook\Service\Entity;
 
-
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -25,6 +25,7 @@ class TblGradeType extends Element
 
     const ATTR_NAME = 'Name';
     const ATTR_CODE = 'Code';
+    const ATTR_TBL_TEST_TYPE = 'tblTestType';
 
     /**
      * @Column(type="string")
@@ -45,6 +46,11 @@ class TblGradeType extends Element
      * @Column(type="boolean")
      */
     protected $IsHighlighted;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblTestType;
 
     /**
      * @return string
@@ -108,5 +114,25 @@ class TblGradeType extends Element
     public function setIsHighlighted($IsHighlighted)
     {
         $this->IsHighlighted = $IsHighlighted;
+    }
+
+    /**
+     * @return bool|TblTestType
+     */
+    public function getTblTestType()
+    {
+        if (null === $this->tblTestType) {
+            return false;
+        } else {
+            return Gradebook::useService()->getTestTypeById($this->tblTestType);
+        }
+    }
+
+    /**
+     * @param TblTestType|null $tblTestType
+     */
+    public function setTblTestType($tblTestType)
+    {
+        $this->tblTestType = (null === $tblTestType ? null : $tblTestType->getId());
     }
 }
