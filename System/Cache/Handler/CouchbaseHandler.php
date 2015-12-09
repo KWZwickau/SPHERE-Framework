@@ -6,6 +6,7 @@ use SPHERE\System\Cache\CacheStatus;
 use SPHERE\System\Config\ConfigContainer;
 use SPHERE\System\Config\Reader\ReaderInterface;
 use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Extension\Repository\Debugger;
 
@@ -18,9 +19,11 @@ class CouchbaseHandler extends AbstractHandler implements HandlerInterface
 {
 
     /** @var null|\CouchbaseCluster $Connection */
-    private $Connection = null;
+    public $Connection = null;
     /** @var null|ConfigContainer $Config */
     private $Config = null;
+    /** @var bool $isAvailable */
+    private $isAvailable = true;
 
     /**
      * @param                 $Name
@@ -41,13 +44,14 @@ class CouchbaseHandler extends AbstractHandler implements HandlerInterface
                 $Host = $Value->getContainer('Host');
                 if ($Host) {
                     $this->Connection = new \CouchbaseCluster('couchbase://'.(string)$Host);
+                    $this->isAvailable = false;
                     $this->setValue('CheckRunningStatus', true);
-                    if (true === $this->getValue('CheckRunningStatus')) {
-                        $this->Connection->openBucket('default')->remove('CheckRunningStatus');
+                    if ($this->getValue('CheckRunningStatus')) {
+                        $this->isAvailable = true;
                         return $this;
                     } else {
                         (new DebuggerFactory())->createLogger(new ErrorLogger())
-                            ->addLog(__METHOD__.' Error: Server not available -> Fallback');
+                            ->addLog(__METHOD__.' Error: Server not available -> Fallback to Memcached');
                     }
                 } else {
                     (new DebuggerFactory())->createLogger(new ErrorLogger())
@@ -80,28 +84,66 @@ class CouchbaseHandler extends AbstractHandler implements HandlerInterface
     public function setValue($Key, $Value, $Timeout = 0, $Region = 'default')
     {
 
+        $Data = serialize($Value);
         try {
-            $this->Connection->openBucket($Region)->replace($Key, $Value);
+            $this->getBucket()->upsert((string)$Region, json_encode(array('Key' => $Key, 'Value' => $Data)));
         } catch (\Exception $Exception) {
-            $this->Connection->openBucket($Region)->insert($Key, $Value);
+            (new DebuggerFactory())->createLogger(new ErrorLogger())
+                ->addLog('Couchbase: Set '.$Region.' '.json_encode(
+                        array(
+                            'Key'   => $Key,
+                            'Value' => $Data
+                        )
+                    ).' Failed');
         }
+        Debugger::screenDump('S', $Key, $Value);
         return $this;
+    }
+
+    /**
+     * @return \CouchbaseBucket
+     * @throws \Exception
+     */
+    private function getBucket()
+    {
+
+        if ($this->isAvailable) {
+            if (isset( $_SESSION['Memcached-Slot'] )) {
+                $Bucket = $_SESSION['Memcached-Slot'];
+            } else {
+                $Bucket = 'PUBLIC';
+            }
+        } else {
+            $Bucket = 'default';
+        }
+
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Bucket: '.$Bucket);
+
+        try {
+            return $this->Connection->openBucket($Bucket);
+        } catch (\Exception $Exception) {
+            throw new \Exception($Exception->getMessage().' ('.$Bucket.')', $Exception->getCode(), $Exception);
+        }
     }
 
     /**
      * @param string $Key
      * @param string $Region
      *
-     * @return mixed
+     * @return null|mixed
      */
     public function getValue($Key, $Region = 'default')
     {
 
         try {
-            return $this->Connection->openBucket($Region)->get($Key)->value;
+            $Value = json_decode($this->getBucket()->get($Region)->value);
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Couchbase: Get '.$Region.' '.$Key.' OK');
         } catch (\Exception $Exception) {
-            return null;
+            $Value = null;
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Couchbase: Get '.$Region.' '.$Key.' FAIL');
         }
+        Debugger::screenDump('U', $Key, $Value);
+        return $Value;
     }
 
     /**
@@ -112,8 +154,21 @@ class CouchbaseHandler extends AbstractHandler implements HandlerInterface
     public function clearCache($Region = 'default')
     {
 
-        $this->Connection->openBucket($Region)->manager()->flush();
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Couchbase: Flush');
+
+        $this->getBucket()->manager()->flush();
         return $this;
+    }
+
+    public function removeValue($Key, $Region = 'default')
+    {
+
+        try {
+            $this->getBucket()->remove($Region);
+        } catch (\Exception $Exception) {
+            throw new \Exception($Exception->getMessage().' ('.$Region.' -> '.$Key.' )', $Exception->getCode(),
+                $Exception);
+        }
     }
 
     /**
@@ -126,7 +181,6 @@ class CouchbaseHandler extends AbstractHandler implements HandlerInterface
         $Password = $this->Config->getContainer('Password');
         if ($Username && $Password) {
             $Status = $this->Connection->manager((string)$Username, (string)$Password)->info();
-            Debugger::screenDump($Status);
             return new CacheStatus(-1, -1,
                 $Status['storageTotals']['ram']['quotaTotal'],
                 $Status['storageTotals']['ram']['usedByData'],
