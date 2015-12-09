@@ -39,7 +39,7 @@ class Style extends Extension
                 $this->setSource('/Common/Style/Bootstrap.css');
                 break;
             case 2:
-                $this->setSource('/Common/Style/theme.css');
+                $this->setSource('/Common/Style/Application.css');
                 break;
             default:
                 $this->setSource('/Common/Style/Bootstrap.css');
@@ -71,12 +71,15 @@ class Style extends Extension
         switch ($SettingSurface) {
             case 1:
                 $this->setSource('/Common/Style/Correction.css');
+                $this->setSource('/Common/Style/DataTable.Correction.css');
                 break;
             case 2:
-                $this->setSource('/Common/Style/theme.correction.css');
+                $this->setSource('/Common/Style/Application.Correction.css');
+                $this->setSource('/Common/Style/Application.DataTable.Correction.css');
                 break;
             default:
                 $this->setSource('/Common/Style/Correction.css');
+                $this->setSource('/Common/Style/DataTable.Correction.css');
         }
 
         $this->setSource('/Common/Style/PhpInfo.css');

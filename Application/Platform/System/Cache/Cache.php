@@ -83,8 +83,8 @@ class Cache extends Extension implements IModuleInterface
             $this->getRequest()->getPathBase().'/UnitTest/Console/phpMemcachedAdmin-1.2.2'));
 
         if ($Clear) {
-            $this->getCache(new CouchbaseHandler())->clearCache();
-            $this->getCache(new MemcachedHandler())->clearCache();
+            $this->getCache(new CouchbaseHandler(), 'Couchbase')->clearCache();
+            $this->getCache(new MemcachedHandler(), 'Memcached')->clearCache();
             $this->getCache(new APCuHandler())->clearCache();
             $this->getCache(new MemoryHandler())->clearCache();
             $this->getCache(new OpCacheHandler())->clearCache();
@@ -95,12 +95,12 @@ class Cache extends Extension implements IModuleInterface
             new Layout(array(
                 new LayoutGroup(new LayoutRow(
                     new LayoutColumn(new Status(
-                        $this->getCache(new CouchbaseHandler())->getStatus()
+                        $this->getCache(new CouchbaseHandler(), 'Couchbase')->getStatus()
                     ))
                 ), new Title('Couchbase')),
                 new LayoutGroup(new LayoutRow(
                     new LayoutColumn(new Status(
-                        $this->getCache(new MemcachedHandler())->getStatus()
+                        $this->getCache(new MemcachedHandler(), 'Memcached')->getStatus()
                     ))
                 ), new Title('Memcached')),
                 new LayoutGroup(new LayoutRow(

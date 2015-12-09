@@ -1,2 +1,7 @@
-<a href="{{ UrlBase }}{{ ElementPath }}" class="{{ ElementType }}" data-toggle="tooltip" data-container="body"
-   title="{{ ElementToolTip }}">{{ ElementIcon }} {{ ElementName }}</a>
+{% if( Disabled is empty ) %}
+    <a href="{{ UrlBase }}{{ ElementPath }}" class="{{ ElementType }}" data-toggle="tooltip" data-container="body"
+       title="{{ ElementToolTip }}">{{ ElementIcon }} {{ ElementName }}</a>
+{% else %}
+    <a href="#" class="{{ ElementType }}" data-toggle="tooltip" data-container="body"
+       title="{{ ElementToolTip }}" disabled>{{ ElementIcon }} {{ ElementName }}</a>
+{% endif %}

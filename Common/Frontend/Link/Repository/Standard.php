@@ -74,6 +74,16 @@ class Standard extends Extension implements ILinkInterface
     }
 
     /**
+     * @return Standard
+     */
+    public function setDisabled()
+    {
+
+        $this->Template->setVariable('Disabled', true);
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function __toString()
