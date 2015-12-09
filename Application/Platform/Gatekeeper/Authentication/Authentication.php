@@ -30,10 +30,10 @@ class Authentication implements IModuleInterface
             ));
         }
 
-        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Student'),
-            new Link\Name('Schüler'), new Link\Icon(new Lock())),
-            new Link\Route('/Platform/Gatekeeper/Authentication')
-        );
+//        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Student'),
+//            new Link\Name('Schüler'), new Link\Icon(new Lock())),
+//            new Link\Route('/Platform/Gatekeeper/Authentication')
+//        );
         Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__.'/Teacher'),
             new Link\Name('Lehrer'), new Link\Icon(new Lock())),
             new Link\Route('/Platform/Gatekeeper/Authentication')
