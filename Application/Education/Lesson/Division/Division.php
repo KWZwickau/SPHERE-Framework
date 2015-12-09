@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Lesson\Division;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\Blackboard;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
@@ -20,7 +21,7 @@ class Division implements IModuleInterface
 
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Klassen')
-//                , new Link\Icon(new Check()))
+                , new Link\Icon(new Blackboard())
             ));
 //        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
 //            __NAMESPACE__, __CLASS__.'::frontendDashboard'
