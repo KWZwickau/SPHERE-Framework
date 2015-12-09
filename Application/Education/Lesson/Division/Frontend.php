@@ -28,11 +28,12 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
-use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -104,7 +105,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $SubjectCount = Division::useService()->countDivisionSubjectAllByDivision($tblDivision);
 
                 if ($SubjectUsedCount !== 0) {
-                    $tblDivision->SubjectList = $SubjectCount.new Small(new Small(new Muted(' Fachlehrer fehlt ('.new Danger($SubjectUsedCount).')')));
+                    $tblDivision->SubjectList = $SubjectCount
+                        .new PullRight(new Small(new Small(new Muted('('.new Danger($SubjectUsedCount).') Fachlehrer fehlen'))));
                 } else {
                     $tblDivision->SubjectList = $SubjectCount;
                 }
@@ -136,7 +138,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     )
-                    , new Title(new Listing().' Übersicht')),
+                    , new Title(new ListingTable().' Übersicht')),
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
@@ -148,7 +150,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     , $Level, $Division
                                 )
                             ))
-                    ), new Title(new Plus().' Hinzufügen')
+                    ), new Title(new PlusSign().' Hinzufügen')
                 ),
             ))
         );
@@ -1025,7 +1027,7 @@ class Frontend extends Extension implements IFrontendInterface
                                               'Description' => 'Beschreibung',
                                               'Option'      => '',), false)
                                 )
-                            ), new Title(new Listing().' Übersicht')
+                            ), new Title(new ListingTable().' Übersicht')
                         )
                     ) : null )
                 .new Layout(
@@ -1040,7 +1042,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         , $tblDivision, $tblSubject, $Group, $DivisionSubjectId)
                                 )
                             )
-                        ), new Title(new Plus().' Hinzufügen einer '.$tblSubject->getName().'-Gruppe')
+                        ), new Title(new PlusSign().' Hinzufügen einer '.$tblSubject->getName().'-Gruppe')
                     )
                 )
             );

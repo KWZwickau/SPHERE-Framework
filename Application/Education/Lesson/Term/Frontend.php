@@ -14,10 +14,11 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -87,7 +88,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Option'      => '',
                             ))
                         )
-                    ), new Title(new Listing().' Übersicht')
+                    ), new Title(new ListingTable().' Übersicht')
                 ),
                 new LayoutGroup(
                     new LayoutRow(
@@ -101,7 +102,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                             , 6)
-                    ), new Title(new Plus().' Hinzufügen')
+                    ), new Title(new PlusSign().' Hinzufügen')
                 ),
             ))
         );
@@ -191,7 +192,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Option'      => '',
                             ))
                         )
-                    ), new Title(new Listing().' Übersicht')
+                    ), new Title(new ListingTable().' Übersicht')
                 ),
                 new LayoutGroup(
                     new LayoutRow(
@@ -205,7 +206,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         )
-                    ), new Title(new Plus().' Hinzufügen')
+                    ), new Title(new PlusSign().' Hinzufügen')
                 ),
             ))
         );
