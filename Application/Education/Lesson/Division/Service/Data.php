@@ -987,4 +987,54 @@ class Data extends AbstractData
 
         return $result ? $result : 0;
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return int
+     */
+    public function countDivisionTeacherAllByDivision(TblDivision $tblDivision)
+    {
+
+        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher',
+            array(TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()));
+
+        return $result ? $result : 0;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return int
+     */
+    public function countDivisionSubjectAllByDivision(TblDivision $tblDivision)
+    {
+
+        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionSubject',
+            array(TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()));
+
+        return $result ? $result : 0;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return int
+     */
+    public function countDivisionSubjectGroupByDivision(TblDivision $tblDivision)
+    {
+
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionSubject',
+            array(TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()));
+        $result = 0;
+        if ($EntityList) {
+            /** @var TblDivisionSubject $Entity */
+            foreach ($EntityList as $Entity) {
+                if ($Entity->getTblSubjectGroup()) {
+                    $result = $result + 1;
+                }
+            }
+        }
+        return $result;
+    }
 }

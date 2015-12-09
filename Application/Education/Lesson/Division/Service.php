@@ -84,7 +84,7 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
-    public function createLevel(
+    public function createLevelDivision(
         IFormInterface $Form,
         $Level, $Division
     ) {
@@ -102,13 +102,15 @@ class Service extends AbstractService
             $Form->setError('Division[Name]', 'Bitte geben Sie eine Klassengruppe an');
             $Error = true;
         }
-//        else {
-//            if ($this->checkLevelExists($tblType, $Level['Name'])) {
-//                $Form->setError('Level[Name]', 'Diese Klassenstufe wird in <b>'.$tblType->getName().'</b> bereits verwendet');
-//                $Error = true;
-//            }
-//        }
-        if (isset( $Division['Name'] ) && !empty( $Division['Name'] ) && !isset( $Level['Name'] )) {
+        if (!isset( $Division['Year'] ) || empty( $Division['Year'] )) {
+            $Form->setError('Division[Year]', 'Jahr erforderlich! Bitte zuerst einpflegen');
+            $Error = true;
+        }
+        if (isset( $Division['Name'] )
+            && !empty( $Division['Name'] )
+            && !isset( $Level['Name'] )
+            && !$Error
+        ) {
 
             if (Division::useService()->getDivisionByGroupAndLevelAndYear($Division['Name'], null, $Division['Year'])) {
                 $Form->setError('Division[Name]', 'Name in diesem Schuljahr schon vergeben');
@@ -1175,6 +1177,67 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->countDivisionStudentAllByDivision($tblDivision);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return int
+     */
+    public function countDivisionTeacherAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->countDivisionTeacherAllByDivision($tblDivision);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return int
+     */
+    public function countDivisionSubjectAllByDivision(TblDivision $tblDivision)
+    {
+
+        $Sum = (new Data($this->getBinding()))->countDivisionSubjectAllByDivision($tblDivision);
+        $Sub = (new Data($this->getBinding()))->countDivisionSubjectGroupByDivision($tblDivision);
+        return ( $Sum - $Sub );
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return int
+     */
+    public function countDivisionSubjectUsedByDivision(TblDivision $tblDivision)
+    {
+
+        $DivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
+        $SubjectUsedCount = 0;
+        if (!$DivisionSubjectList) {
+        } else {
+            foreach ($DivisionSubjectList as $DivisionSubject) {
+
+                if (!$DivisionSubject->getTblSubjectGroup()) {
+                    $tblDivisionSubjectActiveList = Division::useService()
+                        ->getDivisionSubjectBySubjectAndDivision($DivisionSubject->getServiceTblSubject(), $tblDivision);
+                    $TeacherGroup = array();
+                    if ($tblDivisionSubjectActiveList) {
+                        /**@var TblDivisionSubject $tblDivisionSubjectActive */
+                        foreach ($tblDivisionSubjectActiveList as $tblDivisionSubjectActive) {
+                            $TempList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubjectActive);
+                            if ($TempList) {
+                                foreach ($TempList as $Temp)
+                                    array_push($TeacherGroup, $Temp->getId());
+                            }
+                        }
+                        if (empty( $TeacherGroup )) {
+                            $SubjectUsedCount = $SubjectUsedCount + 1;
+                        }
+                    }
+                }
+            }
+        }
+        return $SubjectUsedCount;
     }
 
 }
