@@ -881,15 +881,15 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getSubjectStudentByPerson($tblPerson);
     }
 
-//    /**
-//     * @param IFormInterface $Form
-//     * @param null|array     $Level
-//     * @param int            $Id
-//     *
-//     * @return IFormInterface|string
-//     */
-//    public function changeLevel(IFormInterface $Form, $Level, $Id)
-//    {
+    /**
+     * @param IFormInterface $Form
+     * @param null|array     $Level
+     * @param int            $Id
+     *
+     * @return IFormInterface|string
+     */
+    public function changeLevel(IFormInterface $Form, $Level, $Id)
+    {
 //
 //        /**
 //         * Skip to Frontend
