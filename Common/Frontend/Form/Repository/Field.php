@@ -257,4 +257,14 @@ abstract class Field extends Extension implements IFieldInterface
 
         return false;
     }
+
+    /**
+     * @return Field
+     */
+    public function setDisabled()
+    {
+
+        $this->Template->setVariable('Disabled', true);
+        return $this;
+    }
 }
