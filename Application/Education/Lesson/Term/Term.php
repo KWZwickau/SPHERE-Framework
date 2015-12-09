@@ -7,11 +7,9 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Clock;
-use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Time;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -37,7 +35,8 @@ class Term implements IModuleInterface
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Schuljahr'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Schuljahr'),
+                new Link\Icon(new Calendar()))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
@@ -98,7 +97,7 @@ class Term implements IModuleInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Dashboard', 'Schuljahr');
+        $Stage = new Stage('Schuljahr', 'Dashboard');
 
         $Stage->addButton(new Standard('Schuljahr', __NAMESPACE__.'\Create\Year', new Calendar(), null, 'erstellen / bearbeiten'));
         $Stage->addButton(new Standard('Zeitraum', __NAMESPACE__.'\Create\Period', new Time(), null, 'erstellen / bearbeiten'));
@@ -114,9 +113,9 @@ class Term implements IModuleInterface
                     array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod, $index, TblYear $tblYear) {
 
                         $tblPeriod = $tblPeriod->getName().' '.new Muted(new Small($tblPeriod->getDescription()))
-                            .new PullRight(new Standard('', __NAMESPACE__.'\Remove\Period', new Remove(),
-                                array('PeriodId' => $tblPeriod->getId(),
-                                      'Id'       => $tblYear->getId()), 'Zeitraum entfernen'))
+//                            .new PullRight(new Standard('', __NAMESPACE__.'\Remove\Period', new Remove(),
+//                                array('PeriodId' => $tblPeriod->getId(),
+//                                      'Id'       => $tblYear->getId()), 'Zeitraum entfernen'))
                             .'<br/>'.$tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
                     }, $tblYear);
                 } else {
@@ -130,7 +129,7 @@ class Term implements IModuleInterface
                             : count($tblPeriodAll).' Zeiträume' ),
                         $tblPeriodAll, ( empty( $tblPeriodAll ) ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT )
                         , new Standard('', __NAMESPACE__.'\Choose\Period', new Clock(),
-                        array('Id' => $tblYear->getId()), 'Zeitraum hinzufügen'
+                        array('Id' => $tblYear->getId()), 'Zeitraum zuweisen'
                     )),
 //                    'Optionen'  =>
 //                        new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
@@ -153,7 +152,7 @@ class Term implements IModuleInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(array(
-                            new Headline('Im System vorhandene Schuljahre'),
+                            new Headline(new Calendar().' Im System vorhandene Schuljahre'),
                             new TableData(
                                 $Year, null, array(
                                     'Schuljahr' => 'Schuljahr',

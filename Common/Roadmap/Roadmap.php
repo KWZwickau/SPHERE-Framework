@@ -6,6 +6,7 @@ use SPHERE\Common\Roadmap\Milestone\Major0Minor9;
 use SPHERE\Common\Roadmap\Milestone\Major1Minor0;
 use SPHERE\Common\Roadmap\Milestone\Major1Minor1;
 use SPHERE\Common\Roadmap\Milestone\Major1Minor2;
+use SPHERE\Common\Roadmap\Milestone\Major1Minor3;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Roadmap as RoadmapExtension;
@@ -40,6 +41,7 @@ class Roadmap extends Extension
         Major1Minor0::Patch0($this->Roadmap);
         Major1Minor1::Patch0($this->Roadmap);
         Major1Minor2::Patch0($this->Roadmap);
+        Major1Minor3::Patch0($this->Roadmap);
 
         $this->poolMajor1MinorXPatchX();
     }
@@ -87,9 +89,6 @@ class Roadmap extends Extension
 
         // Bildung
         $Category = $Release->createCategory('Bildung');
-        $Feature = $Category->createFeature('Zensuren');
-        $Feature->createTask('Zeugnisdruck')
-            ->createDuty('Layout-Designer');
         $Feature = $Category->createFeature('Unterricht');
         $Feature->createTask('Klassen')
             ->createDuty('Sitzplan');

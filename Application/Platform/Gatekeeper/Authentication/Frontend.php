@@ -45,9 +45,9 @@ class Frontend implements IFrontendInterface
         $View = new Stage('Anmeldung', 'Bitte wählen Sie den Typ der Anmeldung');
         $View->setMessage('Anmeldend als:');
         $View->setContent(
-            new \SPHERE\Common\Frontend\Link\Repository\Primary('Schüler',
+            (new \SPHERE\Common\Frontend\Link\Repository\Standard('Schüler',
                 '/Platform/Gatekeeper/Authentication/Student', new Lock()
-            )
+            ))->setDisabled()
             .new \SPHERE\Common\Frontend\Link\Repository\Primary('Lehrer',
                 '/Platform/Gatekeeper/Authentication/Teacher', new YubiKey()
             )

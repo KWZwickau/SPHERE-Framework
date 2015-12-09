@@ -8,6 +8,7 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Enable;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\MoreItems;
 use SPHERE\Common\Frontend\Icon\Repository\Transfer;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -39,40 +40,41 @@ class Subject implements IModuleInterface
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Fächer'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Fächer'),
+                new Link\Icon(new Listing()))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__ . '::frontendDashboard'
+            __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Create/Category', __NAMESPACE__ . '\Frontend::frontendCreateCategory'
+            __NAMESPACE__.'/Create/Category', __NAMESPACE__.'\Frontend::frontendCreateCategory'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Change/Category', __NAMESPACE__ . '\Frontend::frontendChangeCategory'
+            __NAMESPACE__.'/Change/Category', __NAMESPACE__.'\Frontend::frontendChangeCategory'
         )->setParameterDefault('Id', null)
             ->setParameterDefault('Category', null)
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Destroy/Category', __NAMESPACE__ . '\Frontend::frontendDestroyCategory'
+            __NAMESPACE__.'/Destroy/Category', __NAMESPACE__.'\Frontend::frontendDestroyCategory'
         )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Link/Category', __NAMESPACE__ . '\Frontend::frontendLinkCategory'
+            __NAMESPACE__.'/Link/Category', __NAMESPACE__.'\Frontend::frontendLinkCategory'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Create/Subject', __NAMESPACE__ . '\Frontend::frontendCreateSubject'
+            __NAMESPACE__.'/Create/Subject', __NAMESPACE__.'\Frontend::frontendCreateSubject'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Change/Subject', __NAMESPACE__ . '\Frontend::frontendChangeSubject'
+            __NAMESPACE__.'/Change/Subject', __NAMESPACE__.'\Frontend::frontendChangeSubject'
         )->setParameterDefault('Id', null)
             ->setParameterDefault('Subject', null)
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Destroy/Subject', __NAMESPACE__ . '\Frontend::frontendDestroySubject'
+            __NAMESPACE__.'/Destroy/Subject', __NAMESPACE__.'\Frontend::frontendDestroySubject'
         )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Link/Subject', __NAMESPACE__ . '\Frontend::frontendLinkSubject'
+            __NAMESPACE__.'/Link/Subject', __NAMESPACE__.'\Frontend::frontendLinkSubject'
         ));
     }
 
@@ -91,11 +93,11 @@ class Subject implements IModuleInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Dashboard', 'Fächer');
+        $Stage = new Stage('Fächer', 'Dashboard');
 
-        $Stage->addButton(new Standard('Fächer', __NAMESPACE__ . '\Create\Subject', new Education(), null,
+        $Stage->addButton(new Standard('Fächer', __NAMESPACE__.'\Create\Subject', new Education(), null,
             'erstellen / bearbeiten'));
-        $Stage->addButton(new Standard('Kategorien', __NAMESPACE__ . '\Create\Category', new MoreItems(), null,
+        $Stage->addButton(new Standard('Kategorien', __NAMESPACE__.'\Create\Category', new MoreItems(), null,
             'erstellen / bearbeiten'));
 
         $tblGroupAll = $this->useService()->getGroupAll();
@@ -111,22 +113,22 @@ class Subject implements IModuleInterface
         if ($tblUnusedSubjectAll) {
             array_walk($tblUnusedSubjectAll, function (TblSubject &$tblSubject) {
 
-                $tblSubject = new Bold($tblSubject->getAcronym()) . ' - '
-                    . $tblSubject->getName() . ' '
-                    . new Small(new Muted($tblSubject->getDescription()));
+                $tblSubject = new Bold($tblSubject->getAcronym()).' - '
+                    .$tblSubject->getName().' '
+                    .new Small(new Muted($tblSubject->getDescription()));
             });
         } else {
-            $tblUnusedSubjectAll = new Enable() . ' ' . new Success('Keine unzugeordneten Fächer');
+            $tblUnusedSubjectAll = new Enable().' '.new Success('Keine unzugeordneten Fächer');
         }
         $tblUnusedCategoryAll = $this->useService()->getCategoryAllHavingNoGroup();
         if ($tblUnusedCategoryAll) {
             array_walk($tblUnusedCategoryAll, function (TblCategory &$tblCategory) {
 
-                $tblCategory = new Bold($tblCategory->getName()) . ' - '
-                    . new Small(new Muted($tblCategory->getDescription()));
+                $tblCategory = new Bold($tblCategory->getName()).' - '
+                    .new Small(new Muted($tblCategory->getDescription()));
             });
         } else {
-            $tblUnusedCategoryAll = new Enable() . ' ' . new Success('Keine unzugeordneten Kategorien');
+            $tblUnusedCategoryAll = new Enable().' '.new Success('Keine unzugeordneten Kategorien');
         }
 
         array_push($Content, new LayoutRow(array(
@@ -139,8 +141,8 @@ class Subject implements IModuleInterface
 
             array_push($Content, new LayoutRow(array(
                 new LayoutColumn(array(
-                    new Title('Gruppe: ' . new Bold($tblGroup->getName()), $tblGroup->getDescription()),
-                    new Standard('Zuweisen von Kategorien', __NAMESPACE__ . '\Link\Category', new Transfer(),
+                    new Title('Gruppe: '.new Bold($tblGroup->getName()), $tblGroup->getDescription()),
+                    new Standard('Zuweisen von Kategorien', __NAMESPACE__.'\Link\Category', new Transfer(),
                         array('Id' => $tblGroup->getId())
                     )
                 ))
@@ -149,28 +151,27 @@ class Subject implements IModuleInterface
             array_walk($tblCategoryAll, function (TblCategory $tblCategory) use (&$Content, $tblGroup) {
 
                 $tblSubjectAll = $this->useService()->getSubjectAllByCategory($tblCategory);
-                if(is_array($tblSubjectAll))
-                {
+                if (is_array($tblSubjectAll)) {
                     array_walk($tblSubjectAll, function (TblSubject &$tblSubject) {
 
-                        $tblSubject = new Bold($tblSubject->getAcronym()) . ' - '
-                            . $tblSubject->getName() . ' '
-                            . new Small(new Muted($tblSubject->getDescription()));
+                        $tblSubject = new Bold($tblSubject->getAcronym()).' - '
+                            .$tblSubject->getName().' '
+                            .new Small(new Muted($tblSubject->getDescription()));
                     });
                 }
 
 
-                $Height = floor(((count($tblSubjectAll) + 2) / 3) + 1);
+                $Height = floor(( ( count($tblSubjectAll) + 2 ) / 3 ) + 1);
                 Main::getDispatcher()->registerWidget($tblGroup->getIdentifier(),
                     new Panel(
-                        $tblCategory->getName() . ' ' . $tblCategory->getDescription(),
+                        $tblCategory->getName().' '.$tblCategory->getDescription(),
                         $tblSubjectAll,
-                        ($tblCategory->getIsLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT),
-                        new Standard('Zuweisen von Fächern', __NAMESPACE__ . '\Link\Subject', new Transfer(),
+                        ( $tblCategory->getIsLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT ),
+                        new Standard('Zuweisen von Fächern', __NAMESPACE__.'\Link\Subject', new Transfer(),
                             array('Id' => $tblCategory->getId())
                         )
                     )
-                    , 2, ($Height ? $Height : $Height + 2));
+                    , 2, ( $Height ? $Height : $Height + 2 ));
             });
             array_push($Content, new LayoutRow(array(
                 new LayoutColumn(Main::getDispatcher()->fetchDashboard($tblGroup->getIdentifier()))
@@ -191,7 +192,7 @@ class Subject implements IModuleInterface
 
         return new Service(
             new Identifier('Education', 'Lesson', 'Subject', null, Consumer::useService()->getConsumerBySession()),
-            __DIR__ . '/Service/Entity', __NAMESPACE__ . '\Service\Entity'
+            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }
 }
