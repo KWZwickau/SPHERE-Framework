@@ -23,7 +23,7 @@ abstract class Cacheable extends Extension
     /** @var bool $Enabled */
     private $Enabled = true;
     /** @var bool $Debug */
-    private $Debug = true;
+    private $Debug = false;
 
     /**
      * @param string $__METHOD__ Initiator
