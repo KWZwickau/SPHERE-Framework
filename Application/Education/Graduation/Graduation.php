@@ -36,7 +36,7 @@ class Graduation implements IApplicationInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Dashboard', 'Zensuren');
+        $Stage = new Stage('Zensuren', 'Dashboard');
 
         return $Stage;
     }

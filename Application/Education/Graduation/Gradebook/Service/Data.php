@@ -18,7 +18,9 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGro
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -35,7 +37,8 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-
+        $this->createTestType('Test', 'TEST');
+        $this->createTestType('Task', 'TASK');
     }
 
     /**
@@ -43,9 +46,10 @@ class Data extends AbstractData
      * @param $Code
      * @param $Description
      * @param $IsHighlighted
+     * @param TblTestType $tblTestType
      * @return null|TblGradeType
      */
-    public function createGradeType($Name, $Code, $Description, $IsHighlighted)
+    public function createGradeType($Name, $Code, $Description, $IsHighlighted, TblTestType $tblTestType)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -59,6 +63,7 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Entity->setCode($Code);
             $Entity->setIsHighlighted($IsHighlighted);
+            $Entity->setTblTestType($tblTestType);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -68,10 +73,47 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblGradeType $tblGradeType
+     * @param $Name
+     * @param $Code
+     * @param $Description
+     * @param $IsHighlighted
+     *
+     * @return bool
+     */
+    public function updateGradeType(
+        TblGradeType $tblGradeType,
+        $Name,
+        $Code,
+        $Description,
+        $IsHighlighted
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblGradeType $Entity */
+        $Entity = $Manager->getEntityById('TblGradeType', $tblGradeType->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setCode($Code);
+            $Entity->setDescription($Description);
+            $Entity->setIsHighlighted($IsHighlighted);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblSubject $tblSubject
      * @param TblPeriod $tblPeriod
      * @param TblGradeType $tblGradeType
+     * @param TblTestType $tblTestType
      * @param $Grade
      * @param string $Comment
      * @return null|object|TblGrade
@@ -81,32 +123,23 @@ class Data extends AbstractData
         TblSubject $tblSubject,
         TblPeriod $tblPeriod,
         TblGradeType $tblGradeType,
+        TblTestType $tblTestType,
         $Grade,
         $Comment = ''
     ) {
         $Manager = $this->getConnection()->getEntityManager();
 
-//        $Entity = $Manager->getEntity('TblGrade')
-//            ->findOneBy(array(
-//                TblGrade::ATTR_DATE => $Date,
-//                TblGrade::ATTR_SERVICE_TBL_PERIOD => $tblPeriod,
-//                TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson,
-//                TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject,
-//                TblGrade::ATTR_TBL_GRADE_TYPE => $tblGradeType
-//            ));
-
-//        if (null === $Entity) {
         $Entity = new TblGrade();
         $Entity->setServiceTblPerson($tblPerson);
         $Entity->setServiceTblSubject($tblSubject);
         $Entity->setServiceTblPeriod($tblPeriod);
         $Entity->setTblGradeType($tblGradeType);
+        $Entity->setTblTestType($tblTestType);
         $Entity->setGrade($Grade);
         $Entity->setComment($Comment);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-//        }
 
         return $Entity;
     }
@@ -139,11 +172,15 @@ class Data extends AbstractData
     /**
      * @return bool|TblGradeType[]
      */
-    public function getGradeTypeAll()
+    public function getGradeTypeAllWhereTest()
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblGradeType')->findAll();
-        return (empty($EntityList) ? false : $EntityList);
+        $tblTestType = $this->getTestTypeByIdentifier('TEST');
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType',
+            array(
+                TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
+            ));
     }
 
     /**
@@ -152,21 +189,21 @@ class Data extends AbstractData
      * @param TblPeriod $tblPeriod
      * @return TblGrade[]|bool
      */
-    public function getGradesByStudentAndSubjectAndPeriod(
+    public function getGradesByStudentAndSubjectAndPeriodWhereTest(
         TblPerson $tblPerson,
         TblSubject $tblSubject,
         TblPeriod $tblPeriod
     ) {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGrade')
-            ->findBy(array(
-                    TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                    TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                    TblGrade::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId(),
-                )
-            );
 
-        return (null === $Entity ? false : $Entity);
+        $tblTestType = $this->getTestTypeByIdentifier('TEST');
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade', array(
+            TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+            TblGrade::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId(),
+            TblGrade::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
+        ));
     }
 
     /**
@@ -226,11 +263,97 @@ class Data extends AbstractData
     /**
      * @return bool|TblTest[]
      */
-    public function getTestAll()
+    public function getTestAllWhereTest()
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblTest')->findAll();
-        return (empty($EntityList) ? false : $EntityList);
+        $tblTestType = $this->getTestTypeByIdentifier('TEST');
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest', array(
+            TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
+        ));
+    }
+
+    /**
+     * @param TblTestType $tblTestType
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblPeriod|null $tblPeriod
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     * @return bool|TblTest[]
+     */
+    public function getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
+        TblTestType $tblTestType,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblPeriod $tblPeriod = null,
+        TblSubjectGroup $tblSubjectGroup = null
+    ) {
+        if ($tblSubjectGroup === null) {
+            if ($tblPeriod === null) {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                    array(
+                        TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+                    )
+                );
+            } else {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                    array(
+                        TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                        TblTest::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId()
+                    )
+                );
+            }
+        } else {
+            if ($tblPeriod === null) {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                    array(
+                        TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                        TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId()
+                    )
+                );
+            } else {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                    array(
+                        TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                        TblTest::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId(),
+                        TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
+                    )
+                );
+            }
+        }
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblTestType
+     */
+    public function getTestTypeById($Id)
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTestType', $Id);
+        return (null === $Entity ? false : $Entity);
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return bool|TblTestType
+     */
+    public function getTestTypeByIdentifier($Identifier)
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblTestType')
+            ->findOneBy(array(TblTestType::ATTR_IDENTIFIER => strtoupper($Identifier)));
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -238,11 +361,11 @@ class Data extends AbstractData
      * @param TblSubject $tblSubject
      * @param TblPeriod $tblPeriod
      * @param TblGradeType $tblGradeType
+     * @param TblTestType $tblTestType
      * @param string $Description
      * @param null $Date
      * @param null $CorrectionDate
      * @param null $ReturnDate
-     *
      * @return TblTest
      */
     public function createTest(
@@ -250,6 +373,7 @@ class Data extends AbstractData
         TblSubject $tblSubject,
         TblPeriod $tblPeriod,
         TblGradeType $tblGradeType,
+        TblTestType $tblTestType,
         $Description = '',
         $Date = null,
         $CorrectionDate = null,
@@ -263,6 +387,7 @@ class Data extends AbstractData
         $Entity->setServiceTblSubject($tblSubject);
         $Entity->setServiceTblPeriod($tblPeriod);
         $Entity->setTblGradeType($tblGradeType);
+        $Entity->setTblTestType($tblTestType);
         $Entity->setDescription($Description);
         $Entity->setDate($Date ? new \DateTime($Date) : null);
         $Entity->setCorrectionDate($CorrectionDate ? new \DateTime($CorrectionDate) : null);
@@ -339,6 +464,7 @@ class Data extends AbstractData
             $Entity->setServiceTblSubject($tblTest->getServiceTblSubject());
             $Entity->setServiceTblPeriod($tblTest->getServiceTblPeriod());
             $Entity->setTblGradeType($tblTest->getTblGradeType());
+            $Entity->setTblTestType($this->getTestTypeByIdentifier('TEST'));
             $Entity->setGrade($Grade);
             $Entity->setComment($Comment);
 
@@ -736,5 +862,30 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param $Name
+     * @param $Identifier
+     * @return null|TblGradeType
+     */
+    public function createTestType($Name, $Identifier)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblTestType')
+            ->findOneBy(array(TblTestType::ATTR_IDENTIFIER => $Identifier));
+
+        if (null === $Entity) {
+            $Entity = new TblTestType();
+            $Entity->setName($Name);
+            $Entity->setIdentifier(strtoupper($Identifier));
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 }

@@ -2,9 +2,6 @@
 namespace SPHERE;
 
 use MOC\V\Core\AutoLoader\AutoLoader;
-use SPHERE\Application\Contact\Address\Address;
-use SPHERE\Application\People\Group\Group;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Cache\CacheFactory;
@@ -45,8 +42,8 @@ $Main = new Main();
 
 if (false) {
     $CacheConfig = (new ConfigFactory())->createReader(__DIR__ . '/System/Cache/Configuration.ini', new IniReader());
-    (new CacheFactory())->createHandler(new CouchbaseHandler(), $CacheConfig)->clearCache();
-    (new CacheFactory())->createHandler(new MemcachedHandler(), $CacheConfig)->clearCache();
+    (new CacheFactory())->createHandler(new CouchbaseHandler(), $CacheConfig, 'Couchbase')->clearCache();
+    (new CacheFactory())->createHandler(new MemcachedHandler(), $CacheConfig, 'Memcached')->clearCache();
     (new CacheFactory())->createHandler(new APCuHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new MemoryHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new OpCacheHandler(), $CacheConfig)->clearCache();
@@ -54,119 +51,25 @@ if (false) {
     (new CacheFactory())->createHandler(new SmartyHandler(), $CacheConfig)->clearCache();
 }
 
-Debugger::$Enabled = true;
+Debugger::$Enabled = false;
 
-class FakePerson
-{
-
-    private $Faker = null;
-
-    private $EntityPerson = null;
-
-    public function __construct()
-    {
-        $this->Faker = \Faker\Factory::create('de_DE');
-        $this->Gender = rand(0, 1);
-    }
-
-    public function createPerson()
-    {
-        $this->EntityPerson = Person::useService()->insertPerson(
-            $this->getSalutation(), '', $this->getFirstName(), '', $this->getLastName(), array(), ''
-        );
-
-        $tblNoMemberAll = Group::useService()->getPersonAllHavingNoGroup();
-        if (!empty($tblNoMemberAll)) {
-            foreach ($tblNoMemberAll as $tblPerson) {
-                Group::useService()->addGroupPerson(
-                    Group::useService()->getGroupByMetaTable('COMMON'), $tblPerson
-                );
-            }
-        }
-    }
-
-    public function getSalutation()
-    {
-        if (rand(0, 2) < 2) {
-            switch ($this->Gender) {
-                case 0:
-                    return 1;
-                    break;
-                case 1:
-                    return 2;
-                    break;
-                default:
-                    return 3;
-            }
-        } else {
-            return 3;
-        }
-    }
-
-    public function getFirstName()
-    {
-        switch ($this->Gender) {
-            case 0:
-                return $this->Faker->firstNameMale;
-                break;
-            case 1:
-                return $this->Faker->firstNameFemale;
-                break;
-            default:
-                return $this->Faker->firstName;
-        }
-    }
-
-    public function getLastName()
-    {
-        return $this->Faker->lastName;
-    }
-
-    public function createAddress()
-    {
-        Address::useService()->insertAddressToPerson(
-            $this->EntityPerson, $this->getStreet(), $this->getStreetNumber(), $this->getCode(), $this->getCity(), '',
-            '', $this->getState()
-        );
-    }
-
-    public function getStreet()
-    {
-
-        return $this->Faker->streetName;
-    }
-
-    public function getStreetNumber()
-    {
-
-        return $this->Faker->buildingNumber;
-    }
-
-    public function getCode()
-    {
-        return $this->Faker->postcode;
-    }
-
-    public function getCity()
-    {
-        return $this->Faker->city;
-    }
-
-    public function getState()
-    {
-        if (($State = Address::useService()->getStateByName($this->Faker->state))) {
-            return $State;
-        }
-        $State = Address::useService()->getStateAll();
-        return $State[array_rand($State)];
-    }
-}
-
-
-//for( $I=0; $I < 1000; $I++ ) {
-//    $Person = new FakePerson();
-//    $Person->createPerson();
-//    $Person->createAddress();
-//}
+//$CacheConfig = (new ConfigFactory())->createReader(__DIR__ . '/System/Cache/Configuration.ini', new IniReader());
+//
+///** @var CouchbaseHandler $Cache */
+//$Cache = (new CacheFactory())->createHandler(new CouchbaseHandler(), $CacheConfig, 'Couchbase');
+//
+//$Document = 'Payload';
+//
+//$Cache->setValue( 'Method-Name', $Document, 0, 'ACCOUNT-TEST-METHOD' );
+//
+////$Cache->getValue( 'Method-Name', 'ACCOUNT-TEST-METHOD' );
+//
+//
+//
+//var_dump( $Query = \CouchbaseViewQuery::from('region_key_value', 'KeyValueRegion')->key( 'Method-Name' ) );
+//
+////$Cache->Connection->openBucket('DEMO')->query( $Query );
+//
+//var_dump( $Cache->Connection->openBucket('DEMO')->_view( $Query, true ) );
 
 $Main->runPlatform();
