@@ -417,7 +417,7 @@ class Frontend extends Extension implements IFrontendInterface
         //teacher1 82
         //teacher2 83
         //teacher3 84
-//        $tblPerson = Person::useService()->getPersonById(82);
+        $tblPerson = Person::useService()->getPersonById(82);
 
         $isKlassenLehrer = false;
 
@@ -512,7 +512,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 'SubjectGroup' => $item->getName(),
                                 'Option' => new Standard(
                                     '', '/Education/Graduation/Gradebook/Test/Selected', new Select(), array(
-                                    'DivisionId' => $tblDivision->getId(),
                                     'DivisionSubjectId' => $subValue
                                 ),
                                     'Auswählen'
@@ -528,7 +527,6 @@ class Frontend extends Extension implements IFrontendInterface
                             'SubjectGroup' => '',
                             'Option' => new Standard(
                                 '', '/Education/Graduation/Gradebook/Test/Selected', new Select(), array(
-                                'DivisionId' => $tblDivision->getId(),
                                 'DivisionSubjectId' => $value
                             ),
                                 'Auswählen'
@@ -562,18 +560,18 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $DivisionId
      * @param null $DivisionSubjectId
+     * @param null $Test
      * @return Stage
      */
-    public function frontendTestSelected($DivisionId = null, $DivisionSubjectId = null)
+    public function frontendTestSelected($DivisionSubjectId = null, $Test = null)
     {
 
         $Stage = new Stage('Leistungsermittlung', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Gradebook/Test', new ChevronLeft()));
 
-        $tblDivision = Division::useService()->getDivisionById($DivisionId);
         $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId);
+        $tblDivision = $tblDivisionSubject->getTblDivision();
         $tblTestType = Gradebook::useService()->getTestTypeByIdentifier('TEST');
 
         $tblTestList = Gradebook::useService()->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
@@ -597,13 +595,17 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblTest->Period = $tblTest->getServiceTblPeriod()->getName();
                 $tblTest->GradeType = $tblTest->getTblGradeType()->getName();
                 $tblTest->Option = (new Standard('', '/Education/Graduation/Gradebook/Test/Edit', new Pencil(),
-                        array('Id' => $tblTest->getId()), 'Test bearbeiten'))
+                        array('Id' => $tblTest->getId()), 'Bearbeiten'))
                     . (new Standard('', '/Education/Graduation/Gradebook/Test/Grade/Edit', new Listing(),
-                        array('Id' => $tblTest->getId()), 'Noten bearbeiten'));
+                        array('Id' => $tblTest->getId()), 'Zensuren bearbeiten'));
             });
         } else {
             $tblTestList = array();
         }
+
+        $Form = $this->formTest()
+            ->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $Stage->setContent(
             new Layout(array(
@@ -620,12 +622,10 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         ))
                     ))
-                ))
-            )) .
-            new Form(array(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(array(
+                )),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
                             new TableData($tblTestList, null, array(
                                 'Division' => 'Klasse',
                                 'Subject' => 'Fach',
@@ -639,28 +639,16 @@ class Frontend extends Extension implements IFrontendInterface
                             ))
                         ))
                     ))
-                ))
+                ), new Title(new ListingTable() . ' Übersicht')),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Well(Gradebook::useService()->createTest($Form, $tblDivisionSubject->getId(), $Test))
+                        ))
+                    ))
+                ), new Title(new PlusSign() . ' Hinzufügen'))
             ))
         );
-
-        return $Stage;
-    }
-
-    /**
-     * @param $Test
-     * @return Stage
-     */
-    public function frontendCreateTest($Test)
-    {
-        $Stage = new Stage('Zensuren', 'Test anlegen');
-        $Stage->addButton(
-            new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Test', new ChevronLeft())
-        );
-
-        $Form = $this->formTest()
-            ->appendFormButton(new Primary('Speichern', new Save()))
-            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-        $Stage->setContent(Gradebook::useService()->createTestWhereTest($Form, $Test));
 
         return $Stage;
     }
@@ -671,23 +659,9 @@ class Frontend extends Extension implements IFrontendInterface
     private function formTest()
     {
         $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllWhereTest();
-        $tblDivisionAll = Division::useService()->getDivisionAll();
-        $tblSubjectAll = Subject::useService()->getSubjectAll();
         $tblPeriodList = Term::useService()->getPeriodAll();
 
         return new Form(new FormGroup(array(
-            new FormRow(array(
-                new FormColumn(
-                    new SelectBox('Test[Division]', 'Klasse',
-                        array(
-                            '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }}
-                                                     - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
-                        )), 6
-                ),
-                new FormColumn(
-                    new SelectBox('Test[Subject]', 'Fach', array('Name' => $tblSubjectAll)), 6
-                )
-            )),
             new FormRow(array(
                 new FormColumn(
                     new SelectBox('Test[Period]', 'Zeitraum', array('Name' => $tblPeriodList)), 6
@@ -736,8 +710,15 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->savePost();
             }
 
+            $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                $tblTest->getServiceTblDivision(),
+                $tblTest->getServiceTblSubject(),
+                $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
+            );
+
             $Stage->addButton(
-                new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Test', new ChevronLeft())
+                new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Test/Selected', new ChevronLeft()
+                    , array('DivisionSubjectId' => $tblDivisionSubject->getId()))
             );
 
             $Form = new Form(new FormGroup(array(
@@ -763,37 +744,39 @@ class Frontend extends Extension implements IFrontendInterface
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
             $tblDivision = $tblTest->getServiceTblDivision();
-            $division = '';
-            if ($tblDivision) {
-                $division = $tblDivision->getServiceTblYear()->getName() . ' - ' .
-                    $tblDivision->getTblLevel()->getServiceTblType()->getName() . ' - ' .
-                    $tblDivision->getTblLevel()->getName() . $tblDivision->getName();
-            }
 
             $Stage->setContent(
-                new Layout (new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Klasse:', $division,
-                                Panel::PANEL_TYPE_SUCCESS), 6
-                        ),
-                        new LayoutColumn(
-                            new Panel('Fach:', $tblTest->getServiceTblSubject()->getName(),
-                                Panel::PANEL_TYPE_SUCCESS), 6
-                        )
+                new Layout (array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel(
+                                    'Fach-Klasse',
+                                    'Klasse ' . $tblDivision->getTblLevel()->getName() . $tblDivision->getName() . ' - ' .
+                                    $tblTest->getServiceTblSubject()->getName() .
+                                    ($tblTest->getServiceTblSubjectGroup() ? new Small(
+                                        ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : ''),
+                                    Panel::PANEL_TYPE_INFO
+                                ), 6
+                            ),
+                            new LayoutColumn(
+                                new Panel('Zeitraum:', $tblTest->getServiceTblPeriod()->getName(),
+                                    Panel::PANEL_TYPE_INFO), 3
+                            ),
+                            new LayoutColumn(
+                                new Panel('Zensuren-Typ:', $tblTest->getTblGradeType()->getName(),
+                                    Panel::PANEL_TYPE_INFO), 3
+                            )
+                        )),
                     )),
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Zeitraum:', $tblTest->getServiceTblPeriod()->getName(),
-                                Panel::PANEL_TYPE_SUCCESS), 6
-                        ),
-                        new LayoutColumn(
-                            new Panel('Zensuren-Typ:', $tblTest->getTblGradeType()->getName(),
-                                Panel::PANEL_TYPE_SUCCESS), 6
-                        )
-                    ))
-                )))
-                . Gradebook::useService()->updateTest($Form, $tblTest->getId(), $Test)
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Well(Gradebook::useService()->updateTest($Form, $tblTest->getId(), $Test))
+                            )
+                        ))
+                    ), new Title(new Edit() . ' Bearbeiten'))
+                ))
             );
 
             return $Stage;
@@ -813,13 +796,20 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendEditTestGrade($Id, $Grade)
     {
 
-        $Stage = new Stage('Zensuren', 'Zensuren eines Tests bearbeiten');
+        $Stage = new Stage('Leistungsermittlung', 'Zensuren bearbeiten');
 
         $tblTest = Gradebook::useService()->getTestById($Id);
         if ($tblTest) {
 
+            $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                $tblTest->getServiceTblDivision(),
+                $tblTest->getServiceTblSubject(),
+                $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
+            );
+
             $Stage->addButton(
-                new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Test', new ChevronLeft())
+                new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Test/Selected', new ChevronLeft()
+                    , array('DivisionSubjectId' => $tblDivisionSubject->getId()))
             );
 
             $gradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
@@ -837,80 +827,76 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
                 $Global->savePost();
-
-                $division = '';
-                $tblDivision = $tblTest->getServiceTblDivision();
-                if ($tblDivision) {
-                    $division = $tblDivision->getServiceTblYear()->getName() . ' - ' .
-                        $tblDivision->getTblLevel()->getServiceTblType()->getName() . ' - ' .
-                        $tblDivision->getTblLevel()->getName() . $tblDivision->getName();
-                }
-
-                $Stage->setContent(
-                    new Layout(array(
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(
-                                    new Panel('Klasse:', $division,
-                                        Panel::PANEL_TYPE_SUCCESS), 6
-                                ),
-                                new LayoutColumn(
-                                    new Panel('Fach:', $tblTest->getServiceTblSubject()->getName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 6
-                                )
-                            )),
-                            new LayoutRow(array(
-                                new LayoutColumn(
-                                    new Panel('Zeitraum:', $tblTest->getServiceTblPeriod()->getName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 6
-                                ),
-                                new LayoutColumn(
-                                    new Panel('Zensuren-Typ:', $tblTest->getTblGradeType()->getName(),
-                                        Panel::PANEL_TYPE_SUCCESS), 6
-                                )
-                            )),
-                            new LayoutRow(array(
-                                new LayoutColumn(
-                                    new Panel('Beschreibung:', $tblTest->getDescription(),
-                                        Panel::PANEL_TYPE_SUCCESS), 12
-                                )
-                            )),
-                        )),
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(
-                                    Gradebook::useService()->updateGradeToTest(
-                                        new Form(
-                                            new FormGroup(array(
-                                                new FormRow(
-                                                    new FormColumn(
-                                                        new TableData(
-                                                            $gradeList, null, array(
-                                                            'Student' => 'Schüler',
-                                                            'Grades' => 'Zensur',
-                                                            'Comments' => 'Kommentar'
-                                                        ), false)
-                                                    )
-                                                ),
-                                            ))
-                                            , new Primary('Speichern', new Save()))
-                                        , $Grade
-                                    )
-                                )
-                            ))
-                        )),
-                    ))
-                );
-
-                return $Stage;
             }
+
+            $tblDivision = $tblTest->getServiceTblDivision();
+            $student = array();
+
+            if ($tblDivisionSubject->getTblSubjectGroup()){
+                $tblSubjectStudentAllByDivisionSubject = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+                if ($tblSubjectStudentAllByDivisionSubject){
+                    foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent){
+
+                    }
+                }
+            }
+
+            $Stage->setContent(
+                new Layout (array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel(
+                                    'Fach-Klasse',
+                                    'Klasse ' . $tblDivision->getTblLevel()->getName() . $tblDivision->getName() . ' - ' .
+                                    $tblTest->getServiceTblSubject()->getName() .
+                                    ($tblTest->getServiceTblSubjectGroup() ? new Small(
+                                        ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : ''),
+                                    Panel::PANEL_TYPE_INFO
+                                ), 6
+                            ),
+                            new LayoutColumn(
+                                new Panel('Zeitraum:', $tblTest->getServiceTblPeriod()->getName(),
+                                    Panel::PANEL_TYPE_INFO), 3
+                            ),
+                            new LayoutColumn(
+                                new Panel('Zensuren-Typ:', $tblTest->getTblGradeType()->getName(),
+                                    Panel::PANEL_TYPE_INFO), 3
+                            )
+                        )),
+                    )),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                Gradebook::useService()->updateGradeToTest(
+                                    new Form(
+                                        new FormGroup(array(
+                                            new FormRow(
+                                                new FormColumn(
+                                                    new TableData(
+                                                        $gradeList, null, array(
+                                                        'Student' => 'Schüler',
+                                                        'Grades' => 'Zensur',
+                                                        'Comments' => 'Kommentar'
+                                                    ), false)
+                                                )
+                                            ),
+                                        ))
+                                        , new Primary('Speichern', new Save()))
+                                    , $Grade
+                                )
+                            )
+                        ))
+                    )),
+                ))
+            );
+
+            return $Stage;
         } else {
 
             return new Warning('Test nicht gefunden')
             . new Redirect('/Education/Graduation/Gradebook/Test', 2);
         }
-
-        return $Stage;
     }
 
     /**

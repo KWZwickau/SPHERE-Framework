@@ -359,6 +359,7 @@ class Data extends AbstractData
     /**
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
+     * @param TblSubjectGroup $tblSubjectGroup
      * @param TblPeriod $tblPeriod
      * @param TblGradeType $tblGradeType
      * @param TblTestType $tblTestType
@@ -371,6 +372,7 @@ class Data extends AbstractData
     public function createTest(
         TblDivision $tblDivision,
         TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup = null,
         TblPeriod $tblPeriod,
         TblGradeType $tblGradeType,
         TblTestType $tblTestType,
@@ -385,6 +387,7 @@ class Data extends AbstractData
         $Entity = new TblTest();
         $Entity->setServiceTblDivision($tblDivision);
         $Entity->setServiceTblSubject($tblSubject);
+        $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
         $Entity->setServiceTblPeriod($tblPeriod);
         $Entity->setTblGradeType($tblGradeType);
         $Entity->setTblTestType($tblTestType);

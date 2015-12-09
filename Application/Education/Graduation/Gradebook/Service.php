@@ -338,28 +338,20 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param $Test
-     *
-     * @return IFormInterface
+     * @param null $DivisionSubjectId
+     * @param null $Test
+     * @return IFormInterface|string
      */
-    public function createTestWhereTest(IFormInterface $Stage = null, $Test)
+    public function createTest(IFormInterface $Stage = null, $DivisionSubjectId = null, $Test = null)
     {
         /**
          * Skip to Frontend
          */
-        if (null === $Test) {
+        if (null === $Test || $DivisionSubjectId === null) {
             return $Stage;
         }
 
         $Error = false;
-        if (!isset($Test['Division'])) {
-            $Error = true;
-            $Stage .= new Warning('Klasse nicht gefunden');
-        }
-        if (!isset($Test['Subject'])) {
-            $Error = true;
-            $Stage .= new Warning('Fach nicht gefunden');
-        }
         if (!isset($Test['Period'])) {
             $Error = true;
             $Stage .= new Warning('Zeitraum nicht gefunden');
@@ -372,9 +364,12 @@ class Service extends AbstractService
             return $Stage;
         }
 
-        $tblTest = (new Data($this->getBinding()))->createTest(
-            Division::useService()->getDivisionById($Test['Division']),
-            Subject::useService()->getSubjectById($Test['Subject']),
+        $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId);
+
+        (new Data($this->getBinding()))->createTest(
+            $tblDivisionSubject->getTblDivision(),
+            $tblDivisionSubject->getServiceTblSubject(),
+            $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
             Term::useService()->getPeriodById($Test['Period']),
             $this->getGradeTypeById($Test['GradeType']),
             $this->getTestTypeByIdentifier('TEST'),
@@ -384,17 +379,9 @@ class Service extends AbstractService
             $Test['ReturnDate']
         );
 
-        if ($tblTest) {
-            $studentList = Division::useService()->getStudentAllByDivision($tblTest->getServiceTblDivision());
-            if ($studentList) {
-                foreach ($studentList as $tblPerson) {
-                    $this->createGradeToTest($tblTest, $tblPerson);
-                }
-            }
-        }
-
         return new Stage('Der Test ist erfasst worden')
-        . new Redirect('/Education/Graduation/Gradebook/Test', 0);
+        . new Redirect('/Education/Graduation/Gradebook/Test/Selected', 0,
+            array('DivisionSubjectId' => $tblDivisionSubject->getId()));
 
     }
 
@@ -414,15 +401,24 @@ class Service extends AbstractService
             return $Stage;
         }
 
+        $tblTest = $this->getTestById($Id);
         (new Data($this->getBinding()))->updateTest(
-            $this->getTestById($Id),
+            $tblTest,
             $Test['Description'],
             $Test['Date'],
             $Test['CorrectionDate'],
             $Test['ReturnDate']
         );
 
-        return new Redirect('/Education/Graduation/Gradebook/Test', 0);
+        $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+            $tblTest->getServiceTblDivision(),
+            $tblTest->getServiceTblSubject(),
+            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
+        );
+
+
+        return new Redirect('/Education/Graduation/Gradebook/Test/Selected', 0,
+            array('DivisionSubjectId' => $tblDivisionSubject->getId()));
     }
 
     /**
