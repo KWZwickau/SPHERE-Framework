@@ -110,30 +110,39 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
+     * @param TblSubjectGroup|null $tblSubjectGroup
      * @param TblPeriod $tblPeriod
      * @param TblGradeType $tblGradeType
+     * @param TblTest $tblTest
      * @param TblTestType $tblTestType
      * @param $Grade
      * @param string $Comment
-     * @return null|object|TblGrade
+     * @return TblGrade
      */
     public function createGrade(
         TblPerson $tblPerson,
+        TblDivision $tblDivision,
         TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup = null,
         TblPeriod $tblPeriod,
         TblGradeType $tblGradeType,
+        TblTest $tblTest,
         TblTestType $tblTestType,
         $Grade,
-        $Comment = ''
+        $Comment
     ) {
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblGrade();
         $Entity->setServiceTblPerson($tblPerson);
+        $Entity->setServiceTblDivision($tblDivision);
         $Entity->setServiceTblSubject($tblSubject);
+        $Entity->setServiceTblSubjectGroup($tblSubjectGroup);
         $Entity->setServiceTblPeriod($tblPeriod);
         $Entity->setTblGradeType($tblGradeType);
+        $Entity->setTblTest($tblTest);
         $Entity->setTblTestType($tblTestType);
         $Entity->setGrade($Grade);
         $Entity->setComment($Comment);
@@ -247,6 +256,23 @@ class Data extends AbstractData
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblGrade', $Id);
 //        $Entity = $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade', $Id);
         return (null === $Entity ? false : $Entity);
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblPerson $tblPerson
+     * @return bool|TblGrade
+     */
+    public function getGradeByTestAndStudent(
+        TblTest $tblTest,
+        TblPerson $tblPerson
+    ) {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
+            array(
+                TblGrade::ATTR_TBL_TEST => $tblTest->getId(),
+                TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
     }
 
     /**

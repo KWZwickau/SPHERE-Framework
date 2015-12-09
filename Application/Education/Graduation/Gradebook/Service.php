@@ -22,6 +22,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -297,6 +298,19 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblTest $tblTest
+     * @param TblPerson $tblPerson
+     * @return bool|TblGrade
+     */
+    public function getGradeByTestAndStudent(
+        TblTest $tblTest,
+        TblPerson $tblPerson
+    ) {
+
+        return (new Data($this->getBinding()))->getGradeByTestAndStudent($tblTest, $tblPerson);
+    }
+
+    /**
      * @param $Id
      * @return bool|Service\Entity\TblTest
      */
@@ -449,24 +463,47 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
+     * @param null $TestId
      * @param $Grade
      * @return IFormInterface|Redirect
      */
-    public function updateGradeToTest(IFormInterface $Stage = null, $Grade = null)
+    public function updateGradeToTest(IFormInterface $Stage = null, $TestId = null, $Grade = null)
     {
         /**
          * Skip to Frontend
          */
-        if (null === $Grade) {
+        if (null === $Grade || $TestId === null) {
             return $Stage;
         }
 
-        foreach ($Grade as $key => $value) {
-            $grade = $this->getGradeById($key);
-            (new Data($this->getBinding()))->updateGrade($grade, $value['Grade'], $value['Comment']);
+        $tblTest = $this->getTestById($TestId);
+        $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+            $tblTest->getServiceTblDivision(),
+            $tblTest->getServiceTblSubject(),
+            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
+        );
+
+        foreach ($Grade as $personId => $value) {
+            $tblPerson = Person::useService()->getPersonById($personId);
+            if (!Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson)) {
+                if (trim($value['Grade']) !== '')
+                (new Data($this->getBinding()))->createGrade(
+                    $tblPerson,
+                    $tblTest->getServiceTblDivision(),
+                    $tblTest->getServiceTblSubject(),
+                    $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null,
+                    $tblTest->getServiceTblPeriod(),
+                    $tblTest->getTblGradeType(),
+                    $tblTest,
+                    $tblTest->getTblTestType(),
+                    trim($value['Grade']),
+                    trim($value['Comment'])
+                );
+            }
         }
 
-        return new Redirect('/Education/Graduation/Gradebook/Test', 0);
+        return new Redirect('/Education/Graduation/Gradebook/Test/Selected', 0,
+            array('DivisionSubjectId' => $tblDivisionSubject->getId()));
     }
 
     /**
