@@ -17,6 +17,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTestType
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Setup;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
@@ -121,13 +122,13 @@ class Service extends AbstractService
      * @param bool $IsOpen
      * @return IFormInterface|string
      */
-    public function updateGradeType(IFormInterface $Stage = null, $Id,  $GradeType, $IsOpen = false)
+    public function updateGradeType(IFormInterface $Stage = null, $Id, $GradeType, $IsOpen = false)
     {
 
         /**
          * Skip to Frontend
          */
-        if (null === $GradeType || null === $Id ) {
+        if (null === $GradeType || null === $Id) {
             return $Stage;
         }
 
@@ -142,7 +143,7 @@ class Service extends AbstractService
         }
 
         $tblGradeType = $this->getGradeTypeById($Id);
-        if (!$tblGradeType){
+        if (!$tblGradeType) {
             return new Stage('Zensuren-Typ nicht gefunden')
             . new Redirect('/Education/Graduation/Gradebook/GradeType', 2, array('IsOpen' => $IsOpen));
         }
@@ -312,6 +313,27 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getTestAllWhereTest();
+    }
+
+    /**
+     * @param TblTestType $tblTestType
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblPeriod|null $tblPeriod
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     * @return bool|TblTest[]
+     */
+    public function getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
+        TblTestType $tblTestType,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblPeriod $tblPeriod = null,
+        TblSubjectGroup $tblSubjectGroup = null
+    ) {
+
+        return (new Data($this->getBinding()))->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
+            $tblTestType, $tblDivision, $tblSubject, $tblPeriod, $tblSubjectGroup
+        );
     }
 
     /**
@@ -729,7 +751,8 @@ class Service extends AbstractService
     ) {
         $grades = false;
         if ($tblPeriod !== null) {
-            $grades = (new Data($this->getBinding()))->getGradesByStudentAndSubjectAndPeriodWhereTest($tblPerson, $tblSubject,
+            $grades = (new Data($this->getBinding()))->getGradesByStudentAndSubjectAndPeriodWhereTest($tblPerson,
+                $tblSubject,
                 $tblPeriod);
         } elseif ($tblDivision !== null) {
             if (($tblYear = $tblDivision->getServiceTblYear())) {

@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRul
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -176,9 +177,10 @@ class Data extends AbstractData
 
         $tblTestType = $this->getTestTypeByIdentifier('TEST');
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType', array(
-            TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
-        ));
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType',
+            array(
+                TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
+            ));
     }
 
     /**
@@ -269,6 +271,64 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest', array(
             TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
         ));
+    }
+
+    /**
+     * @param TblTestType $tblTestType
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblPeriod|null $tblPeriod
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     * @return bool|TblTest[]
+     */
+    public function getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
+        TblTestType $tblTestType,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblPeriod $tblPeriod = null,
+        TblSubjectGroup $tblSubjectGroup = null
+    ) {
+        if ($tblSubjectGroup === null) {
+            if ($tblPeriod === null) {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                    array(
+                        TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+                    )
+                );
+            } else {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                    array(
+                        TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                        TblTest::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId()
+                    )
+                );
+            }
+        } else {
+            if ($tblPeriod === null) {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                    array(
+                        TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                        TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId()
+                    )
+                );
+            } else {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                    array(
+                        TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                        TblTest::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId(),
+                        TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
+                    )
+                );
+            }
+        }
     }
 
     /**

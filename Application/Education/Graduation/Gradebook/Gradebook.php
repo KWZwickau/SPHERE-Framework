@@ -61,6 +61,10 @@ class Gradebook implements IModuleInterface
                 __NAMESPACE__ . '\Frontend::frontendTest')
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test\Selected',
+                __NAMESPACE__ . '\Frontend::frontendTestSelected')
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test\Create',
                 __NAMESPACE__ . '\Frontend::frontendCreateTest')
                 ->setParameterDefault('Test', null)
