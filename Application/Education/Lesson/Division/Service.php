@@ -84,7 +84,7 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
-    public function createLevel(
+    public function createLevelDivision(
         IFormInterface $Form,
         $Level, $Division
     ) {
@@ -96,23 +96,21 @@ class Service extends AbstractService
             return $Form;
         }
 
-        var_dump($Level);
-
         $Error = false;
-
-        $tblType = Type::useService()->getTypeById($Level['Type']);
 
         if (isset( $Division['Name'] ) && empty( $Division['Name'] )) {
             $Form->setError('Division[Name]', 'Bitte geben Sie eine Klassengruppe an');
             $Error = true;
         }
-//        else {
-//            if ($this->checkLevelExists($tblType, $Level['Name'])) {
-//                $Form->setError('Level[Name]', 'Diese Klassenstufe wird in <b>'.$tblType->getName().'</b> bereits verwendet');
-//                $Error = true;
-//            }
-//        }
-        if (isset( $Division['Name'] ) && !empty( $Division['Name'] ) && !isset( $Level['Name'] )) {
+        if (!isset( $Division['Year'] ) || empty( $Division['Year'] )) {
+            $Form->setError('Division[Year]', 'Jahr erforderlich! Bitte zuerst einpflegen');
+            $Error = true;
+        }
+        if (isset( $Division['Name'] )
+            && !empty( $Division['Name'] )
+            && !isset( $Level['Name'] )
+            && !$Error
+        ) {
 
             if (Division::useService()->getDivisionByGroupAndLevelAndYear($Division['Name'], null, $Division['Year'])) {
                 $Form->setError('Division[Name]', 'Name in diesem Schuljahr schon vergeben');
@@ -152,6 +150,7 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
+            $tblType = Type::useService()->getTypeById($Level['Type']);
             $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, $Level['Name']);
 
             $Error = false;
@@ -375,6 +374,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson   $tblPerson
+     *
+     * @return bool|TblDivisionTeacher
+     */
+    public function getDivisionTeacherByDivisionAndTeacher(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson);
+    }
+
+    /**
      * @param TblYear  $tblYear
      * @param TblLevel $tblLevel
      * @param string   $Name
@@ -520,13 +531,14 @@ class Service extends AbstractService
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
+     * @param             $Description
      *
      * @return null|object|TblDivisionTeacher
      */
-    public function addDivisionTeacher(TblDivision $tblDivision, TblPerson $tblPerson)
+    public function addDivisionTeacher(TblDivision $tblDivision, TblPerson $tblPerson, $Description)
     {
 
-        return (new Data($this->getBinding()))->addDivisionTeacher($tblDivision, $tblPerson);
+        return (new Data($this->getBinding()))->addDivisionTeacher($tblDivision, $tblPerson, $Description);
     }
 
     /**
@@ -759,14 +771,14 @@ class Service extends AbstractService
                 )
                 ) {
                     return new Success('Die Beschreibung wurde erfolgreich geändert')
-                    .new Redirect('/Education/Lesson/Division/Create/LevelDivision', 1);
+                    .new Redirect('/Education/Lesson/Division', 1);
                 } else {
                     return new Danger('Die Beschreibung konnte nicht geändert werden')
-                    .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+                    .new Redirect('/Education/Lesson/Division');
                 }
             } else {
                 return new Danger('Die Klassen wurde nicht gefunden')
-                .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+                .new Redirect('/Education/Lesson/Division');
             }
         }
         return $Form;
@@ -861,58 +873,58 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getSubjectStudentByPerson($tblPerson);
     }
 
-    /**
-     * @param IFormInterface $Form
-     * @param null|array     $Level
-     * @param int            $Id
-     *
-     * @return IFormInterface|string
-     */
-    public function changeLevel(IFormInterface $Form, $Level, $Id)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Level) {
-            return $Form;
-        }
-
-        $Error = false;
-        $tblType = Type::useService()->getTypeById($Level['Type']);
-        $tblLevel = Division::useService()->getLevelById($Id);
-
-        if (isset( $Level['Name'] ) && empty( $Level['Name'] )) {
-            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
-            $Error = true;
-        } else {
-            $tblLevelTest = $this->checkLevelExists($tblType, $Level['Name']);
-            if ($tblLevelTest->getId() !== $tblLevel->getId()) {
-                $Form->setError('Level[Name]', 'Diese Klassenstufe wird in <b>'.$tblType->getName().'</b> bereits verwendet');
-                $Error = true;
-            }
-        }
-
-        if (!$Error) {
-
-            if ($tblLevel) {
-                if ((new Data($this->getBinding()))->updateLevel(
-                    $tblLevel, $tblType, $Level['Name'], $Level['Description']
-                )
-                ) {
-                    return new Success('Die Klassenstufe wurde erfolgreich geändert')
-                    .new Redirect('/Education/Lesson/Division/Create/LevelDivision', 1);
-                } else {
-                    return new Danger('Die Klassenstufe konnte nicht geändert werden')
-                    .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
-                }
-            } else {
-                return new Danger('Die Klassenstufe wurde nicht gefunden')
-                .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
-            }
-        }
-        return $Form;
-    }
+//    /**
+//     * @param IFormInterface $Form
+//     * @param null|array     $Level
+//     * @param int            $Id
+//     *
+//     * @return IFormInterface|string
+//     */
+//    public function changeLevel(IFormInterface $Form, $Level, $Id)
+//    {
+//
+//        /**
+//         * Skip to Frontend
+//         */
+//        if (null === $Level) {
+//            return $Form;
+//        }
+//
+//        $Error = false;
+//        $tblType = Type::useService()->getTypeById($Level['Type']);
+//        $tblLevel = Division::useService()->getLevelById($Id);
+//
+//        if (isset( $Level['Name'] ) && empty( $Level['Name'] )) {
+//            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
+//            $Error = true;
+//        } else {
+//            $tblLevelTest = $this->checkLevelExists($tblType, $Level['Name']);
+//            if ($tblLevelTest->getId() !== $tblLevel->getId()) {
+//                $Form->setError('Level[Name]', 'Diese Klassenstufe wird in <b>'.$tblType->getName().'</b> bereits verwendet');
+//                $Error = true;
+//            }
+//        }
+//
+//        if (!$Error) {
+//
+//            if ($tblLevel) {
+//                if ((new Data($this->getBinding()))->updateLevel(
+//                    $tblLevel, $tblType, $Level['Name'], $Level['Description']
+//                )
+//                ) {
+//                    return new Success('Die Klassenstufe wurde erfolgreich geändert')
+//                    .new Redirect('/Education/Lesson/Division/Create/LevelDivision', 1);
+//                } else {
+//                    return new Danger('Die Klassenstufe konnte nicht geändert werden')
+//                    .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+//                }
+//            } else {
+//                return new Danger('Die Klassenstufe wurde nicht gefunden')
+//                .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+//            }
+//        }
+//        return $Form;
+//    }
 
     /**
      * @param IFormInterface $Form
@@ -1040,14 +1052,14 @@ class Service extends AbstractService
 
             if ((new Data($this->getBinding()))->destroyDivision($tblDivision)) {
                 return new Success('Die Klassengruppe wurde erfolgreich gelöscht')
-                .new Redirect('/Education/Lesson/Division/Create/LevelDivision', 1);
+                .new Redirect('/Education/Lesson/Division', 1);
             } else {
                 return new Danger('Die Klassengruppe konnte nicht gelöscht werden')
-                .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+                .new Redirect('/Education/Lesson/Division');
             }
         }
         return new Danger('Die Klassengruppe konnte nicht gelöscht werden, da Personen zugeordnet sind')
-        .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+        .new Redirect('/Education/Lesson/Division');
     }
 
     /**
@@ -1158,12 +1170,95 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
+     *
      * @return int
      */
     public function countDivisionStudentAllByDivision(TblDivision $tblDivision)
     {
 
         return (new Data($this->getBinding()))->countDivisionStudentAllByDivision($tblDivision);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return int
+     */
+    public function countDivisionTeacherAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->countDivisionTeacherAllByDivision($tblDivision);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return int
+     */
+    public function countDivisionSubjectAllByDivision(TblDivision $tblDivision)
+    {
+
+        $Sum = (new Data($this->getBinding()))->countDivisionSubjectAllByDivision($tblDivision);
+        $Sub = (new Data($this->getBinding()))->countDivisionSubjectGroupByDivision($tblDivision);
+        return ( $Sum - $Sub );
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return int
+     */
+    public function countDivisionSubjectUsedByDivision(TblDivision $tblDivision)
+    {
+
+        $DivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
+        $SubjectUsedCount = 0;
+        if (!$DivisionSubjectList) {
+        } else {
+            foreach ($DivisionSubjectList as $DivisionSubject) {
+
+                if (!$DivisionSubject->getTblSubjectGroup()) {
+                    $tblDivisionSubjectActiveList = Division::useService()
+                        ->getDivisionSubjectBySubjectAndDivision($DivisionSubject->getServiceTblSubject(), $tblDivision);
+                    $TeacherGroup = array();
+                    if ($tblDivisionSubjectActiveList) {
+                        /**@var TblDivisionSubject $tblDivisionSubjectActive */
+                        foreach ($tblDivisionSubjectActiveList as $tblDivisionSubjectActive) {
+                            $TempList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubjectActive);
+                            if ($TempList) {
+                                foreach ($TempList as $Temp)
+                                    array_push($TeacherGroup, $Temp->getId());
+                            }
+                        }
+                        if (empty( $TeacherGroup )) {
+                            $SubjectUsedCount = $SubjectUsedCount + 1;
+                        }
+                    }
+                }
+            }
+        }
+        return $SubjectUsedCount;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @return bool|TblDivisionSubject[]
+     */
+    public function getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject($tblDivision, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @return bool|TblSubjectTeacher[]
+     */
+    public function getSubjectTeacherAllByTeacher(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectTeacherAllByTeacher($tblPerson);
     }
 
 }

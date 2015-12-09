@@ -47,6 +47,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getPeriodAllByYear($tblYear);
     }
+
     /**
      * @return bool|TblYear[]
      */
@@ -55,6 +56,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getYearAll();
     }
+
     /**
      * @return bool|TblPeriod[]
      */
@@ -63,6 +65,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getPeriodAll();
     }
+
     /**
      * @param IFormInterface $Form
      * @param null|array     $Year
@@ -105,6 +108,7 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param string $Name
      *
@@ -115,6 +119,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getYearByName($Name);
     }
+
     /**
      * @param $Year
      * @param $Period
@@ -134,6 +139,7 @@ class Service extends AbstractService
         return new Warning('Zeitraum konnte nicht festgelegt werden').
         new Redirect('/Education/Lesson/Term');
     }
+
     /**
      * @param int $Id
      *
@@ -144,6 +150,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getYearById($Id);
     }
+
     /**
      * @param string $Id
      *
@@ -154,6 +161,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getPeriodById($Id);
     }
+
     /**
      * @param $Year
      * @param $Period
@@ -173,6 +181,7 @@ class Service extends AbstractService
         return new Warning('Zeitraum konnte nicht entfernt werden').
         new Redirect('/Education/Lesson/Term');
     }
+
     /**
      * @param IFormInterface $Form
      * @param null|array     $Period
@@ -235,6 +244,7 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param string $Name
      *
@@ -245,6 +255,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getPeriodByName($Name);
     }
+
     /**
      * @param IFormInterface|null $Stage
      * @param TblYear             $tblYear
@@ -272,10 +283,11 @@ class Service extends AbstractService
             $Stage->setError('Year[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         } else {
-            if ($this->getYearByName($Year['Name'])) {
-                $Stage->setError('Year[Name]', 'Dieser Name wird bereits verwendet');
-                $Error = true;
-            }
+            if ($TempYear = $this->getYearByName($Year['Name']))
+                if ($TempYear->getId() !== $tblYear->getId()) {
+                    $Stage->setError('Year[Name]', 'Dieser Name wird bereits verwendet');
+                    $Error = true;
+                }
         }
 
         if (!$Error) {
@@ -294,6 +306,7 @@ class Service extends AbstractService
         }
         return $Stage;
     }
+
     public function changePeriod(
         IFormInterface &$Stage = null,
         TblPeriod $tblPeriod,
@@ -341,6 +354,7 @@ class Service extends AbstractService
         }
         return $Stage;
     }
+
     /**
      * @param TblYear $tblYear
      *
@@ -361,6 +375,7 @@ class Service extends AbstractService
         }
 
     }
+
     /**
      * @param TblPeriod $tblPeriod
      *
@@ -389,6 +404,7 @@ class Service extends AbstractService
         return new Danger('Der Zeitraum wird benutzt!')
         .new Redirect('/Education/Lesson/Term/Create/Period');
     }
+
     /**
      * @param TblPeriod $tblPeriod
      *
@@ -399,4 +415,5 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getPeriodExistWithYear($tblPeriod);
     }
+
 }

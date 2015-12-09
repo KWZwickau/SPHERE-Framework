@@ -1,6 +1,12 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: Kauschke
+ * Date: 05.11.2015
+ * Time: 13:51
+ */
 
-namespace SPHERE\Application\Education\Graduation\ScoreType\Service\Entity;
+namespace SPHERE\Application\Education\Graduation\Gradebook\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
@@ -9,30 +15,31 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
- * @Entity
- * @Table(name="tblScoreType")
+ * @Entity()
+ * @Table(name="tblTestType")
  * @Cache(usage="READ_ONLY")
  */
-class TblScoreType extends Element
+class TblTestType extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_IDENTIFIER = 'Identifier';
 
     /**
      * @Column(type="string")
      */
     protected $Name;
+
     /**
      * @Column(type="string")
      */
-    protected $Short;
+    protected $Identifier;
 
     /**
      * @return string
      */
     public function getName()
     {
-
         return $this->Name;
     }
 
@@ -41,27 +48,22 @@ class TblScoreType extends Element
      */
     public function setName($Name)
     {
-
         $this->Name = $Name;
     }
 
     /**
      * @return string
      */
-    public function getShort()
+    public function getIdentifier()
     {
-
-        return $this->Short;
+        return $this->Identifier;
     }
 
     /**
-     * @param string $Short
+     * @param string $Identifier
      */
-    public function setShort($Short)
+    public function setIdentifier($Identifier)
     {
-
-        $this->Short = $Short;
+        $this->Identifier = $Identifier;
     }
-
-
 }

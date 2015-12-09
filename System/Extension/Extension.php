@@ -34,10 +34,10 @@ class Extension
         return HttpKernel::getRequest();
     }
 
-    public function getCache(HandlerInterface $Handler)
+    public function getCache(HandlerInterface $Handler, $Name = 'Memcached')
     {
         $Config = (new ConfigFactory())->createReader(__DIR__ . '/../Cache/Configuration.ini', new IniReader());
-        return (new CacheFactory())->createHandler($Handler, $Config);
+        return (new CacheFactory())->createHandler($Handler, $Config, $Name);
     }
 
     /**

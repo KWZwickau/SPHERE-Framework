@@ -81,7 +81,7 @@ class Major0Minor9
             ->createDuty('Fachklasse verknüpfen', true)
             ->createDuty('Klassen-Schüler verknüpfen', true)
             ->createDuty('Klassen-Lehrer verknüpfen', true)
-            ->createDuty('Fach-Schüler verknüpfen', false)
-            ->createDuty('Fach-Lehrer verknüpfen', false);
+            ->createDuty('Fach-Schüler verknüpfen', true)
+            ->createDuty('Fach-Lehrer verknüpfen', true);
     }
 }

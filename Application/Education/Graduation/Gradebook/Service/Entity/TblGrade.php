@@ -15,6 +15,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
@@ -33,8 +34,10 @@ class TblGrade extends Element
 
     const ATTR_TBL_GRADE_TYPE = 'tblGradeType';
     const ATTR_TBL_TEST = 'tblTest';
+    const ATTR_TBL_TEST_TYPE = 'tblTestType';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+    const ATTR_SERVICE_TBL_SUBJECT_GROUP = 'serviceTblSubjectGroup';
     const ATTR_SERVICE_TBL_PERIOD = 'serviceTblPeriod';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
 
@@ -61,12 +64,22 @@ class TblGrade extends Element
     /**
      * @Column(type="bigint")
      */
+    protected $tblTestType;
+
+    /**
+     * @Column(type="bigint")
+     */
     protected $serviceTblPerson;
 
     /**
      * @Column(type="bigint")
      */
     protected $serviceTblSubject;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblSubjectGroup;
 
     /**
      * @Column(type="bigint")
@@ -151,6 +164,26 @@ class TblGrade extends Element
     }
 
     /**
+     * @return bool|TblTestType
+     */
+    public function getTblTestType()
+    {
+        if (null === $this->tblTestType) {
+            return false;
+        } else {
+            return Gradebook::useService()->getTestTypeById($this->tblTestType);
+        }
+    }
+
+    /**
+     * @param TblTestType|null $tblTestType
+     */
+    public function setTblTestType($tblTestType)
+    {
+        $this->tblTestType = (null === $tblTestType ? null : $tblTestType->getId());
+    }
+
+    /**
      * @return bool|TblPerson
      */
     public function getServiceTblPerson()
@@ -192,6 +225,28 @@ class TblGrade extends Element
     {
 
         $this->serviceTblSubject = (null === $tblSubject ? null : $tblSubject->getId());
+    }
+
+    /**
+     * @return bool|TblSubjectGroup
+     */
+    public function getServiceTblSubjectGroup()
+    {
+
+        if (null === $this->serviceTblSubjectGroup) {
+            return false;
+        } else {
+            return Division::useService()->getSubjectGroupById($this->serviceTblSubjectGroup);
+        }
+    }
+
+    /**
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     */
+    public function setServiceTblSubjectGroup(TblSubjectGroup $tblSubjectGroup = null)
+    {
+
+        $this->serviceTblSubjectGroup = (null === $tblSubjectGroup ? null : $tblSubjectGroup->getId());
     }
 
     /**

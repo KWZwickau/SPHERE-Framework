@@ -23,13 +23,18 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -41,11 +46,13 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Link\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -67,9 +74,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCreateLevelDivision($Level = null, $Division = null)
     {
 
-        $Stage = new Stage('Schulklasse', 'erstellen');
-        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
-
+        $Stage = new Stage('Klassen', 'Übersicht');
         $tblDivisionAll = Division::useService()->getDivisionAll();
         if ($tblDivisionAll) {
             foreach ($tblDivisionAll as &$tblDivision) {
@@ -93,8 +98,19 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblDivision->Period = 'fehlt';
                 }
 
+                $SubjectUsedCount = Division::useService()->countDivisionSubjectUsedByDivision($tblDivision);
+                $tblDivision->StudentList = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
+                $tblDivision->TeacherList = Division::useService()->countDivisionTeacherAllByDivision($tblDivision);
+                $SubjectCount = Division::useService()->countDivisionSubjectAllByDivision($tblDivision);
 
-                $tblDivision->Option = new Standard('', '/Education/Lesson/Division/Change/Division', new Pencil(),
+                if ($SubjectUsedCount !== 0) {
+                    $tblDivision->SubjectList = $SubjectCount.new Small(new Small(new Muted(' Fachlehrer fehlt ('.new Danger($SubjectUsedCount).')')));
+                } else {
+                    $tblDivision->SubjectList = $SubjectCount;
+                }
+                $tblDivision->Option = new Standard('&nbsp;Klassenansicht', '/Education/Lesson/Division/Show',
+                        new EyeOpen(), array('Id' => $tblDivision->getId()))
+                    .new Standard('', '/Education/Lesson/Division/Change/Division', new Pencil(),
                         array('Id' => $tblDivision->getId()))
                     .new Standard('', '/Education/Lesson/Division/Destroy/Division', new Remove(),
                         array('Id' => $tblDivision->getId()));
@@ -112,24 +128,27 @@ class Frontend extends Extension implements IFrontendInterface
                                       'SchoolType'  => 'Schultyp',
                                       'ClassGroup'  => 'Schulklasse',
                                       'Description' => 'Beschreibung',
-                                      'Option'      => 'Option',
+                                      'StudentList' => 'Schüler',
+                                      'TeacherList' => 'Klassenlehrer',
+                                      'SubjectList' => 'Fächer',
+                                      'Option'      => '',
                                 )
                             )
                         )
                     )
-                    , new Title('Schulklassen')),
+                    , new Title(new Listing().' Übersicht')),
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
                             new Well(
-                            Division::useService()->createLevel(
-                                $this->formLevelDivision()
-                                    ->appendFormButton(new Primary('Schulklasse hinzufügen'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $Level, $Division
-                            )
+                                Division::useService()->createLevelDivision(
+                                    $this->formLevelDivision()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $Level, $Division
+                                )
                             ))
-                    ), new Title('Schulklasse hinzufügen')
+                    ), new Title(new Plus().' Hinzufügen')
                 ),
             ))
         );
@@ -214,7 +233,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendAddStudent($Id, $StudentId = null, $Remove = null)
+    public function frontendStudentAdd($Id, $StudentId = null, $Remove = null)
     {
 
         $tblDivision = Division::useService()->getDivisionById($Id);
@@ -227,8 +246,13 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $Stage = new Stage('Schüler', $Title);
-            $Stage->setMessage('Liste aller Schüler die im Schuljahr '.$tblDivision->getServiceTblYear()->getName()
-                .' noch keiner Klasse zugeordnet sind.');
+            if ($tblDivision->getTblLevel()) {
+                $Stage->setMessage('Liste aller Schüler die im Schuljahr '.$tblDivision->getServiceTblYear()->getName()
+                    .' noch keiner Klasse zugeordnet sind.');
+            } else {
+                $Stage->setMessage('Liste aller Schüler im Schuljahr '.$tblDivision->getServiceTblYear()->getName().'.');
+            }
+
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(), array('Id' => $tblDivision->getId())));
 
             if ($tblDivision && null !== $StudentId && ( $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($StudentId) )) {
@@ -309,7 +333,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     /** @noinspection PhpUndefinedFieldInspection */
                     $Entity->Option = new PullRight(
-                        new \SPHERE\Common\Frontend\Link\Repository\Danger('Entfernen', '/Education/Lesson/Division/Student/Add', new Minus(),
+                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Education/Lesson/Division/Student/Add', new Minus(),
                             array(
                                 'Id'        => $Id,
                                 'StudentId' => $Entity->getId(),
@@ -326,7 +350,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     /** @noinspection PhpUndefinedFieldInspection */
                     $Entity->Option = new PullRight(
-                        new Success('Hinzufügen', '/Education/Lesson/Division/Student/Add', new Plus(),
+                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Education/Lesson/Division/Student/Add', new Plus(),
                             array(
                                 'Id'        => $Id,
                                 'StudentId' => $Entity->getId()
@@ -343,25 +367,25 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(array(
-                                new Title('Schüler', 'Zugewiesen'),
+                                new Title('Ausgewählt', 'Schüler'),
                                 ( empty( $tblDivisionStudentActive )
                                     ? new Warning('Keine Schüler zugewiesen')
                                     : new TableData($tblDivisionStudentActive, null,
                                         array('FirstName' => 'Vorname',
                                               'LastName'  => 'Nachname',
 //                                              'Description' => 'Beschreibung',
-                                              'Option'    => 'Optionen'))
+                                              'Option'    => ''))
                                 )
                             ), 6),
                             new LayoutColumn(array(
-                                new Title('Schüler', 'Verfügbar'),
+                                new Title('Verfügbar', 'Schüler'),
                                 ( empty( $tblStudentAvailable )
-                                    ? new \SPHERE\Common\Frontend\Message\Repository\Info('Keine weiteren Schüler verfügbar')
+                                    ? new Info('Keine weiteren Schüler verfügbar')
                                     : new TableData($tblStudentAvailable, null,
                                         array('FirstName' => 'Vorname',
                                               'LastName'  => 'Nachname',
 //                                              'Description' => 'Beschreibung',
-                                              'Option'    => 'Optionen'))
+                                              'Option'    => ''))
                                 )
                             ), 6)
                         ))
@@ -381,10 +405,11 @@ class Frontend extends Extension implements IFrontendInterface
      * @param      $Id
      * @param null $TeacherId
      * @param null $Remove
+     * @param null $Description
      *
      * @return Stage
      */
-    public function frontendAddTeacher($Id, $TeacherId = null, $Remove = null)
+    public function frontendTeacherAdd($Id, $TeacherId = null, $Remove = null, $Description = null)
     {
 
         $tblDivision = Division::useService()->getDivisionById($Id);
@@ -409,7 +434,7 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                     return $Stage;
                 } else {
-                    Division::useService()->addDivisionTeacher($tblDivision, $tblPerson);
+                    Division::useService()->addDivisionTeacher($tblDivision, $tblPerson, $Description);
                     $Stage->setContent(
                         new Redirect('/Education/Lesson/Division/Teacher/Add', 0,
                             array('Id' => $Id))
@@ -438,17 +463,18 @@ class Frontend extends Extension implements IFrontendInterface
 
             /** @noinspection PhpUnusedParameterInspection */
             if (is_array($tblDivisionTeacherActive)) {
-                array_walk($tblDivisionTeacherActive, function (TblPerson &$Entity) use ($Id) {
+                array_walk($tblDivisionTeacherActive, function (TblPerson &$Entity) use ($Id, $tblDivision) {
 
                     /** @noinspection PhpUndefinedFieldInspection */
                     $Entity->Option = new PullRight(
-                        new \SPHERE\Common\Frontend\Link\Repository\Danger('Entfernen', '/Education/Lesson/Division/Teacher/Add', new Minus(),
+                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Education/Lesson/Division/Teacher/Add', new Minus(),
                             array(
                                 'Id'        => $Id,
                                 'TeacherId' => $Entity->getId(),
                                 'Remove'    => true
                             ))
                     );
+                    $Entity->Description = Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $Entity)->getDescription();
                 });
             }
 
@@ -456,14 +482,24 @@ class Frontend extends Extension implements IFrontendInterface
             if (isset( $tblDivisionTeacherAll ) && !empty( $tblDivisionTeacherAll )) {
                 array_walk($tblDivisionTeacherAll, function (TblPerson &$Entity) use ($Id) {
 
-                    /** @noinspection PhpUndefinedFieldInspection */
-                    $Entity->Option = new PullRight(
-                        new Success('Hinzufügen', '/Education/Lesson/Division/Teacher/Add', new Plus(),
-                            array(
-                                'Id'        => $Id,
-                                'TeacherId' => $Entity->getId()
+                    $Entity->Options = (new Form(
+                        new FormGroup(
+                            new FormRow(array(
+                                new FormColumn(
+                                    new TextField('Description', 'z.B.: Stellvertreter', '', new Person()
+                                    )
+                                    , 7),
+                                new FormColumn(
+                                    new Primary('Hinzufügen',
+                                        new Plus())
+                                    , 5)
                             ))
-                    );
+                        ), null,
+                        '/Education/Lesson/Division/Teacher/Add',
+                        array(
+                            'Id'        => $Id,
+                            'TeacherId' => $Entity->getId())
+                    ))->__toString();
                 });
             }
 
@@ -475,25 +511,25 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(array(
-                                new Title('Lehrer', 'Zugewiesen'),
+                                new Title('Ausgewählt', 'Lehrer'),
                                 ( empty( $tblDivisionTeacherActive )
                                     ? new Warning('Keine Lehrer zugewiesen')
                                     : new TableData($tblDivisionTeacherActive, null,
-                                        array('FirstName' => 'Vorname',
-                                              'LastName'  => 'Nachname',
-//                                              'Description' => 'Beschreibung',
-                                              'Option'    => 'Optionen'))
-                                )
-                            ), 6),
-                            new LayoutColumn(array(
-                                new Title('Lehrer', 'Verfügbar'),
-                                ( empty( $tblTeacherAvailable )
-                                    ? new \SPHERE\Common\Frontend\Message\Repository\Info('Keine weiteren Lehrer verfügbar')
-                                    : new TableData($tblTeacherAvailable, null,
                                         array('FirstName'   => 'Vorname',
                                               'LastName'    => 'Nachname',
                                               'Description' => 'Beschreibung',
-                                              'Option'      => 'Optionen'))
+                                              'Option'      => ''))
+                                )
+                            ), 6),
+                            new LayoutColumn(array(
+                                new Title('Verfügbar', 'Lehrer'),
+                                ( empty( $tblTeacherAvailable )
+                                    ? new Info('Keine weiteren Lehrer verfügbar')
+                                    : new TableData($tblTeacherAvailable, null,
+                                        array('FirstName' => 'Vorname',
+                                              'LastName'  => 'Nachname',
+//                                              'Description' => 'Beschreibung',
+                                              'Options'   => 'Beschreibung'))
                                 )
                             ), 6)
                         ))
@@ -518,7 +554,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendAddSubject($Id, $Subject = null, $Remove = null)
+    public function frontendSubjectAdd($Id, $Subject = null, $Remove = null)
     {
 
         $tblDivision = Division::useService()->getDivisionById($Id);
@@ -579,7 +615,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     /** @noinspection PhpUndefinedFieldInspection */
                     $Entity->Option = new PullRight(
-                        new \SPHERE\Common\Frontend\Link\Repository\Danger('Entfernen', '/Education/Lesson/Division/Subject/Add', new Minus(),
+                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Education/Lesson/Division/Subject/Add', new Minus(),
                             array(
                                 'Id'      => $Id,
                                 'Subject' => $Entity->getId(),
@@ -595,7 +631,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     /** @noinspection PhpUndefinedFieldInspection */
                     $Entity->Option = new PullRight(
-                        new Success('Hinzufügen', '/Education/Lesson/Division/Subject/Add', new Plus(),
+                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Education/Lesson/Division/Subject/Add', new Plus(),
                             array(
                                 'Id'      => $Id,
                                 'Subject' => $Entity->getId()
@@ -612,25 +648,25 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(array(
-                                new Title('Fächer', 'Zugewiesen'),
+                                new Title('Ausgewählt', 'Fach'),
                                 ( empty( $tblSubjectUsedList )
                                     ? new Warning('Keine Fächer zugewiesen')
                                     : new TableData($tblSubjectUsedList, null,
                                         array('Acronym'     => 'Kürzel',
                                               'Name'        => 'Fach',
                                               'Description' => 'Beschreibung',
-                                              'Option'      => 'Optionen'))
+                                              'Option'      => ''))
                                 )
                             ), 6),
                             new LayoutColumn(array(
-                                new Title('Fächer', 'Verfügbar'),
+                                new Title('Verfügbar', 'Fach'),
                                 ( empty( $tblSubjectAvailable )
                                     ? new \SPHERE\Common\Frontend\Message\Repository\Info('Keine weiteren Fächer verfügbar')
                                     : new TableData($tblSubjectAvailable, null,
                                         array('Acronym'     => 'Kürzel',
                                               'Name'        => 'Fach',
                                               'Description' => 'Beschreibung',
-                                              'Option'      => 'Optionen'))
+                                              'Option'      => ''))
                                 )
                             ), 6)
                         ))
@@ -653,7 +689,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendAddSubjectStudent($Id, $DivisionSubjectId, $Student = null)
+    public function frontendSubjectStudentAdd($Id, $DivisionSubjectId, $Student = null)
     {
 
         $tblDivision = Division::useService()->getDivisionById($Id);
@@ -661,33 +697,45 @@ class Frontend extends Extension implements IFrontendInterface
             $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId);
             if ($tblDivisionSubject) {
                 if ($tblDivision->getTblLevel()) {
-                    $Titel = new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName());
+                    $Titel = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
                 } else {
-                    $Titel = new Bold($tblDivision->getName());
+                    $Titel = $tblDivision->getName();
                 }
-                $Stage = new Stage('Schüler', 'der Klasse '.$Titel.' auswählen');
+                $Stage = new Stage('Schüler', 'Klasse '.new Bold($Titel));
                 $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
                     array('Id' => $Id)));
                 $Stage->setMessage(new \SPHERE\Common\Frontend\Text\Repository\Warning('"Schüler in Gelb"')
                     .' sind bereits in einer anderen Gruppe in diesem Fach angelegt.');
 
 
-                $Stage->setContent(new Layout(array(
+                $Stage->setContent(
+                    new Layout(
                         new LayoutGroup(
                             new LayoutRow(
                                 new LayoutColumn(
-                                    Division::useService()->addSubjectStudent(
-                                        $this->formSubjectStudentAdd($tblDivisionSubject)
-                                            ->appendFormButton(new Primary('Schühler auswählen'))
-                                            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                        , $DivisionSubjectId, $Student, $Id
-                                    )
+                                    new Panel('Fach - Gruppe', array('Fach: '.new Bold($tblDivisionSubject->getServiceTblSubject()->getName()),
+                                        'Gruppe: '.new Bold($tblDivisionSubject->getTblSubjectGroup()->getName())
+                                    ), Panel::PANEL_TYPE_INFO)
                                 )
-                            ), new Title('Schüler für das Fach '.new Bold($tblDivisionSubject->getServiceTblSubject()->getName())
-                                .' und die Gruppe '.new Bold($tblDivisionSubject->getTblSubjectGroup()->getName()).' auswählen')
+                            )
                         )
                     )
-                ));
+                    .new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    new Well(
+                                        Division::useService()->addSubjectStudent(
+                                            $this->formSubjectStudentAdd($tblDivisionSubject)
+                                                ->appendFormButton(new Primary('Speichern', new Save))
+                                                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                            , $DivisionSubjectId, $Student, $Id
+                                        )
+                                    )
+                                )
+                            ), new Title(new Check().' Zuordnen')
+                        )
+                    ));
             } else {
                 $Stage = new Stage('Schüler', 'auswählen');
                 $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
@@ -783,19 +831,9 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
-//                    new FormColumn(
-//                        new Panel(' Fach:'
-//                            , new SelectBox('DivisionSubject', '', array('Name' => $tblDivisionSubjectList)), Panel::PANEL_TYPE_INFO)
-//                        , 4),
-//                )),
-//                new FormRow(array(
                     new FormColumn(
                         new Panel('Schüler', $tblStudentList, Panel::PANEL_TYPE_INFO)
-                        , 6),
-
-//                    new FormColumn(
-//                        new Panel('Gruppen', new SelectBox('Group', '', array('{{ Name }} {{ Description }}' => $tblGroupList)), Panel::PANEL_TYPE_INFO)
-//                        , 4)
+                        , 12),
                 )),
             ))
         );
@@ -808,7 +846,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendAddSubjectTeacher($Id, $DivisionSubjectId, $SubjectTeacher = null)
+    public function frontendSubjectTeacherAdd($Id, $DivisionSubjectId, $SubjectTeacher = null)
     {
 
         $tblDivision = Division::useService()->getDivisionById($Id);
@@ -817,37 +855,48 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblDivisionSubject) {
 
                 if ($tblDivision->getTblLevel()) {
-                    $Title = new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName());
+                    $Title = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
                 } else {
-                    $Title = new Bold($tblDivision->getName());
+                    $Title = $tblDivision->getName();
                 }
                 if ($tblDivisionSubject->getTblSubjectGroup()) {
-                    $TableTitle = new Title('Fachlehrer für das Fach '.new Bold($tblDivisionSubject->getServiceTblSubject()->getName())
-                        .' und die Gruppe '.new Bold($tblDivisionSubject->getTblSubjectGroup()->getName()).' auswählen');
+                    $Fach = new Bold($tblDivisionSubject->getServiceTblSubject()->getName())
+                        .' und die Gruppe '.new Bold($tblDivisionSubject->getTblSubjectGroup()->getName());
                 } else {
-                    $TableTitle = new Title('Fachlehrer für das Fach '.new Bold($tblDivisionSubject->getServiceTblSubject()->getName()));
+                    $Fach = new Bold($tblDivisionSubject->getServiceTblSubject()->getName());
                 }
 
-                $Stage = new Stage('Fachlehrer der Klasse ', $Title.' auswählen');
+                $Stage = new Stage('Fachlehrer ', 'Klasse '.new Bold($Title));
                 $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
                     array('Id' => $tblDivision->getId())));
-//                $Stage->setMessage('Blaue Fächer sind mindestens einem Lehrer zugeordnet');
 
-                $Stage->setContent(new Layout(array(
+                $Stage->setContent(
+                    new Layout(
                         new LayoutGroup(
                             new LayoutRow(
                                 new LayoutColumn(
-                                    Division::useService()->addSubjectTeacher(
-                                        $this->formSubjectTeacherAdd($tblDivisionSubject)
-                                            ->appendFormButton(new Primary('Lehrer zuweisen'))
-                                            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                        , $SubjectTeacher, $Id, $DivisionSubjectId
-                                    )
+                                    new Panel('Fachlehrer für das Fach', $Fach, Panel::PANEL_TYPE_INFO)
                                 )
-                            ), $TableTitle
+                            )
                         )
                     )
-                ));
+                    .new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    new Well(
+                                        Division::useService()->addSubjectTeacher(
+                                            $this->formSubjectTeacherAdd($tblDivisionSubject)
+                                                ->appendFormButton(new Primary('Speichern', new Save()))
+                                                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                            , $SubjectTeacher, $Id, $DivisionSubjectId
+                                        )
+                                    )
+                                )
+                            ), new Title(new Check().' Zuordnen')
+                        )
+                    )
+                );
             } else {
                 $Stage = new Stage('Fachlehrer', 'auswählen');
                 $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
@@ -906,7 +955,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new Panel('Lehrer', $tblTeacherList, Panel::PANEL_TYPE_INFO)
-                        , 6)
+                        , 12)
                 )),
             ))
         );
@@ -919,15 +968,21 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendAddSubjectGroup($Id, $DivisionSubjectId, $Group = null)
+    public function frontendSubjectGroupAdd($Id, $DivisionSubjectId, $Group = null)
     {
 
-        $Stage = new Stage('FachGruppe', 'bearbeiten');
+        $Stage = new Stage('FachGruppe', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(), array('Id' => $Id)));
         if (Division::useService()->getDivisionById($Id) && Division::useService()->getDivisionSubjectById($DivisionSubjectId)->getServiceTblSubject()) {
             $tblDivision = Division::useService()->getDivisionById($Id);
             $tblSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId)->getServiceTblSubject();
 
+            if ($tblDivision->getTblLevel()) {
+                $Titel = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
+            } else {
+                $Titel = $tblDivision->getName();
+            }
+            $Stage->setDescription('Klasse '.new Bold($Titel));
             $tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject, $tblDivision);
             if ($tblDivisionSubjectList) {
                 /** @var TblDivisionSubject $tblDivisionSubject */
@@ -968,16 +1023,26 @@ class Frontend extends Extension implements IFrontendInterface
                                         array('Name'        => 'Fach',
                                               'GroupName'   => 'Gruppe',
                                               'Description' => 'Beschreibung',
-                                              'Option'      => 'Optionen',), false)
+                                              'Option'      => '',), false)
                                 )
-                            ), new Title('Vorhandene Gruppen')
+                            ), new Title(new Listing().' Übersicht')
                         )
                     ) : null )
-                .Division::useService()->addSubjectToDivisionWithGroup(
-                    $this->formSubjectGroupAdd($tblSubject)
-                        ->appendFormButton(new Primary('Gruppe hinzufügen'))
-                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                    , $tblDivision, $tblSubject, $Group, $DivisionSubjectId)
+                .new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Well(
+                                    Division::useService()->addSubjectToDivisionWithGroup(
+                                        $this->formSubjectGroupAdd()
+                                            ->appendFormButton(new Primary('Speichern', new Save()))
+                                            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                        , $tblDivision, $tblSubject, $Group, $DivisionSubjectId)
+                                )
+                            )
+                        ), new Title(new Plus().' Hinzufügen einer '.$tblSubject->getName().'-Gruppe')
+                    )
+                )
             );
         } else {
             $Stage->setContent(new Warning('Fach nicht gefunden'));
@@ -986,25 +1051,23 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param TblSubject $tblSubject
-     *
      * @return Form
      */
-    public function formSubjectGroupAdd(TblSubject $tblSubject)
+    public function formSubjectGroupAdd()
     {
 
         return new Form(
             new FormGroup(
                 new FormRow(array(
-                    new FormColumn(
-                        new TextField('Group[Name]', '', 'Gruppenname')
-                        , 6),
-                    new FormColumn(
-                        new TextField('Group[Description]', '', 'Beschreibung')
-                        , 6),
-                ))
-                ,
-                new \SPHERE\Common\Frontend\Form\Repository\Title('Eine Gruppe für das Fach '.$tblSubject->getName().' erstellen'))
+                        new FormColumn(
+                            new TextField('Group[Name]', '', 'Gruppenname')
+                            , 6),
+                        new FormColumn(
+                            new TextField('Group[Description]', '', 'Beschreibung')
+                            , 6),
+                    )
+                )
+            )
         );
     }
 
@@ -1017,10 +1080,10 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendChangeSubjectGroup($Id, $SubjectId, $DivisionId, $DivisionSubjectId, $Group = null)
+    public function frontendSubjectGroupChange($Id, $SubjectId, $DivisionId, $DivisionSubjectId, $Group = null)
     {
 
-        $Stage = new Stage('Gruppe', 'bearbeiten');
+        $Stage = new Stage('Gruppe', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/SubjectGroup/Add', new ChevronLeft(),
             array(
                 'Id'                => $DivisionId,
@@ -1038,11 +1101,33 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblSubject = Subject::useService()->getSubjectById($SubjectId);
 
-            $Stage->setContent(Division::useService()->changeSubjectGroup(
-                $this->formSubjectGroupAdd($tblSubject)
-                    ->appendFormButton(new Primary('Änderung speichern'))
-                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                , $Group, $Id, $DivisionId, $DivisionSubjectId)
+            $Stage->setContent(
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Panel('Fach - Gruppe', $tblSubject->getName()
+                                    .' - '.Division::useService()->getDivisionSubjectById($DivisionSubjectId)->getTblSubjectGroup()->getName()
+                                    , Panel::PANEL_TYPE_INFO)
+                            )
+                        )
+                    )
+                )
+                .new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Well(
+                                    Division::useService()->changeSubjectGroup(
+                                        $this->formSubjectGroupAdd()
+                                            ->appendFormButton(new Primary('Speichern', new Save()))
+                                            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                        , $Group, $Id, $DivisionId, $DivisionSubjectId)
+                                )
+                            )
+                        ), new Title(new Edit().' Bearbeiten')
+                    )
+                )
             );
         } else {
             $Stage->setContent(new Warning('Keine Gruppe gefunden'));
@@ -1058,7 +1143,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendRemoveSubjectGroup($Id, $DivisionSubjectId, $SubjectGroupId)
+    public function frontendSubjectGroupRemove($Id, $DivisionSubjectId, $SubjectGroupId)
     {
 
         $Stage = new Stage('Gruppe', 'entfernen');
@@ -1098,11 +1183,11 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendChangeDivision($Id, $Division = null)
+    public function frontendDivisionChange($Id, $Division = null)
     {
 
-        $Stage = new Stage('Beschreibung', 'bearbeiten');
-        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Create/LevelDivision', new ChevronLeft()));
+        $Stage = new Stage('Klassengruppe', 'Bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
         $tblDivision = Division::useService()->getDivisionById($Id);
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Id'] ) && $tblDivision) {
@@ -1114,14 +1199,16 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ($tblDivision->getTblLevel()) {
-            $PanelShow = new Panel($tblDivision->getServiceTblYear()->getName()
-                .' - '.$tblDivision->getTblLevel()->getName().$tblDivision->getName()
-                , $tblDivision->getTblLevel()->getServiceTblType()->getName()
+            $PanelShow = new Panel('Beschreibung für', array(
+                    $tblDivision->getTblLevel()->getServiceTblType()->getName()
+                    .' - '.$tblDivision->getTblLevel()->getName().$tblDivision->getName()
+                    .' - '.$tblDivision->getServiceTblYear()->getName(),
+                    $tblDivision->getDescription())
                 , Panel::PANEL_TYPE_INFO);
         } else {
-            $PanelShow = new Panel($tblDivision->getServiceTblYear()->getName()
+            $PanelShow = new Panel('',
+                $tblDivision->getServiceTblYear()->getName()
                 .' - '.$tblDivision->getName()
-                , null
                 , Panel::PANEL_TYPE_INFO);
         }
 
@@ -1130,7 +1217,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            $PanelShow, 4
+                            $PanelShow
                         )
                     )
                 )
@@ -1139,10 +1226,20 @@ class Frontend extends Extension implements IFrontendInterface
             $Info = null;
         }
         $Stage->setContent($Info.
-            Division::useService()->changeDivision($this->formDivision()
-                ->appendFormButton(new Primary('Änderung speichern'))
-                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                , $Division, $Id));
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Well(
+                                Division::useService()->changeDivision($this->formDivision()
+                                    ->appendFormButton(new Primary('Speichern', new Save()))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $Division, $Id))
+                        )
+                    ), new Title(new Edit().' Bearbeiten')
+                )
+            )
+        );
 
         return $Stage;
     }
@@ -1170,13 +1267,18 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendShowDivision($Id)
+    public function frontendDivisionShow($Id)
     {
 
-        $Stage = new Stage('Klassenübersicht');
+        $Stage = new Stage('Klassenansicht', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
         $tblDivision = Division::useService()->getDivisionById($Id);
         if ($tblDivision) {
+            if ($tblDivision->getTblLevel()) {
+                $Stage->setDescription('Übersicht '.new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName()));
+            } else {
+                $Stage->setDescription('Übersicht '.new Bold($tblDivision->getName()));
+            }
             $Stage->setMessage($tblDivision->getDescription());
             $Stage->addButton(new Standard('Fächer', '/Education/Lesson/Division/Subject/Add',
                 new Book(), array('Id' => $tblDivision->getId())));
@@ -1184,15 +1286,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new Person(), array('Id' => $tblDivision->getId())));
             $Stage->addButton(new Standard('Schüler', '/Education/Lesson/Division/Student/Add',
                 new \SPHERE\Common\Frontend\Icon\Repository\Group(), array('Id' => $tblDivision->getId())));
-            $StudentTableCount = 0;
+            $StudentTableCount = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
             $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
             if ($tblDivisionStudentList) {
                 foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                     $tblDivisionStudent->FullName = $tblDivisionStudent->getFirstName().' '.
                         $tblDivisionStudent->getSecondName().' '.
                         $tblDivisionStudent->getLastName();
-                    $StudentTableCount = $StudentTableCount + 1;
-
                     $tblCommon = Common::useService()->getCommonByPerson($tblDivisionStudent);
                     if ($tblCommon) {
                         $tblDivisionStudent->Birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
@@ -1216,180 +1316,46 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $tblDivisionStudentList = array();
             }
-            $tblDivisionTeacherList = Division::useService()->getTeacherAllByDivision($tblDivision);
-            if ($tblDivisionTeacherList) {
+            $tblPersonList = Division::useService()->getTeacherAllByDivision($tblDivision);
+            if ($tblPersonList) {
 
-                foreach ($tblDivisionTeacherList as &$tblDivisionTeacher) {
-                    $tblDivisionTeacher = new Panel('Klassenlehrer', $tblDivisionTeacher->getFullName(), Panel::PANEL_TYPE_INFO);
+                foreach ($tblPersonList as &$tblPerson) {
+                    $Description = Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson)->getDescription();
+                    $tblPerson = new Panel('Klassenlehrer', $tblPerson->getFullName().' '.new Muted($Description), Panel::PANEL_TYPE_INFO);
                 }
             } else {
 
-                $tblDivisionTeacherList = new Warning('Kein Klassenlehrer festgelegt');
+                $tblPersonList = new Warning('Kein Klassenlehrer festgelegt');
             }
+            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
 
-//            $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
-//            $tblDivisionSubjectGroupList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
-//            if ($tblDivisionSubjectGroupList) {
-//                foreach ($tblDivisionSubjectGroupList as $Index => $tblDivisionSubjectGroup) {
-//                    if ($tblDivisionSubjectGroup->getTblSubjectGroup()) {
-//                        if ($tblDivisionSubjectGroup->getTblSubjectGroup()) {
-//                            $tblTeacherList = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubjectGroup);
-//                            $teacherArray = array();
-//                            if ($tblTeacherList) {
-//                                /** @var TblPerson $Teacher */
-//                                foreach ($tblTeacherList as $Teacher) {
-//                                    $teacherArray[] = $Teacher->getFirstName().' '.$Teacher->getLastName();
-//                                }
-//                            }
-//                            $tblDivisionSubjectGroup->SubjectGroup = new Panel($tblDivisionSubjectGroup->getServiceTblSubject()->getName(),
-//                                $tblDivisionSubjectGroup->getTblSubjectGroup()->getName(), Panel::PANEL_TYPE_INFO,
-//                                new Standard('Gruppe', '/Education/Lesson/Division/SubjectGroup/Add', new Pencil(),
-//                                    array('Id'                => $tblDivision->getId(),
-//                                          'DivisionSubjectId' => $tblDivisionSubjectGroup->getId())));
-//
-//                            $tblDivisionSubjectGroup->TeacherGroup = new Panel('Fachlehrer', $teacherArray, Panel::PANEL_TYPE_INFO,
-//                                new Standard('Lehrer', '/Education/Lesson/Division/SubjectTeacher/Add', new Pencil(),
-//                                    array('Id'                => $tblDivision->getId(),
-//                                          'DivisionSubjectId' => $tblDivisionSubjectGroup->getId())));
-//
-//                            $tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectGroup);
-//                            $StudentGroupCount = 0;
-//                            if ($tblSubjectStudentList) {
-//                                foreach ($tblSubjectStudentList as &$tblSubjectStudent) {
-//                                    $StudentGroupCount = $StudentGroupCount + 1;
-//                                    $tblSubjectStudent = $tblSubjectStudent->getServiceTblPerson()->getFullName();
-//                                }
-//                            } else {
-//                                $tblSubjectStudentList = '';
-//                            }
-//
-//
-//                            $tblDivisionSubjectGroup->StudentGroup = (new Accordion())
-//                            ->addItem('Enthaltene Schüler',new Panel($StudentGroupCount.' Schüler', $tblSubjectStudentList, Panel::PANEL_TYPE_INFO,
-//                                new Standard('Schüler', '/Education/Lesson/Division/SubjectStudent/Add', new Pencil(),
-//                                    array('Id'                => $tblDivision->getId(),
-//                                          'DivisionSubjectId' => $tblDivisionSubjectGroup->getId()))), false);
-//                        }
-//                    } else {
-//                        $tblDivisionSubjectGroupList[$Index] = false;
-//                    }
-//                }
-//                $tblDivisionSubjectGroupList = array_filter($tblDivisionSubjectGroupList);
-//            } else {
-//                $tblDivisionSubjectGroupList = array();
-//            }
-//            if ($tblDivisionSubjectList) {
-//                foreach ($tblDivisionSubjectList as $Index => $tblDivisionSubject) {
-//                    if (!$tblDivisionSubject->getTblSubjectGroup()) {
-//
-//                        $tblTeacherList = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubject);
-//                        $teacherArray = array();
-//                        if ($tblTeacherList) {
-//                            /** @var TblPerson $Teacher */
-//                            foreach ($tblTeacherList as $Teacher) {
-//                                $teacherArray[] = $Teacher->getFirstName().' '.$Teacher->getLastName();
-//                            }
-//                        }
-//
-//                        $tblDivisionSubjectActiveList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblDivisionSubject->getServiceTblSubject(), $tblDivision);
-//                        $TeacherGroup = array();
-//                        if ($tblDivisionSubjectActiveList) {
-//                            /**@var TblDivisionSubject $tblDivisionSubjectActive */
-//                            foreach ($tblDivisionSubjectActiveList as $tblDivisionSubjectActive) {
-//                                if ($tblDivisionSubjectActive->getTblSubjectGroup()) {
-//                                    $TempList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubjectActive);
-//                                    if ($TempList) {
-//                                        foreach ($TempList as $Temp)
-//                                            array_push($TeacherGroup, $Temp->getServiceTblPerson()->getFullName());
-//                                    }
-//                                }
-//                            }
-//                            $TeacherGroup = array_unique($TeacherGroup);
-//                        }
-//                        $tblDivisionSubject->Subject = new Panel($tblDivisionSubject->getServiceTblSubject()->getName(),
-//                            new Standard('Gruppe', '/Education/Lesson/Division/SubjectGroup/Add', new Pencil(),
-//                                array('Id'                => $tblDivision->getId(),
-//                                      'DivisionSubjectId' => $tblDivisionSubject->getId())), Panel::PANEL_TYPE_INFO);
-//
-//                        $tblDivisionSubject->Teacher = new Panel('Fachlehrer', $teacherArray, Panel::PANEL_TYPE_INFO,
-//                                new Standard('Lehrer', '/Education/Lesson/Division/SubjectTeacher/Add', new Pencil(),
-//                                    array('Id'                => $tblDivision->getId(),
-//                                          'DivisionSubjectId' => $tblDivisionSubject->getId()))).
-//                            ( ( !empty( $TeacherGroup ) ) ?
-//                                new Panel('Gruppenlehrer', $TeacherGroup) : null );
-//
-//                        $StudentCount = 0;
-//                        $tblDivisionSubjectStudentList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblDivisionSubject->getServiceTblSubject(), $tblDivision);
-//                        if (count($tblDivisionSubjectStudentList) >= 2) {
-//                            foreach ($tblDivisionSubjectStudentList as $tblDivisionSubjectStudent) {
-//                                $tblSubjectStudentCountList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectStudent);
-//                                if (is_array($tblSubjectStudentCountList)) {
-//                                    $StudentCount = $StudentCount + count($tblSubjectStudentCountList);
-//                                }
-//                            }
-//                        }
-//
-//                        if ($StudentCount >= 1 && $StudentCount < $StudentTableCount) {
-//                            $tblDivisionSubject->Student = new Panel($StudentCount.' Schüler', 'aus der Klasse', Panel::PANEL_TYPE_INFO);
-//                        } else {
-//                            $tblDivisionSubject->Student = new Panel('Alle Schüler', 'aus der Klasse', Panel::PANEL_TYPE_INFO);
-//                        }
-//                    } else {
-//                        $tblDivisionSubjectList[$Index] = false;
-//                    }
-//                }
-//
-//                $tblDivisionSubjectList = array_filter($tblDivisionSubjectList);
-//            } else {
-//                $tblDivisionSubjectList = array();
-//            }
-//
-//            if ($tblDivision->getTblLevel()) {
-//                $TitleClass = new \SPHERE\Common\Frontend\Table\Repository\Title('Schüler in der Klasse '
-//                    .$tblDivision->getTblLevel()->getName().$tblDivision->getName());
-//                $TitleSubject = new \SPHERE\Common\Frontend\Table\Repository\Title('Fächer der Klasse '
-//                    .$tblDivision->getTblLevel()->getName().$tblDivision->getName());
-//                $TitleSubjectGroup = new \SPHERE\Common\Frontend\Table\Repository\Title('Fächer mit Gruppen der Klasse '
-//                    .$tblDivision->getTblLevel()->getName().$tblDivision->getName());
-//            } else {
-//                $TitleClass = new \SPHERE\Common\Frontend\Table\Repository\Title('Schüler in der Klasse '
-//                    .$tblDivision->getName());
-//                $TitleSubject = new \SPHERE\Common\Frontend\Table\Repository\Title('Fächer der Klasse '
-//                    .$tblDivision->getName());
-//                $TitleSubjectGroup = new \SPHERE\Common\Frontend\Table\Repository\Title('Fächer mit Gruppen der Klasse '
-//                    .$tblDivision->getName());
-//            }
-
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            $tblTestDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
-
-            if ($tblTestDivisionSubjectList) {
-                foreach ($tblTestDivisionSubjectList as $Index => $tblTestDivisionSubject) {
-                    if ($tblTestDivisionSubject->getTblSubjectGroup()) {
-                        $tblTestDivisionSubjectList[$Index] = false;
+            if ($tblDivisionSubjectList) {
+                foreach ($tblDivisionSubjectList as $Index => $tblDivisionSubject) {
+                    if ($tblDivisionSubject->getTblSubjectGroup()) {
+                        $tblDivisionSubjectList[$Index] = false;
                     }
                 }
-                $tblTestDivisionSubjectList = array_filter($tblTestDivisionSubjectList);
+                $tblDivisionSubjectList = array_filter($tblDivisionSubjectList);
 
                 /** @var TblDivisionSubject $row */
-                foreach ($tblTestDivisionSubjectList as $key => $row) {
+                foreach ($tblDivisionSubjectList as $key => $row) {
                     $name[$key] = strtoupper($row->getServiceTblSubject()->getName());
                     $Acronym[$key] = strtoupper($row->getServiceTblSubject()->getAcronym());
                 }
-                array_multisort($name, SORT_ASC, $Acronym, SORT_ASC, $tblTestDivisionSubjectList);
+                array_multisort($name, SORT_ASC, $Acronym, SORT_ASC, $tblDivisionSubjectList);
 
 
-                /** @var TblDivisionSubject $tblTestDivisionSubject */
-                foreach ($tblTestDivisionSubjectList as &$tblTestDivisionSubject) {
+                /** @var TblDivisionSubject $tblDivisionSubject */
+                foreach ($tblDivisionSubjectList as &$tblDivisionSubject) {
 
-                    $tblTestDivisionSubject->GroupTeacher = '';
-//                    $tblTestDivisionSubject->Student = new Panel('Alle Schüler','aus der Klasse',Panel::PANEL_TYPE_INFO);
-                    $tblTestDivisionSubject->Student = '';
+                    $tblDivisionSubject->GroupTeacher = '';
+//                    $tblDivisionSubject->Student = new Panel('Alle Schüler','aus der Klasse',Panel::PANEL_TYPE_INFO);
+                    $tblDivisionSubject->Student = '';
 
-                    $tblTestDivisionSubject->Subject = new Panel($tblTestDivisionSubject->getServiceTblSubject()->getName(),
+                    $tblDivisionSubject->Subject = new Panel($tblDivisionSubject->getServiceTblSubject()->getName(),
                         $StudentTableCount.' / '.$StudentTableCount.' Schüler aus der Klasse', Panel::PANEL_TYPE_INFO);
 
-                    $tblDivisionTeachersList = Division::useService()->getSubjectTeacherByDivisionSubject($tblTestDivisionSubject);
+                    $tblDivisionTeachersList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
                     $TeacherArray = array();
                     if ($tblDivisionTeachersList) {
                         foreach ($tblDivisionTeachersList as $tblDivisionTeachers) {
@@ -1399,9 +1365,10 @@ class Frontend extends Extension implements IFrontendInterface
                     $SubjectTeacherPanel = new Panel('Fachlehrer', $TeacherArray, Panel::PANEL_TYPE_INFO,
                         new Standard('Lehrer', '/Education/Lesson/Division/SubjectTeacher/Add', new Pencil(),
                             array('Id'                => $tblDivision->getId(),
-                                  'DivisionSubjectId' => $tblTestDivisionSubject->getId())));
+                                  'DivisionSubjectId' => $tblDivisionSubject->getId())));
 
-                    $tblDivisionSubjectTestList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblTestDivisionSubject->getServiceTblSubject(), $tblTestDivisionSubject->getTblDivision());
+                    $tblDivisionSubjectTestList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblDivisionSubject->getServiceTblSubject(),
+                        $tblDivisionSubject->getTblDivision());
 
                     if (count($tblDivisionSubjectTestList) > 1) {
                         $Grouparray = array();
@@ -1447,85 +1414,41 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
 
-//                        $StudentPanel = new Panel($StudentsGroupCount.' Schüler', 'der Klasse in '.$tblDivisionSubjectTest->getServiceTblSubject()->getName(), Panel::PANEL_TYPE_INFO).$StudentPanel;
                         if ($StudentTableCount > $StudentsGroupCount) {
-                            $tblTestDivisionSubject->Subject = new Panel($tblTestDivisionSubject->getServiceTblSubject()->getName(),
+                            $tblDivisionSubject->Subject = new Panel($tblDivisionSubject->getServiceTblSubject()->getName(),
                                 new \SPHERE\Common\Frontend\Text\Repository\Warning($StudentsGroupCount.' / '.$StudentTableCount.' Schüler aus der Klasse'), Panel::PANEL_TYPE_INFO);
                         }
 
-//                        $TeacherGroupList = array_unique($TeacherGroupList);
-//                        if (count($TeacherGroupList) > 1) {
-//                            $TeacherGroupPanel = new Listing($TeacherGroupList);
-//                        } else {
-//                            $TeacherGroupPanel = '';
-//                        }
-
-
-                        $tblTestDivisionSubject->Group = new Panel('Gruppen', $Grouparray, Panel::PANEL_TYPE_INFO,
+                        $tblDivisionSubject->Group = new Panel('Gruppen', $Grouparray, Panel::PANEL_TYPE_INFO,
                             new Standard('Gruppen', '/Education/Lesson/Division/SubjectGroup/Add', new Pencil(),
                                 array('Id'                => $tblDivision->getId(),
-                                      'DivisionSubjectId' => $tblTestDivisionSubject->getId())));
+                                      'DivisionSubjectId' => $tblDivisionSubject->getId())));
 
-                        $tblTestDivisionSubject->GroupTeacher = $TeacherPanelArray;
-                        $tblTestDivisionSubject->SubjectTeacher = $SubjectTeacherPanel; //.$TeacherGroupPanel;
-                        $tblTestDivisionSubject->Student = (new Accordion())
+                        $tblDivisionSubject->GroupTeacher = $TeacherPanelArray;
+                        $tblDivisionSubject->SubjectTeacher = $SubjectTeacherPanel;
+                        $tblDivisionSubject->Student = (new Accordion())
                             ->addItem('Enthaltene Schüler', $StudentPanel, false);
                     } else {
-                        $tblTestDivisionSubject->Group = new Panel('Gruppen',
+                        $tblDivisionSubject->Group = new Panel('Gruppen',
                             new Standard('Gruppe', '/Education/Lesson/Division/SubjectGroup/Add', new Pencil(),
                                 array('Id'                => $tblDivision->getId(),
-                                      'DivisionSubjectId' => $tblTestDivisionSubject->getId())), Panel::PANEL_TYPE_INFO);
+                                      'DivisionSubjectId' => $tblDivisionSubject->getId())), Panel::PANEL_TYPE_INFO);
 
-                        $tblTestDivisionSubject->SubjectTeacher = $SubjectTeacherPanel;
+                        $tblDivisionSubject->SubjectTeacher = $SubjectTeacherPanel;
                     }
                 }
 
             } else {
-                $tblTestDivisionSubjectList = array();
+                $tblDivisionSubjectList = array();
             }
-
 
             if ($tblDivision->getTblLevel()) {
-                $TitleClass = 'Schüler in der Klasse '.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
+                $TitleClass = new \SPHERE\Common\Frontend\Icon\Repository\Group().' Schüler in der Klasse '.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
             } else {
-                $TitleClass = 'Schüler in der Klasse '.$tblDivision->getName();
+                $TitleClass = new \SPHERE\Common\Frontend\Icon\Repository\Group().' Schüler in der Klasse '.$tblDivision->getName();
             }
 
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
             $Stage->setContent(
-//                new Layout(array(
-//                    new LayoutGroup(array(
-//                            new LayoutRow($tblDivisionTeacherList),
-//                        )
-//                    ),
-//                ))
-//                .new Layout(
-//                    new LayoutGroup(
-//                        new LayoutRow(array(
-//                            new LayoutColumn(array(
-//                                    new TableData($tblDivisionStudentList, $TitleClass
-//                                        , array('FirstName' => 'Vorname',
-//                                                'LastName'  => 'Nachname',
-////                                                'Group'     => 'Zuweisung(en)',
-////                                                'Option'    => 'Option'
-//                                        ), false),
-//                                    new TableData($tblDivisionSubjectList, $TitleSubject
-//                                        , array('Subject' => 'Fach',
-//                                                'Teacher' => 'Fachlehrer',
-//                                                'Student' => 'Schüler',
-//                                        ), false))
-//
-//                                , 6),
-//                            new LayoutColumn(
-//                                new TableData($tblDivisionSubjectGroupList, $TitleSubjectGroup
-//                                    , array('SubjectGroup' => 'Fach',
-//                                            'TeacherGroup' => 'Gruppen/Fachlehrer',
-//                                            'StudentGroup' => 'Schüler',
-//                                    ), false)
-//                                , 6),
-//                        ))
-//                    )).
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(array(
@@ -1538,7 +1461,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     : new Warning('Keine Schüer der Klasse zugewiesen') )
                             ,
                             ), 6),
-                            new LayoutColumn($tblDivisionTeacherList, 5)
+                            new LayoutColumn($tblPersonList, 5)
                         )), new Title($TitleClass)
                     )
                 ).
@@ -1546,8 +1469,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
-                                ( ( !empty( $tblTestDivisionSubjectList ) ) ?
-                                    new TableData($tblTestDivisionSubjectList, null,
+                                ( ( !empty( $tblDivisionSubjectList ) ) ?
+                                    new TableData($tblDivisionSubjectList, null,
                                         array('Subject'        => 'Fach',
                                               'SubjectTeacher' => 'Fachlehrer',
                                               'Group'          => 'Gruppen',
@@ -1557,7 +1480,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     :
                                     new Warning('Keine Fächer der Klasse zugewiesen') )
                             )
-                        )
+                        ), new Title(new Book().' Fächer')
                     )
                 )
             );
@@ -1573,15 +1496,13 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendShowSubjectTeacher($Id)
+    public function frontendSubjectTeacherShow($Id)
     {
 
         $Stage = new Stage('Lehrer', 'Auswahl');
         $tblDivision = Division::useService()->getDivisionById($Id);
         if ($tblDivision) {
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(), array('Id' => $tblDivision->getId())));
-//            $Stage->addButton(new Standard('Hinzufügen', '/Education/Lesson/Division/SubjectTeacher/Add', new Plus(), array('Id' => $tblDivision->getId())));
-
             $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
             if ($tblDivisionSubjectList) {
                 foreach ($tblDivisionSubjectList as &$tblDivisionSubject) {
@@ -1591,7 +1512,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblDivisionSubject->Option = new Standard('', '/Education/Lesson/Division/SubjectTeacher/Add',
                         new Plus(), array('Id'                => $Id,
                                           'DivisionTeacherId' => $tblDivisionSubject->getId()));
-
 
                     $tblTeacherList = Division::useService()->getTeacherAllByDivisionSubject($tblDivisionSubject);
                     $teacherString = new Danger('leer');
@@ -1604,7 +1524,6 @@ class Frontend extends Extension implements IFrontendInterface
                         $teacherString = implode(', ', $teacherArray);
                     }
                     $tblDivisionSubject->Teacher = $teacherString;
-
                 }
             }
 
@@ -1644,7 +1563,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendDestroyDivision($Id)
+    public function frontendDivisionDestroy($Id)
     {
 
         $Stage = new Stage('Klassengruppe', 'entfernen');

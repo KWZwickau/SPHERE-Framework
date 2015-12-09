@@ -12,13 +12,19 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -48,7 +54,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCreateSubject($Subject = null)
     {
 
-        $Stage = new Stage('Fächer', 'erstellen / bearbeiten');
+        $Stage = new Stage('Fächer', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject', new ChevronLeft()));
 
         $tblSubjectAll = Subject::useService()->getSubjectAll();
@@ -56,10 +62,10 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblSubject->Option = new Standard('', '/Education/Lesson/Subject/Change/Subject', new Pencil(),
                     array('Id' => $tblSubject->getId()))
-                . (Subject::useService()->getSubjectActiveState($tblSubject) === false ?
+                .( Subject::useService()->getSubjectActiveState($tblSubject) === false ?
                     new Standard('', '/Education/Lesson/Subject/Destroy/Subject', new Remove(),
                         array('Id' => $tblSubject->getId()))
-                    : '');
+                    : '' );
         });
 
         $Stage->setContent(
@@ -68,25 +74,27 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($tblSubjectAll, null, array(
-                                'Acronym' => 'Kürzel',
-                                'Name' => 'Name',
+                                'Acronym'     => 'Kürzel',
+                                'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
-                                'Option' => 'Optionen',
+                                'Option'      => '',
                             ))
                         )
-                    ), new Title('Bestehende Fächer')
+                    ), new Title(new Listing().' Übersicht')
                 ),
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            Subject::useService()->createSubject(
-                                $this->formSubject()
-                                    ->appendFormButton(new Primary('Fach erstellen'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $Subject
+                            new Well(
+                                Subject::useService()->createSubject(
+                                    $this->formSubject()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $Subject
+                                )
                             )
                         )
-                    ), new Title('Fach erstellen')
+                    ), new Title(new Plus().' Hinzufügen')
                 )
             ))
         );
@@ -116,7 +124,7 @@ class Frontend extends Extension implements IFrontendInterface
         });
 
         $Global = $this->getGlobal();
-        if (!isset($Global->POST['Subject']) && $tblSubject) {
+        if (!isset( $Global->POST['Subject'] ) && $tblSubject) {
             $Global->POST['Subject']['Acronym'] = $tblSubject->getAcronym();
             $Global->POST['Subject']['Name'] = $tblSubject->getName();
             $Global->POST['Subject']['Description'] = $tblSubject->getDescription();
@@ -153,11 +161,11 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendChangeSubject($Id, $Subject)
     {
 
-        $Stage = new Stage('Fach', 'bearbeiten');
+        $Stage = new Stage('Fach', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject/Create/Subject', new ChevronLeft()));
         $tblSubject = Subject::useService()->getSubjectById($Id);
         $Global = $this->getGlobal();
-        if (!isset($Global->POST['Id']) && $tblSubject) {
+        if (!isset( $Global->POST['Id'] ) && $tblSubject) {
             $Global->POST['Subject']['Acronym'] = $tblSubject->getAcronym();
             $Global->POST['Subject']['Name'] = $tblSubject->getName();
             $Global->POST['Subject']['Description'] = $tblSubject->getDescription();
@@ -167,12 +175,22 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(
                 new LayoutGroup(
                     new LayoutRow(
+                        new LayoutColumn(
+                            new Panel('Fach', $tblSubject->getAcronym().' - '.$tblSubject->getName(), Panel::PANEL_TYPE_INFO)
+                        )
+                    )
+                )
+            )
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
                         new LayoutColumn(array(
-                            new Headline('Fach bearbeiten: ' . $tblSubject->getAcronym() . ' ' . $tblSubject->getName()),
-                            Subject::useService()->changeSubject($this->formSubject($tblSubject)
-                                ->appendFormButton(new Primary('Änderung speichern'))
-                                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $Subject, $Id)
+                            new Headline(new Edit().' Bearbeiten'),
+                            new Well(
+                                Subject::useService()->changeSubject($this->formSubject($tblSubject)
+                                    ->appendFormButton(new Primary('Speichern', new Save()))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $Subject, $Id))
                         ))
                     )
                 )
@@ -190,7 +208,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCreateCategory($Category = null)
     {
 
-        $Stage = new Stage('Kategorien', 'erstellen / bearbeiten');
+        $Stage = new Stage('Kategorien', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject', new ChevronLeft()));
 
         $tblCategoryAll = Subject::useService()->getCategoryAll();
@@ -198,9 +216,9 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblCategory->Option = new Standard('', '/Education/Lesson/Subject/Change/Category', new Pencil(),
                     array('Id' => $tblCategory->getId()))
-                . ($tblCategory->getIsLocked() ? ''
+                .( $tblCategory->getIsLocked() ? ''
                     : new Standard('', '/Education/Lesson/Subject/Destroy/Category', new Remove(),
-                        array('Id' => $tblCategory->getId())));
+                        array('Id' => $tblCategory->getId())) );
         });
 
         $Stage->setContent(
@@ -209,24 +227,26 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new TableData($tblCategoryAll, null, array(
-                                'Name' => 'Name',
+                                'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
-                                'Option' => 'Optionen',
+                                'Option'      => '',
                             ))
                         )
-                    ), new Title('Bestehende Kategorien')
+                    ), new Title(new Listing().' Übersicht')
                 ),
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            Subject::useService()->createCategory(
-                                $this->formCategory()
-                                    ->appendFormButton(new Primary('Kategorie erstellen'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $Category
+                            new Well(
+                                Subject::useService()->createCategory(
+                                    $this->formCategory()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $Category
+                                )
                             )
                         )
-                    ), new Title('Kategorie erstellen')
+                    ), new Title(new Plus().' Hinzufügen')
                 )
             ))
         );
@@ -253,7 +273,7 @@ class Frontend extends Extension implements IFrontendInterface
         });
 
         $Global = $this->getGlobal();
-        if (!isset($Global->POST['Category']) && $tblCategory) {
+        if (!isset( $Global->POST['Category'] ) && $tblCategory) {
             $Global->POST['Category']['Name'] = $tblCategory->getName();
             $Global->POST['Category']['Description'] = $tblCategory->getDescription();
             $Global->savePost();
@@ -289,11 +309,11 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendChangeCategory($Id, $Category)
     {
 
-        $Stage = new Stage('Kategorie', 'bearbeiten');
+        $Stage = new Stage('Kategorie', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject/Create/Category', new ChevronLeft()));
         $tblCategory = Subject::useService()->getCategoryById($Id);
         $Global = $this->getGlobal();
-        if (!isset($Global->POST['Id']) && $tblCategory) {
+        if (!isset( $Global->POST['Id'] ) && $tblCategory) {
             $Global->POST['Subject']['Name'] = $tblCategory->getName();
             $Global->POST['Subject']['Description'] = $tblCategory->getDescription();
             $Global->savePost();
@@ -302,12 +322,22 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(
                 new LayoutGroup(
                     new LayoutRow(
+                        new LayoutColumn(
+                            new Panel('Kategorie', $tblCategory->getName().' '.new Muted(new Small($tblCategory->getDescription())), Panel::PANEL_TYPE_INFO)
+                        )
+                    )
+                )
+            )
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
                         new LayoutColumn(array(
-                            new Headline('Kategorie bearbeiten: ' . $tblCategory->getName() . ' ' . $tblCategory->getDescription()),
-                            Subject::useService()->changeCategory($this->formCategory($tblCategory)
-            ->appendFormButton(new Primary('Änderung speichern'))
-            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $Category, $Id)
+                            new Headline(new Edit().' Bearbeiten'),
+                            new Well(
+                                Subject::useService()->changeCategory($this->formCategory($tblCategory)
+                                    ->appendFormButton(new Primary('Speichern', new Save()))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $Category, $Id))
                         ))
                     )
                 )
@@ -318,7 +348,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $Id
+     * @param int        $Id
      * @param null|array $Category
      *
      * @return Stage
@@ -327,6 +357,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Kategorien', 'Verknüpfung');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject', new ChevronLeft()));
 
         $tblGroup = Subject::useService()->getGroupById($Id);
 
@@ -337,23 +368,23 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel('Gruppe',
                                 $tblGroup->getName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zum Dashboard', '/Education/Lesson/Subject', new ChevronLeft())
-                            )
+                                Panel::PANEL_TYPE_INFO)
                         )
                     ),
                 )),
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            Subject::useService()->changeGroupCategory(
-                                $this->formLinkCategory($tblGroup)
-                                    ->appendFormButton(new Primary('Zusammensetzung speichern'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblGroup, $Category
+                            new Well(
+                                Subject::useService()->changeGroupCategory(
+                                    $this->formLinkCategory($tblGroup)
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblGroup, $Category
+                                )
                             )
                         )
-                    ), new Title($tblGroup->getName() . ' enthält')
+                    ), new Title(new Check().' Zuordnen')
                 )
             ))
         );
@@ -388,14 +419,14 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $tblSubject = $tblSubject->getAcronym();
                 });
-                $tblSubjectAll = '(' . implode(', ', $tblSubjectAll) . ')';
+                $tblSubjectAll = '('.implode(', ', $tblSubjectAll).')';
             } else {
                 $tblSubjectAll = '';
             }
 
             $tblCategory = new CheckBox(
-                'Category[' . $tblCategory->getId() . ']',
-                $tblCategory->getName() . ' ' . new Muted($tblCategory->getDescription() . ' ' . new Small($tblSubjectAll)),
+                'Category['.$tblCategory->getId().']',
+                $tblCategory->getName().' '.new Muted($tblCategory->getDescription().' '.new Small($tblSubjectAll)),
                 $tblCategory->getId()
             );
         });
@@ -412,7 +443,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $Id
+     * @param int        $Id
      * @param null|array $Subject
      *
      * @return Stage
@@ -421,6 +452,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Fächer', 'Verknüpfung');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject', new ChevronLeft()));
 
         $tblCategory = Subject::useService()->getCategoryById($Id);
 
@@ -431,23 +463,23 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel('Kategorie',
                                 $tblCategory->getName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zum Dashboard', '/Education/Lesson/Subject', new ChevronLeft())
-                            )
+                                Panel::PANEL_TYPE_INFO)
                         )
                     ),
                 )),
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            Subject::useService()->changeCategorySubject(
-                                $this->formLinkSubject($tblCategory)
-                                    ->appendFormButton(new Primary('Zusammensetzung speichern'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblCategory, $Subject
+                            new Well(
+                                Subject::useService()->changeCategorySubject(
+                                    $this->formLinkSubject($tblCategory)
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblCategory, $Subject
+                                )
                             )
                         )
-                    ), new Title($tblCategory->getName() . ' enthält')
+                    ), new Title(new Check().' Zuordnen')
                 )
             ))
         );
@@ -478,8 +510,8 @@ class Frontend extends Extension implements IFrontendInterface
         array_walk($tblSubjectAllAvailable, function (TblSubject &$tblSubject) {
 
             $tblSubject = new CheckBox(
-                'Subject[' . $tblSubject->getId() . ']',
-                $tblSubject->getName() . ' ' . new Muted($tblSubject->getDescription()),
+                'Subject['.$tblSubject->getId().']',
+                $tblSubject->getName().' '.new Muted($tblSubject->getDescription()),
                 $tblSubject->getId()
             );
         });
@@ -502,14 +534,15 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendDestroySubject($Id)
     {
+
         // TODO: Confirmation
         $Stage = new Stage('Fach', 'entfernen');
         $tblSubject = Subject::useService()->getSubjectById($Id);
         if ($tblSubject) {
             $Stage->setContent(Subject::useService()->destroySubject($tblSubject));
         } else {
-            return $Stage . new Warning('Fach nicht gefunden!')
-            . new Redirect('/Education/Lesson/Subject/Create/Subject');
+            return $Stage.new Warning('Fach nicht gefunden!')
+            .new Redirect('/Education/Lesson/Subject/Create/Subject');
         }
         return $Stage;
     }
@@ -521,14 +554,15 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendDestroyCategory($Id)
     {
+
         // TODO: Confirmation
         $Stage = new Stage('Kategorie', 'entfernen');
         $tblCategory = Subject::useService()->getCategoryById($Id);
         if ($tblCategory) {
             $Stage->setContent(Subject::useService()->destroyCategory($tblCategory));
         } else {
-            return $Stage . new Warning('Kategorie nicht gefunden!')
-            . new Redirect('/Education/Lesson/Subject/Create/Subject');
+            return $Stage.new Warning('Kategorie nicht gefunden!')
+            .new Redirect('/Education/Lesson/Subject/Create/Subject');
         }
         return $Stage;
     }
