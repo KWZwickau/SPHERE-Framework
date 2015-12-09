@@ -126,6 +126,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblTest', 'serviceTblSubject')) {
             $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblTest', 'serviceTblSubjectGroup')) {
+            $Table->addColumn('serviceTblSubjectGroup', 'bigint', array('notnull' => false));
+        }
         if (!$this->getConnection()->hasColumn('tblTest', 'serviceTblPeriod')) {
             $Table->addColumn('serviceTblPeriod', 'bigint', array('notnull' => false));
         }
@@ -162,6 +165,9 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblSubject')) {
             $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblSubjectGroup')) {
+            $Table->addColumn('serviceTblSubjectGroup', 'bigint', array('notnull' => false));
         }
         if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblPeriod')) {
             $Table->addColumn('serviceTblPeriod', 'bigint', array('notnull' => false));

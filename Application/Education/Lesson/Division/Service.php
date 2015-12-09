@@ -1240,4 +1240,25 @@ class Service extends AbstractService
         return $SubjectUsedCount;
     }
 
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @return bool|TblDivisionSubject[]
+     */
+    public function getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject($tblDivision, $tblSubject);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @return bool|TblSubjectTeacher[]
+     */
+    public function getSubjectTeacherAllByTeacher(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectTeacherAllByTeacher($tblPerson);
+    }
+
 }
