@@ -34,6 +34,10 @@ class Gradebook implements IModuleInterface
                 new Link\Icon(new Document()))
         );
         Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__ . '\Headmaster\Test'), new Link\Name('Leistungsermittlung (Leitung)'),
+                new Link\Icon(new Document()))
+        );
+        Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__ .'\Gradebook' ), new Link\Name('Notenbuch'),
                 new Link\Icon(new Book()))
         );
@@ -72,6 +76,27 @@ class Gradebook implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test\Grade\Edit',
                 __NAMESPACE__ . '\Frontend::frontendEditTestGrade')
+        );
+
+        /*
+         * Headmaster
+         */
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Test',
+                __NAMESPACE__ . '\Frontend::frontendHeadmasterTest')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Test\Selected',
+                __NAMESPACE__ . '\Frontend::frontendHeadmasterTestSelected')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Test\Edit',
+                __NAMESPACE__ . '\Frontend::frontendHeadmasterEditTest')
+        );
+
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Test\Grade\Edit',
+                __NAMESPACE__ . '\Frontend::frontendHeadmasterEditTestGrade')
         );
 
         /*
