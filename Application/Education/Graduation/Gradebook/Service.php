@@ -118,10 +118,9 @@ class Service extends AbstractService
      * @param IFormInterface|null $Stage
      * @param $Id
      * @param $GradeType
-     * @param bool $IsOpen
      * @return IFormInterface|string
      */
-    public function updateGradeType(IFormInterface $Stage = null, $Id, $GradeType, $IsOpen = false)
+    public function updateGradeType(IFormInterface $Stage = null, $Id, $GradeType)
     {
 
         /**
@@ -144,7 +143,7 @@ class Service extends AbstractService
         $tblGradeType = $this->getGradeTypeById($Id);
         if (!$tblGradeType) {
             return new Stage('Zensuren-Typ nicht gefunden')
-            . new Redirect('/Education/Graduation/Gradebook/GradeType', 2, array('IsOpen' => $IsOpen));
+            . new Redirect('/Education/Graduation/Gradebook/GradeType', 2);
         }
 
         if (!$Error) {
@@ -156,7 +155,7 @@ class Service extends AbstractService
                 isset($GradeType['IsHighlighted']) ? true : false
             );
             return new Stage('Der Zensuren-Typ ist erfasst worden')
-            . new Redirect('/Education/Graduation/Gradebook/GradeType', 0, array('IsOpen' => $IsOpen));
+            . new Redirect('/Education/Graduation/Gradebook/GradeType', 0);
         }
 
         return $Stage;
@@ -166,9 +165,10 @@ class Service extends AbstractService
      * @param IFormInterface|null $Stage
      * @param null $DivisionSubjectId
      * @param null $Select
+     * @param string $BasicRoute
      * @return IFormInterface|Redirect
      */
-    public function getGradeBook(IFormInterface $Stage = null, $DivisionSubjectId = null, $Select = null)
+    public function getGradeBook(IFormInterface $Stage = null, $DivisionSubjectId = null, $Select = null, $BasicRoute)
     {
 
         /**
@@ -189,7 +189,7 @@ class Service extends AbstractService
 
         $tblScoreCondition = Gradebook::useService()->getScoreConditionById($Select['ScoreCondition']);
 
-        return new Redirect('/Education/Graduation/Gradebook/Gradebook/Selected', 0, array(
+        return new Redirect($BasicRoute . '/Selected', 0, array(
             'DivisionSubjectId' => $DivisionSubjectId,
             'ScoreConditionId' => $tblScoreCondition->getId()
         ));
