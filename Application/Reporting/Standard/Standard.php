@@ -32,7 +32,7 @@ class Standard implements IApplicationInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Dashboard', 'Standard-Auswertung');
+        $Stage = new Stage('Standard', 'Dashboard');
 
         $Stage->setContent(Main::getDispatcher()->fetchDashboard('Auswertung'));
 
