@@ -1076,8 +1076,10 @@ class Data extends AbstractData
      * @param TblSubject $tblSubject
      * @return bool|TblDivisionSubject[]
      */
-    public function getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(TblDivision $tblDivision, TblSubject $tblSubject)
-    {
+    public function getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+        TblDivision $tblDivision,
+        TblSubject $tblSubject
+    ) {
 
         $resultList = array();
         $tempList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
@@ -1112,5 +1114,37 @@ class Data extends AbstractData
                 TblSubjectTeacher::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             )
         );
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     * @return bool|TblDivisionSubject
+     */
+    public function getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup = null
+    ) {
+
+        if ($tblSubjectGroup === null) {
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblDivisionSubject',
+                array(
+                    TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId(),
+                    TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+                )
+            );
+        } else {
+            return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                'TblDivisionSubject',
+                array(
+                    TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId(),
+                    TblDivisionSubject::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                    TblDivisionSubject::ATTR_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
+                )
+            );
+        }
     }
 }
