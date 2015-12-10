@@ -78,7 +78,6 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Stage
      * @param $GradeType
-     * @param bool $IsOpen
      * @return IFormInterface|string
      */
     public function createGradeTypeWhereTest(IFormInterface $Stage = null, $GradeType)
@@ -198,51 +197,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Stage
-     * @param $Data
-     * @param $tblPersonList
-     * @param TblSubject $tblSubject
-     * @param TblDivision $tblDivision
-     * @return IFormInterface|Redirect
-     */
-    public function createGradesWhereTest(
-        IFormInterface $Stage = null,
-        $Data,
-        $tblPersonList,
-        TblSubject $tblSubject,
-        TblDivision $tblDivision
-    ) {
-        if (null === $Data) {
-            return $Stage;
-        }
-
-        $editId = null;
-        if ($tblPersonList) {
-            /** @var TblPerson $tblPerson */
-            foreach ($tblPersonList as $tblPerson) {
-
-                $grade = (new Data($this->getBinding()))->createGrade($tblPerson, $tblSubject,
-                    Term::useService()->getPeriodById($Data['Period']),
-                    $this->getGradeTypeById($Data['GradeType']), $this->getTestTypeByIdentifier('TEST'), '');
-
-                if ($editId === null) {
-                    $editId = $grade->getId();
-                }
-            }
-
-            return new Redirect('/Education/Graduation/Gradebook/Selected',
-                0,
-                array(
-                    'DivisionId' => $tblDivision->getId(),
-                    'SubjectId' => $tblSubject->getId(),
-                    'EditId' => $editId
-                ));
-        }
-
-        return $Stage;
-    }
-
-    /**
      * @return bool|Service\Entity\TblGradeType[]
      */
     public function getGradeTypeAllWhereTest()
@@ -314,15 +268,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getTestById($Id);
-    }
-
-    /**
-     * @return bool|Service\Entity\TblTest[]
-     */
-    public function getTestAllWhereTest()
-    {
-
-        return (new Data($this->getBinding()))->getTestAllWhereTest();
     }
 
     /**
@@ -429,23 +374,6 @@ class Service extends AbstractService
 
         return new Redirect('/Education/Graduation/Gradebook/Test/Selected', 0,
             array('DivisionSubjectId' => $tblDivisionSubject->getId()));
-    }
-
-    /**
-     * @param TblTest $tblTest
-     * @param TblPerson $tblPerson
-     * @param string $Grade
-     * @param string $Comment
-     *
-     * @return null|Service\Entity\TblGrade
-     */
-    public function createGradeToTest(
-        TblTest $tblTest,
-        TblPerson $tblPerson,
-        $Grade = '',
-        $Comment = ''
-    ) {
-        return (new Data($this->getBinding()))->createGradeToTest($tblTest, $tblPerson, $Grade, $Comment);
     }
 
     /**
@@ -766,69 +694,34 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
+     * @param TblTestType $tblTestType
      * @param TblScoreCondition $tblScoreCondition
      * @param TblPeriod|null $tblPeriod
-     * @param TblDivision $tblDivision
-     * @return bool|float|string
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     * @return bool|float
      */
     public function calcStudentGrade(
         TblPerson $tblPerson,
+        TblDivision $tblDivision,
         TblSubject $tblSubject,
+        TblTestType $tblTestType,
         TblScoreCondition $tblScoreCondition,
         TblPeriod $tblPeriod = null,
-        TblDivision $tblDivision = null
+        TblSubjectGroup $tblSubjectGroup = null
     ) {
-        $grades = false;
-        if ($tblPeriod !== null) {
-            $grades = (new Data($this->getBinding()))->getGradesByStudentAndSubjectAndPeriodWhereTest($tblPerson,
-                $tblSubject,
-                $tblPeriod);
-        } elseif ($tblDivision !== null) {
-            if (($tblYear = $tblDivision->getServiceTblYear())) {
-                if (($tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear))) {
-                    $grades = array();
-                    foreach ($tblPeriodList as $tblPeriod) {
-                        if (($gradesByPeriod = (new Data($this->getBinding()))->getGradesByStudentAndSubjectAndPeriodWhereTest($tblPerson,
-                            $tblSubject,
-                            $tblPeriod))
-                        ) {
-                            if (!empty($grades)) {
-                                $grades = array_merge($grades, $gradesByPeriod);
-                            } else {
-                                $grades = $gradesByPeriod;
-                            }
-                        }
-                    }
-                }
-            } else {
-                return false;
-            }
 
-        } else {
-            return false;
-        }
+        $tblGradeList = $this->getGradesByStudent(
+            $tblPerson, $tblDivision, $tblSubject, $tblTestType, $tblPeriod, $tblSubjectGroup
+        );
 
-        return $this->calcAverageFromGrades($tblScoreCondition, $grades);
-    }
-
-    /**
-     * @param TblScoreCondition $tblScoreCondition
-     * @param $grades
-     * @return bool|float|string
-     */
-    private function calcAverageFromGrades(TblScoreCondition $tblScoreCondition, $grades)
-    {
-
-        // ToDo JohK round
-        // ToDo JohK fehler bei nicht vorhandenen Typ
-        if ($grades) {
+        if ($tblGradeList) {
             $result = array();
             $averageGroup = array();
             $resultAverage = '';
             $count = 0;
-            /** @var TblGrade $tblGrade */
-            foreach ($grades as $tblGrade) {
+            foreach ($tblGradeList as $tblGrade) {
                 if ($tblScoreCondition) {
                     if (($tblScoreConditionGroupListByCondition
                         = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition))
@@ -894,10 +787,10 @@ class Service extends AbstractService
                 }
             }
 
-            return $resultAverage;
-
-        } else {
-            return false;
+            return $resultAverage == '' ? false: $resultAverage;
         }
+
+        return false;
     }
+
 }

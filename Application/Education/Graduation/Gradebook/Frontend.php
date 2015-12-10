@@ -10,8 +10,6 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGro
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
 use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
-use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
@@ -57,7 +55,6 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -336,7 +333,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendSelectedGradeBook($DivisionSubjectId = null, $ScoreConditionId = null, $Select = null)
     {
-        $Stage = new Stage('Notenbuch');
+        $Stage = new Stage('Notenbuch', 'Anzeigen');
 
         if ($DivisionSubjectId === null || !($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
             return $Stage . new Warning('Notenbuch nicht gefunden.') . new Redirect('/Education/Graduation/Gradebook/Gradebook',
@@ -448,10 +445,15 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($grades as $personId => $gradeList) {
                         $tblPerson = Person::useService()->getPersonById($personId);
                         $columnList = array();
-                        $totalAverage = '';
-//                            Gradebook::useService()->calcStudentGrade($tblPerson,
-//                            $tblDivisionSubject->getServiceTblSubject(),
-//                            $tblScoreCondition, null, $tblDivision);
+                        $totalAverage = Gradebook::useService()->calcStudentGrade(
+                            $tblPerson,
+                            $tblDivision,
+                            $tblDivisionSubject->getServiceTblSubject(),
+                            $tblTestType,
+                            $tblScoreCondition,
+                            null,
+                            $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
+                        );
                         $columnList[] = new LayoutColumn(
                             new Container($tblPerson->getFirstName() . ' ' . $tblPerson->getFirstName()
                                 . ' ' . new Bold('&#216; ' . $totalAverage))
@@ -462,14 +464,16 @@ class Frontend extends Extension implements IFrontendInterface
                                 foreach ($gradePositions[$tblPeriod->getId()] as $pos => $testId) {
                                     $hasFound = false;
                                     /** @var TblGrade $grade */
-                                    foreach ($gradeList as $grade) {
-                                        if ($testId === $grade->getTblTest()->getId()) {
-                                            $columnSubList[] = new LayoutColumn(
-                                                new Container($grade->getTblGradeType()->getIsHighlighted()
-                                                    ? new Bold($grade->getGrade()) : $grade->getGrade())
-                                                , 1);
-                                            $hasFound = true;
-                                            break;
+                                    if ($gradeList) {
+                                        foreach ($gradeList as $grade) {
+                                            if ($testId === $grade->getTblTest()->getId()) {
+                                                $columnSubList[] = new LayoutColumn(
+                                                    new Container($grade->getTblGradeType()->getIsHighlighted()
+                                                        ? new Bold($grade->getGrade()) : $grade->getGrade())
+                                                    , 1);
+                                                $hasFound = true;
+                                                break;
+                                            }
                                         }
                                     }
                                     if (!$hasFound) {
@@ -487,9 +491,16 @@ class Frontend extends Extension implements IFrontendInterface
                             /*
                              * Calc Average
                              */
-//                            $average = Gradebook::useService()->calcStudentGrade($tblPerson, $tblDivisionSubject->getServiceTblSubject(),
-//                                $tblScoreCondition, $tblPeriod);
-//                            $columnSubList[] = new LayoutColumn(new Container(new Bold($average)), 1);
+                            $average = Gradebook::useService()->calcStudentGrade(
+                                $tblPerson,
+                                $tblDivision,
+                                $tblDivisionSubject->getServiceTblSubject(),
+                                $tblTestType,
+                                $tblScoreCondition,
+                                $tblPeriod,
+                                $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
+                            );
+                            $columnSubList[] = new LayoutColumn(new Container(new Bold($average)), 1);
 
                             $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
                                 $width);
@@ -999,7 +1010,6 @@ class Frontend extends Extension implements IFrontendInterface
                             '', '');
                         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                             $tblSubjectStudent->getServiceTblPerson());
-//                        Debugger::screenDump($tblGrade);
                         if ($tblGrade) {
                             $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Grade']
                                 = (new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Grade]',
@@ -1009,11 +1019,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 '', ''))->setDisabled();
                         } else {
                             $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Grade']
-                                = new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Grade]',
-                                '', '');
+                                = (new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Grade]',
+                                '', ''));
                             $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Comment']
-                                = new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Comment]',
-                                '', '');
+                                = (new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Comment]',
+                                '', ''));
                         }
                     }
                 }
@@ -1026,7 +1036,6 @@ class Frontend extends Extension implements IFrontendInterface
                             . $tblDivisionStudent->getLastName();
                         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                             $tblDivisionStudent);
-//                        Debugger::screenDump($tblGrade);
                         if ($tblGrade) {
                             $student[$tblDivisionStudent->getId()]['Grade']
                                 = (new TextField('Grade[' . $tblDivisionStudent->getId() . '][Grade]',

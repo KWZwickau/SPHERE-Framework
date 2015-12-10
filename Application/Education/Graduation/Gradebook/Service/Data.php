@@ -294,9 +294,7 @@ class Data extends AbstractData
     {
 
 //        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade', $Id);
-//        Debugger::screenDump($EntityManager);
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblGrade', $Id);
-//        $Entity = $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade', $Id);
         return (null === $Entity ? false : $Entity);
     }
 
@@ -326,19 +324,6 @@ class Data extends AbstractData
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTest', $Id);
         return (null === $Entity ? false : $Entity);
-    }
-
-    /**
-     * @return bool|TblTest[]
-     */
-    public function getTestAllWhereTest()
-    {
-
-        $tblTestType = $this->getTestTypeByIdentifier('TEST');
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest', array(
-            TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
-        ));
     }
 
     /**
