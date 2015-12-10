@@ -60,6 +60,11 @@ table.dataTable th {
     -webkit-box-sizing: content-box;
     -moz-box-sizing: content-box;
     box-sizing: content-box;
+    vertical-align: middle !important;
+}
+
+table.dataTable th {
+    background: linear-gradient(90deg, rgba(150, 150, 150, 0.2) 70%, transparent 100%)
 }
 
 table.dataTable {
