@@ -166,28 +166,21 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
+     * @param null $DivisionSubjectId
      * @param null $Select
      * @return IFormInterface|Redirect
      */
-    public function getGradeBook(IFormInterface $Stage = null, $Select = null)
+    public function getGradeBook(IFormInterface $Stage = null, $DivisionSubjectId = null, $Select = null)
     {
 
         /**
          * Skip to Frontend
          */
-        if (null === $Select) {
+        if (null === $Select || $DivisionSubjectId === null) {
             return $Stage;
         }
 
         $Error = false;
-        if (!isset($Select['Division'])) {
-            $Error = true;
-            $Stage .= new Warning('Klasse nicht gefunden');
-        }
-        if (!isset($Select['Subject'])) {
-            $Error = true;
-            $Stage .= new Warning('Fach nicht gefunden');
-        }
         if (!isset($Select['ScoreCondition'])) {
             $Error = true;
             $Stage .= new Warning('Berechnungsvorschrift nicht gefunden');
@@ -196,13 +189,10 @@ class Service extends AbstractService
             return $Stage;
         }
 
-        $tblDivision = Division::useService()->getDivisionById($Select['Division']);
-        $tblSubject = Subject::useService()->getSubjectById($Select['Subject']);
         $tblScoreCondition = Gradebook::useService()->getScoreConditionById($Select['ScoreCondition']);
 
-        return new Redirect('/Education/Graduation/Gradebook/Selected', 0, array(
-            'DivisionId' => $tblDivision->getId(),
-            'SubjectId' => $tblSubject->getId(),
+        return new Redirect('/Education/Graduation/Gradebook/Gradebook/Selected', 0, array(
+            'DivisionSubjectId' => $DivisionSubjectId,
             'ScoreConditionId' => $tblScoreCondition->getId()
         ));
     }
@@ -273,18 +263,24 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
-     * @param TblPeriod $tblPeriod
-     *
+     * @param TblTestType $tblTestType
+     * @param TblPeriod|null $tblPeriod
+     * @param TblSubjectGroup|null $tblSubjectGroup
      * @return bool|Service\Entity\TblGrade[]
      */
-    public function getGradesByStudentAndSubjectAndPeriodWhereTest(
+    public function getGradesByStudent(
         TblPerson $tblPerson,
+        TblDivision $tblDivision,
         TblSubject $tblSubject,
-        TblPeriod $tblPeriod
+        TblTestType $tblTestType,
+        TblPeriod $tblPeriod = null,
+        TblSubjectGroup $tblSubjectGroup = null
     ) {
-        return (new Data($this->getBinding()))->getGradesByStudentAndSubjectAndPeriodWhereTest($tblPerson, $tblSubject,
-            $tblPeriod);
+
+        return (new Data($this->getBinding()))->getGradesByStudent($tblPerson, $tblDivision, $tblSubject, $tblTestType,
+            $tblPeriod, $tblSubjectGroup);
     }
 
     /**
@@ -486,19 +482,20 @@ class Service extends AbstractService
         foreach ($Grade as $personId => $value) {
             $tblPerson = Person::useService()->getPersonById($personId);
             if (!Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson)) {
-                if (trim($value['Grade']) !== '')
-                (new Data($this->getBinding()))->createGrade(
-                    $tblPerson,
-                    $tblTest->getServiceTblDivision(),
-                    $tblTest->getServiceTblSubject(),
-                    $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null,
-                    $tblTest->getServiceTblPeriod(),
-                    $tblTest->getTblGradeType(),
-                    $tblTest,
-                    $tblTest->getTblTestType(),
-                    trim($value['Grade']),
-                    trim($value['Comment'])
-                );
+                if (trim($value['Grade']) !== '') {
+                    (new Data($this->getBinding()))->createGrade(
+                        $tblPerson,
+                        $tblTest->getServiceTblDivision(),
+                        $tblTest->getServiceTblSubject(),
+                        $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null,
+                        $tblTest->getServiceTblPeriod(),
+                        $tblTest->getTblGradeType(),
+                        $tblTest,
+                        $tblTest->getTblTestType(),
+                        trim($value['Grade']),
+                        trim($value['Comment'])
+                    );
+                }
             }
         }
 

@@ -194,25 +194,67 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
-     * @param TblPeriod $tblPeriod
-     * @return TblGrade[]|bool
+     * @param TblTestType $tblTestType
+     * @param TblPeriod|null $tblPeriod
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     * @return bool|TblGrade[]
      */
-    public function getGradesByStudentAndSubjectAndPeriodWhereTest(
+    public function getGradesByStudent(
         TblPerson $tblPerson,
+        TblDivision $tblDivision,
         TblSubject $tblSubject,
-        TblPeriod $tblPeriod
+        TblTestType $tblTestType,
+        TblPeriod $tblPeriod = null,
+        TblSubjectGroup $tblSubjectGroup = null
     ) {
 
-
-        $tblTestType = $this->getTestTypeByIdentifier('TEST');
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade', array(
-            TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-            TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-            TblGrade::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId(),
-            TblGrade::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
-        ));
+        if ($tblSubjectGroup === null) {
+            if ($tblPeriod === null) {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
+                    array(
+                        TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                        TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                        TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                        TblGrade::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                    )
+                );
+            } else {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
+                    array(
+                        TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                        TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                        TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                        TblGrade::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                        TblGrade::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId()
+                    )
+                );
+            }
+        } else {
+            if ($tblPeriod === null) {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
+                    array(
+                        TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                        TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                        TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                        TblGrade::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                        TblGrade::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId()
+                    )
+                );
+            } else {
+                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade',
+                    array(
+                        TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                        TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                        TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                        TblGrade::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                        TblGrade::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId(),
+                        TblGrade::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
+                    )
+                );
+            }
+        }
     }
 
     /**

@@ -34,7 +34,7 @@ class Gradebook implements IModuleInterface
                 new Link\Icon(new Document()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '\Selected'), new Link\Name('Notenbuch'),
+            new Link(new Link\Route(__NAMESPACE__ .'\Gradebook' ), new Link\Name('Notenbuch'),
                 new Link\Icon(new Book()))
         );
 
@@ -48,12 +48,12 @@ class Gradebook implements IModuleInterface
         );
 
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Selected',
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Gradebook',
+                __NAMESPACE__ . '\Frontend::frontendGradebook')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Gradebook\Selected',
                 __NAMESPACE__ . '\Frontend::frontendSelectedGradebook')
-                ->setParameterDefault('DivisionId', null)
-                ->setParameterDefault('SubjectId', null)
-                ->setParameterDefault('ScoreConditionId', null)
-                ->setParameterDefault('Select', null)
         );
 
         Main::getDispatcher()->registerRoute(
@@ -67,15 +67,11 @@ class Gradebook implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test\Edit',
                 __NAMESPACE__ . '\Frontend::frontendEditTest')
-                ->setParameterDefault('Id', null)
-                ->setParameterDefault('Test', null)
         );
 
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test\Grade\Edit',
                 __NAMESPACE__ . '\Frontend::frontendEditTestGrade')
-                ->setParameterDefault('Id', null)
-                ->setParameterDefault('Grade', null)
         );
 
         /*
