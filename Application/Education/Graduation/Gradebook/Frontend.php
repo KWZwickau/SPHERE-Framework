@@ -402,7 +402,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblDivision,
                         $tblDivisionSubject->getServiceTblSubject(),
                         $tblPeriod,
-                        $tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getTblSubjectGroup() : null
+                        $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                     );
                     if ($tblTestList) {
                         $columnSubList = array();
