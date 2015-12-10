@@ -12,6 +12,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -46,22 +47,24 @@ class Frontend extends Extension implements IFrontendInterface
         $View->setContent(
             new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
-                        Chemnitz::useService()->getClass(
-                            new Form(
-                                new FormGroup(array(
-                                    new FormRow(array(
-                                        new FormColumn(
-                                            new SelectBox('Select[Division]', 'Klasse',
-                                                array(
-                                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }}
+                        new Well(
+                            Chemnitz::useService()->getClass(
+                                new Form(
+                                    new FormGroup(array(
+                                        new FormRow(array(
+                                            new FormColumn(
+                                                new SelectBox('Select[Division]', 'Klasse',
+                                                    array(
+                                                        '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }}
                                                      - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
-                                                )),
-                                            12
-                                        )
-                                    )),
-                                ))
-                                , new Primary('Auswählen', new Select())
-                            ), $Select
+                                                    )),
+                                                12
+                                            )
+                                        )),
+                                    ))
+                                    , new Primary('Auswählen', new Select())
+                                ), $Select
+                            )
                         )
                     )
                 )
@@ -98,28 +101,30 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
                     new Panel('Schulart:', $tblDivision->getTblLevel()->getServiceTblType()->getName(),
-                        Panel::PANEL_TYPE_SUCCESS), 6
+                        Panel::PANEL_TYPE_INFO), 6
                 ),
                 new LayoutColumn(
                     new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
-                        Panel::PANEL_TYPE_SUCCESS), 6
+                        Panel::PANEL_TYPE_INFO), 6
                 ),
                 new LayoutColumn(array(
-                        Chemnitz::useService()->createStudentsFromFile(
-                            new Form(
-                                new FormGroup(array(
-                                    new FormRow(
-                                        new FormColumn(
-                                            new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
-                                                array('showPreview' => false))
+                        new Well(
+                            Chemnitz::useService()->createStudentsFromFile(
+                                new Form(
+                                    new FormGroup(array(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
                                         )
-                                    )
-                                ))
-                                , new Primary('Hochladen')
-                            ), $File, $DivisionId
+                                    ))
+                                    , new Primary('Hochladen')
+                                ), $File, $DivisionId
+                            )
+                            ,
+                            new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                         )
-                    ,
-                        new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                     )
                 )
             ))))
@@ -146,20 +151,22 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(array(
-                            Chemnitz::useService()->createPersonsFromFile(new Form(
-                                new FormGroup(
-                                    new FormRow(
-                                        new FormColumn(
-                                            new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
-                                                array('showPreview' => false))
+                            new Well(
+                                Chemnitz::useService()->createPersonsFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
                                         )
                                     )
+                                    , new Primary('Hochladen')
+                                ), $File
                                 )
-                                , new Primary('Hochladen')
-                            ), $File
+                                ,
+                                new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                             )
-                        ,
-                            new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                         ))
                     )
                 )
@@ -187,20 +194,22 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(array(
-                            Chemnitz::useService()->createInterestedPersonsFromFile(new Form(
-                                new FormGroup(
-                                    new FormRow(
-                                        new FormColumn(
-                                            new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
-                                                array('showPreview' => false))
+                            new Well(
+                                Chemnitz::useService()->createInterestedPersonsFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
                                         )
                                     )
+                                    , new Primary('Hochladen')
+                                ), $File
                                 )
-                                , new Primary('Hochladen')
-                            ), $File
+                                ,
+                                new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                             )
-                        ,
-                            new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                         ))
                     )
                 )
