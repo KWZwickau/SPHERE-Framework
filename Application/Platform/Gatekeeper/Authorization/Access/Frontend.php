@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Access;
 
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Frontend\Summary;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilege;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRight;
@@ -18,8 +19,6 @@ use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\Icon\Repository\TileList;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullClear;
-use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -54,6 +53,47 @@ class Frontend
 
         $Stage = new Stage('Rechteverwaltung');
         $this->menuButton($Stage);
+
+        $TwigData = array();
+        $tblRoleList = Access::useService()->getRoleAll();
+        /** @var TblRole $tblRole */
+        foreach ((array)$tblRoleList as $tblRole) {
+            if (!$tblRole) {
+                continue;
+            }
+            $TwigData[$tblRole->getId()] = array('Role' => $tblRole);
+            $tblLevelList = Access::useService()->getLevelAllByRole($tblRole);
+            /** @var TblLevel $tblLevel */
+            foreach ((array)$tblLevelList as $tblLevel) {
+                if (!$tblLevel) {
+                    continue;
+                }
+                $TwigData[$tblRole->getId()]['LevelList'][$tblLevel->getId()] = array('Level' => $tblLevel);
+                $tblPrivilegeList = Access::useService()->getPrivilegeAllByLevel($tblLevel);
+                /** @var TblPrivilege $tblPrivilege */
+                foreach ((array)$tblPrivilegeList as $tblPrivilege) {
+                    if (!$tblPrivilege) {
+                        continue;
+                    }
+                    $TwigData[$tblRole->getId()]['LevelList'][$tblLevel->getId()]['PrivilegeList'][$tblPrivilege->getId()] = array('Privilege' => $tblPrivilege);
+                    $tblRightList = Access::useService()->getRightAllByPrivilege($tblPrivilege);
+                    foreach ((array)$tblRightList as $tblRight) {
+                        if (!$tblRight) {
+                            continue;
+                        }
+                        if (!isset( $TwigData[$tblRole->getId()]['LevelList'][$tblLevel->getId()]['PrivilegeList'][$tblPrivilege->getId()]['RightList'] )) {
+                            $TwigData[$tblRole->getId()]['LevelList'][$tblLevel->getId()]['PrivilegeList'][$tblPrivilege->getId()]['RightList'] = array();
+                        }
+                        $TwigData[$tblRole->getId()]['LevelList'][$tblLevel->getId()]['PrivilegeList'][$tblPrivilege->getId()]['RightList'][] = $tblRight;
+                    }
+                }
+            }
+
+        }
+        $Stage->setContent(
+            new Summary($TwigData)
+        );
+
         return $Stage;
     }
 
@@ -207,17 +247,15 @@ class Frontend
         if ($PublicRouteAll) {
             array_walk($PublicRouteAll, function (&$Route) {
 
-                $Route = new PullClear(
-                    new PullLeft('<span class="sphere-label">'.$Route.'</span>')
-                    .new PullRight(
-                        new External(
+                $Route = array(
+                    'Route'  => $Route,
+                    'Option' => new External(
                             'Öffnen', $Route, null, array(), false
                         ).
                         new Danger(
                             'Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/Right', null,
                             array('Name' => $Route)
                         )
-                    )
                 );
             });
         } else {
@@ -241,7 +279,7 @@ class Frontend
                     , new Primary('Hinzufügen')
                 ), $Name
             )
-            .new Panel('Öffentliche Routen', $PublicRouteAll, Panel::PANEL_TYPE_DANGER, null, 50)
+            .new TableData($PublicRouteAll, new Title('Öffentliche Routen', 'PUBLIC ACCESS'))
         );
         return $Stage;
     }

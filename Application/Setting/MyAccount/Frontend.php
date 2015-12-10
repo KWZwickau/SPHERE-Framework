@@ -200,11 +200,11 @@ class Frontend extends Extension implements IFrontendInterface
                                                         ),
                                                     )
                                                     , Panel::PANEL_TYPE_DEFAULT),
-                                                new Panel(
-                                                    'Statistik', array(
-                                                        '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>',
-                                                    )
-                                                    , Panel::PANEL_TYPE_DEFAULT),
+//                                                new Panel(
+//                                                    'Statistik', array(
+//                                                        '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>',
+//                                                    )
+//                                                    , Panel::PANEL_TYPE_DEFAULT),
                                             ))
                                         )
                                     )
@@ -226,8 +226,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     // TODO: Anzeigen von Schulen, Schulträger, Vörderverein
                                     // TODO: Anzeigen von zugehörigen Adressen, Telefonnummern, Personen
-                                    'TODO: Anzeigen von Schulen, Schulträger, Vörderverein',
-                                    'TODO: Anzeigen von zugehörigen Adressen, Telefonnummern, Personen'
+//                                    'TODO: Anzeigen von Schulen, Schulträger, Vörderverein',
+//                                    'TODO: Anzeigen von zugehörigen Adressen, Telefonnummern, Personen'
                                 )
                                 , Panel::PANEL_TYPE_DEFAULT,
                                 new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))

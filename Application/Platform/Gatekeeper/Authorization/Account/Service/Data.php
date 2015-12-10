@@ -31,10 +31,15 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createIdentification('Student', 'Schüler / Eltern');
-        $this->createIdentification('Teacher', 'Lehrer');
-        $this->createIdentification('Management', 'Verwaltung');
-        $this->createIdentification('System', 'System');
+        // Old
+//        $this->createIdentification('Student', 'Schüler / Eltern');
+//        $this->createIdentification('Teacher', 'Lehrer');
+//        $this->createIdentification('Management', 'Verwaltung');
+
+        // New
+        $this->createIdentification('Credential', 'Username/Password');
+        $this->createIdentification('Token', 'Username/Password/Token');
+        $this->createIdentification('System', 'Username/Password/Token');
 
         $tblConsumer = Consumer::useService()->getConsumerById(1);
         $tblIdentification = $this->getIdentificationByName('System');

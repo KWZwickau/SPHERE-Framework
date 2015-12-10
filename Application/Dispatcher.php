@@ -10,6 +10,8 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\ErrorLogger;
 
 /**
  * Class Dispatcher
@@ -36,8 +38,16 @@ class Dispatcher
             self::$Router = $Router;
 
             // Roadmap
-            $this->registerRoute($this->createRoute('Roadmap/Current', 'SPHERE\Common\Roadmap\Roadmap::frontendMap'));
-            $this->registerRoute($this->createRoute('Roadmap/Download', 'SPHERE\Common\Roadmap\Roadmap::frontendMap'));
+            try {
+                $this->registerRoute($this->createRoute('Roadmap/Current',
+                    'SPHERE\Common\Roadmap\Roadmap::frontendMap')
+                );
+                $this->registerRoute($this->createRoute('Roadmap/Download',
+                    'SPHERE\Common\Roadmap\Roadmap::frontendMap')
+                );
+            } catch (\Exception $Exception) {
+                (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('Unable to register Roadmap');
+            }
         }
     }
 
