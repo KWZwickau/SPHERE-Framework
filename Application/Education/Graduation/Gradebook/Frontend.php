@@ -210,16 +210,13 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Notenbuch', 'Auswahl');
 
         $tblPerson = false;
-        $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount(Account::useService()->getAccountBySession());
-        if ($tblPersonAllByAccount) {
-            $tblPerson = $tblPersonAllByAccount[0];
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+            if ($tblPersonAllByAccount) {
+                $tblPerson = $tblPersonAllByAccount[0];
+            }
         }
-
-        // ToDo JohK ausbauen
-        //teacher1 82
-        //teacher2 83
-        //teacher3 84
-        $tblPerson = Person::useService()->getPersonById(82);
 
         $isKlassenLehrer = false;
 
@@ -564,16 +561,13 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Leistungsermittlung', 'Auswahl');
 
         $tblPerson = false;
-        $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount(Account::useService()->getAccountBySession());
-        if ($tblPersonAllByAccount) {
-            $tblPerson = $tblPersonAllByAccount[0];
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+            if ($tblPersonAllByAccount) {
+                $tblPerson = $tblPersonAllByAccount[0];
+            }
         }
-
-        // ToDo JohK ausbauen
-        //teacher1 82
-        //teacher2 83
-        //teacher3 84
-        $tblPerson = Person::useService()->getPersonById(82);
 
         $isKlassenLehrer = false;
 
