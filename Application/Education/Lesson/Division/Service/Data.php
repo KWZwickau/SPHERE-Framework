@@ -200,6 +200,12 @@ class Data extends AbstractData
         return empty($EntityList) ? false : $EntityList;
     }
 
+    /**
+     * @param TblSubject  $tblSubject
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblDivisionSubject[]
+     */
     public function getDivisionSubjectBySubjectAndDivision(TblSubject $tblSubject, TblDivision $tblDivision)
     {
 
@@ -223,29 +229,6 @@ class Data extends AbstractData
             TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()
         ));
 
-        return empty($EntityList) ? false : $EntityList;
-    }
-
-    /**
-     * @param TblDivisionSubject $tblDivisionSubject
-     *
-     * @return bool|TblSubjectGroup[]
-     */
-    public function getSubjectGroupByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
-    {
-
-        $TempList = $this->getConnection()->getEntityManager()->getEntity('TblSubjectTeacher')->findBy(array(
-            TblSubjectTeacher::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()
-        ));
-
-        $EntityList = array();
-
-        if (!empty ($TempList)) {
-            /** @var TblSubjectTeacher $tblSubjectTeacher */
-            foreach ($TempList as $tblSubjectTeacher) {
-                array_push($EntityList, $tblSubjectTeacher->getTblSubjectGroup());
-            }
-        }
         return empty($EntityList) ? false : $EntityList;
     }
 

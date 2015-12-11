@@ -120,6 +120,44 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getYearByName($Name);
     }
 
+    public function getYearByPeriod(TblPeriod $tblPeriod)
+    {
+
+        return (new Data($this->getBinding()))->getYearByPeriod($tblPeriod);
+    }
+
+    public function getYearByNow()
+    {
+
+        $Now = new \DateTime('now');
+        $EntityList = array();
+        $UsedPeriodList = array();
+        $tblPeriodAll = Term::useService()->getPeriodAll();
+        if ($tblPeriodAll) {
+            foreach ($tblPeriodAll as $tblPeriod) {
+                if (new \DateTime($tblPeriod->getFromDate()) < new \DateTime($Now->format('d.m.Y'))
+                    && new \DateTime($tblPeriod->getToDate()) > new \DateTime($Now->format('d.m.Y'))
+                ) {
+                    $UsedPeriodList[] = $tblPeriod;
+                }
+            }
+            if (!empty( $UsedPeriodList )) {
+                foreach ($UsedPeriodList as $UsedPeriod) {
+                    $EntiyArrayList = Term::useService()->getYearByPeriod($UsedPeriod);
+                    if (!empty( $EntiyArrayList )) {
+                        foreach ($EntiyArrayList as $EntityArray) {
+                            $EntityList[] = $EntityArray;
+                        }
+                    }
+                }
+            }
+        }
+
+        $EntityList = array_filter($EntityList);
+
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
     /**
      * @param $Year
      * @param $Period

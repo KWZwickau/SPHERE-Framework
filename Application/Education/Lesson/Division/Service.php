@@ -196,6 +196,30 @@ class Service extends AbstractService
         return $Form;
     }
 
+    public function selectYear(IFormInterface $Form, $Year)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Year) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (isset( $Year ) && empty( $Year )) {
+            $Form->setError('Year', 'Schuljahr benötigt!');
+            $Error = true;
+        }
+        if (!$Error) {
+            return new Redirect('/Education/Lesson/Division', 1, array('Year' => $Year));
+        }
+
+
+        return $Form;
+    }
+
     /**
      * @param IFormInterface $Form
      * @param null|array     $Division
@@ -1242,7 +1266,8 @@ class Service extends AbstractService
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
+     * @param TblSubject  $tblSubject
+     *
      * @return bool|TblDivisionSubject[]
      */
     public function getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(TblDivision $tblDivision, TblSubject $tblSubject)
@@ -1253,6 +1278,7 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     *
      * @return bool|TblSubjectTeacher[]
      */
     public function getSubjectTeacherAllByTeacher(TblPerson $tblPerson)
