@@ -26,11 +26,11 @@ class Major1Minor2
         $Category = $Release->createCategory('Bildung');
         $Feature = $Category->createFeature('Zensuren');
         $Feature->createTask('Erweiterung der Funktionalitäten')
-            ->createDuty('Punktevergabe in Abhängigkeit von Leistungsermittlungen')
-            ->createDuty('Punktegewichtung (Konvertierung in Noten)')
-            ->createDuty('Berechnungsvorschriften (Konvertierung in Durchschnitts-Noten)', true)
-            ->createDuty('Stichtags- & Kopfnoten-Ermittlung / -Aufträge')
-            ->createDuty('Notenspiegel / Verteilung für Leistungsermittlungen');
+            ->createDuty('Berechnungsvorschriften für Notendurchschnitt', true)
+            ->createDuty('Notenspiegel / Verteilung für Leistungsüberprüfung')
+            ->createDuty('Hinterlegung von Aufgabenpunkten bei Leistungsüberprüfungen und automatische Wichtung für Notenbildung')
+            ->createDuty('Auftragserteilung für Stichtags- & Kopfnoten-Ermittlung (Schulleiter)')
+            ->createDuty('Zeugnisdruck mit Möglichkeit zur revisionssicheren Speicherung');
         $Feature->createTask('Zeugnisdruck (vorerst feste Zeugnislayouts)');
 
         // Fakturierung
