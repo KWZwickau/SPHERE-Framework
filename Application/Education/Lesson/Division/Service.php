@@ -1331,4 +1331,14 @@ class Service extends AbstractService
             $tblSubject, $tblSubjectGroup);
     }
 
+    /**
+     * @param TblPerson $tblPerson
+     * @return bool|TblDivisionTeacher[]
+     */
+    public function getDivisionTeacherAllByTeacher(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionTeacherAllByTeacher($tblPerson);
+    }
+
 }
