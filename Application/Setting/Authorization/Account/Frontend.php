@@ -209,7 +209,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblIdentification = false;
                 } else {
                     switch (strtoupper($tblIdentification->getName())) {
-                        case 'STUDENT':
+                        case 'CREDENTIAL':
                             $Global = $this->getGlobal();
                             if (!isset( $Global->POST['Account']['Identification'] )) {
                                 $Global->POST['Account']['Identification'] = $tblIdentification->getId();
@@ -271,7 +271,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
         array_unshift($tblTokenAll,
             new RadioBox('Account[Token]',
-                new Danger('KEIN Hardware-Schlüssel'),
+                new Danger('KEIN Hardware-Schlüssel notwendig'),
                 0
             )
         );
@@ -281,7 +281,9 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblPersonAll) {
             array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
 
-                $tblPerson = new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId());
+                $tblPerson = array(
+                    'Person' => new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId())
+                );
             });
             $tblPersonAll = array_filter($tblPersonAll);
         } else {
@@ -294,7 +296,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPerson = $User[0]->getServiceTblPerson();
                 if ($tblPerson) {
                     array_unshift($tblPersonAll,
-                        new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId())
+                        array('Person' => new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()))
                     );
                 }
             }
@@ -303,8 +305,8 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(array(
             new FormGroup(array(
                 new FormRow(array(
-                    new FormColumn(
-                        new Panel(new PersonKey().' Benutzerkonto hinzufügen', array(
+                    new FormColumn(array(
+                        new Panel(new PersonKey().' Benutzerkonto', array(
                             (new TextField('Account[Name]', 'Benutzername (min. 5 Zeichen)', 'Benutzername',
                                 new Person()))
                                 ->setPrefixValue($tblConsumer->getAcronym()),
@@ -314,15 +316,19 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Account[PasswordSafety]', 'Passwort wiederholen', 'Passwort wiederholen',
                                 new Repeat()
                             ),
-                        ), Panel::PANEL_TYPE_INFO), 4),
-                    new FormColumn(array(
-                        new Panel(new Nameplate().' Berechtigungsstufe zuweisen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
-                        new Panel(new Person().' Person zuweisen', $tblPersonAll, Panel::PANEL_TYPE_INFO, null, true)
+                        ), Panel::PANEL_TYPE_INFO),
+                        new Panel(new Person().' für folgende Person', array(
+                            new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+                        ), Panel::PANEL_TYPE_INFO),
                     ), 4),
                     new FormColumn(array(
                         new Panel(new Lock().' Authentifizierungstyp wählen', $tblIdentificationAll,
                             Panel::PANEL_TYPE_INFO),
-                        new Panel(new Key().' Hardware-Schlüssel zuweisen', $tblTokenAll, Panel::PANEL_TYPE_INFO)
+                        new Panel(new Key().' Hardware-Schlüssel wählen', $tblTokenAll,
+                            Panel::PANEL_TYPE_INFO),
+                    ), 4),
+                    new FormColumn(array(
+                        new Panel(new Nameplate().' Berechtigungen zuweisen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
                     ), 4),
                 ))
 
