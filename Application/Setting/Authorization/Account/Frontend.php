@@ -317,9 +317,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Repeat()
                             ),
                         ), Panel::PANEL_TYPE_INFO),
-                        new Panel(new Person().' für folgende Person', array(
-                            new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
-                        ), Panel::PANEL_TYPE_INFO),
                     ), 4),
                     new FormColumn(array(
                         new Panel(new Lock().' Authentifizierungstyp wählen', $tblIdentificationAll,
@@ -330,8 +327,14 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(array(
                         new Panel(new Nameplate().' Berechtigungen zuweisen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
                     ), 4),
-                ))
-
+                )),
+                new FormRow(array(
+                    new FormColumn(array(
+                        new Panel(new Person().' für folgende Person', array(
+                            new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+                        ), Panel::PANEL_TYPE_INFO),
+                    ), 6),
+                )),
             )),
         ));
     }

@@ -154,6 +154,14 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > th:first-child:before
     background-color: transparent;
 }
 
+.panel table.dataTable .radio {
+    padding-left: 4px;
+}
+
+.panel table.dataTable .radio input {
+    margin-top: 0;
+}
+
 /* TYPEAHEAD RESPONSIVE */
 
 /*

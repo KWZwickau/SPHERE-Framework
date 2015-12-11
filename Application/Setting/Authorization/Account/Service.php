@@ -91,6 +91,14 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             }
         }
 
+        if (!isset( $Account['User'] )) {
+            $Form->setError('Account[User]', 'Bitte wählen Sie eine Person');
+//            $Form->appendGridGroup(
+//                new FormGroup( new FormRow( new FormColumn( new Danger( 'Bitte wählen Sie einen Besitzer des Kontos aus (Person wählen)' ) ) ) )
+//            );
+            $Error = true;
+        }
+
         if (!$Error) {
             $tblAccount = GatekeeperAccount::useService()->insertAccount($Username, $Password, $tblToken, $tblConsumer);
             if ($tblAccount) {
