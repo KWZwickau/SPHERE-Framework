@@ -40,14 +40,6 @@ class Major1Minor1
 
         // Bildung
         $Category = $Release->createCategory('Bildung');
-        $Feature = $Category->createFeature('Zensuren');
-        $Feature->createTask('Erweiterung der Funktionalitäten')
-            ->createDuty('Punktevergabe in Abhängigkeit von Leistungsermittlungen')
-            ->createDuty('Punktegewichtung (Konvertierung in Noten)')
-            ->createDuty('Berechnungsvorschriften (Konvertierung in Durchschnitts-Noten)')
-            ->createDuty('Stichtags- & Kopfnoten-Ermittlung / -Aufträge')
-            ->createDuty('Notenspiegel / Verteilung für Leistungsermittlungen');
-        $Feature->createTask('Zeugnisdruck (vorerst feste Zeugnislayouts)');
 
         $Feature = $Category->createFeature('Unterricht');
         $Feature->createTask('Fächer')
