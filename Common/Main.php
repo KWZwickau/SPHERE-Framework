@@ -67,9 +67,13 @@ class Main extends Extension
     public static function initCloudCache()
     {
         if (!isset($_SESSION['Memcached-Slot'])) {
-            if (Consumer::useService()->getConsumerBySession()) {
-                $_SESSION['Memcached-Slot'] = Consumer::useService()->getConsumerBySession()->getAcronym();
-            } else {
+            try {
+                if (Consumer::useService()->getConsumerBySession()) {
+                    $_SESSION['Memcached-Slot'] = Consumer::useService()->getConsumerBySession()->getAcronym();
+                } else {
+                    $_SESSION['Memcached-Slot'] = 'PUBLIC';
+                }
+            } catch (\Exception $Exception) {
                 $_SESSION['Memcached-Slot'] = 'PUBLIC';
             }
         }
@@ -265,14 +269,17 @@ class Main extends Extension
     public static function runSelfHeal(\Exception $Exception = null)
     {
 
+        $Protocol = (new System\Database\Database())->frontendSetup(false, true);
+
         $Display = new Display();
         $Display->setContent(
             ($Exception
                 ? new Error($Exception->getCode(), $Exception->getMessage())
                 : ''
-            ) .
-            (new System\Database\Database())->frontendSetup(false, true)
+            )
+            .(new Frontend\Message\Repository\Info('Es wird eine automatische Reparatur durchgeführt. Sollte der Fehler damit nicht behoben werden, senden Sie bitte einen Fehlerbericht.'))
             . (new Redirect(self::getRequest()->getPathInfo(), 60))
+            .$Protocol
         );
         echo $Display->getContent(true);
         exit(0);
