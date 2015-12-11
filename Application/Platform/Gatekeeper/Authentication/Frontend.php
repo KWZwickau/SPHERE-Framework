@@ -45,14 +45,11 @@ class Frontend implements IFrontendInterface
         $View = new Stage('Anmeldung', 'Bitte wählen Sie den Typ der Anmeldung');
         $View->setMessage('Anmeldend als:');
         $View->setContent(
-            (new \SPHERE\Common\Frontend\Link\Repository\Standard('Schüler',
+            (new \SPHERE\Common\Frontend\Link\Repository\Standard('Schüler / Eltern',
                 '/Platform/Gatekeeper/Authentication/Student', new Lock()
             ))->setDisabled()
-            .new \SPHERE\Common\Frontend\Link\Repository\Primary('Lehrer',
-                '/Platform/Gatekeeper/Authentication/Teacher', new YubiKey()
-            )
-            .new \SPHERE\Common\Frontend\Link\Repository\Primary('Verwaltung',
-                '/Platform/Gatekeeper/Authentication/Management', new YubiKey()
+            .new \SPHERE\Common\Frontend\Link\Repository\Primary('Personal',
+                '/Platform/Gatekeeper/Authentication/Staff', new YubiKey()
             )
             .new Danger('System',
                 '/Platform/Gatekeeper/Authentication/System', new YubiKey()
@@ -61,39 +58,39 @@ class Frontend implements IFrontendInterface
         return $View;
     }
 
-    /**
-     * @param string $CredentialName
-     * @param string $CredentialLock
-     * @param string $CredentialKey
-     *
-     * @return Stage
-     */
-    public function frontendCreateSessionTeacher($CredentialName, $CredentialLock, $CredentialKey)
-    {
-
-        $View = new Stage('Anmeldung', 'Lehrer');
-        $View->setMessage('Bitte geben Sie Ihre Benutzerdaten ein');
-        $View->setContent(Account::useService()->createSessionCredentialToken(
-            new Form(
-                new FormGroup(array(
-                        new FormRow(
-                            new FormColumn(new TextField('CredentialName', 'Benutzername', 'Benutzername',
-                                new Person()))
-                        ),
-                        new FormRow(
-                            new FormColumn(new PasswordField('CredentialLock', 'Passwort', 'Passwort', new Lock()))
-                        ),
-                        new FormRow(
-                            new FormColumn(new PasswordField('CredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))
-                        )
-                    )
-                ), new Primary('Anmelden')
-            ),
-            $CredentialName, $CredentialLock, $CredentialKey,
-            Account::useService()->getIdentificationByName('Teacher')
-        ));
-        return $View;
-    }
+//    /**
+//     * @param string $CredentialName
+//     * @param string $CredentialLock
+//     * @param string $CredentialKey
+//     *
+//     * @return Stage
+//     */
+//    public function frontendCreateSessionTeacher($CredentialName, $CredentialLock, $CredentialKey)
+//    {
+//
+//        $View = new Stage('Anmeldung', 'Lehrer');
+//        $View->setMessage('Bitte geben Sie Ihre Benutzerdaten ein');
+//        $View->setContent(Account::useService()->createSessionCredentialToken(
+//            new Form(
+//                new FormGroup(array(
+//                        new FormRow(
+//                            new FormColumn(new TextField('CredentialName', 'Benutzername', 'Benutzername',
+//                                new Person()))
+//                        ),
+//                        new FormRow(
+//                            new FormColumn(new PasswordField('CredentialLock', 'Passwort', 'Passwort', new Lock()))
+//                        ),
+//                        new FormRow(
+//                            new FormColumn(new PasswordField('CredentialKey', 'YubiKey', 'YubiKey', new YubiKey()))
+//                        )
+//                    )
+//                ), new Primary('Anmelden')
+//            ),
+//            $CredentialName, $CredentialLock, $CredentialKey,
+//            Account::useService()->getIdentificationByName('Teacher')
+//        ));
+//        return $View;
+//    }
 
     /**
      * @param string $CredentialName
@@ -129,36 +126,36 @@ class Frontend implements IFrontendInterface
         return $View;
     }
 
-    /**
-     * @param string $CredentialName
-     * @param string $CredentialLock
-     *
-     * @return Stage
-     */
-    public function frontendCreateSessionStudent($CredentialName, $CredentialLock)
-    {
-
-        $View = new Stage('Anmeldung', 'Schüler');
-        $View->setMessage('Bitte geben Sie Ihre Benutzerdaten ein');
-        $View->setContent(Account::useService()->createSessionCredential(
-            new Form(
-                new FormGroup(array(
-                        new FormRow(
-                            new FormColumn(new TextField('CredentialName', 'Benutzername', 'Benutzername',
-                                new Person()))
-                        ),
-                        new FormRow(
-                            new FormColumn(new PasswordField('CredentialLock', 'Passwort', 'Passwort',
-                                new Lock()))
-                        )
-                    )
-                ), new Primary('Anmelden')
-            ),
-            $CredentialName, $CredentialLock,
-            Account::useService()->getIdentificationByName('Student')
-        ));
-        return $View;
-    }
+//    /**
+//     * @param string $CredentialName
+//     * @param string $CredentialLock
+//     *
+//     * @return Stage
+//     */
+//    public function frontendCreateSessionStudent($CredentialName, $CredentialLock)
+//    {
+//
+//        $View = new Stage('Anmeldung', 'Schüler');
+//        $View->setMessage('Bitte geben Sie Ihre Benutzerdaten ein');
+//        $View->setContent(Account::useService()->createSessionCredential(
+//            new Form(
+//                new FormGroup(array(
+//                        new FormRow(
+//                            new FormColumn(new TextField('CredentialName', 'Benutzername', 'Benutzername',
+//                                new Person()))
+//                        ),
+//                        new FormRow(
+//                            new FormColumn(new PasswordField('CredentialLock', 'Passwort', 'Passwort',
+//                                new Lock()))
+//                        )
+//                    )
+//                ), new Primary('Anmelden')
+//            ),
+//            $CredentialName, $CredentialLock,
+//            Account::useService()->getIdentificationByName('Credential')
+//        ));
+//        return $View;
+//    }
 
     /**
      * @param string $CredentialName
@@ -167,10 +164,10 @@ class Frontend implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendCreateSessionManagement($CredentialName, $CredentialLock, $CredentialKey)
+    public function frontendCreateSessionStaff($CredentialName, $CredentialLock, $CredentialKey)
     {
 
-        $View = new Stage('Anmeldung', 'Verwaltung');
+        $View = new Stage('Anmeldung', 'Personal');
         $View->setMessage('Bitte geben Sie Ihre Benutzerdaten ein');
         $View->setContent(Account::useService()->createSessionCredentialToken(
             new Form(
@@ -189,7 +186,7 @@ class Frontend implements IFrontendInterface
                 ), new Primary('Anmelden')
             ),
             $CredentialName, $CredentialLock, $CredentialKey,
-            Account::useService()->getIdentificationByName('Management')
+            Account::useService()->getIdentificationByName('Token')
         ));
         return $View;
     }
