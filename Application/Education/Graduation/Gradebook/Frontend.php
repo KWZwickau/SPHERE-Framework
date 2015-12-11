@@ -743,7 +743,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendTest()
     {
 
-        $Stage = new Stage('Leistungsermittlung', 'Auswahl');
+        $Stage = new Stage('Leistungsüberprüfung', 'Auswahl');
 
         $tblPerson = false;
         $tblAccount = Account::useService()->getAccountBySession();
@@ -897,7 +897,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendHeadmasterTest()
     {
 
-        $Stage = new Stage('Leistungsermittlung (Leitung)', 'Auswahl');
+        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Auswahl');
 
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
@@ -1010,7 +1010,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Test = null
     ) {
 
-        $Stage = new Stage('Leistungsermittlung', 'Übersicht');
+        $Stage = new Stage('Leistungsüberprüfung', 'Übersicht');
         $this->contentTestSelected($DivisionSubjectId, $Test, $Stage, '/Education/Graduation/Gradebook/Test');
 
         return $Stage;
@@ -1026,7 +1026,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Test = null
     ) {
 
-        $Stage = new Stage('Leistungsermittlung (Leitung)', 'Übersicht');
+        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Übersicht');
         $this->contentTestSelected($DivisionSubjectId, $Test, $Stage,
             '/Education/Graduation/Gradebook/Headmaster/Test');
 
@@ -1171,7 +1171,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Id,
         $Test = null
     ) {
-        $Stage = new Stage('Leistungsermittlung', 'Bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung', 'Bearbeiten');
 
         return $this->contentEditTest($Stage, $Id, $Test, '/Education/Graduation/Gradebook/Test');
     }
@@ -1186,7 +1186,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Id,
         $Test = null
     ) {
-        $Stage = new Stage('Leistungsermittlung (Leitung)', 'Bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Bearbeiten');
 
         return $this->contentEditTest($Stage, $Id, $Test, '/Education/Graduation/Gradebook/Headmaster/Test');
     }
@@ -1300,7 +1300,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Grade = null
     ) {
 
-        $Stage = new Stage('Leistungsermittlung', 'Zensuren bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren bearbeiten');
 
         $tblTest = Gradebook::useService()->getTestById($Id);
         if ($tblTest) {
@@ -1341,7 +1341,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Grade = null
     ) {
 
-        $Stage = new Stage('Leistungsermittlung', 'Zensuren bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren bearbeiten');
 
         $tblTest = Gradebook::useService()->getTestById($Id);
         if ($tblTest) {
