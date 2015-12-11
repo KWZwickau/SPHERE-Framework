@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -49,24 +50,26 @@ class Frontend extends Extension implements IFrontendInterface
         $View->setContent(
             new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
-                        FuxSchool::useService()->getTypeAndYear(
-                            new Form(
-                                new FormGroup(array(
-                                    new FormRow(array(
-                                        new FormColumn(
-                                            new SelectBox('Select[Year]', 'Schuljahr',
-                                                array('{{Name}}' => $tblYearAll)),
-                                            6
-                                        ),
-                                        new FormColumn(
-                                            new SelectBox('Select[Type]', 'Schulart',
-                                                array('{{Name}}' => $tblTypeAll)),
-                                            6
-                                        )
-                                    )),
-                                ))
-                                , new Primary('Auswählen', new Select())
-                            ), $Select, '/Transfer/Import/FuxMedia/Student/Import'
+                        new Well(
+                            FuxSchool::useService()->getTypeAndYear(
+                                new Form(
+                                    new FormGroup(array(
+                                        new FormRow(array(
+                                            new FormColumn(
+                                                new SelectBox('Select[Year]', 'Schuljahr',
+                                                    array('{{Name}}' => $tblYearAll)),
+                                                6
+                                            ),
+                                            new FormColumn(
+                                                new SelectBox('Select[Type]', 'Schulart',
+                                                    array('{{Name}}' => $tblTypeAll)),
+                                                6
+                                            )
+                                        )),
+                                    ))
+                                    , new Primary('Auswählen', new Select())
+                                ), $Select, '/Transfer/Import/FuxMedia/Student/Import'
+                            )
                         )
                     )
                 )
@@ -102,26 +105,28 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
                     new Panel('Schuljahr:', $tblYear ? $tblYear->getName() : '',
-                        Panel::PANEL_TYPE_SUCCESS), 6),
+                        Panel::PANEL_TYPE_INFO), 6),
                 new LayoutColumn(
                     new Panel('Schulart:', $tblType ? $tblType->getName() : '',
-                        Panel::PANEL_TYPE_SUCCESS), 6),
+                        Panel::PANEL_TYPE_INFO), 6),
                 new LayoutColumn(array(
-                        FuxSchool::useService()->createStudentsFromFile(
-                            new Form(
-                                new FormGroup(
-                                    new FormRow(
-                                        new FormColumn(
-                                            new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
-                                                array('showPreview' => false))
+                        new Well(
+                            FuxSchool::useService()->createStudentsFromFile(
+                                new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
                                         )
                                     )
-                                )
-                                , new Primary('Hochladen')
-                            ), $File, $TypeId, $YearId
+                                    , new Primary('Hochladen')
+                                ), $File, $TypeId, $YearId
+                            )
+                            ,
+                            new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                         )
-                    ,
-                        new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                     )
                 )
             ))))
@@ -146,21 +151,24 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(array(
-                                FuxSchool::useService()->createTeachersFromFile(
-                                    new Form(
-                                        new FormGroup(
-                                            new FormRow(
-                                                new FormColumn(
-                                                    new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
-                                                        array('showPreview' => false))
+                                new Well(
+                                    FuxSchool::useService()->createTeachersFromFile(
+                                        new Form(
+                                            new FormGroup(
+                                                new FormRow(
+                                                    new FormColumn(
+                                                        new FileUpload('File', 'Datei auswählen', 'Datei auswählen',
+                                                            null,
+                                                            array('showPreview' => false))
+                                                    )
                                                 )
                                             )
-                                        )
-                                        , new Primary('Hochladen')
-                                    ), $File
+                                            , new Primary('Hochladen')
+                                        ), $File
+                                    )
+                                    ,
+                                    new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                                 )
-                            ,
-                                new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                             )
                         ))
                 )
@@ -187,24 +195,26 @@ class Frontend extends Extension implements IFrontendInterface
         $View->setContent(
             new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(array(
-                        FuxSchool::useService()->getTypeAndYear(
-                            new Form(
-                                new FormGroup(array(
-                                    new FormRow(array(
-                                        new FormColumn(
-                                            new SelectBox('Select[Year]', 'Schuljahr',
-                                                array('{{Name}}' => $tblYearAll)),
-                                            6
-                                        ),
-                                        new FormColumn(
-                                            new SelectBox('Select[Type]', 'Schulart',
-                                                array('{{Name}}' => $tblTypeAll)),
-                                            6
-                                        )
-                                    )),
-                                ))
-                                , new Primary('Auswählen', new Select())
-                            ), $Select, '/Transfer/Import/FuxMedia/Division/Import'
+                        new Well(
+                            FuxSchool::useService()->getTypeAndYear(
+                                new Form(
+                                    new FormGroup(array(
+                                        new FormRow(array(
+                                            new FormColumn(
+                                                new SelectBox('Select[Year]', 'Schuljahr',
+                                                    array('{{Name}}' => $tblYearAll)),
+                                                6
+                                            ),
+                                            new FormColumn(
+                                                new SelectBox('Select[Type]', 'Schulart',
+                                                    array('{{Name}}' => $tblTypeAll)),
+                                                6
+                                            )
+                                        )),
+                                    ))
+                                    , new Primary('Auswählen', new Select())
+                                ), $Select, '/Transfer/Import/FuxMedia/Division/Import'
+                            )
                         )
                     )
                 )
@@ -240,26 +250,28 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
                     new Panel('Schuljahr:', $tblYear ? $tblYear->getName() : '',
-                        Panel::PANEL_TYPE_SUCCESS), 6),
+                        Panel::PANEL_TYPE_INFO), 6),
                 new LayoutColumn(
                     new Panel('Schulart:', $tblType ? $tblType->getName() : '',
-                        Panel::PANEL_TYPE_SUCCESS), 6),
+                        Panel::PANEL_TYPE_INFO), 6),
                 new LayoutColumn(array(
-                        FuxSchool::useService()->createDivisionsFromFile(
-                            new Form(
-                                new FormGroup(
-                                    new FormRow(
-                                        new FormColumn(
-                                            new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
-                                                array('showPreview' => false))
+                        new Well(
+                            FuxSchool::useService()->createDivisionsFromFile(
+                                new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
                                         )
                                     )
-                                )
-                                , new Primary('Hochladen')
-                            ), $File, $TypeId, $YearId
+                                    , new Primary('Hochladen')
+                                ), $File, $TypeId, $YearId
+                            )
+                            ,
+                            new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                         )
-                    ,
-                        new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                     )
                 )
             ))))
@@ -284,21 +296,24 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(array(
-                                FuxSchool::useService()->createCompanysFromFile(
-                                    new Form(
-                                        new FormGroup(
-                                            new FormRow(
-                                                new FormColumn(
-                                                    new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
-                                                        array('showPreview' => false))
+                                new Well(
+                                    FuxSchool::useService()->createCompanysFromFile(
+                                        new Form(
+                                            new FormGroup(
+                                                new FormRow(
+                                                    new FormColumn(
+                                                        new FileUpload('File', 'Datei auswählen', 'Datei auswählen',
+                                                            null,
+                                                            array('showPreview' => false))
+                                                    )
                                                 )
                                             )
-                                        )
-                                        , new Primary('Hochladen')
-                                    ), $File
+                                            , new Primary('Hochladen')
+                                        ), $File
+                                    )
+                                    ,
+                                    new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                                 )
-                            ,
-                                new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)')
                             )
                         ))
                 )

@@ -34,18 +34,20 @@ use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -101,14 +103,14 @@ class Frontend extends Extension implements IFrontendInterface
                             ))
                         ))
                     ))
-                ), new Title('Übersicht')),
+                ), new Title(new ListingTable() . ' Übersicht')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            CheckList::useService()->createList($Form, $List)
+                            new Well(CheckList::useService()->createList($Form, $List))
                         ))
                     ))
-                ), new Title('Hinzufügen'))
+                ), new Title(new PlusSign() . ' Hinzufügen'))
             ))
         );
 
@@ -155,7 +157,8 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($tblListElementListByList as &$tblListElementList) {
                         $tblListElementList->Type = $tblListElementList->getTblElementType()->getName();
                         $tblListElementList->Option =
-                            (new Danger('Entfernen', '/Reporting/CheckList/Element/Remove',
+                            (new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
+                                '/Reporting/CheckList/Element/Remove',
                                 new Minus(), array(
                                     'Id' => $tblListElementList->getId()
                                 )))->__toString();
@@ -173,7 +176,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new Panel('Check-Liste', new Bold($tblList->getName()) .
                                         ($tblList->getDescription() !== '' ? ' ' . new Muted(new Small($tblList->getDescription())) : ''),
-                                        Panel::PANEL_TYPE_SUCCESS),
+                                        Panel::PANEL_TYPE_INFO),
                                     12
                                 ),
                             ))
@@ -190,14 +193,14 @@ class Frontend extends Extension implements IFrontendInterface
                                     )
                                 ))
                             ))
-                        ), new Title('Übersicht')),
+                        ), new Title(new ListingTable() . ' Übersicht')),
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
-                                    CheckList::useService()->addElementToList($Form, $Id, $Element)
+                                    new Well(CheckList::useService()->addElementToList($Form, $Id, $Element))
                                 ))
                             ))
-                        ), new Title('Hinzufügen'))
+                        ), new Title(new PlusSign() . ' Hinzufügen'))
                     ))
                 );
             }
@@ -295,7 +298,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                         $tblListObjectList->Type = $tblListObjectList->getTblObjectType()->getName();
                         $tblListObjectList->Option =
-                            (new Danger('Entfernen', '/Reporting/CheckList/Object/Remove',
+                            (new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
+                                '/Reporting/CheckList/Object/Remove',
                                 new Minus(), array(
                                     'Id' => $tblListObjectList->getId()
                                 )))->__toString();
@@ -524,10 +528,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(
                                     new Panel('Check-Liste', new Bold($tblList->getName()) .
                                         ($tblList->getDescription() !== '' ? ' ' . new Muted(new Small($tblList->getDescription())) : ''),
-                                        Panel::PANEL_TYPE_SUCCESS),
+                                        Panel::PANEL_TYPE_INFO),
                                     12
                                 ),
-                                new LayoutColumn(
+                                new LayoutColumn(new Well(
                                     CheckList::useService()->getObjectType(
                                         new Form(new FormGroup(array(
                                             new FormRow(array(
@@ -541,7 +545,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             )),
                                         )), new Primary('Auswählen', new Select()))
                                         , $tblList->getId(), $ObjectTypeSelect)
-                                )
+                                ))
                             ))
                         ))
                     ))
@@ -549,7 +553,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                             new Panel('Objekt-Typ:',
                                 $tblObjectType->getName(),
-                                Panel::PANEL_TYPE_SUCCESS), 12
+                                Panel::PANEL_TYPE_INFO), 12
                         ))))
                         . new Layout(new LayoutGroup(array(
                             new LayoutRow(array(
@@ -914,7 +918,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel('Check-Liste', new Bold($tblList->getName()) .
                                 ($tblList->getDescription() !== '' ? ' ' . new Muted(new Small($tblList->getDescription())) : ''),
-                                Panel::PANEL_TYPE_SUCCESS),
+                                Panel::PANEL_TYPE_INFO),
                             12
                         ),
                     ))

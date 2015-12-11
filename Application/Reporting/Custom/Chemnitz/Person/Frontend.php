@@ -12,6 +12,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -81,23 +82,25 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $View->setContent(
-            Person::useService()->getClass(
-                new Form(new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new SelectBox('Select[Division]', 'Klasse', array(
-                                '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
-                            )), 12
-                        )
-                    )),
-                )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                , $Select, '/Reporting/Custom/Chemnitz/Person/ClassList')
+            new Well(
+                Person::useService()->getClass(
+                    new Form(new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new SelectBox('Select[Division]', 'Klasse', array(
+                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
+                                )), 12
+                            )
+                        )),
+                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                    , $Select, '/Reporting/Custom/Chemnitz/Person/ClassList')
+            )
             .
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
-                            Panel::PANEL_TYPE_SUCCESS), 12
+                            Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
                 .
@@ -201,23 +204,25 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $View->setContent(
-            Person::useService()->getClass(
-                new Form(new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new SelectBox('Select[Division]', 'Klasse', array(
-                                '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
-                            )), 12
-                        )
-                    )),
-                )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                , $Select, '/Reporting/Custom/Chemnitz/Person/MedicList')
+            new Well(
+                Person::useService()->getClass(
+                    new Form(new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new SelectBox('Select[Division]', 'Klasse', array(
+                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
+                                )), 12
+                            )
+                        )),
+                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                    , $Select, '/Reporting/Custom/Chemnitz/Person/MedicList')
+            )
             .
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
-                            Panel::PANEL_TYPE_SUCCESS), 12
+                            Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
                 .
@@ -276,23 +281,25 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $View->setContent(
-            Person::useService()->getClass(
-                new Form(new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new SelectBox('Select[Division]', 'Klasse', array(
-                                '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
-                            )), 12
-                        )
-                    )),
-                )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                , $Select, '/Reporting/Custom/Chemnitz/Person/ParentTeacherConferenceList')
+            new Well(
+                Person::useService()->getClass(
+                    new Form(new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new SelectBox('Select[Division]', 'Klasse', array(
+                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
+                                )), 12
+                            )
+                        )),
+                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                    , $Select, '/Reporting/Custom/Chemnitz/Person/ParentTeacherConferenceList')
+            )
             .
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
-                            Panel::PANEL_TYPE_SUCCESS), 12
+                            Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
                 .

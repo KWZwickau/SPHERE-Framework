@@ -29,7 +29,7 @@ class Custom implements IApplicationInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Dashboard', 'Individual-Auswertung');
+        $Stage = new Stage('Individual', 'Dashboard');
 
         $Stage->setContent(Main::getDispatcher()->fetchDashboard('Auswertung'));
 

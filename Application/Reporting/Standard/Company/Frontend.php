@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -66,23 +67,25 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            Company::useService()->getGroup(
-                new Form(new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new SelectBox('Select[Group]', 'Gruppe', array(
-                                '{{ Name }}' => $tblGroupAll
-                            )), 12
-                        )
-                    )),
-                )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                , $Select, '/Reporting/Standard/Company/GroupList')
+            new Well(
+                Company::useService()->getGroup(
+                    new Form(new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new SelectBox('Select[Group]', 'Gruppe', array(
+                                    '{{ Name }}' => $tblGroupAll
+                                )), 12
+                            )
+                        )),
+                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                    , $Select, '/Reporting/Standard/Company/GroupList')
+            )
             .
             ($GroupId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Gruppe:', $tblGroup->getName(),
-                            Panel::PANEL_TYPE_SUCCESS), 12
+                            Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
                 .

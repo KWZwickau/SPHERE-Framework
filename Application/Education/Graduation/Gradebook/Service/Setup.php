@@ -155,10 +155,10 @@ class Setup extends AbstractSetup
 
         $Table = $this->getConnection()->createTable($Schema, 'tblGrade');
         if (!$this->getConnection()->hasColumn('tblGrade', 'Grade')) {
-            $Table->addColumn('Grade', 'string');
+            $Table->addColumn('Grade', 'string', array('notnull' => false));
         }
         if (!$this->getConnection()->hasColumn('tblGrade', 'Comment')) {
-            $Table->addColumn('Comment', 'string');
+            $Table->addColumn('Comment', 'string', array('notnull' => false));
         }
         if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
