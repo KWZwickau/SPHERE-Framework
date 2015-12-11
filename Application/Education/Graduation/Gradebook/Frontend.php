@@ -217,12 +217,11 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $isKlassenLehrer = false;
-
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
 
         if ($tblPerson) {
+            // Fachlehrer
             $tblSubjectTeacherAllByTeacher = Division::useService()->getSubjectTeacherAllByTeacher($tblPerson);
             if ($tblSubjectTeacherAllByTeacher) {
                 foreach ($tblSubjectTeacherAllByTeacher as $tblSubjectTeacher) {
@@ -253,9 +252,43 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
             }
-        } elseif ($isKlassenLehrer) {
-            // ToDo JohK KlassenLehrer
 
+            // Klassenlehrer
+            $tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson);
+            if ($tblDivisionTeacherAllByTeacher) {
+                foreach ($tblDivisionTeacherAllByTeacher as $tblDivisionTeacher) {
+                    $tblDivisionSubjectAllByDivision
+                        = Division::useService()->getDivisionSubjectByDivision($tblDivisionTeacher->getTblDivision());
+                    if ($tblDivisionSubjectAllByDivision) {
+                        foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
+                            if ($tblDivisionSubject->getTblSubjectGroup()) {
+                                $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                [$tblDivisionSubject->getTblSubjectGroup()->getId()]
+                                    = $tblDivisionSubject->getId();
+                            } else {
+                                $tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject
+                                    = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                                    $tblDivisionSubject->getTblDivision(),
+                                    $tblDivisionSubject->getServiceTblSubject()
+                                );
+                                if ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject) {
+                                    foreach ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject as $item) {
+                                        $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                        [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                        [$item->getTblSubjectGroup()->getId()]
+                                            = $item->getId();
+                                    }
+                                } else {
+                                    $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                    [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                        = $tblDivisionSubject->getId();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if (!empty($divisionSubjectList)) {
@@ -710,7 +743,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendTest()
     {
 
-        $Stage = new Stage('Leistungsermittlung', 'Auswahl');
+        $Stage = new Stage('Leistungsüberprüfung', 'Auswahl');
 
         $tblPerson = false;
         $tblAccount = Account::useService()->getAccountBySession();
@@ -721,12 +754,11 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $isKlassenLehrer = false;
-
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
 
         if ($tblPerson) {
+            // Fachlehrer
             $tblSubjectTeacherAllByTeacher = Division::useService()->getSubjectTeacherAllByTeacher($tblPerson);
             if ($tblSubjectTeacherAllByTeacher) {
                 foreach ($tblSubjectTeacherAllByTeacher as $tblSubjectTeacher) {
@@ -757,9 +789,43 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
             }
-        } elseif ($isKlassenLehrer) {
-            // ToDo JohK KlassenLehrer
 
+            // Klassenlehrer
+            $tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson);
+            if ($tblDivisionTeacherAllByTeacher) {
+                foreach ($tblDivisionTeacherAllByTeacher as $tblDivisionTeacher) {
+                    $tblDivisionSubjectAllByDivision
+                        = Division::useService()->getDivisionSubjectByDivision($tblDivisionTeacher->getTblDivision());
+                    if ($tblDivisionSubjectAllByDivision) {
+                        foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
+                            if ($tblDivisionSubject->getTblSubjectGroup()) {
+                                $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                [$tblDivisionSubject->getTblSubjectGroup()->getId()]
+                                    = $tblDivisionSubject->getId();
+                            } else {
+                                $tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject
+                                    = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                                    $tblDivisionSubject->getTblDivision(),
+                                    $tblDivisionSubject->getServiceTblSubject()
+                                );
+                                if ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject) {
+                                    foreach ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject as $item) {
+                                        $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                        [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                        [$item->getTblSubjectGroup()->getId()]
+                                            = $item->getId();
+                                    }
+                                } else {
+                                    $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                    [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                        = $tblDivisionSubject->getId();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if (!empty($divisionSubjectList)) {
@@ -831,7 +897,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendHeadmasterTest()
     {
 
-        $Stage = new Stage('Leistungsermittlung (Leitung)', 'Auswahl');
+        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Auswahl');
 
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
@@ -944,7 +1010,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Test = null
     ) {
 
-        $Stage = new Stage('Leistungsermittlung', 'Übersicht');
+        $Stage = new Stage('Leistungsüberprüfung', 'Übersicht');
         $this->contentTestSelected($DivisionSubjectId, $Test, $Stage, '/Education/Graduation/Gradebook/Test');
 
         return $Stage;
@@ -960,7 +1026,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Test = null
     ) {
 
-        $Stage = new Stage('Leistungsermittlung (Leitung)', 'Übersicht');
+        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Übersicht');
         $this->contentTestSelected($DivisionSubjectId, $Test, $Stage,
             '/Education/Graduation/Gradebook/Headmaster/Test');
 
@@ -1105,7 +1171,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Id,
         $Test = null
     ) {
-        $Stage = new Stage('Leistungsermittlung', 'Bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung', 'Bearbeiten');
 
         return $this->contentEditTest($Stage, $Id, $Test, '/Education/Graduation/Gradebook/Test');
     }
@@ -1120,7 +1186,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Id,
         $Test = null
     ) {
-        $Stage = new Stage('Leistungsermittlung (Leitung)', 'Bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Bearbeiten');
 
         return $this->contentEditTest($Stage, $Id, $Test, '/Education/Graduation/Gradebook/Headmaster/Test');
     }
@@ -1234,12 +1300,27 @@ class Frontend extends Extension implements IFrontendInterface
         $Grade = null
     ) {
 
-        $Stage = new Stage('Leistungsermittlung', 'Zensuren bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren bearbeiten');
 
         $tblTest = Gradebook::useService()->getTestById($Id);
         if ($tblTest) {
 
-            $this->contentEditTestGrade($Stage, $tblTest, $Grade, '/Education/Graduation/Gradebook/Test');
+            // Klassenlehrer darf Noten editieren
+            $tblPerson = false;
+            $tblAccount = Account::useService()->getAccountBySession();
+            if ($tblAccount) {
+                $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+                if ($tblPersonAllByAccount) {
+                    $tblPerson = $tblPersonAllByAccount[0];
+                }
+            }
+            if (Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblTest->getServiceTblDivision(), $tblPerson)){
+                $isEdit = true;
+            } else {
+                $isEdit = false;
+            }
+
+            $this->contentEditTestGrade($Stage, $tblTest, $Grade, '/Education/Graduation/Gradebook/Test', $isEdit);
 
             return $Stage;
         } else {
@@ -1260,7 +1341,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Grade = null
     ) {
 
-        $Stage = new Stage('Leistungsermittlung', 'Zensuren bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren bearbeiten');
 
         $tblTest = Gradebook::useService()->getTestById($Id);
         if ($tblTest) {
