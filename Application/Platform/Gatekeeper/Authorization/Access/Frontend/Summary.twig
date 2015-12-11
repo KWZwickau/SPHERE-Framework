@@ -1,0 +1,85 @@
+<h4>Rechtestruktur
+    <small>Rollen</small>
+</h4>
+<table id="TableAccountRoleList" class="table table-bordered table-condensed small">
+    <thead>
+    <tr>
+        <th style="width: 1%; white-space: nowrap;">Id</th>
+        <th style="width: 15%; white-space: nowrap;">Rollen</th>
+        <th>Zusammensetzung</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for iRole, oRole in AccountRoleList %}
+        <tr>
+            <td>{{ oRole.Role.Id }}</td>
+            <td>{{ oRole.Role.Name }}</td>
+            <td>
+                <table class="table table-bordered table-condensed" style="margin: auto;">
+                    <thead>
+                    <tr>
+                        <th style="width: 1%; white-space: nowrap;">Id</th>
+                        <th style="width: 25%;">Zugriffslevel</th>
+                        <th>Zusammensetzung</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for iLevel, oLevel in oRole.LevelList %}
+                        <tr>
+                            <td>{{ oLevel.Level.Id }}</td>
+                            <td>{{ oLevel.Level.Name }}</td>
+                            <td>
+                                <table class="table table-bordered table-condensed" style="margin: auto;">
+                                    <thead>
+                                    <tr>
+                                        <th style="width: 1%; white-space: nowrap;">Id</th>
+                                        <th style="width: 35%;">Privilegien</th>
+                                        <th>Zusammensetzung</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for iPrivilege, oPrivilege in oLevel.PrivilegeList %}
+                                        <tr>
+                                            <td>{{ oPrivilege.Privilege.Id }}</td>
+                                            <td>{{ oPrivilege.Privilege.Name }}</td>
+                                            <td>
+                                                <table class="table table-bordered table-condensed"
+                                                       style="margin: auto;">
+                                                    <thead>
+                                                    <tr>
+                                                        <th style="width: 1%; white-space: nowrap;">Id</th>
+                                                        <th style="width: 99%;">Rechte</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    {% for iRight, oRight in oPrivilege.RightList %}
+                                                        <tr>
+                                                            <td>{{ oRight.Id }}</td>
+                                                            <td>{{ oRight.Route }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+
+<script>
+    Client.Use('ModTable', function()
+    {
+        jQuery('#TableAccountRoleList').ModTable();
+    })
+</script>
