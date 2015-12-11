@@ -217,12 +217,11 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $isKlassenLehrer = false;
-
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
 
         if ($tblPerson) {
+            // Fachlehrer
             $tblSubjectTeacherAllByTeacher = Division::useService()->getSubjectTeacherAllByTeacher($tblPerson);
             if ($tblSubjectTeacherAllByTeacher) {
                 foreach ($tblSubjectTeacherAllByTeacher as $tblSubjectTeacher) {
@@ -253,9 +252,43 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
             }
-        } elseif ($isKlassenLehrer) {
-            // ToDo JohK KlassenLehrer
 
+            // Klassenlehrer
+            $tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson);
+            if ($tblDivisionTeacherAllByTeacher) {
+                foreach ($tblDivisionTeacherAllByTeacher as $tblDivisionTeacher) {
+                    $tblDivisionSubjectAllByDivision
+                        = Division::useService()->getDivisionSubjectByDivision($tblDivisionTeacher->getTblDivision());
+                    if ($tblDivisionSubjectAllByDivision) {
+                        foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
+                            if ($tblDivisionSubject->getTblSubjectGroup()) {
+                                $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                [$tblDivisionSubject->getTblSubjectGroup()->getId()]
+                                    = $tblDivisionSubject->getId();
+                            } else {
+                                $tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject
+                                    = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                                    $tblDivisionSubject->getTblDivision(),
+                                    $tblDivisionSubject->getServiceTblSubject()
+                                );
+                                if ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject) {
+                                    foreach ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject as $item) {
+                                        $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                        [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                        [$item->getTblSubjectGroup()->getId()]
+                                            = $item->getId();
+                                    }
+                                } else {
+                                    $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                    [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                        = $tblDivisionSubject->getId();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if (!empty($divisionSubjectList)) {
@@ -721,12 +754,11 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $isKlassenLehrer = false;
-
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
 
         if ($tblPerson) {
+            // Fachlehrer
             $tblSubjectTeacherAllByTeacher = Division::useService()->getSubjectTeacherAllByTeacher($tblPerson);
             if ($tblSubjectTeacherAllByTeacher) {
                 foreach ($tblSubjectTeacherAllByTeacher as $tblSubjectTeacher) {
@@ -757,9 +789,43 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
             }
-        } elseif ($isKlassenLehrer) {
-            // ToDo JohK KlassenLehrer
 
+            // Klassenlehrer
+            $tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson);
+            if ($tblDivisionTeacherAllByTeacher) {
+                foreach ($tblDivisionTeacherAllByTeacher as $tblDivisionTeacher) {
+                    $tblDivisionSubjectAllByDivision
+                        = Division::useService()->getDivisionSubjectByDivision($tblDivisionTeacher->getTblDivision());
+                    if ($tblDivisionSubjectAllByDivision) {
+                        foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
+                            if ($tblDivisionSubject->getTblSubjectGroup()) {
+                                $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                [$tblDivisionSubject->getTblSubjectGroup()->getId()]
+                                    = $tblDivisionSubject->getId();
+                            } else {
+                                $tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject
+                                    = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                                    $tblDivisionSubject->getTblDivision(),
+                                    $tblDivisionSubject->getServiceTblSubject()
+                                );
+                                if ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject) {
+                                    foreach ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject as $item) {
+                                        $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                        [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                        [$item->getTblSubjectGroup()->getId()]
+                                            = $item->getId();
+                                    }
+                                } else {
+                                    $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                    [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                        = $tblDivisionSubject->getId();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if (!empty($divisionSubjectList)) {
@@ -1239,7 +1305,22 @@ class Frontend extends Extension implements IFrontendInterface
         $tblTest = Gradebook::useService()->getTestById($Id);
         if ($tblTest) {
 
-            $this->contentEditTestGrade($Stage, $tblTest, $Grade, '/Education/Graduation/Gradebook/Test');
+            // Klassenlehrer darf Noten editieren
+            $tblPerson = false;
+            $tblAccount = Account::useService()->getAccountBySession();
+            if ($tblAccount) {
+                $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+                if ($tblPersonAllByAccount) {
+                    $tblPerson = $tblPersonAllByAccount[0];
+                }
+            }
+            if (Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblTest->getServiceTblDivision(), $tblPerson)){
+                $isEdit = true;
+            } else {
+                $isEdit = false;
+            }
+
+            $this->contentEditTestGrade($Stage, $tblTest, $Grade, '/Education/Graduation/Gradebook/Test', $isEdit);
 
             return $Stage;
         } else {
