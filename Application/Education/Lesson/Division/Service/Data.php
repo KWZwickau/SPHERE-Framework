@@ -1147,4 +1147,18 @@ class Data extends AbstractData
             );
         }
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @return bool|TblDivisionTeacher[]
+     */
+    public function getDivisionTeacherAllByTeacher(TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher',
+            array(
+                TblDivisionTeacher::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            )
+        );
+    }
 }
