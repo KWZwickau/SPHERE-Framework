@@ -13,14 +13,14 @@ class Major1Minor0
 
     /**
      * Version 1.0.0
-     * To be released November
+     * To be released Q4 2015
      *
      * @param RoadmapExtension $Roadmap
      */
     public static function Patch0(RoadmapExtension $Roadmap)
     {
 
-        $Release = $Roadmap->createRelease('1.0.0', 'KREDA (Ziel November)');
+        $Release = $Roadmap->createRelease('1.0.0', 'KREDA (Ziel Q4 2015)');
 
         // Bildung
         $Category = $Release->createCategory('Bildung');

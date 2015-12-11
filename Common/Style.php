@@ -3,6 +3,8 @@ namespace SPHERE\Common;
 
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\MyAccount\MyAccount;
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -15,6 +17,11 @@ class Style extends Extension
 
     /** @var array $SourceList */
     private static $SourceList = array();
+
+    /** @var array $CombinedList */
+    private static $CombinedList = array();
+    /** @var string $CombinedContent */
+    private static $CombinedContent = '';
 
     /**
      * Default
@@ -88,13 +95,20 @@ class Style extends Extension
 
     /**
      * @param string $Location
+     * @param bool   $Combined
      */
-    public function setSource($Location)
+    public function setSource($Location, $Combined = false)
     {
 
         $PathBase = $this->getRequest()->getPathBase();
-        if (!in_array(sha1($Location), self::$SourceList)) {
-            self::$SourceList[sha1($Location)] = $PathBase.$Location;
+        if ($Combined) {
+            if (!in_array(sha1($Location), self::$CombinedList)) {
+                self::$CombinedList[sha1($Location)] = $PathBase.$Location;
+            }
+        } else {
+            if (!in_array(sha1($Location), self::$SourceList)) {
+                self::$SourceList[sha1($Location)] = $PathBase.$Location;
+            }
         }
     }
 
@@ -113,11 +127,52 @@ class Style extends Extension
     public function __toString()
     {
 
+        $this->parseCombinedStyle();
+
         $StyleList = self::$SourceList;
         array_walk($StyleList, function (&$Location) {
 
             $Location = '<link rel="stylesheet" href="'.$Location.'">';
         });
+        array_unshift($StyleList, $this->getCombinedStyle());
         return implode("\n", $StyleList);
+    }
+
+    private function parseCombinedStyle()
+    {
+
+        ob_start(
+            function ($buffer) {
+
+                /* remove comments */
+                $buffer = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $buffer);
+                /* remove tabs, spaces, newlines, etc. */
+                $buffer = str_replace(array("\r\n", "\r", "\n", "\t", '  ', '    ', '    '), '', $buffer);
+                return $buffer;
+            }
+        );
+        $StyleList = self::$CombinedList;
+        array_walk($StyleList, function ($Location) {
+
+            $Path = realpath(__DIR__.DIRECTORY_SEPARATOR.'..'.$Location);
+            if ($Path) {
+                /** @noinspection PhpIncludeInspection */
+                include( $Path );
+            } else {
+                (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('Style not found '.$Location);
+            }
+        });
+        self::$CombinedContent .= ob_get_contents();
+        ob_end_clean();
+    }
+
+    private function getCombinedStyle()
+    {
+
+        if (empty( self::$CombinedContent )) {
+            return '';
+        } else {
+            return '<style type="text/css">'.self::$CombinedContent.'</style>';
+        }
     }
 }
