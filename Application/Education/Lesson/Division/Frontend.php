@@ -104,9 +104,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblDivision->TeacherList = Division::useService()->countDivisionTeacherAllByDivision($tblDivision);
                 $SubjectCount = Division::useService()->countDivisionSubjectAllByDivision($tblDivision);
 
-                if ($SubjectUsedCount !== 0) {
+                if ($SubjectUsedCount > 1) {
                     $tblDivision->SubjectList = $SubjectCount
                         .new PullRight(new Small(new Small(new Muted('('.new Danger($SubjectUsedCount).') Fachlehrer fehlen'))));
+                } elseif ($SubjectUsedCount == 1) {
+                    $tblDivision->SubjectList = $SubjectCount
+                        .new PullRight(new Small(new Small(new Muted('('.new Danger($SubjectUsedCount).') Fachlehrer fehlt'))));
                 } else {
                     $tblDivision->SubjectList = $SubjectCount;
                 }
@@ -201,7 +204,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Klassenstufe',
                             array(
-                                new CheckBox('Level[Check]', 'Stufenübergreifende Klassengruppe anlegen', 1, array(
+                                new CheckBox('Level[Check]', 'jahrgangübergreifende Klasse anlegen', 1, array(
                                     'Level[Name]',
                                     'Level[Type]')),
                                 new SelectBox('Level[Type]', 'Schulart', array(
