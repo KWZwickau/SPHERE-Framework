@@ -378,7 +378,7 @@ Disallow: /
 #Default settings
 
 User-agent: *
-Disallow: /Documentation/
+Disallow: /Application/
 Disallow: /Library/
-Disallow: /Sphere/
-Disallow: /TestSuite/
+Disallow: /System/
+Disallow: /UnitTest/

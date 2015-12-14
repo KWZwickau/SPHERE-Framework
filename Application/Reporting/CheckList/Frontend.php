@@ -99,7 +99,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($tblListAll, null, array(
                                 'Name' => 'Name',
                                 'Description' => 'Beschreibung',
-                                'Option' => 'Optionen',
+                                'Option' => '',
                             ))
                         ))
                     ))
@@ -175,7 +175,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(array(
                                 new LayoutColumn(
                                     new Panel('Check-Liste', new Bold($tblList->getName()) .
-                                        ($tblList->getDescription() !== '' ? ' ' . new Muted(new Small($tblList->getDescription())) : ''),
+                                        ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                            . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
                                         Panel::PANEL_TYPE_INFO),
                                     12
                                 ),
@@ -188,7 +189,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array(
                                             'Name' => 'Name',
                                             'Type' => 'Typ',
-                                            'Option' => 'Option'
+                                            'Option' => ''
                                         )
                                     )
                                 ))
@@ -527,7 +528,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(array(
                                 new LayoutColumn(
                                     new Panel('Check-Liste', new Bold($tblList->getName()) .
-                                        ($tblList->getDescription() !== '' ? ' ' . new Muted(new Small($tblList->getDescription())) : ''),
+                                        ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                            . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
                                         Panel::PANEL_TYPE_INFO),
                                     12
                                 ),
@@ -558,19 +560,21 @@ class Frontend extends Extension implements IFrontendInterface
                         . new Layout(new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
+                                    new Title('Ausgewählte', 'Objekte'),
                                     new TableData($tblListObjectListByList, null,
                                         array(
                                             'DisplayName' => 'Name',
                                             'Type' => 'Typ',
-                                            'Option' => 'Option'
+                                            'Option' => ''
                                         )
                                     )
                                 ), 6),
                                 new LayoutColumn(array(
+                                    new Title('Verfügbare', 'Objekte'),
                                     new TableData($selectList, null,
                                         array(
                                             'DisplayName' => 'Name',
-                                            'Option' => 'Option'
+                                            'Option' => ''
                                         )
                                     )
                                 ), 6),
@@ -579,11 +583,12 @@ class Frontend extends Extension implements IFrontendInterface
                         : new Layout(new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
+                                    new Title('Ausgewählte', 'Objekte'),
                                     new TableData($tblListObjectListByList, null,
                                         array(
                                             'DisplayName' => 'Name',
                                             'Type' => 'Typ',
-                                            'Option' => 'Option'
+                                            'Option' => ''
                                         )
                                     )
                                 ), 12)
@@ -917,7 +922,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             new Panel('Check-Liste', new Bold($tblList->getName()) .
-                                ($tblList->getDescription() !== '' ? ' ' . new Muted(new Small($tblList->getDescription())) : ''),
+                                ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                    . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
                                 Panel::PANEL_TYPE_INFO),
                             12
                         ),
