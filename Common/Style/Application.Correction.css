@@ -453,9 +453,9 @@ fieldset[disabled] .twitter-typeahead .tt-input {
     width: 100%;
 }
 
-.input-group-addon {
-    display: none;
-}
+/*.input-group-addon {*/
+/*display: none;*/
+/*}*/
 
 .col-lg-offset-1.col-lg-10 {
     margin-left: 1%;
