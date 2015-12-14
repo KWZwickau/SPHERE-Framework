@@ -30,11 +30,11 @@ class Gradebook implements IModuleInterface
                 new Link\Icon(new Book()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '\Test'), new Link\Name('Leistungsermittlung'),
+            new Link(new Link\Route(__NAMESPACE__ . '\Test'), new Link\Name('Leistungsüberprüfung'),
                 new Link\Icon(new Document()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '\Headmaster\Test'), new Link\Name('Leistungsermittlung (Leitung)'),
+            new Link(new Link\Route(__NAMESPACE__ . '\Headmaster\Test'), new Link\Name('Leistungsüberprüfung (Leitung)'),
                 new Link\Icon(new Document()))
         );
         Main::getDisplay()->addModuleNavigation(

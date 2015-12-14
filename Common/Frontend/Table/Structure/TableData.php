@@ -90,7 +90,7 @@ class TableData extends Table
             $V = new TableColumn($V);
         });
 
-        if (count($DataList) > 500 && $Interactive) {
+        if (count($DataList) > 150 && $Interactive) {
             // JS Table Data
             $ObjectList = array();
             array_walk($DataList, function (&$Row) use (&$ObjectList, $ColumnDefinition) {
@@ -198,9 +198,15 @@ class TableData extends Table
                 $Interactive, null
             );
         } else {
-            parent::__construct(
-                new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle, false, null
-            );
+            if ($Interactive === null) {
+                parent::__construct(
+                    new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle, null, null
+                );
+            } else {
+                parent::__construct(
+                    new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle, false, null
+                );
+            }
         }
     }
 

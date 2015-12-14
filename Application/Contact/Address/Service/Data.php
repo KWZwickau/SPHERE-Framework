@@ -189,8 +189,9 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblCity')->findOneBy(array(
-            TblCity::ATTR_CODE => $Code,
-            TblCity::ATTR_NAME => $Name
+            TblCity::ATTR_CODE     => $Code,
+            TblCity::ATTR_NAME     => $Name,
+            TblCity::ATTR_DISTRICT => $District
         ));
         if (null === $Entity) {
             $Entity = new TblCity();
