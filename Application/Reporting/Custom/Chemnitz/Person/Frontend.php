@@ -120,7 +120,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Birthday' => 'Geburtsdatum',
                         'Birthplace' => 'Geburtsort',
                     ),
-                    false
+                    null
                 ) : '')
         );
 
@@ -161,7 +161,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Phone2' => 'Telefon 2',
                     'Mail' => 'Mail',
                 ),
-                false
+                null
             )
         );
 
@@ -237,7 +237,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Birthday' => 'Geburtsdatum',
                         'Address' => 'Adresse',
                     ),
-                    false
+                    null
                 ) : '')
         );
 
@@ -313,7 +313,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'FirstName' => 'Vorname',
                         'Attendance' => 'Anwesenheit',
                     ),
-                    false
+                    null
                 ) : '')
         );
 
@@ -352,7 +352,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Mail' => 'Mail',
                     'Directorate' => 'Vorstand'
                 ),
-                false
+                null
             )
         );
 
@@ -406,7 +406,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                    'MotherLastName'         => 'Name M',
 //                    'MotherFirstName'         => 'Vorname M',
                 ),
-                false
+                null
             )
         );
 
@@ -451,7 +451,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                    'Code'         => 'PLZ',
 //                    'City'         => 'Ort',
                 ),
-                false
+                null
             )
         );
 
@@ -506,7 +506,7 @@ class Frontend extends Extension implements IFrontendInterface
                 'PhoneNumbers' => 'Telefonnummer',
                 'Orientation' => 'NK',
             ),
-            false
+            null
         ));
 
         $View->setContent(

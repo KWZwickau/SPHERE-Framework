@@ -937,7 +937,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new FormGroup(array(
                                         new FormRow(array(
                                             new FormColumn(
-                                                new TableData($list, null, $columnDefinition, false)
+                                                new TableData($list, null, $columnDefinition, null)
                                             ),
                                             new FormColumn(   // to send only unchecked CheckBoxes
                                                 new HiddenField('HasData')
