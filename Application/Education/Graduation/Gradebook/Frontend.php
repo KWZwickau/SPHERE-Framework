@@ -103,7 +103,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'DisplayName' => 'Name',
                                 'DisplayCode' => 'Abk&uuml;rzung',
                                 'Description' => 'Beschreibung',
-                                'Option' => 'Option'
+                                'Option' => ''
                             ))
                         ))
                     ))
@@ -1108,7 +1108,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Date' => 'Datum',
                                 'CorrectionDate' => 'Korrekturdatum',
                                 'ReturnDate' => 'R&uuml;ckgabedatum',
-                                'Option' => 'Option'
+                                'Option' => ''
                             ))
                         ))
                     ))
@@ -1555,7 +1555,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'ScoreGroups' => 'Zensuren-Gruppen',
                                 'Priority' => 'Priorität',
                                 'Round' => 'Runden',
-                                'Option' => 'Optionen',
+                                'Option' => '',
                             ))
                         ))
                     ))
@@ -1640,7 +1640,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'GradeTypes' => 'Zensuren-Typen',
                                 'Multiplier' => 'Faktor',
                                 'Round' => 'Runden',
-                                'Option' => 'Optionen',
+                                'Option' => '',
                             ))
                         ))
                     ))
@@ -1768,7 +1768,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array(
                                             'Name' => 'Name',
                                             'Multiplier' => 'Faktor',
-                                            'Option' => 'Option'
+                                            'Option' => ''
                                         )
                                     )
                                 ), 6
@@ -1778,7 +1778,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new TableData($tblGradeTypeAll, null,
                                         array(
                                             'Name' => 'Name',
-                                            'Option' => 'Option'
+                                            'Option' => 'Faktor'
                                         )
                                     )
                                 ), 6
@@ -1931,7 +1931,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new TableData($tblScoreConditionGroupListByCondition, null,
                                         array(
                                             'Name' => 'Name',
-                                            'Option' => 'Option'
+                                            'Option' => ''
                                         )
                                     )
                                 ), 6
@@ -1941,7 +1941,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new TableData($tblScoreGroupAll, null,
                                         array(
                                             'Name' => 'Name',
-                                            'Option' => 'Option'
+                                            'Option' => ''
                                         )
                                     )
                                 ), 6
