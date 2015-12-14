@@ -7,6 +7,9 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as Gate
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token as GatekeeperToken;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -89,6 +92,13 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             } else {
                 $Form->setError('Account[PasswordSafety]', '');
             }
+        }
+
+        if (!isset( $Account['User'] )) {
+            $Form->prependGridGroup(
+                new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie einen Besitzer des Kontos aus (Person wählen)'))))
+            );
+            $Error = true;
         }
 
         if (!$Error) {

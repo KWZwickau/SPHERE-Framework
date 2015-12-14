@@ -665,7 +665,11 @@ class Service
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                     if($tblStudent)
                     {
-                        $tblPerson->MedicalInsurance = $tblStudent->getTblStudentMedicalRecord()->getInsurance();
+                        if ($tblStudent->getTblStudentMedicalRecord()) {
+                            $tblPerson->MedicalInsurance = $tblStudent->getTblStudentMedicalRecord()->getInsurance();
+                        } else {
+                            $tblPerson->MedicalInsurance = '';
+                        }
                         $tblPerson->Number = $tblStudent->getIdentifier();
                     }
                 } else {
