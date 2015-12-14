@@ -20,7 +20,7 @@ class Table extends Extension implements ITemplateInterface
     protected $TableBody = array();
     /** @var TableFoot[] $TableFoot */
     protected $TableFoot = array();
-    /** @var bool|string|array $Interactive */
+    /** @var bool|string|array|null $Interactive */
     protected $Interactive = false;
     /** @var IBridgeInterface $Template */
     protected $Template = null;
@@ -61,6 +61,15 @@ class Table extends Extension implements ITemplateInterface
             if (is_array($Interactive)) {
                 $this->Template->setVariable('InteractiveOption', json_encode($Interactive));
             }
+        } elseif ($Interactive === null) {
+            $this->Template = $this->getTemplate(__DIR__.'/TableData.twig');
+            $Interactive = array(
+                "paging"         => false,
+                "searching"      => false,
+                "iDisplayLength" => -1,
+                "info"           => false
+            );
+            $this->Template->setVariable('InteractiveOption', json_encode($Interactive));
         } else {
             $this->Template = $this->getTemplate(__DIR__.'/Table.twig');
         }
@@ -118,7 +127,7 @@ class Table extends Extension implements ITemplateInterface
                     $H = serialize($H);
                 }
             });
-            $this->Hash = sha1(json_encode($HeadList).json_encode($BodyList).json_encode($FootList).json_encode($this->Interactive));
+            $this->Hash = sha1(json_encode($HeadList).json_encode($BodyList).json_encode($FootList));
         }
         return $this->Hash;
     }

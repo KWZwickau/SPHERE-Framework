@@ -129,8 +129,6 @@ class Data extends AbstractData
 
         // Level: Benutzer - Einstellungen
         $tblLevel = $this->createLevel('Benutzer - Einstellungen');
-        // !!! Add To CLOUD Administrator
-        $this->addRoleLevel($tblRoleCloud, $tblLevel);
 
         // Privilege: Benutzer - Mein Benutzerkonto
         $tblPrivilege = $this->createPrivilege('Benutzer - Mein Benutzerkonto');
