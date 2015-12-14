@@ -317,23 +317,23 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Repeat()
                             ),
                         ), Panel::PANEL_TYPE_INFO),
-                    ), 4),
-                    new FormColumn(array(
                         new Panel(new Lock().' Authentifizierungstyp wählen', $tblIdentificationAll,
                             Panel::PANEL_TYPE_INFO),
                         new Panel(new Key().' Hardware-Schlüssel wählen', $tblTokenAll,
                             Panel::PANEL_TYPE_INFO),
                     ), 4),
                     new FormColumn(array(
+                        new Panel(new Person().' für folgende Person', array(
+                            new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+                        ), Panel::PANEL_TYPE_INFO),
+                    ), 4),
+                    new FormColumn(array(
                         new Panel(new Nameplate().' Berechtigungen zuweisen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
                     ), 4),
                 )),
                 new FormRow(array(
-                    new FormColumn(array(
-                        new Panel(new Person().' für folgende Person', array(
-                            new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
-                        ), Panel::PANEL_TYPE_INFO),
-                    ), 6),
+                    new FormColumn(array(), 4),
+                    new FormColumn(array(), 4),
                 )),
             )),
         ));
