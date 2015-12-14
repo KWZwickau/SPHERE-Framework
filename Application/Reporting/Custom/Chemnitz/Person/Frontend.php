@@ -1,6 +1,10 @@
 <?php
 namespace SPHERE\Application\Reporting\Custom\Chemnitz\Person;
 
+use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
+use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
+use MOC\V\Component\Document\Document;
+use MOC\V\Component\Template\Template;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -494,6 +498,17 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $tableData = ($tableData = new TableData($studentList, null,
+            array(
+                'DisplayName' => 'Name',
+                'Birthday' => 'Geb.-Datum',
+                'Address' => 'Adresse',
+                'PhoneNumbers' => 'Telefonnummer',
+                'Orientation' => 'NK',
+            ),
+            false
+        ));
+
         $View->setContent(
             new Well(
                 Person::useService()->getClass(
@@ -516,18 +531,19 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
-                .
-                new TableData($studentList, null,
-                    array(
-                        'DisplayName' => 'Name',
-                        'Birthday' => 'Geb.-Datum',
-                        'Address' => 'Adresse',
-                        'PhoneNumbers' => 'Telefonnummer',
-                        'Orientation' => 'NK',
-                    ),
-                    false
-                ) : '')
+                . $tableData
+                 : '')
         );
+
+        if ($DivisionId !== null) {
+            /** @var DomPdf $Document */
+            $Document = Document::getDocument('Roadmap.pdf');
+            $Document->setContent(
+                Template::getTwigTemplateString($tableData)
+            );
+
+            $Document->saveFile(new FileParameter('Roadmap.pdf'));
+        }
 
         return $View;
     }
