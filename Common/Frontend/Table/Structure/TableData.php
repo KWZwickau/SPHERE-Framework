@@ -198,9 +198,15 @@ class TableData extends Table
                 $Interactive, null
             );
         } else {
-            parent::__construct(
-                new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle, false, null
-            );
+            if ($Interactive === null) {
+                parent::__construct(
+                    new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle, null, null
+                );
+            } else {
+                parent::__construct(
+                    new TableHead(new TableRow($GridHead)), new TableBody($DataList), $TableTitle, false, null
+                );
+            }
         }
     }
 
