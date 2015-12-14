@@ -32,6 +32,7 @@ class Major1Minor2
             ->createDuty('Auftragserteilung für Stichtags- & Kopfnoten-Ermittlung (Schulleiter)')
             ->createDuty('Zeugnisdruck mit Möglichkeit zur revisionssicheren Speicherung');
         $Feature->createTask('Zeugnisdruck (vorerst feste Zeugnislayouts)');
+        $Feature->createTask('Schüler & Elternansicht');
 
         // Fakturierung
         $Category = $Release->createCategory('Fakturierung');
