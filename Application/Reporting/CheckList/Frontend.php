@@ -99,7 +99,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($tblListAll, null, array(
                                 'Name' => 'Name',
                                 'Description' => 'Beschreibung',
-                                'Option' => 'Optionen',
+                                'Option' => '',
                             ))
                         ))
                     ))
@@ -189,7 +189,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array(
                                             'Name' => 'Name',
                                             'Type' => 'Typ',
-                                            'Option' => 'Option'
+                                            'Option' => ''
                                         )
                                     )
                                 ))
@@ -565,7 +565,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array(
                                             'DisplayName' => 'Name',
                                             'Type' => 'Typ',
-                                            'Option' => 'Option'
+                                            'Option' => ''
                                         )
                                     )
                                 ), 6),
@@ -574,7 +574,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new TableData($selectList, null,
                                         array(
                                             'DisplayName' => 'Name',
-                                            'Option' => 'Option'
+                                            'Option' => ''
                                         )
                                     )
                                 ), 6),
@@ -588,7 +588,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array(
                                             'DisplayName' => 'Name',
                                             'Type' => 'Typ',
-                                            'Option' => 'Option'
+                                            'Option' => ''
                                         )
                                     )
                                 ), 12)
