@@ -832,8 +832,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPerson->Rank = '';
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
-                    if ($tblStudent->getTblStudentBilling()->getServiceTblSiblingRank()) {
-                        $tblPerson->Rank = $tblStudent->getTblStudentBilling()->getServiceTblSiblingRank()->getName();
+                    if ($tblStudent->getTblStudentBilling()) {
+                        if ($tblStudent->getTblStudentBilling()->getServiceTblSiblingRank()) {
+                            $tblPerson->Rank = $tblStudent->getTblStudentBilling()->getServiceTblSiblingRank()->getName();
+                        }
                     }
                     $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                     if ($tblTransferType) {
