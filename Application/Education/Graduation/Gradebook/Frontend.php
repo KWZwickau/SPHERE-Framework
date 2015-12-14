@@ -640,7 +640,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                         );
                         $columnList[] = new LayoutColumn(
-                            new Container($tblPerson->getFirstName() . ' ' . $tblPerson->getFirstName()
+                            new Container($tblPerson->getFirstName() . ' ' . $tblPerson->getLastName()
                                 . ' ' . new Bold('&#216; ' . $totalAverage))
                             , 2);
                         foreach ($tblPeriodList as $tblPeriod) {
