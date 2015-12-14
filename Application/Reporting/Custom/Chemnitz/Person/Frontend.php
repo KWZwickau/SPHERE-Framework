@@ -380,8 +380,8 @@ class Frontend extends Extension implements IFrontendInterface
                     'LastName' => 'Name',
                     'SchoolYear' => 'Schuljahr',
                     'DivisionLevel' => 'Klassenstufe',
-                    'CompanyOptionA' => 'Schulart 1',
-                    'CompanyOptionB' => 'Schulart 2',
+                    'TypeOptionA' => 'Schulart 1',
+                    'TypeOptionB' => 'Schulart 2',
                     'Address' => 'Adresse',
 //                    'StreetName'         => 'Straße',
 //                    'StreetNumber'         => 'Hausnummer',
@@ -449,6 +449,84 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
                 false
             )
+        );
+
+        return $View;
+    }
+
+    /**
+     * @param $DivisionId
+     * @param $Select
+     *
+     * @return Stage
+     */
+    public function frontendPrintClassList($DivisionId = null, $Select = null)
+    {
+        $View = new Stage();
+        $View->setTitle('ESZC Auswertung');
+        $View->setDescription('Klassenliste zum Ausdrucken');
+
+        $tblDivisionAll = Division::useService()->getDivisionAll();
+        $tblDivision = new TblDivision();
+        $studentList = array();
+
+        if ($DivisionId !== null) {
+
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                $Global->POST['Select']['Division'] = $DivisionId;
+                $Global->savePost();
+            }
+
+            //ToDo JohK Schuljahr
+
+            $tblDivision = Division::useService()->getDivisionById($DivisionId);
+            if ($tblDivision) {
+                $studentList = Person::useService()->createPrintClassList($tblDivision);
+                if ($studentList) {
+                    $View->addButton(
+                        new Primary('Herunterladen',
+                            '/Api/Reporting/Custom/Chemnitz/Common/PrintClassList/Download',
+                            new Download(),
+                            array('DivisionId' => $tblDivision->getId()))
+                    );
+                }
+            }
+        }
+
+        $View->setContent(
+            new Well(
+                Person::useService()->getClass(
+                    new Form(new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new SelectBox('Select[Division]', 'Klasse', array(
+                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
+                                )), 12
+                            )
+                        )),
+                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                    , $Select, '/Reporting/Custom/Chemnitz/Person/PrintClassList')
+            )
+            .
+            ($DivisionId !== null ?
+                (new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                            Panel::PANEL_TYPE_INFO), 12
+                    ),
+                )))))
+                .
+                new TableData($studentList, null,
+                    array(
+                        'DisplayName' => 'Name',
+                        'Birthday' => 'Geb.-Datum',
+                        'Address' => 'Adresse',
+                        'PhoneNumbers' => 'Telefonnummer',
+                        'Orientation' => 'NK',
+                    ),
+                    false
+                ) : '')
         );
 
         return $View;
