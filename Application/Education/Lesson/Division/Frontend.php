@@ -1485,7 +1485,7 @@ class Frontend extends Extension implements IFrontendInterface
                                               'Group'          => 'Gruppen',
                                               'GroupTeacher'   => 'Gruppenlehrer',
                                               'Student'        => 'Gruppen Schüler',
-                                        ), false)
+                                        ), array("bPaginate" => false))
                                     :
                                     new Warning('Keine Fächer der Klasse zugewiesen') )
                             )
@@ -1544,7 +1544,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 new TableData($tblDivisionSubjectList, null, array('Acronym' => 'Kürzel',
                                                                                    'Name'    => 'Name',
                                                                                    'Teacher' => 'Lehrer',
-                                                                                   'Option'  => 'Lehrer Zuweisung'))
+                                                                                   'Option'  => 'Lehrer Zuweisung')
+                                )
                             )
                         )
                     )
