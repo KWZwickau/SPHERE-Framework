@@ -27,6 +27,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
@@ -1405,7 +1406,7 @@ class Frontend extends Extension implements IFrontendInterface
                         '', '');
                     $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Comment']
                         = new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Comment]',
-                        '', '');
+                        '', '', new Comment());
                     $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                         $tblSubjectStudent->getServiceTblPerson());
                     if (!$IsEdit && $tblGrade) {
@@ -1414,14 +1415,14 @@ class Frontend extends Extension implements IFrontendInterface
                             '', ''))->setDisabled();
                         $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Comment']
                             = (new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Comment]',
-                            '', ''))->setDisabled();
+                            '', '', new Comment()))->setDisabled();
                     } else {
                         $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Grade']
                             = (new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Grade]',
                             '', ''));
                         $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Comment']
                             = (new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Comment]',
-                            '', ''));
+                            '', '', new Comment()));
                     }
                 }
             }
@@ -1440,14 +1441,14 @@ class Frontend extends Extension implements IFrontendInterface
                             '', ''))->setDisabled();
                         $student[$tblDivisionStudent->getId()]['Comment']
                             = (new TextField('Grade[' . $tblDivisionStudent->getId() . '][Comment]',
-                            '', ''))->setDisabled();
+                            '', '', new Comment()))->setDisabled();
                     } else {
                         $student[$tblDivisionStudent->getId()]['Grade']
                             = new TextField('Grade[' . $tblDivisionStudent->getId() . '][Grade]',
                             '', '');
                         $student[$tblDivisionStudent->getId()]['Comment']
                             = new TextField('Grade[' . $tblDivisionStudent->getId() . '][Comment]',
-                            '', '');
+                            '', '', new Comment());
                     }
                 }
             }
@@ -1490,7 +1491,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                     'Name' => 'Schüler',
                                                     'Grade' => 'Zensur',
                                                     'Comment' => 'Kommentar'
-                                                ), false)
+                                                ), null)
                                             )
                                         ),
                                     ))

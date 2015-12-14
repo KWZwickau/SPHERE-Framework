@@ -151,4 +151,27 @@ class Common
 
         return false;
     }
+
+    /**
+     * @param null $DivisionId
+     *
+     * @return string|bool
+     */
+    public function downloadPrintClassList($DivisionId = null)
+    {
+
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            $studentList = Person::useService()->createPrintClassList($tblDivision);
+            if ($studentList) {
+                $fileLocation = Person::useService()->createPrintClassListExcel($studentList);
+
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Chemnitz Klassenliste " . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()
+                    . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
+            }
+        }
+
+        return false;
+    }
 }

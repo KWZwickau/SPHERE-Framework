@@ -1,6 +1,9 @@
 <?php
 namespace SPHERE\Application\Reporting\Custom\Chemnitz\Person;
 
+use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
+use MOC\V\Component\Document\Document;
+use MOC\V\Component\Template\Template;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -116,7 +119,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Birthday' => 'Geburtsdatum',
                         'Birthplace' => 'Geburtsort',
                     ),
-                    false
+                    null
                 ) : '')
         );
 
@@ -157,7 +160,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Phone2' => 'Telefon 2',
                     'Mail' => 'Mail',
                 ),
-                false
+                null
             )
         );
 
@@ -233,7 +236,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Birthday' => 'Geburtsdatum',
                         'Address' => 'Adresse',
                     ),
-                    false
+                    null
                 ) : '')
         );
 
@@ -309,7 +312,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'FirstName' => 'Vorname',
                         'Attendance' => 'Anwesenheit',
                     ),
-                    false
+                    null
                 ) : '')
         );
 
@@ -348,7 +351,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Mail' => 'Mail',
                     'Directorate' => 'Vorstand'
                 ),
-                false
+                null
             )
         );
 
@@ -380,8 +383,8 @@ class Frontend extends Extension implements IFrontendInterface
                     'LastName' => 'Name',
                     'SchoolYear' => 'Schuljahr',
                     'DivisionLevel' => 'Klassenstufe',
-                    'CompanyOptionA' => 'Schulart 1',
-                    'CompanyOptionB' => 'Schulart 2',
+                    'TypeOptionA' => 'Schulart 1',
+                    'TypeOptionB' => 'Schulart 2',
                     'Address' => 'Adresse',
 //                    'StreetName'         => 'Straße',
 //                    'StreetNumber'         => 'Hausnummer',
@@ -402,7 +405,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                    'MotherLastName'         => 'Name M',
 //                    'MotherFirstName'         => 'Vorname M',
                 ),
-                false
+                null
             )
         );
 
@@ -447,9 +450,99 @@ class Frontend extends Extension implements IFrontendInterface
 //                    'Code'         => 'PLZ',
 //                    'City'         => 'Ort',
                 ),
-                false
+                null
             )
         );
+
+        return $View;
+    }
+
+    /**
+     * @param $DivisionId
+     * @param $Select
+     *
+     * @return Stage
+     */
+    public function frontendPrintClassList($DivisionId = null, $Select = null)
+    {
+        $View = new Stage();
+        $View->setTitle('ESZC Auswertung');
+        $View->setDescription('Klassenliste zum Ausdrucken');
+
+        $tblDivisionAll = Division::useService()->getDivisionAll();
+        $tblDivision = new TblDivision();
+        $studentList = array();
+
+        if ($DivisionId !== null) {
+
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                $Global->POST['Select']['Division'] = $DivisionId;
+                $Global->savePost();
+            }
+
+            //ToDo JohK Schuljahr
+
+            $tblDivision = Division::useService()->getDivisionById($DivisionId);
+            if ($tblDivision) {
+                $studentList = Person::useService()->createPrintClassList($tblDivision);
+                if ($studentList) {
+                    $View->addButton(
+                        new Primary('Herunterladen',
+                            '/Api/Reporting/Custom/Chemnitz/Common/PrintClassList/Download',
+                            new Download(),
+                            array('DivisionId' => $tblDivision->getId()))
+                    );
+                }
+            }
+        }
+
+        $tableData = ($tableData = new TableData($studentList, null,
+            array(
+                'DisplayName' => 'Name',
+                'Birthday' => 'Geb.-Datum',
+                'Address' => 'Adresse',
+                'PhoneNumbers' => 'Telefonnummer',
+                'Orientation' => 'NK',
+            ),
+            null
+        ));
+
+        $View->setContent(
+            new Well(
+                Person::useService()->getClass(
+                    new Form(new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new SelectBox('Select[Division]', 'Klasse', array(
+                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
+                                )), 12
+                            )
+                        )),
+                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                    , $Select, '/Reporting/Custom/Chemnitz/Person/PrintClassList')
+            )
+            .
+            ($DivisionId !== null ?
+                (new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                            Panel::PANEL_TYPE_INFO), 12
+                    ),
+                )))))
+                . $tableData
+                 : '')
+        );
+
+        if ($DivisionId !== null) {
+            /** @var DomPdf $Document */
+            $Document = Document::getDocument('Roadmap.pdf');
+            $Document->setContent(
+                Template::getTwigTemplateString($tableData)
+            );
+
+            $Document->saveFile();
+        }
 
         return $View;
     }
