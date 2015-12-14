@@ -118,4 +118,17 @@ abstract class Subject extends Transfer
         return (new Data($this->getBinding()))->getStudentSubjectRankingByIdentifier($Identifier);
     }
 
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentSubjectType $tblStudentSubjectType
+     * @return bool|TblStudentSubject[]
+     */
+    public function getStudentSubjectAllByStudentAndSubjectType(
+        TblStudent $tblStudent,
+        TblStudentSubjectType $tblStudentSubjectType
+    ) {
+
+        return (new Data($this->getBinding()))->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType);
+    }
+
 }

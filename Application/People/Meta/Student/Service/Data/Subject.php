@@ -233,4 +233,23 @@ abstract class Subject extends Transfer
             'TblStudentSubject', array(TblStudentSubject::ATTR_TBL_STUDENT => $tblStudent->getId())
         );
     }
+
+    /**
+     * @param TblStudent $tblStudent
+     * @param TblStudentSubjectType $tblStudentSubjectType
+     * @return bool|TblStudentSubject[]
+     */
+    public function getStudentSubjectAllByStudentAndSubjectType(
+        TblStudent $tblStudent,
+        TblStudentSubjectType $tblStudentSubjectType
+    ) {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudentSubject',
+            array(
+                TblStudentSubject::ATTR_TBL_STUDENT => $tblStudent->getId(),
+                TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_TYPE => $tblStudentSubjectType->getId(),
+            )
+        );
+    }
 }
