@@ -668,4 +668,34 @@ class Service extends AbstractService
         return false;
     }
 
+    /**
+     * @param IFormInterface|null $Stage
+     * @param null $Select
+     * @param string $Redirect
+     *
+     * @return IFormInterface|Redirect|string
+     */
+    public function getYear(IFormInterface $Stage = null, $Select = null, $Redirect = '')
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Select) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (!isset($Select['Year'])) {
+            $Error = true;
+            $Stage .= new Warning('Schuljahr nicht gefunden');
+        }
+        if ($Error) {
+            return $Stage;
+        }
+
+        return new Redirect($Redirect, 0, array(
+            'YearId' => $Select['Year'],
+        ));
+    }
 }

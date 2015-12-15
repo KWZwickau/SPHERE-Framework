@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGro
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -732,6 +733,169 @@ class Frontend extends Extension implements IFrontendInterface
             ))
             . ($ScoreConditionId !== null ? new Layout(new LayoutGroup($rowList)) : '')
         );
+    }
+
+    /**
+     * @param null $YearId
+     * @param null $Select
+     * @return Stage
+     */
+    public function frontendStudentGradebook($YearId = null, $Select = null)
+    {
+
+        $Stage = new Stage('Notenübersicht', 'Schüler/Eltern');
+        $tblYearAll = Term::useService()->getYearAll();
+        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
+        $rowList = array();
+
+        if ($YearId !== null) {
+            $tblYear = Term::useService()->getYearById($YearId);
+            $tblPerson = false;
+            $tblAccount = Account::useService()->getAccountBySession();
+            if ($tblAccount) {
+                $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+                if ($tblPersonAllByAccount) {
+                    $tblPerson = $tblPersonAllByAccount[0];
+                }
+            }
+
+            // ToDo Johk Eltern -> Sorgeberechtigte -> Geschwister
+            if ($tblPerson) {
+
+                // Header
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                $columnList = array();
+                $columnList[] = new LayoutColumn(new Header(new Bold($tblPerson->getFullName())), 12);
+                if ($tblPeriodList) {
+                    $columnList[] = new LayoutColumn(new Header(new Bold('Fach')), 2);
+                    $width = (12 - 2) / count($tblPeriodList);
+                    foreach ($tblPeriodList as $tblPeriod) {
+                        $columnList[] = new LayoutColumn(new Header(new Bold($tblPeriod->getName())), $width);
+                    }
+                }
+                $rowList[] = new LayoutRow($columnList);
+
+                $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+                if ($tblDivisionStudentList) {
+                    foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                        $tblDivision = $tblDivisionStudent->getTblDivision();
+                        if ($tblDivision->getServiceTblYear()) {
+                            if ($tblDivision->getServiceTblYear()->getId() == $tblYear->getId()) {
+                                $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
+                                if ($tblDivisionSubjectList) {
+                                    foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
+                                        $columnList = array();
+                                        if (!$tblDivisionSubject->getTblSubjectGroup()) {
+                                            $tblDivisionSubjectWhereGroup =
+                                                Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                                                    $tblDivision, $tblDivisionSubject->getServiceTblSubject()
+                                                );
+                                            if (!$tblDivisionSubjectWhereGroup) {
+                                                $columnList[] = new LayoutColumn(
+                                                    new Container($tblDivisionSubject->getServiceTblSubject()->getName()),
+                                                    2);
+
+                                                if ($tblPeriodList) {
+                                                    $width = (12 - 2) / count($tblPeriodList);
+                                                    foreach ($tblPeriodList as $tblPeriod) {
+                                                        $tblGradeList = Gradebook::useService()->getGradesByStudent(
+                                                            $tblPerson,
+                                                            $tblDivision,
+                                                            $tblDivisionSubject->getServiceTblSubject(),
+                                                            $tblTestType,
+                                                            $tblPeriod
+                                                        );
+                                                        $subColumnList = array();
+                                                        if ($tblGradeList) {
+                                                            foreach ($tblGradeList as $tblGrade) {
+                                                                $subColumnList[] = new LayoutColumn($tblGrade->getGrade() ? $tblGrade->getGrade() : ' ',
+                                                                    1);
+                                                            }
+                                                        }
+                                                        $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($subColumnList))),
+                                                            $width);
+                                                    }
+                                                }
+
+                                                $rowList[] = new LayoutRow($columnList);
+                                            } else {
+                                                foreach ($tblDivisionSubjectWhereGroup as $tblDivisionSubjectGroup) {
+                                                    if (Division::useService()->getSubjectStudentByDivisionSubject(
+                                                        $tblDivisionSubjectGroup
+                                                    )
+                                                    ) {
+                                                        $columnList[] = new LayoutColumn(
+                                                            new Container($tblDivisionSubjectGroup->getServiceTblSubject()->getName()),
+                                                            2);
+
+                                                        if ($tblPeriodList) {
+                                                            $width = (12 - 2) / count($tblPeriodList);
+                                                            foreach ($tblPeriodList as $tblPeriod) {
+                                                                $tblGradeList = Gradebook::useService()->getGradesByStudent(
+                                                                    $tblPerson,
+                                                                    $tblDivision,
+                                                                    $tblDivisionSubjectGroup->getServiceTblSubject(),
+                                                                    $tblTestType,
+                                                                    $tblPeriod
+                                                                );
+                                                                $subColumnList = array();
+                                                                if ($tblGradeList) {
+                                                                    foreach ($tblGradeList as $tblGrade) {
+                                                                        $subColumnList[] = new LayoutColumn($tblGrade->getGrade() ? $tblGrade->getGrade() : ' ',
+                                                                            1);
+                                                                    }
+                                                                }
+                                                                $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($subColumnList))),
+                                                                    $width);
+                                                            }
+                                                        }
+
+                                                        $rowList[] = new LayoutRow($columnList);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            $tblYear = new TblYear();
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Well(
+                            Gradebook::useService()->getYear(
+                                new Form(
+                                    new FormGroup(array(
+                                        new FormRow(array(
+                                            new FormColumn(
+                                                new SelectBox('Select[Year]', 'Schuljahr',
+                                                    array('{{Name}}' => $tblYearAll)),
+                                                12
+                                            ),
+                                        )),
+                                    ))
+                                    , new Primary('Auswählen', new Select())
+                                ), $Select, '/Education/Graduation/Gradebook/Student/Gradebook'
+                            )
+                        )
+                    ),
+                    ($YearId !== null ? new LayoutColumn(
+                        new Panel('Schuljahr', $tblYear->getName(), Panel::PANEL_TYPE_INFO)
+                    ) : null)
+                ))),
+                ($YearId !== null ? new LayoutGroup($rowList) : null)
+            ))
+        );
+        return $Stage;
     }
 
     /**
