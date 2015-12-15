@@ -278,7 +278,7 @@ class Main extends Extension
                 : ''
             )
             .(new Frontend\Message\Repository\Info('Es wird eine automatische Reparatur durchgeführt. Sollte der Fehler damit nicht behoben werden, senden Sie bitte einen Fehlerbericht.'))
-            . (new Redirect(self::getRequest()->getPathInfo(), 60))
+            .(new Redirect(self::getRequest()->getPathInfo(), 3))
             .$Protocol
         );
         echo $Display->getContent(true);

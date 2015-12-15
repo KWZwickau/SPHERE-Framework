@@ -38,6 +38,9 @@ class Person implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__ . '/ClubMemberList'), new Link\Name('Vereinsmitglieder'))
         );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__ . '/PrintClassList'), new Link\Name('Druckbare Klassenlisten'))
+        );
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendPerson'
@@ -72,6 +75,9 @@ class Person implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/ClubMemberList', __NAMESPACE__ . '\Frontend::frontendClubMemberList'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/PrintClassList', __NAMESPACE__ . '\Frontend::frontendPrintClassList'
         ));
     }
 

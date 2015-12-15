@@ -99,7 +99,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'MobilPhoneNumber' => 'Telefon Mobil',
                         'Mail' => 'E-mail',
                     ),
-                    false
+                    null
                 )
                 : ''
             )
