@@ -784,12 +784,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                                 if ($tblDivisionSubjectList) {
                                     foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                                        $columnList = array();
                                         if (!$tblDivisionSubject->getTblSubjectGroup()) {
                                             $tblDivisionSubjectWhereGroup =
                                                 Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
                                                     $tblDivision, $tblDivisionSubject->getServiceTblSubject()
                                                 );
+                                            $columnList = array();
                                             if (!$tblDivisionSubjectWhereGroup) {
                                                 $columnList[] = new LayoutColumn(
                                                     new Container($tblDivisionSubject->getServiceTblSubject()->getName()),
@@ -820,10 +820,11 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $rowList[] = new LayoutRow($columnList);
                                             } else {
                                                 foreach ($tblDivisionSubjectWhereGroup as $tblDivisionSubjectGroup) {
-                                                    if (Division::useService()->getSubjectStudentByDivisionSubject(
-                                                        $tblDivisionSubjectGroup
-                                                    )
+
+                                                    if (Division::useService()->getSubjectStudentByDivisionSubjectAndPerson($tblDivisionSubjectGroup,
+                                                        $tblPerson)
                                                     ) {
+                                                        var_dump($tblDivisionSubjectGroup->getId());
                                                         $columnList[] = new LayoutColumn(
                                                             new Container($tblDivisionSubjectGroup->getServiceTblSubject()->getName()),
                                                             2);
@@ -851,6 +852,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                         }
 
                                                         $rowList[] = new LayoutRow($columnList);
+                                                        $columnList = array();
                                                     }
                                                 }
                                             }

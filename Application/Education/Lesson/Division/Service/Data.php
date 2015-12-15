@@ -339,18 +339,19 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblPerson   $tblPerson
+     * @param TblPerson $tblPerson
      *
      * @return bool|TblDivisionTeacher
      */
     public function getDivisionTeacherByDivisionAndTeacher(TblDivision $tblDivision, TblPerson $tblPerson)
     {
 
-        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher', array(
-            TblDivisionTeacher::ATTR_TBL_DIVISION       => $tblDivision->getId(),
-            TblDivisionTeacher::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-        ));
-        return ( $Entity ? $Entity : false );
+        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher',
+            array(
+                TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId(),
+                TblDivisionTeacher::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            ));
+        return ($Entity ? $Entity : false);
     }
 
     /**
@@ -547,8 +548,8 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
-     * @param TblPerson   $tblPerson
-     * @param null        $Description
+     * @param TblPerson $tblPerson
+     * @param null $Description
      *
      * @return null|object|TblDivisionTeacher
      */
@@ -1057,7 +1058,8 @@ class Data extends AbstractData
     public function countDivisionSubjectGroupByDivision(TblDivision $tblDivision)
     {
 
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionSubject',
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDivisionSubject',
             array(TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()));
         $result = 0;
         if ($EntityList) {
@@ -1155,9 +1157,28 @@ class Data extends AbstractData
     public function getDivisionTeacherAllByTeacher(TblPerson $tblPerson)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher',
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblDivisionTeacher',
             array(
                 TblDivisionTeacher::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            )
+        );
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     * @param TblPerson $tblPerson
+     * @return bool|TblSubjectStudent
+     */
+    public function getSubjectStudentByDivisionSubjectAndPerson(
+        TblDivisionSubject $tblDivisionSubject,
+        TblPerson $tblPerson
+    ) {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectStudent',
+            array(
+                TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId(),
+                TblSubjectStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             )
         );
     }
