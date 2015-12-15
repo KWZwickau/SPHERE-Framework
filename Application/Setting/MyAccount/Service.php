@@ -3,7 +3,7 @@ namespace SPHERE\Application\Setting\MyAccount;
 
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -19,9 +19,9 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
 
     /**
      * @param IFormInterface $Form
-     * @param TblAccount     $tblAccount
-     * @param string         $CredentialLock
-     * @param string         $CredentialLockSafety
+     * @param TblAccount $tblAccount
+     * @param string $CredentialLock
+     * @param string $CredentialLockSafety
      *
      * @return IFormInterface|Redirect
      */
@@ -40,7 +40,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
 
         $Error = false;
 
-        if (empty( $CredentialLock )) {
+        if (empty($CredentialLock)) {
             $Form->setError('CredentialLock', 'Bitte geben Sie ein Passwort an');
             $Error = true;
         } else {
@@ -52,7 +52,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             }
         }
 
-        if (empty( $CredentialLockSafety )) {
+        if (empty($CredentialLockSafety)) {
             $Form->setError('CredentialLockSafety', 'Bitte geben Sie ein Passwort an');
             $Error = true;
         }
@@ -61,7 +61,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             $Form->setError('CredentialLockSafety', 'Die beiden Passworte stimmen nicht überein');
             $Error = true;
         } else {
-            if (!empty( $CredentialLock ) && !empty( $CredentialLockSafety )) {
+            if (!empty($CredentialLock) && !empty($CredentialLockSafety)) {
                 $Form->setSuccess('CredentialLockSafety', '');
             } else {
                 $Form->setError('CredentialLockSafety', '');
@@ -72,54 +72,34 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             return $Form;
         } else {
             if (Account::useService()->changePassword($CredentialLock, $tblAccount)) {
-                return new Success('Das Passwort wurde erfolgreich geändert').new Redirect('/Setting/MyAccount', 1);
+                return new Success('Das Passwort wurde erfolgreich geändert') . new Redirect('/Setting/MyAccount', 1);
             } else {
-                return new Danger('Das Passwort konnte nicht geändert werden').new Redirect('/Setting/MyAccount', 10);
+                return new Danger('Das Passwort konnte nicht geändert werden') . new Redirect('/Setting/MyAccount', 10);
             }
         }
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param TblAccount     $tblAccount
-     * @param int            $Consumer
-     *
-     * @return IFormInterface|Redirect
+     * @param TblAccount $tblAccount
+     * @param TblConsumer $tblConsumer
+     * @return string
      */
     public function updateConsumer(
-        IFormInterface &$Form,
         TblAccount $tblAccount,
-        $Consumer
+        TblConsumer $tblConsumer
     ) {
 
-        if (null === $Consumer) {
-            return $Form;
-        }
-
-        $Error = false;
-
-        if (empty( $Consumer )) {
-            $Form->setError('Consumer', 'Bitte wählen Sie einen Mandanten aus');
-            $Error = true;
-        }
-
-        if ($Error) {
-            return $Form;
+        if (Account::useService()->changeConsumer($tblConsumer, $tblAccount)) {
+            return new Success('Der Mandant wurde erfolgreich geändert') . new Redirect('/Setting/MyAccount', 0);
         } else {
-            $tblConsumer = Consumer::useService()->getConsumerById($Consumer);
-
-            if (Account::useService()->changeConsumer($tblConsumer, $tblAccount)) {
-                return new Success('Der Mandant wurde erfolgreich geändert').new Redirect('/Setting/MyAccount', 1);
-            } else {
-                return new Danger('Der Mandant konnte nicht geändert werden').new Redirect('/Setting/MyAccount', 10);
-            }
+            return new Danger('Der Mandant konnte nicht geändert werden') . new Redirect('/Setting/MyAccount', 10);
         }
     }
 
     /**
      * @param IFormInterface $Form
-     * @param TblAccount     $tblAccount
-     * @param array          $Setting
+     * @param TblAccount $tblAccount
+     * @param array $Setting
      *
      * @return IFormInterface|Redirect
      */
@@ -129,7 +109,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $Setting
     ) {
 
-        if (empty( $Setting )) {
+        if (empty($Setting)) {
             return $Form;
         }
 
@@ -142,10 +122,10 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
 
         if ($Error) {
-            return new Danger('Einige Einstellungen konnten nicht gespeichert werden').new Redirect('/Setting/MyAccount',
+            return new Danger('Einige Einstellungen konnten nicht gespeichert werden') . new Redirect('/Setting/MyAccount',
                 10);
         } else {
-            return new Success('Die Einstellungen wurden erfolgreich gespeichert').new Redirect('/Setting/MyAccount',
+            return new Success('Die Einstellungen wurden erfolgreich gespeichert') . new Redirect('/Setting/MyAccount',
                 1);
         }
     }

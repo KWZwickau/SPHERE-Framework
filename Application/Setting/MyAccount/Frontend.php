@@ -12,11 +12,11 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
+use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -26,6 +26,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -78,36 +79,41 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $Consumer
+     * @return Stage
+     */
+    public static function frontendSelectConsumer()
+    {
+
+        $tblConsumerAll = Consumer::useService()->getConsumerAll();
+        if ($tblConsumerAll) {
+            foreach ($tblConsumerAll as $tblConsumer) {
+                $tblConsumer->Option = new Standard('', '/Setting/MyAccount/Consumer/Change', new Select(),
+                    array('Id' => $tblConsumer->getId()), 'Auswählen');
+            }
+        }
+
+        $Stage = new Stage('Mandant', 'Auswählen');
+        $Stage->setContent(
+            new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                new TableData($tblConsumerAll, null, array('Acronym' => 'Kürzel', 'Name' => 'Name', 'Option' => ''))
+            )))));
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
      *
      * @return Stage
      */
-    public static function frontendChangeConsumer($Consumer = null)
+    public static function frontendChangeConsumer($Id = null)
     {
 
         $tblAccount = Account::useService()->getAccountBySession();
+        $tblConsumer = Consumer::useService()->getConsumerById($Id);
+        $Stage = new Stage('Mandant', 'Auswählen');
 
-        $Stage = new Stage('Mein Benutzerkonto', 'Mandant ändern');
-        $Stage->setContent(
-            new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                MyAccount::useService()->updateConsumer(
-                    new Form(
-                        new FormGroup(
-                            new FormRow(array(
-                                new FormColumn(
-                                    new Panel('Mandant', array(
-                                        new SelectBox('Consumer', 'Neuer Mandant',
-                                            array(
-                                                '{{ Acronym }} {{ Name }}' => Consumer::useService()->getConsumerAll()
-                                            ),
-                                            new Building()),
-                                    ), Panel::PANEL_TYPE_INFO)
-                                ),
-                            ))
-                        ), new Primary('Neuen Mandant speichern')
-                    ), $tblAccount, $Consumer
-                )
-            )), new Title('Mandant ändern'))));
+        $Stage->setContent(MyAccount::useService()->updateConsumer($tblAccount, $tblConsumer));
 
         return $Stage;
     }
@@ -141,17 +147,17 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Person = new Panel('Informationen zur Person',
-            ( !empty( $tblPersonAll ) ? new Listing($tblPersonAll) : new Danger(new Exclamation().new Small(' Keine Person angeben')) )
+            (!empty($tblPersonAll) ? new Listing($tblPersonAll) : new Danger(new Exclamation() . new Small(' Keine Person angeben')))
         );
 
         $Authentication = new Panel('Authentication',
-            ( $tblAccount->getServiceTblIdentification() ? $tblAccount->getServiceTblIdentification()->getDescription() : '' )
+            ($tblAccount->getServiceTblIdentification() ? $tblAccount->getServiceTblIdentification()->getDescription() : '')
         );
 
         $Authorization = new Panel('Berechtigungen',
-            ( !empty( $tblAuthorizationAll )
+            (!empty($tblAuthorizationAll)
                 ? $tblAuthorizationAll
-                : array(new Danger(new Exclamation().new Small(' Keine Berechtigungen vergeben')))
+                : array(new Danger(new Exclamation() . new Small(' Keine Berechtigungen vergeben')))
             )
         );
 
@@ -159,7 +165,7 @@ class Frontend extends Extension implements IFrontendInterface
             array(
                 $tblAccount->getServiceTblToken()
                     ? substr($tblAccount->getServiceTblToken()->getSerial(), 0,
-                        4).' '.substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
+                        4) . ' ' . substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
                     : new Muted(new Small('Kein Hardware-Schlüssel vergeben'))
             )
         );
@@ -171,7 +177,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Token,
         );
 
-        if (empty( $Setting )) {
+        if (empty($Setting)) {
             $Global = $this->getGlobal();
             $SettingSurface = MyAccount::useService()->getSettingByAccount($tblAccount, 'Surface');
             if ($SettingSurface) {
@@ -214,15 +220,15 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new Title('Profil', 'Informationen'),
                             new Panel(
-                                'Benutzerkonto: '.new Bold($tblAccount->getUsername()), $Account
+                                'Benutzerkonto: ' . new Bold($tblAccount->getUsername()), $Account
                                 , Panel::PANEL_TYPE_DEFAULT,
-                                new Standard('Mein Passwort ändern', new Route(__NAMESPACE__.'/Password'), new Key())
+                                new Standard('Mein Passwort ändern', new Route(__NAMESPACE__ . '/Password'), new Key())
                             )
                         ), 4),
                         new LayoutColumn(array(
                             new Title('Mandant (Schulträger)', 'Informationen'),
                             new Panel(
-                                $tblAccount->getServiceTblConsumer()->getName().' ['.$tblAccount->getServiceTblConsumer()->getAcronym().']',
+                                $tblAccount->getServiceTblConsumer()->getName() . ' [' . $tblAccount->getServiceTblConsumer()->getAcronym() . ']',
                                 array(
                                     // TODO: Anzeigen von Schulen, Schulträger, Vörderverein
                                     // TODO: Anzeigen von zugehörigen Adressen, Telefonnummern, Personen
@@ -230,7 +236,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                                    'TODO: Anzeigen von zugehörigen Adressen, Telefonnummern, Personen'
                                 )
                                 , Panel::PANEL_TYPE_DEFAULT,
-                                new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
+                                new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__ . '/Consumer'))
                             )
                         ), 4),
                     ))

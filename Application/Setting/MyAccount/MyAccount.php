@@ -40,7 +40,10 @@ class MyAccount implements IApplicationInterface, IModuleInterface
             __NAMESPACE__.'/Password', __NAMESPACE__.'\Frontend::frontendChangePassword'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Consumer', __NAMESPACE__.'\Frontend::frontendChangeConsumer'
+            __NAMESPACE__.'/Consumer', __NAMESPACE__.'\Frontend::frontendSelectConsumer'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Consumer/Change', __NAMESPACE__.'\Frontend::frontendChangeConsumer'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Configuration', __NAMESPACE__.'\Frontend::frontendConfiguration'
