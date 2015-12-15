@@ -137,7 +137,7 @@ class Service extends AbstractService
             return $Form;
         } else {
             (new Data($this->getBinding()))->createConsumer($ConsumerAcronym, $ConsumerName);
-            return new Redirect('/Platform/Gatekeeper/Authorization/Consumer/Create', 0);
+            return new Redirect('/Platform/Gatekeeper/Authorization/Consumer', 0);
         }
     }
 

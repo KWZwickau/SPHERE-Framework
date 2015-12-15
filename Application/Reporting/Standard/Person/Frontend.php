@@ -117,7 +117,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Birthplace' => 'Geburtsort',
                         'Address' => 'Adresse',
                     ),
-                    false
+                    null
                 ) : '')
         );
 
@@ -208,7 +208,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Guardian2' => 'Sorgeberechtigter 2',
                         'PhoneGuardian2' => 'Tel. Sorgeber. 2',
                     ),
-                    false
+                    null
                 ) .
                 new Layout(
                     new LayoutGroup(
@@ -311,7 +311,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Birthday' => 'Geburtsdatum',
                         'Age' => 'Alter',
                     ),
-                    false
+                    null
                 ) .
                 new Layout(
                     new LayoutGroup(
@@ -416,7 +416,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'PhoneNumber' => 'Telefon<br/>Schüler',
                         'PhoneGuardianNumber' => 'Telefon<br/>Sorgeberechtigte',
                     ),
-                    false
+                    null
                 ) .
                 new Layout(
                     new LayoutGroup(
@@ -521,7 +521,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'MobilPhoneNumber' => 'Telefon Mobil',
                         'Mail' => 'E-mail',
                     ),
-                    false
+                    null
                 ) .
                 new Layout(
                     new LayoutGroup(
