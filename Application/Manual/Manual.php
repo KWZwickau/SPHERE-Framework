@@ -4,6 +4,7 @@ namespace SPHERE\Application\Manual;
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\Manual\Kreda\Kreda;
 use SPHERE\Application\Manual\StyleBook\StyleBook;
+use SPHERE\Application\Manual\Support\Support;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -21,6 +22,7 @@ class Manual implements IClusterInterface
 
         Kreda::registerApplication();
         StyleBook::registerApplication();
+        Support::registerApplication();
 
         Main::getDisplay()->addServiceNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Hilfe'))
