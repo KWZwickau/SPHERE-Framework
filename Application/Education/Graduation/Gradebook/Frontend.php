@@ -12,6 +12,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGro
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
@@ -274,6 +275,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblDivisionSubject->getServiceTblSubject()
                                 );
                                 if ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject) {
+                                    /** @var TblDivisionSubject $item */
                                     foreach ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject as $item) {
                                         $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
                                         [$tblDivisionSubject->getServiceTblSubject()->getId()]
@@ -299,6 +301,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblSubject = Subject::useService()->getSubjectById($subjectId);
                     if (is_array($value)) {
                         foreach ($value as $subjectGroupId => $subValue) {
+                            /** @var TblSubjectGroup $item */
                             $item = Division::useService()->getSubjectGroupById($subjectGroupId);
                             $divisionSubjectTable[] = array(
                                 'Year' => $tblDivision->getServiceTblYear()->getName(),
@@ -829,19 +832,6 @@ class Frontend extends Extension implements IFrontendInterface
         $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
         if ($tblDivisionStudentList) {
 
-            // Header
-            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
-            $columnList = array();
-            $columnList[] = new LayoutColumn(new Header(new Bold($tblPerson->getFullName())), 12);
-            if ($tblPeriodList) {
-                $columnList[] = new LayoutColumn(new Header(new Bold('Fach')), 2);
-                $width = (12 - 2) / count($tblPeriodList);
-                foreach ($tblPeriodList as $tblPeriod) {
-                    $columnList[] = new LayoutColumn(new Header(new Bold($tblPeriod->getName())), $width);
-                }
-            }
-            $rowList[] = new LayoutRow($columnList);
-
             // ToDo JohK Notendurchschnitt
 
             /** @var TblDivisionStudent $tblDivisionStudent */
@@ -849,6 +839,22 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblDivision = $tblDivisionStudent->getTblDivision();
                 if ($tblDivision->getServiceTblYear()) {
                     if ($tblDivision->getServiceTblYear()->getId() == $tblYear->getId()) {
+
+                        // Header
+                        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                        $columnList = array();
+                        $columnList[] = new LayoutColumn(new Title($tblPerson->getFullName()
+                            . new Small(new Muted(' Klasse ' . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()))),
+                            12);
+                        if ($tblPeriodList) {
+                            $columnList[] = new LayoutColumn(new Header(new Bold('Fach')), 2);
+                            $width = (12 - 2) / count($tblPeriodList);
+                            foreach ($tblPeriodList as $tblPeriod) {
+                                $columnList[] = new LayoutColumn(new Header(new Bold($tblPeriod->getName())), $width);
+                            }
+                        }
+                        $rowList[] = new LayoutRow($columnList);
+
                         $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                         if ($tblDivisionSubjectList) {
                             foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
@@ -892,7 +898,6 @@ class Frontend extends Extension implements IFrontendInterface
                                             if (Division::useService()->getSubjectStudentByDivisionSubjectAndPerson($tblDivisionSubjectGroup,
                                                 $tblPerson)
                                             ) {
-                                                var_dump($tblDivisionSubjectGroup->getId());
                                                 $columnList[] = new LayoutColumn(
                                                     new Container($tblDivisionSubjectGroup->getServiceTblSubject()->getName()),
                                                     2);
