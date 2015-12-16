@@ -425,7 +425,7 @@ class Data extends AbstractData
         $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
         if (!empty( $tblPersonRelationshipList )) {
             foreach ($tblPersonRelationshipList as $tblPersonRelationship) {
-                if ($tblPerson->getId() === $tblPersonRelationship->getServiceTblPersonFrom()) {
+                if ($tblPerson->getId() === $tblPersonRelationship->getServiceTblPersonFrom()->getId()) {
                     $tblDebtorList = Banking::useService()->getDebtorAllByPerson($tblPersonRelationship->getServiceTblPersonTo());
                 } else {
                     $tblDebtorList = Banking::useService()->getDebtorAllByPerson($tblPersonRelationship->getServiceTblPersonFrom());
