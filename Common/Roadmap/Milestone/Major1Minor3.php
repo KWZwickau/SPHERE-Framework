@@ -22,6 +22,12 @@ class Major1Minor3
 
         $Release = $Roadmap->createRelease('1.3.0', 'KREDA (Ziel Q2 2016)');
 
+        // Optimierung
+        $Category = $Release->createCategory('Optimierung');
+        $Feature = $Category->createFeature('Optimierung der Eingabeoberflächen');
+        $Feature->createTask('Design');
+        $Feature->createTask('Bedienung');
+
         // Bildung
         $Category = $Release->createCategory('Bildung');
         $Feature = $Category->createFeature('Zensuren');

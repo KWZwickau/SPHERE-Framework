@@ -26,8 +26,8 @@ class Data extends AbstractData
         $this->createGroup('Interessent', 'Schüler die zur Aufnahme vorgemerkt sind', '', true, 'PROSPECT');
         $this->createGroup('Schüler', 'Alle aktiv verfügbaren Schüler', '', true, 'STUDENT');
         $this->createGroup('Sorgeberechtigt', '', '', true, 'CUSTODY');
-        $this->createGroup('Mitarbeiter', '', '', true, 'STAFF');
-        $this->createGroup('Lehrer', '', '', true, 'TEACHER');
+        $this->createGroup('Mitarbeiter', 'Alle Mitarbeiter', '', true, 'STAFF');
+        $this->createGroup('Lehrer', 'Alle Mitarbeiter, welche einer Lehrtätigkeit nachgehen', '', true, 'TEACHER');
     }
 
     /**

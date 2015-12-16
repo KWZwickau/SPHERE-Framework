@@ -825,26 +825,37 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasket = Basket::useService()->getBasketById($Id);
         $tblBasketItemAll = Basket::useService()->getBasketItemAllByBasket($tblBasket);
         $tblPersonByBasketList = Basket::useService()->getPersonAllByBasket($tblBasket);
+        $PersonTable = array();
         if (!empty( $tblPersonByBasketList )) {
             /** @var TblPerson $tblPerson */
-            foreach ($tblPersonByBasketList as &$tblPerson) {
-                $tblPerson->Type = '';
-                $tblPerson->Rank = '';
+            array_walk($tblPersonByBasketList, function (TblPerson $tblPerson) use (&$PersonTable) {
+
+                $SiblingRank = '';
+                $SchoolType = '';
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
-                    if ($tblStudent->getTblStudentBilling()->getServiceTblSiblingRank()) {
-                        $tblPerson->Rank = $tblStudent->getTblStudentBilling()->getServiceTblSiblingRank()->getName();
+                    if ($tblStudent->getTblStudentBilling()) {
+                        if ($tblStudent->getTblStudentBilling()->getServiceTblSiblingRank()) {
+                            $SiblingRank = $tblStudent->getTblStudentBilling()->getServiceTblSiblingRank()->getName();
+                        }
                     }
                     $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                     if ($tblTransferType) {
                         $Type = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType);
                         if ($Type) {
                             if ($Type->getServiceTblType())
-                                $tblPerson->Type = $Type->getServiceTblType()->getName();
+                                $SchoolType = $Type->getServiceTblType()->getName();
                         }
                     }
                 }
-            }
+
+                array_push($PersonTable, array(
+                    'FirstName' => $tblPerson->getFirstName(),
+                    'LastName'  => $tblPerson->getLastName(),
+                    'Type'      => $SchoolType,
+                    'Rank'      => $SiblingRank,
+                ));
+            });
         }
 
         if (!empty( $tblBasketItemAll )) {
@@ -943,7 +954,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             array(
-                                new TableData($tblPersonByBasketList, null,
+                                new TableData($PersonTable, null,
                                     array(
                                         'FirstName' => 'Vorname',
                                         'LastName'  => 'Nachname',

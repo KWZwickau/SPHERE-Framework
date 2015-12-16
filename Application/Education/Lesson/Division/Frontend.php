@@ -144,9 +144,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblDivision->TeacherList = Division::useService()->countDivisionTeacherAllByDivision($tblDivision);
                 $SubjectCount = Division::useService()->countDivisionSubjectAllByDivision($tblDivision);
 
-                if ($SubjectUsedCount !== 0) {
+                if ($SubjectUsedCount > 1) {
                     $tblDivision->SubjectList = $SubjectCount
                         .new PullRight(new Small(new Small(new Muted('('.new Danger($SubjectUsedCount).') Fachlehrer fehlen'))));
+                } elseif ($SubjectUsedCount == 1) {
+                    $tblDivision->SubjectList = $SubjectCount
+                        .new PullRight(new Small(new Small(new Muted('('.new Danger($SubjectUsedCount).') Fachlehrer fehlt'))));
                 } else {
                     $tblDivision->SubjectList = $SubjectCount;
                 }
@@ -258,7 +261,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Klassenstufe',
                             array(
-                                new CheckBox('Level[Check]', 'Stufenübergreifende Klassengruppe anlegen', 1, array(
+                                new CheckBox('Level[Check]', 'jahrgangübergreifende Klasse anlegen', 1, array(
                                     'Level[Name]',
                                     'Level[Type]')),
                                 new SelectBox('Level[Type]', 'Schulart', array(
@@ -1370,6 +1373,13 @@ class Frontend extends Extension implements IFrontendInterface
             $StudentTableCount = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
             $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
             if ($tblDivisionStudentList) {
+                /** @var TblPerson $row */
+                foreach ($tblDivisionStudentList as $key => $row) {
+                    $LastName[$key] = strtoupper($row->getLastName());
+                    $FirstName[$key] = strtoupper($row->getFirstName());
+                }
+                array_multisort($LastName, SORT_ASC, $FirstName, SORT_ASC, $tblDivisionStudentList);
+
                 foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                     $tblDivisionStudent->FullName = $tblDivisionStudent->getFirstName().' '.
                         $tblDivisionStudent->getSecondName().' '.
@@ -1399,13 +1409,13 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $tblPersonList = Division::useService()->getTeacherAllByDivision($tblDivision);
             if ($tblPersonList) {
-
+                $TeacherList = array();
                 foreach ($tblPersonList as &$tblPerson) {
                     $Description = Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson)->getDescription();
-                    $tblPerson = new Panel('Klassenlehrer', $tblPerson->getFullName().' '.new Muted($Description), Panel::PANEL_TYPE_INFO);
+                    $TeacherList[] = $tblPerson->getFullName().' '.new Muted($Description);
                 }
+                $tblPersonList = new Panel('Klassenlehrer', $TeacherList, Panel::PANEL_TYPE_INFO);
             } else {
-
                 $tblPersonList = new Warning('Kein Klassenlehrer festgelegt');
             }
             $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
@@ -1510,10 +1520,10 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblDivisionSubject->Student = (new Accordion())
                             ->addItem('Enthaltene Schüler', $StudentPanel, false);
                     } else {
-                        $tblDivisionSubject->Group = new Panel('Gruppen',
+                        $tblDivisionSubject->Group = new Panel('Gruppen', '', Panel::PANEL_TYPE_INFO,
                             new Standard('Gruppe', '/Education/Lesson/Division/SubjectGroup/Add', new Pencil(),
                                 array('Id'                => $tblDivision->getId(),
-                                      'DivisionSubjectId' => $tblDivisionSubject->getId())), Panel::PANEL_TYPE_INFO);
+                                      'DivisionSubjectId' => $tblDivisionSubject->getId())));
 
                         $tblDivisionSubject->SubjectTeacher = $SubjectTeacherPanel;
                     }
@@ -1536,8 +1546,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(array(
                                 ( ( !empty( $tblDivisionStudentList ) ) ?
                                     new TableData($tblDivisionStudentList, null
-                                        , array('FirstName' => 'Vorname',
-                                                'LastName'  => 'Nachname',
+                                        , array('LastName'  => 'Nachname',
+                                                'FirstName' => 'Vorname',
                                         ), false)
                                     : new Warning('Keine Schüer der Klasse zugewiesen') )
                             ,
@@ -1557,7 +1567,7 @@ class Frontend extends Extension implements IFrontendInterface
                                               'Group'          => 'Gruppen',
                                               'GroupTeacher'   => 'Gruppenlehrer',
                                               'Student'        => 'Gruppen Schüler',
-                                        ), false)
+                                        ), array("bPaginate" => false))
                                     :
                                     new Warning('Keine Fächer der Klasse zugewiesen') )
                             )
@@ -1616,7 +1626,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 new TableData($tblDivisionSubjectList, null, array('Acronym' => 'Kürzel',
                                                                                    'Name'    => 'Name',
                                                                                    'Teacher' => 'Lehrer',
-                                                                                   'Option'  => 'Lehrer Zuweisung'))
+                                                                                   'Option'  => 'Lehrer Zuweisung')
+                                )
                             )
                         )
                     )

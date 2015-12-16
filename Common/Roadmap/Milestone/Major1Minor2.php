@@ -22,13 +22,30 @@ class Major1Minor2
 
         $Release = $Roadmap->createRelease('1.2.0', 'KREDA (Ziel Q1 2016)');
 
+        // Bildung
+        $Category = $Release->createCategory('Bildung');
+        $Feature = $Category->createFeature('Zensuren');
+        $Feature->createTask('Erweiterung der Funktionalitäten')
+            ->createDuty('Berechnungsvorschriften für Notendurchschnitt', true)
+            ->createDuty('Notenspiegel / Verteilung für Leistungsüberprüfung')
+            ->createDuty('Hinterlegung von Aufgabenpunkten bei Leistungsüberprüfungen und automatische Wichtung für Notenbildung')
+            ->createDuty('Auftragserteilung für Stichtags- & Kopfnoten-Ermittlung (Schulleiter)')
+            ->createDuty('Zeugnisdruck mit Möglichkeit zur revisionssicheren Speicherung');
+        $Feature->createTask('Zeugnisdruck (vorerst feste Zeugnislayouts)');
+        $Feature->createTask('Schüler & Elternansicht');
+
+        // Fakturierung
         $Category = $Release->createCategory('Fakturierung');
         $Category->createFeature('Leistungen', '', true);
         $Category->createFeature('Buchhaltung', '', false);
         $Category->createFeature('Rechnungswesen', '', false);
 
+        // Auswertungen
         $Category = $Release->createCategory('Auswertungen');
-        $Category->createFeature('Statistik / Berichte (ähnlich Fuxschool)');
-        $Category->createFeature('Kamenz-Bericht');
+        $Category->createFeature('Checklisten direkt in KREDA', '', true);
+        $Feature = $Category->createFeature('Berichte (ähnlich Fuxschool)');
+        $Feature->createTask('Berichte (ähnlich Fuxschool)', '', true);
+        $Feature = $Category->createFeature('Statistik (ähnlich Fuxschool)');
+        $Feature->createTask('Kamenz-Bericht');
     }
 }

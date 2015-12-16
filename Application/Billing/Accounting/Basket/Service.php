@@ -445,7 +445,8 @@ class Service extends AbstractService
             $ErrorMissing = true;
         } else {
             foreach ($tblBasketPersonAllByBasket as $tblBasketPerson) {
-                if (!(new Data($this->getBinding()))->checkDebtorExistsByPerson($tblBasketPerson->getServiceManagementPerson())) {
+                $tblPerson = $tblBasketPerson->getServiceManagementPerson();
+                if (!(new Data($this->getBinding()))->checkDebtorExistsByPerson($tblPerson)) {
                     $Stage .= new Danger("Für die Person ".$tblBasketPerson->getServiceManagementPerson()->getFullName()
                         ." gibt es noch keinen relevanten Debitoren. Bitte legen Sie diese zunächst einen an");
                     $ErrorMissing = true;

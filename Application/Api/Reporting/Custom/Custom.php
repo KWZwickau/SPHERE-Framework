@@ -21,6 +21,9 @@ class Custom implements IModuleInterface
             __NAMESPACE__.'/Chemnitz/Common/ClassList/Download', __NAMESPACE__.'\Chemnitz\Common::downloadClassList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Chemnitz/Common/PrintClassList/Download', __NAMESPACE__.'\Chemnitz\Common::downloadPrintClassList'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Chemnitz/Common/StaffList/Download', __NAMESPACE__.'\Chemnitz\Common::downloadStaffList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

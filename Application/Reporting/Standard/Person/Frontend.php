@@ -5,7 +5,6 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Search\Group\Group;
-use SPHERE\Common\Frontend\Form\Repository\Button\Standard;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -16,6 +15,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -85,23 +85,25 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            Person::useService()->getClass(
-                new Form(new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new SelectBox('Select[Division]', 'Klasse', array(
-                                '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
-                            )), 12
-                        )
-                    )),
-                )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                , $Select, '/Reporting/Standard/Person/ClassList')
+            new Well(
+                Person::useService()->getClass(
+                    new Form(new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new SelectBox('Select[Division]', 'Klasse', array(
+                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
+                                )), 12
+                            )
+                        )),
+                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                    , $Select, '/Reporting/Standard/Person/ClassList')
+            )
             .
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
-                            Panel::PANEL_TYPE_SUCCESS), 12
+                            Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
                 .
@@ -115,7 +117,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Birthplace' => 'Geburtsort',
                         'Address' => 'Adresse',
                     ),
-                    false
+                    null
                 ) : '')
         );
 
@@ -170,23 +172,25 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            Person::useService()->getClass(
-                new Form(new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new SelectBox('Select[Division]', 'Klasse', array(
-                                '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
-                            )), 12
-                        )
-                    )),
-                )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                , $Select, '/Reporting/Standard/Person/ExtendedClassList')
+            new Well(
+                Person::useService()->getClass(
+                    new Form(new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new SelectBox('Select[Division]', 'Klasse', array(
+                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
+                                )), 12
+                            )
+                        )),
+                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                    , $Select, '/Reporting/Standard/Person/ExtendedClassList')
+            )
             .
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
-                            Panel::PANEL_TYPE_SUCCESS), 12
+                            Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
                 .
@@ -204,7 +208,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Guardian2' => 'Sorgeberechtigter 2',
                         'PhoneGuardian2' => 'Tel. Sorgeber. 2',
                     ),
-                    false
+                    null
                 ) .
                 new Layout(
                     new LayoutGroup(
@@ -276,23 +280,25 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            Person::useService()->getClass(
-                new Form(new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new SelectBox('Select[Division]', 'Klasse', array(
-                                '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
-                            )), 12
-                        )
-                    )),
-                )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                , $Select, '/Reporting/Standard/Person/BirthdayClassList')
+            new Well(
+                Person::useService()->getClass(
+                    new Form(new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new SelectBox('Select[Division]', 'Klasse', array(
+                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
+                                )), 12
+                            )
+                        )),
+                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                    , $Select, '/Reporting/Standard/Person/BirthdayClassList')
+            )
             .
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
-                            Panel::PANEL_TYPE_SUCCESS), 12
+                            Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
                 .
@@ -305,7 +311,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Birthday' => 'Geburtsdatum',
                         'Age' => 'Alter',
                     ),
-                    false
+                    null
                 ) .
                 new Layout(
                     new LayoutGroup(
@@ -377,23 +383,25 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            Person::useService()->getClass(
-                new Form(new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new SelectBox('Select[Division]', 'Klasse', array(
-                                '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
-                            )), 12
-                        )
-                    )),
-                )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                , $Select, '/Reporting/Standard/Person/MedicalInsuranceClassList')
+            new Well(
+                Person::useService()->getClass(
+                    new Form(new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new SelectBox('Select[Division]', 'Klasse', array(
+                                    '{{ serviceTblYear.Name }} - {{ tblLevel.serviceTblType.Name }} - {{ tblLevel.Name }}{{ Name }}' => $tblDivisionAll
+                                )), 12
+                            )
+                        )),
+                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                    , $Select, '/Reporting/Standard/Person/MedicalInsuranceClassList')
+            )
             .
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
-                            Panel::PANEL_TYPE_SUCCESS), 12
+                            Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
                 .
@@ -408,7 +416,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'PhoneNumber' => 'Telefon<br/>Schüler',
                         'PhoneGuardianNumber' => 'Telefon<br/>Sorgeberechtigte',
                     ),
-                    false
+                    null
                 ) .
                 new Layout(
                     new LayoutGroup(
@@ -479,23 +487,25 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            Person::useService()->getGroup(
-                new Form(new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new SelectBox('Select[Group]', 'Gruppe', array(
-                                '{{ Name }}' => $tblGroupAll
-                            )), 12
-                        )
-                    )),
-                )), new Standard('Auswählen', new Select()))
-                , $Select, '/Reporting/Standard/Person/GroupList')
+            new Well(
+                Person::useService()->getGroup(
+                    new Form(new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new SelectBox('Select[Group]', 'Gruppe', array(
+                                    '{{ Name }}' => $tblGroupAll
+                                )), 12
+                            )
+                        )),
+                    )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                    , $Select, '/Reporting/Standard/Person/GroupList')
+            )
             .
             ($GroupId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Gruppe:', $tblGroup->getName(),
-                            Panel::PANEL_TYPE_SUCCESS), 12
+                            Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
                 .
@@ -511,7 +521,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'MobilPhoneNumber' => 'Telefon Mobil',
                         'Mail' => 'E-mail',
                     ),
-                    false
+                    null
                 ) .
                 new Layout(
                     new LayoutGroup(
