@@ -33,6 +33,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -55,6 +56,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -104,21 +106,43 @@ class Frontend extends Extension implements IFrontendInterface
         if (isset( $Year ) && $Year !== '0') {
             $tblYear = Term::useService()->getYearById($Year);
             if ($tblYear) {
-                $Stage->setDescription('Übersicht '.$tblYear->getName());
-//                $SetDescription = true;
+                $Stage->setDescription('Übersicht '.new \SPHERE\Common\Frontend\Text\Repository\Info(new Bold($tblYear->getName())));
             }
         }
 
+        $Stage->addButton(
+            new Standard('Aktuelle Übersicht',
+                new Route(__NAMESPACE__), new PersonGroup())
+        );
+
+
+//        $YearAll = Term::useService()->getYearAll();
+        $YearAll = Term::useService()->getYearAllSinceYears(2);
+        if (!empty( $YearAll )) {
+            foreach ($YearAll as $key => $row) {
+                $name[$key] = strtoupper($row->getName());
+            }
+            array_multisort($name, SORT_ASC, $YearAll);
+
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk($YearAll, function (TblYear &$tblYear, $Index, Stage $Stage) {
+
+                $Stage->addButton(
+                    new Standard(
+                        $tblYear->getName(),
+                        new Route(__NAMESPACE__), new PersonGroup(),
+                        array(
+                            'Year' => $tblYear->getId()
+                        ), $tblYear->getDescription())
+                );
+            }, $Stage);
+        }
+
+
         $tblDivisionAll = $DivisionList;
         if ($tblDivisionAll) {
-//            $SetDescription = false;
             /** @var TblDivision $tblDivision */
             foreach ($tblDivisionAll as &$tblDivision) {
-//                if (!$SetDescription) {
-//                    $Stage->setDescription('Übersicht '.$tblDivision->getServiceTblYear()->getName());
-//                    $SetDescription = true;
-//                }
-
                 $tblDivision->Year = $tblDivision->getServiceTblYear()->getName();
                 if ($tblDivision->getTblLevel()) {
                     $tblDivision->ClassGroup = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
@@ -164,23 +188,23 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->setContent(
 
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            (new Accordion())
-                                ->addItem('Übersicht auf ein bestimmtes Schuljahr setzen', new Well(
-                                    Division::useService()->selectYear(
-                                        $this->formYearSelect()
-                                            ->appendFormButton(new Primary('Auswählen'))
-                                        , $Year = null
-                                    )
-                                ), false)
-                        )
-                    )
-                )
-            )
-            .new Layout(array(
+//            new Layout(
+//                new LayoutGroup(
+//                    new LayoutRow(
+//                        new LayoutColumn(
+//                            (new Accordion())
+//                                ->addItem(new Info('Übersicht auf ein bestimmtes Schuljahr setzen'), new Well(
+//                                    Division::useService()->selectYear(
+//                                        $this->formYearSelect()
+//                                            ->appendFormButton(new Primary('Auswählen'))
+//                                        , $Year = null
+//                                    )
+//                                ), false), 6
+//                        )
+//                    )
+//                )
+//            ).
+            new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
@@ -285,28 +309,6 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 6),
                 )),
             ))
-        );
-    }
-
-    /**
-     * @return Form
-     */
-    public function formYearSelect()
-    {
-
-        $tblYearList = Term::useService()->getYearAll();
-        $tblYearList[] = new TblYear('');
-
-        return new Form(
-            new FormGroup(
-                new FormRow(
-                    new FormColumn(
-                        new SelectBox('Year', '', array(
-                            '{{ Name }} {{ Description }}' => $tblYearList
-                        ))
-                    )
-                )
-            )
         );
     }
 
