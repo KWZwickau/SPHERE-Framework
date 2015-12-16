@@ -43,6 +43,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -697,6 +698,14 @@ class Frontend extends Extension implements IFrontendInterface
                 , array('DivisionSubjectId' => $tblDivisionSubject->getId()))
         );
 
+        // ToDo JohK Notenbereich festlegen
+        $gradeMirror = array();
+        $mirror = array();
+        $count = 0;
+        for ($i = 1; $i <= 6; $i++) {
+            $mirror[$i] = 0;
+        }
+
         $gradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
         if ($gradeList) {
             $Global = $this->getGlobal();
@@ -705,9 +714,43 @@ class Frontend extends Extension implements IFrontendInterface
                 if (empty($Grade)) {
                     $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] = $grade->getGrade();
                     $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Comment'] = $grade->getComment();
+
+                    switch ($grade->getGrade()) {
+                        case 1:
+                            $mirror[$grade->getGrade()]++;
+                            $count++;
+                            break;
+                        case 2:
+                            $mirror[$grade->getGrade()]++;
+                            $count++;
+                            break;
+                        case 3:
+                            $mirror[$grade->getGrade()]++;
+                            $count++;
+                            break;
+                        case 4:
+                            $mirror[$grade->getGrade()]++;
+                            $count++;
+                            break;
+                        case 5:
+                            $mirror[$grade->getGrade()]++;
+                            $count++;
+                            break;
+                        case 6:
+                            $mirror[$grade->getGrade()]++;
+                            $count++;
+                            break;
+                    }
                 }
             }
             $Global->savePost();
+        }
+
+        for ($i = 1; $i <= 6; $i++) {
+            if (isset($mirror[$i])) {
+                $gradeMirror[] = 'Note ' . new Bold($i) . ': ' . $mirror[$i] .
+                    ($count > 0 ? ' (' . (($mirror[$i] / $count) * 100) . '%)' : '');
+            }
         }
 
         $tblDivision = $tblTest->getServiceTblDivision();
@@ -796,6 +839,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 Panel::PANEL_TYPE_INFO), 3
                         )
                     )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel(
+                                'Notenspiegel',
+                                $gradeMirror
+                            )
+                        )
+                    ))
                 )),
                 new LayoutGroup(array(
                     new LayoutRow(array(

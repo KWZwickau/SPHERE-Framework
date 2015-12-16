@@ -16,7 +16,6 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRul
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Setup;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -268,11 +267,6 @@ class Service extends AbstractService
         }
 
         $tblTest = Evaluation::useService()->getTestById($TestId);
-        $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-            $tblTest->getServiceTblDivision(),
-            $tblTest->getServiceTblSubject(),
-            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
-        );
 
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
@@ -302,8 +296,15 @@ class Service extends AbstractService
             }
         }
 
-        return new Redirect($BasicRoute . '/Selected', 0,
-            array('DivisionSubjectId' => $tblDivisionSubject->getId()));
+//        $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+//            $tblTest->getServiceTblDivision(),
+//            $tblTest->getServiceTblSubject(),
+//            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
+//        );
+//        return new Redirect($BasicRoute . '/Selected', 0,
+//            array('DivisionSubjectId' => $tblDivisionSubject->getId()));
+        return new Redirect($BasicRoute . '/Grade/Edit', 0,
+            array('Id' => $tblTest->getId()));
     }
 
     /**
