@@ -232,7 +232,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendListElementRemove($Id)
+    public function frontendListElementRemove($Id = null)
     {
 
         return CheckList::useService()->removeElementFromList($Id);
@@ -771,7 +771,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendListObjectRemove($Id)
+    public function frontendListObjectRemove($Id = null)
     {
 
         return CheckList::useService()->removeObjectFromList($Id);
@@ -783,7 +783,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $HasData
      * @return Stage
      */
-    public function frontendListObjectElementEdit($Id, $Data = null, $HasData = null)
+    public function frontendListObjectElementEdit($Id = null, $Data = null, $HasData = null)
     {
         $Stage = new Stage('Check-Listen', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));

@@ -487,7 +487,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @return Stage|string
      */
     public function frontendEditTest(
-        $Id,
+        $Id = null,
         $Test = null
     ) {
         $Stage = new Stage('Leistungsüberprüfung', 'Bearbeiten');
@@ -502,7 +502,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @return Stage|string
      */
     public function frontendHeadmasterEditTest(
-        $Id,
+        $Id = null,
         $Test = null
     ) {
         $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Bearbeiten');
@@ -615,7 +615,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @return Stage|string
      */
     public function frontendEditTestGrade(
-        $Id,
+        $Id = null,
         $Grade = null
     ) {
 
@@ -658,7 +658,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @return Stage|string
      */
     public function frontendHeadmasterEditTestGrade(
-        $Id,
+        $Id = null,
         $Grade = null
     ) {
 
@@ -876,6 +876,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param null $Task
      * @return Stage
      */
     public function frontendHeadmasterTaskAppointedDate($Task = null)

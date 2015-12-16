@@ -1267,7 +1267,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @return Stage
      */
     public function frontendScoreGroupGradeTypeRemove(
-        $Id
+        $Id = null
     ) {
         $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Typ von einer Zenuseren-Gruppe entfernen');
 
@@ -1422,7 +1422,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @return Stage
      */
     public function frontendScoreGroupRemove(
-        $Id
+        $Id = null
     ) {
         $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Gruppe von einer Berechnungsvorschrift entfernen');
 
