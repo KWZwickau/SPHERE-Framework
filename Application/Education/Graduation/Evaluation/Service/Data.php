@@ -99,6 +99,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblTestType $tblTestType
+     * @return bool|TblTest[]
+     */
+    public function getTestAllByTestType(TblTestType $tblTestType)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+            array(
+                TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
+            )
+        );
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblTestType

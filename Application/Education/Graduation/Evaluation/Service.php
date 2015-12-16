@@ -101,6 +101,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblTestType $tblTestType
+     * @return bool|TblTest[]
+     */
+    public function getTestAllByTestType(TblTestType $tblTestType)
+    {
+
+        return (new Data($this->getBinding()))->getTestAllByTestType($tblTestType);
+    }
+
+    /**
      * @param IFormInterface|null $Stage
      * @param null $DivisionSubjectId
      * @param null $Test
@@ -181,9 +191,21 @@ class Service extends AbstractService
             $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
         );
 
-
         return new Redirect($BasicRoute . '/Selected', 0,
             array('DivisionSubjectId' => $tblDivisionSubject->getId()));
+    }
+
+
+    public function createAppointedDateTask(IFormInterface $Stage = null, $Task){
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Task) {
+            return $Stage;
+        }
+
+
+        return $Stage;
     }
 
 }

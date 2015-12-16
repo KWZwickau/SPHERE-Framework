@@ -269,9 +269,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Subject' => $tblSubject->getName(),
                                 'SubjectGroup' => $item->getName(),
                                 'Option' => new Standard(
-                                    '', '/Education/Graduation/Evaluation/Headmaster/Test/Selected', new Select(), array(
-                                    'DivisionSubjectId' => $subValue
-                                ),
+                                    '', '/Education/Graduation/Evaluation/Headmaster/Test/Selected', new Select(),
+                                    array(
+                                        'DivisionSubjectId' => $subValue
+                                    ),
                                     'Auswählen'
                                 )
                             );
@@ -631,7 +632,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblPerson = $tblPersonAllByAccount[0];
                 }
             }
-            if (Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblTest->getServiceTblDivision(), $tblPerson)){
+            if (Division::useService()->getDivisionTeacherByDivisionAndTeacher($tblTest->getServiceTblDivision(),
+                $tblPerson)
+            ) {
                 $isEdit = true;
             } else {
                 $isEdit = false;
@@ -819,5 +822,66 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendHeadmasterTaskAppointedDate($Task = null)
+    {
+        $Stage = new Stage('Stichtagsnotenaufträge', 'Übersicht');
+
+        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTEDDATETASK');
+        $tblTaskAll = Evaluation::useService()->getTestAllByTestType($tblTestType);
+
+        $Form = new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new TextField('Test[Description]', '', 'Name'), 12
+                ),
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new DatePicker('Test[Date]', '', 'Datum', new Calendar()), 4
+                ),
+                new FormColumn(
+                    new DatePicker('Test[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), 4
+                ),
+                new FormColumn(
+                    new DatePicker('Test[ReturnDate]', '', 'R&uuml;ckgabedatum', new Calendar()), 4
+                ),
+            ))
+        )));
+        $Form
+            ->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                            new LayoutColumn(
+                                new TableData(
+                                    $tblTaskAll, null, array(
+                                        'Description' => 'Name',
+                                        'CorrectionDate' => 'von',
+                                        'ReturnDate' => 'bis',
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ), new Title(new ListingTable() . ' Übersicht')),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Well(Evaluation::useService()->createAppointedDateTask($Form, $Task))
+                        )
+                    ))
+                ), new Title(new PlusSign() . ' Hinzufügen'))
+            ))
+        );
+
+        return $Stage;
     }
 }

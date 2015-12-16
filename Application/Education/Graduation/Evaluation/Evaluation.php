@@ -33,6 +33,10 @@ class Evaluation implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__ . '\Headmaster\Test'), new Link\Name('Leistungsüberprüfung (Leitung)'),
                 new Link\Icon(new Document()))
         );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__ . '\Headmaster\Task\AppointedDate'), new Link\Name('Stichtagsnotenaufträge'),
+                new Link\Icon(new Document()))
+        );
 
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test',
@@ -70,6 +74,10 @@ class Evaluation implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Test\Grade\Edit',
                 __NAMESPACE__ . '\Frontend::frontendHeadmasterEditTestGrade')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Task\AppointedDate',
+                __NAMESPACE__ . '\Frontend::frontendHeadmasterTaskAppointedDate')
         );
 
     }
