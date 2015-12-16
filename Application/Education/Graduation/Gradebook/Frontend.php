@@ -122,6 +122,29 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    private function formGradeType()
+    {
+
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new TextField('GradeType[Name]', 'Leistungskontrolle', 'Name'), 9
+                ),
+                new FormColumn(
+                    new TextField('GradeType[Code]', 'LK', 'Abk&uuml;rzung'), 3
+                ),
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new TextField('GradeType[Description]', '', 'Beschreibung'), 12
+                ),
+                new FormColumn(
+                    new CheckBox('GradeType[IsHighlighted]', 'Fett markiert', 1), 2
+                )
+            )),
+        )));
+    }
+
     /**
      * @param null $Id
      * @param $GradeType
@@ -178,28 +201,6 @@ class Frontend extends Extension implements IFrontendInterface
             return new Stage('Zensuren-Typ nicht gefunden')
             . new Redirect('/Education/Graduation/Gradebook/GradeType', 2);
         }
-    }
-
-    private function formGradeType()
-    {
-        return new Form(new FormGroup(array(
-            new FormRow(array(
-                new FormColumn(
-                    new TextField('GradeType[Name]', 'Leistungskontrolle', 'Name'), 9
-                ),
-                new FormColumn(
-                    new TextField('GradeType[Code]', 'LK', 'Abk&uuml;rzung'), 3
-                ),
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new TextField('GradeType[Description]', '', 'Beschreibung'), 12
-                ),
-                new FormColumn(
-                    new CheckBox('GradeType[IsHighlighted]', 'Fett markiert', 1), 2
-                )
-            )),
-        )));
     }
 
     /**
@@ -487,35 +488,11 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $DivisionSubjectId
-     * @param null $ScoreConditionId
-     * @param null $Select
-     * @return Stage|string
-     */
-    public function frontendHeadmasterSelectedGradeBook(
-        $DivisionSubjectId = null,
-        $ScoreConditionId = null,
-        $Select = null
-    ) {
-        $Stage = new Stage('Notenbuch (Leitung)', 'Anzeigen');
-
-        if ($DivisionSubjectId === null || !($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-            return $Stage . new Warning('Notenbuch nicht gefunden.') . new Redirect('/Education/Graduation/Gradebook/Headmaster/Gradebook',
-                2);
-        }
-
-        $this->contentSelectedGradeBook($Stage, $tblDivisionSubject, $ScoreConditionId, $Select,
-            '/Education/Graduation/Gradebook/Headmaster/Gradebook');
-
-        return $Stage;
-    }
-
-    /**
-     * @param Stage $Stage
+     * @param Stage              $Stage
      * @param TblDivisionSubject $tblDivisionSubject
-     * @param $ScoreConditionId
-     * @param $Select
-     * @param string $BasicRoute
+     * @param                    $ScoreConditionId
+     * @param                    $Select
+     * @param string             $BasicRoute
      */
     private function contentSelectedGradeBook(
         Stage $Stage,
@@ -524,6 +501,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Select,
         $BasicRoute
     ) {
+
         $Stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft()));
 
         $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
@@ -627,7 +605,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $rowList[] = new LayoutRow($columnSecondList);
                 $rowList[] = new LayoutRow($columnList);
 
-                if (!empty($grades)) {
+                if (!empty( $grades )) {
                     foreach ($grades as $personId => $gradeList) {
                         $tblPerson = Person::useService()->getPersonById($personId);
                         $columnList = array();
@@ -641,12 +619,12 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                         );
                         $columnList[] = new LayoutColumn(
-                            new Container($tblPerson->getFirstName() . ' ' . $tblPerson->getLastName()
-                                . ' ' . new Bold('&#216; ' . $totalAverage))
+                            new Container($tblPerson->getFirstName().' '.$tblPerson->getLastName()
+                                .' '.new Bold('&#216; '.$totalAverage))
                             , 2);
                         foreach ($tblPeriodList as $tblPeriod) {
                             $columnSubList = array();
-                            if (isset($gradePositions[$tblPeriod->getId()])) {
+                            if (isset( $gradePositions[$tblPeriod->getId()] )) {
                                 foreach ($gradePositions[$tblPeriod->getId()] as $pos => $testId) {
                                     $hasFound = false;
                                     /** @var TblGrade $grade */
@@ -704,18 +682,18 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new Panel(
                                 'Fach-Klasse',
-                                'Klasse ' . $tblDivision->getTblLevel()->getName() . $tblDivision->getName() . ' - ' .
-                                $tblDivisionSubject->getServiceTblSubject()->getName() .
-                                ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
-                                    ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
+                                'Klasse '.$tblDivision->getTblLevel()->getName().$tblDivision->getName().' - '.
+                                $tblDivisionSubject->getServiceTblSubject()->getName().
+                                ( $tblDivisionSubject->getTblSubjectGroup() ? new Small(
+                                    ' (Gruppe: '.$tblDivisionSubject->getTblSubjectGroup()->getName().')') : '' ),
                                 Panel::PANEL_TYPE_INFO
                             )
                         ), $ScoreConditionId !== null ? 6 : 12),
-                        ($ScoreConditionId !== null ? new LayoutColumn(new Panel(
+                        ( $ScoreConditionId !== null ? new LayoutColumn(new Panel(
                             'Berechnungsvorschrift',
                             $tblScoreCondition->getName(),
                             Panel::PANEL_TYPE_INFO
-                        ), 6) : null),
+                        ), 6) : null ),
                         new LayoutColumn(array(
                             new Well(Gradebook::useService()->getGradeBook(
                                 new Form(new FormGroup(array(
@@ -734,8 +712,34 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                 ))
             ))
-            . ($ScoreConditionId !== null ? new Layout(new LayoutGroup($rowList)) : '')
+            .( $ScoreConditionId !== null ? new Layout(new LayoutGroup($rowList)) : '' )
         );
+    }
+
+    /**
+     * @param null $DivisionSubjectId
+     * @param null $ScoreConditionId
+     * @param null $Select
+     *
+     * @return Stage|string
+     */
+    public function frontendHeadmasterSelectedGradeBook(
+        $DivisionSubjectId = null,
+        $ScoreConditionId = null,
+        $Select = null
+    ) {
+
+        $Stage = new Stage('Notenbuch (Leitung)', 'Anzeigen');
+
+        if ($DivisionSubjectId === null || !( $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId) )) {
+            return $Stage.new Warning('Notenbuch nicht gefunden.').new Redirect('/Education/Graduation/Gradebook/Headmaster/Gradebook',
+                2);
+        }
+
+        $this->contentSelectedGradeBook($Stage, $tblDivisionSubject, $ScoreConditionId, $Select,
+            '/Education/Graduation/Gradebook/Headmaster/Gradebook');
+
+        return $Stage;
     }
 
     /**
@@ -1018,30 +1022,14 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $DivisionSubjectId
-     * @param null $Test
-     * @return Stage
-     */
-    public function frontendHeadmasterTestSelected(
-        $DivisionSubjectId = null,
-        $Test = null
-    ) {
-
-        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Übersicht');
-        $this->contentTestSelected($DivisionSubjectId, $Test, $Stage,
-            '/Education/Graduation/Gradebook/Headmaster/Test');
-
-        return $Stage;
-    }
-
-    /**
-     * @param $DivisionSubjectId
-     * @param $Test
-     * @param Stage $Stage
+     * @param        $DivisionSubjectId
+     * @param        $Test
+     * @param Stage  $Stage
      * @param string $BasicRoute
      */
     private function contentTestSelected($DivisionSubjectId, $Test, Stage $Stage, $BasicRoute)
     {
+
         $Stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft()));
 
         $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId);
@@ -1057,20 +1045,21 @@ class Frontend extends Extension implements IFrontendInterface
         );
         if ($tblTestList) {
             array_walk($tblTestList, function (TblTest &$tblTest) use (&$BasicRoute) {
+
                 $tblDivision = $tblTest->getServiceTblDivision();
                 if ($tblDivision) {
-                    $tblTest->Division = $tblDivision->getServiceTblYear()->getName() . ' - ' .
-                        $tblDivision->getTblLevel()->getServiceTblType()->getName() . ' - ' .
-                        $tblDivision->getTblLevel()->getName() . $tblDivision->getName();
+                    $tblTest->Division = $tblDivision->getServiceTblYear()->getName().' - '.
+                        $tblDivision->getTblLevel()->getServiceTblType()->getName().' - '.
+                        $tblDivision->getTblLevel()->getName().$tblDivision->getName();
                 } else {
                     $tblTest->Division = '';
                 }
                 $tblTest->Subject = $tblTest->getServiceTblSubject()->getName();
                 $tblTest->Period = $tblTest->getServiceTblPeriod()->getName();
                 $tblTest->GradeType = $tblTest->getTblGradeType()->getName();
-                $tblTest->Option = (new Standard('', $BasicRoute . '/Edit', new Pencil(),
+                $tblTest->Option = (new Standard('', $BasicRoute.'/Edit', new Pencil(),
                         array('Id' => $tblTest->getId()), 'Bearbeiten'))
-                    . (new Standard('', $BasicRoute . '/Grade/Edit', new Listing(),
+                    .(new Standard('', $BasicRoute.'/Grade/Edit', new Listing(),
                         array('Id' => $tblTest->getId()), 'Zensuren bearbeiten'));
             });
         } else {
@@ -1088,10 +1077,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new Panel(
                                 'Fach-Klasse',
-                                'Klasse ' . $tblDivision->getTblLevel()->getName() . $tblDivision->getName() . ' - ' .
-                                $tblDivisionSubject->getServiceTblSubject()->getName() .
-                                ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
-                                    ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
+                                'Klasse '.$tblDivision->getTblLevel()->getName().$tblDivision->getName().' - '.
+                                $tblDivisionSubject->getServiceTblSubject()->getName().
+                                ( $tblDivisionSubject->getTblSubjectGroup() ? new Small(
+                                    ' (Gruppe: '.$tblDivisionSubject->getTblSubjectGroup()->getName().')') : '' ),
                                 Panel::PANEL_TYPE_INFO
                             )
                         ))
@@ -1101,19 +1090,19 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new TableData($tblTestList, null, array(
-                                'Division' => 'Klasse',
-                                'Subject' => 'Fach',
-                                'Period' => 'Zeitraum',
-                                'GradeType' => 'Zensuren-Typ',
-                                'Description' => 'Beschreibung',
-                                'Date' => 'Datum',
+                                'Division'       => 'Klasse',
+                                'Subject'        => 'Fach',
+                                'Period'         => 'Zeitraum',
+                                'GradeType'      => 'Zensuren-Typ',
+                                'Description'    => 'Beschreibung',
+                                'Date'           => 'Datum',
                                 'CorrectionDate' => 'Korrekturdatum',
-                                'ReturnDate' => 'R&uuml;ckgabedatum',
-                                'Option' => ''
+                                'ReturnDate'     => 'R&uuml;ckgabedatum',
+                                'Option'         => ''
                             ))
                         ))
                     ))
-                ), new Title(new ListingTable() . ' Übersicht')),
+                ), new Title(new ListingTable().' Übersicht')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
@@ -1121,7 +1110,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $Test, $BasicRoute))
                         ))
                     ))
-                ), new Title(new PlusSign() . ' Hinzufügen'))
+                ), new Title(new PlusSign().' Hinzufügen'))
             ))
         );
     }
@@ -1131,6 +1120,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function formTest()
     {
+
         $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllWhereTest();
         $tblPeriodList = Term::useService()->getPeriodAll();
 
@@ -1163,6 +1153,24 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param null $DivisionSubjectId
+     * @param null $Test
+     *
+     * @return Stage
+     */
+    public function frontendHeadmasterTestSelected(
+        $DivisionSubjectId = null,
+        $Test = null
+    ) {
+
+        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Übersicht');
+        $this->contentTestSelected($DivisionSubjectId, $Test, $Stage,
+            '/Education/Graduation/Gradebook/Headmaster/Test');
+
+        return $Stage;
+    }
+
+    /**
      * @param $Id
      * @param $Test
      *
@@ -1178,29 +1186,16 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
-     * @param $Test
-     *
-     * @return Stage|string
-     */
-    public function frontendHeadmasterEditTest(
-        $Id,
-        $Test = null
-    ) {
-        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Bearbeiten');
-
-        return $this->contentEditTest($Stage, $Id, $Test, '/Education/Graduation/Gradebook/Headmaster/Test');
-    }
-
-    /**
-     * @param Stage $Stage
+     * @param Stage  $Stage
      * @param $Id
      * @param $Test
      * @param string $BasicRoute
+     *
      * @return string
      */
     private function contentEditTest(Stage $Stage, $Id, $Test, $BasicRoute)
     {
+
         $tblTest = Gradebook::useService()->getTestById($Id);
         if ($tblTest) {
             $Global = $this->getGlobal();
@@ -1219,7 +1214,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
 
             $Stage->addButton(
-                new Standard('Zur&uuml;ck', $BasicRoute . '/Selected', new ChevronLeft()
+                new Standard('Zur&uuml;ck', $BasicRoute.'/Selected', new ChevronLeft()
                     , array('DivisionSubjectId' => $tblDivisionSubject->getId()))
             );
 
@@ -1254,10 +1249,10 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel(
                                     'Fach-Klasse',
-                                    'Klasse ' . $tblDivision->getTblLevel()->getName() . $tblDivision->getName() . ' - ' .
-                                    $tblTest->getServiceTblSubject()->getName() .
-                                    ($tblTest->getServiceTblSubjectGroup() ? new Small(
-                                        ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : ''),
+                                    'Klasse '.$tblDivision->getTblLevel()->getName().$tblDivision->getName().' - '.
+                                    $tblTest->getServiceTblSubject()->getName().
+                                    ( $tblTest->getServiceTblSubjectGroup() ? new Small(
+                                        ' (Gruppe: '.$tblTest->getServiceTblSubjectGroup()->getName().')') : '' ),
                                     Panel::PANEL_TYPE_INFO
                                 ), 6
                             ),
@@ -1278,7 +1273,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $BasicRoute))
                             )
                         ))
-                    ), new Title(new Edit() . ' Bearbeiten'))
+                    ), new Title(new Edit().' Bearbeiten'))
                 ))
             );
 
@@ -1286,8 +1281,24 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
 
             return new Warning('Test nicht gefunden')
-            . new Redirect($BasicRoute, 2);
+            .new Redirect($BasicRoute, 2);
         }
+    }
+
+    /**
+     * @param $Id
+     * @param $Test
+     *
+     * @return Stage|string
+     */
+    public function frontendHeadmasterEditTest(
+        $Id,
+        $Test = null
+    ) {
+
+        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Bearbeiten');
+
+        return $this->contentEditTest($Stage, $Id, $Test, '/Education/Graduation/Gradebook/Headmaster/Test');
     }
 
     /**
@@ -1332,41 +1343,15 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
-     * @param $Grade
-     *
-     * @return Stage|string
-     */
-    public function frontendHeadmasterEditTestGrade(
-        $Id,
-        $Grade = null
-    ) {
-
-        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren bearbeiten');
-
-        $tblTest = Gradebook::useService()->getTestById($Id);
-        if ($tblTest) {
-
-            $this->contentEditTestGrade($Stage, $tblTest, $Grade, '/Education/Graduation/Gradebook/Headmaster/Test',
-                true);
-
-            return $Stage;
-        } else {
-
-            return new Warning('Test nicht gefunden')
-            . new Redirect('/Education/Graduation/Gradebook/Headmaster/Test', 2);
-        }
-    }
-
-    /**
-     * @param Stage $Stage
+     * @param Stage   $Stage
      * @param TblTest $tblTest
      * @param $Grade
-     * @param string $BasicRoute
-     * @param bool $IsEdit
+     * @param string  $BasicRoute
+     * @param bool    $IsEdit
      */
     private function contentEditTestGrade(Stage $Stage, TblTest $tblTest, $Grade, $BasicRoute, $IsEdit = false)
     {
+
         $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
             $tblTest->getServiceTblDivision(),
             $tblTest->getServiceTblSubject(),
@@ -1374,7 +1359,7 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $Stage->addButton(
-            new Standard('Zur&uuml;ck', $BasicRoute . '/Selected', new ChevronLeft()
+            new Standard('Zur&uuml;ck', $BasicRoute.'/Selected', new ChevronLeft()
                 , array('DivisionSubjectId' => $tblDivisionSubject->getId()))
         );
 
@@ -1383,7 +1368,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global = $this->getGlobal();
             /** @var TblGrade $grade */
             foreach ($gradeList as $grade) {
-                if (empty($Grade)) {
+                if (empty( $Grade )) {
                     $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] = $grade->getGrade();
                     $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Comment'] = $grade->getComment();
                 }
@@ -1399,29 +1384,29 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblSubjectStudentAllByDivisionSubject) {
                 foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
                     $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Name']
-                        = $tblSubjectStudent->getServiceTblPerson()->getFirstName() . ' '
-                        . $tblSubjectStudent->getServiceTblPerson()->getLastName();
+                        = $tblSubjectStudent->getServiceTblPerson()->getFirstName().' '
+                        .$tblSubjectStudent->getServiceTblPerson()->getLastName();
                     $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Grade']
-                        = new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Grade]',
+                        = new TextField('Grade['.$tblSubjectStudent->getServiceTblPerson()->getId().'][Grade]',
                         '', '');
                     $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Comment']
-                        = new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Comment]',
+                        = new TextField('Grade['.$tblSubjectStudent->getServiceTblPerson()->getId().'][Comment]',
                         '', '', new Comment());
                     $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                         $tblSubjectStudent->getServiceTblPerson());
                     if (!$IsEdit && $tblGrade) {
                         $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Grade']
-                            = (new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Grade]',
+                            = (new TextField('Grade['.$tblSubjectStudent->getServiceTblPerson()->getId().'][Grade]',
                             '', ''))->setDisabled();
                         $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Comment']
-                            = (new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Comment]',
+                            = (new TextField('Grade['.$tblSubjectStudent->getServiceTblPerson()->getId().'][Comment]',
                             '', '', new Comment()))->setDisabled();
                     } else {
                         $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Grade']
-                            = (new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Grade]',
+                            = (new TextField('Grade['.$tblSubjectStudent->getServiceTblPerson()->getId().'][Grade]',
                             '', ''));
                         $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Comment']
-                            = (new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Comment]',
+                            = (new TextField('Grade['.$tblSubjectStudent->getServiceTblPerson()->getId().'][Comment]',
                             '', '', new Comment()));
                     }
                 }
@@ -1431,23 +1416,23 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblDivisionStudentAll) {
                 foreach ($tblDivisionStudentAll as $tblDivisionStudent) {
                     $student[$tblDivisionStudent->getId()]['Name']
-                        = $tblDivisionStudent->getFirstName() . ' '
-                        . $tblDivisionStudent->getLastName();
+                        = $tblDivisionStudent->getFirstName().' '
+                        .$tblDivisionStudent->getLastName();
                     $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                         $tblDivisionStudent);
-                    if ($tblGrade) {
+                    if (!$IsEdit && $tblGrade) {
                         $student[$tblDivisionStudent->getId()]['Grade']
-                            = (new TextField('Grade[' . $tblDivisionStudent->getId() . '][Grade]',
+                            = (new TextField('Grade['.$tblDivisionStudent->getId().'][Grade]',
                             '', ''))->setDisabled();
                         $student[$tblDivisionStudent->getId()]['Comment']
-                            = (new TextField('Grade[' . $tblDivisionStudent->getId() . '][Comment]',
+                            = (new TextField('Grade['.$tblDivisionStudent->getId().'][Comment]',
                             '', '', new Comment()))->setDisabled();
                     } else {
                         $student[$tblDivisionStudent->getId()]['Grade']
-                            = new TextField('Grade[' . $tblDivisionStudent->getId() . '][Grade]',
+                            = new TextField('Grade['.$tblDivisionStudent->getId().'][Grade]',
                             '', '');
                         $student[$tblDivisionStudent->getId()]['Comment']
-                            = new TextField('Grade[' . $tblDivisionStudent->getId() . '][Comment]',
+                            = new TextField('Grade['.$tblDivisionStudent->getId().'][Comment]',
                             '', '', new Comment());
                     }
                 }
@@ -1461,10 +1446,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel(
                                 'Fach-Klasse',
-                                'Klasse ' . $tblDivision->getTblLevel()->getName() . $tblDivision->getName() . ' - ' .
-                                $tblTest->getServiceTblSubject()->getName() .
-                                ($tblTest->getServiceTblSubjectGroup() ? new Small(
-                                    ' (Gruppe: ' . $tblTest->getServiceTblSubjectGroup()->getName() . ')') : ''),
+                                'Klasse '.$tblDivision->getTblLevel()->getName().$tblDivision->getName().' - '.
+                                $tblTest->getServiceTblSubject()->getName().
+                                ( $tblTest->getServiceTblSubjectGroup() ? new Small(
+                                    ' (Gruppe: '.$tblTest->getServiceTblSubjectGroup()->getName().')') : '' ),
                                 Panel::PANEL_TYPE_INFO
                             ), 6
                         ),
@@ -1488,8 +1473,8 @@ class Frontend extends Extension implements IFrontendInterface
                                             new FormColumn(
                                                 new TableData(
                                                     $student, null, array(
-                                                    'Name' => 'Schüler',
-                                                    'Grade' => 'Zensur',
+                                                    'Name'    => 'Schüler',
+                                                    'Grade'   => 'Zensur',
                                                     'Comment' => 'Kommentar'
                                                 ), null)
                                             )
@@ -1503,6 +1488,33 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
+    }
+
+    /**
+     * @param $Id
+     * @param $Grade
+     *
+     * @return Stage|string
+     */
+    public function frontendHeadmasterEditTestGrade(
+        $Id,
+        $Grade = null
+    ) {
+
+        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren bearbeiten');
+
+        $tblTest = Gradebook::useService()->getTestById($Id);
+        if ($tblTest) {
+
+            $this->contentEditTestGrade($Stage, $tblTest, $Grade, '/Education/Graduation/Gradebook/Headmaster/Test',
+                true);
+
+            return $Stage;
+        } else {
+
+            return new Warning('Test nicht gefunden')
+            .new Redirect('/Education/Graduation/Gradebook/Headmaster/Test', 2);
+        }
     }
 
     /**
