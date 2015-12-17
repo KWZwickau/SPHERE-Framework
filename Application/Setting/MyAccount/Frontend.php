@@ -1,10 +1,22 @@
 <?php
 namespace SPHERE\Application\Setting\MyAccount;
 
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblToCompany as TblToCompanyMail;
+use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Contact\Phone\Service\Entity\TblToCompany as TblToCompanyPhone;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
+use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
+use SPHERE\Application\Setting\Consumer\School\School;
+use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
+use SPHERE\Application\Setting\Consumer\SponsorAssociation\Service\Entity\TblSponsorAssociation;
+use SPHERE\Application\Setting\Consumer\SponsorAssociation\SponsorAssociation;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -12,12 +24,14 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -79,6 +93,8 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param int $Consumer
+     *
      * @return Stage
      */
     public static function frontendSelectConsumer()
@@ -147,17 +163,17 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Person = new Panel('Informationen zur Person',
-            (!empty($tblPersonAll) ? new Listing($tblPersonAll) : new Danger(new Exclamation() . new Small(' Keine Person angeben')))
+            ( !empty( $tblPersonAll ) ? new Listing($tblPersonAll) : new Danger(new Exclamation().new Small(' Keine Person angeben')) )
         );
 
         $Authentication = new Panel('Authentication',
-            ($tblAccount->getServiceTblIdentification() ? $tblAccount->getServiceTblIdentification()->getDescription() : '')
+            ( $tblAccount->getServiceTblIdentification() ? $tblAccount->getServiceTblIdentification()->getDescription() : '' )
         );
 
         $Authorization = new Panel('Berechtigungen',
-            (!empty($tblAuthorizationAll)
+            ( !empty( $tblAuthorizationAll )
                 ? $tblAuthorizationAll
-                : array(new Danger(new Exclamation() . new Small(' Keine Berechtigungen vergeben')))
+                : array(new Danger(new Exclamation().new Small(' Keine Berechtigungen vergeben')))
             )
         );
 
@@ -165,7 +181,7 @@ class Frontend extends Extension implements IFrontendInterface
             array(
                 $tblAccount->getServiceTblToken()
                     ? substr($tblAccount->getServiceTblToken()->getSerial(), 0,
-                        4) . ' ' . substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
+                        4).' '.substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
                     : new Muted(new Small('Kein Hardware-Schlüssel vergeben'))
             )
         );
@@ -177,7 +193,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Token,
         );
 
-        if (empty($Setting)) {
+        if (empty( $Setting )) {
             $Global = $this->getGlobal();
             $SettingSurface = MyAccount::useService()->getSettingByAccount($tblAccount, 'Surface');
             if ($SettingSurface) {
@@ -205,7 +221,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                             array(1 => 'Webseite', 2 => 'Anwendung')
                                                         ),
                                                     )
-                                                    , Panel::PANEL_TYPE_DEFAULT),
+                                                    , Panel::PANEL_TYPE_INFO),
 //                                                new Panel(
 //                                                    'Statistik', array(
 //                                                        '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>',
@@ -220,23 +236,22 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new Title('Profil', 'Informationen'),
                             new Panel(
-                                'Benutzerkonto: ' . new Bold($tblAccount->getUsername()), $Account
-                                , Panel::PANEL_TYPE_DEFAULT,
-                                new Standard('Mein Passwort ändern', new Route(__NAMESPACE__ . '/Password'), new Key())
+                                'Benutzerkonto: '.new Bold($tblAccount->getUsername()), $Account
+                                , Panel::PANEL_TYPE_INFO,
+                                new Standard('Mein Passwort ändern', new Route(__NAMESPACE__.'/Password'), new Key())
                             )
                         ), 4),
                         new LayoutColumn(array(
-                            new Title('Mandant (Schulträger)', 'Informationen'),
+                            new Title('Kontaktdaten', 'Informationen'),
                             new Panel(
-                                $tblAccount->getServiceTblConsumer()->getName() . ' [' . $tblAccount->getServiceTblConsumer()->getAcronym() . ']',
+                                $tblAccount->getServiceTblConsumer()->getName().' ['.$tblAccount->getServiceTblConsumer()->getAcronym().']',
                                 array(
-                                    // TODO: Anzeigen von Schulen, Schulträger, Vörderverein
-                                    // TODO: Anzeigen von zugehörigen Adressen, Telefonnummern, Personen
-//                                    'TODO: Anzeigen von Schulen, Schulträger, Vörderverein',
-//                                    'TODO: Anzeigen von zugehörigen Adressen, Telefonnummern, Personen'
+                                    new Container(implode($this->listingSchool()))
+                                    .new Container(implode($this->listingResponsibility()))
+                                    .new Container(implode($this->listingSponsorAssociation()))
                                 )
-                                , Panel::PANEL_TYPE_DEFAULT,
-                                new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__ . '/Consumer'))
+                                , Panel::PANEL_TYPE_INFO,
+                                new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
                             )
                         ), 4),
                     ))
@@ -245,5 +260,151 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    private function listingSchool()
+    {
+
+        $tblSchoolAll = School::useService()->getSchoolAll();
+        $Result = array();
+        if ($tblSchoolAll) {
+            array_walk($tblSchoolAll, function (TblSchool $tblSchool) use (&$Result) {
+
+                $List = array();
+
+                $tblCompany = $tblSchool->getServiceTblCompany();
+
+                $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
+                if ($tblAddressAll) {
+                    array_walk($tblAddressAll, function (TblToCompany $tblToCompany) use (&$List) {
+
+                        if ($tblToCompany->getTblType()->getId() == 1) // TODO: Find 'Hauptadresse' by Identifier
+                        {
+                            $tblAddress = $tblToCompany->getTblAddress();
+                            $List[] = $tblAddress->getGuiLayout();
+                        }
+                    });
+                }
+                $tblPhoneAll = Phone::useService()->getPhoneAllByCompany($tblCompany);
+                if ($tblPhoneAll) {
+                    array_walk($tblPhoneAll, function (TblToCompanyPhone $tblToCompany) use (&$List) {
+
+                        $tblPhone = $tblToCompany->getTblPhone();
+                        $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblPhone->getNumber();
+                    });
+                }
+                $tblMailAll = Mail::useService()->getMailAllByCompany($tblCompany);
+                if ($tblMailAll) {
+                    array_walk($tblMailAll, function (TblToCompanyMail $tblToCompany) use (&$List) {
+
+                        $tblMail = $tblToCompany->getTblMail();
+                        $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblMail->getAddress();
+                    });
+                }
+                $Result[] = new Panel(
+                    new Bold($tblSchool->getServiceTblType()->getName()).' - '.$tblCompany->getName().' '.$tblCompany->getDescription(),
+                    $List,
+                    Panel::PANEL_TYPE_DEFAULT
+                );
+            });
+        }
+        return $Result;
+    }
+
+    private function listingResponsibility()
+    {
+
+        $tblResponsibilityAll = Responsibility::useService()->getResponsibilityAll();
+        $Result = array();
+        if ($tblResponsibilityAll) {
+            array_walk($tblResponsibilityAll, function (TblResponsibility $tblResponsibility) use (&$Result) {
+
+                $List = array();
+
+                $tblCompany = $tblResponsibility->getServiceTblCompany();
+
+                $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
+                if ($tblAddressAll) {
+                    array_walk($tblAddressAll, function (TblToCompany $tblToCompany) use (&$List) {
+
+                        if ($tblToCompany->getTblType()->getId() == 1) // TODO: Find 'Hauptadresse' by Identifier
+                        {
+                            $tblAddress = $tblToCompany->getTblAddress();
+                            $List[] = $tblAddress->getGuiLayout();
+                        }
+                    });
+                }
+                $tblPhoneAll = Phone::useService()->getPhoneAllByCompany($tblCompany);
+                if ($tblPhoneAll) {
+                    array_walk($tblPhoneAll, function (TblToCompanyPhone $tblToCompany) use (&$List) {
+
+                        $tblPhone = $tblToCompany->getTblPhone();
+                        $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblPhone->getNumber();
+                    });
+                }
+                $tblMailAll = Mail::useService()->getMailAllByCompany($tblCompany);
+                if ($tblMailAll) {
+                    array_walk($tblMailAll, function (TblToCompanyMail $tblToCompany) use (&$List) {
+
+                        $tblMail = $tblToCompany->getTblMail();
+                        $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblMail->getAddress();
+                    });
+                }
+                $Result[] = new Panel(
+                    new Bold('Schulträger: ').$tblCompany->getName().' '.$tblCompany->getDescription(), $List,
+                    Panel::PANEL_TYPE_DEFAULT
+                );
+            });
+        }
+        return $Result;
+    }
+
+    private function listingSponsorAssociation()
+    {
+
+        $tblSponsorAssociationAll = SponsorAssociation::useService()->getSponsorAssociationAll();
+        $Result = array();
+        if ($tblSponsorAssociationAll) {
+            array_walk($tblSponsorAssociationAll,
+                function (TblSponsorAssociation $tblSponsorAssociation) use (&$Result) {
+
+                    $List = array();
+
+                    $tblCompany = $tblSponsorAssociation->getServiceTblCompany();
+
+                    $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
+                    if ($tblAddressAll) {
+                        array_walk($tblAddressAll, function (TblToCompany $tblToCompany) use (&$List) {
+
+                            if ($tblToCompany->getTblType()->getId() == 1) // TODO: Find 'Hauptadresse' by Identifier
+                            {
+                                $tblAddress = $tblToCompany->getTblAddress();
+                                $List[] = $tblAddress->getGuiLayout();
+                            }
+                        });
+                    }
+                    $tblPhoneAll = Phone::useService()->getPhoneAllByCompany($tblCompany);
+                    if ($tblPhoneAll) {
+                        array_walk($tblPhoneAll, function (TblToCompanyPhone $tblToCompany) use (&$List) {
+
+                            $tblPhone = $tblToCompany->getTblPhone();
+                            $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblPhone->getNumber();
+                        });
+                    }
+                    $tblMailAll = Mail::useService()->getMailAllByCompany($tblCompany);
+                    if ($tblMailAll) {
+                        array_walk($tblMailAll, function (TblToCompanyMail $tblToCompany) use (&$List) {
+
+                            $tblMail = $tblToCompany->getTblMail();
+                            $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblMail->getAddress();
+                        });
+                    }
+                    $Result[] = new Panel(
+                        new Bold('Förderverein: ').$tblCompany->getName().' '.$tblCompany->getDescription(), $List,
+                        Panel::PANEL_TYPE_DEFAULT
+                    );
+                });
+        }
+        return $Result;
     }
 }

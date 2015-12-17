@@ -93,15 +93,16 @@ class Extension
     }
 
     /**
-     * @param string $FileKey Key-Name in $_FILES
-     * @param string $Location Storage-Directory
+     * @param string $FileKey   Key-Name in $_FILES
+     * @param string $Location  Storage-Directory
+     * @param bool   $Overwrite File in Storage-Directory
      *
      * @return Upload
      */
-    public function getUpload($FileKey, $Location)
+    public function getUpload($FileKey, $Location, $Overwrite = false)
     {
 
-        return new Upload($FileKey, $Location);
+        return new Upload($FileKey, $Location, $Overwrite);
     }
 
     /**
