@@ -14,8 +14,10 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -712,7 +714,12 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblGrade $grade */
             foreach ($gradeList as $grade) {
                 if (empty($Grade)) {
-                    $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] = $grade->getGrade();
+
+                    if ($grade->getGrade() === null){
+                        $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Attendance'] = 1;
+                    } else {
+                        $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] = $grade->getGrade();
+                    }
                     $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Comment'] = $grade->getComment();
 
                     switch ($grade->getGrade()) {
@@ -760,58 +767,30 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSubjectStudentAllByDivisionSubject = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
             if ($tblSubjectStudentAllByDivisionSubject) {
                 foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
-                    $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Name']
-                        = $tblSubjectStudent->getServiceTblPerson()->getFirstName() . ' '
-                        . $tblSubjectStudent->getServiceTblPerson()->getLastName();
-                    $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Grade']
-                        = new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Grade]',
-                        '', '');
-                    $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Comment']
-                        = new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Comment]',
-                        '', '', new Comment());
+
+                    $tblPerson = $tblSubjectStudent->getServiceTblPerson();
+
+                    $student[$tblPerson->getId()]['Name']
+                        = $tblPerson->getFirstName() . ' '
+                        . $tblPerson->getLastName();
                     $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
-                        $tblSubjectStudent->getServiceTblPerson());
-                    if (!$IsEdit && $tblGrade) {
-                        $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Grade']
-                            = (new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Grade]',
-                            '', ''))->setDisabled();
-                        $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Comment']
-                            = (new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Comment]',
-                            '', '', new Comment()))->setDisabled();
-                    } else {
-                        $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Grade']
-                            = (new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Grade]',
-                            '', ''));
-                        $student[$tblSubjectStudent->getServiceTblPerson()->getId()]['Comment']
-                            = (new TextField('Grade[' . $tblSubjectStudent->getServiceTblPerson()->getId() . '][Comment]',
-                            '', '', new Comment()));
-                    }
+                        $tblPerson);
+
+                    $student = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $student);
                 }
             }
         } else {
             $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
             if ($tblDivisionStudentAll) {
-                foreach ($tblDivisionStudentAll as $tblDivisionStudent) {
-                    $student[$tblDivisionStudent->getId()]['Name']
-                        = $tblDivisionStudent->getFirstName() . ' '
-                        . $tblDivisionStudent->getLastName();
+                foreach ($tblDivisionStudentAll as $tblPerson) {
+
+                    $student[$tblPerson->getId()]['Name']
+                        = $tblPerson->getFirstName() . ' '
+                        . $tblPerson->getLastName();
                     $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
-                        $tblDivisionStudent);
-                    if ($tblGrade) {
-                        $student[$tblDivisionStudent->getId()]['Grade']
-                            = (new TextField('Grade[' . $tblDivisionStudent->getId() . '][Grade]',
-                            '', ''))->setDisabled();
-                        $student[$tblDivisionStudent->getId()]['Comment']
-                            = (new TextField('Grade[' . $tblDivisionStudent->getId() . '][Comment]',
-                            '', '', new Comment()))->setDisabled();
-                    } else {
-                        $student[$tblDivisionStudent->getId()]['Grade']
-                            = new TextField('Grade[' . $tblDivisionStudent->getId() . '][Grade]',
-                            '', '');
-                        $student[$tblDivisionStudent->getId()]['Comment']
-                            = new TextField('Grade[' . $tblDivisionStudent->getId() . '][Comment]',
-                            '', '', new Comment());
-                    }
+                        $tblPerson);
+
+                    $student = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $student);
                 }
             }
         }
@@ -860,7 +839,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $student, null, array(
                                                     'Name' => 'Schüler',
                                                     'Grade' => 'Zensur',
-                                                    'Comment' => 'Kommentar'
+                                                    'Comment' => 'Kommentar',
+                                                    'Attendance' => 'Nicht teilgenommen'
                                                 ), null)
                                             )
                                         ),
@@ -873,6 +853,40 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $tblGrade
+     * @param $IsEdit
+     * @param $student
+     * @return mixed
+     */
+    private function contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $student)
+    {
+        if (!$IsEdit && $tblGrade) {
+            $student[$tblPerson->getId()]['Grade']
+                = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]',
+                '', ''))->setDisabled();
+            $student[$tblPerson->getId()]['Comment']
+                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]',
+                '', '', new Comment()))->setDisabled();
+            $student[$tblPerson->getId()]['Attendance'] =
+                (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]',
+                    ' ', 1))->setDisabled();;
+            return $student;
+        } else {
+            $student[$tblPerson->getId()]['Grade']
+                = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]',
+                '', ''));
+            $student[$tblPerson->getId()]['Comment']
+                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]',
+                '', '', new Comment()));
+            $student[$tblPerson->getId()]['Attendance']
+                = new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]',
+                ' ', 1);
+            return $student;
+        }
     }
 
     /**
@@ -936,4 +950,5 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
+
 }

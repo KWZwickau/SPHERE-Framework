@@ -272,7 +272,20 @@ class Service extends AbstractService
             foreach ($Grade as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
                 if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))) {
-                    if (trim($value['Grade']) !== '') {
+                    if (isset($value['Attendance'])) {
+                        (new Data($this->getBinding()))->createGrade(
+                            $tblPerson,
+                            $tblTest->getServiceTblDivision(),
+                            $tblTest->getServiceTblSubject(),
+                            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null,
+                            $tblTest->getServiceTblPeriod(),
+                            $tblTest->getServiceTblGradeType(),
+                            $tblTest,
+                            $tblTest->getTblTestType(),
+                            null,
+                            trim($value['Comment'])
+                        );
+                    } elseif (trim($value['Grade']) !== '') {
                         (new Data($this->getBinding()))->createGrade(
                             $tblPerson,
                             $tblTest->getServiceTblDivision(),
@@ -287,11 +300,19 @@ class Service extends AbstractService
                         );
                     }
                 } elseif ($IsEdit && $tblGrade) {
-                    (new Data($this->getBinding()))->updateGrade(
-                        $tblGrade,
-                        trim($value['Grade']),
-                        trim($value['Comment'])
-                    );
+                    if (isset($value['Attendance'])){
+                        (new Data($this->getBinding()))->updateGrade(
+                            $tblGrade,
+                            null,
+                            trim($value['Comment'])
+                        );
+                    } else {
+                        (new Data($this->getBinding()))->updateGrade(
+                            $tblGrade,
+                            trim($value['Grade']),
+                            trim($value['Comment'])
+                        );
+                    }
                 }
             }
         }
