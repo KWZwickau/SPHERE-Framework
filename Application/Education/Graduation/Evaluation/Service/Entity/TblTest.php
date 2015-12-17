@@ -36,6 +36,7 @@ class TblTest extends Element
     const ATTR_CORRECTION_DATE = 'CorrectionDate';
     const ATTR_RETURN_DATE = 'ReturnDate';
     const ATTR_TBL_TEST_TYPE = 'tblTestType';
+    const ATTR_TBL_TASK = 'tblTask';
     const ATTR_SERVICE_TBL_GRADE_TYPE = 'serviceTblGradeType';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
@@ -72,6 +73,11 @@ class TblTest extends Element
      * @Column(type="bigint")
      */
     protected $tblTestType;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblTask;
 
     /**
      * @Column(type="bigint")
@@ -316,5 +322,25 @@ class TblTest extends Element
     public function setTblTestType($tblTestType)
     {
         $this->tblTestType = (null === $tblTestType ? null : $tblTestType->getId());
+    }
+
+    /**
+     * @return bool|TblTask
+     */
+    public function getTblTask()
+    {
+        if (null === $this->tblTask) {
+            return false;
+        } else {
+            return Evaluation::useService()->getTaskById($this->tblTask);
+        }
+    }
+
+    /**
+     * @param TblTask|null $tblTask
+     */
+    public function setTblTask($tblTask)
+    {
+        $this->tblTask = (null === $tblTask ? null : $tblTask->getId());
     }
 }

@@ -46,6 +46,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -395,12 +396,12 @@ class Frontend extends Extension implements IFrontendInterface
                         array('Id' => $tblTest->getId()), 'Zensuren bearbeiten'));
 
                 $tblGradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
-                if ($tblGradeList){
+                if ($tblGradeList) {
                     $countGrades = count($tblGradeList);
                 } else {
                     $countGrades = 0;
                 }
-                if ($tblTest->getServiceTblSubjectGroup()){
+                if ($tblTest->getServiceTblSubjectGroup()) {
                     $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
                         $tblTest->getServiceTblDivision(),
                         $tblTest->getServiceTblSubject(),
@@ -737,7 +738,7 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($gradeList as $grade) {
                 if (empty($Grade)) {
 
-                    if ($grade->getGrade() === null){
+                    if ($grade->getGrade() === null) {
                         $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Attendance'] = 1;
                     } else {
                         $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] = $grade->getGrade();
@@ -921,23 +922,27 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Stichtagsnotenaufträge', 'Übersicht');
 
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
-        $tblTaskAll = Evaluation::useService()->getTestAllByTestType($tblTestType);
+        $tblTaskAll = Evaluation::useService()->getTaskAllByTestType($tblTestType);
 
-        $Form = new Form(new FormGroup(array(
-            new FormRow(array(
-                new FormColumn(
-                    new TextField('Task[Description]', '', 'Name'), 12
-                ),
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new DatePicker('Task[CorrectionDate]', '', 'Zeitraum von', new Calendar()), 6
-                ),
-                new FormColumn(
-                    new DatePicker('Task[ReturnDate]', '', 'Zeitraum bis', new Calendar()), 6
-                ),
-            ))
-        )));
+        if ($tblTaskAll) {
+            foreach ($tblTaskAll as $tblTask) {
+                $tblTask->Period = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
+                $tblTask->Option =
+                    (new Standard('',
+                        '/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate/Edit',
+                        new Edit(),
+                        array('Id' => $tblTask->getId()),
+                        'Bearbeiten'))
+                    . (new Standard('',
+                        '/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate/Division',
+                        new Listing(),
+                        array('Id' => $tblTask->getId()),
+                        'Klassen auswählen')
+                    );
+            }
+        }
+
+        $Form = ($this->formTask());
         $Form
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -949,9 +954,10 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new TableData(
                                     $tblTaskAll, null, array(
-                                        'Description' => 'Name',
-                                        'CorrectionDate' => 'von',
-                                        'ReturnDate' => 'bis',
+                                        'Name' => 'Name',
+                                        'Date' => 'Stichtag',
+                                        'Period' => 'Zeitraum',
+                                        'Option' => '',
                                     )
                                 )
                             )
@@ -961,7 +967,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Well(Evaluation::useService()->createAppointedDateTask($Form, $Task))
+                            new Well(Evaluation::useService()->createTask($Form, $Task))
                         )
                     ))
                 ), new Title(new PlusSign() . ' Hinzufügen'))
@@ -971,4 +977,137 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Form
+     */
+    private function formTask()
+    {
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new TextField('Task[Name]', '', 'Name'), 12
+                ),
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new DatePicker('Task[Date]', '', 'Stichtag', new Calendar()), 4
+                ),
+                new FormColumn(
+                    new DatePicker('Task[FromDate]', '', 'Zeitraum von', new Calendar()), 4
+                ),
+                new FormColumn(
+                    new DatePicker('Task[ToDate]', '', 'Zeitraum bis', new Calendar()), 4
+                ),
+            ))
+        )));
+    }
+
+    /**
+     * @param null $Id
+     * @param null $Task
+     * @return Stage
+     */
+    public function frontendHeadmasterTaskAppointedDateEdit($Id = null, $Task = null)
+    {
+        $Stage = new Stage('Stichtagsnotenauftrag', 'Bearbeiten');
+        $Stage->addButton(
+            new Standard('Zurück', '/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate',
+                new ChevronLeft())
+        );
+
+        $tblTask = Evaluation::useService()->getTaskById($Id);
+        if ($tblTask) {
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                $Global->POST['Task']['Name'] = $tblTask->getName();
+                $Global->POST['Task']['Date'] = $tblTask->getDate();
+                $Global->POST['Task']['FromDate'] = $tblTask->getFromDate();
+                $Global->POST['Task']['ToDate'] = $tblTask->getToDate();
+                $Global->savePost();
+            }
+
+            $Form = ($this->formTask());
+            $Form
+                ->appendFormButton(new Primary('Speichern', new Save()))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel(
+                                    'Stichtagsauftrag',
+                                    $tblTask->getName() . ' ' . $tblTask->getDate()
+                                    . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
+                                        $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
+                                    Panel::PANEL_TYPE_INFO
+                                )
+                            )
+                        ))
+                    )),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Well(Evaluation::useService()->updateTask($Form, $tblTask->getId(), $Task))
+                            )
+                        ))
+                    ), new Title(new Edit() . ' Bearbeiten')),
+                ))
+            );
+        } else {
+            $Stage .= new Warning('Stichtagsauftrag nicht gefunden.')
+                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate', 3);
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $Task
+     * @return Stage
+     */
+    public function frontendHeadmasterTaskAppointedDateDivision($Id = null, $Task = null)
+    {
+        $Stage = new Stage('Stichtagsnotenauftrag', 'Klassen zuordnen');
+        $Stage->addButton(
+            new Standard('Zurück', '/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate',
+                new ChevronLeft())
+        );
+
+        $tblTask = Evaluation::useService()->getTestById($Id);
+        if ($tblTask) {
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel(
+                                    'Stichtagsauftrag',
+                                    $tblTask->getDescription()
+                                    . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
+                                        $tblTask->getCorrectionDate() . ' - ' . $tblTask->getReturnDate()))),
+                                    Panel::PANEL_TYPE_INFO
+                                )
+                            )
+                        ))
+                    )),
+//                    new LayoutGroup(array(
+//                        new LayoutRow(array(
+//                            new LayoutColumn(
+//
+//                            )
+//                        ))
+//                    )),
+                ))
+            );
+        } else {
+            $Stage .= new Warning('Stichtagsauftrag nicht gefunden.')
+                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate', 3);
+        }
+
+        return $Stage;
+    }
 }

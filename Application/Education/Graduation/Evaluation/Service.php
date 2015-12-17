@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Education\Graduation\Evaluation;
 
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Data;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Setup;
@@ -112,6 +113,26 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Id
+     * @return bool|TblTask
+     */
+    public function getTaskById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getTaskById($Id);
+    }
+
+    /**
+     * @param TblTestType $tblTestType
+     * @return bool|TblTask[]
+     */
+    public function getTaskAllByTestType(TblTestType $tblTestType)
+    {
+
+        return (new Data($this->getBinding()))->getTaskAllByTestType($tblTestType);
+    }
+
+        /**
      * @param IFormInterface|null $Stage
      * @param null $DivisionSubjectId
      * @param null $Test
@@ -202,7 +223,7 @@ class Service extends AbstractService
      * @param $Task
      * @return IFormInterface|string
      */
-    public function createAppointedDateTask(IFormInterface $Stage = null, $Task)
+    public function createTask(IFormInterface $Stage = null, $Task)
     {
         /**
          * Skip to Frontend
@@ -212,28 +233,62 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (isset($Task['Description']) && empty($Task['Description'])) {
-            $Stage->setError('Task[Description]', 'Bitte geben Sie einen Namen an');
+        if (isset($Task['Name']) && empty($Task['Name'])) {
+            $Stage->setError('Task[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         }
-        if (isset($Task['CorrectionDate']) && empty($Task['CorrectionDate'])) {
-            $Stage->setError('Task[CorrectionDate]', 'Bitte geben Sie ein Datum an');
+        if (isset($Task['Date']) && empty($Task['Date'])) {
+            $Stage->setError('Task[Date]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
-        if (isset($Task['ReturnDate']) && empty($Task['ReturnDate'])) {
-            $Stage->setError('Task[ReturnDate]', 'Bitte geben Sie ein Datum an');
+        if (isset($Task['FromDate']) && empty($Task['FromDate'])) {
+            $Stage->setError('Task[FromDate]', 'Bitte geben Sie ein Datum an');
+            $Error = true;
+        }
+        if (isset($Task['ToDate']) && empty($Task['ToDate'])) {
+            $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
 
         if (!$Error) {
             $tblTestType = $this->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
             (new Data($this->getBinding()))->createTask(
-                $tblTestType, $Task['Description'], date('now'), $Task['CorrectionDate'],
-                $Task['ReturnDate']
+                $tblTestType, $Task['Name'], $Task['Date'], $Task['FromDate'],
+                $Task['ToDate']
             );
             $Stage .= new Success('Erfolgreich angelegt')
                 . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate', 0);
         }
+
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Id
+     * @param $Task
+     * @return IFormInterface|Redirect
+     */
+    public function updateTask(IFormInterface $Stage = null, $Id, $Task)
+    {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Task) {
+            return $Stage;
+        }
+
+        $tblTask = $this->getTaskById($Id);
+        (new Data($this->getBinding()))->updateTask(
+            $tblTask,
+            $Task['Name'],
+            $Task['Date'],
+            $Task['FromDate'],
+            $Task['ToDate']
+        );
+
+        $Stage .= new Success('Erfolgreich geändert')
+          . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate', 0);
 
         return $Stage;
     }

@@ -79,6 +79,14 @@ class Evaluation implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Task\AppointedDate',
                 __NAMESPACE__ . '\Frontend::frontendHeadmasterTaskAppointedDate')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Task\AppointedDate\Edit',
+                __NAMESPACE__ . '\Frontend::frontendHeadmasterTaskAppointedDateEdit')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Task\AppointedDate\Division',
+                __NAMESPACE__ . '\Frontend::frontendHeadmasterTaskAppointedDateDivision')
+        );
 
     }
 

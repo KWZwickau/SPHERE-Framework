@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Evaluation\Service;
 
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
@@ -26,9 +27,9 @@ class Data extends AbstractData
 
         $this->createTestType('Test', 'TEST');
         $this->createTestType('AppointedDateTask', 'APPOINTED_DATE_TASK');
-        $this->createTestType('AppointedDateTaskDivision', 'APPOINTED_DATE_TASK_DIVISION');
+//        $this->createTestType('AppointedDateTaskDivision', 'APPOINTED_DATE_TASK_DIVISION');
         $this->createTestType('BehaviorTask', 'BEHAVIOR_TASK');
-        $this->createTestType('BehaviorTaskDivision', 'BEHAVIOR_TASK_DIVISION');
+//        $this->createTestType('BehaviorTaskDivision', 'BEHAVIOR_TASK_DIVISION');
     }
 
     /**
@@ -112,6 +113,17 @@ class Data extends AbstractData
                 TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
             )
         );
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblTask
+     */
+    public function getTaskById($Id)
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTask', $Id);
+        return (null === $Entity ? false : $Entity);
     }
 
     /**
@@ -248,32 +260,82 @@ class Data extends AbstractData
 
     /**
      * @param TblTestType $tblTestType
-     * @param $Description
+     * @param $Name
      * @param null $Date
-     * @param null $CorrectionDate
-     * @param null $ReturnDate
-     * @return TblTest
+     * @param null $FromDate
+     * @param null $ToDate
+     * @return TblTask
      */
     public function createTask(
         TblTestType $tblTestType,
-        $Description,
+        $Name,
         $Date = null,
-        $CorrectionDate = null,
-        $ReturnDate = null
+        $FromDate = null,
+        $ToDate = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        $Entity = new TblTest();
+        $Entity = new TblTask();
         $Entity->setTblTestType($tblTestType);
-        $Entity->setDescription($Description);
+        $Entity->setName($Name);
         $Entity->setDate($Date ? new \DateTime($Date) : null);
-        $Entity->setCorrectionDate($CorrectionDate ? new \DateTime($CorrectionDate) : null);
-        $Entity->setReturnDate($ReturnDate ? new \DateTime($ReturnDate) : null);
+        $Entity->setFromDate($FromDate ? new \DateTime($FromDate) : null);
+        $Entity->setToDate($ToDate ? new \DateTime($ToDate) : null);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
         return $Entity;
+    }
+
+    /**
+     * @param TblTestType $tblTestType
+     * @return bool|TblTask[]
+     */
+    public function getTaskAllByTestType(TblTestType $tblTestType)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTask',
+            array(
+                TblTask::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
+            )
+        );
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param $Name
+     * @param null $Date
+     * @param null $FromDate
+     * @param null $ToDate
+     * @return bool
+     */
+    public function updateTask(
+        TblTask $tblTask,
+        $Name,
+        $Date = null,
+        $FromDate = null,
+        $ToDate = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblTask $Entity */
+        $Entity = $Manager->getEntityById('TblTask', $tblTask->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setFromDate($FromDate ? new \DateTime($FromDate) : null);
+            $Entity->setToDate($ToDate ? new \DateTime($ToDate) : null);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

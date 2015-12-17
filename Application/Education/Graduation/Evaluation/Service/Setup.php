@@ -32,7 +32,8 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $tblTestType = $this->setTableTestType($Schema);
-        $this->setTableTest($Schema, $tblTestType);
+        $tblTask = $this->setTableTask($Schema, $tblTestType);
+        $this->setTableTest($Schema, $tblTestType, $tblTask);
 
         /**
          * Migration & Protocol
@@ -64,10 +65,10 @@ class Setup extends AbstractSetup
     /**
      * @param Schema $Schema
      * @param Table $tblTestType
-     *
+     * @param Table $tblTask
      * @return Table
      */
-    private function setTableTest(Schema &$Schema, Table $tblTestType)
+    private function setTableTest(Schema &$Schema, Table $tblTestType, Table $tblTask)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblTest');
@@ -97,6 +98,35 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblTest', 'serviceTblGradeType')) {
             $Table->addColumn('serviceTblGradeType', 'bigint', array('notnull' => false));
+        }
+
+        $this->getConnection()->addForeignKey($Table, $tblTestType, true);
+        $this->getConnection()->addForeignKey($Table, $tblTask, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblTestType
+     *
+     * @return Table
+     */
+    private function setTableTask(Schema &$Schema, Table $tblTestType)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblTask');
+        if (!$this->getConnection()->hasColumn('tblTask', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblTask', 'Date')) {
+            $Table->addColumn('Date', 'datetime', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblTask', 'FromDate')) {
+            $Table->addColumn('FromDate', 'datetime', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblTask', 'ToDate')) {
+            $Table->addColumn('ToDate', 'datetime', array('notnull' => false));
         }
 
         $this->getConnection()->addForeignKey($Table, $tblTestType, true);
