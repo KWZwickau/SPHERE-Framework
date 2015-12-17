@@ -305,7 +305,8 @@ class Frontend extends Extension implements IFrontendInterface
                             $item = Division::useService()->getSubjectGroupById($subjectGroupId);
                             $divisionSubjectTable[] = array(
                                 'Year' => $tblDivision->getServiceTblYear()->getName(),
-                                'Type' => $tblDivision->getTblLevel()->getServiceTblType()->getName(),
+                                'Type' => $tblDivision->getTblLevel()->getServiceTblType()
+                                    ? $tblDivision->getTblLevel()->getServiceTblType()->getName() : 'Typ nicht vorhanden',
                                 'Division' => $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
                                 'Subject' => $tblSubject->getName(),
                                 'SubjectGroup' => $item->getName(),
@@ -320,7 +321,8 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $divisionSubjectTable[] = array(
                             'Year' => $tblDivision->getServiceTblYear()->getName(),
-                            'Type' => $tblDivision->getTblLevel()->getServiceTblType()->getName(),
+                            'Type' => $tblDivision->getTblLevel()->getServiceTblType()
+                                ? $tblDivision->getTblLevel()->getServiceTblType()->getName() : 'Typ nicht vorhanden',
                             'Division' => $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
                             'Subject' => $tblSubject->getName(),
                             'SubjectGroup' => '',
@@ -413,7 +415,8 @@ class Frontend extends Extension implements IFrontendInterface
                             $item = Division::useService()->getSubjectGroupById($subjectGroupId);
                             $divisionSubjectTable[] = array(
                                 'Year' => $tblDivision->getServiceTblYear()->getName(),
-                                'Type' => $tblDivision->getTblLevel()->getServiceTblType()->getName(),
+                                'Type' => $tblDivision->getTblLevel()->getServiceTblType()
+                                    ? $tblDivision->getTblLevel()->getServiceTblType()->getName() : 'Typ nicht vorhanden',
                                 'Division' => $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
                                 'Subject' => $tblSubject->getName(),
                                 'SubjectGroup' => $item->getName(),
@@ -429,7 +432,8 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $divisionSubjectTable[] = array(
                             'Year' => $tblDivision->getServiceTblYear()->getName(),
-                            'Type' => $tblDivision->getTblLevel()->getServiceTblType()->getName(),
+                            'Type' => $tblDivision->getTblLevel()->getServiceTblType()
+                                ? $tblDivision->getTblLevel()->getServiceTblType()->getName() : 'Typ nicht vorhanden',
                             'Division' => $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
                             'Subject' => $tblSubject->getName(),
                             'SubjectGroup' => '',
