@@ -47,6 +47,7 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -392,6 +393,26 @@ class Frontend extends Extension implements IFrontendInterface
                         array('Id' => $tblTest->getId()), 'Bearbeiten'))
                     . (new Standard('', $BasicRoute . '/Grade/Edit', new Listing(),
                         array('Id' => $tblTest->getId()), 'Zensuren bearbeiten'));
+
+                $tblGradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
+                if ($tblGradeList){
+                    $countGrades = count($tblGradeList);
+                } else {
+                    $countGrades = 0;
+                }
+                if ($tblTest->getServiceTblSubjectGroup()){
+                    $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                        $tblTest->getServiceTblDivision(),
+                        $tblTest->getServiceTblSubject(),
+                        $tblTest->getServiceTblSubjectGroup()
+                    );
+                    $countStudent = Division::useService()->countSubjectStudentByDivisionSubject($tblDivisionSubject);
+                } else {
+                    $countStudent = Division::useService()->countDivisionStudentAllByDivision($tblTest->getServiceTblDivision());
+                }
+                $tblTest->Grades = $countGrades == $countStudent ? new Success($countGrades . ' von ' . $countStudent) :
+                    new \SPHERE\Common\Frontend\Text\Repository\Warning($countGrades . ' von ' . $countStudent);
+
             });
         } else {
             $tblTestList = array();
@@ -429,6 +450,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Date' => 'Datum',
                                 'CorrectionDate' => 'Korrekturdatum',
                                 'ReturnDate' => 'R&uuml;ckgabedatum',
+                                'Grades' => 'Noten eingetragen',
                                 'Option' => ''
                             ))
                         ))
@@ -822,7 +844,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel(
                                 'Notenspiegel',
-                                $gradeMirror
+                                $gradeMirror,
+                                Panel::PANEL_TYPE_PRIMARY
                             )
                         )
                     ))
