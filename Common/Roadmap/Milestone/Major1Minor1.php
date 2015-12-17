@@ -34,9 +34,6 @@ class Major1Minor1
         $Task = $Feature->createTask('MySql');
         $Task->createDuty('Konfiguration', true);
         $Task->createDuty('Performance', true);
-        $Feature = $Category->createFeature('Code Style');
-        $Feature->createTask('PSR-1/PSR2');
-        $Category->createFeature('Code Performance', '', false);
 
         // Bildung
         $Category = $Release->createCategory('Bildung');

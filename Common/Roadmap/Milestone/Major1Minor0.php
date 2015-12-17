@@ -25,9 +25,9 @@ class Major1Minor0
         // Hilfe
         $Category = $Release->createCategory('Hilfe');
         $Feature = $Category->createFeature('Feedback- & Ticket-Erstellung');
-        $Task = $Feature->createTask('Oberfläche erstellen', '', false);
-        $Task = $Feature->createTask('Mail-Server einrichten', '', false);
-        $Task = $Feature->createTask('Anbindung an Ticket-/Support-System');
+        $Task = $Feature->createTask('Oberfläche erstellen', '', true);
+        $Task = $Feature->createTask('Mail-Server einrichten', '', true);
+        $Task = $Feature->createTask('Anbindung an Ticket-/Support-System', '', true);
 
         // Bildung
         $Category = $Release->createCategory('Bildung');

@@ -33,5 +33,11 @@ class Major1Minor3
         $Feature = $Category->createFeature('Zensuren');
         $Feature->createTask('Zeugnisdruck')
             ->createDuty('Layout-Designer');
+
+        // Fehlerbehebung
+        $Category = $Release->createCategory('Fehlerkorrekturen');
+        $Feature = $Category->createFeature('Code Style');
+        $Feature->createTask('PSR-1/PSR2');
+        $Category->createFeature('Code Performance', '', false);
     }
 }
