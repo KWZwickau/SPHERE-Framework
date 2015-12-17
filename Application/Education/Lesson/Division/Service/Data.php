@@ -204,7 +204,7 @@ class Data extends AbstractData
      * @param TblSubject  $tblSubject
      * @param TblDivision $tblDivision
      *
-     * @return array|bool
+     * @return bool|TblDivisionSubject[]
      */
     public function getDivisionSubjectBySubjectAndDivision(TblSubject $tblSubject, TblDivision $tblDivision)
     {
