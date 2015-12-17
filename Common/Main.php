@@ -44,6 +44,8 @@ use SPHERE\System\Extension\Extension;
 class Main extends Extension
 {
 
+    /** @var bool $EnableErrorHandler */
+    public static $EnableErrorHandler = true;
     /** @var Display $Display */
     private static $Display = null;
     /** @var Dispatcher $Dispatcher */
@@ -205,14 +207,16 @@ class Main extends Extension
     private function setErrorHandler()
     {
 
-        set_error_handler(
-            function ($Code, $Message, $File, $Line) {
+        if (self::$EnableErrorHandler) {
+            set_error_handler(
+                function ($Code, $Message, $File, $Line) {
 
-                if (!preg_match('!apc_store.*?was.*?on.*?gc-list.*?for!is', $Message)) {
-                    throw new \ErrorException($Message, 0, $Code, $File, $Line);
-                }
-            }, E_ALL
-        );
+                    if (!preg_match('!apc_store.*?was.*?on.*?gc-list.*?for!is', $Message)) {
+                        throw new \ErrorException($Message, 0, $Code, $File, $Line);
+                    }
+                }, E_ALL
+            );
+        }
     }
 
     /**
@@ -221,24 +225,26 @@ class Main extends Extension
     private function setShutdownHandler()
     {
 
-        register_shutdown_function(
-            function () {
+        if (self::$EnableErrorHandler) {
+            register_shutdown_function(
+                function () {
 
-                $Error = error_get_last();
-                if (!$Error) {
-                    return;
+                    $Error = error_get_last();
+                    if (!$Error) {
+                        return;
+                    }
+                    $Display = new Display();
+                    $Display->addServiceNavigation(
+                        new Link(new Link\Route('/'), new Link\Name('Zurück zur Anwendung'))
+                    );
+                    $Display->setException(
+                        new \ErrorException($Error['message'], 0, $Error['type'], $Error['file'], $Error['line']),
+                        'Shutdown'
+                    );
+                    echo $Display->getContent(true);
                 }
-                $Display = new Display();
-                $Display->addServiceNavigation(
-                    new Link(new Link\Route('/'), new Link\Name('Zurück zur Anwendung'))
-                );
-                $Display->setException(
-                    new \ErrorException($Error['message'], 0, $Error['type'], $Error['file'], $Error['line']),
-                    'Shutdown'
-                );
-                echo $Display->getContent(true);
-            }
-        );
+            );
+        }
     }
 
     /**
