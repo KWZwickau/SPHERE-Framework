@@ -447,8 +447,7 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 
 .btn {
     padding: 4px 6px;
-    margin-top: 1px;
-    margin-bottom: 1px;
+    margin-bottom: 2px;
 }
 
 .input-group {

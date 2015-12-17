@@ -390,6 +390,5 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 /** WEBSITE **/
 
 .btn {
-    margin-top: 1px;
-    margin-bottom: 1px;
+    margin-bottom: 2px;
 }
