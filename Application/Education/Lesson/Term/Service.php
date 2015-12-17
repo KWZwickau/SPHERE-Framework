@@ -58,6 +58,49 @@ class Service extends AbstractService
     }
 
     /**
+     * @param int $Year
+     *
+     * @return bool|TblYear[]
+     */
+    public function getYearAllSinceYears($Year)
+    {
+
+        $Now = (new \DateTime('now'))->sub(new \DateInterval('P'.$Year.'Y'));
+
+        $EntityList = array();
+        $tblYearAll = Term::useService()->getYearAll();
+        if ($tblYearAll) {
+            foreach ($tblYearAll as $tblYear) {
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                if ($tblPeriodList) {
+                    $To = '';
+                    $tblPeriodTemp = new TblPeriod();
+                    foreach ($tblPeriodList as $tblPeriod) {
+                        if (new \DateTime($tblPeriod->getToDate()) > new \DateTime($To) || $To == '') {
+                            $To = $tblPeriod->getToDate();
+                        }
+                        if ($tblPeriod) {
+                            $tblPeriodTemp = $tblPeriod;
+                        }
+                    }
+                    if (new \DateTime($To) >= new \DateTime($Now->format('d.m.Y'))) {
+                        $tblYearTempList = Term::useService()->getYearByPeriod($tblPeriodTemp);
+                        if ($tblYearTempList) {
+                            foreach ($tblYearTempList as $tblYearTemp) {
+                                /** @var TblYear $tblYearTemp */
+                                $EntityList[$tblYearTemp->getId()] = $tblYearTemp;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $EntityList = array_filter($EntityList);
+
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
      * @return bool|TblPeriod[]
      */
     public function getPeriodAll()
@@ -118,6 +161,77 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getYearByName($Name);
+    }
+
+    public function getYearByPeriod(TblPeriod $tblPeriod)
+    {
+
+        return (new Data($this->getBinding()))->getYearByPeriod($tblPeriod);
+    }
+
+    public function getYearByNow()
+    {
+
+        $Now = new \DateTime('now');
+        $EntityList = array();
+        $tblYearAll = Term::useService()->getYearAll();
+        if ($tblYearAll) {
+            foreach ($tblYearAll as $tblYear) {
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                if ($tblPeriodList) {
+                    $From = '';
+                    $To = '';
+                    $tblPeriodTemp = new TblPeriod();
+                    foreach ($tblPeriodList as $tblPeriod) {
+                        if (new \DateTime($tblPeriod->getFromDate()) < new \DateTime($From) || $From == '') {
+                            $From = $tblPeriod->getFromDate();
+                        }
+                        if (new \DateTime($tblPeriod->getToDate()) > new \DateTime($To) || $To == '') {
+                            $To = $tblPeriod->getToDate();
+                        }
+                        if ($tblPeriod) {
+                            $tblPeriodTemp = $tblPeriod;
+                        }
+                    }
+                    if (new \DateTime($From) < new \DateTime($Now->format('d.m.Y')) &&
+                        new \DateTime($To) > new \DateTime($Now->format('d.m.Y'))
+                    ) {
+                        $tblYearTempList = Term::useService()->getYearByPeriod($tblPeriodTemp);
+                        if ($tblYearTempList) {
+                            foreach ($tblYearTempList as $tblYearTemp) {
+                                /** @var TblYear $tblYearTemp */
+                                $EntityList[$tblYearTemp->getId()] = $tblYearTemp;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+//        $UsedPeriodList = array();
+//        $tblPeriodAll = Term::useService()->getPeriodAll();
+//        if ($tblPeriodAll) {
+//            foreach ($tblPeriodAll as $tblPeriod) {
+//                if (new \DateTime($tblPeriod->getFromDate()) < new \DateTime($Now->format('d.m.Y'))
+//                    && new \DateTime($tblPeriod->getToDate()) > new \DateTime($Now->format('d.m.Y'))
+//                ) {
+//                    $UsedPeriodList[] = $tblPeriod;
+//                }
+//            }
+//            if (!empty( $UsedPeriodList )) {
+//                foreach ($UsedPeriodList as $UsedPeriod) {
+//                    $EntiyArrayList = Term::useService()->getYearByPeriod($UsedPeriod);
+//                    if (!empty( $EntiyArrayList )) {
+//                        foreach ($EntiyArrayList as $EntityArray) {
+//                            $EntityList[] = $EntityArray;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+
+        $EntityList = array_filter($EntityList);
+
+        return ( empty( $EntityList ) ? false : $EntityList );
     }
 
     /**

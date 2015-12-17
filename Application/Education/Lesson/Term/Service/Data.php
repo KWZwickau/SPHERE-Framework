@@ -301,6 +301,26 @@ class Data extends AbstractData
         ));
     }
 
+    public function getYearByPeriod(TblPeriod $tblPeriod)
+    {
+
+        $TempList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYearPeriod', array(
+            TblYearPeriod::ATTR_TBL_PERIOD => $tblPeriod->getId()
+        ));
+        $EntityList = array();
+
+
+        if ($TempList) {
+            foreach ($TempList as $Temp) {
+                /** @var TblYearPeriod $Temp */
+                $EntityList[] = $Temp->getTblYear();
+            }
+
+        }
+
+        return ( !empty( $EntityList ) ? $EntityList : false );
+    }
+
     /**
      * @param string $Name
      *

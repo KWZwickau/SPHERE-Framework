@@ -43,7 +43,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $PasswordSafety = trim($Account['PasswordSafety']);
 
         $tblConsumer = GatekeeperConsumer::useService()->getConsumerBySession();
-        if (!( $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']) )) {
+        if (!isset( $Account['Token'] ) || !( $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']) )) {
             $tblToken = null;
         }
 

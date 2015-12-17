@@ -221,7 +221,11 @@ class Data extends AbstractData
             $Entity->setDiscount(0);
             $Entity->setDebtorFirstName($tblPersonDebtor->getFirstName());
             $Entity->setDebtorLastName($tblPersonDebtor->getLastName());
-            $Entity->setDebtorSalutation($tblPersonDebtor->getTblSalutation()->getSalutation());
+            if ($tblPersonDebtor->getTblSalutation()) {
+                $Entity->setDebtorSalutation($tblPersonDebtor->getTblSalutation()->getSalutation());
+            } else {
+                $Entity->setDebtorSalutation('');
+            }
             $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
             $Entity->setServiceManagementPerson($tblPerson);
             if (( $tblToPerson = Address::useService()->getAddressAllByPerson($tblPersonDebtor) )) {
