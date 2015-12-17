@@ -386,3 +386,10 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 .tt-menu .tt-suggestion p {
     margin: 0;
 }
+
+/** WEBSITE **/
+
+.btn {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
