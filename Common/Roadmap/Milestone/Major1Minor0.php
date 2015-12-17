@@ -44,7 +44,7 @@ class Major1Minor0
         $Feature->createTask('Benutzerkonten')
             ->createDuty('Benutzerkonten bearbeiten', false);
         $Feature->createTask('Mein Benutzerkonto')
-            ->createDuty('Informationen anzeigen (Vervollständigen)', false);
+            ->createDuty('Informationen anzeigen (Vervollständigen)', true);
 
         // Auswertungen
         $Release->createCategory('Auswertungen')
