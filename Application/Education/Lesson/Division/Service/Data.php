@@ -1182,4 +1182,21 @@ class Data extends AbstractData
             )
         );
     }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     * @return int
+     */
+    public function countSubjectStudentByDivisionSubject(
+        TblDivisionSubject $tblDivisionSubject
+    ) {
+
+        $count = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectStudent',
+            array(
+                TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()
+            )
+        );
+
+        return $count ? $count: 0;
+    }
 }
