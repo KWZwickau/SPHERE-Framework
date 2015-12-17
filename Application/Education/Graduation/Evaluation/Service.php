@@ -132,7 +132,7 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getTaskAllByTestType($tblTestType);
     }
 
-        /**
+    /**
      * @param IFormInterface|null $Stage
      * @param null $DivisionSubjectId
      * @param null $Test
@@ -288,9 +288,21 @@ class Service extends AbstractService
         );
 
         $Stage .= new Success('Erfolgreich geändert')
-          . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate', 0);
+            . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate', 0);
 
         return $Stage;
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblTestType $tblTestType
+     * @param TblDivision $tblDivision
+     * @return bool|Service\Entity\TblTest[]
+     */
+    public function getTestAllByTaskAndTestType(TblTask $tblTask, TblTestType $tblTestType, TblDivision $tblDivision = null)
+    {
+
+        return (new Data($this->getBinding()))->getTestAllByTaskAndTestType($tblTask, $tblTestType, $tblDivision);
     }
 
 }

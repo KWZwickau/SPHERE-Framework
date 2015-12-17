@@ -1076,8 +1076,29 @@ class Frontend extends Extension implements IFrontendInterface
                 new ChevronLeft())
         );
 
-        $tblTask = Evaluation::useService()->getTestById($Id);
+        $tblTask = Evaluation::useService()->getTaskById($Id);
         if ($tblTask) {
+
+            $tblDivisionList = array();
+            $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
+            $tblTestAllByTestAndAppointedDateTask = Evaluation::useService()->getTestAllByTaskAndTestType($tblTask,
+                $tblTestType);
+            if ($tblTestAllByTestAndAppointedDateTask) {
+                foreach ($tblTestAllByTestAndAppointedDateTask as $tblTest) {
+                    $tblDivision = $tblTest->getServiceTblDivision();
+                    if ($tblDivision) {
+                        $tblDivisionList[$tblDivision->getId()] = $tblDivision;
+                    }
+                }
+            }
+
+//            $tblYear = Term::useService()->get
+
+            if (!empty($tblDivisionList)){
+
+            } else {
+                $tblDivisionList = false;
+            }
 
             $Stage->setContent(
                 new Layout(array(
@@ -1086,21 +1107,28 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel(
                                     'Stichtagsauftrag',
-                                    $tblTask->getDescription()
+                                    $tblTask->getName() . ' ' . $tblTask->getDate()
                                     . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
-                                        $tblTask->getCorrectionDate() . ' - ' . $tblTask->getReturnDate()))),
+                                        $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
                                     Panel::PANEL_TYPE_INFO
                                 )
                             )
                         ))
                     )),
-//                    new LayoutGroup(array(
-//                        new LayoutRow(array(
-//                            new LayoutColumn(
-//
-//                            )
-//                        ))
-//                    )),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Title('Ausgewählte', 'Klassen'),
+                                new TableData($tblDivisionList, null,
+                                    array('Name' => 'Klasse'))
+                            ), 6),
+                            new LayoutColumn(array(
+                                new Title('Verfügbare', 'Klassen'),
+                                new TableData($tblDivisionList, null,
+                                    array('Name' => 'Klasse'))
+                            ), 6),
+                        ))
+                    )),
                 ))
             );
         } else {

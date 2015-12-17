@@ -338,4 +338,31 @@ class Data extends AbstractData
 
         return false;
     }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblTestType $tblTestType
+     * @param TblDivision $tblDivision
+     * @return bool|Entity\TblTest[]
+     */
+    public function getTestAllByTaskAndTestType(TblTask $tblTask, TblTestType $tblTestType, TblDivision $tblDivision = null)
+    {
+
+        if ($tblDivision === null) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                array(
+                    TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                    TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
+                )
+            );
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                array(
+                    TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                    TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                    TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+                )
+            );
+        }
+    }
 }
