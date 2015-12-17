@@ -25,8 +25,10 @@ class Data extends AbstractData
     {
 
         $this->createTestType('Test', 'TEST');
-        $this->createTestType('AppointedDateTask', 'APPOINTEDDATETASK');
-        $this->createTestType('BehaviorTask', 'BEHAVIORTASK');
+        $this->createTestType('AppointedDateTask', 'APPOINTED_DATE_TASK');
+        $this->createTestType('AppointedDateTaskDivision', 'APPOINTED_DATE_TASK_DIVISION');
+        $this->createTestType('BehaviorTask', 'BEHAVIOR_TASK');
+        $this->createTestType('BehaviorTaskDivision', 'BEHAVIOR_TASK_DIVISION');
     }
 
     /**
@@ -240,6 +242,37 @@ class Data extends AbstractData
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblTestType $tblTestType
+     * @param $Description
+     * @param null $Date
+     * @param null $CorrectionDate
+     * @param null $ReturnDate
+     * @return TblTest
+     */
+    public function createTask(
+        TblTestType $tblTestType,
+        $Description,
+        $Date = null,
+        $CorrectionDate = null,
+        $ReturnDate = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblTest();
+        $Entity->setTblTestType($tblTestType);
+        $Entity->setDescription($Description);
+        $Entity->setDate($Date ? new \DateTime($Date) : null);
+        $Entity->setCorrectionDate($CorrectionDate ? new \DateTime($CorrectionDate) : null);
+        $Entity->setReturnDate($ReturnDate ? new \DateTime($ReturnDate) : null);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
         return $Entity;
     }

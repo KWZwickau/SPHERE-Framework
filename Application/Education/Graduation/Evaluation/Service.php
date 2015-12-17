@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -196,7 +197,13 @@ class Service extends AbstractService
     }
 
 
-    public function createAppointedDateTask(IFormInterface $Stage = null, $Task){
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Task
+     * @return IFormInterface|string
+     */
+    public function createAppointedDateTask(IFormInterface $Stage = null, $Task)
+    {
         /**
          * Skip to Frontend
          */
@@ -204,6 +211,29 @@ class Service extends AbstractService
             return $Stage;
         }
 
+        $Error = false;
+        if (isset($Task['Description']) && empty($Task['Description'])) {
+            $Stage->setError('Task[Description]', 'Bitte geben Sie einen Namen an');
+            $Error = true;
+        }
+        if (isset($Task['CorrectionDate']) && empty($Task['CorrectionDate'])) {
+            $Stage->setError('Task[CorrectionDate]', 'Bitte geben Sie ein Datum an');
+            $Error = true;
+        }
+        if (isset($Task['ReturnDate']) && empty($Task['ReturnDate'])) {
+            $Stage->setError('Task[ReturnDate]', 'Bitte geben Sie ein Datum an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            $tblTestType = $this->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
+            (new Data($this->getBinding()))->createTask(
+                $tblTestType, $Task['Description'], date('now'), $Task['CorrectionDate'],
+                $Task['ReturnDate']
+            );
+            $Stage .= new Success('Erfolgreich angelegt')
+                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate', 0);
+        }
 
         return $Stage;
     }

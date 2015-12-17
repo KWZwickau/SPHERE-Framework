@@ -920,24 +920,21 @@ class Frontend extends Extension implements IFrontendInterface
     {
         $Stage = new Stage('Stichtagsnotenaufträge', 'Übersicht');
 
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTEDDATETASK');
+        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
         $tblTaskAll = Evaluation::useService()->getTestAllByTestType($tblTestType);
 
         $Form = new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new TextField('Test[Description]', '', 'Name'), 12
+                    new TextField('Task[Description]', '', 'Name'), 12
                 ),
             )),
             new FormRow(array(
                 new FormColumn(
-                    new DatePicker('Test[Date]', '', 'Datum', new Calendar()), 4
+                    new DatePicker('Task[CorrectionDate]', '', 'Zeitraum von', new Calendar()), 6
                 ),
                 new FormColumn(
-                    new DatePicker('Test[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), 4
-                ),
-                new FormColumn(
-                    new DatePicker('Test[ReturnDate]', '', 'R&uuml;ckgabedatum', new Calendar()), 4
+                    new DatePicker('Task[ReturnDate]', '', 'Zeitraum bis', new Calendar()), 6
                 ),
             ))
         )));
