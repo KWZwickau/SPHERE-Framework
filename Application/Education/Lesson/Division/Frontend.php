@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectStuden
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectTeacher;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
@@ -32,6 +33,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -54,6 +56,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -69,15 +72,76 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Level
      * @param null $Division
+     * @param null $Year
      *
      * @return Stage
      */
-    public function frontendCreateLevelDivision($Level = null, $Division = null)
+    public function frontendCreateLevelDivision($Level = null, $Division = null, $Year = null)
     {
 
-        $Stage = new Stage('Klassen', 'Übersicht');
-        $tblDivisionAll = Division::useService()->getDivisionAll();
+        $Stage = new Stage('Klassen', 'Aktuelle Übersicht');
+
+        $DivisionList = array();
+        if (isset( $Year ) && $Year !== '0') {
+            $tblYear = Term::useService()->getYearById($Year);
+            $TempList = Division::useService()->getDivisionByYear($tblYear);
+            if ($TempList) {
+                foreach ($TempList as $Temp) {
+                    $DivisionList[] = $Temp;
+                }
+            }
+        } else {
+            $tblYearList = Term::useService()->getYearByNow();
+            if (!empty( $tblYearList )) {
+                foreach ($tblYearList as $tblYear) {
+                    $TempList = Division::useService()->getDivisionByYear($tblYear);
+                    if ($TempList) {
+                        foreach ($TempList as $Temp) {
+                            $DivisionList[] = $Temp;
+                        }
+                    }
+                }
+            }
+        }
+        if (isset( $Year ) && $Year !== '0') {
+            $tblYear = Term::useService()->getYearById($Year);
+            if ($tblYear) {
+                $Stage->setDescription('Übersicht '.new \SPHERE\Common\Frontend\Text\Repository\Info(new Bold($tblYear->getName())));
+            }
+        }
+
+        $Stage->addButton(
+            new Standard('Aktuelle Übersicht',
+                new Route(__NAMESPACE__), new PersonGroup())
+        );
+
+
+//        $YearAll = Term::useService()->getYearAll();
+        $YearAll = Term::useService()->getYearAllSinceYears(2);
+        if (!empty( $YearAll )) {
+            foreach ($YearAll as $key => $row) {
+                $name[$key] = strtoupper($row->getName());
+            }
+            array_multisort($name, SORT_ASC, $YearAll);
+
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk($YearAll, function (TblYear &$tblYear, $Index, Stage $Stage) {
+
+                $Stage->addButton(
+                    new Standard(
+                        $tblYear->getName(),
+                        new Route(__NAMESPACE__), new PersonGroup(),
+                        array(
+                            'Year' => $tblYear->getId()
+                        ), $tblYear->getDescription())
+                );
+            }, $Stage);
+        }
+
+
+        $tblDivisionAll = $DivisionList;
         if ($tblDivisionAll) {
+            /** @var TblDivision $tblDivision */
             foreach ($tblDivisionAll as &$tblDivision) {
                 $tblDivision->Year = $tblDivision->getServiceTblYear()->getName();
                 if ($tblDivision->getTblLevel()) {
@@ -123,6 +187,23 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
+
+//            new Layout(
+//                new LayoutGroup(
+//                    new LayoutRow(
+//                        new LayoutColumn(
+//                            (new Accordion())
+//                                ->addItem(new Info('Übersicht auf ein bestimmtes Schuljahr setzen'), new Well(
+//                                    Division::useService()->selectYear(
+//                                        $this->formYearSelect()
+//                                            ->appendFormButton(new Primary('Auswählen'))
+//                                        , $Year = null
+//                                    )
+//                                ), false), 6
+//                        )
+//                    )
+//                )
+//            ).
             new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(

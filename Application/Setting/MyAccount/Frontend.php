@@ -1,10 +1,17 @@
 <?php
 namespace SPHERE\Application\Setting\MyAccount;
 
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
+use SPHERE\Application\Setting\Consumer\School\School;
+use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
+use SPHERE\Application\Setting\Consumer\SponsorAssociation\SponsorAssociation;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -13,14 +20,18 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -180,6 +191,22 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $tblSchoolList = School::useService()->getSchoolAll();
+        $tblResponsibilityList = Responsibility::useService()->getResponsibilityAll();
+        $tblSponsorAssociationList = SponsorAssociation::useService()->getSponsorAssociationAll();
+        $result = array();
+        if (count($tblSchoolList) > 1) {
+            $result = $this->CompanyPanel($tblSchoolList, 'Schulen', $result, '/Setting/Consumer/School', true);
+        } else {
+            $result = $this->CompanyPanel($tblSchoolList, 'Schule', $result, '/Setting/Consumer/School', true);
+        }
+        $result = $this->CompanyPanel($tblResponsibilityList, 'Schulträger', $result, '/Setting/Consumer/Responsibility');
+        if (count($tblSchoolList) > 1) {
+            $result = $this->CompanyPanel($tblSponsorAssociationList, 'Fördervereine', $result, '/Setting/Consumer/SponsorAssociation');
+        } else {
+            $result = $this->CompanyPanel($tblSponsorAssociationList, 'Förderverein', $result, '/Setting/Consumer/SponsorAssociation');
+        }
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -223,12 +250,9 @@ class Frontend extends Extension implements IFrontendInterface
                             new Title('Mandant (Schulträger)', 'Informationen'),
                             new Panel(
                                 $tblAccount->getServiceTblConsumer()->getName().' ['.$tblAccount->getServiceTblConsumer()->getAcronym().']',
-                                array(
-                                    // TODO: Anzeigen von Schulen, Schulträger, Vörderverein
-                                    // TODO: Anzeigen von zugehörigen Adressen, Telefonnummern, Personen
-//                                    'TODO: Anzeigen von Schulen, Schulträger, Vörderverein',
-//                                    'TODO: Anzeigen von zugehörigen Adressen, Telefonnummern, Personen'
-                                )
+                                $result
+                                // TODO: Anzeigen von Schulen, Schulträger, Vörderverein <- in arbeit
+                                // TODO: Anzeigen von zugehörigen Adressen, Telefonnummern, Personen
                                 , Panel::PANEL_TYPE_DEFAULT,
                                 new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
                             )
@@ -239,5 +263,76 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param array  $tblCompanyList
+     * @param string $Head
+     * @param array  $result
+     * @param string $Path
+     * @param bool   $visible
+     *
+     * @return array
+     */
+    public function CompanyPanel($tblCompanyList, $Head, $result, $Path = '', $visible = false)
+    {
+
+        if ($tblCompanyList) {
+            $CompanyTemp = array();
+            /** @var TblSchool $tblCompanyLink */
+            foreach ($tblCompanyList as $tblCompanyLink) {
+
+                $tblCompany = $tblCompanyLink->getServiceTblCompany();
+                $tblAddressList = Address::useService()->getAddressAllByCompany($tblCompany);
+                $Address = '';
+                if ($tblAddressList) {
+                    foreach ($tblAddressList as $tblAddressLink) {
+                        $tblAddress = $tblAddressLink->getTblAddress();
+                        $Address[] = new Well($tblAddressLink->getTblType()->getName().':<br/>'.$tblAddress->getStreetName().' '.$tblAddress->getStreetNumber().'<br/>'.
+                            $tblAddress->getTblCity()->getCode().' '.$tblAddress->getTblCity()->getName());
+                    }
+                    $Address = implode('<br/>', $Address);
+                }
+
+
+                $tblPersonList = Relationship::useService()->getCompanyRelationshipAllByCompany($tblCompany);
+                $Person = '';
+                if ($tblPersonList) {
+                    foreach ($tblPersonList as $tblPerson) {
+                        $Person[] = $tblPerson->getTblType()->getName().''.new PullRight($tblPerson->getServiceTblPerson()->getFullName());
+                    }
+                    $Person = implode('<br/>', $Person);
+                }
+                $PhoneList = Phone::useService()->getPhoneAllByCompany($tblCompany);
+                $PhoneNumber = '';
+                if ($PhoneList) {
+                    foreach ($PhoneList as $Phone) {
+                        $PhoneNumber[] = 'Tel.: '.$Phone->getTblType()->getName().''.new PullRight($Phone->getTblPhone()->getNumber());
+                    }
+                    $PhoneNumber = implode('<br/>', $PhoneNumber);
+                }
+                if ($Address !== '') {
+                    $Address = '<br/>'.$Address;
+                }
+                if ($PhoneNumber !== '') {
+                    $PhoneNumber = '<br/>'.$PhoneNumber;
+                }
+                if ($Person !== '') {
+                    $Person = '<br/><br/>'.$Person;
+                }
+
+                $CompanyTemp[] = new Well(new Bold($tblCompany->getName())
+                        .$Address)
+                    .$PhoneNumber
+                    .$Person;
+
+            }
+            if (is_array($CompanyTemp)) {
+                $result[] = (new Accordion())->addItem($Head, New Panel('', $CompanyTemp), $visible);
+            }
+        } else {
+            $result[] = new Well(new Standard($Head.' einstellen', $Path, new Edit()));
+        }
+        return $result;
     }
 }
