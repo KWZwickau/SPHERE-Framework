@@ -54,7 +54,7 @@ class School extends Extension implements IModuleInterface
     {
 
         return new Service(
-            new Identifier('Setting', 'Consumer', 'School', null, Consumer::useService()->getConsumerBySession()),
+            new Identifier('Setting', 'Consumer', null, null, Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }
