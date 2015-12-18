@@ -173,7 +173,7 @@ class Service extends AbstractService
      * @param \DateTime $Date
      * @return bool|TblYear[]
      */
-    public function getYearByDate(\DateTime $Date)
+    public function getYearAllByDate(\DateTime $Date)
     {
 
         $EntityList = array();
@@ -244,7 +244,7 @@ class Service extends AbstractService
     {
 
         $Now = new \DateTime('now');
-        return $this->getYearByDate($Now);
+        return $this->getYearAllByDate($Now);
 
     }
 
