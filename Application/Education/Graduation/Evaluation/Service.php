@@ -103,6 +103,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblTask $tblTask
+     * @param TblDivision|null $tblDivision
+     * @return bool|Service\Entity\TblTest[]
+     */
+    public function getTestAllByTask(TblTask $tblTask, TblDivision $tblDivision = null)
+    {
+
+        return (new Data($this->getBinding()))->getTestAllByTask($tblTask, $tblDivision);
+    }
+
+        /**
      * @param TblTestType $tblTestType
      * @return bool|TblTest[]
      */
@@ -170,6 +181,7 @@ class Service extends AbstractService
             Term::useService()->getPeriodById($Test['Period']),
             Gradebook::useService()->getGradeTypeById($Test['GradeType']),
             $this->getTestTypeByIdentifier('TEST'),
+            null,
             $Test['Description'],
             $Test['Date'],
             $Test['CorrectionDate'],
@@ -299,10 +311,80 @@ class Service extends AbstractService
      * @param TblDivision $tblDivision
      * @return bool|Service\Entity\TblTest[]
      */
-    public function getTestAllByTaskAndTestType(TblTask $tblTask, TblTestType $tblTestType, TblDivision $tblDivision = null)
-    {
+    public function getTestAllByTaskAndTestType(
+        TblTask $tblTask,
+        TblTestType $tblTestType,
+        TblDivision $tblDivision = null
+    ) {
 
         return (new Data($this->getBinding()))->getTestAllByTaskAndTestType($tblTask, $tblTestType, $tblDivision);
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblDivision $tblDivision
+     * @param TblTestType $tblTestType
+     */
+    public function addDivisionToTask(
+        TblTask $tblTask,
+        TblDivision $tblDivision,
+        TblTestType $tblTestType
+    ) {
+
+        $tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision(
+            $tblDivision
+        );
+
+        if ($tblDivisionSubjectAll) {
+            foreach ($tblDivisionSubjectAll as $tblDivisionSubject) {
+                if ($tblDivisionSubject->getTblSubjectGroup()) {
+                    (new Data($this->getBinding()))->createTest(
+                        $tblDivision,
+                        $tblDivisionSubject->getServiceTblSubject(),
+                        $tblDivisionSubject->getTblSubjectGroup(),
+                        null,
+                        null,
+                        $tblTestType,
+                        $tblTask,
+                        'Stichtagsnotenauftrag',
+                        $tblTask->getDate()
+                    );
+                } else {
+                    if (!Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                        $tblDivision, $tblDivisionSubject->getServiceTblSubject()
+                    )){
+                        (new Data($this->getBinding()))->createTest(
+                            $tblDivision,
+                            $tblDivisionSubject->getServiceTblSubject(),
+                            null,
+                            null,
+                            null,
+                            $tblTestType,
+                            $tblTask,
+                            'Stichtagsnotenauftrag',
+                            $tblTask->getDate()
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblDivision $tblDivision
+     */
+    public function removeDivisionFromTask(
+        TblTask $tblTask,
+        TblDivision $tblDivision
+    )
+    {
+        $tblTestAllByTask = $this->getTestAllByTask($tblTask, $tblDivision);
+        if ($tblTestAllByTask){
+            foreach ($tblTestAllByTask as $tblTest){
+                (new Data($this->getBinding()))->destroyTest($tblTest);
+            }
+        }
     }
 
 }

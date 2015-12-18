@@ -329,6 +329,16 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblGrade $tblGrade
+     * @return bool
+     */
+    public function destroyGrade(TblGrade $tblGrade)
+    {
+
+        return (new Data($this->getBinding()))->destroyGrade($tblGrade);
+    }
+
+    /**
      * @param $Id
      * @return bool|TblScoreGroup
      */

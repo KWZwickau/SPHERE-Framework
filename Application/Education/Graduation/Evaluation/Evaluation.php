@@ -75,6 +75,7 @@ class Evaluation implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Test\Grade\Edit',
                 __NAMESPACE__ . '\Frontend::frontendHeadmasterEditTestGrade')
         );
+
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Task\AppointedDate',
                 __NAMESPACE__ . '\Frontend::frontendHeadmasterTaskAppointedDate')
@@ -86,6 +87,14 @@ class Evaluation implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Task\AppointedDate\Division',
                 __NAMESPACE__ . '\Frontend::frontendHeadmasterTaskAppointedDateDivision')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Task\AppointedDate\Division\Add',
+                __NAMESPACE__ . '\Frontend::frontendHeadmasterTaskAppointedDateAddDivision')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Task\AppointedDate\Division\Remove',
+                __NAMESPACE__ . '\Frontend::frontendHeadmasterTaskAppointedDateRemoveDivision')
         );
 
     }

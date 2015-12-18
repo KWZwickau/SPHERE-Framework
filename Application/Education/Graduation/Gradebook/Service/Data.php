@@ -153,6 +153,26 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblGrade $tblGrade
+     * @return bool
+     */
+    public function destroyGrade(TblGrade $tblGrade)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblGrade $Entity */
+        $Entity = $Manager->getEntityById('TblGrade', $tblGrade->getId());
+        if (null !== $Entity) {
+
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
      * @param $Id
      *
      * @return bool|TblGradeType

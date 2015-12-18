@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Education\Graduation\Evaluation\Service;
 
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
@@ -116,6 +117,31 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblTask $tblTask
+     * @param TblDivision $tblDivision
+     * @return bool|Entity\TblTest[]
+     */
+    public function getTestAllByTask(TblTask $tblTask, TblDivision $tblDivision = null)
+    {
+
+        if ($tblDivision === null) {
+
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                array(
+                    TblTest::ATTR_TBL_TASK => $tblTask->getId()
+                )
+            );
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                array(
+                    TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                    TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+                )
+            );
+        }
+    }
+
+    /**
      * @param $Id
      * @return bool|TblTask
      */
@@ -154,10 +180,11 @@ class Data extends AbstractData
     /**
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
-     * @param TblSubjectGroup $tblSubjectGroup
-     * @param TblPeriod $tblPeriod
-     * @param TblGradeType $tblGradeType
-     * @param TblTestType $tblTestType
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     * @param TblPeriod|null $tblPeriod
+     * @param TblGradeType|null $tblGradeType
+     * @param TblTestType|null $tblTestType
+     * @param TblTask $tblTask
      * @param string $Description
      * @param null $Date
      * @param null $CorrectionDate
@@ -168,9 +195,10 @@ class Data extends AbstractData
         TblDivision $tblDivision,
         TblSubject $tblSubject,
         TblSubjectGroup $tblSubjectGroup = null,
-        TblPeriod $tblPeriod,
-        TblGradeType $tblGradeType,
-        TblTestType $tblTestType,
+        TblPeriod $tblPeriod = null,
+        TblGradeType $tblGradeType = null,
+        TblTestType $tblTestType = null,
+        TblTask $tblTask = null,
         $Description = '',
         $Date = null,
         $CorrectionDate = null,
@@ -186,6 +214,7 @@ class Data extends AbstractData
         $Entity->setServiceTblPeriod($tblPeriod);
         $Entity->setServiceTblGradeType($tblGradeType);
         $Entity->setTblTestType($tblTestType);
+        $Entity->setTblTask($tblTask);
         $Entity->setDescription($Description);
         $Entity->setDate($Date ? new \DateTime($Date) : null);
         $Entity->setCorrectionDate($CorrectionDate ? new \DateTime($CorrectionDate) : null);
@@ -195,6 +224,32 @@ class Data extends AbstractData
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
         return $Entity;
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @return bool
+     */
+    public function destroyTest(TblTest $tblTest)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblTest $Entity */
+        $Entity = $Manager->getEntityById('TblTest', $tblTest->getId());
+        if (null !== $Entity) {
+
+            $tblGradeAllByTest = Gradebook::useService()->getGradeAllByTest($tblTest);
+            if ($tblGradeAllByTest){
+                foreach ($tblGradeAllByTest as $tblGrade){
+                    Gradebook::useService()->destroyGrade($tblGrade);
+                }
+            }
+
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -345,8 +400,11 @@ class Data extends AbstractData
      * @param TblDivision $tblDivision
      * @return bool|Entity\TblTest[]
      */
-    public function getTestAllByTaskAndTestType(TblTask $tblTask, TblTestType $tblTestType, TblDivision $tblDivision = null)
-    {
+    public function getTestAllByTaskAndTestType(
+        TblTask $tblTask,
+        TblTestType $tblTestType,
+        TblDivision $tblDivision = null
+    ) {
 
         if ($tblDivision === null) {
             return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
