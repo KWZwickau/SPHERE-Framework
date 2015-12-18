@@ -379,6 +379,7 @@ Disallow: /
 
 User-agent: *
 Disallow: /Application/
+Disallow: /Common/
 Disallow: /Library/
 Disallow: /System/
 Disallow: /UnitTest/
