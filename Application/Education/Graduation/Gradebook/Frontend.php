@@ -590,9 +590,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $columnSecondList[] = new LayoutColumn(new Header(' '), 2);
                 foreach ($tblPeriodList as $tblPeriod) {
                     $tblTestList = Evaluation::useService()->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
-                        $tblTestType,
                         $tblDivision,
                         $tblDivisionSubject->getServiceTblSubject(),
+                        $tblTestType,
                         $tblPeriod,
                         $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                     );

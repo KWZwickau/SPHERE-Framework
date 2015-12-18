@@ -90,15 +90,15 @@ class Service extends AbstractService
      * @return bool|TblTest[]
      */
     public function getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
-        TblTestType $tblTestType,
         TblDivision $tblDivision,
         TblSubject $tblSubject,
+        TblTestType $tblTestType = null,
         TblPeriod $tblPeriod = null,
         TblSubjectGroup $tblSubjectGroup = null
     ) {
 
         return (new Data($this->getBinding()))->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
-            $tblTestType, $tblDivision, $tblSubject, $tblPeriod, $tblSubjectGroup
+            $tblDivision, $tblSubject, $tblTestType, $tblPeriod, $tblSubjectGroup
         );
     }
 
@@ -346,7 +346,7 @@ class Service extends AbstractService
                         null,
                         $tblTestType,
                         $tblTask,
-                        'Stichtagsnotenauftrag',
+                        '',
                         $tblTask->getDate()
                     );
                 } else {
@@ -361,7 +361,7 @@ class Service extends AbstractService
                             null,
                             $tblTestType,
                             $tblTask,
-                            'Stichtagsnotenauftrag',
+                            '',
                             $tblTask->getDate()
                         );
                     }

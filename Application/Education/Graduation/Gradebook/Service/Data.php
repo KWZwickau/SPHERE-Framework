@@ -112,8 +112,8 @@ class Data extends AbstractData
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
      * @param TblSubjectGroup|null $tblSubjectGroup
-     * @param TblPeriod $tblPeriod
-     * @param TblGradeType $tblGradeType
+     * @param TblPeriod|null $tblPeriod
+     * @param TblGradeType|null $tblGradeType
      * @param TblTest $tblTest
      * @param \SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType $tblTestType
      * @param $Grade
@@ -125,8 +125,8 @@ class Data extends AbstractData
         TblDivision $tblDivision,
         TblSubject $tblSubject,
         TblSubjectGroup $tblSubjectGroup = null,
-        TblPeriod $tblPeriod,
-        TblGradeType $tblGradeType,
+        TblPeriod $tblPeriod = null,
+        TblGradeType $tblGradeType = null,
         TblTest $tblTest,
         TblTestType $tblTestType,
         $Grade,

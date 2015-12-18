@@ -53,51 +53,99 @@ class Data extends AbstractData
      * @return bool|\SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest[]
      */
     public function getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
-        TblTestType $tblTestType,
         TblDivision $tblDivision,
         TblSubject $tblSubject,
+        TblTestType $tblTestType = null,
         TblPeriod $tblPeriod = null,
         TblSubjectGroup $tblSubjectGroup = null
     ) {
-        if ($tblSubjectGroup === null) {
-            if ($tblPeriod === null) {
-                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
-                    array(
-                        TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
-                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
-                    )
-                );
+        if ($tblTestType === null){
+            if ($tblSubjectGroup === null) {
+                if ($tblPeriod === null) {
+                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                        'TblTest',
+                        array(
+                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+                        )
+                    );
+                } else {
+                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                        'TblTest',
+                        array(
+                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                            TblTest::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId()
+                        )
+                    );
+                }
             } else {
-                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
-                    array(
-                        TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
-                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                        TblTest::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId()
-                    )
-                );
+                if ($tblPeriod === null) {
+                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                        'TblTest',
+                        array(
+                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId()
+                        )
+                    );
+                } else {
+                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                        'TblTest',
+                        array(
+                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                            TblTest::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
+                        )
+                    );
+                }
             }
         } else {
-            if ($tblPeriod === null) {
-                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
-                    array(
-                        TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
-                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                        TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId()
-                    )
-                );
+            if ($tblSubjectGroup === null) {
+                if ($tblPeriod === null) {
+                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                        'TblTest',
+                        array(
+                            TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+                        )
+                    );
+                } else {
+                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                        'TblTest',
+                        array(
+                            TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                            TblTest::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId()
+                        )
+                    );
+                }
             } else {
-                return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
-                    array(
-                        TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
-                        TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                        TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                        TblTest::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId(),
-                        TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
-                    )
-                );
+                if ($tblPeriod === null) {
+                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                        'TblTest',
+                        array(
+                            TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId()
+                        )
+                    );
+                } else {
+                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                        'TblTest',
+                        array(
+                            TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                            TblTest::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
+                        )
+                    );
+                }
             }
         }
     }
