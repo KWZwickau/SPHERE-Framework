@@ -63,14 +63,15 @@ class Service extends Extension
             try {
                 /** @var EdenPhpSmtp $Mail */
                 $Mail = Mail::getSmtpMail()->connectServer(
-                    'smtp.kreda.schule', 'helpdesk@kreda.schule', '20!Kreide!15'
+                    'sslout.de', 'helpdesk@kreda.schule', '20!Kreide!15', 465, true
                 );
-                $Mail->setMailSubject($Ticket['Subject'].' - Account: '.Account::useService()->getAccountBySession()->getId().' ('.$Ticket['Mail'].')');
+                $Mail->setMailSubject(utf8_decode($Ticket['Subject']).' - Account: '.Account::useService()->getAccountBySession()->getId().' ('.$Ticket['Mail'].')');
                 $Mail->setMailBody($Ticket['Body']);
                 $Mail->addRecipientTO('helpdesk@kreda.schule');
                 if (isset( $Upload )) {
                     $Mail->addAttachment(new FileParameter($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename()));
                 }
+                $Mail->setFromHeader($Ticket['Mail']);
                 $Mail->sendMail();
                 $Mail->disconnectServer();
             } catch (\Exception $Exception) {
