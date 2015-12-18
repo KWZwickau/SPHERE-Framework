@@ -20,7 +20,7 @@ class Repository extends EntityRepository implements ObjectRepository, Selectabl
     {
 
         $Query = $this->createQueryBuilder('e')->select('count(e)')->getQuery()
-            ->useQueryCache(true)->useResultCache(true);
+            ->useQueryCache(true);
         return $Query->getSingleScalarResult();
     }
 
