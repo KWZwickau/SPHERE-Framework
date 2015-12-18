@@ -305,9 +305,8 @@ class Frontend extends Extension implements IFrontendInterface
                             $item = Division::useService()->getSubjectGroupById($subjectGroupId);
                             $divisionSubjectTable[] = array(
                                 'Year' => $tblDivision->getServiceTblYear()->getName(),
-                                'Type' => $tblDivision->getTblLevel()->getServiceTblType()
-                                    ? $tblDivision->getTblLevel()->getServiceTblType()->getName() : 'Typ nicht vorhanden',
-                                'Division' => $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                                'Type' => $tblDivision->getTypeName(),
+                                'Division' => $tblDivision->getDisplayName(),
                                 'Subject' => $tblSubject->getName(),
                                 'SubjectGroup' => $item->getName(),
                                 'Option' => new Standard(
@@ -321,9 +320,8 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $divisionSubjectTable[] = array(
                             'Year' => $tblDivision->getServiceTblYear()->getName(),
-                            'Type' => $tblDivision->getTblLevel()->getServiceTblType()
-                                ? $tblDivision->getTblLevel()->getServiceTblType()->getName() : 'Typ nicht vorhanden',
-                            'Division' => $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                            'Type' => $tblDivision->getTypeName(),
+                            'Division' => $tblDivision->getDisplayName(),
                             'Subject' => $tblSubject->getName(),
                             'SubjectGroup' => '',
                             'Option' => new Standard(
@@ -415,9 +413,8 @@ class Frontend extends Extension implements IFrontendInterface
                             $item = Division::useService()->getSubjectGroupById($subjectGroupId);
                             $divisionSubjectTable[] = array(
                                 'Year' => $tblDivision->getServiceTblYear()->getName(),
-                                'Type' => $tblDivision->getTblLevel()->getServiceTblType()
-                                    ? $tblDivision->getTblLevel()->getServiceTblType()->getName() : 'Typ nicht vorhanden',
-                                'Division' => $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                                'Type' => $tblDivision->getTypeName(),
+                                'Division' => $tblDivision->getDisplayName(),
                                 'Subject' => $tblSubject->getName(),
                                 'SubjectGroup' => $item->getName(),
                                 'Option' => new Standard(
@@ -432,9 +429,8 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $divisionSubjectTable[] = array(
                             'Year' => $tblDivision->getServiceTblYear()->getName(),
-                            'Type' => $tblDivision->getTblLevel()->getServiceTblType()
-                                ? $tblDivision->getTblLevel()->getServiceTblType()->getName() : 'Typ nicht vorhanden',
-                            'Division' => $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                            'Type' => $tblDivision->getTypeName(),
+                            'Division' => $tblDivision->getDisplayName(),
                             'Subject' => $tblSubject->getName(),
                             'SubjectGroup' => '',
                             'Option' => new Standard(
@@ -711,7 +707,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new Panel(
                                 'Fach-Klasse',
-                                'Klasse ' . $tblDivision->getTblLevel()->getName() . $tblDivision->getName() . ' - ' .
+                                'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
                                 $tblDivisionSubject->getServiceTblSubject()->getName() .
                                 ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
                                     ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
@@ -848,7 +844,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
                         $columnList = array();
                         $columnList[] = new LayoutColumn(new Title($tblPerson->getFullName()
-                            . new Small(new Muted(' Klasse ' . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()))),
+                            . new Small(new Muted(' Klasse ' . $tblDivision->getDisplayName()))),
                             12);
                         if ($tblPeriodList) {
                             $columnList[] = new LayoutColumn(new Header(new Bold('Fach')), 2);

@@ -288,7 +288,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 /** @var TblDivision $tblObject */
                                 $tblYear = $tblObject->getServiceTblYear();
                                 $tblListObjectList->DisplayName = ($tblYear ? $tblYear->getName() . ' ' : '')
-                                    . $tblObject->getTblLevel()->getName() . $tblObject->getName()
+                                    . $tblObject->getDisplayName()
                                     . ' (' . Division::useService()->countDivisionStudentAllByDivision($tblObject) . ')';
                             } else {
                                 $tblListObjectList->Name = '';
@@ -492,7 +492,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 foreach ($tblDivisionAll as $tblDivision) {
                                     $tblYear = $tblDivision->getServiceTblYear();
                                     $tblDivision->DisplayName = ($tblYear ? $tblYear->getName() . ' ' : '')
-                                        . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()
+                                        . $tblDivision->getDisplayName()
                                         . ' (' . Division::useService()->countDivisionStudentAllByDivision($tblDivision) . ')';
                                     $tblDivision->Option =
                                         (new Form(

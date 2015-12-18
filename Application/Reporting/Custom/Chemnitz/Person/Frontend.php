@@ -102,7 +102,7 @@ class Frontend extends Extension implements IFrontendInterface
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getDisplayName(),
                             Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
@@ -224,7 +224,7 @@ class Frontend extends Extension implements IFrontendInterface
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getDisplayName(),
                             Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
@@ -301,7 +301,7 @@ class Frontend extends Extension implements IFrontendInterface
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getDisplayName(),
                             Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
@@ -526,7 +526,7 @@ class Frontend extends Extension implements IFrontendInterface
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getDisplayName(),
                             Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
