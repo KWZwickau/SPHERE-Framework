@@ -21,6 +21,10 @@ use SPHERE\Application\Platform\System;
 use SPHERE\Application\Reporting\Reporting;
 use SPHERE\Application\Setting\Setting;
 use SPHERE\Application\Transfer\Transfer;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Window\Display;
 use SPHERE\Common\Window\Error;
 use SPHERE\Common\Window\Navigation\Link;
@@ -279,13 +283,20 @@ class Main extends Extension
 
         $Display = new Display();
         $Display->setContent(
-            ($Exception
-                ? new Error($Exception->getCode(), $Exception->getMessage())
-                : ''
-            )
-            .(new Frontend\Message\Repository\Info('Es wird eine automatische Reparatur durchgeführt. Sollte der Fehler damit nicht behoben werden, senden Sie bitte einen Fehlerbericht.'))
-            .(new Redirect(self::getRequest()->getPathInfo(), 3))
-            .$Protocol
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(array(
+                        ( $Exception
+                            ? new Error('Automatische Reparatur', $Exception->getMessage())
+                            : ''
+                        ),
+                        (new Frontend\Message\Repository\Success('Es wird eine automatische Reparatur durchgeführt. Sollte der Fehler damit nicht behoben werden, senden Sie bitte einen Fehlerbericht.')),
+                        (new Redirect(self::getRequest()->getPathInfo(), 10))
+                    )
+                    , 6),
+                new LayoutColumn(
+                    $Protocol
+                    , 6)
+            ))))
         );
         echo $Display->getContent(true);
         exit(0);
