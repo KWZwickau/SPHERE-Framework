@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -125,12 +126,28 @@ class TblDivision extends Element
      * Level->Name + Division->Name
      * @return string
      */
-    public  function getDisplayName()
+    public function getDisplayName()
     {
         if ($this->getTblLevel()){
             return $this->getTblLevel()->getName() . $this->getName();
         } else {
             return $this->getName();
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public  function getTypeName()
+    {
+        if ($this->getTblLevel()){
+            if ($this->getTblLevel()->getServiceTblType()) {
+                return $this->getTblLevel()->getServiceTblType()->getName();
+            } else {
+                return new Warning('Schulart nicht vorhanden.');
+            }
+        } else {
+            return '';
         }
     }
 }
