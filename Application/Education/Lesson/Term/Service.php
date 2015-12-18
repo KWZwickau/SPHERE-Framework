@@ -169,10 +169,13 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getYearByPeriod($tblPeriod);
     }
 
-    public function getYearByNow()
+    /**
+     * @param \DateTime $Date
+     * @return bool|TblYear[]
+     */
+    public function getYearByDate(\DateTime $Date)
     {
 
-        $Now = new \DateTime('now');
         $EntityList = array();
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll) {
@@ -193,8 +196,8 @@ class Service extends AbstractService
                             $tblPeriodTemp = $tblPeriod;
                         }
                     }
-                    if (new \DateTime($From) < new \DateTime($Now->format('d.m.Y')) &&
-                        new \DateTime($To) > new \DateTime($Now->format('d.m.Y'))
+                    if (new \DateTime($From) < new \DateTime($Date->format('d.m.Y')) &&
+                        new \DateTime($To) > new \DateTime($Date->format('d.m.Y'))
                     ) {
                         $tblYearTempList = Term::useService()->getYearByPeriod($tblPeriodTemp);
                         if ($tblYearTempList) {
@@ -232,6 +235,17 @@ class Service extends AbstractService
         $EntityList = array_filter($EntityList);
 
         return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     * @return bool|Service\Entity\TblYear[]
+     */
+    public function getYearByNow()
+    {
+
+        $Now = new \DateTime('now');
+        return $this->getYearByDate($Now);
+
     }
 
     /**
