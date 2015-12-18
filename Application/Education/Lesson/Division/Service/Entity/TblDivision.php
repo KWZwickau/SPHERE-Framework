@@ -120,4 +120,17 @@ class TblDivision extends Element
 
         $this->serviceTblYear = ( null === $tblYear ? null : $tblYear->getId() );
     }
+
+    /**
+     * Level->Name + Division->Name
+     * @return string
+     */
+    public  function getDisplayName()
+    {
+        if ($this->getTblLevel()){
+            return $this->getTblLevel()->getName() . $this->getName();
+        } else {
+            return $this->getName();
+        }
+    }
 }
