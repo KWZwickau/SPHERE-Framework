@@ -196,7 +196,7 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
     {
 
         try {
-            $this->Instance->addAttachment($File->getFileInfo()->getFilename(),
+            $this->Instance->addAttachment($File->getFileInfo()->getRealPath(),
                 file_get_contents($File->getFileInfo()->getRealPath()));
         } catch (\Exception $Exception) {
             throw new MailException($Exception->getMessage(), $Exception->getCode(), $Exception);

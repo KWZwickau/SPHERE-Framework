@@ -50,7 +50,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendClassList($DivisionId, $Select)
+    public function frontendClassList($DivisionId = null, $Select = null)
     {
 
         $View = new Stage();
@@ -102,7 +102,7 @@ class Frontend extends Extension implements IFrontendInterface
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getDisplayName(),
                             Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
@@ -173,7 +173,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendMedicList($DivisionId, $Select)
+    public function frontendMedicList($DivisionId = null, $Select = null)
     {
         $View = new Stage();
         $View->setTitle('ESZC Auswertung');
@@ -224,7 +224,7 @@ class Frontend extends Extension implements IFrontendInterface
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getDisplayName(),
                             Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
@@ -249,7 +249,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendParentTeacherConferenceList($DivisionId, $Select)
+    public function frontendParentTeacherConferenceList($DivisionId = null, $Select = null)
     {
         $View = new Stage();
         $View->setTitle('ESZC Auswertung');
@@ -301,7 +301,7 @@ class Frontend extends Extension implements IFrontendInterface
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getDisplayName(),
                             Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
@@ -526,7 +526,7 @@ class Frontend extends Extension implements IFrontendInterface
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getDisplayName(),
                             Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))

@@ -232,7 +232,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendListElementRemove($Id)
+    public function frontendListElementRemove($Id = null)
     {
 
         return CheckList::useService()->removeElementFromList($Id);
@@ -288,7 +288,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 /** @var TblDivision $tblObject */
                                 $tblYear = $tblObject->getServiceTblYear();
                                 $tblListObjectList->DisplayName = ($tblYear ? $tblYear->getName() . ' ' : '')
-                                    . $tblObject->getTblLevel()->getName() . $tblObject->getName()
+                                    . $tblObject->getDisplayName()
                                     . ' (' . Division::useService()->countDivisionStudentAllByDivision($tblObject) . ')';
                             } else {
                                 $tblListObjectList->Name = '';
@@ -492,7 +492,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 foreach ($tblDivisionAll as $tblDivision) {
                                     $tblYear = $tblDivision->getServiceTblYear();
                                     $tblDivision->DisplayName = ($tblYear ? $tblYear->getName() . ' ' : '')
-                                        . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()
+                                        . $tblDivision->getDisplayName()
                                         . ' (' . Division::useService()->countDivisionStudentAllByDivision($tblDivision) . ')';
                                     $tblDivision->Option =
                                         (new Form(
@@ -771,7 +771,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendListObjectRemove($Id)
+    public function frontendListObjectRemove($Id = null)
     {
 
         return CheckList::useService()->removeObjectFromList($Id);
@@ -783,7 +783,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $HasData
      * @return Stage
      */
-    public function frontendListObjectElementEdit($Id, $Data = null, $HasData = null)
+    public function frontendListObjectElementEdit($Id = null, $Data = null, $HasData = null)
     {
         $Stage = new Stage('Check-Listen', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));

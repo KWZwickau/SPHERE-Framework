@@ -4,7 +4,6 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
-use SPHERE\Common\Frontend\Icon\Repository\Document;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -30,19 +29,15 @@ class Gradebook implements IModuleInterface
                 new Link\Icon(new Book()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '\Test'), new Link\Name('Leistungsüberprüfung'),
-                new Link\Icon(new Document()))
-        );
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '\Headmaster\Test'), new Link\Name('Leistungsüberprüfung (Leitung)'),
-                new Link\Icon(new Document()))
-        );
-        Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__ .'\Gradebook' ), new Link\Name('Notenbuch'),
                 new Link\Icon(new Book()))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__ .'\Headmaster\Gradebook' ), new Link\Name('Notenbuch (Leitung)'),
+                new Link\Icon(new Book()))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__ .'\Student\Gradebook' ), new Link\Name('Notenübersicht'),
                 new Link\Icon(new Book()))
         );
 
@@ -63,23 +58,9 @@ class Gradebook implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Gradebook\Selected',
                 __NAMESPACE__ . '\Frontend::frontendSelectedGradebook')
         );
-
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test',
-                __NAMESPACE__ . '\Frontend::frontendTest')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test\Selected',
-                __NAMESPACE__ . '\Frontend::frontendTestSelected')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test\Edit',
-                __NAMESPACE__ . '\Frontend::frontendEditTest')
-        );
-
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test\Grade\Edit',
-                __NAMESPACE__ . '\Frontend::frontendEditTestGrade')
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Student\Gradebook',
+                __NAMESPACE__ . '\Frontend::frontendStudentGradebook')
         );
 
         /*
@@ -92,22 +73,6 @@ class Gradebook implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Gradebook\Selected',
                 __NAMESPACE__ . '\Frontend::frontendHeadmasterSelectedGradebook')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Test',
-                __NAMESPACE__ . '\Frontend::frontendHeadmasterTest')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Test\Selected',
-                __NAMESPACE__ . '\Frontend::frontendHeadmasterTestSelected')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Test\Edit',
-                __NAMESPACE__ . '\Frontend::frontendHeadmasterEditTest')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Headmaster\Test\Grade\Edit',
-                __NAMESPACE__ . '\Frontend::frontendHeadmasterEditTestGrade')
         );
 
         /*

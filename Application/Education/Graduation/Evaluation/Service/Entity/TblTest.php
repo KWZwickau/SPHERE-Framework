@@ -6,13 +6,15 @@
  * Time: 13:51
  */
 
-namespace SPHERE\Application\Education\Graduation\Gradebook\Service\Entity;
+namespace SPHERE\Application\Education\Graduation\Evaluation\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
@@ -33,8 +35,9 @@ class TblTest extends Element
     const ATTR_DATE = 'Date';
     const ATTR_CORRECTION_DATE = 'CorrectionDate';
     const ATTR_RETURN_DATE = 'ReturnDate';
-    const ATTR_TBL_GRADE_TYPE = 'tblGradeType';
     const ATTR_TBL_TEST_TYPE = 'tblTestType';
+    const ATTR_TBL_TASK = 'tblTask';
+    const ATTR_SERVICE_TBL_GRADE_TYPE = 'serviceTblGradeType';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_SERVICE_TBL_SUBJECT_GROUP = 'serviceTblSubjectGroup';
@@ -64,12 +67,17 @@ class TblTest extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblGradeType;
+    protected $serviceTblGradeType;
 
     /**
      * @Column(type="bigint")
      */
     protected $tblTestType;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblTask;
 
     /**
      * @Column(type="bigint")
@@ -191,21 +199,21 @@ class TblTest extends Element
     /**
      * @return bool|TblGradeType
      */
-    public function getTblGradeType()
+    public function getServiceTblGradeType()
     {
-        if (null === $this->tblGradeType) {
+        if (null === $this->serviceTblGradeType) {
             return false;
         } else {
-            return Gradebook::useService()->getGradeTypeById($this->tblGradeType);
+            return Gradebook::useService()->getGradeTypeById($this->serviceTblGradeType);
         }
     }
 
     /**
-     * @param TblGradeType|null $tblGradeType
+     * @param TblGradeType|null $serviceTblGradeType
      */
-    public function setTblGradeType($tblGradeType)
+    public function setServiceTblGradeType($serviceTblGradeType)
     {
-        $this->tblGradeType = (null === $tblGradeType ? null : $tblGradeType->getId());
+        $this->serviceTblGradeType = (null === $serviceTblGradeType ? null : $serviceTblGradeType->getId());
     }
 
     /**
@@ -304,7 +312,7 @@ class TblTest extends Element
         if (null === $this->tblTestType) {
             return false;
         } else {
-            return Gradebook::useService()->getTestTypeById($this->tblTestType);
+            return Evaluation::useService()->getTestTypeById($this->tblTestType);
         }
     }
 
@@ -314,5 +322,25 @@ class TblTest extends Element
     public function setTblTestType($tblTestType)
     {
         $this->tblTestType = (null === $tblTestType ? null : $tblTestType->getId());
+    }
+
+    /**
+     * @return bool|TblTask
+     */
+    public function getTblTask()
+    {
+        if (null === $this->tblTask) {
+            return false;
+        } else {
+            return Evaluation::useService()->getTaskById($this->tblTask);
+        }
+    }
+
+    /**
+     * @param TblTask|null $tblTask
+     */
+    public function setTblTask($tblTask)
+    {
+        $this->tblTask = (null === $tblTask ? null : $tblTask->getId());
     }
 }
