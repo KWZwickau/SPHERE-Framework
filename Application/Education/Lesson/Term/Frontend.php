@@ -330,7 +330,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             /** @noinspection PhpUnusedParameterInspection */
-            if (isset( $tblPeriodAvailable )) {
+            if (isset( $tblPeriodAvailable ) && is_array($tblPeriodAvailable)) {
                 array_walk($tblPeriodAvailable, function (TblPeriod &$Entity) use ($Id) {
 
                     /** @noinspection PhpUndefinedFieldInspection */

@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
@@ -12,15 +13,13 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGro
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTestType;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Setup;
-use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
-use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -50,28 +49,6 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblTestType
-     */
-    public function getTestTypeById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getTestTypeById($Id);
-    }
-
-    /**
-     * @param string $Identifier
-     *
-     * @return bool|TblTestType
-     */
-    public function getTestTypeByIdentifier($Identifier)
-    {
-
-        return (new Data($this->getBinding()))->getTestTypeByIdentifier($Identifier);
     }
 
     /**
@@ -105,7 +82,7 @@ class Service extends AbstractService
                 $GradeType['Code'],
                 $GradeType['Description'],
                 isset($GradeType['IsHighlighted']) ? true : false,
-                $this->getTestTypeByIdentifier('TEST')
+                Evaluation::useService()->getTestTypeByIdentifier('TEST')
             );
             return new Stage('Der Zensuren-Typ ist erfasst worden')
             . new Redirect('/Education/Graduation/Gradebook/GradeType', 0);
@@ -218,7 +195,7 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
-     * @param TblTestType $tblTestType
+     * @param \SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType $tblTestType
      * @param TblPeriod|null $tblPeriod
      * @param TblSubjectGroup|null $tblSubjectGroup
      * @return bool|Service\Entity\TblGrade[]
@@ -260,124 +237,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     * @return bool|Service\Entity\TblTest
-     */
-    public function getTestById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getTestById($Id);
-    }
-
-    /**
-     * @param TblTestType $tblTestType
-     * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
-     * @param TblPeriod|null $tblPeriod
-     * @param TblSubjectGroup|null $tblSubjectGroup
-     * @return bool|TblTest[]
-     */
-    public function getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
-        TblTestType $tblTestType,
-        TblDivision $tblDivision,
-        TblSubject $tblSubject,
-        TblPeriod $tblPeriod = null,
-        TblSubjectGroup $tblSubjectGroup = null
-    ) {
-
-        return (new Data($this->getBinding()))->getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
-            $tblTestType, $tblDivision, $tblSubject, $tblPeriod, $tblSubjectGroup
-        );
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param null $DivisionSubjectId
-     * @param null $Test
-     * @param string $BasicRoute
-     * @return IFormInterface|string
-     */
-    public function createTest(IFormInterface $Stage = null, $DivisionSubjectId = null, $Test = null, $BasicRoute)
-    {
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Test || $DivisionSubjectId === null) {
-            return $Stage;
-        }
-
-        $Error = false;
-        if (!isset($Test['Period'])) {
-            $Error = true;
-            $Stage .= new Warning('Zeitraum nicht gefunden');
-        }
-        if (!isset($Test['GradeType'])) {
-            $Error = true;
-            $Stage .= new Warning('Zensuren-Typ nicht gefunden');
-        }
-        if ($Error) {
-            return $Stage;
-        }
-
-        $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId);
-
-        (new Data($this->getBinding()))->createTest(
-            $tblDivisionSubject->getTblDivision(),
-            $tblDivisionSubject->getServiceTblSubject(),
-            $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
-            Term::useService()->getPeriodById($Test['Period']),
-            $this->getGradeTypeById($Test['GradeType']),
-            $this->getTestTypeByIdentifier('TEST'),
-            $Test['Description'],
-            $Test['Date'],
-            $Test['CorrectionDate'],
-            $Test['ReturnDate']
-        );
-
-        return new Stage('Der Test ist erfasst worden')
-        . new Redirect($BasicRoute . '/Selected', 0,
-            array('DivisionSubjectId' => $tblDivisionSubject->getId()));
-
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param $Id
-     * @param $Test
-     * @param string $BasicRoute
-     * @return IFormInterface|Redirect
-     */
-    public function updateTest(IFormInterface $Stage = null, $Id, $Test, $BasicRoute)
-    {
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Test) {
-            return $Stage;
-        }
-
-        $tblTest = $this->getTestById($Id);
-        (new Data($this->getBinding()))->updateTest(
-            $tblTest,
-            $Test['Description'],
-            $Test['Date'],
-            $Test['CorrectionDate'],
-            $Test['ReturnDate']
-        );
-
-        $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-            $tblTest->getServiceTblDivision(),
-            $tblTest->getServiceTblSubject(),
-            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
-        );
-
-
-        return new Redirect($BasicRoute . '/Selected', 0,
-            array('DivisionSubjectId' => $tblDivisionSubject->getId()));
-    }
-
-    /**
-     * @param TblTest $tblTest
+     * @param \SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest $tblTest
      * @return TblGrade[]|bool
      */
     public function getGradeAllByTest(TblTest $tblTest)
@@ -406,25 +266,33 @@ class Service extends AbstractService
             return $Stage;
         }
 
-        $tblTest = $this->getTestById($TestId);
-        $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-            $tblTest->getServiceTblDivision(),
-            $tblTest->getServiceTblSubject(),
-            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
-        );
+        $tblTest = Evaluation::useService()->getTestById($TestId);
 
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
                 if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))) {
-                    if (trim($value['Grade']) !== '') {
+                    if (isset($value['Attendance'])) {
                         (new Data($this->getBinding()))->createGrade(
                             $tblPerson,
                             $tblTest->getServiceTblDivision(),
                             $tblTest->getServiceTblSubject(),
                             $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null,
-                            $tblTest->getServiceTblPeriod(),
-                            $tblTest->getTblGradeType(),
+                            $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod() : null,
+                            $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType() : null,
+                            $tblTest,
+                            $tblTest->getTblTestType(),
+                            null,
+                            trim($value['Comment'])
+                        );
+                    } elseif (trim($value['Grade']) !== '') {
+                        (new Data($this->getBinding()))->createGrade(
+                            $tblPerson,
+                            $tblTest->getServiceTblDivision(),
+                            $tblTest->getServiceTblSubject(),
+                            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null,
+                            $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod() : null,
+                            $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType() : null,
                             $tblTest,
                             $tblTest->getTblTestType(),
                             trim($value['Grade']),
@@ -432,17 +300,42 @@ class Service extends AbstractService
                         );
                     }
                 } elseif ($IsEdit && $tblGrade) {
-                    (new Data($this->getBinding()))->updateGrade(
-                        $tblGrade,
-                        trim($value['Grade']),
-                        trim($value['Comment'])
-                    );
+                    if (isset($value['Attendance'])){
+                        (new Data($this->getBinding()))->updateGrade(
+                            $tblGrade,
+                            null,
+                            trim($value['Comment'])
+                        );
+                    } else {
+                        (new Data($this->getBinding()))->updateGrade(
+                            $tblGrade,
+                            trim($value['Grade']),
+                            trim($value['Comment'])
+                        );
+                    }
                 }
             }
         }
 
-        return new Redirect($BasicRoute . '/Selected', 0,
-            array('DivisionSubjectId' => $tblDivisionSubject->getId()));
+//        $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+//            $tblTest->getServiceTblDivision(),
+//            $tblTest->getServiceTblSubject(),
+//            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
+//        );
+//        return new Redirect($BasicRoute . '/Selected', 0,
+//            array('DivisionSubjectId' => $tblDivisionSubject->getId()));
+        return new Redirect($BasicRoute . '/Grade/Edit', 0,
+            array('Id' => $tblTest->getId()));
+    }
+
+    /**
+     * @param TblGrade $tblGrade
+     * @return bool
+     */
+    public function destroyGrade(TblGrade $tblGrade)
+    {
+
+        return (new Data($this->getBinding()))->destroyGrade($tblGrade);
     }
 
     /**
@@ -710,7 +603,7 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
-     * @param TblTestType $tblTestType
+     * @param \SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType $tblTestType
      * @param TblScoreCondition $tblScoreCondition
      * @param TblPeriod|null $tblPeriod
      * @param TblSubjectGroup|null $tblSubjectGroup
@@ -807,4 +700,34 @@ class Service extends AbstractService
         return false;
     }
 
+    /**
+     * @param IFormInterface|null $Stage
+     * @param null $Select
+     * @param string $Redirect
+     *
+     * @return IFormInterface|Redirect|string
+     */
+    public function getYear(IFormInterface $Stage = null, $Select = null, $Redirect = '')
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Select) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (!isset($Select['Year'])) {
+            $Error = true;
+            $Stage .= new Warning('Schuljahr nicht gefunden');
+        }
+        if ($Error) {
+            return $Stage;
+        }
+
+        return new Redirect($Redirect, 0, array(
+            'YearId' => $Select['Year'],
+        ));
+    }
 }

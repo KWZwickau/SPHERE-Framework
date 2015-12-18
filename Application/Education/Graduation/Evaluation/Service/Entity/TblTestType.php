@@ -6,7 +6,7 @@
  * Time: 13:51
  */
 
-namespace SPHERE\Application\Education\Graduation\Gradebook\Service\Entity;
+namespace SPHERE\Application\Education\Graduation\Evaluation\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;

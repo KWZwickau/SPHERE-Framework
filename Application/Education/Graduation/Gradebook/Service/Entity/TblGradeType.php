@@ -12,7 +12,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -25,7 +26,7 @@ class TblGradeType extends Element
 
     const ATTR_NAME = 'Name';
     const ATTR_CODE = 'Code';
-    const ATTR_TBL_TEST_TYPE = 'tblTestType';
+    const ATTR_SERVICE_TBL_TEST_TYPE = 'serviceTblTestType';
 
     /**
      * @Column(type="string")
@@ -50,7 +51,7 @@ class TblGradeType extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblTestType;
+    protected $serviceTblTestType;
 
     /**
      * @return string
@@ -119,20 +120,20 @@ class TblGradeType extends Element
     /**
      * @return bool|TblTestType
      */
-    public function getTblTestType()
+    public function getServiceTblTestType()
     {
-        if (null === $this->tblTestType) {
+        if (null === $this->serviceTblTestType) {
             return false;
         } else {
-            return Gradebook::useService()->getTestTypeById($this->tblTestType);
+            return Evaluation::useService()->getTestTypeById($this->serviceTblTestType);
         }
     }
 
     /**
-     * @param TblTestType|null $tblTestType
+     * @param TblTestType|null $serviceTblTestType
      */
-    public function setTblTestType($tblTestType)
+    public function setServiceTblTestType($serviceTblTestType)
     {
-        $this->tblTestType = (null === $tblTestType ? null : $tblTestType->getId());
+        $this->serviceTblTestType = (null === $serviceTblTestType ? null : $serviceTblTestType->getId());
     }
 }
