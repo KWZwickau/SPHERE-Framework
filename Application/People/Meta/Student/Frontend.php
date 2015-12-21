@@ -251,8 +251,11 @@ class Frontend extends Extension implements IFrontendInterface
 
                             foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudentTemp) {
                                 if ($tblDivisionStudent->getId() !== $tblDivisionStudentTemp->getId()
-                                    && $tblDivisionStudent->getTblDivision()->getTblLevel()->getId()
-                                    === $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getId()
+                                    && (
+                                        $tblDivisionStudentTemp->getTblDivision()->getTblLevel()
+                                        && $tblDivisionStudent->getTblDivision()->getTblLevel()->getId()
+                                        === $tblDivisionStudentTemp->getTblDivision()->getTblLevel()->getId()
+                                    )
                                 ) {
                                     $RepeatedLevels[] = $tblYear->getName() . ' Klasse ' . $tblLevel->getName();
                                 }
