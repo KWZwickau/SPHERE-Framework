@@ -5,6 +5,7 @@ use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\CacheStatus;
 use SPHERE\System\Config\Reader\ReaderInterface;
 use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 
 /**
@@ -70,6 +71,7 @@ class APCuHandler extends AbstractHandler implements HandlerInterface
     public function clearCache()
     {
 
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Clear APCu');
         apc_clear_cache();
         return $this;
     }
@@ -80,6 +82,7 @@ class APCuHandler extends AbstractHandler implements HandlerInterface
     public function getStatus()
     {
 
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Status APCu');
         $Status = array();
         $Status += apc_sma_info(true);
         $Status += apc_cache_info('user', true);

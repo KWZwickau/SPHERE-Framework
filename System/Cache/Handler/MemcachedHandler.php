@@ -5,6 +5,7 @@ use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\CacheStatus;
 use SPHERE\System\Config\Reader\ReaderInterface;
 use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 
 /**
@@ -80,9 +81,8 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
      */
     public function setValue($Key, $Value, $Timeout = 0, $Region = 'Default')
     {
-
         if ($this->isValid()) {
-            $this->Connection->set($this->getSlot().':'.$Region.'#'.$Key, $Value,
+            $this->Connection->set($this->getSlotRegion($Region).'#'.$Key, $Value,
                 ( !$Timeout ? null : time() + $Timeout ));
         }
         return $this;
@@ -95,6 +95,17 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     {
 
         return ( null === $this->Connection ? false : true );
+    }
+
+    /**
+     * @param $Region
+     *
+     * @return string
+     */
+    public function getSlotRegion($Region)
+    {
+
+        return $this->getSlot().':'.$Region;
     }
 
     public function getSlot()
@@ -116,7 +127,7 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     {
 
         if ($this->isValid()) {
-            $Value = $this->Connection->get($this->getSlot().':'.$Region.'#'.$Key);
+            $Value = $this->Connection->get($this->getSlotRegion($Region).'#'.$Key);
             // 0 = MEMCACHED_SUCCESS
             if (0 == ( $Code = $this->Connection->getResultCode() )) {
                 return $Value;
@@ -147,6 +158,7 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     public function clearCache()
     {
 
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Clear MemCached');
         if ($this->isValid()) {
             $this->Connection->flush();
         }
@@ -159,6 +171,7 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
     public function getStatus()
     {
 
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Status MemCached');
         if ($this->isValid()) {
             $Status = $this->Connection->getStats();
             $Status = $Status[$this->Host.':'.$this->Port];

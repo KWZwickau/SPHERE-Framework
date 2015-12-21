@@ -438,7 +438,7 @@ class Data extends AbstractData
             ->where( $Builder->expr()->eq( 'L.serviceTblPerson', '?1' ) )
             ->setParameter( 1, $tblPerson->getId() )
             ->getQuery();
-        return $Query->getResult( ColumnHydrator::HYDRATION_MODE );
+        return $Query->useQueryCache(true)->getResult(ColumnHydrator::HYDRATION_MODE);
     }
 
     /**
@@ -455,6 +455,6 @@ class Data extends AbstractData
             ->where( $Builder->expr()->in( 'A.Id', '?1' ) )
             ->setParameter( 1, $IdArray )
             ->getQuery();
-        return $Query->getResult( IdHydrator::HYDRATION_MODE );
+        return $Query->useQueryCache(true)->getResult(IdHydrator::HYDRATION_MODE);
     }
 }

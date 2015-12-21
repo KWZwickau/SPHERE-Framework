@@ -5,6 +5,7 @@ use MOC\V\Component\Template\Component\Bridge\Repository\SmartyTemplate;
 use SPHERE\System\Cache\CacheStatus;
 use SPHERE\System\Config\Reader\ReaderInterface;
 use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 
 /**
@@ -60,6 +61,8 @@ class SmartyHandler extends AbstractHandler implements HandlerInterface
      */
     public function clearCache()
     {
+
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Clear Smarty');
         (new SmartyTemplate())->createInstance()->clearAllCache();
         return $this;
     }
@@ -70,6 +73,7 @@ class SmartyHandler extends AbstractHandler implements HandlerInterface
     public function getStatus()
     {
 
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Status Smarty');
         return new CacheStatus(-1, -1, $this->calcStatusAvailable(), $this->calcStatusUsed(), $this->calcStatusFree(),
             $this->calcStatusAvailable() - $this->calcStatusFree() - $this->calcStatusUsed()
         );

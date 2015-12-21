@@ -248,7 +248,7 @@ class Service extends AbstractService
      *
      * @return Service\Entity\TblSession
      */
-    private function createSession(TblAccount $tblAccount, $Session = null, $Timeout = 1800)
+    public function createSession(TblAccount $tblAccount, $Session = null, $Timeout = 1800)
     {
 
         return (new Data($this->getBinding()))->createSession($tblAccount, $Session, $Timeout);

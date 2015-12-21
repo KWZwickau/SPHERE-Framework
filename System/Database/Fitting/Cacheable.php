@@ -2,7 +2,6 @@
 namespace SPHERE\System\Database\Fitting;
 
 use SPHERE\System\Cache\CacheFactory;
-use SPHERE\System\Cache\Handler\CouchbaseHandler;
 use SPHERE\System\Cache\Handler\HandlerInterface;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
@@ -83,16 +82,9 @@ abstract class Cacheable extends Extension
     private function getCacheSystem($__METHOD__)
     {
 
-        if (class_exists($__METHOD__, false)) {
-            if (null === self::$CacheSystem || !self::$CacheSystem instanceof CouchbaseHandler) {
-                $this->debugSystem($__METHOD__, 'Couchbase');
-                self::$CacheSystem = $this->getCache(new CouchbaseHandler(), 'Couchbase');
-            }
-        } else {
-            if (null === self::$CacheSystem || !self::$CacheSystem instanceof MemcachedHandler) {
-                $this->debugSystem($__METHOD__, 'Memcached');
-                self::$CacheSystem = $this->getCache(new MemcachedHandler(), 'Memcached');
-            }
+        if (null === self::$CacheSystem || !self::$CacheSystem instanceof MemcachedHandler) {
+            $this->debugSystem($__METHOD__, 'Memcached');
+            self::$CacheSystem = $this->getCache(new MemcachedHandler(), 'Memcached');
         }
         return self::$CacheSystem;
     }

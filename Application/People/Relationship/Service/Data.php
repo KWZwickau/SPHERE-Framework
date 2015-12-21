@@ -120,6 +120,29 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Name
+     *
+     * @return TblSiblingRank
+     */
+    public function createSiblingRank($Name)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblSiblingRank')->findOneBy(array(
+            TblSiblingRank::ATTR_NAME => $Name
+        ));
+        if (null === $Entity) {
+            $Entity = new TblSiblingRank();
+            $Entity->setName($Name);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblGroup
@@ -217,15 +240,48 @@ class Data extends AbstractData
     public function getPersonRelationshipAllByPerson(TblPerson $tblPerson)
     {
 
+        $From = $this->getPersonRelationshipFromByPerson($tblPerson);
+        if (!$From) {
+            $From = array();
+        }
+        $To = $this->getPersonRelationshipToByPerson($tblPerson);
+        if (!$To) {
+            $To = array();
+        }
+
         $EntityList = array_merge(
-            $this->getConnection()->getEntityManager()->getEntity('TblToPerson')->findBy(array(
-                TblToPerson::SERVICE_TBL_PERSON_FROM => $tblPerson->getId()
-            )),
-            $this->getConnection()->getEntityManager()->getEntity('TblToPerson')->findBy(array(
-                TblToPerson::SERVICE_TBL_PERSON_TO => $tblPerson->getId()
-            ))
+            $From,
+            $To
         );
         return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblToPerson[]
+     */
+    public function getPersonRelationshipFromByPerson(TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+            array(
+                TblToPerson::SERVICE_TBL_PERSON_FROM => $tblPerson->getId()
+            ));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblToPerson[]
+     */
+    public function getPersonRelationshipToByPerson(TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+            array(
+                TblToPerson::SERVICE_TBL_PERSON_TO => $tblPerson->getId()
+            ));
     }
 
     /**
@@ -236,10 +292,10 @@ class Data extends AbstractData
     public function getCompanyRelationshipAllByPerson(TblPerson $tblPerson)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblToCompany')->findBy(array(
-            TblToCompany::SERVICE_TBL_PERSON => $tblPerson->getId()
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany',
+            array(
+                TblToCompany::SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
-        return ( empty( $EntityList ) ? false : $EntityList );
     }
 
     /**
@@ -250,10 +306,10 @@ class Data extends AbstractData
     public function getCompanyRelationshipAllByCompany(TblCompany $tblCompany)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblToCompany')->findBy(array(
-            TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
-        ));
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany',
+            array(
+                TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
+            ));
     }
 
     /**
@@ -343,28 +399,6 @@ class Data extends AbstractData
         $Entity->setRemark($Remark);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        return $Entity;
-    }
-
-    /**
-     * @param $Name
-     * @return TblSiblingRank
-     */
-    public function createSiblingRank($Name)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblSiblingRank')->findOneBy(array(
-            TblSiblingRank::ATTR_NAME => $Name
-        ));
-        if (null === $Entity) {
-            $Entity = new TblSiblingRank();
-            $Entity->setName($Name);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        }
-
         return $Entity;
     }
 

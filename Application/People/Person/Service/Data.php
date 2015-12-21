@@ -153,12 +153,10 @@ class Data extends AbstractData
     public function getPersonAllByFirstNameAndLastName($FirstName, $LastName)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblPerson')->findBy(array(
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', array(
             TblPerson::ATTR_FIRST_NAME => $FirstName,
             TblPerson::ATTR_LAST_NAME => $LastName
         ));
-
-        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
@@ -179,7 +177,6 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
-//        return $this->getConnection()->getEntityManager()->getEntityById('TblPerson', $Id);
     }
 
     /**

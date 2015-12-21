@@ -4,7 +4,6 @@ namespace SPHERE\Application\People\Search\Group;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
@@ -68,8 +67,9 @@ class Frontend extends Extension implements IFrontendInterface
         $tblGroup = Group::useService()->getGroupById($Id);
         if ($tblGroup) {
 
-            $idPersonAll = Group::useService()->fetchIdPersonAllByGroup( $tblGroup );
-            $tblPersonAll = Person::useService()->fetchPersonAllByIdList( $idPersonAll );
+//            $idPersonAll = Group::useService()->fetchIdPersonAllByGroup( $tblGroup );
+//            $tblPersonAll = Person::useService()->fetchPersonAllByIdList( $idPersonAll );
+            $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
 //            $Cache = $this->getCache(new MemcachedHandler());
 //            if (null === ($Result = $Cache->getValue($Id, __METHOD__))) {
                 $Result = array();

@@ -223,7 +223,8 @@ class Data extends AbstractData
     {
 
         /** @var TblMember[] $EntityList */
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblMember')->findBy(array(
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
+            array(
             TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
         array_walk($EntityList, function (TblMember &$V) {
