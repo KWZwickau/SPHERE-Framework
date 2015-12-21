@@ -42,6 +42,11 @@ class MemoryContainer
      */
     public function getValue()
     {
-        return $this->Value;
+
+        if (is_object($this->Value)) {
+            return clone $this->Value;
+        } else {
+            return $this->Value;
+        }
     }
 }
