@@ -73,7 +73,7 @@ class Manager extends Extension
     {
 
         // MUST NOT USE Cache-System
-        return $Entity = $this->EntityManager->find($this->Namespace . $ClassName, $Id);
+        return $this->EntityManager->find($this->Namespace.$ClassName, $Id);
     }
 
     /**

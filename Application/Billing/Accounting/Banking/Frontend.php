@@ -253,7 +253,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (!isset( $Global->POST['Debtor']['PaymentType'] )) {
             $Global->POST['Debtor']['PaymentType'] = Banking::useService()->getPaymentTypeByName('SEPA-Lastschrift')->getId();
         }
-        if (Banking::useService()->getDebtorByServiceManagementPerson($Id) == true) {
+        if (Banking::useService()->getDebtorByServiceManagementPerson($Id) === true) {
             $tblDebtor = Banking::useService()->getDebtorByServiceManagementPerson($Id);
             foreach ($tblDebtor as &$singleDebtor) {
                 $tblAccount = Banking::useService()->getActiveAccountByDebtor($singleDebtor);

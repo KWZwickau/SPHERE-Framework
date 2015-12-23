@@ -235,7 +235,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblRoleAll) {
             array_walk($tblRoleAll, function (TblRole &$tblRole) {
 
-                if ($tblRole->getIsInternal()) {
+                if ($tblRole->isInternal()) {
                     $tblRole = false;
                 } else {
                     $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']', $tblRole->getName(),

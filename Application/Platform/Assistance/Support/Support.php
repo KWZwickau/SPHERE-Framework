@@ -4,7 +4,6 @@ namespace SPHERE\Application\Platform\Assistance\Support;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Main;
-use SPHERE\Common\Window\Navigation\Link;
 
 /**
  * Class Support
@@ -20,9 +19,7 @@ class Support implements IModuleInterface
         /**
          * Register Navigation
          */
-//        Main::getDisplay()->addModuleNavigation(
-//            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Support'))
-//        );
+
         /**
          * Register Route
          */

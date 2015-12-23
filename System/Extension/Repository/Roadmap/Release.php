@@ -68,6 +68,24 @@ class Release
     }
 
     /**
+     * @return Category[]
+     */
+    public function getCategoryList()
+    {
+
+        return $this->Category;
+    }
+
+    /**
+     * @param Category[] $CategoryList
+     */
+    public function setCategoryList($CategoryList)
+    {
+
+        $this->Category = $CategoryList;
+    }
+
+    /**
      * @return string
      */
     public function __toString()

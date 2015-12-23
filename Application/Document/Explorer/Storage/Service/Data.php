@@ -63,7 +63,7 @@ class Data extends AbstractData
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Entity->setTblDirectory($tblDirectoryParent);
-            $Entity->setIsLocked($IsLocked);
+            $Entity->setLocked($IsLocked);
             $Entity->setIdentifier($Identifier);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -166,7 +166,7 @@ class Data extends AbstractData
         $Entity->setFileContent($FileContent);
         $Entity->setFileType($FileType);
         $Entity->setFileSize($FileSize);
-        $Entity->setIsLocked($IsLocked);
+        $Entity->setLocked($IsLocked);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -213,7 +213,7 @@ class Data extends AbstractData
             $Entity->setFileContent($FileContent);
             $Entity->setFileType($FileType);
             $Entity->setFileSize($FileSize);
-            $Entity->setIsLocked($IsLocked);
+            $Entity->setLocked($IsLocked);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
@@ -248,7 +248,7 @@ class Data extends AbstractData
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Entity->setTblDirectory($tblDirectoryParent);
-            $Entity->setIsLocked($IsLocked);
+            $Entity->setLocked($IsLocked);
             $Entity->setIdentifier($Identifier);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

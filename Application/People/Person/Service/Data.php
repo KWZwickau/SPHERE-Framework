@@ -37,7 +37,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblSalutation')->findOneBy(array(TblSalutation::ATTR_SALUTATION => $Salutation));
         if (null === $Entity) {
             $Entity = new TblSalutation($Salutation);
-            $Entity->setIsLocked($IsLocked);
+            $Entity->setLocked($IsLocked);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }

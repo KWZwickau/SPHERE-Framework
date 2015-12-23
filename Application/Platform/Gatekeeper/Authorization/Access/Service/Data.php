@@ -220,7 +220,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblRole')->findOneBy(array(TblRole::ATTR_NAME => $Name));
         if (null === $Entity) {
             $Entity = new TblRole($Name);
-            $Entity->setIsInternal($IsInternal);
+            $Entity->setInternal($IsInternal);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }

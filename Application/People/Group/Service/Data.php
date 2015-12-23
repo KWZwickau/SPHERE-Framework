@@ -59,7 +59,7 @@ class Data extends AbstractData
             $Entity = new TblGroup($Name);
             $Entity->setDescription($Description);
             $Entity->setRemark($Remark);
-            $Entity->setIsLocked($IsLocked);
+            $Entity->setLocked($IsLocked);
             $Entity->setMetaTable($MetaTable);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);

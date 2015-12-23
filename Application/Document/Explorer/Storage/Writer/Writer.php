@@ -15,13 +15,14 @@ class Writer
     /**
      * @param string $Extension
      * @param string $Prefix
+     * @param bool   $Destruct
      *
      * @return Temporary
      */
-    public function getTemporary($Extension = 'storage', $Prefix = 'SPHERE-Temporary')
+    public function getTemporary($Extension = 'storage', $Prefix = 'SPHERE-Temporary', $Destruct = true)
     {
 
-        return new Temporary($Prefix, $Extension);
+        return new Temporary($Prefix, $Extension, $Destruct);
     }
 
     /**

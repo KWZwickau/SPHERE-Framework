@@ -78,9 +78,9 @@ class Frontend extends Extension implements IFrontendInterface
         $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAllWhereTest();
         if ($tblGradeTypeAll) {
             foreach ($tblGradeTypeAll as $tblGradeType) {
-                $tblGradeType->DisplayName = $tblGradeType->getIsHighlighted()
+                $tblGradeType->DisplayName = $tblGradeType->isHighlighted()
                     ? new Bold($tblGradeType->getName()) : $tblGradeType->getName();
-                $tblGradeType->DisplayCode = $tblGradeType->getIsHighlighted()
+                $tblGradeType->DisplayCode = $tblGradeType->isHighlighted()
                     ? new Bold($tblGradeType->getCode()) : $tblGradeType->getCode();
                 $tblGradeType->Option = new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit',
                     new Edit(),
@@ -123,6 +123,29 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    private function formGradeType()
+    {
+
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new TextField('GradeType[Name]', 'Leistungskontrolle', 'Name'), 9
+                ),
+                new FormColumn(
+                    new TextField('GradeType[Code]', 'LK', 'Abk&uuml;rzung'), 3
+                ),
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new TextField('GradeType[Description]', '', 'Beschreibung'), 12
+                ),
+                new FormColumn(
+                    new CheckBox('GradeType[IsHighlighted]', 'Fett markiert', 1), 2
+                )
+            )),
+        )));
+    }
+
     /**
      * @param null $Id
      * @param $GradeType
@@ -141,7 +164,7 @@ class Frontend extends Extension implements IFrontendInterface
             if (!$Global->POST) {
                 $Global->POST['GradeType']['Name'] = $tblGradeType->getName();
                 $Global->POST['GradeType']['Code'] = $tblGradeType->getCode();
-                $Global->POST['GradeType']['IsHighlighted'] = $tblGradeType->getIsHighlighted();
+                $Global->POST['GradeType']['IsHighlighted'] = $tblGradeType->isHighlighted();
                 $Global->POST['GradeType']['Description'] = $tblGradeType->getDescription();
                 $Global->savePost();
             }
@@ -179,28 +202,6 @@ class Frontend extends Extension implements IFrontendInterface
             return new Stage('Zensuren-Typ nicht gefunden')
             . new Redirect('/Education/Graduation/Gradebook/GradeType', 2);
         }
-    }
-
-    private function formGradeType()
-    {
-        return new Form(new FormGroup(array(
-            new FormRow(array(
-                new FormColumn(
-                    new TextField('GradeType[Name]', 'Leistungskontrolle', 'Name'), 9
-                ),
-                new FormColumn(
-                    new TextField('GradeType[Code]', 'LK', 'Abk&uuml;rzung'), 3
-                ),
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new TextField('GradeType[Description]', '', 'Beschreibung'), 12
-                ),
-                new FormColumn(
-                    new CheckBox('GradeType[IsHighlighted]', 'Fett markiert', 1), 2
-                )
-            )),
-        )));
     }
 
     /**
@@ -490,30 +491,6 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $DivisionSubjectId
-     * @param null $ScoreConditionId
-     * @param null $Select
-     * @return Stage|string
-     */
-    public function frontendHeadmasterSelectedGradeBook(
-        $DivisionSubjectId = null,
-        $ScoreConditionId = null,
-        $Select = null
-    ) {
-        $Stage = new Stage('Notenbuch (Leitung)', 'Anzeigen');
-
-        if ($DivisionSubjectId === null || !($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-            return $Stage . new Warning('Notenbuch nicht gefunden.') . new Redirect('/Education/Graduation/Gradebook/Headmaster/Gradebook',
-                2);
-        }
-
-        $this->contentSelectedGradeBook($Stage, $tblDivisionSubject, $ScoreConditionId, $Select,
-            '/Education/Graduation/Gradebook/Headmaster/Gradebook');
-
-        return $Stage;
-    }
-
-    /**
      * @param Stage $Stage
      * @param TblDivisionSubject $tblDivisionSubject
      * @param $ScoreConditionId
@@ -604,7 +581,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $gradePositions[$tblPeriod->getId()][$pos++] = $tblTest->getId();
                             $columnSubList[] = new LayoutColumn(
                                 new Header(
-                                    $tblTest->getServiceTblGradeType()->getIsHighlighted()
+                                    $tblTest->getServiceTblGradeType()->isHighlighted()
                                         ? new Bold($tblTest->getServiceTblGradeType()->getCode()) : $tblTest->getServiceTblGradeType()->getCode())
                                 , 1);
                             $date = $tblTest->getDate();
@@ -613,7 +590,7 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                             $columnSecondSubList[] = new LayoutColumn(
                                 new Header(
-                                    $tblTest->getServiceTblGradeType()->getIsHighlighted()
+                                    $tblTest->getServiceTblGradeType()->isHighlighted()
                                         ? new Bold($date) : $date)
                                 , 1);
                         }
@@ -657,7 +634,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         foreach ($gradeList as $grade) {
                                             if ($testId === $grade->getServiceTblTest()->getId()) {
                                                 $columnSubList[] = new LayoutColumn(
-                                                    new Container($grade->getTblGradeType()->getIsHighlighted()
+                                                    new Container($grade->getTblGradeType()->isHighlighted()
                                                         ? new Bold($grade->getGrade()) : $grade->getGrade())
                                                     , 1);
                                                 $hasFound = true;
@@ -739,6 +716,31 @@ class Frontend extends Extension implements IFrontendInterface
             ))
             . ($ScoreConditionId !== null ? new Layout(new LayoutGroup($rowList)) : '')
         );
+    }
+
+    /**
+     * @param null $DivisionSubjectId
+     * @param null $ScoreConditionId
+     * @param null $Select
+     * @return Stage|string
+     */
+    public function frontendHeadmasterSelectedGradeBook(
+        $DivisionSubjectId = null,
+        $ScoreConditionId = null,
+        $Select = null
+    ) {
+
+        $Stage = new Stage('Notenbuch (Leitung)', 'Anzeigen');
+
+        if ($DivisionSubjectId === null || !( $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId) )) {
+            return $Stage.new Warning('Notenbuch nicht gefunden.').new Redirect('/Education/Graduation/Gradebook/Headmaster/Gradebook',
+                2);
+        }
+
+        $this->contentSelectedGradeBook($Stage, $tblDivisionSubject, $ScoreConditionId, $Select,
+            '/Education/Graduation/Gradebook/Headmaster/Gradebook');
+
+        return $Stage;
     }
 
     /**

@@ -3,7 +3,6 @@ namespace SPHERE;
 
 use MOC\V\Core\AutoLoader\AutoLoader;
 use SPHERE\Common\Main;
-use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\APCuHandler;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
@@ -20,13 +19,11 @@ use SPHERE\System\Extension\Repository\Debugger;
  */
 header('Content-type: text/html; charset=utf-8');
 error_reporting(E_ALL);
-ini_set('display_errors', 0);
 date_default_timezone_set('Europe/Berlin');
 session_start();
 session_write_close();
 set_time_limit(240);
 ob_implicit_flush();
-ini_set('memory_limit', '1024M');
 
 /**
  * Setup: Loader

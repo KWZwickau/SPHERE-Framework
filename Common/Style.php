@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Common;
 
+use MOC\V\Core\HttpKernel\Vendor\Universal\Request;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\System\Debugger\DebuggerFactory;
@@ -20,8 +21,9 @@ class Style extends Extension
 
     /** @var array $CombinedList */
     private static $CombinedList = array();
-    /** @var string $CombinedContent */
-    private static $CombinedContent = '';
+
+    /** @var array $AdditionalList */
+    private static $AdditionalList = array();
 
     /**
      * Default
@@ -58,52 +60,60 @@ class Style extends Extension
         $this->setSource('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_social/web/html_css/css/glyphicons-social.css');
         $this->setSource('/Library/Foundation.Icons/3.0/foundation-icons.css');
 
-        $this->setSource('/Library/jQuery.Selecter/3.2.4/jquery.fs.selecter.min.css');
-        $this->setSource('/Library/jQuery.Stepper/3.0.8/jquery.fs.stepper.css');
-        $this->setSource('/Library/jQuery.iCheck/1.0.2/skins/all.css');
-        $this->setSource('/Library/jQuery.Gridster/0.6.10/dist/jquery.gridster.min.css');
-        $this->setSource('/Library/Bootstrap.Checkbox/0.3.3/awesome-bootstrap-checkbox.css');
+        $this->setSource('/Library/jQuery.Selecter/3.2.4/jquery.fs.selecter.min.css', false, true);
+        $this->setSource('/Library/jQuery.Stepper/3.0.8/jquery.fs.stepper.css', false, true);
+        $this->setSource('/Library/jQuery.iCheck/1.0.2/skins/all.css', false, true);
+        $this->setSource('/Library/jQuery.Gridster/0.6.10/dist/jquery.gridster.min.css', false, true);
+        $this->setSource('/Library/Bootstrap.Checkbox/0.3.3/awesome-bootstrap-checkbox.css', false, true);
 //        $this->setSource( '/Library/jQuery.DataTables/1.10.7/media/css/jquery.dataTables.min.css' );
-        $this->setSource('/Library/jQuery.DataTables/1.10.7/extensions/Responsive/css/dataTables.responsive.css');
-        $this->setSource('/Library/jQuery.DataTables.Plugins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.css');
-        $this->setSource('/Library/Bootstrap.DateTimePicker/4.14.30/build/css/bootstrap-datetimepicker.min.css');
-        $this->setSource('/Library/Bootstrap.FileInput/4.1.6/css/fileinput.min.css');
-        $this->setSource('/Library/Bootstrap.Select/1.6.4/dist/css/bootstrap-select.min.css');
-        $this->setSource('/Library/Twitter.Typeahead.Bootstrap/1.0.1/typeaheadjs.css');
+        $this->setSource('/Library/jQuery.DataTables/1.10.7/extensions/Responsive/css/dataTables.responsive.css', false,
+            true);
+        $this->setSource('/Library/jQuery.DataTables.Plugins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.css',
+            false, true);
+        $this->setSource('/Library/Bootstrap.DateTimePicker/4.14.30/build/css/bootstrap-datetimepicker.min.css', false,
+            true);
+        $this->setSource('/Library/Bootstrap.FileInput/4.1.6/css/fileinput.min.css', false, true);
+        $this->setSource('/Library/Bootstrap.Select/1.6.4/dist/css/bootstrap-select.min.css', false, true);
+        $this->setSource('/Library/Twitter.Typeahead.Bootstrap/1.0.1/typeaheadjs.css', false, true);
 
-        $this->setSource('/Library/jQuery.jCarousel/0.3.3/examples/responsive/jcarousel.responsive.css');
-        $this->setSource('/Library/jQuery.FlowPlayer/6.0.3/skin/functional.css');
-        $this->setSource('/Library/Highlight.js/8.8.0/styles/docco.css');
+        $this->setSource('/Library/jQuery.jCarousel/0.3.3/examples/responsive/jcarousel.responsive.css', false, true);
+        $this->setSource('/Library/jQuery.FlowPlayer/6.0.3/skin/functional.css', false, true);
+        $this->setSource('/Library/Highlight.js/8.8.0/styles/docco.css', false, true);
 
         switch ($SettingSurface) {
             case 1:
-                $this->setSource('/Common/Style/Correction.css');
-                $this->setSource('/Common/Style/DataTable.Correction.css');
+                $this->setSource('/Common/Style/Correction.css', false, true);
+                $this->setSource('/Common/Style/DataTable.Correction.css', false, true);
                 break;
             case 2:
-                $this->setSource('/Common/Style/Application.Correction.css');
-                $this->setSource('/Common/Style/Application.DataTable.Correction.css');
+                $this->setSource('/Common/Style/Application.Correction.css', false, true);
+                $this->setSource('/Common/Style/Application.DataTable.Correction.css', false, true);
                 break;
             default:
-                $this->setSource('/Common/Style/Correction.css');
-                $this->setSource('/Common/Style/DataTable.Correction.css');
+                $this->setSource('/Common/Style/Correction.css', false, true);
+                $this->setSource('/Common/Style/DataTable.Correction.css', false, true);
         }
 
-        $this->setSource('/Common/Style/PhpInfo.css');
+        $this->setSource('/Common/Style/PhpInfo.css', false, true);
         $this->setSource('/Common/Style/Addition.css');
     }
 
     /**
      * @param string $Location
      * @param bool   $Combined
+     * @param bool   $Additional
      */
-    public function setSource($Location, $Combined = false)
+    public function setSource($Location, $Combined = false, $Additional = false)
     {
 
         $PathBase = $this->getRequest()->getPathBase();
         if ($Combined) {
             if (!in_array(sha1($Location), self::$CombinedList)) {
                 self::$CombinedList[sha1($Location)] = $PathBase.$Location;
+            }
+        } elseif ($Additional) {
+            if (!in_array(sha1($Location), self::$AdditionalList)) {
+                self::$AdditionalList[sha1($Location)] = $PathBase.$Location;
             }
         } else {
             if (!in_array(sha1($Location), self::$SourceList)) {
@@ -124,55 +134,115 @@ class Style extends Extension
     /**
      * @return string
      */
-    public function __toString()
+    public function getCombinedStyle($withTag = true)
     {
 
-        $this->parseCombinedStyle();
-
-        $StyleList = self::$SourceList;
-        array_walk($StyleList, function (&$Location) {
-
-            $Location = '<link rel="stylesheet" href="'.$Location.'">';
-        });
-        array_unshift($StyleList, $this->getCombinedStyle());
-        return implode("\n", $StyleList);
+        if ($withTag) {
+            return $this->getCombinedStyleTag(
+                implode("\n", array(
+                    $this->parseCombinedStyle(self::$CombinedList),
+                    $this->parseCombinedStyle(self::$SourceList)
+                ))
+            );
+        } else {
+            return implode("\n", array(
+                $this->parseCombinedStyle(self::$CombinedList),
+                $this->parseCombinedStyle(self::$SourceList)
+            ));
+        }
     }
 
-    private function parseCombinedStyle()
+    private function getCombinedStyleTag($Content)
     {
 
-        ob_start(
-            function ($buffer) {
+        if (empty( $Content )) {
+            return '';
+        } else {
+            return '<style type="text/css">'.$Content.'</style>';
+        }
+    }
 
-                /* remove comments */
-                $buffer = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $buffer);
-                /* remove tabs, spaces, newlines, etc. */
-                $buffer = str_replace(array("\r\n", "\r", "\n", "\t", '  ', '    ', '    '), '', $buffer);
-                return $buffer;
-            }
-        );
-        $StyleList = self::$CombinedList;
-        array_walk($StyleList, function ($Location) {
+    private function parseCombinedStyle($FileList)
+    {
+
+        $Result = '';
+        array_walk($FileList, function ($Location) use (&$Result) {
 
             $Path = realpath(__DIR__.DIRECTORY_SEPARATOR.'..'.$Location);
             if ($Path) {
-                /** @noinspection PhpIncludeInspection */
-                include( $Path );
+                $Content = $this->compactStyle(file_get_contents($Path));
+                preg_match_all('!url\(([^\)]*?)\)!is', $Content, $Match);
+                if (!empty( $Match[0] )) {
+                    array_walk($Match[0], function ($Item, $Index) use ($Match, $Path, &$Content) {
+
+                        $Match[1][$Index] = trim($Match[1][$Index], ' \'"');
+                        if (
+                            false === strpos($Item, 'http')
+                            && false === strpos($Item, 'data:')
+                        ) {
+                            $Directory = dirname($Path);
+                            $File = $Match[1][$Index];
+                            if (false !== strpos($File, '?')) {
+                                $Parts = explode('?', $Match[1][$Index]);
+                                $Location = realpath($Directory.DIRECTORY_SEPARATOR.array_shift($Parts));
+                                if (!empty( $Parts )) {
+                                    $Parts = '?'.implode('?', $Parts);
+                                }
+                            } elseif (false !== strpos($File, '#')) {
+                                $Parts = explode('#', $Match[1][$Index]);
+                                $Location = realpath($Directory.DIRECTORY_SEPARATOR.array_shift($Parts));
+                                if (!empty( $Parts )) {
+                                    $Parts = '#'.implode('#', $Parts);
+                                }
+                            } else {
+                                $Location = realpath($Directory.DIRECTORY_SEPARATOR.$File);
+                                $Parts = '';
+                            }
+                            if ($Location) {
+                                $Target = preg_replace('!'.preg_quote($_SERVER['DOCUMENT_ROOT'], '!').'!is', '',
+                                        $Location).$Parts;
+                                $Request = new Request();
+                                $Replacement = $Request->getSymfonyRequest()->getUriForPath($Target);
+                                $Content = str_replace($Match[0][$Index], "url('".$Replacement."')", $Match[0][$Index],
+                                    $Content);
+                            }
+                        }
+                    });
+                }
+                $Result .= "\n\n".$Content;
             } else {
                 (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('Style not found '.$Location);
             }
         });
-        self::$CombinedContent .= ob_get_contents();
-        ob_end_clean();
+        return $Result;
     }
 
-    private function getCombinedStyle()
+    private function compactStyle($Content)
     {
 
-        if (empty( self::$CombinedContent )) {
-            return '';
-        } else {
-            return '<style type="text/css">'.self::$CombinedContent.'</style>';
-        }
+        /* remove comments */
+        $Content = preg_replace('!/\*[^*]*\*+([^/][^*]*\*+)*/!', '', $Content);
+        /* remove tabs, spaces, newlines, etc. */
+        $Content = str_replace(array("\r\n", "\r", "\n", "\t", '  ', '    ', '    '), '', $Content);
+
+        return $Content;
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+
+        $Content = $this->parseCombinedStyle(self::$CombinedList);
+
+        $StyleList = array_merge(self::$SourceList, self::$AdditionalList);
+
+        array_walk($StyleList, function (&$Location) {
+
+            $Location = '<link rel="stylesheet" href="'.$Location.'">';
+        });
+        array_unshift($StyleList, $this->getCombinedStyleTag($Content));
+        return implode("\n", $StyleList);
     }
 }

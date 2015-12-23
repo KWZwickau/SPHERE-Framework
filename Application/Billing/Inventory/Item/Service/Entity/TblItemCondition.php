@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -44,7 +45,7 @@ class TblItemCondition extends Element
     public function setServiceManagementStudent(TblStudent $tblStudent = null)
     {
 
-        $this->serviceManagement_Student = ( null === $tblStudent ? null : $tblStudent->getStudentNumber() );
+        $this->serviceManagement_Student = ( null === $tblStudent ? null : $tblStudent->getIdentifier() );
     }
 
     /**

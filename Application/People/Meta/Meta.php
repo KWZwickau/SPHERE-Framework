@@ -6,7 +6,6 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Common\Window\Navigation\Link;
 
 /**
  * Class Meta

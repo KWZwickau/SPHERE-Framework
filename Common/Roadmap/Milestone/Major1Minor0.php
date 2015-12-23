@@ -17,7 +17,7 @@ class Major1Minor0
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function Patch0(RoadmapExtension $Roadmap)
+    public static function definePatch0(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('1.0.0', 'KREDA (Ziel Q4 2015)');
@@ -25,14 +25,14 @@ class Major1Minor0
         // Hilfe
         $Category = $Release->createCategory('Hilfe');
         $Feature = $Category->createFeature('Feedback- & Ticket-Erstellung');
-        $Task = $Feature->createTask('Oberfläche erstellen', '', true);
-        $Task = $Feature->createTask('Mail-Server einrichten', '', true);
-        $Task = $Feature->createTask('Anbindung an Ticket-/Support-System', '', true);
+        $Feature->createTask('Oberfläche erstellen', '', true);
+        $Feature->createTask('Mail-Server einrichten', '', true);
+        $Feature->createTask('Anbindung an Ticket-/Support-System', '', true);
 
         // Bildung
         $Category = $Release->createCategory('Bildung');
         $Feature = $Category->createFeature('Zensuren');
-        $Task = $Feature->createTask('Elektronisches Notenbuch')
+        $Feature->createTask('Elektronisches Notenbuch')
             ->createDuty('Basisfunktionalitäten', true)
             ->createDuty('Eingabe/Ausgabe von Zensuren', true)
             ->createDuty('Anlegen & Auswahl von Leistungsüberprüfungen', true);

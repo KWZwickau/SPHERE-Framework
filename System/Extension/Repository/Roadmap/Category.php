@@ -64,6 +64,24 @@ class Category
     }
 
     /**
+     * @return Feature[]
+     */
+    public function getFeatureList()
+    {
+
+        return $this->Feature;
+    }
+
+    /**
+     * @param Feature[] $FeatureList
+     */
+    public function setFeatureList($FeatureList)
+    {
+
+        $this->Feature = $FeatureList;
+    }
+
+    /**
      * @return string
      */
     public function __toString()

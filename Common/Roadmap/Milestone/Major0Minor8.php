@@ -18,7 +18,7 @@ class Major0Minor8
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function Patch2(RoadmapExtension $Roadmap)
+    public static function definePatch2(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('0.8.2', 'Demoversion (Ziel KW41/42)');
@@ -38,7 +38,7 @@ class Major0Minor8
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function Patch1(RoadmapExtension $Roadmap)
+    public static function definePatch1(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('0.8.1', 'Demoversion (Ziel KW41)');
@@ -77,7 +77,7 @@ class Major0Minor8
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function Patch0Fix1(RoadmapExtension $Roadmap)
+    public static function definePatch0Fix1(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('0.8.0.1', 'Demoversion (Ziel KW41)');
@@ -113,7 +113,7 @@ class Major0Minor8
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function Patch0(RoadmapExtension $Roadmap)
+    public static function definePatch0(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('0.8.0', 'Demoversion (Ziel 28.09.2015)');

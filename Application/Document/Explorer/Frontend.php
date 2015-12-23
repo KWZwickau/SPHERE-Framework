@@ -11,7 +11,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Home;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutBreadCrump;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
@@ -55,6 +54,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblDirectoryCurrent->getName(), $this->getRequest()->getPathInfo(), new FolderOpen(), array(
                 'Id' => $tblDirectoryCurrent->getId()
             )));
+            /** @var bool|TblDirectory $tblDirectoryParent */
             while (false !== ( $tblDirectoryParent = $tblDirectoryTrace->getTblDirectory() )) {
                 array_push($DirectoryTrace, new Link(
                     $tblDirectoryParent->getName(), $this->getRequest()->getPathInfo(), new FolderOpen(), array(

@@ -42,9 +42,6 @@ class Dispatcher
                 $this->registerRoute($this->createRoute('Roadmap/Current',
                     'SPHERE\Common\Roadmap\Roadmap::frontendMap')
                 );
-                $this->registerRoute($this->createRoute('Roadmap/Download',
-                    'SPHERE\Common\Roadmap\Roadmap::frontendMap')
-                );
             } catch (\Exception $Exception) {
                 (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('Unable to register Roadmap');
             }

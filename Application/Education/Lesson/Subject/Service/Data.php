@@ -168,7 +168,7 @@ class Data extends AbstractData
             $Entity = new TblGroup();
             $Entity->setName($Name);
             $Entity->setDescription($Description);
-            $Entity->setIsLocked($IsLocked);
+            $Entity->setLocked($IsLocked);
             $Entity->setIdentifier($Identifier);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -202,7 +202,7 @@ class Data extends AbstractData
             $Entity = new TblCategory();
             $Entity->setName($Name);
             $Entity->setDescription($Description);
-            $Entity->setIsLocked($IsLocked);
+            $Entity->setLocked($IsLocked);
             $Entity->setIdentifier($Identifier);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);

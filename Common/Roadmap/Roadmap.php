@@ -30,18 +30,18 @@ class Roadmap extends Extension
 
         $this->Roadmap = $this->getRoadmap();
 
-        Major0Minor8::Patch0($this->Roadmap);
-        Major0Minor8::Patch0Fix1($this->Roadmap);
-        Major0Minor8::Patch1($this->Roadmap);
-        Major0Minor8::Patch2($this->Roadmap);
+        Major0Minor8::definePatch0($this->Roadmap);
+        Major0Minor8::definePatch0Fix1($this->Roadmap);
+        Major0Minor8::definePatch1($this->Roadmap);
+        Major0Minor8::definePatch2($this->Roadmap);
 
-        Major0Minor9::Patch0($this->Roadmap);
-        Major0Minor9::Patch1($this->Roadmap);
+        Major0Minor9::definePatch0($this->Roadmap);
+        Major0Minor9::definePatch1($this->Roadmap);
 
-        Major1Minor0::Patch0($this->Roadmap);
-        Major1Minor1::Patch0($this->Roadmap);
-        Major1Minor2::Patch0($this->Roadmap);
-        Major1Minor3::Patch0($this->Roadmap);
+        Major1Minor0::definePatch0($this->Roadmap);
+        Major1Minor1::definePatch0($this->Roadmap);
+        Major1Minor2::definePatch0($this->Roadmap);
+        Major1Minor3::definePatch0($this->Roadmap);
 
         $this->poolMajor1MinorXPatchX();
     }
@@ -125,18 +125,20 @@ class Roadmap extends Extension
     }
 
     /**
+     * @return null|RoadmapExtension
+     */
+    public function getRoadmapObject()
+    {
+
+        return $this->Roadmap;
+    }
+
+    /**
      * @return string
      */
     public function getVersionNumber()
     {
 
         return $this->Roadmap->getVersionNumber();
-    }
-
-    public function pdfMap()
-    {
-
-        $this->getDebugger()->screenDump(__METHOD__);
-        $this->Roadmap->getPdf();
     }
 }

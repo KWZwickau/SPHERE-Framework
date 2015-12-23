@@ -166,7 +166,7 @@ class Subject implements IModuleInterface
                     new Panel(
                         $tblCategory->getName().' '.$tblCategory->getDescription(),
                         $tblSubjectAll,
-                        ( $tblCategory->getIsLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT ),
+                        ( $tblCategory->isLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT ),
                         new Standard('Zuweisen von Fächern', __NAMESPACE__.'\Link\Subject', new Transfer(),
                             array('Id' => $tblCategory->getId())
                         )

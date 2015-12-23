@@ -104,17 +104,19 @@ class TblGradeType extends Element
     /**
      * @return boolean
      */
-    public function getIsHighlighted()
+    public function isHighlighted()
     {
-        return $this->IsHighlighted;
+
+        return (bool)$this->IsHighlighted;
     }
 
     /**
      * @param boolean $IsHighlighted
      */
-    public function setIsHighlighted($IsHighlighted)
+    public function setHighlighted($IsHighlighted)
     {
-        $this->IsHighlighted = $IsHighlighted;
+
+        $this->IsHighlighted = (bool)$IsHighlighted;
     }
 
     /**

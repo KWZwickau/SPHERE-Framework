@@ -216,7 +216,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblCategory->Option = new Standard('', '/Education/Lesson/Subject/Change/Category', new Pencil(),
                     array('Id' => $tblCategory->getId()))
-                .( $tblCategory->getIsLocked() ? ''
+                .( $tblCategory->isLocked() ? ''
                     : new Standard('', '/Education/Lesson/Subject/Destroy/Category', new Remove(),
                         array('Id' => $tblCategory->getId())) );
         });

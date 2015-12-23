@@ -111,7 +111,7 @@ class Data extends AbstractData
             $Entity = new TblType();
             $Entity->setName($Name);
             $Entity->setDescription($Description);
-            $Entity->setIsLocked($IsLocked);
+            $Entity->setLocked($IsLocked);
             $Entity->setTblGroup($tblGroup);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);

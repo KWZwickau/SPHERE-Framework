@@ -18,6 +18,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Window\Stage;
@@ -93,7 +94,7 @@ class Frontend extends Extension implements IFrontendInterface
             });
             $TicketList = array_filter($TicketList);
             if (empty( $TicketList )) {
-                $TicketList = new Info('Sie haben keine offenen Supportanfragen');
+                $TicketList = new Success('Sie haben keine offenen Supportanfragen');
             } else {
                 krsort($TicketList);
             }

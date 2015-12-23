@@ -17,7 +17,7 @@ class Major1Minor3
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function Patch0(RoadmapExtension $Roadmap)
+    public static function definePatch0(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('1.3.0', 'KREDA (Ziel Q2 2016)');

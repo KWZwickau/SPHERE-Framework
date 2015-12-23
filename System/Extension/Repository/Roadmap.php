@@ -1,11 +1,13 @@
 <?php
 namespace SPHERE\System\Extension\Repository;
 
-use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
-use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
-use MOC\V\Component\Document\Document;
-use MOC\V\Component\Template\Template;
+use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\FileTypePdf;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Roadmap\Category;
+use SPHERE\System\Extension\Repository\Roadmap\Feature;
 use SPHERE\System\Extension\Repository\Roadmap\Release;
 
 /**
@@ -16,38 +18,61 @@ use SPHERE\System\Extension\Repository\Roadmap\Release;
 class Roadmap
 {
 
+    public static $ExcludeDone = false;
     /** @var Release[] $Release */
     private $Release = array();
 
     /**
+     * @param bool $withDone
+     *
      * @return Stage
      */
-    public function getStage()
+    public function getStage($withDone = true)
     {
 
         $Stage = new Stage('Roadmap');
-        $Stage->setContent(
-            implode($this->Release)
-        );
+        if ($withDone) {
+            self::$ExcludeDone = false;
+            $Stage->addButton(
+                new Primary('Download', '/Api/Roadmap/Download', new Download())
+            );
+            $Stage->setContent(implode($this->Release));
+        } else {
+            self::$ExcludeDone = true;
+            $ReleaseList = $this->Release;
+            array_walk($ReleaseList, function (Release &$Release) {
+
+                if ($Release->isDone()) {
+                    $Release = false;
+                } else {
+                    $CategoryList = $Release->getCategoryList();
+                    array_walk($CategoryList, function (Category &$Category) {
+
+                        if ($Category->getStatus()->getDonePercent() == 100) {
+                            $Category = false;
+                        } else {
+                            $FeatureList = $Category->getFeatureList();
+                            array_walk($FeatureList, function (Feature &$Feature) {
+
+                                if ($Feature->getStatus()->getDonePercent() == 100) {
+                                    $Feature = false;
+                                } else {
+
+                                }
+                            });
+                            $Category->setFeatureList(array_filter($FeatureList));
+                        }
+                    });
+                    $Release->setCategoryList(array_filter($CategoryList));
+                }
+            });
+            $ReleaseList = array_filter($ReleaseList);
+            $Stage->setContent(
+                implode($ReleaseList).
+                new Standard('Download', '/Api/Roadmap/Download', new FileTypePdf())
+            );
+        }
         return $Stage;
-    }
-
-    public function getPdf()
-    {
-
-        Debugger::screenDump(__METHOD__);
-
-        /** @var DomPdf $Document */
-        $Document = Document::getDocument('Roadmap.pdf');
-        $Document->setContent(
-            Template::getTwigTemplateString(implode($this->Release))
-        );
-        Debugger::screenDump(__METHOD__);
-
-        $Document->saveFile(new FileParameter('Roadmap.pdf'));
-
-        Debugger::screenDump(__METHOD__);
-
     }
 
     /**

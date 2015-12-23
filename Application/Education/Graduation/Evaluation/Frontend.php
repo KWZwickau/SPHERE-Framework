@@ -346,23 +346,6 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $DivisionSubjectId
-     * @param null $Test
-     * @return Stage
-     */
-    public function frontendHeadmasterTestSelected(
-        $DivisionSubjectId = null,
-        $Test = null
-    ) {
-
-        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Übersicht');
-        $this->contentTestSelected($DivisionSubjectId, $Test, $Stage,
-            '/Education/Graduation/Evaluation/Headmaster/Test');
-
-        return $Stage;
-    }
-
-    /**
      * @param $DivisionSubjectId
      * @param $Test
      * @param Stage $Stage
@@ -526,6 +509,24 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param null $DivisionSubjectId
+     * @param null $Test
+     *
+     * @return Stage
+     */
+    public function frontendHeadmasterTestSelected(
+        $DivisionSubjectId = null,
+        $Test = null
+    ) {
+
+        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Übersicht');
+        $this->contentTestSelected($DivisionSubjectId, $Test, $Stage,
+            '/Education/Graduation/Evaluation/Headmaster/Test');
+
+        return $Stage;
+    }
+
+    /**
      * @param $Id
      * @param $Test
      *
@@ -535,24 +536,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Id = null,
         $Test = null
     ) {
+
         $Stage = new Stage('Leistungsüberprüfung', 'Bearbeiten');
 
         return $this->contentEditTest($Stage, $Id, $Test, '/Education/Graduation/Evaluation/Test');
-    }
-
-    /**
-     * @param $Id
-     * @param $Test
-     *
-     * @return Stage|string
-     */
-    public function frontendHeadmasterEditTest(
-        $Id = null,
-        $Test = null
-    ) {
-        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Bearbeiten');
-
-        return $this->contentEditTest($Stage, $Id, $Test, '/Education/Graduation/Evaluation/Headmaster/Test');
     }
 
     /**
@@ -655,6 +642,22 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param $Id
+     * @param $Test
+     *
+     * @return Stage|string
+     */
+    public function frontendHeadmasterEditTest(
+        $Id = null,
+        $Test = null
+    ) {
+
+        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Bearbeiten');
+
+        return $this->contentEditTest($Stage, $Id, $Test, '/Education/Graduation/Evaluation/Headmaster/Test');
+    }
+
+    /**
+     * @param $Id
      * @param $Grade
      *
      * @return Stage|string
@@ -693,33 +696,6 @@ class Frontend extends Extension implements IFrontendInterface
 
             return new Warning('Test nicht gefunden')
             . new Redirect('/Education/Graduation/Evaluation/Test', 2);
-        }
-    }
-
-    /**
-     * @param $Id
-     * @param $Grade
-     *
-     * @return Stage|string
-     */
-    public function frontendHeadmasterEditTestGrade(
-        $Id = null,
-        $Grade = null
-    ) {
-
-        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren bearbeiten');
-
-        $tblTest = Evaluation::useService()->getTestById($Id);
-        if ($tblTest) {
-
-            $this->contentEditTestGrade($Stage, $tblTest, $Grade, '/Education/Graduation/Evaluation/Headmaster/Test',
-                true);
-
-            return $Stage;
-        } else {
-
-            return new Warning('Test nicht gefunden')
-            . new Redirect('/Education/Graduation/Evaluation/Headmaster/Test', 2);
         }
     }
 
@@ -887,7 +863,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     foreach ($tblGrades as $tblGrade) {
                                         $tblGradeType = $tblGrade->getTblGradeType();
                                         $grade = $tblGrade->getGrade()
-                                            ? ($tblGradeType->getIsHighlighted()
+                                            ? ( $tblGradeType->isHighlighted()
                                                 ? new Bold($tblGrade->getGrade() . ' (' . $tblGradeType->getCode() . ')')
                                                 : $tblGrade->getGrade() . ' (' . $tblGradeType->getCode() . ')')
                                             : '';
@@ -1024,6 +1000,33 @@ class Frontend extends Extension implements IFrontendInterface
                 = new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]',
                 ' ', 1);
             return $student;
+        }
+    }
+
+    /**
+     * @param $Id
+     * @param $Grade
+     *
+     * @return Stage|string
+     */
+    public function frontendHeadmasterEditTestGrade(
+        $Id = null,
+        $Grade = null
+    ) {
+
+        $Stage = new Stage('Leistungsüberprüfung', 'Zensuren bearbeiten');
+
+        $tblTest = Evaluation::useService()->getTestById($Id);
+        if ($tblTest) {
+
+            $this->contentEditTestGrade($Stage, $tblTest, $Grade, '/Education/Graduation/Evaluation/Headmaster/Test',
+                true);
+
+            return $Stage;
+        } else {
+
+            return new Warning('Test nicht gefunden')
+            .new Redirect('/Education/Graduation/Evaluation/Headmaster/Test', 2);
         }
     }
 

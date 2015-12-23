@@ -801,7 +801,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty( $tblAddressList )) {
             /** @var TblToPerson[] $tblAddressList */
             foreach ($tblAddressList as &$tblToPerson) {
-                if ($invoiceAddress != null && $invoiceAddress->getId() === $tblToPerson->getTblAddress()->getId()) {
+                if ($invoiceAddress !== null && $invoiceAddress->getId() === $tblToPerson->getTblAddress()->getId()) {
                     $AddressType = new MapMarker().' Rechnungsadresse';
                     $PanelType = Panel::PANEL_TYPE_SUCCESS;
                 } else {
