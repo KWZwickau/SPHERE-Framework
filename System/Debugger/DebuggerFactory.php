@@ -6,10 +6,12 @@ use SPHERE\System\Debugger\Logger\LoggerInterface;
 
 /**
  * Class DebuggerFactory
+ *
  * @package SPHERE\System\Debugger
  */
 class DebuggerFactory
 {
+
     /**
      * @var LoggerInterface
      */
@@ -17,10 +19,12 @@ class DebuggerFactory
 
     /**
      * @param LoggerInterface $Logger
+     *
      * @return LoggerInterface
      */
     public function createLogger(LoggerInterface $Logger = null)
     {
+
         if (null === $Logger) {
             $Logger = new BenchmarkLogger();
         }
@@ -32,19 +36,23 @@ class DebuggerFactory
 
     /**
      * @param LoggerInterface $Logger
+     *
      * @return bool
      */
     private function isAvailable($Logger)
     {
-        return isset(self::$InstanceCache[$this->getHash($Logger)]);
+
+        return isset( self::$InstanceCache[$this->getHash($Logger)] );
     }
 
     /**
      * @param string $Logger
+     *
      * @return string
      */
     private function getHash($Logger)
     {
+
         return sha1(get_class($Logger));
     }
 
@@ -53,15 +61,18 @@ class DebuggerFactory
      */
     private function setLogger(LoggerInterface $Logger)
     {
+
         self::$InstanceCache[$this->getHash($Logger)] = $Logger;
     }
 
     /**
      * @param LoggerInterface $Logger
+     *
      * @return LoggerInterface
      */
     private function getLogger(LoggerInterface $Logger)
     {
+
         return self::$InstanceCache[$this->getHash($Logger)];
     }
 }

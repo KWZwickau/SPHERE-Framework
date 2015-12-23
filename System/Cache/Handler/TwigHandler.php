@@ -10,6 +10,7 @@ use SPHERE\System\Debugger\Logger\ErrorLogger;
 
 /**
  * Class TwigHandler
+ *
  * @package SPHERE\System\Cache\Handler
  */
 class TwigHandler extends AbstractHandler implements HandlerInterface
@@ -20,6 +21,7 @@ class TwigHandler extends AbstractHandler implements HandlerInterface
     /**
      * @param ReaderInterface $Name
      * @param ReaderInterface $Config
+     *
      * @return HandlerInterface
      */
     public function setConfig($Name, ReaderInterface $Config = null)
@@ -30,29 +32,33 @@ class TwigHandler extends AbstractHandler implements HandlerInterface
 
     /**
      * @param string $Key
-     * @param mixed $Value
-     * @param int $Timeout
+     * @param mixed  $Value
+     * @param int    $Timeout
      * @param string $Region
+     *
      * @return TwigHandler
      */
     public function setValue($Key, $Value, $Timeout = 0, $Region = 'Default')
     {
+
         // MUST NOT USE
         (new DebuggerFactory())->createLogger(new ErrorLogger())
-            ->addLog(__METHOD__ . ' Error: SET - MUST NOT BE USED!');
+            ->addLog(__METHOD__.' Error: SET - MUST NOT BE USED!');
         return $this;
     }
 
     /**
      * @param string $Key
      * @param string $Region
+     *
      * @return mixed
      */
     public function getValue($Key, $Region = 'Default')
     {
+
         // MUST NOT USE
         (new DebuggerFactory())->createLogger(new ErrorLogger())
-            ->addLog(__METHOD__ . ' Error: GET - MUST NOT BE USED!');
+            ->addLog(__METHOD__.' Error: GET - MUST NOT BE USED!');
         return null;
     }
 

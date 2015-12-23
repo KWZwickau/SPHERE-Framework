@@ -104,7 +104,8 @@ abstract class Element extends Extension
      */
     final public function __toString()
     {
-        return strval( $this->getId() );
+
+        return strval($this->getId());
     }
 
     /**

@@ -196,12 +196,12 @@ class Data extends AbstractData
         $tblCompanyAll = Company::useService()->getCompanyAll();
         if ($tblCompanyAll) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblCompanyAll, function (TblCompany &$tblCompany, $Index, $Exclude) {
+            array_walk($tblCompanyAll, function (TblCompany &$tblCompany) use ($Exclude) {
 
                 if (in_array($tblCompany->getId(), $Exclude)) {
                     $tblCompany = false;
                 }
-            }, $Exclude);
+            });
             $EntityList = array_filter($tblCompanyAll);
         } else {
             $EntityList = null;

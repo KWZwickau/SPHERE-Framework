@@ -111,14 +111,14 @@ class Term implements IModuleInterface
                 $tblPeriodAll = $tblYear->getTblPeriodAll();
                 if ($tblPeriodAll) {
                     /** @noinspection PhpUnusedParameterInspection */
-                    array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod, $index, TblYear $tblYear) {
+                    array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod) use ($tblYear) {
 
                         $tblPeriod = $tblPeriod->getName().' '.new Muted(new Small($tblPeriod->getDescription()))
 //                            .new PullRight(new Standard('', __NAMESPACE__.'\Remove\Period', new Remove(),
 //                                array('PeriodId' => $tblPeriod->getId(),
 //                                      'Id'       => $tblYear->getId()), 'Zeitraum entfernen'))
                             .'<br/>'.$tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
-                    }, $tblYear);
+                    });
                 } else {
                     $tblPeriodAll = array();
                 }

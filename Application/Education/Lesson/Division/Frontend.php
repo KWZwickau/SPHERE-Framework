@@ -115,7 +115,6 @@ class Frontend extends Extension implements IFrontendInterface
                 new Route(__NAMESPACE__), new PersonGroup())
         );
 
-//        $YearAll = Term::useService()->getYearAll();
         $YearAll = Term::useService()->getYearAllSinceYears(2);
         if (!empty( $YearAll )) {
             foreach ($YearAll as $key => $row) {
@@ -124,7 +123,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_multisort($name, SORT_ASC, $YearAll);
 
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($YearAll, function (TblYear &$tblYear, $Index, Stage $Stage) {
+            array_walk($YearAll, function (TblYear &$tblYear) use ($Stage) {
 
                 $Stage->addButton(
                     new Standard(
@@ -134,7 +133,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Year' => $tblYear->getId()
                         ), $tblYear->getDescription())
                 );
-            }, $Stage);
+            });
         }
 
         $tblDivisionAll = $DivisionList;
@@ -682,13 +681,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $tblSubjectUsedList = Division::useService()->getSubjectAllByDivision($tblDivision);
-
-            if ($tblSubjectUsedList) {
-                foreach ($tblSubjectUsedList as $Index => $tblSubjectUsed) {
-
-                }
-            }
-
             $tblSubjectAll = Subject::useService()->getSubjectAll();
 
             if (is_array($tblSubjectUsedList)) {

@@ -36,7 +36,8 @@ class Extension
 
     public function getCache(HandlerInterface $Handler, $Name = 'Memcached')
     {
-        $Config = (new ConfigFactory())->createReader(__DIR__ . '/../Cache/Configuration.ini', new IniReader());
+
+        $Config = (new ConfigFactory())->createReader(__DIR__.'/../Cache/Configuration.ini', new IniReader());
         return (new CacheFactory())->createHandler($Handler, $Config, $Name);
     }
 
@@ -51,7 +52,7 @@ class Extension
 
     /**
      * @param Repository $EntityRepository
-     * @param array $Filter array( 'ColumnName' => 'Value', ... )
+     * @param array      $Filter array( 'ColumnName' => 'Value', ... )
      *
      * @return DataTables
      */

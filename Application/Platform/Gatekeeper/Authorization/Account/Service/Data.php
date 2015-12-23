@@ -645,12 +645,12 @@ class Data extends AbstractData
         $tblPersonAll = Person::useService()->getPersonAll();
         if ($tblPersonAll) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblPersonAll, function (TblPerson &$tblPerson, $Index, $Exclude) {
+            array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($Exclude) {
 
                 if (in_array($tblPerson->getId(), $Exclude)) {
                     $tblPerson = false;
                 }
-            }, $Exclude);
+            });
             $EntityList = array_filter($tblPersonAll);
         } else {
             $EntityList = null;

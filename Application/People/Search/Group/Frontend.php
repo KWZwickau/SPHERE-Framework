@@ -51,7 +51,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblGroupAll = Group::useService()->getGroupAll();
         if (!empty( $tblGroupAll )) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblGroupAll, function (TblGroup &$tblGroup, $Index, Stage $Stage) {
+            array_walk($tblGroupAll, function (TblGroup &$tblGroup) use ($Stage) {
 
                 $Stage->addButton(
                     new Standard(
@@ -61,7 +61,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Id' => $tblGroup->getId()
                         ), $tblGroup->getDescription())
                 );
-            }, $Stage);
+            });
         }
 
         $tblGroup = Group::useService()->getGroupById($Id);

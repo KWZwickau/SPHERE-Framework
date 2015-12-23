@@ -333,12 +333,12 @@ class Service extends AbstractService
 
         $tblAuthorization = $this->getAuthorizationAllByAccount($tblAccount);
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAuthorization, function (TblAuthorization &$tblAuthorization, $Index, TblRole $tblRole) {
+        array_walk($tblAuthorization, function (TblAuthorization &$tblAuthorization) use ($tblRole) {
 
             if ($tblAuthorization->getServiceTblRole()->getId() != $tblRole->getId()) {
                 $tblAuthorization = false;
             }
-        }, $tblRole);
+        });
         $tblAuthorization = array_filter($tblAuthorization);
         if (!empty( $tblAuthorization )) {
             return true;

@@ -406,7 +406,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblRelationshipAll !== false) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblRelationshipAll, function (TblToPerson &$tblToPerson, $Index, TblPerson $tblPerson) {
+            array_walk($tblRelationshipAll, function (TblToPerson &$tblToPerson) use ($tblPerson) {
 
                 $Panel = array(
                     ( $tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
@@ -448,7 +448,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                     , 3);
-            }, $tblPerson);
+            });
         } else {
             $tblRelationshipAll = array(
                 new LayoutColumn(
@@ -495,7 +495,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblRelationshipAll !== false) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblRelationshipAll, function (TblToCompany &$tblToCompany, $Index, Element $tblEntity) {
+            array_walk($tblRelationshipAll, function (TblToCompany &$tblToCompany) use ($tblEntity) {
 
                 $Panel = array(
                     $tblToCompany->getServiceTblPerson()->getFullName(),
@@ -534,7 +534,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                     , 3);
-            }, $tblEntity);
+            });
         } else {
             $tblRelationshipAll = array(
                 new LayoutColumn(

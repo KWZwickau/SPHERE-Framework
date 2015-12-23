@@ -28,7 +28,7 @@ class Sorter
 
     /**
      * @param string|array $PropertyList
-     * @param int $Order
+     * @param int          $Order
      *
      * @return array
      */
@@ -37,12 +37,12 @@ class Sorter
 
         usort($this->List, function ($A, $B) use ($PropertyList, $Order) {
 
-            if (method_exists($A, 'get' . $PropertyList) && method_exists($B, 'get' . $PropertyList)) {
+            if (method_exists($A, 'get'.$PropertyList) && method_exists($B, 'get'.$PropertyList)) {
                 switch ($Order) {
                     case self::ORDER_ASC:
-                        return strnatcmp($A->{'get' . $PropertyList}(), $B->{'get' . $PropertyList}());
+                        return strnatcmp($A->{'get'.$PropertyList}(), $B->{'get'.$PropertyList}());
                     case self::ORDER_DESC:
-                        return strnatcmp($B->{'get' . $PropertyList}(), $A->{'get' . $PropertyList}());
+                        return strnatcmp($B->{'get'.$PropertyList}(), $A->{'get'.$PropertyList}());
                 }
             }
             return 0;

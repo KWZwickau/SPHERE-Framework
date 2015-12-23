@@ -81,6 +81,7 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
      */
     public function setValue($Key, $Value, $Timeout = 0, $Region = 'Default')
     {
+
         if ($this->isValid()) {
             $this->Connection->set($this->getSlotRegion($Region).'#'.$Key, $Value,
                 ( !$Timeout ? null : time() + $Timeout ));

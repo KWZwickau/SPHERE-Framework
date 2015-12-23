@@ -67,12 +67,12 @@ class Database extends Extension
         $Register = new Register();
         if (!$Register->hasConnection($this->Identifier)) {
             $Configuration = (new ConfigFactory())
-                ->createReader(__DIR__ . '/Configuration.ini', new IniReader())
+                ->createReader(__DIR__.'/Configuration.ini', new IniReader())
                 ->getConfig();
 
             if (null !== $Configuration->getContainer($this->Identifier->getConfiguration(true))) {
                 $this->Configuration = $Configuration->getContainer($this->Identifier->getConfiguration(true));
-                $Driver = '\\SPHERE\\System\\Database\\Type\\' . $this->Configuration->getContainer('Driver')->getValue();
+                $Driver = '\\SPHERE\\System\\Database\\Type\\'.$this->Configuration->getContainer('Driver')->getValue();
                 $Register->addConnection(
                     $this->Identifier,
                     new Connection(
@@ -80,20 +80,20 @@ class Database extends Extension
                         new $Driver,
                         $this->Configuration->getContainer('Username')->getValue(),
                         $this->Configuration->getContainer('Password')->getValue(),
-                        (null === $this->Configuration->getContainer('Database')
+                        ( null === $this->Configuration->getContainer('Database')
                             ? str_replace(':', '', $this->Identifier->getConfiguration(false))
-                            : $this->Configuration->getContainer('Database')->getValue()),
+                            : $this->Configuration->getContainer('Database')->getValue() ),
                         $this->Configuration->getContainer('Host')->getValue(),
-                        (null === $this->Configuration->getContainer('Port')
+                        ( null === $this->Configuration->getContainer('Port')
                             ? null
-                            : $this->Configuration->getContainer('Port')->getValue()),
+                            : $this->Configuration->getContainer('Port')->getValue() ),
                         $this->Timeout
                     )
                 );
             } else {
                 if (null !== $Configuration->getContainer($this->Identifier->getConfiguration(false))) {
                     $this->Configuration = $Configuration->getContainer($this->Identifier->getConfiguration(false));
-                    $Driver = '\\SPHERE\\System\\Database\\Type\\' . $this->Configuration->getContainer('Driver')->getValue();
+                    $Driver = '\\SPHERE\\System\\Database\\Type\\'.$this->Configuration->getContainer('Driver')->getValue();
                     $Register->addConnection(
                         $this->Identifier,
                         new Connection(
@@ -101,18 +101,18 @@ class Database extends Extension
                             new $Driver,
                             $this->Configuration->getContainer('Username')->getValue(),
                             $this->Configuration->getContainer('Password')->getValue(),
-                            (null === $this->Configuration->getContainer('Database')
+                            ( null === $this->Configuration->getContainer('Database')
                                 ? str_replace(':', '', $this->Identifier->getConfiguration(false))
-                                : $this->Configuration->getContainer('Database')->getValue()),
+                                : $this->Configuration->getContainer('Database')->getValue() ),
                             $this->Configuration->getContainer('Host')->getValue(),
-                            (null === $this->Configuration->getContainer('Port')
+                            ( null === $this->Configuration->getContainer('Port')
                                 ? null
-                                : $this->Configuration->getContainer('Port')->getValue()),
+                                : $this->Configuration->getContainer('Port')->getValue() ),
                             $this->Timeout
                         )
                     );
                 } else {
-                    throw new \Exception(__CLASS__ . ' > Missing Configuration: (' . $this->Identifier->getConfiguration() . ')');
+                    throw new \Exception(__CLASS__.' > Missing Configuration: ('.$this->Identifier->getConfiguration().')');
                 }
             }
         }
@@ -138,7 +138,7 @@ class Database extends Extension
         if (true || false === $Manager) {
 
             // Sanitize Namespace
-            $EntityNamespace = trim(str_replace(array('/', '\\'), '\\', $EntityNamespace), '\\') . '\\';
+            $EntityNamespace = trim(str_replace(array('/', '\\'), '\\', $EntityNamespace), '\\').'\\';
 
             // System Cache
             $MemcachedHandler = $this->getCache(new MemcachedHandler());
@@ -321,10 +321,10 @@ class Database extends Extension
     public function addProtocol($Item)
     {
 
-        if (empty($this->Protocol)) {
-            $this->Protocol[] = '<samp>' . $Item . '</samp>';
+        if (empty( $this->Protocol )) {
+            $this->Protocol[] = '<samp>'.$Item.'</samp>';
         } else {
-            $this->Protocol[] = '<div>' . new Transfer() . '&nbsp;<samp>' . $Item . '</samp></div>';
+            $this->Protocol[] = '<div>'.new Transfer().'&nbsp;<samp>'.$Item.'</samp></div>';
         }
     }
 
@@ -340,18 +340,18 @@ class Database extends Extension
         if (count($this->Protocol) == 1) {
             $Protocol = new Success(
                 new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(new Ok() . '&nbsp' . implode('', $this->Protocol), 9),
-                    new LayoutColumn(new Off() . '&nbsp;Kein Update notwendig', 3)
+                    new LayoutColumn(new Ok().'&nbsp'.implode('', $this->Protocol), 9),
+                    new LayoutColumn(new Off().'&nbsp;Kein Update notwendig', 3)
                 ))))
             );
         } else {
             $Protocol = new Info(
                 new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(new Flash() . '&nbsp;' . implode('', $this->Protocol), 9),
+                    new LayoutColumn(new Flash().'&nbsp;'.implode('', $this->Protocol), 9),
                     new LayoutColumn(
-                        ($Simulate
-                            ? new Warning() . '&nbsp;Update notwendig'
-                            : new Ok() . '&nbsp;Update durchgeführt'
+                        ( $Simulate
+                            ? new Warning().'&nbsp;Update notwendig'
+                            : new Ok().'&nbsp;Update durchgeführt'
                         ), 3)
                 ))))
             );

@@ -10,7 +10,6 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -128,7 +127,7 @@ class Frontend extends Extension implements IFrontendInterface
             });
             // Create Tabs
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($MetaTabs, function (TblGroup &$tblGroup, $Index, TblPerson $tblPerson) use ($Group) {
+            array_walk($MetaTabs, function (TblGroup &$tblGroup) use ($Group, $tblPerson) {
 
                 switch (strtoupper($tblGroup->getMetaTable())) {
                     case 'COMMON':
@@ -154,7 +153,7 @@ class Frontend extends Extension implements IFrontendInterface
                     default:
                         $tblGroup = false;
                 }
-            }, $tblPerson);
+            });
             /** @var LayoutTab[] $MetaTabs */
             $MetaTabs = array_filter($MetaTabs);
             // Folded ?

@@ -202,12 +202,12 @@ class Data extends AbstractData
         $tblPersonAll = Person::useService()->getPersonAll();
         if ($tblPersonAll) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblPersonAll, function (TblPerson &$tblPerson, $Index, $Exclude) {
+            array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($Exclude) {
 
                 if (in_array($tblPerson->getId(), $Exclude)) {
                     $tblPerson = false;
                 }
-            }, $Exclude);
+            });
             $EntityList = array_filter($tblPersonAll);
         } else {
             $EntityList = null;
@@ -320,6 +320,6 @@ class Data extends AbstractData
             ->where($Builder->expr()->eq('M.tblGroup', '?1'))
             ->setParameter(1, $tblGroup->getId())
             ->getQuery();
-        return $AddressList = $Query->getResult(ColumnHydrator::HYDRATION_MODE);
+        return $Query->getResult(ColumnHydrator::HYDRATION_MODE);
     }
 }

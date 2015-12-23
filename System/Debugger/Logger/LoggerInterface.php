@@ -5,12 +5,15 @@ use SPHERE\System\Debugger\DebuggerInterface;
 
 /**
  * Interface LoggerInterface
+ *
  * @package SPHERE\System\Debugger\Logger
  */
 interface LoggerInterface extends DebuggerInterface
 {
+
     /**
      * @param string $Content
+     *
      * @return LoggerInterface
      */
     public function addLog($Content);

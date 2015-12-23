@@ -107,10 +107,10 @@ class Release
 
         $Toggle = uniqid();
         $Content = new Title(( $this->isDone === true
-                ? new Success(new TileBig() . ' ' . $this->getTitle() . ': ' . $this->Version)
+                ? new Success(new TileBig().' '.$this->getTitle().': '.$this->Version)
                 : ( $this->isDone === false
-                    ? new Danger(new TileBig() . ' ' . $this->getTitle() . ': ' . $this->Version)
-                    : new Muted(new TileBig() . ' ' . $this->getTitle() . ': ' . $this->Version)
+                    ? new Danger(new TileBig().' '.$this->getTitle().': '.$this->Version)
+                    : new Muted(new TileBig().' '.$this->getTitle().': '.$this->Version)
                 )
             ), $this->Description)
             .new Small($this->isDone === true

@@ -27,7 +27,7 @@ class Manager extends Extension
 
     /**
      * @param EntityManager $EntityManager
-     * @param string $Namespace
+     * @param string        $Namespace
      */
     final function __construct(EntityManager $EntityManager, $Namespace)
     {
@@ -57,12 +57,12 @@ class Manager extends Extension
     {
 
         // MUST NOT USE Cache-System
-        return $this->EntityManager->getRepository($this->Namespace . $ClassName);
+        return $this->EntityManager->getRepository($this->Namespace.$ClassName);
     }
 
     /**
      * @param string $ClassName
-     * @param int $Id
+     * @param int    $Id
      *
      * @throws ORMException
      * @throws OptimisticLockException

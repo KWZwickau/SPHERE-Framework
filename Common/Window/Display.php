@@ -231,7 +231,7 @@ class Display extends Extension implements ITemplateInterface
     {
 
         $TraceList = '';
-        foreach ((array)$Exception->getTrace() as $Index => $Trace) {
+        foreach ((array)$Exception->getTrace() as $Trace) {
             $TraceList .= nl2br('<br/><samp class="text-info">'
                 .( isset( $Trace['type'] ) && isset( $Trace['function'] ) ? '<br/>Method: '.$Trace['type'].$Trace['function'] : '<br/>Method: ' )
                 .( isset( $Trace['class'] ) ? '<br/>Class: '.$Trace['class'] : '<br/>Class: ' )

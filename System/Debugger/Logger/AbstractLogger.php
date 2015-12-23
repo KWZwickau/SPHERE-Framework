@@ -3,10 +3,12 @@ namespace SPHERE\System\Debugger\Logger;
 
 /**
  * Class AbstractLogger
+ *
  * @package SPHERE\System\Debugger\Logger
  */
 abstract class AbstractLogger implements LoggerInterface
 {
+
     /** @var array $LogCache */
     private $LogCache = array();
     /** @var bool $LogEnabled */
@@ -14,10 +16,12 @@ abstract class AbstractLogger implements LoggerInterface
 
     /**
      * @param string $Content
+     *
      * @return LoggerInterface
      */
     public function addLog($Content)
     {
+
         if ($this->LogEnabled) {
             array_push($this->LogCache, $Content);
         }
@@ -29,6 +33,7 @@ abstract class AbstractLogger implements LoggerInterface
      */
     public function clearLog()
     {
+
         $this->LogCache = array();
         return $this;
     }
@@ -38,6 +43,7 @@ abstract class AbstractLogger implements LoggerInterface
      */
     public function getLog()
     {
+
         return $this->LogCache;
     }
 
@@ -46,6 +52,7 @@ abstract class AbstractLogger implements LoggerInterface
      */
     public function enableLog()
     {
+
         $this->LogEnabled = true;
         return $this;
     }
@@ -55,6 +62,7 @@ abstract class AbstractLogger implements LoggerInterface
      */
     public function disableLog()
     {
+
         $this->LogEnabled = false;
         return $this;
     }
