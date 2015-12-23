@@ -4,7 +4,6 @@ namespace SPHERE\Application\Corporation\Company;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -52,6 +51,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null|int   $Id
      * @param null|array $Company
      * @param null|array $Meta
+     * @param null|int   $Group
      *
      * @return Stage
      */
@@ -112,7 +112,7 @@ class Frontend extends Extension implements IFrontendInterface
             });
             // Create Tabs
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($MetaTabs, function (TblGroup &$tblGroup, $Index, TblCompany $tblCompany) {
+            array_walk($MetaTabs, function (TblGroup &$tblGroup) use ($tblCompany) {
 
                 switch (strtoupper($tblGroup->getMetaTable())) {
 //                    case 'COMMON':
@@ -123,7 +123,7 @@ class Frontend extends Extension implements IFrontendInterface
                     default:
                         $tblGroup = false;
                 }
-            }, $tblCompany);
+            });
             /** @var LayoutTab[] $MetaTabs */
             $MetaTabs = array_filter($MetaTabs);
             // Folded ?
