@@ -246,11 +246,12 @@ class Frontend extends Extension implements IFrontendInterface
 
                 // Remove Group-Member
                 $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
-                /** @noinspection PhpUnusedParameterInspection */
-                array_walk($tblPersonAll, function (TblPerson $tblPerson) use ($tblGroup) {
+                if ($tblPersonAll) {
+                    array_walk($tblPersonAll, function (TblPerson $tblPerson) use ($tblGroup) {
 
-                    Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
-                });
+                        Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
+                    });
+                }
 
                 // Destroy Group
                 $Stage->setContent(
