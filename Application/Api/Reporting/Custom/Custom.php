@@ -52,7 +52,7 @@ class Custom implements IModuleInterface
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+        // Implement useService() method.
     }
 
     /**
@@ -60,7 +60,7 @@ class Custom implements IModuleInterface
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+        // Implement useFrontend() method.
     }
 
 }

@@ -91,24 +91,7 @@ class Release
     public function __toString()
     {
 
-        if (!empty( $this->Category )) {
-            /** @var Category $Category */
-            foreach ((array)$this->Category as $Category) {
-                $this->Status->addPlan($Category->getStatus()->getPlan());
-                $this->Status->addWork($Category->getStatus()->getWork());
-                $this->Status->addDone($Category->getStatus()->getDone());
-            }
-        } else {
-            if ($this->isDone === true) {
-                $this->Status->addDone();
-            } else {
-                if ($this->isDone === false) {
-                    $this->Status->addWork();
-                } else {
-                    $this->Status->addPlan();
-                }
-            }
-        }
+        $this->calculateStatus();
 
         switch ($this->Status->getState()) {
             case Status::STATE_PLAN:
@@ -174,6 +157,29 @@ class Release
         );
     }
 
+    private function calculateStatus()
+    {
+
+        if (!empty( $this->Category )) {
+            /** @var Category $Category */
+            foreach ((array)$this->Category as $Category) {
+                $this->Status->addPlan($Category->getStatus()->getPlan());
+                $this->Status->addWork($Category->getStatus()->getWork());
+                $this->Status->addDone($Category->getStatus()->getDone());
+            }
+        } else {
+            if ($this->isDone === true) {
+                $this->Status->addDone();
+            } else {
+                if ($this->isDone === false) {
+                    $this->Status->addWork();
+                } else {
+                    $this->Status->addPlan();
+                }
+            }
+        }
+    }
+
     /**
      * @return string
      */
@@ -193,24 +199,7 @@ class Release
     public function isDone()
     {
 
-        if (!empty($this->Category)) {
-            /** @var Category $Category */
-            foreach ((array)$this->Category as $Category) {
-                $this->Status->addPlan($Category->getStatus()->getPlan());
-                $this->Status->addWork($Category->getStatus()->getWork());
-                $this->Status->addDone($Category->getStatus()->getDone());
-            }
-        } else {
-            if ($this->isDone === true) {
-                $this->Status->addDone();
-            } else {
-                if ($this->isDone === false) {
-                    $this->Status->addWork();
-                } else {
-                    $this->Status->addPlan();
-                }
-            }
-        }
+        $this->calculateStatus();
 
         if ($this->Status->getState() == Status::STATE_DONE) {
             return true;

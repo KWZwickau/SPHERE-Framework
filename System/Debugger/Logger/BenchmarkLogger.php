@@ -100,7 +100,6 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
     {
         $this->addLog('- Get Log -');
         $Log = parent::getLog();
-//        krsort($Log);
         return $Log;
     }
 }

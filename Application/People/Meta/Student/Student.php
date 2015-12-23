@@ -15,7 +15,7 @@ class Student implements IModuleInterface
 
     public static function registerModule()
     {
-        // TODO: Implement registerModule() method.
+        // Implement registerModule() method.
     }
 
     /**

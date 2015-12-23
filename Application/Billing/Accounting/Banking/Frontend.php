@@ -76,8 +76,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $referenceCommodityList = Banking::useService()->getReferenceByDebtor($tblDebtor);
                 $referenceCommodity = '';
                 if ($referenceCommodityList) {
+                    $referenceCommodityListCount = count($referenceCommodityList);
                     /** @var TblReference[] $referenceCommodityList $ */
-                    for ($i = 0; $i < count($referenceCommodityList); $i++) {
+                    for ($i = 0; $i < $referenceCommodityListCount; $i++) {
                         $tblCommodity = $referenceCommodityList[$i]->getServiceBillingCommodity();
                         if ($tblCommodity) {
                             if ($i === 0) {
@@ -93,8 +94,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $debtorCommodityList = Banking::useService()->getCommodityDebtorAllByDebtor($tblDebtor);
                 $debtorCommodity = '';
                 if ($debtorCommodityList) {
+                    $debtorCommodityListCount = count($debtorCommodityList);
                     /** @var TblReference[] $debtorCommodityList $ */
-                    for ($i = 0; $i < count($debtorCommodityList); $i++) {
+                    for ($i = 0; $i < $debtorCommodityListCount; $i++) {
                         $tblCommodity = $debtorCommodityList[$i]->getServiceBillingCommodity();
                         if ($tblCommodity) {
                             if ($i === 0) {

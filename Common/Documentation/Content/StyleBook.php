@@ -207,7 +207,7 @@ class StyleBook
 
         $Chapter = $this->Book->createChapter('Datenbank', 'Verbindungen');
         if ($Chapter->getHash() == $this->Book->getCurrentChapter()) {
-            $Page = $Chapter->createPage('Entities', '', $Search);
+            $Chapter->createPage('Entities', '', $Search);
         }
     }
 
