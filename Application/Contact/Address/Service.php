@@ -112,11 +112,11 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblPerson $tblPerson
-     * @param array $Street
-     * @param array $City
-     * @param integer $State
-     * @param array $Type
+     * @param TblPerson      $tblPerson
+     * @param array          $Street
+     * @param array          $City
+     * @param integer        $State
+     * @param array          $Type
      *
      * @return IFormInterface|string
      */
@@ -141,26 +141,26 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset($Street['Name']) && empty($Street['Name'])) {
+        if (isset( $Street['Name'] ) && empty( $Street['Name'] )) {
             $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
             $Error = true;
         } else {
             $Form->setSuccess('Street[Number]');
         }
-        if (isset($Street['Number']) && empty($Street['Number'])) {
+        if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
             $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
             $Error = true;
         } else {
             $Form->setSuccess('Street[Number]');
         }
 
-        if (isset($City['Code']) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
+        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
             $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
             $Error = true;
         } else {
             $Form->setSuccess('City[Code]');
         }
-        if (isset($City['Name']) && empty($City['Name'])) {
+        if (isset( $City['Name'] ) && empty( $City['Name'] )) {
             $Form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
             $Error = true;
         } else {
@@ -186,11 +186,11 @@ class Service extends AbstractService
                 $Type['Remark'])
             ) {
                 return new Success('Die Adresse wurde erfolgreich hinzugefügt')
-                . new Redirect('/People/Person', 1,
+                .new Redirect('/People/Person', 1,
                     array('Id' => $tblPerson->getId()));
             } else {
                 return new Danger('Die Adresse konnte nicht hinzugefügt werden')
-                . new Redirect('/People/Person', 10,
+                .new Redirect('/People/Person', 10,
                     array('Id' => $tblPerson->getId()));
             }
         }
@@ -257,11 +257,11 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblToPerson $tblToPerson
-     * @param array $Street
-     * @param array $City
-     * @param int $State
-     * @param array $Type
+     * @param TblToPerson    $tblToPerson
+     * @param array          $Street
+     * @param array          $City
+     * @param int            $State
+     * @param array          $Type
      *
      * @return IFormInterface|string
      */
@@ -286,26 +286,26 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset($Street['Name']) && empty($Street['Name'])) {
+        if (isset( $Street['Name'] ) && empty( $Street['Name'] )) {
             $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
             $Error = true;
         } else {
             $Form->setSuccess('Street[Number]');
         }
-        if (isset($Street['Number']) && empty($Street['Number'])) {
+        if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
             $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
             $Error = true;
         } else {
             $Form->setSuccess('Street[Number]');
         }
 
-        if (isset($City['Code']) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
+        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
             $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
             $Error = true;
         } else {
             $Form->setSuccess('City[Code]');
         }
-        if (isset($City['Name']) && empty($City['Name'])) {
+        if (isset( $City['Name'] ) && empty( $City['Name'] )) {
             $Form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
             $Error = true;
         } else {
@@ -333,11 +333,11 @@ class Service extends AbstractService
                 $Type['Remark'])
             ) {
                 return new Success('Die Adresse wurde erfolgreich geändert')
-                . new Redirect('/People/Person', 1,
+                .new Redirect('/People/Person', 1,
                     array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
             } else {
                 return new Danger('Die Adresse konnte nicht geändert werden')
-                . new Redirect('/People/Person', 10,
+                .new Redirect('/People/Person', 10,
                     array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
             }
         }
@@ -346,11 +346,11 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblToCompany $tblToCompany
-     * @param array $Street
-     * @param array $City
-     * @param int $State
-     * @param array $Type
+     * @param TblToCompany   $tblToCompany
+     * @param array          $Street
+     * @param array          $City
+     * @param int            $State
+     * @param array          $Type
      *
      * @return IFormInterface|string
      */
@@ -375,26 +375,26 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset($Street['Name']) && empty($Street['Name'])) {
+        if (isset( $Street['Name'] ) && empty( $Street['Name'] )) {
             $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
             $Error = true;
         } else {
             $Form->setSuccess('Street[Number]');
         }
-        if (isset($Street['Number']) && empty($Street['Number'])) {
+        if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
             $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
             $Error = true;
         } else {
             $Form->setSuccess('Street[Number]');
         }
 
-        if (isset($City['Code']) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
+        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
             $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
             $Error = true;
         } else {
             $Form->setSuccess('City[Code]');
         }
-        if (isset($City['Name']) && empty($City['Name'])) {
+        if (isset( $City['Name'] ) && empty( $City['Name'] )) {
             $Form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
             $Error = true;
         } else {
@@ -419,11 +419,11 @@ class Service extends AbstractService
                 $Type['Remark'])
             ) {
                 return new Success('Die Adresse wurde erfolgreich geändert')
-                . new Redirect('/Corporation/Company', 1,
+                .new Redirect('/Corporation/Company', 1,
                     array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
             } else {
                 return new Danger('Die Adresse konnte nicht geändert werden')
-                . new Redirect('/Corporation/Company', 10,
+                .new Redirect('/Corporation/Company', 10,
                     array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
             }
         }
@@ -432,11 +432,11 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblCompany $tblCompany
-     * @param array $Street
-     * @param array $City
-     * @param integer $State
-     * @param array $Type
+     * @param TblCompany     $tblCompany
+     * @param array          $Street
+     * @param array          $City
+     * @param integer        $State
+     * @param array          $Type
      *
      * @return IFormInterface|string
      */
@@ -461,26 +461,26 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset($Street['Name']) && empty($Street['Name'])) {
+        if (isset( $Street['Name'] ) && empty( $Street['Name'] )) {
             $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
             $Error = true;
         } else {
             $Form->setSuccess('Street[Number]');
         }
-        if (isset($Street['Number']) && empty($Street['Number'])) {
+        if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
             $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
             $Error = true;
         } else {
             $Form->setSuccess('Street[Number]');
         }
 
-        if (isset($City['Code']) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
+        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
             $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
             $Error = true;
         } else {
             $Form->setSuccess('City[Code]');
         }
-        if (isset($City['Name']) && empty($City['Name'])) {
+        if (isset( $City['Name'] ) && empty( $City['Name'] )) {
             $Form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
             $Error = true;
         } else {
@@ -502,11 +502,11 @@ class Service extends AbstractService
                 $Type['Remark'])
             ) {
                 return new Success('Die Adresse wurde erfolgreich hinzugefügt')
-                . new Redirect('/Corporation/Company', 1,
+                .new Redirect('/Corporation/Company', 1,
                     array('Id' => $tblCompany->getId()));
             } else {
                 return new Danger('Die Adresse konnte nicht hinzugefügt werden')
-                . new Redirect('/Corporation/Company', 10,
+                .new Redirect('/Corporation/Company', 10,
                     array('Id' => $tblCompany->getId()));
             }
         }
@@ -593,19 +593,23 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
+     *
      * @return array of TblAddress->Id
      */
-    public function fetchIdAddressAllByPerson( TblPerson $tblPerson )
+    public function fetchIdAddressAllByPerson(TblPerson $tblPerson)
     {
+
         return (new Data($this->getBinding()))->fetchIdAddressAllByPerson($tblPerson);
     }
 
     /**
      * @param array $IdArray of TblAddress->Id
+     *
      * @return TblAddress[]
      */
     public function fetchAddressAllByIdList($IdArray)
     {
+
         return (new Data($this->getBinding()))->fetchAddressAllByIdList($IdArray);
     }
 }

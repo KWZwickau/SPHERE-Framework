@@ -5,6 +5,7 @@ use SPHERE\Common\Frontend\Icon\IIconInterface;
 
 /**
  * Class PlusSign
+ *
  * @package SPHERE\Common\Frontend\Icon\Repository
  */
 class PlusSign implements IIconInterface

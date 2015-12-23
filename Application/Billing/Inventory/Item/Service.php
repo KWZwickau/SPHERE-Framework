@@ -178,7 +178,7 @@ class Service extends AbstractService
                 $Item['Name'],
                 $Item['Description'],
                 $Item['Price'],
-                $Item['CostUnit'] ,
+                $Item['CostUnit'],
                 $Item['Course'],
                 $Item['ChildRank']
             )

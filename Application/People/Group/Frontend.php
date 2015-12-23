@@ -117,12 +117,12 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Well(
-                            Group::useService()->createGroup(
-                                $this->formGroup()
-                                    ->appendFormButton(new Primary('Hinzufügen'))
-                                    ->setConfirm('Die neue Gruppe wurde noch nicht gespeichert')
-                                , $Group
-                            )
+                                Group::useService()->createGroup(
+                                    $this->formGroup()
+                                        ->appendFormButton(new Primary('Hinzufügen'))
+                                        ->setConfirm('Die neue Gruppe wurde noch nicht gespeichert')
+                                    , $Group
+                                )
                             ))
                     ), new Title('Gruppe hinzufügen')
                 ),

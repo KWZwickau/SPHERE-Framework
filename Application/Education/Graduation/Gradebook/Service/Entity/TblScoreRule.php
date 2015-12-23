@@ -39,6 +39,7 @@ class TblScoreRule extends Element
      */
     public function getName()
     {
+
         return $this->Name;
     }
 
@@ -47,6 +48,7 @@ class TblScoreRule extends Element
      */
     public function setName($Name)
     {
+
         $this->Name = $Name;
     }
 
@@ -55,6 +57,7 @@ class TblScoreRule extends Element
      */
     public function getDescription()
     {
+
         return $this->Description;
     }
 
@@ -63,6 +66,7 @@ class TblScoreRule extends Element
      */
     public function setDescription($Description)
     {
+
         $this->Description = $Description;
     }
 }

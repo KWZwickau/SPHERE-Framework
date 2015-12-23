@@ -29,10 +29,12 @@ use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
+ *
  * @package SPHERE\Application\Education\Graduation\Evaluation
  */
 class Service extends AbstractService
 {
+
     /**
      * @param bool $Simulate
      * @param bool $withData
@@ -73,6 +75,7 @@ class Service extends AbstractService
 
     /**
      * @param $Id
+     *
      * @return bool|TblTest
      */
     public function getTestById($Id)
@@ -82,11 +85,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblTestType $tblTestType
-     * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
-     * @param null|TblPeriod $tblPeriod
+     * @param TblTestType          $tblTestType
+     * @param TblDivision          $tblDivision
+     * @param TblSubject           $tblSubject
+     * @param null|TblPeriod       $tblPeriod
      * @param TblSubjectGroup|null $tblSubjectGroup
+     *
      * @return bool|TblTest[]
      */
     public function getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
@@ -103,8 +107,9 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblTask $tblTask
+     * @param TblTask          $tblTask
      * @param TblDivision|null $tblDivision
+     *
      * @return bool|Service\Entity\TblTest[]
      */
     public function getTestAllByTask(TblTask $tblTask, TblDivision $tblDivision = null)
@@ -113,8 +118,9 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getTestAllByTask($tblTask, $tblDivision);
     }
 
-        /**
+    /**
      * @param TblTestType $tblTestType
+     *
      * @return bool|TblTest[]
      */
     public function getTestAllByTestType(TblTestType $tblTestType)
@@ -125,6 +131,7 @@ class Service extends AbstractService
 
     /**
      * @param $Id
+     *
      * @return bool|TblTask
      */
     public function getTaskById($Id)
@@ -135,6 +142,7 @@ class Service extends AbstractService
 
     /**
      * @param TblTestType $tblTestType
+     *
      * @return bool|TblTask[]
      */
     public function getTaskAllByTestType(TblTestType $tblTestType)
@@ -145,13 +153,15 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param null $DivisionSubjectId
-     * @param null $Test
-     * @param string $BasicRoute
+     * @param null                $DivisionSubjectId
+     * @param null                $Test
+     * @param string              $BasicRoute
+     *
      * @return IFormInterface|string
      */
     public function createTest(IFormInterface $Stage = null, $DivisionSubjectId = null, $Test = null, $BasicRoute)
     {
+
         /**
          * Skip to Frontend
          */
@@ -160,11 +170,11 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (!isset($Test['Period'])) {
+        if (!isset( $Test['Period'] )) {
             $Error = true;
             $Stage .= new Warning('Zeitraum nicht gefunden');
         }
-        if (!isset($Test['GradeType'])) {
+        if (!isset( $Test['GradeType'] )) {
             $Error = true;
             $Stage .= new Warning('Zensuren-Typ nicht gefunden');
         }
@@ -189,20 +199,22 @@ class Service extends AbstractService
         );
 
         return new Stage('Der Test ist erfasst worden')
-        . new Redirect($BasicRoute . '/Selected', 0,
+        .new Redirect($BasicRoute.'/Selected', 0,
             array('DivisionSubjectId' => $tblDivisionSubject->getId()));
 
     }
 
     /**
      * @param IFormInterface|null $Stage
-     * @param $Id
-     * @param $Test
-     * @param string $BasicRoute
+     * @param                     $Id
+     * @param                     $Test
+     * @param string              $BasicRoute
+     *
      * @return IFormInterface|Redirect
      */
     public function updateTest(IFormInterface $Stage = null, $Id, $Test, $BasicRoute)
     {
+
         /**
          * Skip to Frontend
          */
@@ -225,18 +237,20 @@ class Service extends AbstractService
             $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
         );
 
-        return new Redirect($BasicRoute . '/Selected', 0,
+        return new Redirect($BasicRoute.'/Selected', 0,
             array('DivisionSubjectId' => $tblDivisionSubject->getId()));
     }
 
 
     /**
      * @param IFormInterface|null $Stage
-     * @param $Task
+     * @param                     $Task
+     *
      * @return IFormInterface|string
      */
     public function createTask(IFormInterface $Stage = null, $Task)
     {
+
         /**
          * Skip to Frontend
          */
@@ -245,19 +259,19 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (isset($Task['Name']) && empty($Task['Name'])) {
+        if (isset( $Task['Name'] ) && empty( $Task['Name'] )) {
             $Stage->setError('Task[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         }
-        if (isset($Task['Date']) && empty($Task['Date'])) {
+        if (isset( $Task['Date'] ) && empty( $Task['Date'] )) {
             $Stage->setError('Task[Date]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
-        if (isset($Task['FromDate']) && empty($Task['FromDate'])) {
+        if (isset( $Task['FromDate'] ) && empty( $Task['FromDate'] )) {
             $Stage->setError('Task[FromDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
-        if (isset($Task['ToDate']) && empty($Task['ToDate'])) {
+        if (isset( $Task['ToDate'] ) && empty( $Task['ToDate'] )) {
             $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
@@ -269,7 +283,7 @@ class Service extends AbstractService
                 $Task['ToDate']
             );
             $Stage .= new Success('Erfolgreich angelegt')
-                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate', 0);
+                .new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate', 0);
         }
 
         return $Stage;
@@ -277,12 +291,14 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param $Id
-     * @param $Task
+     * @param                     $Id
+     * @param                     $Task
+     *
      * @return IFormInterface|Redirect
      */
     public function updateTask(IFormInterface $Stage = null, $Id, $Task)
     {
+
         /**
          * Skip to Frontend
          */
@@ -300,15 +316,16 @@ class Service extends AbstractService
         );
 
         $Stage .= new Success('Erfolgreich geändert')
-            . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate', 0);
+            .new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate', 0);
 
         return $Stage;
     }
 
     /**
-     * @param TblTask $tblTask
+     * @param TblTask     $tblTask
      * @param TblTestType $tblTestType
      * @param TblDivision $tblDivision
+     *
      * @return bool|Service\Entity\TblTest[]
      */
     public function getTestAllByTaskAndTestType(
@@ -321,7 +338,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblTask $tblTask
+     * @param TblTask     $tblTask
      * @param TblDivision $tblDivision
      * @param TblTestType $tblTestType
      */
@@ -352,7 +369,8 @@ class Service extends AbstractService
                 } else {
                     if (!Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
                         $tblDivision, $tblDivisionSubject->getServiceTblSubject()
-                    )){
+                    )
+                    ) {
                         (new Data($this->getBinding()))->createTest(
                             $tblDivision,
                             $tblDivisionSubject->getServiceTblSubject(),
@@ -371,17 +389,17 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblTask $tblTask
+     * @param TblTask     $tblTask
      * @param TblDivision $tblDivision
      */
     public function removeDivisionFromTask(
         TblTask $tblTask,
         TblDivision $tblDivision
-    )
-    {
+    ) {
+
         $tblTestAllByTask = $this->getTestAllByTask($tblTask, $tblDivision);
-        if ($tblTestAllByTask){
-            foreach ($tblTestAllByTask as $tblTest){
+        if ($tblTestAllByTask) {
+            foreach ($tblTestAllByTask as $tblTest) {
                 (new Data($this->getBinding()))->destroyTest($tblTest);
             }
         }

@@ -24,12 +24,12 @@ class Error extends Extension implements ITemplateInterface
 
     /**
      * @param integer|string $Code
-     * @param null $Message
+     * @param null           $Message
      */
     public function __construct($Code, $Message = null)
     {
 
-        $this->Template = $this->getTemplate(__DIR__ . '/Error.twig');
+        $this->Template = $this->getTemplate(__DIR__.'/Error.twig');
 
         $this->Template->setVariable('ErrorCode', $Code);
         if (null === $Message) {
@@ -48,8 +48,8 @@ class Error extends Extension implements ITemplateInterface
                         new FormGroup(
                             new FormRow(
                                 new FormColumn(array(
-                                    (new HiddenField('TicketSubject'))->setDefaultValue(urlencode($Code . ' Account: ' .
-                                        (($Account = Account::useService()->getAccountBySession()) ? $Account->getId() : ''))),
+                                    (new HiddenField('TicketSubject'))->setDefaultValue(urlencode($Code.' Account: '.
+                                        ( ( $Account = Account::useService()->getAccountBySession() ) ? $Account->getId() : '' ))),
                                     (new HiddenField('TicketMessage'))->setDefaultValue(urlencode($Message)),
                                     new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Fehlerbericht senden')
                                 ))

@@ -174,15 +174,15 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblFile             $tblFile
+     * @param TblFile      $tblFile
      * @param string       $Name
      * @param string       $Description
-     * @param string              $FileName
-     * @param string              $FileExtension
-     * @param string              $FileContent
-     * @param string              $FileType
-     * @param int                 $FileSize
-     * @param TblDirectory        $tblDirectory
+     * @param string       $FileName
+     * @param string       $FileExtension
+     * @param string       $FileContent
+     * @param string       $FileType
+     * @param int          $FileSize
+     * @param TblDirectory $tblDirectory
      * @param bool         $IsLocked
      *
      * @return bool

@@ -22,7 +22,7 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblScoreRuleConditionList extends Element
 {
-    
+
     const ATTR_TBL_SCORE_CONDITION = 'tblScoreCondition';
     const ATTR_TBL_SCORE_RULE = 'tblScoreRule';
 
@@ -41,6 +41,7 @@ class TblScoreRuleConditionList extends Element
      */
     public function getTblScoreCondition()
     {
+
         if (null === $this->tblScoreCondition) {
             return false;
         } else {
@@ -53,7 +54,8 @@ class TblScoreRuleConditionList extends Element
      */
     public function setTblScoreCondition($tblScoreCondition)
     {
-        $this->tblScoreCondition = (null === $tblScoreCondition ? null : $tblScoreCondition->getId());
+
+        $this->tblScoreCondition = ( null === $tblScoreCondition ? null : $tblScoreCondition->getId() );
     }
 
     /**
@@ -61,6 +63,7 @@ class TblScoreRuleConditionList extends Element
      */
     public function getTblScoreRule()
     {
+
         if (null === $this->tblScoreRule) {
             return false;
         } else {
@@ -73,6 +76,7 @@ class TblScoreRuleConditionList extends Element
      */
     public function setTblScoreRule($tblScoreRule)
     {
-        $this->tblScoreRule = (null === $tblScoreRule ? null : $tblScoreRule->getId());
+
+        $this->tblScoreRule = ( null === $tblScoreRule ? null : $tblScoreRule->getId() );
     }
 }

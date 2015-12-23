@@ -55,7 +55,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Stage->addButton(
                     new Standard(
-                        $tblGroup->getName() . '&nbsp;&nbsp;' . new Label(Group::useService()->countPersonAllByGroup($tblGroup)),
+                        $tblGroup->getName().'&nbsp;&nbsp;'.new Label(Group::useService()->countPersonAllByGroup($tblGroup)),
                         new Route(__NAMESPACE__), new PersonGroup(),
                         array(
                             'Id' => $tblGroup->getId()
@@ -72,34 +72,33 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
 //            $Cache = $this->getCache(new MemcachedHandler());
 //            if (null === ($Result = $Cache->getValue($Id, __METHOD__))) {
-                $Result = array();
-                if ($tblPersonAll) {
-                    (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartRun');
-                    array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result) {
+            $Result = array();
+            if ($tblPersonAll) {
+                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__.':StartRun');
+                array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result) {
 
+                    $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
+                    $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
+                    if (!empty( $tblAddressAll )) {
+                        $tblAddress = current($tblAddressAll)->getGuiString();
+                    } else {
+                        $tblAddress = false;
+                    }
 
-                        $idAddressAll = Address::useService()->fetchIdAddressAllByPerson( $tblPerson );
-                        $tblAddressAll = Address::useService()->fetchAddressAllByIdList( $idAddressAll );
-                        if (!empty($tblAddressAll)) {
-                            $tblAddress = current($tblAddressAll)->getGuiString();
-                        } else {
-                            $tblAddress = false;
-                        }
-
-                        array_push($Result, array(
-                            'FullName' => $tblPerson->getFullName(),
-                            'Address' => ($tblAddress
-                                ? $tblAddress
-                                : new Warning('Keine Adresse hinterlegt')
-                            ),
-                            'Option' => new Standard('', '/People/Person', new Pencil(), array(
-                                'Id' => $tblPerson->getId(),
-                                'Group' => $tblGroup->getId()
-                            ), 'Bearbeiten'),
-                            'Remark' => (($Common = Common::useService()->getCommonByPerson($tblPerson)) ? $Common->getRemark() : '')
-                        ));
-                    });
-                    (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopRun');
+                    array_push($Result, array(
+                        'FullName' => $tblPerson->getFullName(),
+                        'Address'  => ( $tblAddress
+                            ? $tblAddress
+                            : new Warning('Keine Adresse hinterlegt')
+                        ),
+                        'Option'   => new Standard('', '/People/Person', new Pencil(), array(
+                            'Id'    => $tblPerson->getId(),
+                            'Group' => $tblGroup->getId()
+                        ), 'Bearbeiten'),
+                        'Remark'   => ( ( $Common = Common::useService()->getCommonByPerson($tblPerson) ) ? $Common->getRemark() : '' )
+                    ));
+                });
+                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__.':StopRun');
 
 //                    $Cache->setValue($Id, $Result, 0, __METHOD__);
 //                }
@@ -119,9 +118,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new TableData($Result, null,
                             array(
                                 'FullName' => 'Name',
-                                'Address' => 'Adresse',
-                                'Remark'  => 'Bemerkung',
-                                'Option'  => 'Optionen',
+                                'Address'  => 'Adresse',
+                                'Remark'   => 'Bemerkung',
+                                'Option'   => 'Optionen',
                             )
                         )
                     )))

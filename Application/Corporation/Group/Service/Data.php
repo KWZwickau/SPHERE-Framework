@@ -30,7 +30,7 @@ class Data extends AbstractData
      * @param string $Name
      * @param string $Description
      * @param string $Remark
-     * @param bool $IsLocked
+     * @param bool   $IsLocked
      * @param string $MetaTable
      *
      * @return TblGroup
@@ -42,7 +42,7 @@ class Data extends AbstractData
 
         if ($IsLocked) {
             $Entity = $Manager->getEntity('TblGroup')->findOneBy(array(
-                TblGroup::ATTR_IS_LOCKED => $IsLocked,
+                TblGroup::ATTR_IS_LOCKED  => $IsLocked,
                 TblGroup::ATTR_META_TABLE => $MetaTable
             ));
         } else {
@@ -66,9 +66,9 @@ class Data extends AbstractData
 
     /**
      * @param TblGroup $tblGroup
-     * @param string $Name
-     * @param string $Description
-     * @param string $Remark
+     * @param string   $Name
+     * @param string   $Description
+     * @param string   $Remark
      *
      * @return bool
      */
@@ -133,7 +133,7 @@ class Data extends AbstractData
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', array(
             TblGroup::ATTR_META_TABLE => $MetaTable,
-            TblGroup::ATTR_IS_LOCKED => true
+            TblGroup::ATTR_IS_LOCKED  => true
         ));
     }
 
@@ -158,14 +158,15 @@ class Data extends AbstractData
      */
     public function getCompanyAllByGroup(TblGroup $tblGroup)
     {
+
         /** @var TblMember[] $EntityList */
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
             array(
                 TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
             ));
         $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
-        if (null === ($ResultList = $Cache->getValue($tblGroup->getId(), __METHOD__))
-            && !empty($EntityList)
+        if (null === ( $ResultList = $Cache->getValue($tblGroup->getId(), __METHOD__) )
+            && !empty( $EntityList )
         ) {
 
             array_walk($EntityList, function (TblMember &$V) {
@@ -176,7 +177,7 @@ class Data extends AbstractData
         } else {
             $EntityList = $ResultList;
         }
-        return (null === $EntityList ? false : $EntityList);
+        return ( null === $EntityList ? false : $EntityList );
     }
 
     /**
@@ -205,7 +206,7 @@ class Data extends AbstractData
         } else {
             $EntityList = null;
         }
-        return (null === $EntityList ? false : $EntityList);
+        return ( null === $EntityList ? false : $EntityList );
     }
 
     /**
@@ -223,8 +224,8 @@ class Data extends AbstractData
                 TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
             ));
         $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
-        if (null === ($ResultList = $Cache->getValue($tblCompany->getId(), __METHOD__))
-            && !empty($EntityList)
+        if (null === ( $ResultList = $Cache->getValue($tblCompany->getId(), __METHOD__) )
+            && !empty( $EntityList )
         ) {
 
             array_walk($EntityList, function (TblMember &$V) {
@@ -235,11 +236,11 @@ class Data extends AbstractData
         } else {
             $EntityList = $ResultList;
         }
-        return (null === $EntityList ? false : $EntityList);
+        return ( null === $EntityList ? false : $EntityList );
     }
 
     /**
-     * @param TblGroup $tblGroup
+     * @param TblGroup   $tblGroup
      * @param TblCompany $tblCompany
      *
      * @return TblMember
@@ -250,7 +251,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblMember')
             ->findOneBy(array(
-                TblMember::ATTR_TBL_GROUP => $tblGroup->getId(),
+                TblMember::ATTR_TBL_GROUP      => $tblGroup->getId(),
                 TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
             ));
         if (null === $Entity) {
@@ -264,7 +265,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblGroup $tblGroup
+     * @param TblGroup   $tblGroup
      * @param TblCompany $tblCompany
      *
      * @return bool
@@ -276,7 +277,7 @@ class Data extends AbstractData
         /** @var TblMember $Entity */
         $Entity = $Manager->getEntity('TblMember')
             ->findOneBy(array(
-                TblMember::ATTR_TBL_GROUP => $tblGroup->getId(),
+                TblMember::ATTR_TBL_GROUP      => $tblGroup->getId(),
                 TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
             ));
         if (null !== $Entity) {

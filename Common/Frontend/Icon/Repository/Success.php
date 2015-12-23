@@ -5,6 +5,7 @@ use SPHERE\Common\Frontend\Icon\IIconInterface;
 
 /**
  * Class Success
+ *
  * @package SPHERE\Common\Frontend\Icon\Repository
  */
 class Success implements IIconInterface

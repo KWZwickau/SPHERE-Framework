@@ -91,7 +91,7 @@ class TblPerson extends Element
     public function setTblSalutation(TblSalutation $tblSalutation = null)
     {
 
-        $this->tblSalutation = (null === $tblSalutation ? null : $tblSalutation->getId());
+        $this->tblSalutation = ( null === $tblSalutation ? null : $tblSalutation->getId() );
     }
 
     /**
@@ -189,6 +189,7 @@ class TblPerson extends Element
      */
     public function fetchMainAddress()
     {
+
         return Address::useService()->getAddressByPerson($this);
     }
 }

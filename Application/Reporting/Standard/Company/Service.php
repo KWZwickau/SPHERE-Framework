@@ -8,7 +8,6 @@
 
 namespace SPHERE\Application\Reporting\Standard\Company;
 
-
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
@@ -24,10 +23,11 @@ use SPHERE\Common\Window\Redirect;
 
 class Service
 {
+
     /**
      * @param IFormInterface|null $Stage
-     * @param null $Select
-     * @param $Redirect
+     * @param null                $Select
+     * @param                     $Redirect
      *
      * @return IFormInterface|Redirect
      */
@@ -75,9 +75,9 @@ class Service
                     $tblCompany->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblCompany->City = $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblCompany->Address = $address->getTblAddress()->getStreetName() . ' ' .
-                        $address->getTblAddress()->getStreetNumber() . ' ' .
-                        $address->getTblAddress()->getTblCity()->getCode() . ' ' .
+                    $tblCompany->Address = $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().' '.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
                         $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblCompany->StreetName = $tblCompany->StreetNumber = $tblCompany->Code = $tblCompany->City = '';
@@ -129,6 +129,7 @@ class Service
 
     /**
      * @param $groupList
+     *
      * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
@@ -136,7 +137,7 @@ class Service
     public function createGroupListExcel($groupList)
     {
 
-        if (!empty($groupList)) {
+        if (!empty( $groupList )) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */

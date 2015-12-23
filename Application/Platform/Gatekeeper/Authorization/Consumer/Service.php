@@ -77,7 +77,7 @@ class Service extends AbstractService
     {
 
         $Cache = $this->getCache(new MemoryHandler());
-        if (null === ($tblConsumer = $Cache->getValue($Session, __METHOD__))) {
+        if (null === ( $tblConsumer = $Cache->getValue($Session, __METHOD__) )) {
             $tblConsumer = (new Data($this->getBinding()))->getConsumerBySession($Session);
             if ($tblConsumer) {
                 $Cache->setValue($Session, $tblConsumer, 0, __METHOD__);
@@ -102,8 +102,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param string $ConsumerAcronym
-     * @param string $ConsumerName
+     * @param string         $ConsumerAcronym
+     * @param string         $ConsumerName
      *
      * @return IFormInterface|Redirect
      */
@@ -120,7 +120,7 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (null !== $ConsumerAcronym && empty($ConsumerAcronym)) {
+        if (null !== $ConsumerAcronym && empty( $ConsumerAcronym )) {
             $Form->setError('ConsumerAcronym', 'Bitte geben Sie ein Mandantenkürzel an');
             $Error = true;
         }
@@ -128,7 +128,7 @@ class Service extends AbstractService
             $Form->setError('ConsumerAcronym', 'Das Mandantenkürzel muss einzigartig sein');
             $Error = true;
         }
-        if (null !== $ConsumerName && empty($ConsumerName)) {
+        if (null !== $ConsumerName && empty( $ConsumerName )) {
             $Form->setError('ConsumerName', 'Bitte geben Sie einen gültigen Mandantenname ein');
             $Error = true;
         }

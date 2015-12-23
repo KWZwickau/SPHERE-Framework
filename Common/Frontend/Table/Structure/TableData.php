@@ -45,7 +45,7 @@ class TableData extends Table
                 $Interactive = array_merge_recursive($Interactive, array(
                     "processing" => true,
                     "serverSide" => true,
-                    "ajax" => array(
+                    "ajax"       => array(
                         "url"  => $this->getRequest()->getUrlBase().$DataList,
                         "type" => "POST"
                     ),
@@ -55,7 +55,7 @@ class TableData extends Table
                 $Interactive = array(
                     "processing" => true,
                     "serverSide" => true,
-                    "ajax" => array(
+                    "ajax"       => array(
                         "url"  => $this->getRequest()->getUrlBase().$DataList,
                         "type" => "POST"
                     ),
@@ -94,18 +94,19 @@ class TableData extends Table
             // JS Table Data
             $ObjectList = array();
             array_walk($DataList, function (&$Row) use (&$ObjectList, $ColumnDefinition) {
+
                 array_walk($Row, function (&$Column, $Index) use ($ColumnDefinition, $Row) {
 
                     /**
                      * With Object, use getter instead of property (if available)
                      */
-                    if (is_object($Column) && method_exists($Row, 'get' . substr(trim($Index), 2))) {
-                        $Column = $Row->{'get' . substr(trim($Index), 2)}();
+                    if (is_object($Column) && method_exists($Row, 'get'.substr(trim($Index), 2))) {
+                        $Column = $Row->{'get'.substr(trim($Index), 2)}();
                     }
                     /**
                      * Other values
                      */
-                    if (empty($ColumnDefinition)) {
+                    if (empty( $ColumnDefinition )) {
                         $Column = (new TableColumn($Column))->getContent();
                     } elseif (in_array(preg_replace('!^[^a-z0-9_]*!is', '', $Index), array_keys($ColumnDefinition))) {
                         $Column = (new TableColumn($Column))->getContent();
@@ -123,6 +124,7 @@ class TableData extends Table
 
                 $Index = array_flip(array_keys($ColumnDefinition));
                 array_walk($Index, function (&$Value) {
+
                     $Value = '';
                 });
                 /** @var array $Row */
@@ -133,6 +135,7 @@ class TableData extends Table
 
             $IndexList = array_keys($ColumnDefinition);
             array_walk($IndexList, function (&$Name) {
+
                 $Name = array('data' => $Name);
             });
 
@@ -148,14 +151,14 @@ class TableData extends Table
                     /**
                      * With Object, use getter instead of property (if available)
                      */
-                    if (is_object($Column) && method_exists($Content[1], 'get' . substr(trim($Index), 2))) {
-                        $Column = $Content[1]->{'get' . substr(trim($Index), 2)}();
+                    if (is_object($Column) && method_exists($Content[1], 'get'.substr(trim($Index), 2))) {
+                        $Column = $Content[1]->{'get'.substr(trim($Index), 2)}();
                     }
 
                     /**
                      * Other values
                      */
-                    if (empty($Content[0])) {
+                    if (empty( $Content[0] )) {
                         $Column = new TableColumn($Column);
                     } elseif (in_array(preg_replace('!^[^a-z0-9_]*!is', '', $Index), array_keys($Content[0]))) {
                         $Column = new TableColumn($Column);
@@ -180,10 +183,10 @@ class TableData extends Table
 
         if (count($DataList) > 0 || $Interactive) {
 
-            if (is_array($Interactive) && isset($ObjectList) && isset($IndexList)) {
+            if (is_array($Interactive) && isset( $ObjectList ) && isset( $IndexList )) {
                 $Interactive = array_merge($Interactive, array('data' => $ObjectList, 'columns' => $IndexList));
             }
-            if (!is_array($Interactive) && isset($ObjectList) && isset($IndexList)) {
+            if (!is_array($Interactive) && isset( $ObjectList ) && isset( $IndexList )) {
                 $Interactive = array('data' => $ObjectList, 'columns' => $IndexList);
             }
 

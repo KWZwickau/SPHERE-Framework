@@ -40,6 +40,7 @@ class TblTestType extends Element
      */
     public function getName()
     {
+
         return $this->Name;
     }
 
@@ -48,6 +49,7 @@ class TblTestType extends Element
      */
     public function setName($Name)
     {
+
         $this->Name = $Name;
     }
 
@@ -56,6 +58,7 @@ class TblTestType extends Element
      */
     public function getIdentifier()
     {
+
         return $this->Identifier;
     }
 
@@ -64,6 +67,7 @@ class TblTestType extends Element
      */
     public function setIdentifier($Identifier)
     {
+
         $this->Identifier = $Identifier;
     }
 }

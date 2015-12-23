@@ -283,7 +283,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new BarCode()
                         ), 6),
                     new FormColumn(
-                        new SelectBox('Debtor[PaymentType]', 'Zahlungsart', array(TblPaymentType::ATTR_NAME => $tblPaymentTypeList),
+                        new SelectBox('Debtor[PaymentType]', 'Zahlungsart',
+                            array(TblPaymentType::ATTR_NAME => $tblPaymentTypeList),
                             new Money()
                         ), 6),
                     new FormColumn(
@@ -397,13 +398,17 @@ class Frontend extends Extension implements IFrontendInterface
                     ))
                 ))
             ))
-            .new Standard('Ändern', '/Billing/Accounting/Banking/Debtor/Change', null, array('Id' => $Id), 'Beschreibung ändern')
+            .new Standard('Ändern', '/Billing/Accounting/Banking/Debtor/Change', null, array('Id' => $Id),
+                'Beschreibung ändern')
             .self::layoutPaymentType($tblDebtor)
-            .new Standard('Ändern', '/Billing/Accounting/Banking/Debtor/Payment/View', null, array('Id' => $Id), 'Zahlungsart ändern')
+            .new Standard('Ändern', '/Billing/Accounting/Banking/Debtor/Payment/View', null, array('Id' => $Id),
+                'Zahlungsart ändern')
             .self::layoutAccount($tblDebtor, '/Billing/Accounting/Banking/Debtor/View', $Id)
-            .new Standard('Anlegen', '/Billing/Accounting/Banking/Account/Create', null, array('Id' => $Id), 'Kontodaten anlegen')
+            .new Standard('Anlegen', '/Billing/Accounting/Banking/Account/Create', null, array('Id' => $Id),
+                'Kontodaten anlegen')
             .self::layoutCommodityDebtor($tblDebtor)
-            .new Standard('Bearbeiten', '/Billing/Accounting/Banking/Commodity/Select', null, array('Id' => $Id), 'Leistungen bearbeiten')
+            .new Standard('Bearbeiten', '/Billing/Accounting/Banking/Commodity/Select', null, array('Id' => $Id),
+                'Leistungen bearbeiten')
 //            .self::layoutReference($tblDebtor)
 //            .new Standard('Bearbeiten', '/Billing/Accounting/Banking/Debtor/Reference', null, array('Id' => $Id))
         );
@@ -426,7 +431,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutColumn(
                         new Panel($tblPayment->getName(), '', Panel::PANEL_TYPE_PRIMARY)
                         , 3)
-                )), new Title('Zahlungsart'))
+                )
+            ), new Title('Zahlungsart'))
         );
     }
 
@@ -470,20 +476,29 @@ class Frontend extends Extension implements IFrontendInterface
                             $this->layoutReference($tblAccount)
                         ), null, ( $tblAccount->getActive() === false ?
                                 new Standard('', '/Billing/Accounting/Banking/Account/Activate', new Ok(),
-                                    array('Id'      => $tblDebtor->getId(),
-                                          'Account' => $tblAccount->getId(),
-                                          'Path'    => $Path,
-                                          'IdBack'  => $IdBack), 'Konto aktiv setzen') : null )
+                                    array(
+                                        'Id'      => $tblDebtor->getId(),
+                                        'Account' => $tblAccount->getId(),
+                                        'Path'    => $Path,
+                                        'IdBack'  => $IdBack
+                                    ), 'Konto aktiv setzen') : null )
                             .new Standard('', '/Billing/Accounting/Banking/Account/Change', new Pencil(),
-                                array('Id'        => $tblDebtor->getId(),
-                                      'AccountId' => $tblAccount->getId()), 'Konto bearbeiten')
+                                array(
+                                    'Id'        => $tblDebtor->getId(),
+                                    'AccountId' => $tblAccount->getId()
+                                ), 'Konto bearbeiten')
                             .new Standard('', '/Billing/Accounting/Banking/Debtor/Reference', new Listing(),
-                                array('DebtorId'  => $IdBack,
-                                      'AccountId' => $tblAccount->getId()), 'Referenz bearbeiten')
+                                array(
+                                    'DebtorId'  => $IdBack,
+                                    'AccountId' => $tblAccount->getId()
+                                ), 'Referenz bearbeiten')
                             .new Standard('', '/Billing/Accounting/Banking/Account/Destroy', new Remove(),
-                                array('Id'      => $tblDebtor->getId(),
-                                      'Account' => $tblAccount->getId()), 'Konto löschen')
-                        )), ( $tblAccount->getActive() ?
+                                array(
+                                    'Id'      => $tblDebtor->getId(),
+                                    'Account' => $tblAccount->getId()
+                                ), 'Konto löschen')
+                        )
+                    ), ( $tblAccount->getActive() ?
                         Panel::PANEL_TYPE_SUCCESS
                         : Panel::PANEL_TYPE_DEFAULT )), 4
                 );
@@ -496,8 +511,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblAccountList = new LayoutColumn('');
             }
         }
-        if (!isset( $Warning ))
+        if (!isset( $Warning )) {
             $Warning = null;
+        }
 
         return new Layout(
             new LayoutGroup(array(new LayoutRow($tblAccountList), $Warning), new Title('Kontodaten'))
@@ -525,7 +541,6 @@ class Frontend extends Extension implements IFrontendInterface
             $String = false;
         }
         return $String;
-
 
     }
 
@@ -1139,7 +1154,6 @@ class Frontend extends Extension implements IFrontendInterface
         $tblCommodity = Commodity::useService()->getCommodityById($CommodityId);
         $Stage->setContent(Banking::useService()->addCommodityToDebtor($tblDebtor, $tblCommodity));
 
-
         return $Stage;
     }
 
@@ -1459,8 +1473,10 @@ class Frontend extends Extension implements IFrontendInterface
         $tblReference = Banking::useService()->getReferenceById($ReferenceId);
         $Stage = new Stage('Reference', 'bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking/Debtor/Reference',
-            new ChevronLeft(), array('DebtorId'  => $DebtorId,
-                                     'AccountId' => $AccountId)));
+            new ChevronLeft(), array(
+                'DebtorId'  => $DebtorId,
+                'AccountId' => $AccountId
+            )));
 
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Reference'] )) {

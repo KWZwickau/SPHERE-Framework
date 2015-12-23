@@ -15,6 +15,7 @@ class Person implements IModuleInterface
 
     public static function registerModule()
     {
+
 //        Main::getDisplay()->addApplicationNavigation(
 //            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Personen (allgemein)'))
 //        );
@@ -28,7 +29,8 @@ class Person implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__.'/BirthdayClassList'), new Link\Name('Klassenlisten Geburtstag'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/MedicalInsuranceClassList'), new Link\Name('Klassenlisten Krankenkasse'))
+            new Link(new Link\Route(__NAMESPACE__.'/MedicalInsuranceClassList'),
+                new Link\Name('Klassenlisten Krankenkasse'))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/GroupList'), new Link\Name('Personengruppenlisten'))

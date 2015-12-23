@@ -38,9 +38,10 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblPerson $tblPerson
-     * @param array $Meta
-     * @param null $Group
+     * @param TblPerson      $tblPerson
+     * @param array          $Meta
+     * @param null           $Group
+     *
      * @return IFormInterface|Redirect
      */
     public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group = null)
@@ -93,7 +94,7 @@ class Service extends AbstractService
         }
         return new Success('Die Daten wurde erfolgreich gespeichert')
         .new Redirect('/People/Person', 3, array(
-            'Id' => $tblPerson->getId(),
+            'Id'    => $tblPerson->getId(),
             'Group' => $Group
         ));
     }
@@ -132,8 +133,7 @@ class Service extends AbstractService
         $IsAssistance,
         $AssistanceActivity,
         $Remark
-    )
-    {
+    ) {
 
         $tblCommonBirthDates = (new Data($this->getBinding()))->createCommonBirthDates(
             $Birthday,

@@ -55,6 +55,7 @@ class TblTask extends Element
      */
     public function getName()
     {
+
         return $this->Name;
     }
 
@@ -63,6 +64,7 @@ class TblTask extends Element
      */
     public function setName($Name)
     {
+
         $this->Name = $Name;
     }
 
@@ -152,6 +154,7 @@ class TblTask extends Element
      */
     public function getTblTestType()
     {
+
         if (null === $this->tblTestType) {
             return false;
         } else {
@@ -164,6 +167,7 @@ class TblTask extends Element
      */
     public function setTblTestType($tblTestType)
     {
-        $this->tblTestType = (null === $tblTestType ? null : $tblTestType->getId());
+
+        $this->tblTestType = ( null === $tblTestType ? null : $tblTestType->getId() );
     }
 }

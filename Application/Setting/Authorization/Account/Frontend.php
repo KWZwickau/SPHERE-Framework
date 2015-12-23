@@ -153,7 +153,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Person'         => new Person().' Person',
                                 'Authentication' => new Lock().' Kontotyp',
                                 'Authorization'  => new Nameplate().' Berechtigungen',
-                                'Token' => new Key().' Hardware-Schlüssel',
+                                'Token'          => new Key().' Hardware-Schlüssel',
                                 'Option'         => 'Optionen'
                             )
                         )

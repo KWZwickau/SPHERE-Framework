@@ -79,7 +79,6 @@ class Term implements IModuleInterface
             ->setParameterDefault('Id', null)
         );
 
-
     }
 
     /**
@@ -99,8 +98,10 @@ class Term implements IModuleInterface
 
         $Stage = new Stage('Schuljahr', 'Dashboard');
 
-        $Stage->addButton(new Standard('Schuljahr', __NAMESPACE__.'\Create\Year', new Calendar(), null, 'erstellen / bearbeiten'));
-        $Stage->addButton(new Standard('Zeitraum', __NAMESPACE__.'\Create\Period', new Time(), null, 'erstellen / bearbeiten'));
+        $Stage->addButton(new Standard('Schuljahr', __NAMESPACE__.'\Create\Year', new Calendar(), null,
+            'erstellen / bearbeiten'));
+        $Stage->addButton(new Standard('Zeitraum', __NAMESPACE__.'\Create\Period', new Time(), null,
+            'erstellen / bearbeiten'));
 
         $tblYearAll = Term::useService()->getYearAll();
         $Year = array();
@@ -127,7 +128,8 @@ class Term implements IModuleInterface
                         ( empty( $tblPeriodAll ) ?
                             'Keine Zeiträume hinterlegt'
                             : count($tblPeriodAll).' Zeiträume' ),
-                        $tblPeriodAll, ( empty( $tblPeriodAll ) ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT )
+                        $tblPeriodAll,
+                        ( empty( $tblPeriodAll ) ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT )
                         , new Standard('', __NAMESPACE__.'\Choose\Period', new Clock(),
                         array('Id' => $tblYear->getId()), 'Zeitraum zuweisen'
                     )),

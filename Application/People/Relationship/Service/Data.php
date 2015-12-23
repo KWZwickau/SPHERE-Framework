@@ -295,7 +295,7 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToCompany',
             array(
                 TblToCompany::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
+            ));
     }
 
     /**

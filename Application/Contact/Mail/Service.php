@@ -140,9 +140,9 @@ class Service extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param $Address
-     * @param TblType $tblType
-     * @param $Remark
+     * @param           $Address
+     * @param TblType   $tblType
+     * @param           $Remark
      *
      * @return TblToPerson
      */

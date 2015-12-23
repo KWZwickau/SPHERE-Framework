@@ -21,6 +21,7 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblObjectType extends Element
 {
+
     const ATTR_NAME = 'Name';
     const ATTR_IDENTIFIER = 'Identifier';
 
@@ -39,6 +40,7 @@ class TblObjectType extends Element
      */
     public function getName()
     {
+
         return $this->Name;
     }
 
@@ -47,6 +49,7 @@ class TblObjectType extends Element
      */
     public function setName($Name)
     {
+
         $this->Name = $Name;
     }
 
@@ -55,6 +58,7 @@ class TblObjectType extends Element
      */
     public function getIdentifier()
     {
+
         return $this->Identifier;
     }
 
@@ -63,6 +67,7 @@ class TblObjectType extends Element
      */
     public function setIdentifier($Identifier)
     {
+
         $this->Identifier = $Identifier;
     }
 }

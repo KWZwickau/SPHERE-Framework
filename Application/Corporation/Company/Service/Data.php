@@ -26,6 +26,7 @@ class Data extends AbstractData
      */
     public function createCompany($Name, $Description = '')
     {
+
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblCompany')->findOneBy(array(
             TblCompany::ATTR_NAME => $Name,
@@ -42,8 +43,8 @@ class Data extends AbstractData
 
     /**
      * @param TblCompany $tblCompany
-     * @param string $Name
-     * @param string $Description
+     * @param string     $Name
+     * @param string     $Description
      *
      * @return TblCompany
      */
@@ -107,8 +108,8 @@ class Data extends AbstractData
         $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCompany',
             array(TblCompany::ATTR_DESCRIPTION => $Description));
 
-        if ($list){
-            if (count($list) === 1){
+        if ($list) {
+            if (count($list) === 1) {
                 return $list[0];
             }
         }

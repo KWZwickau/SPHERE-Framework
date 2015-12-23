@@ -58,7 +58,7 @@ class TblToPerson extends Element
     public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
 
-        $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
+        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**
@@ -98,7 +98,7 @@ class TblToPerson extends Element
     public function setTblType(TblType $tblType = null)
     {
 
-        $this->tblType = (null === $tblType ? null : $tblType->getId());
+        $this->tblType = ( null === $tblType ? null : $tblType->getId() );
     }
 
     /**
@@ -120,6 +120,6 @@ class TblToPerson extends Element
     public function setTblAddress(TblAddress $tblAddress = null)
     {
 
-        $this->tblAddress = (null === $tblAddress ? null : $tblAddress->getId());
+        $this->tblAddress = ( null === $tblAddress ? null : $tblAddress->getId() );
     }
 }

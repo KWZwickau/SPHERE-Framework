@@ -17,10 +17,10 @@ abstract class Subject extends Transfer
 {
 
     /**
-     * @param TblStudent $tblStudent
-     * @param TblStudentSubjectType $tblStudentSubjectType
+     * @param TblStudent               $tblStudent
+     * @param TblStudentSubjectType    $tblStudentSubjectType
      * @param TblStudentSubjectRanking $tblStudentSubjectRanking
-     * @param TblSubject $tblSubject
+     * @param TblSubject               $tblSubject
      *
      * @return TblStudentSubject
      */
@@ -30,6 +30,7 @@ abstract class Subject extends Transfer
         TblStudentSubjectRanking $tblStudentSubjectRanking,
         TblSubject $tblSubject
     ) {
+
         return (new Data($this->getBinding()))->addStudentSubject($tblStudent, $tblStudentSubjectType,
             $tblStudentSubjectRanking, $tblSubject);
     }
@@ -119,8 +120,9 @@ abstract class Subject extends Transfer
     }
 
     /**
-     * @param TblStudent $tblStudent
+     * @param TblStudent            $tblStudent
      * @param TblStudentSubjectType $tblStudentSubjectType
+     *
      * @return bool|TblStudentSubject[]
      */
     public function getStudentSubjectAllByStudentAndSubjectType(
@@ -128,7 +130,8 @@ abstract class Subject extends Transfer
         TblStudentSubjectType $tblStudentSubjectType
     ) {
 
-        return (new Data($this->getBinding()))->getStudentSubjectAllByStudentAndSubjectType($tblStudent, $tblStudentSubjectType);
+        return (new Data($this->getBinding()))->getStudentSubjectAllByStudentAndSubjectType($tblStudent,
+            $tblStudentSubjectType);
     }
 
 }

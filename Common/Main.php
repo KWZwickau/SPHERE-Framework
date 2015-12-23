@@ -60,6 +60,7 @@ class Main extends Extension
      */
     public function __construct()
     {
+
         self::initCloudCache();
 
         if (self::getDisplay() === null) {
@@ -72,7 +73,8 @@ class Main extends Extension
 
     public static function initCloudCache()
     {
-        if (!isset($_SESSION['Memcached-Slot'])) {
+
+        if (!isset( $_SESSION['Memcached-Slot'] )) {
             try {
                 if (Consumer::useService()->getConsumerBySession()) {
                     $_SESSION['Memcached-Slot'] = Consumer::useService()->getConsumerBySession()->getAcronym();
@@ -139,7 +141,7 @@ class Main extends Extension
                 } else {
                     header('HTTP/1.0 400 Bad Request');
                 }
-                exit(0);
+                exit( 0 );
             } catch (\Exception $Exception) {
                 $this->runSelfHeal($Exception);
             }
@@ -199,7 +201,7 @@ class Main extends Extension
 
         try {
             echo self::getDisplay()->getContent();
-            exit(0);
+            exit( 0 );
         } catch (\Exception $Exception) {
             $this->runSelfHeal($Exception);
         }
@@ -259,7 +261,7 @@ class Main extends Extension
 
         $Get = (new Authenticator(new Get()))->getAuthenticator();
         $Post = (new Authenticator(new Post()))->getAuthenticator();
-        if (!($Get->validateSignature() && $Post->validateSignature())) {
+        if (!( $Get->validateSignature() && $Post->validateSignature() )) {
             self::getDisplay()->setClusterNavigation();
             self::getDisplay()->setApplicationNavigation();
             self::getDisplay()->setModuleNavigation();
@@ -299,6 +301,6 @@ class Main extends Extension
             ))))
         );
         echo $Display->getContent(true);
-        exit(0);
+        exit( 0 );
     }
 }

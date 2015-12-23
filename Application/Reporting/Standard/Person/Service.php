@@ -29,8 +29,8 @@ class Service
 
     /**
      * @param IFormInterface|null $Stage
-     * @param null $Select
-     * @param string $Redirect
+     * @param null                $Select
+     * @param string              $Redirect
      *
      * @return IFormInterface|Redirect
      */
@@ -53,8 +53,8 @@ class Service
 
     /**
      * @param IFormInterface|null $Stage
-     * @param null $Select
-     * @param $Redirect
+     * @param null                $Select
+     * @param                     $Redirect
      *
      * @return IFormInterface|Redirect
      */
@@ -85,7 +85,7 @@ class Service
 
         $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
 
-        if (!empty($studentList)) {
+        if (!empty( $studentList )) {
             foreach ($studentList as $tblPerson) {
 //                $father = null;
 //                $mother = null;
@@ -119,9 +119,9 @@ class Service
                     $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
-                        $address->getTblAddress()->getStreetNumber() . ' ' .
-                        $address->getTblAddress()->getTblCity()->getCode() . ' ' .
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().' '.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
                         $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
@@ -152,7 +152,7 @@ class Service
     public function createClassListExcel($studentList)
     {
 
-        if (!empty($studentList)) {
+        if (!empty( $studentList )) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -204,7 +204,7 @@ class Service
     {
 
         $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
-        if (!empty($studentList)) {
+        if (!empty( $studentList )) {
 
             foreach ($studentList as $key => $row) {
                 $lastName[$key] = strtoupper($row->getLastName());
@@ -220,7 +220,7 @@ class Service
             foreach ($studentList as $tblPerson) {
                 $All++;
                 $tblPerson->Number = '';
-                $tblPerson->Name = $tblPerson->getLastName() . ', ' . $tblPerson->getFirstName();
+                $tblPerson->Name = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
                     $tblBirhdates = $tblCommon->getTblCommonBirthDates();
@@ -239,8 +239,7 @@ class Service
                     }
 
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                    if($tblStudent)
-                    {
+                    if ($tblStudent) {
                         $tblPerson->Number = $tblStudent->getIdentifier();
                     }
 
@@ -259,9 +258,9 @@ class Service
                     $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
-                        $address->getTblAddress()->getStreetNumber() . ' ' .
-                        $address->getTblAddress()->getTblCity()->getCode() . ' ' .
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().' '.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
                         $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
@@ -280,8 +279,8 @@ class Service
 
                 $Guardian1 = null;
                 $Guardian2 = null;
-                unset($phoneListGuardian1);
-                unset($phoneListGuardian2);
+                unset( $phoneListGuardian1 );
+                unset( $phoneListGuardian2 );
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     $Count = 0;
@@ -318,7 +317,7 @@ class Service
                         }
                     }
                 }
-                if (!isset($Guardian2)) {
+                if (!isset( $Guardian2 )) {
                     $tblPerson->Guardian2 = '';
                 } else {
                     $tblPerson->Guardian2 = $Guardian2->getFullName();
@@ -339,7 +338,6 @@ class Service
                         }
                     }
                 }
-
 
 //                if ($mother) {
 //                    $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
@@ -369,17 +367,17 @@ class Service
 //                        }
 //                    }
 //                }
-                if (isset($phoneListGuardian1[0])) {
+                if (isset( $phoneListGuardian1[0] )) {
                     $tblPerson->PhoneGuardian1 = $phoneListGuardian1[0];
-                    if (isset($phoneListGuardian2[0])) {
+                    if (isset( $phoneListGuardian2[0] )) {
                         if ($phoneListGuardian2[0] === $phoneListGuardian1[0]) {
-                            if (isset($phoneListGuardian2[1])) {
+                            if (isset( $phoneListGuardian2[1] )) {
                                 $tblPerson->PhoneGuardian2 = $phoneListGuardian2[1];
                             } else {
                                 $tblPerson->PhoneGuardian2 = '';
                             }
                         } else {
-                            if (isset($phoneListGuardian2[0])) {
+                            if (isset( $phoneListGuardian2[0] )) {
                                 $tblPerson->PhoneGuardian2 = $phoneListGuardian2[0];
                             } else {
                                 $tblPerson->PhoneGuardian2 = '';
@@ -390,7 +388,7 @@ class Service
                     }
                 } else {
                     $tblPerson->PhoneGuardian1 = '';
-                    if (isset($phoneListGuardian2[0])) {
+                    if (isset( $phoneListGuardian2[0] )) {
                         $tblPerson->PhoneGuardian2 = $phoneListGuardian2[0];
                     } else {
                         $tblPerson->PhoneGuardian2 = '';
@@ -416,7 +414,7 @@ class Service
     public function createExtendedClassListExcel($studentList)
     {
 
-        if (!empty($studentList)) {
+        if (!empty( $studentList )) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -472,6 +470,7 @@ class Service
 
     /**
      * @param TblDivision $tblDivision
+     *
      * @return bool|TblPerson[]
      */
     public function createBirthdayClassList(TblDivision $tblDivision)
@@ -479,7 +478,7 @@ class Service
 
         $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
 
-        if (!empty($studentList)) {
+        if (!empty( $studentList )) {
 
             foreach ($studentList as $key => $row) {
                 $lastName[$key] = strtoupper($row->getLastName());
@@ -495,7 +494,7 @@ class Service
             foreach ($studentList as $tblPerson) {
                 $All++;
                 $tblPerson->Number = $All;
-                $tblPerson->Name = $tblPerson->getLastName() . ', ' . $tblPerson->getFirstName();
+                $tblPerson->Name = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
                     $tblBirhdates = $tblCommon->getTblCommonBirthDates();
@@ -527,9 +526,9 @@ class Service
                     $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
-                        $address->getTblAddress()->getStreetNumber() . ' ' .
-                        $address->getTblAddress()->getTblCity()->getCode() . ' ' .
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().' '.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
                         $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
@@ -543,10 +542,10 @@ class Service
                     $birthDate = (new \DateTime($common->getTblCommonBirthDates()->getBirthday()));
                     $now = new \DateTime();
                     if ($birthDate->format('Y.m') != $now->format('Y.m')) {
-                        if (($birthDate->format('m.d')) <= ($now->format('m.d'))) {
+                        if (( $birthDate->format('m.d') ) <= ( $now->format('m.d') )) {
                             $tblPerson->Age = $now->format('Y') - $birthDate->format('Y');
                         } else {
-                            $tblPerson->Age = ($now->format('Y') - 1) - $birthDate->format('Y');
+                            $tblPerson->Age = ( $now->format('Y') - 1 ) - $birthDate->format('Y');
                         }
                     } else {
                         $tblPerson->Age = '';
@@ -574,7 +573,7 @@ class Service
     public function createBirthdayClassListExcel($studentList)
     {
 
-        if (!empty($studentList)) {
+        if (!empty( $studentList )) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -620,6 +619,7 @@ class Service
 
     /**
      * @param TblDivision $tblDivision
+     *
      * @return bool|TblPerson[]
      */
     public function createMedicalInsuranceClassList(TblDivision $tblDivision)
@@ -627,7 +627,7 @@ class Service
 
         $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
 
-        if (!empty($studentList)) {
+        if (!empty( $studentList )) {
 
             foreach ($studentList as $key => $row) {
                 $lastName[$key] = strtoupper($row->getLastName());
@@ -663,8 +663,7 @@ class Service
                     }
 
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-                    if($tblStudent)
-                    {
+                    if ($tblStudent) {
                         if ($tblStudent->getTblStudentMedicalRecord()) {
                             $tblPerson->MedicalInsurance = $tblStudent->getTblStudentMedicalRecord()->getInsurance();
                         } else {
@@ -675,7 +674,7 @@ class Service
                 } else {
                     $tblPerson->Gender = '';
                 }
-                $tblPerson->Name = $tblPerson->getLastName() . '<br/>' . $tblPerson->getFirstName();
+                $tblPerson->Name = $tblPerson->getLastName().'<br/>'.$tblPerson->getFirstName();
                 if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
                     $address = $addressList[0];
                 } else {
@@ -687,9 +686,9 @@ class Service
                     $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
-                        $address->getTblAddress()->getStreetNumber() . '<br/>' .
-                        $address->getTblAddress()->getTblCity()->getCode() . ' ' .
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().'<br/>'.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
                         $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
@@ -698,7 +697,7 @@ class Service
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
                 if ($common) {
-                    $tblPerson->Birthday = $common->getTblCommonBirthDates()->getBirthday() . '<br/>' . $common->getTblCommonBirthDates()->getBirthplace();
+                    $tblPerson->Birthday = $common->getTblCommonBirthDates()->getBirthday().'<br/>'.$common->getTblCommonBirthDates()->getBirthplace();
                 } else {
                     $tblPerson->Birthday = $tblPerson->Birthplace = '';
                 }
@@ -743,7 +742,7 @@ class Service
                 } else {
                     $Guardian2 = '';
                 }
-                $tblPerson->Guardian = $Guardian1 . '<br/>' . $Guardian2;
+                $tblPerson->Guardian = $Guardian1.'<br/>'.$Guardian2;
 
                 $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
                 $phoneArray = array();
@@ -786,7 +785,7 @@ class Service
     public function createMedicalInsuranceClassListExcel($studentList)
     {
 
-        if (!empty($studentList)) {
+        if (!empty( $studentList )) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
@@ -834,25 +833,25 @@ class Service
 
                 $export->setValue($export->getCell("0", $Row), $tblPerson->Number);
                 for ($i = 0; $i < $count; $i++) {
-                    if (isset($Name[$i])) {
+                    if (isset( $Name[$i] )) {
                         $export->setValue($export->getCell("1", $Row), $Name[$i]);
                     }
-                    if (isset($Address[$i])) {
+                    if (isset( $Address[$i] )) {
                         $export->setValue($export->getCell("2", $Row), $Address[$i]);
                     }
-                    if (isset($Birthday[$i])) {
+                    if (isset( $Birthday[$i] )) {
                         $export->setValue($export->getCell("3", $Row), $Birthday[$i]);
                     }
-                    if (isset($KK[$i])) {
+                    if (isset( $KK[$i] )) {
                         $export->setValue($export->getCell("4", $Row), $KK[$i]);
                     }
-                    if (isset($Guardian[$i])) {
+                    if (isset( $Guardian[$i] )) {
                         $export->setValue($export->getCell("5", $Row), $Guardian[$i]);
                     }
-                    if (isset($PhoneNumber[$i])) {
+                    if (isset( $PhoneNumber[$i] )) {
                         $export->setValue($export->getCell("6", $Row), $PhoneNumber[$i]);
                     }
-                    if (isset($PhoneGuardianNumber[$i])) {
+                    if (isset( $PhoneGuardianNumber[$i] )) {
                         $export->setValue($export->getCell("7", $Row), $PhoneGuardianNumber[$i]);
                     }
                     $Row++;
@@ -879,6 +878,7 @@ class Service
 
     /**
      * @param TblGroup $tblGroup
+     *
      * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
      */
     public function createGroupList(TblGroup $tblGroup)
@@ -886,7 +886,7 @@ class Service
 
         $groupList = Group::useService()->getPersonAllByGroup($tblGroup);
 
-        if (!empty($groupList)) {
+        if (!empty( $groupList )) {
 
             foreach ($groupList as $key => $row) {
                 $lastName[$key] = strtoupper($row->getLastName());
@@ -934,9 +934,9 @@ class Service
                     $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
 
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
-                        $address->getTblAddress()->getStreetNumber() . ' ' .
-                        $address->getTblAddress()->getTblCity()->getCode() . ' ' .
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().' '.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
                         $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
@@ -1006,7 +1006,7 @@ class Service
     public function createGroupListExcel($groupList)
     {
 
-        if (!empty($groupList)) {
+        if (!empty( $groupList )) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */

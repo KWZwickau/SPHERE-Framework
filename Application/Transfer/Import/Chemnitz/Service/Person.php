@@ -13,11 +13,11 @@ class Person extends Service
 {
 
     /**
-     * @param $Salutation
-     * @param $Title
-     * @param $FirstName
-     * @param $SecondName
-     * @param $LastName
+     * @param      $Salutation
+     * @param      $Title
+     * @param      $FirstName
+     * @param      $SecondName
+     * @param      $LastName
      * @param null $GroupList
      *
      * @return bool|Service\Entity\TblPerson
@@ -52,10 +52,12 @@ class Person extends Service
      * @param string $FirstName
      * @param string $LastName
      * @param string $ZipCode
+     *
      * @return bool|Service\Entity\TblPerson
      */
     public function  getPersonExists($FirstName, $LastName, $ZipCode)
     {
+
         $exists = false;
 
         if ($persons = $this->getPersonAllByFirstNameAndLastName($FirstName, $LastName)

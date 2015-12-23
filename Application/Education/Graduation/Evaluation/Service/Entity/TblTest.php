@@ -185,6 +185,7 @@ class TblTest extends Element
      */
     public function getDescription()
     {
+
         return $this->Description;
     }
 
@@ -193,6 +194,7 @@ class TblTest extends Element
      */
     public function setDescription($Description)
     {
+
         $this->Description = $Description;
     }
 
@@ -201,6 +203,7 @@ class TblTest extends Element
      */
     public function getServiceTblGradeType()
     {
+
         if (null === $this->serviceTblGradeType) {
             return false;
         } else {
@@ -213,7 +216,8 @@ class TblTest extends Element
      */
     public function setServiceTblGradeType($serviceTblGradeType)
     {
-        $this->serviceTblGradeType = (null === $serviceTblGradeType ? null : $serviceTblGradeType->getId());
+
+        $this->serviceTblGradeType = ( null === $serviceTblGradeType ? null : $serviceTblGradeType->getId() );
     }
 
     /**
@@ -235,7 +239,7 @@ class TblTest extends Element
     public function setServiceTblSubject(TblSubject $tblSubject = null)
     {
 
-        $this->serviceTblSubject = (null === $tblSubject ? null : $tblSubject->getId());
+        $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
     }
 
     /**
@@ -257,7 +261,7 @@ class TblTest extends Element
     public function setServiceTblSubjectGroup(TblSubjectGroup $tblSubjectGroup = null)
     {
 
-        $this->serviceTblSubjectGroup = (null === $tblSubjectGroup ? null : $tblSubjectGroup->getId());
+        $this->serviceTblSubjectGroup = ( null === $tblSubjectGroup ? null : $tblSubjectGroup->getId() );
     }
 
     /**
@@ -279,7 +283,7 @@ class TblTest extends Element
     public function setServiceTblPeriod(TblPeriod $tblPeriod = null)
     {
 
-        $this->serviceTblPeriod = (null === $tblPeriod ? null : $tblPeriod->getId());
+        $this->serviceTblPeriod = ( null === $tblPeriod ? null : $tblPeriod->getId() );
     }
 
     /**
@@ -301,7 +305,7 @@ class TblTest extends Element
     public function setServiceTblDivision(TblDivision $tblDivision = null)
     {
 
-        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
+        $this->serviceTblDivision = ( null === $tblDivision ? null : $tblDivision->getId() );
     }
 
     /**
@@ -309,6 +313,7 @@ class TblTest extends Element
      */
     public function getTblTestType()
     {
+
         if (null === $this->tblTestType) {
             return false;
         } else {
@@ -321,7 +326,8 @@ class TblTest extends Element
      */
     public function setTblTestType($tblTestType)
     {
-        $this->tblTestType = (null === $tblTestType ? null : $tblTestType->getId());
+
+        $this->tblTestType = ( null === $tblTestType ? null : $tblTestType->getId() );
     }
 
     /**
@@ -329,6 +335,7 @@ class TblTest extends Element
      */
     public function getTblTask()
     {
+
         if (null === $this->tblTask) {
             return false;
         } else {
@@ -341,6 +348,7 @@ class TblTest extends Element
      */
     public function setTblTask($tblTask)
     {
-        $this->tblTask = (null === $tblTask ? null : $tblTask->getId());
+
+        $this->tblTask = ( null === $tblTask ? null : $tblTask->getId() );
     }
 }

@@ -74,6 +74,7 @@ class FuxSchool implements IModuleInterface
      */
     public static function useService()
     {
+
         return new Service();
     }
 
@@ -82,6 +83,7 @@ class FuxSchool implements IModuleInterface
      */
     public static function useFrontend()
     {
+
         return new Frontend();
     }
 

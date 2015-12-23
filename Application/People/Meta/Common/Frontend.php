@@ -38,8 +38,9 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
-     * @param array $Meta
-     * @param null $Group
+     * @param array     $Meta
+     * @param null      $Group
+     *
      * @return Stage
      */
     public function frontendMeta(TblPerson $tblPerson = null, $Meta = array(), $Group = null)

@@ -58,6 +58,7 @@ class TblGradeType extends Element
      */
     public function getCode()
     {
+
         return $this->Code;
     }
 
@@ -66,6 +67,7 @@ class TblGradeType extends Element
      */
     public function setCode($Code)
     {
+
         $this->Code = $Code;
     }
 
@@ -74,6 +76,7 @@ class TblGradeType extends Element
      */
     public function getName()
     {
+
         return $this->Name;
     }
 
@@ -82,6 +85,7 @@ class TblGradeType extends Element
      */
     public function setName($Name)
     {
+
         $this->Name = $Name;
     }
 
@@ -90,6 +94,7 @@ class TblGradeType extends Element
      */
     public function getDescription()
     {
+
         return $this->Description;
     }
 
@@ -98,6 +103,7 @@ class TblGradeType extends Element
      */
     public function setDescription($Description)
     {
+
         $this->Description = $Description;
     }
 
@@ -124,6 +130,7 @@ class TblGradeType extends Element
      */
     public function getServiceTblTestType()
     {
+
         if (null === $this->serviceTblTestType) {
             return false;
         } else {
@@ -136,6 +143,7 @@ class TblGradeType extends Element
      */
     public function setServiceTblTestType($serviceTblTestType)
     {
-        $this->serviceTblTestType = (null === $serviceTblTestType ? null : $serviceTblTestType->getId());
+
+        $this->serviceTblTestType = ( null === $serviceTblTestType ? null : $serviceTblTestType->getId() );
     }
 }

@@ -71,6 +71,6 @@ class TblMember extends Element
     public function setTblGroup(TblGroup $tblGroup = null)
     {
 
-        $this->tblGroup = (null === $tblGroup ? null : $tblGroup->getId());
+        $this->tblGroup = ( null === $tblGroup ? null : $tblGroup->getId() );
     }
 }

@@ -15,6 +15,7 @@ use SPHERE\Application\People\Person\Service;
 
 class Person extends Service
 {
+
     /**
      * @param $FirstName
      * @param $LastName
@@ -31,10 +32,12 @@ class Person extends Service
      * @param string $FirstName
      * @param string $LastName
      * @param string $ZipCode
+     *
      * @return bool|Service\Entity\TblPerson
      */
     public function  getPersonExists($FirstName, $LastName, $ZipCode)
     {
+
         $exists = false;
 
         if ($persons = $this->getPersonAllByFirstNameAndLastName($FirstName, $LastName)
@@ -58,13 +61,14 @@ class Person extends Service
      */
     public function getTeacherByRemark($Remark)
     {
+
         $tblStaffAll = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByMetaTable('STAFF'));
 
-        if ($tblStaffAll){
-            foreach ($tblStaffAll as $tblPerson){
+        if ($tblStaffAll) {
+            foreach ($tblStaffAll as $tblPerson) {
                 $common = Common::useService()->getCommonByPerson($tblPerson);
-                if ($common){
-                    if (strtolower($common->getRemark()) === strtolower($Remark)){
+                if ($common) {
+                    if (strtolower($common->getRemark()) === strtolower($Remark)) {
                         return $tblPerson;
                     }
                 }

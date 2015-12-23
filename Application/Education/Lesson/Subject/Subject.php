@@ -160,7 +160,6 @@ class Subject implements IModuleInterface
                     });
                 }
 
-
                 $Height = floor(( ( count($tblSubjectAll) + 2 ) / 3 ) + 1);
                 Main::getDispatcher()->registerWidget($tblGroup->getIdentifier(),
                     new Panel(

@@ -266,11 +266,13 @@ class Data extends AbstractData
                             if ($tblStudent) {
                                 $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                                 if ($tblTransferType) {
-                                    $Type = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType);
+                                    $Type = Student::useService()->getStudentTransferByType($tblStudent,
+                                        $tblTransferType);
                                     if ($Type) {
                                         if ($Type->getServiceTblType()) {
                                             if ($tblItem->getServiceStudentType()->getId() == $Type->getServiceTblType()->getId()) {
-                                                $this->createInvoiceItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem,
+                                                $this->createInvoiceItem($tblCommodity, $tblItem, $tblBasket,
+                                                    $tblBasketItem,
                                                     $Entity);
                                             }
                                         }
@@ -295,7 +297,8 @@ class Data extends AbstractData
                                         $studentType = 0;
                                         $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                                         if ($tblTransferType) {
-                                            $Type = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType);
+                                            $Type = Student::useService()->getStudentTransferByType($tblStudent,
+                                                $tblTransferType);
                                             if ($Type) {
                                                 if ($Type->getServiceTblType()) {
                                                     $studentType = $Type->getServiceTblType()->getId();

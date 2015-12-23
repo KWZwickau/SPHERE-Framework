@@ -19,7 +19,7 @@ class CheckList implements IModuleInterface
     {
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__ . '/Download', __NAMESPACE__ . '\CheckList::downloadCheckList'
+            __NAMESPACE__.'/Download', __NAMESPACE__.'\CheckList::downloadCheckList'
         ));
     }
 
@@ -52,7 +52,7 @@ class CheckList implements IModuleInterface
             $fileLocation = \SPHERE\Application\Reporting\CheckList\CheckList::useService()->createCheckListExcel($tblList);
             if ($fileLocation) {
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Check-List " . $tblList->getName() . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
+                    "Check-List ".$tblList->getName()." ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }
 

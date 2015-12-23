@@ -99,6 +99,7 @@ class TblGrade extends Element
      */
     public function getGrade()
     {
+
         return $this->Grade;
     }
 
@@ -107,6 +108,7 @@ class TblGrade extends Element
      */
     public function setGrade($Grade)
     {
+
         $this->Grade = $Grade;
     }
 
@@ -115,6 +117,7 @@ class TblGrade extends Element
      */
     public function getComment()
     {
+
         return $this->Comment;
     }
 
@@ -123,6 +126,7 @@ class TblGrade extends Element
      */
     public function setComment($Comment)
     {
+
         $this->Comment = $Comment;
     }
 
@@ -131,6 +135,7 @@ class TblGrade extends Element
      */
     public function getTblGradeType()
     {
+
         if (null === $this->tblGradeType) {
             return false;
         } else {
@@ -143,7 +148,8 @@ class TblGrade extends Element
      */
     public function setTblGradeType($tblGradeType)
     {
-        $this->tblGradeType = (null === $tblGradeType ? null : $tblGradeType->getId());
+
+        $this->tblGradeType = ( null === $tblGradeType ? null : $tblGradeType->getId() );
     }
 
     /**
@@ -151,6 +157,7 @@ class TblGrade extends Element
      */
     public function getServiceTblTest()
     {
+
         if (null === $this->serviceTblTest) {
             return false;
         } else {
@@ -163,7 +170,8 @@ class TblGrade extends Element
      */
     public function setServiceTblTest($serviceTblTest)
     {
-        $this->serviceTblTest = (null === $serviceTblTest ? null : $serviceTblTest->getId());
+
+        $this->serviceTblTest = ( null === $serviceTblTest ? null : $serviceTblTest->getId() );
     }
 
     /**
@@ -171,6 +179,7 @@ class TblGrade extends Element
      */
     public function getServiceTblTestType()
     {
+
         if (null === $this->serviceTblTestType) {
             return false;
         } else {
@@ -183,7 +192,8 @@ class TblGrade extends Element
      */
     public function setServiceTblTestType($serviceTblTestType)
     {
-        $this->serviceTblTestType = (null === $serviceTblTestType ? null : $serviceTblTestType->getId());
+
+        $this->serviceTblTestType = ( null === $serviceTblTestType ? null : $serviceTblTestType->getId() );
     }
 
     /**
@@ -205,7 +215,7 @@ class TblGrade extends Element
     public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
 
-        $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
+        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**
@@ -227,7 +237,7 @@ class TblGrade extends Element
     public function setServiceTblSubject(TblSubject $tblSubject = null)
     {
 
-        $this->serviceTblSubject = (null === $tblSubject ? null : $tblSubject->getId());
+        $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
     }
 
     /**
@@ -249,7 +259,7 @@ class TblGrade extends Element
     public function setServiceTblSubjectGroup(TblSubjectGroup $tblSubjectGroup = null)
     {
 
-        $this->serviceTblSubjectGroup = (null === $tblSubjectGroup ? null : $tblSubjectGroup->getId());
+        $this->serviceTblSubjectGroup = ( null === $tblSubjectGroup ? null : $tblSubjectGroup->getId() );
     }
 
     /**
@@ -271,7 +281,7 @@ class TblGrade extends Element
     public function setServiceTblPeriod(TblPeriod $tblPeriod = null)
     {
 
-        $this->serviceTblPeriod = (null === $tblPeriod ? null : $tblPeriod->getId());
+        $this->serviceTblPeriod = ( null === $tblPeriod ? null : $tblPeriod->getId() );
     }
 
     /**
@@ -293,6 +303,6 @@ class TblGrade extends Element
     public function setServiceTblDivision(TblDivision $tblDivision = null)
     {
 
-        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
+        $this->serviceTblDivision = ( null === $tblDivision ? null : $tblDivision->getId() );
     }
 }

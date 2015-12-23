@@ -176,7 +176,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel('Fach', $tblSubject->getAcronym().' - '.$tblSubject->getName(), Panel::PANEL_TYPE_INFO)
+                            new Panel('Fach', $tblSubject->getAcronym().' - '.$tblSubject->getName(),
+                                Panel::PANEL_TYPE_INFO)
                         )
                     )
                 )
@@ -323,7 +324,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel('Kategorie', $tblCategory->getName().' '.new Muted(new Small($tblCategory->getDescription())), Panel::PANEL_TYPE_INFO)
+                            new Panel('Kategorie',
+                                $tblCategory->getName().' '.new Muted(new Small($tblCategory->getDescription())),
+                                Panel::PANEL_TYPE_INFO)
                         )
                     )
                 )

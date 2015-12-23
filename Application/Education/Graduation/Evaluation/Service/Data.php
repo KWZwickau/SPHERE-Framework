@@ -35,21 +35,23 @@ class Data extends AbstractData
 
     /**
      * @param $Id
+     *
      * @return bool|\SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest
      */
     public function getTestById($Id)
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTest', $Id);
-        return (null === $Entity ? false : $Entity);
+        return ( null === $Entity ? false : $Entity );
     }
 
     /**
-     * @param TblTestType $tblTestType
-     * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
-     * @param TblPeriod|null $tblPeriod
+     * @param TblTestType          $tblTestType
+     * @param TblDivision          $tblDivision
+     * @param TblSubject           $tblSubject
+     * @param TblPeriod|null       $tblPeriod
      * @param TblSubjectGroup|null $tblSubjectGroup
+     *
      * @return bool|\SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest[]
      */
     public function getTestAllByTypeAndDivisionAndSubjectAndPeriodAndSubjectGroup(
@@ -59,14 +61,15 @@ class Data extends AbstractData
         TblPeriod $tblPeriod = null,
         TblSubjectGroup $tblSubjectGroup = null
     ) {
-        if ($tblTestType === null){
+
+        if ($tblTestType === null) {
             if ($tblSubjectGroup === null) {
                 if ($tblPeriod === null) {
                     return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
                             TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT  => $tblSubject->getId()
                         )
                     );
                 } else {
@@ -74,8 +77,8 @@ class Data extends AbstractData
                         'TblTest',
                         array(
                             TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                            TblTest::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId()
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT  => $tblSubject->getId(),
+                            TblTest::ATTR_SERVICE_TBL_PERIOD   => $tblPeriod->getId()
                         )
                     );
                 }
@@ -84,8 +87,8 @@ class Data extends AbstractData
                     return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
-                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                            TblTest::ATTR_SERVICE_TBL_DIVISION      => $tblDivision->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT       => $tblSubject->getId(),
                             TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId()
                         )
                     );
@@ -93,9 +96,9 @@ class Data extends AbstractData
                     return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
-                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                            TblTest::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId(),
+                            TblTest::ATTR_SERVICE_TBL_DIVISION      => $tblDivision->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT       => $tblSubject->getId(),
+                            TblTest::ATTR_SERVICE_TBL_PERIOD        => $tblPeriod->getId(),
                             TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
                         )
                     );
@@ -107,19 +110,19 @@ class Data extends AbstractData
                     return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
-                            TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                            TblTest::ATTR_TBL_TEST_TYPE        => $tblTestType->getId(),
                             TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT  => $tblSubject->getId()
                         )
                     );
                 } else {
                     return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
-                            TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                            TblTest::ATTR_TBL_TEST_TYPE        => $tblTestType->getId(),
                             TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                            TblTest::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId()
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT  => $tblSubject->getId(),
+                            TblTest::ATTR_SERVICE_TBL_PERIOD   => $tblPeriod->getId()
                         )
                     );
                 }
@@ -128,9 +131,9 @@ class Data extends AbstractData
                     return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
-                            TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
-                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                            TblTest::ATTR_TBL_TEST_TYPE             => $tblTestType->getId(),
+                            TblTest::ATTR_SERVICE_TBL_DIVISION      => $tblDivision->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT       => $tblSubject->getId(),
                             TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId()
                         )
                     );
@@ -138,10 +141,10 @@ class Data extends AbstractData
                     return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
-                            TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
-                            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
-                            TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
-                            TblTest::ATTR_SERVICE_TBL_PERIOD => $tblPeriod->getId(),
+                            TblTest::ATTR_TBL_TEST_TYPE             => $tblTestType->getId(),
+                            TblTest::ATTR_SERVICE_TBL_DIVISION      => $tblDivision->getId(),
+                            TblTest::ATTR_SERVICE_TBL_SUBJECT       => $tblSubject->getId(),
+                            TblTest::ATTR_SERVICE_TBL_PERIOD        => $tblPeriod->getId(),
                             TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
                         )
                     );
@@ -152,6 +155,7 @@ class Data extends AbstractData
 
     /**
      * @param TblTestType $tblTestType
+     *
      * @return bool|TblTest[]
      */
     public function getTestAllByTestType(TblTestType $tblTestType)
@@ -165,8 +169,9 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblTask $tblTask
+     * @param TblTask     $tblTask
      * @param TblDivision $tblDivision
+     *
      * @return bool|Entity\TblTest[]
      */
     public function getTestAllByTask(TblTask $tblTask, TblDivision $tblDivision = null)
@@ -182,7 +187,7 @@ class Data extends AbstractData
         } else {
             return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
                 array(
-                    TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                    TblTest::ATTR_TBL_TASK             => $tblTask->getId(),
                     TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
                 )
             );
@@ -191,13 +196,14 @@ class Data extends AbstractData
 
     /**
      * @param $Id
+     *
      * @return bool|TblTask
      */
     public function getTaskById($Id)
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTask', $Id);
-        return (null === $Entity ? false : $Entity);
+        return ( null === $Entity ? false : $Entity );
     }
 
     /**
@@ -209,7 +215,7 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTestType', $Id);
-        return (null === $Entity ? false : $Entity);
+        return ( null === $Entity ? false : $Entity );
     }
 
     /**
@@ -222,21 +228,22 @@ class Data extends AbstractData
 
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblTestType')
             ->findOneBy(array(TblTestType::ATTR_IDENTIFIER => strtoupper($Identifier)));
-        return (null === $Entity ? false : $Entity);
+        return ( null === $Entity ? false : $Entity );
     }
 
     /**
-     * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
+     * @param TblDivision          $tblDivision
+     * @param TblSubject           $tblSubject
      * @param TblSubjectGroup|null $tblSubjectGroup
-     * @param TblPeriod|null $tblPeriod
-     * @param TblGradeType|null $tblGradeType
-     * @param TblTestType|null $tblTestType
-     * @param TblTask $tblTask
-     * @param string $Description
-     * @param null $Date
-     * @param null $CorrectionDate
-     * @param null $ReturnDate
+     * @param TblPeriod|null       $tblPeriod
+     * @param TblGradeType|null    $tblGradeType
+     * @param TblTestType|null     $tblTestType
+     * @param TblTask              $tblTask
+     * @param string               $Description
+     * @param null                 $Date
+     * @param null                 $CorrectionDate
+     * @param null                 $ReturnDate
+     *
      * @return TblTest
      */
     public function createTest(
@@ -276,6 +283,7 @@ class Data extends AbstractData
 
     /**
      * @param TblTest $tblTest
+     *
      * @return bool
      */
     public function destroyTest(TblTest $tblTest)
@@ -287,8 +295,8 @@ class Data extends AbstractData
         if (null !== $Entity) {
 
             $tblGradeAllByTest = Gradebook::useService()->getGradeAllByTest($tblTest);
-            if ($tblGradeAllByTest){
-                foreach ($tblGradeAllByTest as $tblGrade){
+            if ($tblGradeAllByTest) {
+                foreach ($tblGradeAllByTest as $tblGrade) {
                     Gradebook::useService()->destroyGrade($tblGrade);
                 }
             }
@@ -302,10 +310,11 @@ class Data extends AbstractData
 
     /**
      * @param TblTest $tblTest
-     * @param string $Description
-     * @param null $Date
-     * @param null $CorrectionDate
-     * @param null $ReturnDate
+     * @param string  $Description
+     * @param null    $Date
+     * @param null    $CorrectionDate
+     * @param null    $ReturnDate
+     *
      * @return bool
      */
     public function updateTest(
@@ -339,6 +348,7 @@ class Data extends AbstractData
     /**
      * @param $Name
      * @param $Identifier
+     *
      * @return null|TblGradeType
      */
     public function createTestType($Name, $Identifier)
@@ -363,10 +373,11 @@ class Data extends AbstractData
 
     /**
      * @param TblTestType $tblTestType
-     * @param $Name
-     * @param null $Date
-     * @param null $FromDate
-     * @param null $ToDate
+     * @param             $Name
+     * @param null        $Date
+     * @param null        $FromDate
+     * @param null        $ToDate
+     *
      * @return TblTask
      */
     public function createTask(
@@ -394,6 +405,7 @@ class Data extends AbstractData
 
     /**
      * @param TblTestType $tblTestType
+     *
      * @return bool|TblTask[]
      */
     public function getTaskAllByTestType(TblTestType $tblTestType)
@@ -408,10 +420,11 @@ class Data extends AbstractData
 
     /**
      * @param TblTask $tblTask
-     * @param $Name
-     * @param null $Date
-     * @param null $FromDate
-     * @param null $ToDate
+     * @param         $Name
+     * @param null    $Date
+     * @param null    $FromDate
+     * @param null    $ToDate
+     *
      * @return bool
      */
     public function updateTask(
@@ -443,9 +456,10 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblTask $tblTask
+     * @param TblTask     $tblTask
      * @param TblTestType $tblTestType
      * @param TblDivision $tblDivision
+     *
      * @return bool|Entity\TblTest[]
      */
     public function getTestAllByTaskAndTestType(
@@ -457,15 +471,15 @@ class Data extends AbstractData
         if ($tblDivision === null) {
             return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
                 array(
-                    TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                    TblTest::ATTR_TBL_TASK      => $tblTask->getId(),
                     TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId()
                 )
             );
         } else {
             return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
                 array(
-                    TblTest::ATTR_TBL_TASK => $tblTask->getId(),
-                    TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                    TblTest::ATTR_TBL_TASK             => $tblTask->getId(),
+                    TblTest::ATTR_TBL_TEST_TYPE        => $tblTestType->getId(),
                     TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
                 )
             );

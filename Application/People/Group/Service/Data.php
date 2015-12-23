@@ -34,7 +34,7 @@ class Data extends AbstractData
      * @param string $Name
      * @param string $Description
      * @param string $Remark
-     * @param bool $IsLocked
+     * @param bool   $IsLocked
      * @param string $MetaTable
      *
      * @return TblGroup
@@ -46,7 +46,7 @@ class Data extends AbstractData
 
         if ($IsLocked) {
             $Entity = $Manager->getEntity('TblGroup')->findOneBy(array(
-                TblGroup::ATTR_IS_LOCKED => $IsLocked,
+                TblGroup::ATTR_IS_LOCKED  => $IsLocked,
                 TblGroup::ATTR_META_TABLE => $MetaTable
             ));
         } else {
@@ -70,9 +70,9 @@ class Data extends AbstractData
 
     /**
      * @param TblGroup $tblGroup
-     * @param string $Name
-     * @param string $Description
-     * @param string $Remark
+     * @param string   $Name
+     * @param string   $Description
+     * @param string   $Remark
      *
      * @return bool
      */
@@ -124,7 +124,7 @@ class Data extends AbstractData
 
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGroup')
             ->findOneBy(array(TblGroup::ATTR_NAME => $Name));
-        return (null === $Entity ? false : $Entity);
+        return ( null === $Entity ? false : $Entity );
     }
 
     /**
@@ -138,9 +138,9 @@ class Data extends AbstractData
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGroup')
             ->findOneBy(array(
                 TblGroup::ATTR_META_TABLE => $MetaTable,
-                TblGroup::ATTR_IS_LOCKED => true
+                TblGroup::ATTR_IS_LOCKED  => true
             ));
-        return (null === $Entity ? false : $Entity);
+        return ( null === $Entity ? false : $Entity );
     }
 
     /**
@@ -151,6 +151,7 @@ class Data extends AbstractData
      */
     public function countPersonAllByGroup(TblGroup $tblGroup)
     {
+
         return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', array(
             TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
         ));
@@ -163,6 +164,7 @@ class Data extends AbstractData
      */
     public function getPersonAllByGroup(TblGroup $tblGroup)
     {
+
         /** @var TblMember[] $EntityList */
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
             array(
@@ -170,8 +172,8 @@ class Data extends AbstractData
             ));
 
         $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
-        if (null === ($ResultList = $Cache->getValue($tblGroup->getId(), __METHOD__))
-            && !empty($EntityList)
+        if (null === ( $ResultList = $Cache->getValue($tblGroup->getId(), __METHOD__) )
+            && !empty( $EntityList )
         ) {
             array_walk($EntityList, function (TblMember &$V) {
 
@@ -181,7 +183,7 @@ class Data extends AbstractData
         } else {
             $EntityList = $ResultList;
         }
-        return (null === $EntityList ? false : $EntityList);
+        return ( null === $EntityList ? false : $EntityList );
     }
 
     /**
@@ -210,7 +212,7 @@ class Data extends AbstractData
         } else {
             $EntityList = null;
         }
-        return (null === $EntityList ? false : $EntityList);
+        return ( null === $EntityList ? false : $EntityList );
     }
 
     /**
@@ -225,17 +227,17 @@ class Data extends AbstractData
         /** @var TblMember[] $EntityList */
         $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
             array(
-            TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
+                TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
         array_walk($EntityList, function (TblMember &$V) {
 
             $V = $V->getTblGroup();
         });
-        return (null === $EntityList ? false : $EntityList);
+        return ( null === $EntityList ? false : $EntityList );
     }
 
     /**
-     * @param TblGroup $tblGroup
+     * @param TblGroup  $tblGroup
      * @param TblPerson $tblPerson
      *
      * @return TblMember
@@ -246,7 +248,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblMember')
             ->findOneBy(array(
-                TblMember::ATTR_TBL_GROUP => $tblGroup->getId(),
+                TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
                 TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null === $Entity) {
@@ -260,7 +262,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblGroup $tblGroup
+     * @param TblGroup  $tblGroup
      * @param TblPerson $tblPerson
      *
      * @return bool
@@ -272,7 +274,7 @@ class Data extends AbstractData
         /** @var TblMember $Entity */
         $Entity = $Manager->getEntity('TblMember')
             ->findOneBy(array(
-                TblMember::ATTR_TBL_GROUP => $tblGroup->getId(),
+                TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
                 TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null !== $Entity) {
@@ -304,15 +306,17 @@ class Data extends AbstractData
 
     /**
      * @param TblGroup $tblGroup
+     *
      * @return array of TblPerson->Id
      */
     public function fetchIdPersonAllByGroup(TblGroup $tblGroup)
     {
+
         $Manager = $this->getConnection()->getEntityManager();
 
         $Builder = $Manager->getQueryBuilder();
         $Query = $Builder->select('M.serviceTblPerson')
-            ->from(__NAMESPACE__ . '\Entity\TblMember', 'M')
+            ->from(__NAMESPACE__.'\Entity\TblMember', 'M')
             ->where($Builder->expr()->eq('M.tblGroup', '?1'))
             ->setParameter(1, $tblGroup->getId())
             ->getQuery();

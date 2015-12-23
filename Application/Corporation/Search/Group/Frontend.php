@@ -43,16 +43,17 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendSearch($Id = false)
     {
+
         $Stage = new Stage('Suche', 'nach Gruppe');
 
         $tblGroupAll = Group::useService()->getGroupAll();
-        if (!empty($tblGroupAll)) {
+        if (!empty( $tblGroupAll )) {
             /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblGroupAll, function (TblGroup &$tblGroup, $Index, Stage $Stage) {
 
                 $Stage->addButton(
                     new Standard(
-                        $tblGroup->getName() . '&nbsp;&nbsp;' . new Label(Group::useService()->countCompanyAllByGroup($tblGroup)),
+                        $tblGroup->getName().'&nbsp;&nbsp;'.new Label(Group::useService()->countCompanyAllByGroup($tblGroup)),
                         new Route(__NAMESPACE__), new PersonGroup(),
                         array(
                             'Id' => $tblGroup->getId()
@@ -67,41 +68,41 @@ class Frontend extends Extension implements IFrontendInterface
             $tblCompanyAll = Group::useService()->getCompanyAllByGroup($tblGroup);
             $Result = array();
             if ($tblCompanyAll) {
-                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartRun');
+                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__.':StartRun');
                 array_walk($tblCompanyAll, function (TblCompany &$tblCompany) use ($tblGroup, &$Result) {
 
                     $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
                     if ($tblAddressAll) {
                         $tblToPerson = $tblAddressAll[0];
                         $tblAddressAll = $tblToPerson->getTblAddress()->getGuiString()
-                            . ($tblToPerson->getRemark()
-                                ? '<br/>' . new Small(new Muted($tblToPerson->getRemark()))
+                            .( $tblToPerson->getRemark()
+                                ? '<br/>'.new Small(new Muted($tblToPerson->getRemark()))
                                 : ''
                             );
                     }
 
                     array_push($Result, array(
-                        'Name' => $tblCompany->getName(),
-                        'Address' => ($tblAddressAll
+                        'Name'        => $tblCompany->getName(),
+                        'Address'     => ( $tblAddressAll
                             ? $tblAddressAll
                             : new Warning('Keine Adresse hinterlegt')
                         ),
-                        'Option' => new Standard('', '/Corporation/Company', new Pencil(), array(
-                            'Id' => $tblCompany->getId(),
+                        'Option'      => new Standard('', '/Corporation/Company', new Pencil(), array(
+                            'Id'    => $tblCompany->getId(),
                             'Group' => $tblGroup->getId()
                         ), 'Bearbeiten'),
                         'Description' => $tblCompany->getDescription()
                     ));
                 });
-                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopRun');
+                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__.':StopRun');
             }
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(
-                        new Panel(new PersonGroup() . ' Gruppe', array(
+                        new Panel(new PersonGroup().' Gruppe', array(
                             new Bold($tblGroup->getName()),
-                            ($tblGroup->getDescription() ? new Small($tblGroup->getDescription()) : ''),
-                            ($tblGroup->getRemark() ? new Danger(new Italic(nl2br($tblGroup->getRemark()))) : '')
+                            ( $tblGroup->getDescription() ? new Small($tblGroup->getDescription()) : '' ),
+                            ( $tblGroup->getRemark() ? new Danger(new Italic(nl2br($tblGroup->getRemark()))) : '' )
                         ), Panel::PANEL_TYPE_SUCCESS
                         )
                     )),
@@ -109,10 +110,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new Headline('Verfügbare Firmen', 'in dieser Gruppe'),
                         new TableData($Result, null,
                             array(
-                                'Name' => 'Name',
-                                'Address' => 'Adresse',
+                                'Name'        => 'Name',
+                                'Address'     => 'Adresse',
                                 'Description' => 'Beschreibung',
-                                'Option' => 'Optionen',
+                                'Option'      => 'Optionen',
                             )
                         )
                     )))

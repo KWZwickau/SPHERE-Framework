@@ -8,13 +8,13 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
-
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
+ *
  * @package SPHERE\Application\Education\Graduation\Gradebook\Service
  */
 class Setup extends AbstractSetup
@@ -54,6 +54,7 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
+     *
      * @return Table
      */
     private function setTableGradeType(Schema &$Schema)
@@ -81,7 +82,8 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblGradeType
+     * @param Table  $tblGradeType
+     *
      * @return Table
      */
     private function setTableGrade(Schema &$Schema, Table $tblGradeType)
@@ -186,8 +188,9 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblScoreRule
-     * @param Table $tblScoreCondition
+     * @param Table  $tblScoreRule
+     * @param Table  $tblScoreCondition
+     *
      * @return Table
      */
     private function setTableScoreRuleConditionList(Schema &$Schema, Table $tblScoreRule, Table $tblScoreCondition)
@@ -203,8 +206,9 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblGradeType
-     * @param Table $tblScoreCondition
+     * @param Table  $tblGradeType
+     * @param Table  $tblScoreCondition
+     *
      * @return Table
      */
     private function setTableScoreConditionGradeTypeList(Schema &$Schema, Table $tblGradeType, Table $tblScoreCondition)
@@ -220,8 +224,9 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblScoreCondition
-     * @param Table $tblScoreGroup
+     * @param Table  $tblScoreCondition
+     * @param Table  $tblScoreGroup
+     *
      * @return Table
      */
     private function setTableScoreConditionGroupList(Schema &$Schema, Table $tblScoreCondition, Table $tblScoreGroup)
@@ -237,8 +242,9 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblGradeType
-     * @param Table $tblScoreGroup
+     * @param Table  $tblGradeType
+     * @param Table  $tblScoreGroup
+     *
      * @return Table
      */
     private function setTableScoreGroupGradeTypeList(Schema &$Schema, Table $tblGradeType, Table $tblScoreGroup)

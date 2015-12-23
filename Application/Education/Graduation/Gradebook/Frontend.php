@@ -61,6 +61,7 @@ use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
+ *
  * @package SPHERE\Application\Education\Graduation\Gradebook
  */
 class Frontend extends Extension implements IFrontendInterface
@@ -68,6 +69,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $GradeType
+     *
      * @return Stage
      */
     public function frontendGradeType($GradeType = null)
@@ -105,18 +107,18 @@ class Frontend extends Extension implements IFrontendInterface
                                 'DisplayName' => 'Name',
                                 'DisplayCode' => 'Abk&uuml;rzung',
                                 'Description' => 'Beschreibung',
-                                'Option' => ''
+                                'Option'      => ''
                             ))
                         ))
                     ))
-                ), new Title(new ListingTable() . ' Übersicht')),
+                ), new Title(new ListingTable().' Übersicht')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
                             new Well(Gradebook::useService()->createGradeTypeWhereTest($Form, $GradeType))
                         )
                     ))
-                ), new Title(new PlusSign() . ' Hinzufügen'))
+                ), new Title(new PlusSign().' Hinzufügen'))
             ))
         );
 
@@ -148,11 +150,13 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
-     * @param $GradeType
+     * @param      $GradeType
+     *
      * @return Stage
      */
     public function frontendEditGradeType($Id = null, $GradeType = null)
     {
+
         $Stage = new Stage('Zensuren-Typ', 'Bearbeiten');
         $Stage->addButton(
             new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/GradeType', new ChevronLeft())
@@ -179,9 +183,9 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel(
                                     'Zensuren-Typ',
-                                    $tblGradeType->getName() . ' (' . $tblGradeType->getCode() . ')' .
-                                    ($tblGradeType->getDescription() !== '' ? '&nbsp;&nbsp;'
-                                        . new Muted(new Small(new Small($tblGradeType->getDescription()))) : ''),
+                                    $tblGradeType->getName().' ('.$tblGradeType->getCode().')'.
+                                    ( $tblGradeType->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                        .new Muted(new Small(new Small($tblGradeType->getDescription()))) : '' ),
                                     Panel::PANEL_TYPE_INFO
                                 )
                             ),
@@ -193,14 +197,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Well(Gradebook::useService()->updateGradeType($Form, $Id, $GradeType))
                             ),
                         ))
-                    ), new Title(new Edit() . ' Bearbeiten'))
+                    ), new Title(new Edit().' Bearbeiten'))
                 ))
             );
 
             return $Stage;
         } else {
             return new Stage('Zensuren-Typ nicht gefunden')
-            . new Redirect('/Education/Graduation/Gradebook/GradeType', 2);
+            .new Redirect('/Education/Graduation/Gradebook/GradeType', 2);
         }
     }
 
@@ -209,6 +213,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendGradeBook()
     {
+
         $Stage = new Stage('Notenbuch', 'Auswahl');
 
         $tblPerson = false;
@@ -295,7 +300,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if (!empty($divisionSubjectList)) {
+        if (!empty( $divisionSubjectList )) {
             foreach ($divisionSubjectList as $divisionId => $subjectList) {
                 $tblDivision = Division::useService()->getDivisionById($divisionId);
                 foreach ($subjectList as $subjectId => $value) {
@@ -305,12 +310,12 @@ class Frontend extends Extension implements IFrontendInterface
                             /** @var TblSubjectGroup $item */
                             $item = Division::useService()->getSubjectGroupById($subjectGroupId);
                             $divisionSubjectTable[] = array(
-                                'Year' => $tblDivision->getServiceTblYear()->getName(),
-                                'Type' => $tblDivision->getTypeName(),
-                                'Division' => $tblDivision->getDisplayName(),
-                                'Subject' => $tblSubject->getName(),
+                                'Year'         => $tblDivision->getServiceTblYear()->getName(),
+                                'Type'         => $tblDivision->getTypeName(),
+                                'Division'     => $tblDivision->getDisplayName(),
+                                'Subject'      => $tblSubject->getName(),
                                 'SubjectGroup' => $item->getName(),
-                                'Option' => new Standard(
+                                'Option'       => new Standard(
                                     '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
                                     'DivisionSubjectId' => $subValue
                                 ),
@@ -320,12 +325,12 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     } else {
                         $divisionSubjectTable[] = array(
-                            'Year' => $tblDivision->getServiceTblYear()->getName(),
-                            'Type' => $tblDivision->getTypeName(),
-                            'Division' => $tblDivision->getDisplayName(),
-                            'Subject' => $tblSubject->getName(),
+                            'Year'         => $tblDivision->getServiceTblYear()->getName(),
+                            'Type'         => $tblDivision->getTypeName(),
+                            'Division'     => $tblDivision->getDisplayName(),
+                            'Subject'      => $tblSubject->getName(),
                             'SubjectGroup' => '',
-                            'Option' => new Standard(
+                            'Option'       => new Standard(
                                 '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
                                 'DivisionSubjectId' => $value
                             ),
@@ -343,12 +348,12 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormRow(array(
                         new FormColumn(array(
                             new TableData($divisionSubjectTable, null, array(
-                                'Year' => 'Schuljahr',
-                                'Type' => 'Schulart',
-                                'Division' => 'Klasse',
-                                'Subject' => 'Fach',
+                                'Year'         => 'Schuljahr',
+                                'Type'         => 'Schulart',
+                                'Division'     => 'Klasse',
+                                'Subject'      => 'Fach',
                                 'SubjectGroup' => 'Gruppe',
-                                'Option' => ''
+                                'Option'       => ''
                             ))
                         ))
                     ))
@@ -364,6 +369,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendHeadmasterGradeBook()
     {
+
         $Stage = new Stage('Notenbuch (Leitung)', 'Auswahl');
 
         $divisionSubjectTable = array();
@@ -404,7 +410,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if (!empty($divisionSubjectList)) {
+        if (!empty( $divisionSubjectList )) {
             foreach ($divisionSubjectList as $divisionId => $subjectList) {
                 $tblDivision = Division::useService()->getDivisionById($divisionId);
                 foreach ($subjectList as $subjectId => $value) {
@@ -413,12 +419,12 @@ class Frontend extends Extension implements IFrontendInterface
                         foreach ($value as $subjectGroupId => $subValue) {
                             $item = Division::useService()->getSubjectGroupById($subjectGroupId);
                             $divisionSubjectTable[] = array(
-                                'Year' => $tblDivision->getServiceTblYear()->getName(),
-                                'Type' => $tblDivision->getTypeName(),
-                                'Division' => $tblDivision->getDisplayName(),
-                                'Subject' => $tblSubject->getName(),
+                                'Year'         => $tblDivision->getServiceTblYear()->getName(),
+                                'Type'         => $tblDivision->getTypeName(),
+                                'Division'     => $tblDivision->getDisplayName(),
+                                'Subject'      => $tblSubject->getName(),
                                 'SubjectGroup' => $item->getName(),
-                                'Option' => new Standard(
+                                'Option'       => new Standard(
                                     '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected', new Select(),
                                     array(
                                         'DivisionSubjectId' => $subValue
@@ -429,12 +435,12 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     } else {
                         $divisionSubjectTable[] = array(
-                            'Year' => $tblDivision->getServiceTblYear()->getName(),
-                            'Type' => $tblDivision->getTypeName(),
-                            'Division' => $tblDivision->getDisplayName(),
-                            'Subject' => $tblSubject->getName(),
+                            'Year'         => $tblDivision->getServiceTblYear()->getName(),
+                            'Type'         => $tblDivision->getTypeName(),
+                            'Division'     => $tblDivision->getDisplayName(),
+                            'Subject'      => $tblSubject->getName(),
                             'SubjectGroup' => '',
-                            'Option' => new Standard(
+                            'Option'       => new Standard(
                                 '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected', new Select(),
                                 array(
                                     'DivisionSubjectId' => $value
@@ -453,12 +459,12 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormRow(array(
                         new FormColumn(array(
                             new TableData($divisionSubjectTable, null, array(
-                                'Year' => 'Schuljahr',
-                                'Type' => 'Schulart',
-                                'Division' => 'Klasse',
-                                'Subject' => 'Fach',
+                                'Year'         => 'Schuljahr',
+                                'Type'         => 'Schulart',
+                                'Division'     => 'Klasse',
+                                'Subject'      => 'Fach',
                                 'SubjectGroup' => 'Gruppe',
-                                'Option' => ''
+                                'Option'       => ''
                             ))
                         ))
                     ))
@@ -473,14 +479,16 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $DivisionSubjectId
      * @param null $ScoreConditionId
      * @param null $Select
+     *
      * @return Stage|string
      */
     public function frontendSelectedGradeBook($DivisionSubjectId = null, $ScoreConditionId = null, $Select = null)
     {
+
         $Stage = new Stage('Notenbuch', 'Anzeigen');
 
-        if ($DivisionSubjectId === null || !($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
-            return $Stage . new Warning('Notenbuch nicht gefunden.') . new Redirect('/Education/Graduation/Gradebook/Gradebook',
+        if ($DivisionSubjectId === null || !( $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId) )) {
+            return $Stage.new Warning('Notenbuch nicht gefunden.').new Redirect('/Education/Graduation/Gradebook/Gradebook',
                 2);
         }
 
@@ -491,11 +499,11 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param Stage $Stage
+     * @param Stage              $Stage
      * @param TblDivisionSubject $tblDivisionSubject
-     * @param $ScoreConditionId
-     * @param $Select
-     * @param string $BasicRoute
+     * @param                    $ScoreConditionId
+     * @param                    $Select
+     * @param string             $BasicRoute
      */
     private function contentSelectedGradeBook(
         Stage $Stage,
@@ -504,6 +512,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Select,
         $BasicRoute
     ) {
+
         $Stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft()));
 
         $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
@@ -607,7 +616,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $rowList[] = new LayoutRow($columnSecondList);
                 $rowList[] = new LayoutRow($columnList);
 
-                if (!empty($grades)) {
+                if (!empty( $grades )) {
                     foreach ($grades as $personId => $gradeList) {
                         $tblPerson = Person::useService()->getPersonById($personId);
                         $columnList = array();
@@ -621,12 +630,12 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                         );
                         $columnList[] = new LayoutColumn(
-                            new Container($tblPerson->getFirstName() . ' ' . $tblPerson->getLastName()
-                                . ' ' . new Bold('&#216; ' . $totalAverage))
+                            new Container($tblPerson->getFirstName().' '.$tblPerson->getLastName()
+                                .' '.new Bold('&#216; '.$totalAverage))
                             , 2);
                         foreach ($tblPeriodList as $tblPeriod) {
                             $columnSubList = array();
-                            if (isset($gradePositions[$tblPeriod->getId()])) {
+                            if (isset( $gradePositions[$tblPeriod->getId()] )) {
                                 foreach ($gradePositions[$tblPeriod->getId()] as $pos => $testId) {
                                     $hasFound = false;
                                     /** @var TblGrade $grade */
@@ -684,18 +693,18 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new Panel(
                                 'Fach-Klasse',
-                                'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
-                                $tblDivisionSubject->getServiceTblSubject()->getName() .
-                                ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
-                                    ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
+                                'Klasse '.$tblDivision->getDisplayName().' - '.
+                                $tblDivisionSubject->getServiceTblSubject()->getName().
+                                ( $tblDivisionSubject->getTblSubjectGroup() ? new Small(
+                                    ' (Gruppe: '.$tblDivisionSubject->getTblSubjectGroup()->getName().')') : '' ),
                                 Panel::PANEL_TYPE_INFO
                             )
                         ), $ScoreConditionId !== null ? 6 : 12),
-                        ($ScoreConditionId !== null ? new LayoutColumn(new Panel(
+                        ( $ScoreConditionId !== null ? new LayoutColumn(new Panel(
                             'Berechnungsvorschrift',
                             $tblScoreCondition->getName(),
                             Panel::PANEL_TYPE_INFO
-                        ), 6) : null),
+                        ), 6) : null ),
                         new LayoutColumn(array(
                             new Well(Gradebook::useService()->getGradeBook(
                                 new Form(new FormGroup(array(
@@ -714,7 +723,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                 ))
             ))
-            . ($ScoreConditionId !== null ? new Layout(new LayoutGroup($rowList)) : '')
+            .( $ScoreConditionId !== null ? new Layout(new LayoutGroup($rowList)) : '' )
         );
     }
 
@@ -722,6 +731,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $DivisionSubjectId
      * @param null $ScoreConditionId
      * @param null $Select
+     *
      * @return Stage|string
      */
     public function frontendHeadmasterSelectedGradeBook(
@@ -746,6 +756,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $YearId
      * @param null $Select
+     *
      * @return Stage
      */
     public function frontendStudentGradebook($YearId = null, $Select = null)
@@ -808,11 +819,11 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-                    ($YearId !== null ? new LayoutColumn(
+                    ( $YearId !== null ? new LayoutColumn(
                         new Panel('Schuljahr', $tblYear->getName(), Panel::PANEL_TYPE_INFO)
-                    ) : null)
+                    ) : null )
                 ))),
-                ($YearId !== null ? new LayoutGroup($rowList) : null)
+                ( $YearId !== null ? new LayoutGroup($rowList) : null )
             ))
         );
         return $Stage;
@@ -823,6 +834,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $tblPerson
      * @param $rowList
      * @param $tblTestType
+     *
      * @return array
      */
     private function createContentForStudentGradebook(
@@ -831,6 +843,7 @@ class Frontend extends Extension implements IFrontendInterface
         $rowList,
         $tblTestType
     ) {
+
         $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
         if ($tblDivisionStudentList) {
 
@@ -846,11 +859,11 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
                         $columnList = array();
                         $columnList[] = new LayoutColumn(new Title($tblPerson->getFullName()
-                            . new Small(new Muted(' Klasse ' . $tblDivision->getDisplayName()))),
+                            .new Small(new Muted(' Klasse '.$tblDivision->getDisplayName()))),
                             12);
                         if ($tblPeriodList) {
                             $columnList[] = new LayoutColumn(new Header(new Bold('Fach')), 2);
-                            $width = (12 - 2) / count($tblPeriodList);
+                            $width = ( 12 - 2 ) / count($tblPeriodList);
                             foreach ($tblPeriodList as $tblPeriod) {
                                 $columnList[] = new LayoutColumn(new Header(new Bold($tblPeriod->getName())), $width);
                             }
@@ -872,7 +885,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             2);
 
                                         if ($tblPeriodList) {
-                                            $width = (12 - 2) / count($tblPeriodList);
+                                            $width = ( 12 - 2 ) / count($tblPeriodList);
                                             foreach ($tblPeriodList as $tblPeriod) {
                                                 $tblGradeList = Gradebook::useService()->getGradesByStudent(
                                                     $tblPerson,
@@ -905,7 +918,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                     2);
 
                                                 if ($tblPeriodList) {
-                                                    $width = (12 - 2) / count($tblPeriodList);
+                                                    $width = ( 12 - 2 ) / count($tblPeriodList);
                                                     foreach ($tblPeriodList as $tblPeriod) {
                                                         $tblGradeList = Gradebook::useService()->getGradesByStudent(
                                                             $tblPerson,
@@ -945,6 +958,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $ScoreCondition
+     *
      * @return Stage
      */
     public function frontendScore(
@@ -964,10 +978,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblScoreGroups = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition);
                 if ($tblScoreGroups) {
                     foreach ($tblScoreGroups as $tblScoreGroup) {
-                        $scoreGroups .= $tblScoreGroup->getTblScoreGroup()->getName() . ', ';
+                        $scoreGroups .= $tblScoreGroup->getTblScoreGroup()->getName().', ';
                     }
                 }
-                if (($length = strlen($scoreGroups)) > 2) {
+                if (( $length = strlen($scoreGroups) ) > 2) {
                     $scoreGroups = substr($scoreGroups, 0, $length - 2);
                 }
                 $tblScoreCondition->ScoreGroups = $scoreGroups;
@@ -979,7 +993,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-
         $Form = $this->formScoreCondition()
             ->appendFormButton(new Primary('Hinzufügen', new Plus()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -990,22 +1003,22 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new TableData($tblScoreConditionAll, null, array(
-                                'Name' => 'Name',
+                                'Name'        => 'Name',
                                 'ScoreGroups' => 'Zensuren-Gruppen',
-                                'Priority' => 'Priorität',
-                                'Round' => 'Runden',
-                                'Option' => '',
+                                'Priority'    => 'Priorität',
+                                'Round'       => 'Runden',
+                                'Option'      => '',
                             ))
                         ))
                     ))
-                ), new Title(new ListingTable() . ' Übersicht')),
+                ), new Title(new ListingTable().' Übersicht')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new Well(Gradebook::useService()->createScoreCondition($Form, $ScoreCondition))
                         ))
                     ))
-                ), new Title(new PlusSign() . ' Hinzufügen'))
+                ), new Title(new PlusSign().' Hinzufügen'))
             ))
         );
 
@@ -1014,6 +1027,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     private function formScoreCondition()
     {
+
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
@@ -1031,6 +1045,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $ScoreGroup
+     *
      * @return Stage
      */
     public function frontendScoreGroup(
@@ -1049,10 +1064,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblScoreGroupGradeTypes = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup);
                 if ($tblScoreGroupGradeTypes) {
                     foreach ($tblScoreGroupGradeTypes as $tblScoreGroupGradeType) {
-                        $gradeTypes .= $tblScoreGroupGradeType->getTblGradeType()->getName() . ', ';
+                        $gradeTypes .= $tblScoreGroupGradeType->getTblGradeType()->getName().', ';
                     }
                 }
-                if (($length = strlen($gradeTypes)) > 2) {
+                if (( $length = strlen($gradeTypes) ) > 2) {
                     $gradeTypes = substr($gradeTypes, 0, $length - 2);
                 }
                 $tblScoreGroup->GradeTypes = $gradeTypes;
@@ -1064,7 +1079,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-
         $Form = $this->formScoreGroup()
             ->appendFormButton(new Primary('Hinzufügen', new Plus()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -1075,22 +1089,22 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new TableData($tblScoreGroupAll, null, array(
-                                'Name' => 'Name',
+                                'Name'       => 'Name',
                                 'GradeTypes' => 'Zensuren-Typen',
                                 'Multiplier' => 'Faktor',
-                                'Round' => 'Runden',
-                                'Option' => '',
+                                'Round'      => 'Runden',
+                                'Option'     => '',
                             ))
                         ))
                     ))
-                ), new Title(new ListingTable() . ' Übersicht')),
+                ), new Title(new ListingTable().' Übersicht')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new Well(Gradebook::useService()->createScoreGroup($Form, $ScoreGroup))
                         ))
                     ))
-                ), new Title(new PlusSign() . ' Hinzufügen'))
+                ), new Title(new PlusSign().' Hinzufügen'))
             ))
         );
 
@@ -1099,6 +1113,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     private function formScoreGroup()
     {
+
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
@@ -1127,11 +1142,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Gradebook/Score/Group', new ChevronLeft()));
 
-        if (empty($Id)) {
+        if (empty( $Id )) {
             $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
         } else {
             $tblScoreGroup = Gradebook::useService()->getScoreGroupById($Id);
-            if (empty($tblScoreGroup)) {
+            if (empty( $tblScoreGroup )) {
                 $Stage->setContent(new Warning('Die Zensuren-Gruppe konnte nicht abgerufen werden'));
             } else {
                 $tblScoreGroupGradeTypeListByGroup = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup);
@@ -1144,7 +1159,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                if (!empty($tblGradeTypeAllByGroup) && $tblGradeTypeAll) {
+                if (!empty( $tblGradeTypeAllByGroup ) && $tblGradeTypeAll) {
                     $tblGradeTypeAll = array_udiff($tblGradeTypeAll, $tblGradeTypeAllByGroup,
                         function (TblGradeType $ObjectA, TblGradeType $ObjectB) {
 
@@ -1183,7 +1198,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ), null,
                                 '/Education/Graduation/Gradebook/Score/Group/GradeType/Add', array(
                                     'tblScoreGroupId' => $tblScoreGroup->getId(),
-                                    'tblGradeTypeId' => $tblGradeType->getId()
+                                    'tblGradeTypeId'  => $tblGradeType->getId()
                                 )
                             ))->__toString();
                     }
@@ -1205,9 +1220,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Title('Ausgewählte', 'Zensuren-Typen'),
                                     new TableData($tblScoreGroupGradeTypeListByGroup, null,
                                         array(
-                                            'Name' => 'Name',
+                                            'Name'       => 'Name',
                                             'Multiplier' => 'Faktor',
-                                            'Option' => ''
+                                            'Option'     => ''
                                         )
                                     )
                                 ), 6
@@ -1216,7 +1231,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Title('Verfügbare', 'Zensuren-Typen'),
                                     new TableData($tblGradeTypeAll, null,
                                         array(
-                                            'Name' => 'Name',
+                                            'Name'   => 'Name',
                                             'Option' => 'Faktor'
                                         )
                                     )
@@ -1244,6 +1259,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblGradeTypeId = null,
         $GradeType = null
     ) {
+
         $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Typ einer Zenuseren-Gruppe hinzufügen');
 
         $tblScoreGroup = Gradebook::useService()->getScoreGroupById($tblScoreGroupId);
@@ -1271,6 +1287,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendScoreGroupGradeTypeRemove(
         $Id = null
     ) {
+
         $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Typ von einer Zenuseren-Gruppe entfernen');
 
         $tblScoreGroupGradeTypeList = Gradebook::useService()->getScoreGroupGradeTypeListById($Id);
@@ -1294,7 +1311,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Gradebook/Score', new ChevronLeft()));
 
-        if (empty($Id)) {
+        if (empty( $Id )) {
             $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
         } else {
 
@@ -1312,7 +1329,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                if (!empty($tblScoreGroupAllByCondition) && $tblScoreGroupAll) {
+                if (!empty( $tblScoreGroupAllByCondition ) && $tblScoreGroupAll) {
                     $tblScoreGroupAll = array_udiff($tblScoreGroupAll, $tblScoreGroupAllByCondition,
                         function (TblScoreGroup $ObjectA, TblScoreGroup $ObjectB) {
 
@@ -1346,7 +1363,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ))
                                 ), null,
                                 '/Education/Graduation/Gradebook/Score/Group/Add', array(
-                                    'tblScoreGroupId' => $tblScoreGroup->getId(),
+                                    'tblScoreGroupId'     => $tblScoreGroup->getId(),
                                     'tblScoreConditionId' => $tblScoreCondition->getId()
                                 )
                             ))->__toString();
@@ -1369,7 +1386,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Title('Ausgewählte', 'Zensuren-Gruppen'),
                                     new TableData($tblScoreConditionGroupListByCondition, null,
                                         array(
-                                            'Name' => 'Name',
+                                            'Name'   => 'Name',
                                             'Option' => ''
                                         )
                                     )
@@ -1379,7 +1396,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Title('Verfügbare', 'Zensuren-Gruppen'),
                                     new TableData($tblScoreGroupAll, null,
                                         array(
-                                            'Name' => 'Name',
+                                            'Name'   => 'Name',
                                             'Option' => ''
                                         )
                                     )
@@ -1405,6 +1422,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblScoreGroupId = null,
         $tblScoreConditionId = null
     ) {
+
         $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Gruppe einer Berechnungsvorschrift hinzufügen');
 
         $tblScoreGroup = Gradebook::useService()->getScoreGroupById($tblScoreGroupId);
@@ -1426,6 +1444,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendScoreGroupRemove(
         $Id = null
     ) {
+
         $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Gruppe von einer Berechnungsvorschrift entfernen');
 
         $tblScoreConditionGroupList = Gradebook::useService()->getScoreConditionGroupListById($Id);

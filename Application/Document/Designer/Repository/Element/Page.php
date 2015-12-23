@@ -7,10 +7,12 @@ use SPHERE\Common\Frontend\ITemplateInterface;
 
 /**
  * Class Page
+ *
  * @package SPHERE\Application\Document\Designer\Repository\Element
  */
 class Page implements ITemplateInterface
 {
+
     /** @var IBridgeInterface|null $Template */
     private $Template = null;
     /** @var null|string */
@@ -18,6 +20,7 @@ class Page implements ITemplateInterface
 
     function __construct($Content = null)
     {
+
         $this->Content = $Content;
         $this->Template = Template::getTwigTemplateString('<div class="SDD-Page">{{ Content }}</div>');
     }
@@ -27,6 +30,7 @@ class Page implements ITemplateInterface
      */
     public function __toString()
     {
+
         return (string)$this->getContent();
     }
 
@@ -35,6 +39,7 @@ class Page implements ITemplateInterface
      */
     public function getContent()
     {
+
         if (is_array($this->Content)) {
             $this->Content = implode($this->Content);
         }
@@ -46,6 +51,7 @@ class Page implements ITemplateInterface
 
     public function setContent($Content)
     {
+
         $this->Content = $Content;
     }
 }

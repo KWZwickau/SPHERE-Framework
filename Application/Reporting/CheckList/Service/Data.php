@@ -20,10 +20,12 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
+ *
  * @package SPHERE\Application\Reporting\CheckList\Service
  */
 class Data extends AbstractData
 {
+
     public function setupDatabaseContent()
     {
 
@@ -105,8 +107,9 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblList $tblList
+     * @param TblList       $tblList
      * @param TblObjectType $tblObjectType
+     *
      * @return bool|Element[]
      */
     public function getObjectAllByListAndObjectType(TblList $tblList, TblObjectType $tblObjectType)
@@ -115,7 +118,7 @@ class Data extends AbstractData
         $tblListObjectList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblListObjectList',
             array(
-                TblListObjectList::ATTR_TBL_LIST => $tblList->getId(),
+                TblListObjectList::ATTR_TBL_LIST        => $tblList->getId(),
                 TblListObjectList::ATTR_TBL_OBJECT_TYPE => $tblObjectType->getId()
             ));
 
@@ -127,7 +130,7 @@ class Data extends AbstractData
             }
         }
 
-        return empty($returnList) ? false : $returnList;
+        return empty( $returnList ) ? false : $returnList;
     }
 
     /**
@@ -144,6 +147,7 @@ class Data extends AbstractData
 
     /**
      * @param TblList $tblList
+     *
      * @return bool|TblListElementList[]
      */
     public function getListElementListByList(TblList $tblList)
@@ -168,6 +172,7 @@ class Data extends AbstractData
 
     /**
      * @param TblList $tblList
+     *
      * @return bool|TblListObjectList[]
      */
     public function getListObjectListByList(TblList $tblList)
@@ -178,9 +183,10 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblList $tblList
+     * @param TblList       $tblList
      * @param TblObjectType $tblObjectType
-     * @param Element $tblObject
+     * @param Element       $tblObject
+     *
      * @return bool|TblListObjectList
      */
     public function getListObjectListByListAndObjectTypeAndObject(
@@ -192,14 +198,15 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblListObjectList',
             array(
-                TblListObjectList::ATTR_TBL_LIST => $tblList->getId(),
-                TblListObjectList::ATTR_TBL_OBJECT_TYPE => $tblObjectType->getId(),
+                TblListObjectList::ATTR_TBL_LIST           => $tblList->getId(),
+                TblListObjectList::ATTR_TBL_OBJECT_TYPE    => $tblObjectType->getId(),
                 TblListObjectList::ATTR_SERVICE_TBL_OBJECT => $tblObject->getId()
             ));
     }
 
     /**
      * @param TblList $tblList
+     *
      * @return bool|TblListObjectElementList[]
      */
     public function getListObjectElementListByList(TblList $tblList)
@@ -211,9 +218,10 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblList $tblList
+     * @param TblList       $tblList
      * @param TblObjectType $tblObjectType
-     * @param Element $tblObject
+     * @param Element       $tblObject
+     *
      * @return bool|TblListObjectElementList[]
      */
     public function getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
@@ -225,8 +233,8 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblListObjectElementList',
             array(
-                TblListObjectElementList::ATTR_TBL_LIST => $tblList->getId(),
-                TblListObjectElementList::ATTR_TBL_OBJECT_TYPE => $tblObjectType->getId(),
+                TblListObjectElementList::ATTR_TBL_LIST           => $tblList->getId(),
+                TblListObjectElementList::ATTR_TBL_OBJECT_TYPE    => $tblObjectType->getId(),
                 TblListObjectElementList::ATTR_SERVICE_TBL_OBJECT => $tblObject->getId()
             ));
     }
@@ -268,6 +276,7 @@ class Data extends AbstractData
 
     /**
      * @param TblList $tblList
+     *
      * @return int
      */
     public function countListElementListByList(TblList $tblList)
@@ -281,6 +290,7 @@ class Data extends AbstractData
 
     /**
      * @param TblList $tblList
+     *
      * @return int
      */
     public function countListObjectListByList(TblList $tblList)
@@ -302,11 +312,12 @@ class Data extends AbstractData
         $Name,
         $Identifier
     ) {
+
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblObjectType')
             ->findOneBy(array(
-                TblObjectType::ATTR_NAME => $Name,
+                TblObjectType::ATTR_NAME       => $Name,
                 TblObjectType::ATTR_IDENTIFIER => $Identifier
             ));
 
@@ -332,11 +343,12 @@ class Data extends AbstractData
         $Name,
         $Identifier
     ) {
+
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblElementType')
             ->findOneBy(array(
-                TblElementType::ATTR_NAME => $Name,
+                TblElementType::ATTR_NAME       => $Name,
                 TblElementType::ATTR_IDENTIFIER => $Identifier
             ));
 
@@ -353,14 +365,16 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Name
+     * @param        $Name
      * @param string $Description
+     *
      * @return TblList
      */
     public function createList(
         $Name,
         $Description = ''
     ) {
+
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblList')
@@ -381,9 +395,9 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblList $tblList
+     * @param TblList        $tblList
      * @param TblElementType $tblElementType
-     * @param $Name
+     * @param                $Name
      *
      * @return TblListElementList
      */
@@ -423,9 +437,10 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblList $tblList
+     * @param TblList       $tblList
      * @param TblObjectType $tblObjectType
-     * @param Element $tblObject
+     * @param Element       $tblObject
+     *
      * @return TblListElementList
      */
     public function addObjectToList(
@@ -436,8 +451,8 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblListObjectList')->findOneBy(array(
-            TblListObjectList::ATTR_TBL_LIST => $tblList->getId(),
-            TblListObjectList::ATTR_TBL_OBJECT_TYPE => $tblObjectType->getId(),
+            TblListObjectList::ATTR_TBL_LIST           => $tblList->getId(),
+            TblListObjectList::ATTR_TBL_OBJECT_TYPE    => $tblObjectType->getId(),
             TblListObjectList::ATTR_SERVICE_TBL_OBJECT => $tblObject->getId()
         ));
         if (null === $Entity) {
@@ -473,11 +488,12 @@ class Data extends AbstractData
     /**
      * add Entity if not exists
      *
-     * @param TblList $tblList
-     * @param TblObjectType $tblObjectType
+     * @param TblList            $tblList
+     * @param TblObjectType      $tblObjectType
      * @param TblListElementList $tblListElementList
-     * @param Element $tblObject
-     * @param $Value
+     * @param Element            $tblObject
+     * @param                    $Value
+     *
      * @return TblListElementList
      */
     public function updateObjectElementToList(
@@ -491,10 +507,10 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblListObjectElementList $Entity */
         $Entity = $Manager->getEntity('TblListObjectElementList')->findOneBy(array(
-            TblListObjectElementList::ATTR_TBL_LIST => $tblList->getId(),
-            TblListObjectElementList::ATTR_TBL_OBJECT_TYPE => $tblObjectType->getId(),
+            TblListObjectElementList::ATTR_TBL_LIST              => $tblList->getId(),
+            TblListObjectElementList::ATTR_TBL_OBJECT_TYPE       => $tblObjectType->getId(),
             TblListObjectElementList::ATTR_TBL_LIST_ELEMENT_LIST => $tblListElementList->getId(),
-            TblListObjectElementList::ATTR_SERVICE_TBL_OBJECT => $tblObject->getId()
+            TblListObjectElementList::ATTR_SERVICE_TBL_OBJECT    => $tblObject->getId()
         ));
         if (null === $Entity) {
             $Entity = new TblListObjectElementList();

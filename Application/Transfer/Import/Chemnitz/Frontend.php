@@ -33,6 +33,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Select
+     *
      * @return Stage
      */
     public function frontendStudent($Select = null)
@@ -76,7 +77,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param UploadedFile|null $File
-     * @param null $DivisionId
+     * @param null              $DivisionId
      *
      * @return Stage
      */

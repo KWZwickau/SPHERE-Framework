@@ -80,7 +80,7 @@ abstract class Transfer extends Agreement
     }
 
     /**
-     * @param TblStudent $tblStudent
+     * @param TblStudent             $tblStudent
      * @param TblStudentTransferType $tblStudentTransferType
      *
      * @return bool|TblStudentTransfer
@@ -90,19 +90,19 @@ abstract class Transfer extends Agreement
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblStudentTransfer', array(
-                TblStudentTransfer::ATTR_TBL_STUDENT => $tblStudent->getId(),
+                TblStudentTransfer::ATTR_TBL_STUDENT       => $tblStudent->getId(),
                 TblStudentTransfer::ATTR_TBL_TRANSFER_TYPE => $tblStudentTransferType->getId()
             ));
     }
 
     /**
-     * @param TblStudent $tblStudent
+     * @param TblStudent             $tblStudent
      * @param TblStudentTransferType $tblStudentTransferType
-     * @param TblCompany|null $tblCompany
-     * @param TblType|null $tblType
-     * @param TblCourse|null $tblCourse
-     * @param $TransferDate
-     * @param $Remark
+     * @param TblCompany|null        $tblCompany
+     * @param TblType|null           $tblType
+     * @param TblCourse|null         $tblCourse
+     * @param                        $TransferDate
+     * @param                        $Remark
      *
      * @return TblStudentTransfer
      */
@@ -118,7 +118,7 @@ abstract class Transfer extends Agreement
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblStudentTransfer')->findOneBy(array(
-            TblStudentTransfer::ATTR_TBL_STUDENT => $tblStudent->getId(),
+            TblStudentTransfer::ATTR_TBL_STUDENT       => $tblStudent->getId(),
             TblStudentTransfer::ATTR_TBL_TRANSFER_TYPE => $tblStudentTransferType->getId()
         ));
         if (null === $Entity) {
@@ -132,7 +132,6 @@ abstract class Transfer extends Agreement
             $Entity->setTransferDate(( $TransferDate ? new \DateTime($TransferDate) : null ));
             $Entity->setRemark($Remark);
 
-
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -141,14 +140,14 @@ abstract class Transfer extends Agreement
     }
 
     /**
-     * @param TblStudentTransfer $tblStudentTransfer
-     * @param TblStudent $tblStudent
+     * @param TblStudentTransfer     $tblStudentTransfer
+     * @param TblStudent             $tblStudent
      * @param TblStudentTransferType $tblStudentTransferType
-     * @param TblCompany|null $tblCompany
-     * @param TblType|null $tblType
-     * @param TblCourse|null $tblCourse
-     * @param $TransferDate
-     * @param $Remark
+     * @param TblCompany|null        $tblCompany
+     * @param TblType|null           $tblType
+     * @param TblCourse|null         $tblCourse
+     * @param                        $TransferDate
+     * @param                        $Remark
      *
      * @return bool
      */

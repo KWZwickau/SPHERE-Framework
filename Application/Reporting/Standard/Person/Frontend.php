@@ -99,7 +99,7 @@ class Frontend extends Extension implements IFrontendInterface
                     , $Select, '/Reporting/Standard/Person/ClassList')
             )
             .
-            ($DivisionId !== null ?
+            ( $DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Klasse:', $tblDivision->getDisplayName(),
@@ -109,16 +109,16 @@ class Frontend extends Extension implements IFrontendInterface
                 .
                 new TableData($studentList, null,
                     array(
-                        'Salutation' => 'Anrede',
-                        'FirstName' => 'Vorname',
-                        'LastName' => 'Name',
+                        'Salutation'   => 'Anrede',
+                        'FirstName'    => 'Vorname',
+                        'LastName'     => 'Name',
                         'Denomination' => 'Konfession',
-                        'Birthday' => 'Geburtsdatum',
-                        'Birthplace' => 'Geburtsort',
-                        'Address' => 'Adresse',
+                        'Birthday'     => 'Geburtsdatum',
+                        'Birthplace'   => 'Geburtsort',
+                        'Address'      => 'Adresse',
                     ),
                     null
-                ) : '')
+                ) : '' )
         );
 
         return $Stage;
@@ -186,7 +186,7 @@ class Frontend extends Extension implements IFrontendInterface
                     , $Select, '/Reporting/Standard/Person/ExtendedClassList')
             )
             .
-            ($DivisionId !== null ?
+            ( $DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Klasse:', $tblDivision->getDisplayName(),
@@ -196,31 +196,31 @@ class Frontend extends Extension implements IFrontendInterface
                 .
                 new TableData($studentList, null,
                     array(
-                        'Number' => 'lfd. Nr.',
-                        'Name' => 'Name, Vorname',
-                        'Gender' => 'Geschlecht',
-                        'Address' => 'Adresse',
-                        'Birthday' => 'Geburtsdatum',
-                        'Birthplace' => 'Geburtsort',
-                        'StudentNumber' => 'Schülernummer',
-                        'Guardian1' => 'Sorgeberechtigter 1',
+                        'Number'         => 'lfd. Nr.',
+                        'Name'           => 'Name, Vorname',
+                        'Gender'         => 'Geschlecht',
+                        'Address'        => 'Adresse',
+                        'Birthday'       => 'Geburtsdatum',
+                        'Birthplace'     => 'Geburtsort',
+                        'StudentNumber'  => 'Schülernummer',
+                        'Guardian1'      => 'Sorgeberechtigter 1',
                         'PhoneGuardian1' => 'Tel. Sorgeber. 1',
-                        'Guardian2' => 'Sorgeberechtigter 2',
+                        'Guardian2'      => 'Sorgeberechtigter 2',
                         'PhoneGuardian2' => 'Tel. Sorgeber. 2',
                     ),
                     null
-                ) .
+                ).
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(
-                                new Panel('Schüler' . new PullRight($All), '', Panel::PANEL_TYPE_INFO), 2
+                                new Panel('Schüler'.new PullRight($All), '', Panel::PANEL_TYPE_INFO), 2
                             ),
                             new LayoutColumn(
-                                new Panel('Mädchen' . new PullRight($Woman), '', Panel::PANEL_TYPE_INFO), 2
+                                new Panel('Mädchen'.new PullRight($Woman), '', Panel::PANEL_TYPE_INFO), 2
                             ),
                             new LayoutColumn(
-                                new Panel('Jungen' . new PullRight($Man), '', Panel::PANEL_TYPE_INFO), 2
+                                new Panel('Jungen'.new PullRight($Man), '', Panel::PANEL_TYPE_INFO), 2
                             ),
                         ))
                     )
@@ -294,7 +294,7 @@ class Frontend extends Extension implements IFrontendInterface
                     , $Select, '/Reporting/Standard/Person/BirthdayClassList')
             )
             .
-            ($DivisionId !== null ?
+            ( $DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Klasse:', $tblDivision->getDisplayName(),
@@ -304,26 +304,26 @@ class Frontend extends Extension implements IFrontendInterface
                 .
                 new TableData($studentList, null,
                     array(
-                        'Number' => 'lfd. Nr.',
-                        'Name' => 'Name, Vorname',
-                        'Address' => 'Anschrift',
+                        'Number'     => 'lfd. Nr.',
+                        'Name'       => 'Name, Vorname',
+                        'Address'    => 'Anschrift',
                         'Birthplace' => 'Geburtsort',
-                        'Birthday' => 'Geburtsdatum',
-                        'Age' => 'Alter',
+                        'Birthday'   => 'Geburtsdatum',
+                        'Age'        => 'Alter',
                     ),
                     null
-                ) .
+                ).
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(
-                                new Panel('Schüler' . new PullRight($All), '', Panel::PANEL_TYPE_INFO), 2
+                                new Panel('Schüler'.new PullRight($All), '', Panel::PANEL_TYPE_INFO), 2
                             ),
                             new LayoutColumn(
-                                new Panel('Mädchen' . new PullRight($Woman), '', Panel::PANEL_TYPE_INFO), 2
+                                new Panel('Mädchen'.new PullRight($Woman), '', Panel::PANEL_TYPE_INFO), 2
                             ),
                             new LayoutColumn(
-                                new Panel('Jungen' . new PullRight($Man), '', Panel::PANEL_TYPE_INFO), 2
+                                new Panel('Jungen'.new PullRight($Man), '', Panel::PANEL_TYPE_INFO), 2
                             ),
                         ))
                     )
@@ -397,7 +397,7 @@ class Frontend extends Extension implements IFrontendInterface
                     , $Select, '/Reporting/Standard/Person/MedicalInsuranceClassList')
             )
             .
-            ($DivisionId !== null ?
+            ( $DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Klasse:', $tblDivision->getDisplayName(),
@@ -407,28 +407,28 @@ class Frontend extends Extension implements IFrontendInterface
                 .
                 new TableData($studentList, null,
                     array(
-                        'Number' => 'lfd. Nr.',
-                        'Name' => 'Name,<br/>Vorname',
-                        'Address' => 'Anschrift',
-                        'Birthday' => 'Geburtsdatum<br/>Geburtsort',
-                        'MedicalInsurance' => 'Krankenkasse',
-                        'Guardian' => '1. Sorgeberechtigter<br/>2. Sorgeberechtigter',
-                        'PhoneNumber' => 'Telefon<br/>Schüler',
+                        'Number'              => 'lfd. Nr.',
+                        'Name'                => 'Name,<br/>Vorname',
+                        'Address'             => 'Anschrift',
+                        'Birthday'            => 'Geburtsdatum<br/>Geburtsort',
+                        'MedicalInsurance'    => 'Krankenkasse',
+                        'Guardian'            => '1. Sorgeberechtigter<br/>2. Sorgeberechtigter',
+                        'PhoneNumber'         => 'Telefon<br/>Schüler',
                         'PhoneGuardianNumber' => 'Telefon<br/>Sorgeberechtigte',
                     ),
                     null
-                ) .
+                ).
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(
-                                new Panel('Schüler' . new PullRight($All), '', Panel::PANEL_TYPE_INFO), 2
+                                new Panel('Schüler'.new PullRight($All), '', Panel::PANEL_TYPE_INFO), 2
                             ),
                             new LayoutColumn(
-                                new Panel('Mädchen' . new PullRight($Woman), '', Panel::PANEL_TYPE_INFO), 2
+                                new Panel('Mädchen'.new PullRight($Woman), '', Panel::PANEL_TYPE_INFO), 2
                             ),
                             new LayoutColumn(
-                                new Panel('Jungen' . new PullRight($Man), '', Panel::PANEL_TYPE_INFO), 2
+                                new Panel('Jungen'.new PullRight($Man), '', Panel::PANEL_TYPE_INFO), 2
                             ),
                         ))
                     )
@@ -501,7 +501,7 @@ class Frontend extends Extension implements IFrontendInterface
                     , $Select, '/Reporting/Standard/Person/GroupList')
             )
             .
-            ($GroupId !== null ?
+            ( $GroupId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Gruppe:', $tblGroup->getName(),
@@ -511,29 +511,29 @@ class Frontend extends Extension implements IFrontendInterface
                 .
                 new TableData($groupList, null,
                     array(
-                        'Number' => 'lfd. Nr.',
-                        'Salutation' => 'Anrede',
-                        'FirstName' => 'Vorname',
-                        'LastName' => 'Nachname',
-                        'Birthday' => 'Geburtstag',
-                        'Address' => 'Anschrift',
-                        'PhoneNumber' => 'Telefon Festnetz',
+                        'Number'           => 'lfd. Nr.',
+                        'Salutation'       => 'Anrede',
+                        'FirstName'        => 'Vorname',
+                        'LastName'         => 'Nachname',
+                        'Birthday'         => 'Geburtstag',
+                        'Address'          => 'Anschrift',
+                        'PhoneNumber'      => 'Telefon Festnetz',
                         'MobilPhoneNumber' => 'Telefon Mobil',
-                        'Mail' => 'E-mail',
+                        'Mail'             => 'E-mail',
                     ),
                     null
-                ) .
+                ).
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(
-                                new Panel('Personen' . new PullRight($All), '', Panel::PANEL_TYPE_INFO), 2
+                                new Panel('Personen'.new PullRight($All), '', Panel::PANEL_TYPE_INFO), 2
                             ),
                             new LayoutColumn(
-                                new Panel('Frauen' . new PullRight($Woman), '', Panel::PANEL_TYPE_INFO), 2
+                                new Panel('Frauen'.new PullRight($Woman), '', Panel::PANEL_TYPE_INFO), 2
                             ),
                             new LayoutColumn(
-                                new Panel('Männer' . new PullRight($Man), '', Panel::PANEL_TYPE_INFO), 2
+                                new Panel('Männer'.new PullRight($Man), '', Panel::PANEL_TYPE_INFO), 2
                             ),
                         ))
                     )

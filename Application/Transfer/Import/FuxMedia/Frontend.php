@@ -35,6 +35,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Select
+     *
      * @return Stage
      */
     public function frontendStudent($Select = null)
@@ -81,8 +82,8 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param UploadedFile|null $File
-     * @param null $TypeId
-     * @param null $YearId
+     * @param null              $TypeId
+     * @param null              $YearId
      *
      * @return Stage
      */
@@ -180,6 +181,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Select
+     *
      * @return Stage
      */
     public function frontendDivision($Select = null)
@@ -226,8 +228,8 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param UploadedFile|null $File
-     * @param null $TypeId
-     * @param null $YearId
+     * @param null              $TypeId
+     * @param null              $YearId
      *
      * @return Stage
      */

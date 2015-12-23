@@ -63,12 +63,15 @@ use SPHERE\System\Extension\Extension;
 
 class Frontend extends Extension implements IFrontendInterface
 {
+
     /**
      * @param null $List
+     *
      * @return Stage
      */
     public function frontendList($List = null)
     {
+
         $Stage = new Stage('Check-Listen', 'Übersicht');
 
         $tblListAll = CheckList::useService()->getListAll();
@@ -76,13 +79,13 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblListAll) {
             foreach ($tblListAll as &$tblList) {
                 $tblList->Option =
-                    (new Standard('(' . CheckList::useService()->countListElementListByList($tblList) . ')',
+                    (new Standard('('.CheckList::useService()->countListElementListByList($tblList).')',
                         '/Reporting/CheckList/Element/Select', new Equalizer(),
                         array('Id' => $tblList->getId()), 'Elemente (CheckBox, Datum ...) auswählen'))
-                    . (new Standard('(' . CheckList::useService()->countListObjectListByList($tblList) . ')',
+                    .(new Standard('('.CheckList::useService()->countListObjectListByList($tblList).')',
                         '/Reporting/CheckList/Object/Select', new Listing(),
                         array('ListId' => $tblList->getId()), 'Objekte (Personen, Firmen) auswählen'))
-                    . (new Standard(new Edit(), '/Reporting/CheckList/Object/Element/Edit', new CommodityItem(),
+                    .(new Standard(new Edit(), '/Reporting/CheckList/Object/Element/Edit', new CommodityItem(),
                         array('Id' => $tblList->getId()), 'Check-Listen-Inhalt bearbeiten'));
             }
         }
@@ -97,20 +100,20 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new TableData($tblListAll, null, array(
-                                'Name' => 'Name',
+                                'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
-                                'Option' => '',
+                                'Option'      => '',
                             ))
                         ))
                     ))
-                ), new Title(new ListingTable() . ' Übersicht')),
+                ), new Title(new ListingTable().' Übersicht')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new Well(CheckList::useService()->createList($Form, $List))
                         ))
                     ))
-                ), new Title(new PlusSign() . ' Hinzufügen'))
+                ), new Title(new PlusSign().' Hinzufügen'))
             ))
         );
 
@@ -119,6 +122,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     private function formList()
     {
+
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
@@ -134,6 +138,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param null $Element
+     *
      * @return Stage
      */
     public function frontendListElementSelect($Id = null, $Element = null)
@@ -143,11 +148,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
 
-        if (empty($Id)) {
+        if (empty( $Id )) {
             $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
         } else {
             $tblList = CheckList::useService()->getListById($Id);
-            if (empty($tblList)) {
+            if (empty( $tblList )) {
                 $Stage->setContent(new Warning('Die Check-Liste konnte nicht abgerufen werden'));
             } else {
 
@@ -174,9 +179,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Panel('Check-Liste', new Bold($tblList->getName()) .
-                                        ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
-                                            . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
+                                    new Panel('Check-Liste', new Bold($tblList->getName()).
+                                        ( $tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                            .new Muted(new Small(new Small($tblList->getDescription()))) : '' ),
                                         Panel::PANEL_TYPE_INFO),
                                     12
                                 ),
@@ -187,21 +192,21 @@ class Frontend extends Extension implements IFrontendInterface
                                 new LayoutColumn(array(
                                     new TableData($tblListElementListByList, null,
                                         array(
-                                            'Name' => 'Name',
-                                            'Type' => 'Typ',
+                                            'Name'   => 'Name',
+                                            'Type'   => 'Typ',
                                             'Option' => ''
                                         )
                                     )
                                 ))
                             ))
-                        ), new Title(new ListingTable() . ' Übersicht')),
+                        ), new Title(new ListingTable().' Übersicht')),
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
                                     new Well(CheckList::useService()->addElementToList($Form, $Id, $Element))
                                 ))
                             ))
-                        ), new Title(new PlusSign() . ' Hinzufügen'))
+                        ), new Title(new PlusSign().' Hinzufügen'))
                     ))
                 );
             }
@@ -258,18 +263,18 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
 
-        if (empty($ListId)) {
+        if (empty( $ListId )) {
             $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
         } else {
             $tblList = CheckList::useService()->getListById($ListId);
-            if (empty($tblList)) {
+            if (empty( $tblList )) {
                 $Stage->setContent(new Warning('Die Check-Liste konnte nicht abgerufen werden'));
             } else {
 
                 $tblListObjectListByList = CheckList::useService()->getListObjectListByList($tblList);
                 if ($tblListObjectListByList) {
                     foreach ($tblListObjectListByList as &$tblListObjectList) {
-                        if (($tblObject = $tblListObjectList->getServiceTblObject())) {
+                        if (( $tblObject = $tblListObjectList->getServiceTblObject() )) {
                             if ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSON') {
                                 /** @var TblPerson $tblObject */
                                 $tblListObjectList->DisplayName = $tblObject->getFullName();
@@ -279,17 +284,17 @@ class Frontend extends Extension implements IFrontendInterface
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSONGROUP') {
                                 /** @var PersonGroupEntity $tblObject */
                                 $tblListObjectList->DisplayName = $tblObject->getName()
-                                    . ' (' . PersonGroup::useService()->countPersonAllByGroup($tblObject) . ')';
+                                    .' ('.PersonGroup::useService()->countPersonAllByGroup($tblObject).')';
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
                                 /** @var CompanyGroupEntity $tblObject */
                                 $tblListObjectList->DisplayName = $tblObject->getName()
-                                    . ' (' . CompanyGroup::useService()->countCompanyAllByGroup($tblObject) . ')';
+                                    .' ('.CompanyGroup::useService()->countCompanyAllByGroup($tblObject).')';
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'DIVISIONGROUP') {
                                 /** @var TblDivision $tblObject */
                                 $tblYear = $tblObject->getServiceTblYear();
-                                $tblListObjectList->DisplayName = ($tblYear ? $tblYear->getName() . ' ' : '')
-                                    . $tblObject->getDisplayName()
-                                    . ' (' . Division::useService()->countDivisionStudentAllByDivision($tblObject) . ')';
+                                $tblListObjectList->DisplayName = ( $tblYear ? $tblYear->getName().' ' : '' )
+                                    .$tblObject->getDisplayName()
+                                    .' ('.Division::useService()->countDivisionStudentAllByDivision($tblObject).')';
                             } else {
                                 $tblListObjectList->Name = '';
                             }
@@ -348,8 +353,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                 ))
                                             ), null,
                                             '/Reporting/CheckList/Object/Add', array(
-                                                'ListId' => $tblList->getId(),
-                                                'ObjectId' => $tblPerson->getId(),
+                                                'ListId'       => $tblList->getId(),
+                                                'ObjectId'     => $tblPerson->getId(),
                                                 'ObjectTypeId' => $tblObjectType->getId()
                                             )
                                         ))->__toString();
@@ -384,8 +389,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                 ))
                                             ), null,
                                             '/Reporting/CheckList/Object/Add', array(
-                                                'ListId' => $tblList->getId(),
-                                                'ObjectId' => $tblCompany->getId(),
+                                                'ListId'       => $tblList->getId(),
+                                                'ObjectId'     => $tblCompany->getId(),
                                                 'ObjectTypeId' => $tblObjectType->getId()
                                             )
                                         ))->__toString();
@@ -409,13 +414,13 @@ class Frontend extends Extension implements IFrontendInterface
                             if ($tblPersonGroupAll) {
                                 foreach ($tblPersonGroupAll as $tblPersonGroup) {
                                     $tblPersonGroup->DisplayName = $tblPersonGroup->getName()
-                                        . ' (' . PersonGroup::useService()->countPersonAllByGroup($tblPersonGroup) . ')';
+                                        .' ('.PersonGroup::useService()->countPersonAllByGroup($tblPersonGroup).')';
                                     $tblPersonGroup->Option =
                                         (new Form(
                                             new FormGroup(
                                                 new FormRow(array(
                                                     new FormColumn(
-                                                        new CheckBox('Option[' . $tblPersonGroup->getId() . ']',
+                                                        new CheckBox('Option['.$tblPersonGroup->getId().']',
                                                             'dynamisch', 1)
                                                         , 7),
                                                     new FormColumn(
@@ -425,8 +430,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                 ))
                                             ), null,
                                             '/Reporting/CheckList/Object/Add', array(
-                                                'ListId' => $tblList->getId(),
-                                                'ObjectId' => $tblPersonGroup->getId(),
+                                                'ListId'       => $tblList->getId(),
+                                                'ObjectId'     => $tblPersonGroup->getId(),
                                                 'ObjectTypeId' => $tblObjectType->getId()
                                             )
                                         ))->__toString();
@@ -450,13 +455,13 @@ class Frontend extends Extension implements IFrontendInterface
                             if ($tblCompanyGroupAll) {
                                 foreach ($tblCompanyGroupAll as $tblCompanyGroup) {
                                     $tblCompanyGroup->DisplayName = $tblCompanyGroup->getName()
-                                        . ' (' . CompanyGroup::useService()->countCompanyAllByGroup($tblCompanyGroup) . ')';
+                                        .' ('.CompanyGroup::useService()->countCompanyAllByGroup($tblCompanyGroup).')';
                                     $tblCompanyGroup->Option =
                                         (new Form(
                                             new FormGroup(
                                                 new FormRow(array(
                                                     new FormColumn(
-                                                        new CheckBox('Option[' . $tblCompanyGroup->getId() . ']',
+                                                        new CheckBox('Option['.$tblCompanyGroup->getId().']',
                                                             'dynamisch', 1)
                                                         , 7),
                                                     new FormColumn(
@@ -466,8 +471,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                 ))
                                             ), null,
                                             '/Reporting/CheckList/Object/Add', array(
-                                                'ListId' => $tblList->getId(),
-                                                'ObjectId' => $tblCompanyGroup->getId(),
+                                                'ListId'       => $tblList->getId(),
+                                                'ObjectId'     => $tblCompanyGroup->getId(),
                                                 'ObjectTypeId' => $tblObjectType->getId()
                                             )
                                         ))->__toString();
@@ -491,15 +496,15 @@ class Frontend extends Extension implements IFrontendInterface
                             if ($tblDivisionAll) {
                                 foreach ($tblDivisionAll as $tblDivision) {
                                     $tblYear = $tblDivision->getServiceTblYear();
-                                    $tblDivision->DisplayName = ($tblYear ? $tblYear->getName() . ' ' : '')
-                                        . $tblDivision->getDisplayName()
-                                        . ' (' . Division::useService()->countDivisionStudentAllByDivision($tblDivision) . ')';
+                                    $tblDivision->DisplayName = ( $tblYear ? $tblYear->getName().' ' : '' )
+                                        .$tblDivision->getDisplayName()
+                                        .' ('.Division::useService()->countDivisionStudentAllByDivision($tblDivision).')';
                                     $tblDivision->Option =
                                         (new Form(
                                             new FormGroup(
                                                 new FormRow(array(
                                                     new FormColumn(
-                                                        new CheckBox('Option[' . $tblDivision->getId() . ']',
+                                                        new CheckBox('Option['.$tblDivision->getId().']',
                                                             'dynamisch', 1)
                                                         , 7),
                                                     new FormColumn(
@@ -509,8 +514,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                 ))
                                             ), null,
                                             '/Reporting/CheckList/Object/Add', array(
-                                                'ListId' => $tblList->getId(),
-                                                'ObjectId' => $tblDivision->getId(),
+                                                'ListId'       => $tblList->getId(),
+                                                'ObjectId'     => $tblDivision->getId(),
                                                 'ObjectTypeId' => $tblObjectType->getId()
                                             )
                                         ))->__toString();
@@ -527,9 +532,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Panel('Check-Liste', new Bold($tblList->getName()) .
-                                        ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
-                                            . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
+                                    new Panel('Check-Liste', new Bold($tblList->getName()).
+                                        ( $tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                            .new Muted(new Small(new Small($tblList->getDescription()))) : '' ),
                                         Panel::PANEL_TYPE_INFO),
                                     12
                                 ),
@@ -551,21 +556,21 @@ class Frontend extends Extension implements IFrontendInterface
                             ))
                         ))
                     ))
-                    . ($tblObjectType ?
+                    .( $tblObjectType ?
                         new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                             new Panel('Objekt-Typ:',
                                 $tblObjectType->getName(),
                                 Panel::PANEL_TYPE_INFO), 12
                         ))))
-                        . new Layout(new LayoutGroup(array(
+                        .new Layout(new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
                                     new Title('Ausgewählte', 'Objekte'),
                                     new TableData($tblListObjectListByList, null,
                                         array(
                                             'DisplayName' => 'Name',
-                                            'Type' => 'Typ',
-                                            'Option' => ''
+                                            'Type'        => 'Typ',
+                                            'Option'      => ''
                                         )
                                     )
                                 ), 6),
@@ -574,7 +579,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new TableData($selectList, null,
                                         array(
                                             'DisplayName' => 'Name',
-                                            'Option' => ''
+                                            'Option'      => ''
                                         )
                                     )
                                 ), 6),
@@ -587,13 +592,13 @@ class Frontend extends Extension implements IFrontendInterface
                                     new TableData($tblListObjectListByList, null,
                                         array(
                                             'DisplayName' => 'Name',
-                                            'Type' => 'Typ',
-                                            'Option' => ''
+                                            'Type'        => 'Typ',
+                                            'Option'      => ''
                                         )
                                     )
                                 ), 12)
                             ))
-                        ))))
+                        ))) )
                 );
             }
         }
@@ -606,10 +611,12 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $ObjectId
      * @param null $ObjectTypeId
      * @param null $Option
+     *
      * @return Stage
      */
     public function frontendListObjectAdd($ListId = null, $ObjectId = null, $ObjectTypeId = null, $Option = null)
     {
+
         $Stage = new Stage('Check-Listen', 'Ein Object einer Check-Liste hinzufügen');
 
         if ($ListId === null || $ObjectId === null || $ObjectTypeId === null) {
@@ -623,37 +630,37 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblObjectType->getIdentifier() === 'PERSON') {
                 $tblPerson = Person::useService()->getPersonById($ObjectId);
                 if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblPerson)) {
-                    return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                    . new Redirect('/Reporting/CheckList/Object/Select', 0,
+                    return new Stage('Die '.$tblObjectType->getName().' ist zur Check-Liste hinzugefügt worden.')
+                    .new Redirect('/Reporting/CheckList/Object/Select', 0,
                         array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                 } else {
-                    return new Stage('Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
-                    . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                    return new Stage('Die '.$tblObjectType->getName().' konnte zur Check-Liste nicht hinzugefügt werden.')
+                    .new Redirect('/Reporting/CheckList/Object/Select', 3,
                         array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                 }
             } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
                 $tblCompany = Company::useService()->getCompanyById($ObjectId);
                 if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblCompany)) {
-                    return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                    . new Redirect('/Reporting/CheckList/Object/Select', 0,
+                    return new Stage('Die '.$tblObjectType->getName().' ist zur Check-Liste hinzugefügt worden.')
+                    .new Redirect('/Reporting/CheckList/Object/Select', 0,
                         array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                 } else {
-                    return new Stage('Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
-                    . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                    return new Stage('Die '.$tblObjectType->getName().' konnte zur Check-Liste nicht hinzugefügt werden.')
+                    .new Redirect('/Reporting/CheckList/Object/Select', 3,
                         array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                 }
             } elseif ($tblObjectType->getIdentifier() === 'PERSONGROUP') {
                 $tblPersonGroup = PersonGroup::useService()->getGroupById($ObjectId);
 
-                if (isset($Option[$tblPersonGroup->getId()])) {
+                if (isset( $Option[$tblPersonGroup->getId()] )) {
 
                     if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblPersonGroup)) {
-                        return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                        . new Redirect('/Reporting/CheckList/Object/Select', 0,
+                        return new Stage('Die '.$tblObjectType->getName().' ist zur Check-Liste hinzugefügt worden.')
+                        .new Redirect('/Reporting/CheckList/Object/Select', 0,
                             array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                     } else {
-                        return new Stage('Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
-                        . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                        return new Stage('Die '.$tblObjectType->getName().' konnte zur Check-Liste nicht hinzugefügt werden.')
+                        .new Redirect('/Reporting/CheckList/Object/Select', 3,
                             array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                     }
 
@@ -675,24 +682,24 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
 
-                    return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                    . new Success($countAdd . ' Person/en hinzugefügt.')
-                    . ($countExists > 0 ? new Warning($countExists . ' Person/en existierten bereits in der Check-Liste') : '')
-                    . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                    return new Stage('Die '.$tblObjectType->getName().' ist zur Check-Liste hinzugefügt worden.')
+                    .new Success($countAdd.' Person/en hinzugefügt.')
+                    .( $countExists > 0 ? new Warning($countExists.' Person/en existierten bereits in der Check-Liste') : '' )
+                    .new Redirect('/Reporting/CheckList/Object/Select', 3,
                         array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                 }
             } elseif ($tblObjectType->getIdentifier() === 'COMPANYGROUP') {
                 $tblCompanyGroup = CompanyGroup::useService()->getGroupById($ObjectId);
 
-                if (isset($Option[$tblCompanyGroup->getId()])) {
+                if (isset( $Option[$tblCompanyGroup->getId()] )) {
 
                     if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblCompanyGroup)) {
-                        return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                        . new Redirect('/Reporting/CheckList/Object/Select', 0,
+                        return new Stage('Die '.$tblObjectType->getName().' ist zur Check-Liste hinzugefügt worden.')
+                        .new Redirect('/Reporting/CheckList/Object/Select', 0,
                             array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                     } else {
-                        return new Stage('Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
-                        . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                        return new Stage('Die '.$tblObjectType->getName().' konnte zur Check-Liste nicht hinzugefügt werden.')
+                        .new Redirect('/Reporting/CheckList/Object/Select', 3,
                             array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                     }
 
@@ -714,24 +721,24 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
 
-                    return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                    . new Success($countAdd . ' Firma/en hinzugefügt.')
-                    . ($countExists > 0 ? new Warning($countExists . ' Firma/en existierten bereits in der Check-Liste') : '')
-                    . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                    return new Stage('Die '.$tblObjectType->getName().' ist zur Check-Liste hinzugefügt worden.')
+                    .new Success($countAdd.' Firma/en hinzugefügt.')
+                    .( $countExists > 0 ? new Warning($countExists.' Firma/en existierten bereits in der Check-Liste') : '' )
+                    .new Redirect('/Reporting/CheckList/Object/Select', 3,
                         array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                 }
             } elseif ($tblObjectType->getIdentifier() === 'DIVISIONGROUP') {
                 $tblDivision = Division::useService()->getDivisionById($ObjectId);
 
-                if (isset($Option[$tblDivision->getId()])) {
+                if (isset( $Option[$tblDivision->getId()] )) {
 
                     if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblDivision)) {
-                        return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                        . new Redirect('/Reporting/CheckList/Object/Select', 0,
+                        return new Stage('Die '.$tblObjectType->getName().' ist zur Check-Liste hinzugefügt worden.')
+                        .new Redirect('/Reporting/CheckList/Object/Select', 0,
                             array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                     } else {
-                        return new Stage('Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
-                        . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                        return new Stage('Die '.$tblObjectType->getName().' konnte zur Check-Liste nicht hinzugefügt werden.')
+                        .new Redirect('/Reporting/CheckList/Object/Select', 3,
                             array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                     }
 
@@ -753,10 +760,10 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
 
-                    return new Stage('Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                    . new Success($countAdd . ' Person/en hinzugefügt.')
-                    . ($countExists > 0 ? new Warning($countExists . ' Person/en existierten bereits in der Check-Liste') : '')
-                    . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                    return new Stage('Die '.$tblObjectType->getName().' ist zur Check-Liste hinzugefügt worden.')
+                    .new Success($countAdd.' Person/en hinzugefügt.')
+                    .( $countExists > 0 ? new Warning($countExists.' Person/en existierten bereits in der Check-Liste') : '' )
+                    .new Redirect('/Reporting/CheckList/Object/Select', 3,
                         array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                 }
             }
@@ -778,13 +785,15 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param      $Id
      * @param null $Data
      * @param null $HasData
+     *
      * @return Stage
      */
     public function frontendListObjectElementEdit($Id = null, $Data = null, $HasData = null)
     {
+
         $Stage = new Stage('Check-Listen', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
 
@@ -801,7 +810,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
             if ($tblListElementListByList) {
                 foreach ($tblListElementListByList as $tblListElementList) {
-                    $columnDefinition['Field' . $tblListElementList->getId()] = $tblListElementList->getName();
+                    $columnDefinition['Field'.$tblListElementList->getId()] = $tblListElementList->getName();
                 }
             }
 
@@ -824,7 +833,7 @@ class Frontend extends Extension implements IFrontendInterface
             // get Objects
             if ($tblListObjectListByList) {
                 foreach ($tblListObjectListByList as &$tblListObjectList) {
-                    if (($tblObject = $tblListObjectList->getServiceTblObject())) {
+                    if (( $tblObject = $tblListObjectList->getServiceTblObject() )) {
                         if ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSON') {
                             /** @var TblPerson $tblObject */
                             $objectList[$tblListObjectList->getTblObjectType()->getId()][$tblObject->getId()] = 1;
@@ -863,11 +872,11 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            if (!empty($objectList)) {
+            if (!empty( $objectList )) {
                 $count = 0;
                 foreach ($objectList as $objectTypeId => $objects) {
                     $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
-                    if (!empty($objects)) {
+                    if (!empty( $objects )) {
                         foreach ($objects as $objectId => $value) {
                             if ($tblObjectType->getIdentifier() === 'PERSON') {
                                 $tblPerson = Person::useService()->getPersonById($objectId);
@@ -885,18 +894,18 @@ class Frontend extends Extension implements IFrontendInterface
                                 foreach ($tblListElementListByList as $tblListElementList) {
 
                                     if ($tblListElementList->getTblElementType()->getIdentifier() === 'CHECKBOX') {
-                                        $list[$count]['Field' . $tblListElementList->getId()] = new CheckBox(
-                                            'Data[' . $objectTypeId . '][' . $objectId . '][' . $tblListElementList->getId() . ']',
+                                        $list[$count]['Field'.$tblListElementList->getId()] = new CheckBox(
+                                            'Data['.$objectTypeId.']['.$objectId.']['.$tblListElementList->getId().']',
                                             ' ', 1
                                         );
                                     } elseif ($tblListElementList->getTblElementType()->getIdentifier() === 'DATE') {
-                                        $list[$count]['Field' . $tblListElementList->getId()] = new DatePicker(
-                                            'Data[' . $objectTypeId . '][' . $objectId . '][' . $tblListElementList->getId() . ']',
+                                        $list[$count]['Field'.$tblListElementList->getId()] = new DatePicker(
+                                            'Data['.$objectTypeId.']['.$objectId.']['.$tblListElementList->getId().']',
                                             '', '', new Calendar()
                                         );
                                     } elseif ($tblListElementList->getTblElementType()->getIdentifier() === 'TEXT') {
-                                        $list[$count]['Field' . $tblListElementList->getId()] = new TextField(
-                                            'Data[' . $objectTypeId . '][' . $objectId . '][' . $tblListElementList->getId() . ']',
+                                        $list[$count]['Field'.$tblListElementList->getId()] = new TextField(
+                                            'Data['.$objectTypeId.']['.$objectId.']['.$tblListElementList->getId().']',
                                             '', '', new Comment()
                                         );
                                     }
@@ -909,7 +918,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        if (!empty($list)) {
+        if (!empty( $list )) {
             $Stage->addButton(
                 new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen',
                     '/Api/Reporting/CheckList/Download', new Download(), array('ListId' => $tblList->getId()))
@@ -921,9 +930,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Check-Liste', new Bold($tblList->getName()) .
-                                ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
-                                    . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
+                            new Panel('Check-Liste', new Bold($tblList->getName()).
+                                ( $tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                    .new Muted(new Small(new Small($tblList->getDescription()))) : '' ),
                                 Panel::PANEL_TYPE_INFO),
                             12
                         ),

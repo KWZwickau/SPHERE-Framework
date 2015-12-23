@@ -148,9 +148,9 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param string         $CredentialName
-     * @param string         $CredentialLock
+     * @param IFormInterface    $Form
+     * @param string            $CredentialName
+     * @param string            $CredentialLock
      * @param TblIdentification $tblIdentification
      *
      * @return IFormInterface|Redirect
@@ -187,9 +187,9 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Username
-     * @param string $Password
-     * @param bool   $TokenString
+     * @param string            $Username
+     * @param string            $Password
+     * @param bool              $TokenString
      * @param TblIdentification $tblIdentification
      *
      * @return null|bool
@@ -229,8 +229,8 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Username
-     * @param string $Password
+     * @param string            $Username
+     * @param string            $Password
      * @param TblIdentification $tblIdentification
      *
      * @return bool|TblAccount
@@ -255,10 +255,10 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param string         $CredentialName
-     * @param string         $CredentialLock
-     * @param string         $CredentialKey
+     * @param IFormInterface    $Form
+     * @param string            $CredentialName
+     * @param string            $CredentialLock
+     * @param string            $CredentialKey
      * @param TblIdentification $tblIdentification
      *
      * @return IFormInterface|Redirect

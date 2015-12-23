@@ -14,6 +14,7 @@ use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
+ *
  * @package SPHERE\Application\Education\Graduation\Evaluation\Service
  */
 class Setup extends AbstractSetup
@@ -64,8 +65,9 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblTestType
-     * @param Table $tblTask
+     * @param Table  $tblTestType
+     * @param Table  $tblTask
+     *
      * @return Table
      */
     private function setTableTest(Schema &$Schema, Table $tblTestType, Table $tblTask)
@@ -108,7 +110,7 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblTestType
+     * @param Table  $tblTestType
      *
      * @return Table
      */

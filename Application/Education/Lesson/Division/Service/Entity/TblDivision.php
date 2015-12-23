@@ -124,12 +124,14 @@ class TblDivision extends Element
 
     /**
      * Level->Name + Division->Name
+     *
      * @return string
      */
     public function getDisplayName()
     {
-        if ($this->getTblLevel()){
-            return $this->getTblLevel()->getName() . $this->getName();
+
+        if ($this->getTblLevel()) {
+            return $this->getTblLevel()->getName().$this->getName();
         } else {
             return $this->getName();
         }
@@ -138,9 +140,10 @@ class TblDivision extends Element
     /**
      * @return string
      */
-    public  function getTypeName()
+    public function getTypeName()
     {
-        if ($this->getTblLevel()){
+
+        if ($this->getTblLevel()) {
             if ($this->getTblLevel()->getServiceTblType()) {
                 return $this->getTblLevel()->getServiceTblType()->getName();
             } else {

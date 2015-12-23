@@ -33,8 +33,9 @@ class Service
 
     /**
      * @param IFormInterface|null $Form
-     * @param UploadedFile|null $File
-     * @param null $DivisionId
+     * @param UploadedFile|null   $File
+     * @param null                $DivisionId
+     *
      * @return IFormInterface|Danger|Redirect|string
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
@@ -51,7 +52,6 @@ class Service
             return $Form;
         }
 
-
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
 
         if (null !== $File) {
@@ -65,7 +65,7 @@ class Service
                      * Prepare
                      */
                     $File = $File->move($File->getPath(),
-                        $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                        $File->getFilename().'.'.$File->getClientOriginalExtension());
 
                     /**
                      * Read
@@ -85,16 +85,16 @@ class Service
                      * Header -> Location
                      */
                     $Location = array(
-                        'Vorname V.' => null,
-                        'Vorname M.' => null,
-                        'Name' => null,
-                        'Konfession' => null,
-                        'Straße' => null,
-                        'Hausnr.' => null,
-                        'PLZ Ort' => null,
-                        'Schüler' => null,
+                        'Vorname V.'   => null,
+                        'Vorname M.'   => null,
+                        'Name'         => null,
+                        'Konfession'   => null,
+                        'Straße'       => null,
+                        'Hausnr.'      => null,
+                        'PLZ Ort'      => null,
+                        'Schüler'      => null,
                         'Geburtsdatum' => null,
-                        'Geburtsort' => null,
+                        'Geburtsort'   => null,
 //                        'Import Vater' => null,
 //                        'Import Mutter' => null,
                     );
@@ -305,13 +305,13 @@ class Service
                         }
 
                         return
-                            new Success('Es wurden ' . $countStudent . ' Schüler erfolgreich angelegt.') .
-                            new Success('Es wurden ' . $countFather . ' Väter erfolgreich angelegt.') .
-                            ($countFatherExists > 0 ?
-                                new Warning($countFatherExists . ' Väter exisistieren bereits.') : '') .
-                            new Success('Es wurden ' . $countMother . ' Mütter erfolgreich angelegt.') .
-                            ($countMotherExists > 0 ?
-                                new Warning($countMotherExists . ' Mütter exisistieren bereits.') : '');
+                            new Success('Es wurden '.$countStudent.' Schüler erfolgreich angelegt.').
+                            new Success('Es wurden '.$countFather.' Väter erfolgreich angelegt.').
+                            ( $countFatherExists > 0 ?
+                                new Warning($countFatherExists.' Väter exisistieren bereits.') : '' ).
+                            new Success('Es wurden '.$countMother.' Mütter erfolgreich angelegt.').
+                            ( $countMotherExists > 0 ?
+                                new Warning($countMotherExists.' Mütter exisistieren bereits.') : '' );
                     } else {
                         Debugger::screenDump($Location);
                         return new Danger(
@@ -331,7 +331,7 @@ class Service
 
         return new Person(
             new Identifier('People', 'Person', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__ . '/../../../People/Person/Service/Entity', 'SPHERE\Application\People\Person\Service\Entity'
+            __DIR__.'/../../../People/Person/Service/Entity', 'SPHERE\Application\People\Person\Service\Entity'
         );
     }
 
@@ -343,7 +343,7 @@ class Service
 
         return new Common(
             new Identifier('People', 'Meta', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__ . '/../../../People/Meta/Common/Service/Entity',
+            __DIR__.'/../../../People/Meta/Common/Service/Entity',
             'SPHERE\Application\People\Meta\Common\Service\Entity'
         );
     }
@@ -356,7 +356,7 @@ class Service
 
         return new Relationship(
             new Identifier('People', 'Relationship', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__ . '/../../../People/Relationship/Service/Entity',
+            __DIR__.'/../../../People/Relationship/Service/Entity',
             'SPHERE\Application\People\Relationship\Service\Entity'
         );
     }
@@ -369,13 +369,13 @@ class Service
 
         return new Address(
             new Identifier('Contact', 'Address', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__ . '/../../../Contact/Address/Service/Entity', 'SPHERE\Application\Contact\Address\Service\Entity'
+            __DIR__.'/../../../Contact/Address/Service/Entity', 'SPHERE\Application\Contact\Address\Service\Entity'
         );
     }
 
     /**
      * @param IFormInterface|null $Form
-     * @param UploadedFile $File
+     * @param UploadedFile        $File
      *
      * @return IFormInterface|Danger|string
      *
@@ -399,7 +399,7 @@ class Service
                 /**
                  * Prepare
                  */
-                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                $File = $File->move($File->getPath(), $File->getFilename().'.'.$File->getClientOriginalExtension());
                 /**
                  * Read
                  */
@@ -413,27 +413,27 @@ class Service
                  * Header -> Location
                  */
                 $Location = array(
-                    'Anrede' => null,
-                    'Firma' => null,
-                    'Name' => null,
-                    'Vorname' => null,
-                    'Strasse' => null,
-                    'Ort' => null,
-                    'Plz' => null,
+                    'Anrede'          => null,
+                    'Firma'           => null,
+                    'Name'            => null,
+                    'Vorname'         => null,
+                    'Strasse'         => null,
+                    'Ort'             => null,
+                    'Plz'             => null,
                     'Telefon_private' => null,
-                    'Telefon_dienst' => null,
-                    'Fax' => null,
-                    'Mail' => null,
-                    'Beruf' => null,
-                    'Freunde' => null,
-                    'Post' => null,
-                    'Gebet' => null,
-                    'Partner' => null,
-                    'Verein' => null,
-                    'Offizielle' => null,
-                    'Ehemalige' => null,
-                    'Sonstiges' => null,
-                    'Sonstiges2' => null,
+                    'Telefon_dienst'  => null,
+                    'Fax'             => null,
+                    'Mail'            => null,
+                    'Beruf'           => null,
+                    'Freunde'         => null,
+                    'Post'            => null,
+                    'Gebet'           => null,
+                    'Partner'         => null,
+                    'Verein'          => null,
+                    'Offizielle'      => null,
+                    'Ehemalige'       => null,
+                    'Sonstiges'       => null,
+                    'Sonstiges2'      => null,
 
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
@@ -454,31 +454,49 @@ class Service
 
                     // create groups
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
-                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Freunde'], $RunY)))) == 'wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Freunde'],
+                                $RunY)))) == 'wahr'
+                        ) {
                             Group::useService()->createGroupFromImport('Freunde');
                         }
-                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Post'], $RunY)))) == 'wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Post'],
+                                $RunY)))) == 'wahr'
+                        ) {
                             Group::useService()->createGroupFromImport('Post');
                         }
-                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Gebet'], $RunY)))) == 'wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Gebet'],
+                                $RunY)))) == 'wahr'
+                        ) {
                             Group::useService()->createGroupFromImport('Gebet');
                         }
-                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Partner'], $RunY)))) == 'wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Partner'],
+                                $RunY)))) == 'wahr'
+                        ) {
                             Group::useService()->createGroupFromImport('Partner');
                         }
-                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Verein'], $RunY)))) == 'wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Verein'],
+                                $RunY)))) == 'wahr'
+                        ) {
                             Group::useService()->createGroupFromImport('Verein');
                         }
-                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Offizielle'], $RunY)))) == 'wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Offizielle'],
+                                $RunY)))) == 'wahr'
+                        ) {
                             Group::useService()->createGroupFromImport('Offizielle');
                         }
-                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Ehemalige'], $RunY)))) == 'wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Ehemalige'],
+                                $RunY)))) == 'wahr'
+                        ) {
                             Group::useService()->createGroupFromImport('Ehemalige');
                         }
-                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Sonstiges'], $RunY)))) == 'wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Sonstiges'],
+                                $RunY)))) == 'wahr'
+                        ) {
                             Group::useService()->createGroupFromImport('Sonstiges');
                         }
-                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Sonstiges2'], $RunY)))) == 'wahr') {
+                        if (strtolower(trim($Document->getValue($Document->getCell($Location['Sonstiges2'],
+                                $RunY)))) == 'wahr'
+                        ) {
                             Group::useService()->createGroupFromImport('Sonstiges2');
                         }
                     }
@@ -530,8 +548,8 @@ class Service
                                     $countUpdatePerson++;
                                 }
 
-                                if (($Number = trim($Document->getValue($Document->getCell($Location['Telefon_private'],
-                                        $RunY)))) !== ''
+                                if (( $Number = trim($Document->getValue($Document->getCell($Location['Telefon_private'],
+                                        $RunY))) ) !== ''
                                 ) {
                                     $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(1);
                                     if (0 === strpos($Number, '01')) {
@@ -545,8 +563,8 @@ class Service
                                     $countPhone++;
                                 }
 
-                                if (($Number = trim($Document->getValue($Document->getCell($Location['Telefon_dienst'],
-                                        $RunY)))) !== ''
+                                if (( $Number = trim($Document->getValue($Document->getCell($Location['Telefon_dienst'],
+                                        $RunY))) ) !== ''
                                 ) {
                                     $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(3);
                                     if (0 === strpos($Number, '01')) {
@@ -561,55 +579,73 @@ class Service
                                 }
 
                                 // add group
-                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Freunde'], $RunY)))) == 'wahr') {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Freunde'],
+                                        $RunY)))) == 'wahr'
+                                ) {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Freunde'),
                                         $tblPerson
                                     );
                                 }
-                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Post'], $RunY)))) == 'wahr') {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Post'],
+                                        $RunY)))) == 'wahr'
+                                ) {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Post'),
                                         $tblPerson
                                     );
                                 }
-                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Gebet'], $RunY)))) == 'wahr') {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Gebet'],
+                                        $RunY)))) == 'wahr'
+                                ) {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Gebet'),
                                         $tblPerson
                                     );
                                 }
-                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Partner'], $RunY)))) == 'wahr') {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Partner'],
+                                        $RunY)))) == 'wahr'
+                                ) {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Partner'),
                                         $tblPerson
                                     );
                                 }
-                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Verein'], $RunY)))) == 'wahr') {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Verein'],
+                                        $RunY)))) == 'wahr'
+                                ) {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Verein'),
                                         $tblPerson
                                     );
                                 }
-                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Offizielle'], $RunY)))) == 'wahr') {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Offizielle'],
+                                        $RunY)))) == 'wahr'
+                                ) {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Offizielle'),
                                         $tblPerson
                                     );
                                 }
-                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Ehemalige'], $RunY)))) == 'wahr') {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Ehemalige'],
+                                        $RunY)))) == 'wahr'
+                                ) {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Ehemalige'),
                                         $tblPerson
                                     );
                                 }
-                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Sonstiges'], $RunY)))) == 'wahr') {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Sonstiges'],
+                                        $RunY)))) == 'wahr'
+                                ) {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Sonstiges'),
                                         $tblPerson
                                     );
                                 }
-                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Sonstiges2'], $RunY)))) == 'wahr') {
+                                if (strtolower(trim($Document->getValue($Document->getCell($Location['Sonstiges2'],
+                                        $RunY)))) == 'wahr'
+                                ) {
                                     Group::useService()->addGroupPerson(
                                         Group::useService()->getGroupByName('Sonstiges2'),
                                         $tblPerson
@@ -631,10 +667,10 @@ class Service
                     }
 
                     return
-                        new Warning('Es wurden ' . $countOutSortedPersons . ' Personen aussortiert (Vorname enthält "u." oder ",").') .
-                        new Success('Es wurden ' . $countNewPerson . ' neue Personen erfolgreich angelegt.') .
-                        new Success('Es wurden ' . $countUpdatePerson . ' Personen erfolgreich geupdated.') .
-                        new Success('Es wurden ' . $countPhone . ' Telefonnummern erfolgreich angelegt.');
+                        new Warning('Es wurden '.$countOutSortedPersons.' Personen aussortiert (Vorname enthält "u." oder ",").').
+                        new Success('Es wurden '.$countNewPerson.' neue Personen erfolgreich angelegt.').
+                        new Success('Es wurden '.$countUpdatePerson.' Personen erfolgreich geupdated.').
+                        new Success('Es wurden '.$countPhone.' Telefonnummern erfolgreich angelegt.');
                 } else {
                     Debugger::screenDump($Location);
                     return new Danger("File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
@@ -653,7 +689,7 @@ class Service
 
         return new Phone(
             new Identifier('Contact', 'Phone', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__ . '/../../../Contact/Phone/Service/Entity', 'SPHERE\Application\Contact\Phone\Service\Entity'
+            __DIR__.'/../../../Contact/Phone/Service/Entity', 'SPHERE\Application\Contact\Phone\Service\Entity'
         );
     }
 
@@ -665,14 +701,14 @@ class Service
 
         return new Custody(
             new Identifier('People', 'Meta', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__ . '/../../../People/Meta/Custody/Service/Entity',
+            __DIR__.'/../../../People/Meta/Custody/Service/Entity',
             'SPHERE\Application\People\Meta\Custody\Service\Entity'
         );
     }
 
     /**
      * @param IFormInterface|null $Stage
-     * @param null $Select
+     * @param null                $Select
      *
      * @return IFormInterface
      */
@@ -695,7 +731,8 @@ class Service
 
     /**
      * @param IFormInterface|null $Form
-     * @param UploadedFile|null $File
+     * @param UploadedFile|null   $File
+     *
      * @return IFormInterface|Danger|string
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
@@ -720,7 +757,7 @@ class Service
                  * Prepare
                  */
                 $File = $File->move($File->getPath(),
-                    $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                    $File->getFilename().'.'.$File->getClientOriginalExtension());
 
                 /**
                  * Read
@@ -740,23 +777,23 @@ class Service
                  * Header -> Location
                  */
                 $Location = array(
-                    'Vorname V.' => null,
-                    'Vorname M.' => null,
-                    'Name' => null,
-                    'Konfession' => null,
-                    'Straße' => null,
-                    'Hausnr.' => null,
-                    'PLZ Ort' => null,
-                    'Schüler' => null,
+                    'Vorname V.'   => null,
+                    'Vorname M.'   => null,
+                    'Name'         => null,
+                    'Konfession'   => null,
+                    'Straße'       => null,
+                    'Hausnr.'      => null,
+                    'PLZ Ort'      => null,
+                    'Schüler'      => null,
                     'Geburtsdatum' => null,
-                    'Geburtsort' => null,
+                    'Geburtsort'   => null,
 //                    'Import Vater' => null,
 //                    'Import Mutter' => null,
-                    'Anm.Datum' => null,
-                    'Klasse' => null,
-                    'Schuljahr' => null,
-                    'Schulart 1' => null,
-                    'Schulart 2' => null,
+                    'Anm.Datum'    => null,
+                    'Klasse'       => null,
+                    'Schuljahr'    => null,
+                    'Schulart 1'   => null,
+                    'Schulart 2'   => null,
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
@@ -809,8 +846,8 @@ class Service
                                 );
 
                                 $tblOptionTypeA = null;
-                                if (($OptionTypeA = trim($Document->getValue($Document->getCell($Location['Schulart 1'],
-                                        $RunY)))) !== ''
+                                if (( $OptionTypeA = trim($Document->getValue($Document->getCell($Location['Schulart 1'],
+                                        $RunY))) ) !== ''
                                 ) {
                                     if ($OptionTypeA == 'Oberschule') {
                                         $tblOptionTypeA = Type::useService()->getTypeById(8);
@@ -821,8 +858,8 @@ class Service
                                     }
                                 }
                                 $tblOptionTypeB = null;
-                                if (($OptionTypeB = trim($Document->getValue($Document->getCell($Location['Schulart 2'],
-                                        $RunY)))) !== ''
+                                if (( $OptionTypeB = trim($Document->getValue($Document->getCell($Location['Schulart 2'],
+                                        $RunY))) ) !== ''
                                 ) {
                                     if ($OptionTypeB == 'Oberschule') {
                                         $tblOptionTypeB = Type::useService()->getTypeById(8);
@@ -834,11 +871,11 @@ class Service
                                 }
                                 Prospect::useService()->insertMeta(
                                     $tblPerson,
-                                    (trim($Document->getValue($Document->getCell($Location['Anm.Datum'],
+                                    ( trim($Document->getValue($Document->getCell($Location['Anm.Datum'],
                                         $RunY))) !== '' ?
                                         date('Y-m-d', \PHPExcel_Shared_Date::ExcelToPHP(
                                             trim($Document->getValue($Document->getCell($Location['Anm.Datum'],
-                                                $RunY))))) : ''),
+                                                $RunY))))) : '' ),
                                     '',
                                     '',
                                     trim($Document->getValue($Document->getCell($Location['Schuljahr'], $RunY))),
@@ -996,13 +1033,13 @@ class Service
                     }
 
                     return
-                        new Success('Es wurden ' . $countInterestedPerson . ' Intessenten erfolgreich angelegt.') .
-                        new Success('Es wurden ' . $countFather . ' Väter erfolgreich angelegt.') .
-                        ($countFatherExists > 0 ?
-                            new Warning($countFatherExists . ' Väter exisistieren bereits.') : '') .
-                        new Success('Es wurden ' . $countMother . ' Mütter erfolgreich angelegt.') .
-                        ($countMotherExists > 0 ?
-                            new Warning($countMotherExists . ' Mütter exisistieren bereits.') : '');
+                        new Success('Es wurden '.$countInterestedPerson.' Intessenten erfolgreich angelegt.').
+                        new Success('Es wurden '.$countFather.' Väter erfolgreich angelegt.').
+                        ( $countFatherExists > 0 ?
+                            new Warning($countFatherExists.' Väter exisistieren bereits.') : '' ).
+                        new Success('Es wurden '.$countMother.' Mütter erfolgreich angelegt.').
+                        ( $countMotherExists > 0 ?
+                            new Warning($countMotherExists.' Mütter exisistieren bereits.') : '' );
                 } else {
                     Debugger::screenDump($Location);
                     return new Danger(

@@ -7,10 +7,12 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 
 /**
  * Class Repository
+ *
  * @package SPHERE\Application\Document\Designer\Repository
  */
 class Repository implements IModuleInterface
 {
+
     public static function registerModule()
     {
         // TODO: Implement registerModule() method.

@@ -843,8 +843,9 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblTransferType) {
                         $Type = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType);
                         if ($Type) {
-                            if ($Type->getServiceTblType())
+                            if ($Type->getServiceTblType()) {
                                 $SchoolType = $Type->getServiceTblType()->getName();
+                            }
                         }
                     }
                 }
