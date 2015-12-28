@@ -350,11 +350,12 @@ class Data extends AbstractData
         // TODO: Persistent Types
         $Type = $this->getTypeById(1);
         /** @var TblToPerson $Entity */
-        if ($Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
+        if (( $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblToPerson',
             array(
                 TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
                 TblToPerson::ATT_TBL_TYPE       => $Type->getId()
             ))
+        )
         ) {
             return $Entity->getTblAddress();
         } else {

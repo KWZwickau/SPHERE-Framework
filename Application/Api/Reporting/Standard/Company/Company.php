@@ -11,6 +11,11 @@ namespace SPHERE\Application\Api\Reporting\Standard\Company;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Corporation\Group\Group;
 
+/**
+ * Class Company
+ *
+ * @package SPHERE\Application\Api\Reporting\Standard\Company
+ */
 class Company
 {
 

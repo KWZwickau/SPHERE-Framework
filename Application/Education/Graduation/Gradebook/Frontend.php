@@ -125,6 +125,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Form
+     */
     private function formGradeType()
     {
 
@@ -1025,6 +1028,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Form
+     */
     private function formScoreCondition()
     {
 
@@ -1111,6 +1117,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Form
+     */
     private function formScoreGroup()
     {
 

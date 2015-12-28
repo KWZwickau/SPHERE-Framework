@@ -34,6 +34,11 @@ use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use SPHERE\Application\People\Meta\Student\Student;
 
+/**
+ * Class Service
+ *
+ * @package SPHERE\Application\Transfer\Import\FuxMedia
+ */
 class Service
 {
 
@@ -262,8 +267,7 @@ class Service
                                                 $RunY))),
                                             trim($Document->getValue($Document->getCell($Location['Schüler_Ortsteil'],
                                                 $RunY))),
-                                            '',
-                                            null
+                                            ''
                                         );
 
                                     }
@@ -538,8 +542,7 @@ class Service
                                                         $RunY))),
                                                     trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Ortsteil'],
                                                         $RunY))),
-                                                    '',
-                                                    null
+                                                    ''
                                                 );
 
                                             }
@@ -616,8 +619,7 @@ class Service
                                                         $RunY))),
                                                     trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Ortsteil'],
                                                         $RunY))),
-                                                    '',
-                                                    null
+                                                    ''
                                                 );
 
                                             }
@@ -797,8 +799,7 @@ class Service
                                                     $RunY))),
                                                 trim($Document->getValue($Document->getCell($Location['Ortsteil'],
                                                     $RunY))),
-                                                '',
-                                                null
+                                                ''
                                             );
 
                                         }
@@ -979,7 +980,14 @@ class Service
         return new Danger('File nicht gefunden');
     }
 
-    public function createCompanysFromFile(
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null   $File
+     *
+     * @return IFormInterface|Danger|Success|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createCompaniesFromFile(
         IFormInterface $Form = null,
         UploadedFile $File = null
     ) {

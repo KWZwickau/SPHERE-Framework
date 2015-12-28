@@ -30,6 +30,11 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Transfer\Import\FuxMedia
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 
@@ -299,7 +304,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(array(
                                 new Well(
-                                    FuxSchool::useService()->createCompanysFromFile(
+                                    FuxSchool::useService()->createCompaniesFromFile(
                                         new Form(
                                             new FormGroup(
                                                 new FormRow(

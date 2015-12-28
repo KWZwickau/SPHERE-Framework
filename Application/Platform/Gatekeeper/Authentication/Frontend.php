@@ -14,6 +14,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 
@@ -45,7 +46,7 @@ class Frontend implements IFrontendInterface
         $View = new Stage('Anmeldung', 'Bitte wählen Sie den Typ der Anmeldung');
         $View->setMessage('Anmeldend als:');
         $View->setContent(
-            (new \SPHERE\Common\Frontend\Link\Repository\Standard('Schüler / Eltern',
+            (new Standard('Schüler / Eltern',
                 '/Platform/Gatekeeper/Authentication/Student', new Lock()
             ))->setDisabled()
             .new \SPHERE\Common\Frontend\Link\Repository\Primary('Personal',

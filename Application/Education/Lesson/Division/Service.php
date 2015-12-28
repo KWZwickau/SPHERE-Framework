@@ -192,6 +192,12 @@ class Service extends AbstractService
         return $Form;
     }
 
+    /**
+     * @param IFormInterface $Form
+     * @param null|string    $Year
+     *
+     * @return IFormInterface|Redirect
+     */
     public function selectYear(IFormInterface $Form, $Year)
     {
 
@@ -603,7 +609,7 @@ class Service extends AbstractService
             if (is_array($SubjectTeacher)) {
                 array_walk($SubjectTeacher, function ($SubjectTeacher) use ($tblDivisionSubject, &$Error) {
 
-                    if ($Person = Person::useService()->getPersonById($SubjectTeacher)) {
+                    if (( $Person = Person::useService()->getPersonById($SubjectTeacher) )) {
                         if (!(new Data($this->getBinding()))->addSubjectTeacher($tblDivisionSubject, $Person)
                         ) {
                             $Error = true;

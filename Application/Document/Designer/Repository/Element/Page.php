@@ -18,6 +18,11 @@ class Page implements ITemplateInterface
     /** @var null|string */
     private $Content = null;
 
+    /**
+     * Page constructor.
+     *
+     * @param null|string $Content
+     */
     function __construct($Content = null)
     {
 
@@ -49,6 +54,9 @@ class Page implements ITemplateInterface
         return $this->Template->getContent();
     }
 
+    /**
+     * @param null|string $Content
+     */
     public function setContent($Content)
     {
 

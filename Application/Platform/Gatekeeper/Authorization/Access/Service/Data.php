@@ -179,8 +179,7 @@ class Data extends AbstractData
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Setting/Authorization/Account/Create');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Setting/Authorization/Account/Edit');
-//        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $this->createRight('/Setting/Authorization/Account/Edit');
         $tblRight = $this->createRight('/Setting/Authorization/Account/Destroy');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 

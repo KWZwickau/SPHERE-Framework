@@ -20,6 +20,11 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
+/**
+ * Class Data
+ *
+ * @package SPHERE\Application\Education\Graduation\Evaluation\Service
+ */
 class Data extends AbstractData
 {
 

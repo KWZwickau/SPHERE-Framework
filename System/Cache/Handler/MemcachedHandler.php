@@ -109,6 +109,9 @@ class MemcachedHandler extends AbstractHandler implements HandlerInterface
         return $this->getSlot().':'.$Region;
     }
 
+    /**
+     * @return string
+     */
     public function getSlot()
     {
 

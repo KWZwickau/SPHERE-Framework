@@ -132,7 +132,7 @@ class StyleBook
             $Page->addSeparator();
             $Page->addCode(array("const ATTR_VARIABLE_WITH_FULL_NAME = 'VariableWithFullName';"));
 
-            $Page = $Chapter->createPage('Setup', 'Struktur/Methoden/Variablen', $Search);
+            $Chapter->createPage('Setup', 'Struktur/Methoden/Variablen', $Search);
 
             $Page = $Chapter->createPage('Data', 'Struktur/Methoden/Variablen', $Search);
             $Page->addHeadline('Allgemein');

@@ -18,6 +18,11 @@ class Element implements ITemplateInterface
     /** @var null|string */
     private $Content = null;
 
+    /**
+     * Element constructor.
+     *
+     * @param null|string $Content
+     */
     function __construct($Content = null)
     {
 
@@ -44,6 +49,9 @@ class Element implements ITemplateInterface
         return $this->Template->getContent();
     }
 
+    /**
+     * @param null|string $Content
+     */
     public function setContent($Content)
     {
 

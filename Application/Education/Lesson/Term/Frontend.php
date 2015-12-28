@@ -467,6 +467,11 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param int $Id
+     *
+     * @return Stage|string
+     */
     public function frontendDestroyYear($Id)
     {
 
@@ -533,6 +538,11 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param int $Id
+     *
+     * @return Stage|string
+     */
     public function frontendDestroyPeriod($Id)
     {
 

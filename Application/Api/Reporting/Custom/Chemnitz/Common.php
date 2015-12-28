@@ -4,7 +4,6 @@ namespace SPHERE\Application\Api\Reporting\Custom\Chemnitz;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Reporting\Custom\Chemnitz\Person\Person;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 
 /**
  * Class Common

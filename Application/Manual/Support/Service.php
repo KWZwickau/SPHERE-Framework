@@ -12,9 +12,21 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Service
+ *
+ * @package SPHERE\Application\Manual\Support
+ */
 class Service extends Extension
 {
 
+    /**
+     * @param IFormInterface|null $Form
+     * @param null|array          $Ticket
+     * @param                     $Attachment
+     *
+     * @return IFormInterface|string
+     */
     public function createTicket(IFormInterface $Form = null, $Ticket, $Attachment)
     {
 

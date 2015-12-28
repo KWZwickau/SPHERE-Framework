@@ -86,12 +86,18 @@ class TwigHandler extends AbstractHandler implements HandlerInterface
         );
     }
 
+    /**
+     * @return float
+     */
     private function calcStatusAvailable()
     {
 
         return ( disk_total_space(__DIR__) );
     }
 
+    /**
+     * @return int
+     */
     private function calcStatusUsed()
     {
 
@@ -106,6 +112,9 @@ class TwigHandler extends AbstractHandler implements HandlerInterface
         return $Total;
     }
 
+    /**
+     * @return float
+     */
     private function calcStatusFree()
     {
 

@@ -12,6 +12,11 @@ use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 
+/**
+ * Class Roadmap
+ *
+ * @package SPHERE\Application\Api\Roadmap
+ */
 class Roadmap implements IApplicationInterface, IModuleInterface
 {
 

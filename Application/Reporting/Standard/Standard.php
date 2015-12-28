@@ -8,6 +8,11 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 
+/**
+ * Class Standard
+ *
+ * @package SPHERE\Application\Reporting\Standard
+ */
 class Standard implements IApplicationInterface
 {
 

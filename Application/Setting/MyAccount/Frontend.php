@@ -24,7 +24,6 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
@@ -93,8 +92,6 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $Consumer
-     *
      * @return Stage
      */
     public static function frontendSelectConsumer()
@@ -262,6 +259,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return array
+     */
     private function listingSchool()
     {
 
@@ -311,6 +311,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Result;
     }
 
+    /**
+     * @return array
+     */
     private function listingResponsibility()
     {
 
@@ -359,6 +362,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Result;
     }
 
+    /**
+     * @return array
+     */
     private function listingSponsorAssociation()
     {
 

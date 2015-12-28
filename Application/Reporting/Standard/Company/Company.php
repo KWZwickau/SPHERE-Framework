@@ -12,6 +12,11 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
+/**
+ * Class Company
+ *
+ * @package SPHERE\Application\Reporting\Standard\Company
+ */
 class Company implements IModuleInterface
 {
 

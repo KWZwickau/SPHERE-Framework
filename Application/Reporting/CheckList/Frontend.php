@@ -61,6 +61,11 @@ use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Reporting\CheckList
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 
@@ -120,6 +125,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Form
+     */
     private function formList()
     {
 
@@ -215,6 +223,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Form
+     */
     private function formElement()
     {
 

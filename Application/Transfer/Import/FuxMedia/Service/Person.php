@@ -13,6 +13,11 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Service;
 
+/**
+ * Class Person
+ *
+ * @package SPHERE\Application\Transfer\Import\FuxMedia\Service
+ */
 class Person extends Service
 {
 
@@ -40,10 +45,10 @@ class Person extends Service
 
         $exists = false;
 
-        if ($persons = $this->getPersonAllByFirstNameAndLastName($FirstName, $LastName)
+        if (( $persons = $this->getPersonAllByFirstNameAndLastName($FirstName, $LastName) )
         ) {
             foreach ($persons as $person) {
-                if ($addresses = Address::useService()->getAddressAllByPerson($person)) {
+                if (( $addresses = Address::useService()->getAddressAllByPerson($person) )) {
                     if ($addresses[0]->getTblAddress()->getTblCity()->getCode() == $ZipCode) {
                         $exists = $person;
                     }

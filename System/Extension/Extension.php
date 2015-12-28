@@ -34,6 +34,12 @@ class Extension
         return HttpKernel::getRequest();
     }
 
+    /**
+     * @param HandlerInterface $Handler
+     * @param string           $Name
+     *
+     * @return HandlerInterface
+     */
     public function getCache(HandlerInterface $Handler, $Name = 'Memcached')
     {
 

@@ -105,7 +105,7 @@ class Service
 //                    }
 //                }
 
-                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
                     $address = $addressList[0];
                 } else {
                     $address = null;
@@ -247,7 +247,7 @@ class Service
                     $tblPerson->Gender = '';
                 }
 
-                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
                     $address = $addressList[0];
                 } else {
                     $address = null;
@@ -515,7 +515,7 @@ class Service
                     $tblPerson->Gender = '';
                 }
 
-                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
                     $address = $addressList[0];
                 } else {
                     $address = null;
@@ -675,7 +675,7 @@ class Service
                     $tblPerson->Gender = '';
                 }
                 $tblPerson->Name = $tblPerson->getLastName().'<br/>'.$tblPerson->getFirstName();
-                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
                     $address = $addressList[0];
                 } else {
                     $address = null;
@@ -904,7 +904,7 @@ class Service
                 $All++;
                 $tblPerson->Number = $All;
                 $tblPerson->Salutation = $tblPerson->getSalutation();
-                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
                     $address = $addressList[0];
                 } else {
                     $address = null;

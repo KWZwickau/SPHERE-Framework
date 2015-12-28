@@ -32,7 +32,6 @@ require_once(__DIR__ . '/Library/MOC-V/Core/AutoLoader/AutoLoader.php');
 AutoLoader::getNamespaceAutoLoader('MOC\V', __DIR__ . '/Library/MOC-V');
 AutoLoader::getNamespaceAutoLoader('SPHERE', __DIR__ . '/', 'SPHERE');
 AutoLoader::getNamespaceAutoLoader('Markdownify', __DIR__ . '/Library/Markdownify/2.1.6/src');
-AutoLoader::getNamespaceAutoLoader('Faker', __DIR__ . '/System/Faker/Vendor', 'Faker');
 
 $Main = new Main();
 

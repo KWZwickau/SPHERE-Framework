@@ -21,6 +21,11 @@ use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
 
+/**
+ * Class Service
+ *
+ * @package SPHERE\Application\Reporting\Standard\Company
+ */
 class Service
 {
 
@@ -63,7 +68,7 @@ class Service
 
                 $count++;
                 $tblCompany->Number = $count;
-                if ($addressList = Address::useService()->getAddressAllByCompany($tblCompany)) {
+                if (( $addressList = Address::useService()->getAddressAllByCompany($tblCompany) )) {
                     $address = $addressList[0];
                 } else {
                     $address = null;

@@ -60,10 +60,10 @@ class Person extends Service
 
         $exists = false;
 
-        if ($persons = $this->getPersonAllByFirstNameAndLastName($FirstName, $LastName)
+        if (( $persons = $this->getPersonAllByFirstNameAndLastName($FirstName, $LastName) )
         ) {
             foreach ($persons as $person) {
-                if ($addresses = Address::useService()->getAddressAllByPerson($person)) {
+                if (( $addresses = Address::useService()->getAddressAllByPerson($person) )) {
                     if ($addresses[0]->getTblAddress()->getTblCity()->getCode() == $ZipCode) {
                         $exists = $person;
                     }

@@ -3,6 +3,7 @@ namespace SPHERE\Common\Window;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -51,7 +52,7 @@ class Error extends Extension implements ITemplateInterface
                                     (new HiddenField('TicketSubject'))->setDefaultValue(urlencode($Code.' Account: '.
                                         ( ( $Account = Account::useService()->getAccountBySession() ) ? $Account->getId() : '' ))),
                                     (new HiddenField('TicketMessage'))->setDefaultValue(urlencode($Message)),
-                                    new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Fehlerbericht senden')
+                                    new Primary('Fehlerbericht senden')
                                 ))
                             )
                         )

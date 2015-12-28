@@ -29,6 +29,11 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Reporting\Standard\Company
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 

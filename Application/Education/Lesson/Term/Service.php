@@ -163,6 +163,11 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getYearByName($Name);
     }
 
+    /**
+     * @param TblPeriod $tblPeriod
+     *
+     * @return array|bool
+     */
     public function getYearByPeriod(TblPeriod $tblPeriod)
     {
 
@@ -412,7 +417,7 @@ class Service extends AbstractService
             $Stage->setError('Year[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         } else {
-            if ($TempYear = $this->getYearByName($Year['Name'])) {
+            if (( $TempYear = $this->getYearByName($Year['Name']) )) {
                 if ($TempYear->getId() !== $tblYear->getId()) {
                     $Stage->setError('Year[Name]', 'Dieser Name wird bereits verwendet');
                     $Error = true;
@@ -437,6 +442,13 @@ class Service extends AbstractService
         return $Stage;
     }
 
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblPeriod           $tblPeriod
+     * @param null|array          $Period
+     *
+     * @return IFormInterface|string
+     */
     public function changePeriod(
         IFormInterface &$Stage = null,
         TblPeriod $tblPeriod,

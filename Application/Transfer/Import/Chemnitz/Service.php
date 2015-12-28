@@ -273,31 +273,16 @@ class Service
                                     $StreetNumber = trim($Document->getValue($Document->getCell($Location['Hausnr.'],
                                         $RunY)));
                                     $this->useContactAddress()->createAddressToPersonFromImport(
-                                        $tblPerson,
-                                        $StreetName,
-                                        $StreetNumber,
-                                        $CityCode,
-                                        $CityName,
-                                        ''
+                                        $tblPerson, $StreetName, $StreetNumber, $CityCode, $CityName
                                     );
                                     if ($tblPersonFather !== null) {
                                         $this->useContactAddress()->createAddressToPersonFromImport(
-                                            $tblPersonFather,
-                                            $StreetName,
-                                            $StreetNumber,
-                                            $CityCode,
-                                            $CityName,
-                                            ''
+                                            $tblPersonFather, $StreetName, $StreetNumber, $CityCode, $CityName
                                         );
                                     }
                                     if ($tblPersonMother !== null) {
                                         $this->useContactAddress()->createAddressToPersonFromImport(
-                                            $tblPersonMother,
-                                            $StreetName,
-                                            $StreetNumber,
-                                            $CityCode,
-                                            $CityName,
-                                            ''
+                                            $tblPersonMother, $StreetName, $StreetNumber, $CityCode, $CityName
                                         );
                                     }
                                 }
@@ -535,12 +520,9 @@ class Service
                                             $StreetName = trim(substr($Street, 0, $pos));
                                             $StreetNumber = trim(substr($Street, $pos));
                                             $this->useContactAddress()->createAddressToPersonFromImport(
-                                                $tblPerson,
-                                                $StreetName,
-                                                $StreetNumber,
+                                                $tblPerson, $StreetName, $StreetNumber,
                                                 trim($Document->getValue($Document->getCell($Location['Plz'], $RunY))),
-                                                trim($Document->getValue($Document->getCell($Location['Ort'], $RunY))),
-                                                ''
+                                                trim($Document->getValue($Document->getCell($Location['Ort'], $RunY)))
                                             );
                                         }
                                     }
@@ -1001,31 +983,16 @@ class Service
                                 $StreetNumber = trim($Document->getValue($Document->getCell($Location['Hausnr.'],
                                     $RunY)));
                                 $this->useContactAddress()->createAddressToPersonFromImport(
-                                    $tblPerson,
-                                    $StreetName,
-                                    $StreetNumber,
-                                    $CityCode,
-                                    $CityName,
-                                    ''
+                                    $tblPerson, $StreetName, $StreetNumber, $CityCode, $CityName
                                 );
                                 if ($tblPersonFather !== null) {
                                     $this->useContactAddress()->createAddressToPersonFromImport(
-                                        $tblPersonFather,
-                                        $StreetName,
-                                        $StreetNumber,
-                                        $CityCode,
-                                        $CityName,
-                                        ''
+                                        $tblPersonFather, $StreetName, $StreetNumber, $CityCode, $CityName
                                     );
                                 }
                                 if ($tblPersonMother !== null) {
                                     $this->useContactAddress()->createAddressToPersonFromImport(
-                                        $tblPersonMother,
-                                        $StreetName,
-                                        $StreetNumber,
-                                        $CityCode,
-                                        $CityName,
-                                        ''
+                                        $tblPersonMother, $StreetName, $StreetNumber, $CityCode, $CityName
                                     );
                                 }
                             }

@@ -18,6 +18,11 @@ class Document implements ITemplateInterface
     /** @var null|string */
     private $Content = null;
 
+    /**
+     * Document constructor.
+     *
+     * @param null|string $Content
+     */
     function __construct($Content = null)
     {
 
@@ -60,6 +65,9 @@ class Document implements ITemplateInterface
         return $this->Template->getContent();
     }
 
+    /**
+     * @param null|string $Content
+     */
     public function setContent($Content)
     {
 

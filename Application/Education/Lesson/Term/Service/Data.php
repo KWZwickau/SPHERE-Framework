@@ -76,6 +76,13 @@ class Data extends AbstractData
         return $Entity;
     }
 
+    /**
+     * @param TblYear $tblYear
+     * @param string  $Name
+     * @param string  $Description
+     *
+     * @return bool
+     */
     public function updateYear(
         TblYear $tblYear,
         $Name,
@@ -301,6 +308,11 @@ class Data extends AbstractData
         ));
     }
 
+    /**
+     * @param TblPeriod $tblPeriod
+     *
+     * @return array|bool
+     */
     public function getYearByPeriod(TblPeriod $tblPeriod)
     {
 

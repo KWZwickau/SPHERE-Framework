@@ -15,6 +15,11 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class CheckList
+ *
+ * @package SPHERE\Application\Reporting\CheckList
+ */
 class CheckList implements IApplicationInterface, IModuleInterface
 {
 

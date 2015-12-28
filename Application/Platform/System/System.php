@@ -9,6 +9,7 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Platform\System\Test\Test;
 use SPHERE\Common\Frontend\Icon\Repository\Cog;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -54,10 +55,8 @@ class System implements IApplicationInterface
         $Value = 100 / disk_total_space(__DIR__) * disk_free_space(__DIR__);
 
         Main::getDispatcher()->registerWidget('System', new Panel('Festplattenkapazität', array(
-            '<div class="progress" style="margin-bottom: 0;">
-                          <div class="progress-bar progress-bar-success" style="width: '.$Value.'%"></div>
-                          <div class="progress-bar progress-bar-danger" style="width: '.( 100 - $Value ).'%"></div>
-                        </div>',
+            (new ProgressBar($Value, ( 100 - $Value ), 0))->setColor(ProgressBar::BAR_COLOR_SUCCESS,
+                ProgressBar::BAR_COLOR_DANGER),
             'Gesamt: '.number_format(disk_total_space(__DIR__), 0, ',', '.'),
             'Frei: '.number_format(disk_free_space(__DIR__), 0, ',', '.')
         )), 2, 2);
@@ -71,10 +70,8 @@ class System implements IApplicationInterface
         $Value = $mem[2] / $mem[1] * 100;
 
         Main::getDispatcher()->registerWidget('System', new Panel('Speicherkapazität', array(
-            '<div class="progress" style="margin-bottom: 0;">
-              <div class="progress-bar progress-bar-success" style="width: '.$Value.'%"></div>
-              <div class="progress-bar progress-bar-danger" style="width: '.( 100 - $Value ).'%"></div>
-            </div>',
+            (new ProgressBar($Value, ( 100 - $Value ), 0))->setColor(ProgressBar::BAR_COLOR_SUCCESS,
+                ProgressBar::BAR_COLOR_DANGER),
             'Gesamt: '.number_format($mem[1], 0, ',', '.'),
             'Frei: '.number_format($mem[2], 0, ',', '.')
         )), 2, 2);
@@ -82,10 +79,8 @@ class System implements IApplicationInterface
         $load = sys_getloadavg();
 
         Main::getDispatcher()->registerWidget('System', new Panel('Rechenkapazität', array(
-            '<div class="progress" style="margin-bottom: 0;">
-              <div class="progress-bar progress-bar-success" style="width: '.( 50 * ( 2 - $load[0] ) ).'%"></div>
-              <div class="progress-bar progress-bar-danger" style="width: '.( 50 * ( $load[0] ) ).'%"></div>
-            </div>',
+            (new ProgressBar(( 50 * ( 2 - $load[0] ) ), ( 50 * ( $load[0] ) ),
+                0))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_DANGER),
             'Genutzt: '.number_format($load[0], 5, ',', '.'),
             'Frei: '.number_format(2 - $load[0], 5, ',', '.')
         )), 2, 2);

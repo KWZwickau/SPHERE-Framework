@@ -86,7 +86,7 @@ class Service
                     }
                 }
 
-                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
                     $address = $addressList[0];
                 } else {
                     $address = null;
@@ -191,7 +191,7 @@ class Service
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
 
-                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
                     $address = $addressList[0];
                 } else {
                     $address = null;
@@ -309,7 +309,7 @@ class Service
         if (!empty( $studentList )) {
             foreach ($studentList as $tblPerson) {
 
-                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
                     $address = $addressList[0];
                 } else {
                     $address = null;
@@ -452,7 +452,7 @@ class Service
             if ($clubMemberList) {
                 foreach ($clubMemberList as $tblPerson) {
 
-                    if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                    if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
                         $address = $addressList[0];
                     } else {
                         $address = null;
@@ -556,7 +556,7 @@ class Service
         if (!empty( $interestedPersonList )) {
             foreach ($interestedPersonList as $tblPerson) {
 
-                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
                     $address = $addressList[0];
                 } else {
                     $address = null;
@@ -778,13 +778,13 @@ class Service
         if (!empty( $studentList )) {
             foreach ($studentList as $tblPerson) {
 
-                if ($debtorList = Banking::useService()->getDebtorAllByPerson($tblPerson)) {
+                if (( $debtorList = Banking::useService()->getDebtorAllByPerson($tblPerson) )) {
                     $tblPerson->DebtorNumber = $debtorList[0]->getDebtorNumber();
                 } else {
                     $tblPerson->DebtorNumber = '';
                 }
 
-                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
                     $address = $addressList[0];
                 } else {
                     $address = null;
@@ -954,7 +954,7 @@ class Service
                     }
                 }
 
-                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
                     $address = $addressList[0];
                 } else {
                     $address = null;

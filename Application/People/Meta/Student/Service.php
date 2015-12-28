@@ -67,9 +67,9 @@ class Service extends Integration
     /**
      * @param                $Disease
      * @param                $Medication
-     * @param TblPerson|null $tblPersonAttendingDoctor
-     * @param null           $InsuranceState
      * @param                $Insurance
+     * @param int|null       $InsuranceState
+     * @param TblPerson|null $tblPersonAttendingDoctor
      *
      * @return TblStudentMedicalRecord
      */

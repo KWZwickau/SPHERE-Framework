@@ -132,6 +132,8 @@ class Style extends Extension
     }
 
     /**
+     * @param bool $withTag
+     *
      * @return string
      */
     public function getCombinedStyle($withTag = true)
@@ -152,6 +154,11 @@ class Style extends Extension
         }
     }
 
+    /**
+     * @param string $Content
+     *
+     * @return string
+     */
     private function getCombinedStyleTag($Content)
     {
 
@@ -162,6 +169,11 @@ class Style extends Extension
         }
     }
 
+    /**
+     * @param array $FileList
+     *
+     * @return string
+     */
     private function parseCombinedStyle($FileList)
     {
 
@@ -217,6 +229,11 @@ class Style extends Extension
         return $Result;
     }
 
+    /**
+     * @param string $Content
+     *
+     * @return string
+     */
     private function compactStyle($Content)
     {
 

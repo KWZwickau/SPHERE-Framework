@@ -17,6 +17,7 @@ class IdHydrator extends ObjectHydrator
      * Hydrates all rows from the current statement instance at once.
      *
      * @return array
+     * @throws \Exception
      */
     protected function hydrateAllData()
     {

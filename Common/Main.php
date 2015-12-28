@@ -71,6 +71,9 @@ class Main extends Extension
         }
     }
 
+    /**
+     * @return string
+     */
     public static function initCloudCache()
     {
 
