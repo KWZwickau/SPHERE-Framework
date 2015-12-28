@@ -201,11 +201,11 @@ class Service extends AbstractService
     {
 
         if ((new Data($this->getBinding()))->removeItemAccount($tblItemAccount)) {
-            return new Success('Das FIBU-Konto '.$tblItemAccount->getServiceBilling_Account()->getDescription().' wurde erfolgreich entfernt')
+            return new Success('Das FIBU-Konto '.$tblItemAccount->getServiceBillingAccount()->getDescription().' wurde erfolgreich entfernt')
             .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', 0,
                 array('Id' => $tblItemAccount->getTblItem()->getId()));
         } else {
-            return new Warning('Das FIBU-Konto '.$tblItemAccount->getServiceBilling_Account()->getDescription().' konnte nicht entfernt werden')
+            return new Warning('Das FIBU-Konto '.$tblItemAccount->getServiceBillingAccount()->getDescription().' konnte nicht entfernt werden')
             .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', 3,
                 array('Id' => $tblItemAccount->getTblItem()->getId()));
         }

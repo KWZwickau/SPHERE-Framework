@@ -52,7 +52,7 @@ class TblInvoiceAccount extends Element
     /**
      * @return bool|TblAccount
      */
-    public function getServiceBilling_Account()
+    public function getServiceBillingAccount()
     {
 
         if (null === $this->serviceBilling_Account) {
@@ -65,7 +65,7 @@ class TblInvoiceAccount extends Element
     /**
      * @param TblAccount $tblAccount
      */
-    public function setServiceBilling_Account(TblAccount $tblAccount = null)
+    public function setServiceBillingAccount(TblAccount $tblAccount = null)
     {
 
         $this->serviceBilling_Account = ( null === $tblAccount ? null : $tblAccount->getId() );

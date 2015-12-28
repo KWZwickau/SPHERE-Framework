@@ -194,8 +194,8 @@ class Data extends AbstractData
             $tblPersonDebtor = $tblDebtor->getServiceManagementPerson();
             $tblPerson = $tblTempInvoice->getServiceManagementPerson();
             $Entity = new TblInvoice();
-            $Entity->setIsPaid(false);
-            $Entity->setIsVoid(false);
+            $Entity->setPaid(false);
+            $Entity->setVoid(false);
             $Entity->setNumber("40000000");
             $Entity->setBasketName($tblBasket->getName());
             $PaymentType = $tblDebtor->getPaymentType();
@@ -211,11 +211,11 @@ class Data extends AbstractData
             if (( $invoiceDate->format('y.m.d') ) >= ( $now->format('y.m.d') )) {
                 $Entity->setInvoiceDate($invoiceDate);
                 $Entity->setPaymentDate(new \DateTime($Date));
-                $Entity->setIsPaymentDateModified(false);
+                $Entity->setPaymentDateModified(false);
             } else {
                 $Entity->setInvoiceDate(new \DateTime('now'));
                 $Entity->setPaymentDate($now->add(new \DateInterval('P'.$leadTimeByDebtor.'D')));
-                $Entity->setIsPaymentDateModified(true);
+                $Entity->setPaymentDateModified(true);
             }
 
             $Entity->setDiscount(0);
@@ -386,7 +386,7 @@ class Data extends AbstractData
         foreach ($tblItemAccountList as $tblItemAccount) {
             $EntityItemAccount = new TblInvoiceAccount();
             $EntityItemAccount->setTblInvoiceItem($Entity);
-            $EntityItemAccount->setServiceBilling_Account($tblItemAccount->getServiceBilling_Account());
+            $EntityItemAccount->setServiceBillingAccount($tblItemAccount->getServiceBillingAccount());
 
             $this->getConnection()->getEntityManager()->saveEntity($EntityItemAccount);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -409,7 +409,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblInvoice', $tblInvoice->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setIsVoid(true);
+            $Entity->setVoid(true);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
@@ -434,7 +434,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblInvoice', $tblInvoice->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setIsPaid(true);
+            $Entity->setPaid(true);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,

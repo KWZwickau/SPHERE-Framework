@@ -256,9 +256,9 @@ class Service extends AbstractService
 
         $tblInvoiceList = Invoice::useService()->getInvoiceAll();
         foreach ($tblInvoiceList as $tblInvoice) {
-            if (!$tblInvoice->getIsVoid()) {
-                if (!$tblInvoice->getIsPaid()) {
-                    if (!$tblInvoice->getIsConfirmed()) {
+            if (!$tblInvoice->isVoid()) {
+                if (!$tblInvoice->isPaid()) {
+                    if (!$tblInvoice->isConfirmed()) {
                         $tblDebtorInvoice = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
                         if ($tblDebtorInvoice->getId() === $tblDebtor->getId()) {
                             $Error = true;

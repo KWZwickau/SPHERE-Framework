@@ -93,7 +93,7 @@ class Service
                 }
 
                 $tblPerson->Salutation = $tblPerson->getSalutation();
-                $tblPerson->Father = $fatherFirstName = $father !== null ? $father->getFirstName() : '';
+                $tblPerson->Father = $father !== null ? $father->getFirstName() : '';
                 $tblPerson->Mother = $mother !== null ? $mother->getFirstName() : '';
 
                 if ($address !== null) {

@@ -26,17 +26,17 @@ class Test extends Extension implements IApplicationInterface, IModuleInterface
 
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/ShowImage',
-                __NAMESPACE__.'\Frontend::ShowImage'
+                __NAMESPACE__.'\Frontend::showImage'
             )
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/ShowContent',
-                __NAMESPACE__.'\Frontend::ShowContent'
+                __NAMESPACE__.'\Frontend::showContent'
             )
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/ShowThumbnail',
-                __NAMESPACE__.'\Frontend::ShowThumbnail'
+                __NAMESPACE__.'\Frontend::showThumbnail'
             )
         );
     }

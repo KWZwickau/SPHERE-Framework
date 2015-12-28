@@ -80,7 +80,7 @@ class Data extends AbstractData
         $Entity = new TblCommonInformation();
         $Entity->setNationality($Nationality);
         $Entity->setDenomination($Denomination);
-        $Entity->setIsAssistance($IsAssistance);
+        $Entity->setAssistance($IsAssistance);
         $Entity->setAssistanceActivity($AssistanceActivity);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -226,7 +226,7 @@ class Data extends AbstractData
             $Protocol = clone $Entity;
             $Entity->setNationality($Nationality);
             $Entity->setDenomination($Denomination);
-            $Entity->setIsAssistance($IsAssistance);
+            $Entity->setAssistance($IsAssistance);
             $Entity->setAssistanceActivity($AssistanceActivity);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

@@ -7,7 +7,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Main;
-use SPHERE\Common\Window\Navigation\Link;
 
 /**
  * Class FuxSchool

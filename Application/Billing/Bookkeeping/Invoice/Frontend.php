@@ -92,7 +92,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblInvoice->TotalPrice = Invoice::useService()->sumPriceItemAllStringByInvoice($tblInvoice);
                 $tblInvoice->Option = (new Standard('Anzeige', '/Billing/Bookkeeping/Invoice/Show',
                     new EyeOpen(), array('Id' => $tblInvoice->getId())))->__toString();;
-                if ($tblInvoice->getIsPaid()) {
+                if ($tblInvoice->isPaid()) {
                     $tblInvoice->IsPaidString = "Bezahlt (manuell)";
                 } else {
                     if (Balance::useService()->getBalanceByInvoice($tblInvoice)
@@ -104,14 +104,14 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblInvoice->IsPaidString = "";
                     }
                 }
-                if ($tblInvoice->getIsVoid()) {
+                if ($tblInvoice->isVoid()) {
                     $tblInvoice->IsVoidString = "Storniert";
                 } else {
                     $tblInvoice->IsVoidString = "";
 //                    $tblInvoice->Option .= (new Danger( 'Stornieren', '/Billing/Bookkeeping/Invoice/Cancel',
 //                        new Remove(), array('Id' => $tblInvoice->getId())))->__toString();
                 }
-                if ($tblInvoice->getIsConfirmed()) {
+                if ($tblInvoice->isConfirmed()) {
                     $tblInvoice->IsConfirmedString = "Bestätigt";
                 } else {
                     $tblInvoice->IsConfirmedString = "";
@@ -173,7 +173,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblInvoice->PaymentType = "";
                 }
 
-                if ($tblInvoice->getIsPaymentDateModified()) {
+                if ($tblInvoice->isPaymentDateModified()) {
                     $tblInvoice->InvoiceDateString = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Info().' '.$tblInvoice->getInvoiceDate());
                     $tblInvoice->PaymentDateString = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Info().' '.$tblInvoice->getPaymentDate());
                 } else {
@@ -232,7 +232,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblInvoice = Invoice::useService()->getInvoiceById($Id);
         $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
 
-        if ($tblInvoice->getIsConfirmed()) {
+        if ($tblInvoice->isConfirmed()) {
             $Stage->setContent(new Warning('Die Rechnung wurde bereits bestätigt und freigegeben und kann nicht mehr bearbeitet werden')
                 .new Redirect('/Billing/Bookkeeping/Invoice', 2));
         } else {
@@ -357,12 +357,12 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                             new LayoutColumn(
                                 new Panel('Rechnungsdatum', $tblInvoice->getInvoiceDate(),
-                                    $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
+                                    $tblInvoice->isPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                                 3
                             ),
                             new LayoutColumn(
                                 new Panel('Zahlungsdatum', $tblInvoice->getPaymentDate(),
-                                    $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
+                                    $tblInvoice->isPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                                 3
                             ),
                         )),
@@ -544,7 +544,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblInvoice = Invoice::useService()->getInvoiceById($Id);
 
-        if ($tblInvoice->getIsVoid()) {
+        if ($tblInvoice->isVoid()) {
             $Stage->setMessage(new \SPHERE\Common\Frontend\Message\Repository\Danger("Diese Rechnung wurde storniert"));
         }
 
@@ -613,12 +613,12 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         new LayoutColumn(
                             new Panel('Rechnungsdatum', $tblInvoice->getInvoiceDate(),
-                                $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
+                                $tblInvoice->isPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                             3
                         ),
                         new LayoutColumn(
                             new Panel('Zahlungsdatum', $tblInvoice->getPaymentDate(),
-                                $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
+                                $tblInvoice->isPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                             3
                         ),
                     )),
@@ -672,8 +672,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 Invoice::useService()->sumPriceItemAllStringByInvoice($tblInvoice)), 3
                         ),
                         new LayoutColumn(
-                            $tblInvoice->getIsConfirmed() ?
-                                ( $tblInvoice->getIsPaid()
+                            $tblInvoice->isConfirmed() ?
+                                ( $tblInvoice->isPaid()
                                     ? new Success("Bezahlt")
                                     : ( round(Balance::useService()->sumPriceItemByBalance(Balance::useService()->getBalanceByInvoice($tblInvoice)),
                                         2)

@@ -80,7 +80,7 @@ class TblAccount extends Element
     /**
      * @return boolean $IsActive
      */
-    public function getIsActive()
+    public function isActive()
     {
 
         return $this->IsActive;
@@ -89,7 +89,7 @@ class TblAccount extends Element
     /**
      * @param boolean $IsActive
      */
-    public function setIsActive($IsActive)
+    public function setActive($IsActive)
     {
 
         $this->IsActive = $IsActive;

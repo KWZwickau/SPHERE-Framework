@@ -189,7 +189,7 @@ class Service extends AbstractService
 
         if ($tblInvoiceAll) {
             foreach ($tblInvoiceAll as $tblInvoice) {
-                if ($tblInvoice->getIsConfirmed()) {
+                if ($tblInvoice->isConfirmed()) {
                     $invoiceAllByConfirmed[] = $tblInvoice;
                 } else {
                     $invoiceAllByNotConfirmed[] = $tblInvoice;
@@ -276,7 +276,7 @@ class Service extends AbstractService
         TblInvoice $tblInvoice
     ) {
 
-        if (!$tblInvoice->getIsConfirmed()) {
+        if (!$tblInvoice->isConfirmed()) {
             if ((new Data($this->getBinding()))->cancelInvoice($tblInvoice)) {
                 return new Success('Die Rechnung wurde erfolgreich storniert')
                 .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', 0);

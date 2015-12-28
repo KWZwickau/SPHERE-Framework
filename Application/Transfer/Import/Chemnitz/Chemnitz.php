@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Transfer\Import\Chemnitz;
 
-use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
@@ -9,7 +8,6 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Main;
-use SPHERE\Common\Window\Navigation\Link;
 
 /**
  * Class Chemnitz

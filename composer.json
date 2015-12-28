@@ -1,18 +1,18 @@
 {
-  "name": "SPHERE-Framework/KREDA",
-  "description": "",
-  "minimum-stability": "stable",
-  "homepage": "https://github.com/DerDu/SPHERE-Framework",
-  "authors": [
-    {
-      "name": "DerDu",
-      "email": "gerdchristian.kunze@googlemail.com"
+    "name": "sphere-framework/kreda",
+    "description": "",
+    "minimum-stability": "stable",
+    "homepage": "https://github.com/DerDu/SPHERE-Framework",
+    "authors": [
+        {
+            "name": "DerDu",
+            "email": "gerdchristian.kunze@googlemail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.3"
+    },
+    "require-dev": {
+        "codeclimate/php-test-reporter": "dev-master"
     }
-  ],
-  "require": {
-    "php": ">=5.4.3"
-  },
-  "require-dev": {
-    "codeclimate/php-test-reporter": "dev-master"
-  }
 }

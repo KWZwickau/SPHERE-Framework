@@ -351,7 +351,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblReference', $tblReference->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setIsVoid(true);
+            $Entity->setVoid(true);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
@@ -583,7 +583,7 @@ class Data extends AbstractData
 
         $Entity = new TblReference();
         $Entity->setReference($Reference);
-        $Entity->setIsVoid(false);
+        $Entity->setVoid(false);
         $Entity->setServiceTblDebtor(Banking::useService()->getDebtorByDebtorNumber($DebtorNumber));
         $Entity->setServiceBillingCommodity($tblCommodity);
         if ($ReferenceDate) {
