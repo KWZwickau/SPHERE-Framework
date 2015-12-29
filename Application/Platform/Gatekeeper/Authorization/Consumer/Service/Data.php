@@ -112,10 +112,10 @@ class Data extends AbstractData
 
             if (false !== ( $tblAccount = Account::useService()->getAccountBySession($Session) )) {
                 $Entity = $tblAccount->getServiceTblConsumer();
-                $Memory->setValue($Session, $Entity, 0, __METHOD__);
             } else {
                 $Entity = false;
             }
+            $Memory->setValue($Session, $Entity, 0, __METHOD__);
         }
         return $Entity;
     }

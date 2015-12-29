@@ -78,7 +78,7 @@ class ConfigFactory implements ConfigInterface
     private function getHash($Mixed)
     {
 
-        return sha1(json_encode($Mixed));
+        return json_encode($Mixed);
     }
 
     /**

@@ -570,8 +570,8 @@ class Data extends AbstractData
 
             if ($Entity) {
                 $Entity = $Entity->getTblAccount();
-                $Memory->setValue($Session, $Entity, 0, __METHOD__);
             }
+            $Memory->setValue($Session, $Entity, 0, __METHOD__);
         }
         return ( $Entity ? $Entity : false );
     }

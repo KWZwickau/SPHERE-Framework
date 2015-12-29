@@ -58,7 +58,7 @@ class CacheFactory
     private function getHash($Handler)
     {
 
-        return sha1(get_class($Handler));
+        return get_class($Handler);
     }
 
     /**

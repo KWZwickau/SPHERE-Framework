@@ -53,7 +53,7 @@ class DebuggerFactory
     private function getHash($Logger)
     {
 
-        return sha1(get_class($Logger));
+        return get_class($Logger);
     }
 
     /**

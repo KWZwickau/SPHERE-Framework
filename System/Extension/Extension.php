@@ -25,6 +25,8 @@ use SPHERE\System\Extension\Repository\Upload;
 class Extension
 {
 
+    private static $CacheConfig = null;
+
     /**
      * @return \MOC\V\Core\HttpKernel\Component\IBridgeInterface
      */
@@ -42,9 +44,13 @@ class Extension
      */
     public function getCache(HandlerInterface $Handler, $Name = 'Memcached')
     {
-
-        $Config = (new ConfigFactory())->createReader(__DIR__.'/../Cache/Configuration.ini', new IniReader());
-        return (new CacheFactory())->createHandler($Handler, $Config, $Name);
+        if (null === self::$CacheConfig) {
+            self::$CacheConfig = (new ConfigFactory())->createReader(
+                __DIR__ . '/../Cache/Configuration.ini',
+                new IniReader()
+            );
+        }
+        return (new CacheFactory())->createHandler($Handler, self::$CacheConfig, $Name);
     }
 
     /**

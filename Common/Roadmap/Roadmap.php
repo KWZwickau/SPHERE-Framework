@@ -8,6 +8,7 @@ use SPHERE\Common\Roadmap\Milestone\Major1Minor1;
 use SPHERE\Common\Roadmap\Milestone\Major1Minor2;
 use SPHERE\Common\Roadmap\Milestone\Major1Minor3;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Roadmap as RoadmapExtension;
 
@@ -139,6 +140,11 @@ class Roadmap extends Extension
     public function getVersionNumber()
     {
 
-        return $this->Roadmap->getVersionNumber();
+        $Cache = $this->getCache(new MemcachedHandler());
+        if (null === ($Version = $Cache->getValue('Version', __METHOD__))) {
+            $Version = $this->Roadmap->getVersionNumber();
+            $Cache->setValue('Version', $Version, 0, __METHOD__);
+        }
+        return $Version;
     }
 }
