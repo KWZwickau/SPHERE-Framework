@@ -442,7 +442,11 @@ class Data extends AbstractData
             ->where($Builder->expr()->eq('L.serviceTblPerson', '?1'))
             ->setParameter(1, $tblPerson->getId())
             ->getQuery();
-        return $Query->useQueryCache(true)->getResult(ColumnHydrator::HYDRATION_MODE);
+
+        $Result = $Query->getArrayResult();
+        $IdList = array_column($Result, "tblAddress");
+//        $IdList = $Query->useQueryCache(true)->getResult(ColumnHydrator::HYDRATION_MODE);
+        return $IdList;
     }
 
     /**
