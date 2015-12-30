@@ -5,6 +5,7 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -74,10 +75,13 @@ class Frontend extends Extension implements IFrontendInterface
 //            $Cache = $this->getCache(new MemcachedHandler());
 //            if (null === ($Result = $Cache->getValue($Id, __METHOD__))) {
 
+            // Check ESZC
+            $Acronym = Consumer::useService()->getConsumerBySession()->getAcronym();
+
             $Result = array();
             if ($tblPersonAll) {
                 (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartRun');
-                array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result) {
+                array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym) {
 
                     $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
                     $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
@@ -97,7 +101,11 @@ class Frontend extends Extension implements IFrontendInterface
                             'Id' => $tblPerson->getId(),
                             'Group' => $tblGroup->getId()
                         ), 'Bearbeiten'),
-                        'Remark' => (($Common = Common::useService()->getCommonByPerson($tblPerson)) ? $Common->getRemark() : '')
+                        'Remark' => (
+                        $Acronym == 'ESZC'
+                            ? (($Common = Common::useService()->getCommonByPerson($tblPerson)) ? $Common->getRemark() : '')
+                            : ''
+                        )
                     ));
                 });
                 (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopRun');
@@ -105,6 +113,22 @@ class Frontend extends Extension implements IFrontendInterface
 //                    $Cache->setValue($Id, $Result, 0, __METHOD__);
 //                }
             }
+
+            if ($Acronym == 'ESZC') {
+                $ColumnArray = array(
+                    'FullName' => 'Name',
+                    'Address' => 'Adresse',
+                    'Remark' => 'Bemerkung',
+                    'Option' => 'Optionen',
+                );
+            } else {
+                $ColumnArray = array(
+                    'FullName' => 'Name',
+                    'Address' => 'Adresse',
+                    'Option' => 'Optionen',
+                );
+            }
+
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(
@@ -117,14 +141,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                     new LayoutRow(new LayoutColumn(array(
                         new Headline('Verfügbare Personen', 'in dieser Gruppe'),
-                        new TableData($Result, null,
-                            array(
-                                'FullName' => 'Name',
-                                'Address' => 'Adresse',
-                                'Remark' => 'Bemerkung',
-                                'Option' => 'Optionen',
-                            )
-                        )
+                        new TableData($Result, null, $ColumnArray)
                     )))
                 )))
             );
