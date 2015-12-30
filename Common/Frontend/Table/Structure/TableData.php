@@ -90,7 +90,7 @@ class TableData extends Table
             $V = new TableColumn($V);
         });
         // Todo: Missing Data
-        if (false && count($DataList) > 150 && $Interactive) {
+        if (count($DataList) > 150 && $Interactive) {
             // JS Table Data
             $ObjectList = array();
             array_walk($DataList, function (&$Row) use (&$ObjectList, $ColumnDefinition) {
