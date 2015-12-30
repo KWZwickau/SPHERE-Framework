@@ -126,9 +126,11 @@ class Manager extends Extension
                     /** @var MemcachedHandler $Cache */
                     $KeyList = $Cache->getCache()->getAllKeys();
                     $RegionList = explode('\\', $this->Namespace);
+                    $RegionList = array_filter($RegionList);
                     $RegionList[0] = $Cache->getSlotRegion($RegionList[0]);
+                    $RegionList = array_slice($RegionList, 0, count($RegionList) - 2);
                     foreach ($RegionList as $Index => $Region) {
-                        if ($Index > 0 && !empty( $Region )) {
+                        if ($Index > 0 && !empty($Region) && $Index < 4) {
                             $RegionList[$Index] = $RegionList[$Index - 1].'\\'.$Region;
                         }
                     }
