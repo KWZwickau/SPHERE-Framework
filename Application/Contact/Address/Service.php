@@ -612,15 +612,4 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->fetchAddressAllByIdList($IdArray);
     }
-
-    /**
-     * @param array $IdArray of TblAddress->Id
-     *
-     * @return array Address[]
-     */
-    public function fetchAddressInfoAllByIdList($IdArray)
-    {
-
-        return (new Data($this->getBinding()))->fetchAddressInfoAllByIdList($IdArray);
-    }
 }

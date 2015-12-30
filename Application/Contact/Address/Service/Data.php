@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Contact\Address\Service;
 
-use Doctrine\ORM\Query\Expr\Join;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Address\Service\Entity\TblCity;
 use SPHERE\Application\Contact\Address\Service\Entity\TblState;
@@ -11,6 +10,7 @@ use SPHERE\Application\Contact\Address\Service\Entity\TblType;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\ColumnHydrator;
 use SPHERE\System\Database\Fitting\IdHydrator;
@@ -435,18 +435,22 @@ class Data extends AbstractData
     public function fetchIdAddressAllByPerson(TblPerson $tblPerson)
     {
 
-        $Manager = $this->getConnection()->getEntityManager();
+        $Cache = $this->getCache(new MemcachedHandler());
+        if (null === ($IdList = $Cache->getValue($tblPerson->getId(), __METHOD__))) {
+            $Manager = $this->getConnection()->getEntityManager();
 
-        $Builder = $Manager->getQueryBuilder();
-        $Query = $Builder->select('L.tblAddress')
-            ->from(__NAMESPACE__.'\Entity\TblToPerson', 'L')
-            ->where($Builder->expr()->eq('L.serviceTblPerson', '?1'))
-            ->setParameter(1, $tblPerson->getId())
-            ->getQuery();
+            $Builder = $Manager->getQueryBuilder();
+            $Query = $Builder->select('L.tblAddress')
+                ->from(__NAMESPACE__ . '\Entity\TblToPerson', 'L')
+                ->where($Builder->expr()->eq('L.serviceTblPerson', '?1'))
+                ->setParameter(1, $tblPerson->getId())
+                ->getQuery();
 
-        $Result = $Query->getArrayResult();
-        $IdList = array_column($Result, "tblAddress");
-//        $IdList = $Query->useQueryCache(true)->getResult(ColumnHydrator::HYDRATION_MODE);
+            $IdList = $Query->useQueryCache(true)->getResult(ColumnHydrator::HYDRATION_MODE);
+
+            $Cache->setValue($tblPerson->getId(), $IdList, 0, __METHOD__);
+        }
+
         return $IdList;
     }
 
@@ -458,36 +462,23 @@ class Data extends AbstractData
     public function fetchAddressAllByIdList($IdArray)
     {
 
-        $Manager = $this->getConnection()->getEntityManager();
+        $Key = sha1(json_encode($IdArray));
+        $Cache = $this->getCache(new MemcachedHandler());
+        if (null === ($tblAddressAll = $Cache->getValue($Key, __METHOD__))) {
 
-        $Builder = $Manager->getQueryBuilder();
-        $Query = $Builder->select('A')
-            ->from(__NAMESPACE__.'\Entity\TblAddress', 'A')
-            ->where($Builder->expr()->in('A.Id', '?1'))
-            ->setParameter(1, $IdArray)
-            ->getQuery();
-        return $Query->useQueryCache(true)->useResultCache(true, 300)->getResult(IdHydrator::HYDRATION_MODE);
-    }
+            $Manager = $this->getConnection()->getEntityManager();
 
-    /**
-     * @param array $IdArray of TblAddress->Id
-     *
-     * @return array Address[]
-     */
-    public function fetchAddressInfoAllByIdList($IdArray)
-    {
+            $Builder = $Manager->getQueryBuilder();
+            $Query = $Builder->select('A')
+                ->from(__NAMESPACE__ . '\Entity\TblAddress', 'A')
+                ->where($Builder->expr()->in('A.Id', '?1'))
+                ->setParameter(1, $IdArray)
+                ->getQuery();
+            $tblAddressAll = $Query->useQueryCache(true)->getResult(IdHydrator::HYDRATION_MODE);
 
-        $Manager = $this->getConnection()->getEntityManager();
+            $Cache->setValue($Key, $tblAddressAll, 0, __METHOD__);
+        }
 
-        $Builder = $Manager->getQueryBuilder();
-        $Query = $Builder->select('TblAddress, TblCity, TblState')
-            ->from(__NAMESPACE__.'\Entity\TblAddress', 'TblAddress')
-            ->leftJoin(__NAMESPACE__.'\Entity\TblCity', 'TblCity', Join::LEFT_JOIN, 'TblAddress.tblCity = TblCity.Id')
-            ->leftJoin(__NAMESPACE__.'\Entity\TblState', 'TblState', Join::LEFT_JOIN,
-                'TblAddress.tblState = TblState.Id')
-            ->where($Builder->expr()->in('TblAddress.Id', '?1'))
-            ->setParameter(1, $IdArray)
-            ->getQuery();
-        return $Query->useQueryCache(true)->getScalarResult();
+        return $tblAddressAll;
     }
 }
