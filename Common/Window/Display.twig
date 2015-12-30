@@ -153,17 +153,33 @@
     <div class="row">
         <div class="col-xs-12 small" style="border-top: 1px solid #E7E7E7;">
             <div class="text-center small" style="padding: 5px;">
-                Mandant: {{ Consumer }} | Slot: {{ CacheSlot }}
+
+                <span class="glyphicons glyphicons-paragraph"></span> {{ Consumer }}
+
                 <br/>
-                © 2014 - {{ "now"|date("Y") }} | Erstellt in {{ DebuggerRuntime }} | {{ DebuggerHost }}
+
+                <span class="glyphicons glyphicons-clock"></span> {{ DebuggerRuntime }}
+                |
+                <span class="glyphicons glyphicons-globe"></span> {{ DebuggerHost }} {{ CpuLoad }}
+                |
+                <span class="glyphicons glyphicons-cluster"></span> {{ CacheSlot }} {{ MemoryPeak }}
+
                 <br/>
-                <a href="/Roadmap/Current">Version {{ RoadmapVersion }}</a>
+
+                <a href="/Roadmap/Current"><span class="glyphicons glyphicons-bookmark"></span> {{ RoadmapVersion }}</a>
+                |
+                <a href="http://www.beyondsecurity.com/vulnerability-scanner-verification/www.kreda.schule"
+                   class="text-success">
+                    <span class="glyphicons glyphicons-shield"></span> Secure Website
+                </a>
+                |
+                <a href="http://www.evangelische-schulen-sachsen.de/" class="text-warning">
+                    <span class="halflings halflings-copyright-mark"></span> 2014 - {{ "now"|date("Y") }}
+                </a>
+
                 <div class="text-left">
                     {{ DebuggerProtocol }}
                 </div>
-                <a href="http://www.beyondsecurity.com/vulnerability-scanner-verification/www.kreda.schule"><img
-                        src="https://seal.beyondsecurity.com/verification-images/www.kreda.schule/vulnerability-scanner-8.gif"
-                        alt="Website Security Test" border="0"/></a>
             </div>
         </div>
     </div>

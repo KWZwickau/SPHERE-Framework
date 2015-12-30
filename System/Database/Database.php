@@ -35,6 +35,7 @@ use SPHERE\System\Database\Link\Connection;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Database\Link\Register;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Database
@@ -129,16 +130,16 @@ class Database extends Extension
     public function getEntityManager($EntityPath, $EntityNamespace)
     {
 
+        // Sanitize Namespace
+        $EntityNamespace = trim(str_replace(array('/', '\\'), '\\', $EntityNamespace), '\\').'\\';
+
         // Manager Cache
         /** @var MemoryHandler $SystemMemcached */
         $ManagerCache = $this->getCache(new MemoryHandler());
-        $Manager = $ManagerCache->getValue((string)$this->Identifier, __METHOD__);
+        $Manager = $ManagerCache->getValue((string)$this->Identifier.$EntityNamespace.$EntityPath, __METHOD__);
 
         // TODO: Unit of Work is out of Sync if Manager is cached (sometimes)
-        if (true || false === $Manager) {
-
-            // Sanitize Namespace
-            $EntityNamespace = trim(str_replace(array('/', '\\'), '\\', $EntityNamespace), '\\').'\\';
+        if (null === $Manager) {
 
             // System Cache
             $MemcachedHandler = $this->getCache(new MemcachedHandler());
@@ -189,7 +190,7 @@ class Database extends Extension
                 EntityManager::create($this->getConnection()->getConnection(), $MetadataConfiguration), $EntityNamespace
             );
 
-            $ManagerCache->setValue((string)$this->Identifier, $Manager, 0, __METHOD__);
+            $ManagerCache->setValue((string)$this->Identifier.$EntityNamespace.$EntityPath, $Manager, 0, __METHOD__);
         }
         return $Manager;
     }

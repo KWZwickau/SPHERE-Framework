@@ -8,6 +8,7 @@ use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\HandlerInterface;
 use SPHERE\System\Config\ConfigFactory;
 use SPHERE\System\Config\Reader\IniReader;
+use SPHERE\System\Config\Reader\ReaderInterface;
 use SPHERE\System\Database\Fitting\Repository;
 use SPHERE\System\Extension\Repository\DataTables;
 use SPHERE\System\Extension\Repository\Debugger;
@@ -25,7 +26,10 @@ use SPHERE\System\Extension\Repository\Upload;
 class Extension
 {
 
+    /** @var null|ReaderInterface $CacheConfig */
     private static $CacheConfig = null;
+    /** @var HandlerInterface[] $CacheRegister */
+    private static $CacheRegister = array();
 
     /**
      * @return \MOC\V\Core\HttpKernel\Component\IBridgeInterface
@@ -44,13 +48,22 @@ class Extension
      */
     public function getCache(HandlerInterface $Handler, $Name = 'Memcached')
     {
+
         if (null === self::$CacheConfig) {
             self::$CacheConfig = (new ConfigFactory())->createReader(
-                __DIR__ . '/../Cache/Configuration.ini',
+                __DIR__.'/../Cache/Configuration.ini',
                 new IniReader()
             );
         }
-        return (new CacheFactory())->createHandler($Handler, self::$CacheConfig, $Name);
+
+        $Key = get_class($Handler).$Name;
+        if (isset( self::$CacheRegister[$Key] )) {
+            $Handler = self::$CacheRegister[$Key];
+        } else {
+            $Handler = (new CacheFactory())->createHandler($Handler, self::$CacheConfig, $Name);
+            self::$CacheRegister[$Key] = $Handler;
+        }
+        return $Handler;
     }
 
     /**

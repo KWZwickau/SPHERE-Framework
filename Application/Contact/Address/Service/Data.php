@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Contact\Address\Service;
 
+use Doctrine\ORM\Query\Expr\Join;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Address\Service\Entity\TblCity;
 use SPHERE\Application\Contact\Address\Service\Entity\TblState;
@@ -465,6 +466,28 @@ class Data extends AbstractData
             ->where($Builder->expr()->in('A.Id', '?1'))
             ->setParameter(1, $IdArray)
             ->getQuery();
-        return $Query->useQueryCache(true)->getResult(IdHydrator::HYDRATION_MODE);
+        return $Query->useQueryCache(true)->useResultCache(true, 300)->getResult(IdHydrator::HYDRATION_MODE);
+    }
+
+    /**
+     * @param array $IdArray of TblAddress->Id
+     *
+     * @return array Address[]
+     */
+    public function fetchAddressInfoAllByIdList($IdArray)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Builder = $Manager->getQueryBuilder();
+        $Query = $Builder->select('TblAddress, TblCity, TblState')
+            ->from(__NAMESPACE__.'\Entity\TblAddress', 'TblAddress')
+            ->leftJoin(__NAMESPACE__.'\Entity\TblCity', 'TblCity', Join::LEFT_JOIN, 'TblAddress.tblCity = TblCity.Id')
+            ->leftJoin(__NAMESPACE__.'\Entity\TblState', 'TblState', Join::LEFT_JOIN,
+                'TblAddress.tblState = TblState.Id')
+            ->where($Builder->expr()->in('TblAddress.Id', '?1'))
+            ->setParameter(1, $IdArray)
+            ->getQuery();
+        return $Query->useQueryCache(true)->getScalarResult();
     }
 }

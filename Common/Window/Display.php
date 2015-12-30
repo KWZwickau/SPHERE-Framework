@@ -308,6 +308,11 @@ class Display extends Extension implements ITemplateInterface
 
         $this->Template->setVariable('Content', implode('', $this->Content));
         $this->Template->setVariable('CacheSlot', (new MemcachedHandler())->getSlot());
+        $this->Template->setVariable('MemoryPeak', $this->formatBytes(memory_get_peak_usage()));
+
+        $CpuLoad = sys_getloadavg();
+        $this->Template->setVariable('CpuLoad',
+            number_format(100 / ( 50 * ( 2 - $CpuLoad[0] ) ) * ( 50 * ( $CpuLoad[0] ) ), 2, ',', '.').'%');
         $this->Template->setVariable('PathBase', $this->getRequest()->getPathBase());
         if (!$NoConnection) {
             $this->Template->setVariable('Consumer',
@@ -324,6 +329,22 @@ class Display extends Extension implements ITemplateInterface
         );
 
         return $this->Template->getContent();
+    }
+
+    private function formatBytes($Bytes, $usePrecision = 2)
+    {
+
+        $UnitList = array('B', 'KB', 'MB', 'GB', 'TB');
+
+        $Bytes = max($Bytes, 0);
+        $Power = floor(( $Bytes ? log($Bytes) : 0 ) / log(1024));
+        $Power = min($Power, count($UnitList) - 1);
+
+        // Uncomment one of the following alternatives
+        $Bytes /= pow(1024, $Power);
+        // $bytes /= (1 << (10 * $pow));
+
+        return round($Bytes, $usePrecision).' '.$UnitList[$Power];
     }
 
     /**
