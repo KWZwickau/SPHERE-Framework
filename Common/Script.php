@@ -235,10 +235,13 @@ class Script extends Extension
     public function __toString()
     {
 
-        return '<script type="text/javascript">'
-        .implode("\n", self::$SourceList)."\n"
-        .implode("\n", self::$ModuleList)."\n"
-        .'</script>';
+        $ScriptTagOpen = '<script type="text/javascript">';
+        $ScriptTagClose = '</script>';
+        $LineBreak = "\n";
+        return $ScriptTagOpen
+        .implode("\n", self::$SourceList).$LineBreak
+        .implode("\n", self::$ModuleList).$LineBreak
+        .$ScriptTagClose;
     }
 
 }

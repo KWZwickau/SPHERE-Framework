@@ -50,7 +50,7 @@ class Display extends Extension implements ITemplateInterface
     public function __construct()
     {
 
-        $this->Template = $this->getTemplate(__DIR__ . '/Display.twig');
+        $this->Template = $this->getTemplate(__DIR__.'/Display.twig');
     }
 
     /**
@@ -103,7 +103,7 @@ class Display extends Extension implements ITemplateInterface
     }
 
     /**
-     * @param Link $Link
+     * @param Link       $Link
      * @param Link\Route $Restriction
      *
      * @return Display
@@ -154,7 +154,7 @@ class Display extends Extension implements ITemplateInterface
     }
 
     /**
-     * @param Link $Link
+     * @param Link       $Link
      * @param Link\Route $Restriction
      *
      * @return Display
@@ -223,7 +223,7 @@ class Display extends Extension implements ITemplateInterface
 
     /**
      * @param \Exception $Exception
-     * @param string $Name
+     * @param string     $Name
      *
      * @return Display
      */
@@ -231,15 +231,15 @@ class Display extends Extension implements ITemplateInterface
     {
 
         $TraceList = '';
-        foreach ((array)$Exception->getTrace() as $Index => $Trace) {
+        foreach ((array)$Exception->getTrace() as $Trace) {
             $TraceList .= nl2br('<br/><samp class="text-info">'
-                . (isset($Trace['type']) && isset($Trace['function']) ? '<br/>Method: ' . $Trace['type'] . $Trace['function'] : '<br/>Method: ')
-                . (isset($Trace['class']) ? '<br/>Class: ' . $Trace['class'] : '<br/>Class: ')
-                . (isset($Trace['file']) ? '<br/>File: ' . $Trace['file'] : '<br/>File: ')
-                . (isset($Trace['line']) ? '<br/>Line: ' . $Trace['line'] : '<br/>Line: ')
-                . '</samp>');
+                .( isset( $Trace['type'] ) && isset( $Trace['function'] ) ? '<br/>Method: '.$Trace['type'].$Trace['function'] : '<br/>Method: ' )
+                .( isset( $Trace['class'] ) ? '<br/>Class: '.$Trace['class'] : '<br/>Class: ' )
+                .( isset( $Trace['file'] ) ? '<br/>File: '.$Trace['file'] : '<br/>File: ' )
+                .( isset( $Trace['line'] ) ? '<br/>Line: '.$Trace['line'] : '<br/>Line: ' )
+                .'</samp>');
         }
-        $Hit = '<samp class="text-danger"><p class="h6">' . nl2br($Exception->getMessage()) . '</p><br/>File: ' . $Exception->getFile() . '<br/>Line: ' . $Exception->getLine() . '</samp>' . $TraceList;
+        $Hit = '<samp class="text-danger"><p class="h6">'.nl2br($Exception->getMessage()).'</p><br/>File: '.$Exception->getFile().'<br/>Line: '.$Exception->getLine().'</samp>'.$TraceList;
         $this->addContent(new Error(
             $Exception->getCode() == 0 ? $Name : $Exception->getCode(), $Hit
         ));
@@ -289,7 +289,7 @@ class Display extends Extension implements ITemplateInterface
         $Debug = $this->getDebugger();
         $Runtime = $Debug->getRuntime();
         $Protocol = $Debug->getProtocol();
-        if (!empty($Protocol)) {
+        if (!empty( $Protocol )) {
             $this->Template->setVariable('DebuggerProtocol',
                 (new Accordion())
 //                    ->addItem('Debug Protocol ' . $Runtime, $Protocol)
@@ -297,7 +297,7 @@ class Display extends Extension implements ITemplateInterface
                         implode('<br/>', (new DebuggerFactory())->createLogger(new BenchmarkLogger())->getLog())
                         , true)
                     ->addItem('Debugger (Error)',
-                        implode('<br/>',(new DebuggerFactory())->createLogger(new ErrorLogger())->getLog())
+                        implode('<br/>', (new DebuggerFactory())->createLogger(new ErrorLogger())->getLog())
                         , true)
             );
         }
@@ -308,22 +308,43 @@ class Display extends Extension implements ITemplateInterface
 
         $this->Template->setVariable('Content', implode('', $this->Content));
         $this->Template->setVariable('CacheSlot', (new MemcachedHandler())->getSlot());
+        $this->Template->setVariable('MemoryPeak', $this->formatBytes(memory_get_peak_usage()));
+
+        $CpuLoad = sys_getloadavg();
+        $this->Template->setVariable('CpuLoad',
+            number_format(100 / ( 50 * ( 2 - $CpuLoad[0] ) ) * ( 50 * ( $CpuLoad[0] ) ), 2, ',', '.').'%');
         $this->Template->setVariable('PathBase', $this->getRequest()->getPathBase());
         if (!$NoConnection) {
             $this->Template->setVariable('Consumer',
-                '[' . Consumer::useService()->getConsumerBySession()->getAcronym() . '] '
-                . Consumer::useService()->getConsumerBySession()->getName()
+                '['.Consumer::useService()->getConsumerBySession()->getAcronym().'] '
+                .Consumer::useService()->getConsumerBySession()->getName()
             );
         }
 
         $this->Template->setVariable('SeoTitle',
-            (!trim(trim($this->getRequest()->getPathInfo(), '/'))
+            ( !trim(trim($this->getRequest()->getPathInfo(), '/'))
                 ? ''
-                : ': ' . str_replace('/', ' - ', trim($this->getRequest()->getPathInfo(), '/'))
+                : ': '.str_replace('/', ' - ', trim($this->getRequest()->getPathInfo(), '/'))
             )
         );
 
         return $this->Template->getContent();
+    }
+
+    private function formatBytes($Bytes, $usePrecision = 2)
+    {
+
+        $UnitList = array('B', 'KB', 'MB', 'GB', 'TB');
+
+        $Bytes = max($Bytes, 0);
+        $Power = floor(( $Bytes ? log($Bytes) : 0 ) / log(1024));
+        $Power = min($Power, count($UnitList) - 1);
+
+        // Uncomment one of the following alternatives
+        $Bytes /= pow(1024, $Power);
+        // $bytes /= (1 << (10 * $pow));
+
+        return round($Bytes, $usePrecision).' '.$UnitList[$Power];
     }
 
     /**

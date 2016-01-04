@@ -55,7 +55,7 @@ class TblItemAccount extends Element
     /**
      * @return bool|TblAccount
      */
-    public function getServiceBilling_Account()
+    public function getServiceBillingAccount()
     {
 
         if (null === $this->serviceBilling_Account) {

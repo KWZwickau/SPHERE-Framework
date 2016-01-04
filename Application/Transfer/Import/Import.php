@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Transfer\Import;
 
-use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Transfer\Import\Chemnitz\Chemnitz;

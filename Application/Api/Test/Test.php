@@ -4,7 +4,6 @@ namespace SPHERE\Application\Api\Test;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\System\Extension\Extension;
 
@@ -27,17 +26,17 @@ class Test extends Extension implements IApplicationInterface, IModuleInterface
 
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/ShowImage',
-                __NAMESPACE__.'\Frontend::ShowImage'
+                __NAMESPACE__.'\Frontend::showImage'
             )
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/ShowContent',
-                __NAMESPACE__.'\Frontend::ShowContent'
+                __NAMESPACE__.'\Frontend::showContent'
             )
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/ShowThumbnail',
-                __NAMESPACE__.'\Frontend::ShowThumbnail'
+                __NAMESPACE__.'\Frontend::showThumbnail'
             )
         );
     }
@@ -47,14 +46,15 @@ class Test extends Extension implements IApplicationInterface, IModuleInterface
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+        // Implement useService() method.
     }
 
     /**
-     * @return IFrontendInterface
+     * @return Frontend
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
+        return new Frontend();
     }
 }

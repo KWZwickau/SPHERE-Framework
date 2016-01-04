@@ -179,8 +179,7 @@ class Data extends AbstractData
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Setting/Authorization/Account/Create');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Setting/Authorization/Account/Edit');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $this->createRight('/Setting/Authorization/Account/Edit');
         $tblRight = $this->createRight('/Setting/Authorization/Account/Destroy');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
@@ -220,7 +219,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblRole')->findOneBy(array(TblRole::ATTR_NAME => $Name));
         if (null === $Entity) {
             $Entity = new TblRole($Name);
-            $Entity->setIsInternal($IsInternal);
+            $Entity->setInternal($IsInternal);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -462,13 +461,13 @@ class Data extends AbstractData
 
         // 1. Level Cache
         $Memory = $this->getCache(new MemoryHandler());
-        if (null === ($RouteList = $Memory->getValue(__METHOD__, __METHOD__))) {
+        if (null === ( $RouteList = $Memory->getValue(__METHOD__, __METHOD__) )) {
             // 2. Level Cache
             $Cache = $this->getCache(new MemcachedHandler());
-            if (null === ($RouteList = $Cache->getValue(__METHOD__, __METHOD__))) {
+            if (null === ( $RouteList = $Cache->getValue(__METHOD__, __METHOD__) )) {
                 $RouteList = $this->getConnection()->getEntityManager()->getQueryBuilder()
                     ->select('R.Route')
-                    ->from(__NAMESPACE__ . '\Entity\TblRight', 'R')
+                    ->from(__NAMESPACE__.'\Entity\TblRight', 'R')
                     ->distinct()
                     ->getQuery()
                     ->getResult("COLUMN_HYDRATOR");

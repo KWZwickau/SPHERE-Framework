@@ -66,16 +66,16 @@ class TblRole extends Element
     /**
      * @return bool
      */
-    public function getIsInternal()
+    public function isInternal()
     {
 
-        return $this->IsInternal;
+        return (bool)$this->IsInternal;
     }
 
     /**
      * @param bool $IsInternal
      */
-    public function setIsInternal($IsInternal)
+    public function setInternal($IsInternal)
     {
 
         $this->IsInternal = (bool)$IsInternal;

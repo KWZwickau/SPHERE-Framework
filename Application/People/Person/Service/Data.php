@@ -26,7 +26,7 @@ class Data extends AbstractData
 
     /**
      * @param string $Salutation
-     * @param bool $IsLocked
+     * @param bool   $IsLocked
      *
      * @return TblSalutation
      */
@@ -37,7 +37,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblSalutation')->findOneBy(array(TblSalutation::ATTR_SALUTATION => $Salutation));
         if (null === $Entity) {
             $Entity = new TblSalutation($Salutation);
-            $Entity->setIsLocked($IsLocked);
+            $Entity->setLocked($IsLocked);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -45,7 +45,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Salutation
+     * @param        $Salutation
      * @param string $Title
      * @param string $FirstName
      * @param string $SecondName
@@ -56,6 +56,7 @@ class Data extends AbstractData
      */
     public function createPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $BirthName = '')
     {
+
         if ($Salutation === false) {
             $Salutation = null;
         }
@@ -86,12 +87,12 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param $Salutation
-     * @param string $Title
-     * @param string $FirstName
-     * @param string $SecondName
-     * @param string $LastName
-     * @param string $BirthName
+     * @param           $Salutation
+     * @param string    $Title
+     * @param string    $FirstName
+     * @param string    $SecondName
+     * @param string    $LastName
+     * @param string    $BirthName
      *
      * @return bool
      */
@@ -104,6 +105,7 @@ class Data extends AbstractData
         $LastName,
         $BirthName = ''
     ) {
+
         if ($Salutation === false || $Salutation === '0') {
             $Salutation = null;
         }
@@ -153,12 +155,10 @@ class Data extends AbstractData
     public function getPersonAllByFirstNameAndLastName($FirstName, $LastName)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblPerson')->findBy(array(
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', array(
             TblPerson::ATTR_FIRST_NAME => $FirstName,
-            TblPerson::ATTR_LAST_NAME => $LastName
+            TblPerson::ATTR_LAST_NAME  => $LastName
         ));
-
-        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
@@ -179,20 +179,21 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
-//        return $this->getConnection()->getEntityManager()->getEntityById('TblPerson', $Id);
     }
 
     /**
      * @param array $IdArray of TblPerson->Id
+     *
      * @return TblPerson[]
      */
     public function fetchPersonAllByIdList($IdArray)
     {
+
         $Manager = $this->getConnection()->getEntityManager();
 
         $Builder = $Manager->getQueryBuilder();
         $Query = $Builder->select('P')
-            ->from(__NAMESPACE__ . '\Entity\TblPerson', 'P')
+            ->from(__NAMESPACE__.'\Entity\TblPerson', 'P')
             ->where($Builder->expr()->in('P.Id', '?1'))
             ->setParameter(1, $IdArray)
             ->getQuery();

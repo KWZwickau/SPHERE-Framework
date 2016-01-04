@@ -17,7 +17,7 @@ class Major1Minor1
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function Patch0(RoadmapExtension $Roadmap)
+    public static function definePatch0(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('1.1.0', 'KREDA (Ziel Q1 2016)');
@@ -34,9 +34,6 @@ class Major1Minor1
         $Task = $Feature->createTask('MySql');
         $Task->createDuty('Konfiguration', true);
         $Task->createDuty('Performance', true);
-        $Feature = $Category->createFeature('Code Style');
-        $Feature->createTask('PSR-1/PSR2');
-        $Category->createFeature('Code Performance', '', false);
 
         // Bildung
         $Category = $Release->createCategory('Bildung');

@@ -65,7 +65,16 @@ class Data extends AbstractData
     public function getProtocolAll()
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblProtocol')->findAll();
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Query = $Manager->getQueryBuilder()
+            ->select('P')
+            ->from(__NAMESPACE__ . '\Entity\TblProtocol', 'P')
+            ->orderBy('P.Id', 'DESC')
+            ->setMaxResults(10000)
+            ->getQuery();
+
+        $EntityList = $Query->getResult();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 

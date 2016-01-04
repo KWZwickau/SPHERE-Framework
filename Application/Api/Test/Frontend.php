@@ -23,7 +23,7 @@ class Frontend implements IFrontendInterface
      *
      * @return string
      */
-    public function ShowImage($Id = null)
+    public function showImage($Id = null)
     {
 
         $Image = App::useService()->getTestPictureById($Id);
@@ -59,7 +59,7 @@ class Frontend implements IFrontendInterface
      *
      * @return string
      */
-    public function ShowContent($Id = null)
+    public function showContent($Id = null)
     {
 
         $Image = App::useService()->getTestPictureById($Id);
@@ -77,7 +77,7 @@ class Frontend implements IFrontendInterface
      *
      * @return bool|string
      */
-    public function ShowThumbnail($Id = null, $Option = false)
+    public function showThumbnail($Id = null, $Option = false)
     {
 
         if ($Id === null) {
@@ -114,7 +114,7 @@ class Frontend implements IFrontendInterface
      *
      * @return string
      */
-    public function ShowFile($Id = null)
+    public function showFile($Id = null)
     {
 
         $Auth = new Authenticator(new Get());

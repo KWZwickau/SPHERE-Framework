@@ -63,7 +63,7 @@ class TblDirectory extends Element
     /**
      * @return bool
      */
-    public function getIsLocked()
+    public function isLocked()
     {
 
         return (bool)$this->IsLocked;
@@ -72,7 +72,7 @@ class TblDirectory extends Element
     /**
      * @param bool $IsLocked
      */
-    public function setIsLocked($IsLocked)
+    public function setLocked($IsLocked)
     {
 
         $this->IsLocked = (bool)$IsLocked;

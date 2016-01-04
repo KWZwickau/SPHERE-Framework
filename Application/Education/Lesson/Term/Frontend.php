@@ -142,7 +142,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Schuljahr',
                             array(
-                                new AutoCompleter('Year[Name]', 'Name', 'z.B: '.date('Y').'/'.( date('Y') + 1 ).' Gymnasium',
+                                new AutoCompleter('Year[Name]', 'Name',
+                                    'z.B: '.date('Y').'/'.( date('Y') + 1 ).' Gymnasium',
                                     $acNameAll, new Pencil()),
                                 new TextField('Year[Description]', 'z.B: für Gymnasium', 'Beschreibung',
                                     new Pencil())
@@ -312,14 +313,14 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPeriodAvailable = $tblPeriodAll;
             }
 
-
             /** @noinspection PhpUnusedParameterInspection */
             if (is_array($tblPeriodUsedList)) {
                 array_walk($tblPeriodUsedList, function (TblPeriod &$Entity) use ($Id) {
 
                     /** @noinspection PhpUndefinedFieldInspection */
                     $Entity->Option = new PullRight(
-                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Education/Lesson/Term/Choose/Period', new Minus(),
+                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
+                            '/Education/Lesson/Term/Choose/Period', new Minus(),
                             array(
                                 'Id'     => $Id,
                                 'Period' => $Entity->getId(),
@@ -330,12 +331,13 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             /** @noinspection PhpUnusedParameterInspection */
-            if (isset( $tblPeriodAvailable )) {
+            if (isset( $tblPeriodAvailable ) && is_array($tblPeriodAvailable)) {
                 array_walk($tblPeriodAvailable, function (TblPeriod &$Entity) use ($Id) {
 
                     /** @noinspection PhpUndefinedFieldInspection */
                     $Entity->Option = new PullRight(
-                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Education/Lesson/Term/Choose/Period', new Plus(),
+                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
+                            '/Education/Lesson/Term/Choose/Period', new Plus(),
                             array(
                                 'Id'     => $Id,
                                 'Period' => $Entity->getId()
@@ -343,7 +345,6 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                 });
             }
-
 
             $Stage->setContent(
                 new Layout(
@@ -354,11 +355,13 @@ class Frontend extends Extension implements IFrontendInterface
                                 ( empty( $tblPeriodUsedList )
                                     ? new Warning('Kein Zeitraum zugewiesen')
                                     : new TableData($tblPeriodUsedList, null,
-                                        array('Name'        => 'Fach',
-                                              'FromDate'    => 'Von',
-                                              'ToDate'      => 'Bis',
-                                              'Description' => 'Beschreibung',
-                                              'Option'      => ''))
+                                        array(
+                                            'Name'        => 'Fach',
+                                            'FromDate'    => 'Von',
+                                            'ToDate'      => 'Bis',
+                                            'Description' => 'Beschreibung',
+                                            'Option'      => ''
+                                        ))
                                 )
                             ), 6),
                             new LayoutColumn(array(
@@ -366,11 +369,13 @@ class Frontend extends Extension implements IFrontendInterface
                                 ( empty( $tblPeriodAvailable )
                                     ? new Info('Keine weiteren Zeiträume verfügbar')
                                     : new TableData($tblPeriodAvailable, null,
-                                        array('Name'        => 'Fach',
-                                              'FromDate'    => 'Von',
-                                              'ToDate'      => 'Bis',
-                                              'Description' => 'Beschreibung',
-                                              'Option'      => ''))
+                                        array(
+                                            'Name'        => 'Fach',
+                                            'FromDate'    => 'Von',
+                                            'ToDate'      => 'Bis',
+                                            'Description' => 'Beschreibung',
+                                            'Option'      => ''
+                                        ))
                                 )
                             ), 6)
                         ))
@@ -441,7 +446,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 array(
-                                    new Panel('Jahr', $tblYear->getName().' '.new Small(new Muted($tblYear->getDescription())), Panel::PANEL_TYPE_INFO).
+                                    new Panel('Jahr',
+                                        $tblYear->getName().' '.new Small(new Muted($tblYear->getDescription())),
+                                        Panel::PANEL_TYPE_INFO).
                                     new Headline(new Edit().' Bearbeiten'),
                                     new Well(Term::useService()->changeYear($Form, $tblYear, $Year)),
                                 ), 6)
@@ -460,6 +467,11 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param int $Id
+     *
+     * @return Stage|string
+     */
     public function frontendDestroyYear($Id)
     {
 
@@ -498,7 +510,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel('Zeitraum', array(
                                 $PeriodName.' '.new Muted(new Small($PeriodDescription)),
-                                'Zeitraum '.$PeriodFrom.' - '.$PeriodTo), Panel::PANEL_TYPE_INFO)
+                                'Zeitraum '.$PeriodFrom.' - '.$PeriodTo
+                            ), Panel::PANEL_TYPE_INFO)
                         )
                     )
                 )
@@ -525,6 +538,11 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param int $Id
+     *
+     * @return Stage|string
+     */
     public function frontendDestroyPeriod($Id)
     {
 

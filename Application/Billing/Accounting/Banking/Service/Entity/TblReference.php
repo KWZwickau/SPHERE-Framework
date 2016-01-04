@@ -70,7 +70,7 @@ class TblReference extends Element
     /**
      * @return boolean $IsVoid
      */
-    public function getIsVoid()
+    public function isVoid()
     {
 
         return $this->IsVoid;
@@ -79,7 +79,7 @@ class TblReference extends Element
     /**
      * @param boolean $IsVoid
      */
-    public function setIsVoid($IsVoid)
+    public function setVoid($IsVoid)
     {
 
         $this->IsVoid = $IsVoid;

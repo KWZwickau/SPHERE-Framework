@@ -185,7 +185,7 @@ class Upload
         try {
             $this->File->upload();
         } catch (UploadException $Exception) {
-            throw new \Exception(print_r($this->File->getErrors(), true));
+            throw new \Exception(json_encode($this->File->getErrors()));
         }
     }
 }

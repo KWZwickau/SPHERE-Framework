@@ -66,7 +66,7 @@ class Structure
     /**
      * @param DBALTable $KeyTarget Foreign Key (Column: KeySource Name)
      * @param DBALTable $KeySource Foreign Data (Column: Id)
-     * @param bool $AllowNull
+     * @param bool      $AllowNull
      */
     public function addForeignKey(DBALTable &$KeyTarget, DBALTable $KeySource, $AllowNull = false)
     {

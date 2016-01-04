@@ -7,28 +7,36 @@ use SPHERE\Common\Frontend\ITemplateInterface;
 
 /**
  * Class Document
+ *
  * @package SPHERE\Application\Document\Designer\Repository\Element
  */
 class Document implements ITemplateInterface
 {
+
     /** @var IBridgeInterface|null $Template */
     private $Template = null;
     /** @var null|string */
     private $Content = null;
 
+    /**
+     * Document constructor.
+     *
+     * @param null|string $Content
+     */
     function __construct($Content = null)
     {
+
         $this->Content = $Content;
         $this->Template = Template::getTwigTemplateString(
             '<div class="SPHERE-Document-Designer">'
-            . '<div class="SDD-Document">'
-            . '{{ Content }}'
-            . '</div>'
-            . '</div>'
-            . '<script>'
-            . 'var ModSDDGui;'
-            . 'Client.Use("ModSDDGui", function(){ ModSDDGui =jQuery(".SPHERE-Document-Designer").ModSDDGui(); });'
-            . '</script>'
+            .'<div class="SDD-Document">'
+            .'{{ Content }}'
+            .'</div>'
+            .'</div>'
+            .'<script>'
+            .'var ModSDDGui;'
+            .'Client.Use("ModSDDGui", function(){ ModSDDGui =jQuery(".SPHERE-Document-Designer").ModSDDGui(); });'
+            .'</script>'
 
         );
     }
@@ -38,6 +46,7 @@ class Document implements ITemplateInterface
      */
     public function __toString()
     {
+
         return (string)$this->getContent();
     }
 
@@ -46,6 +55,7 @@ class Document implements ITemplateInterface
      */
     public function getContent()
     {
+
         if (is_array($this->Content)) {
             $this->Content = implode($this->Content);
         }
@@ -55,8 +65,12 @@ class Document implements ITemplateInterface
         return $this->Template->getContent();
     }
 
+    /**
+     * @param null|string $Content
+     */
     public function setContent($Content)
     {
+
         $this->Content = $Content;
     }
 }

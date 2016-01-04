@@ -203,14 +203,14 @@ abstract class Integration extends Subject
     }
 
     /**
-     * @param TblPerson|null $tblPerson
+     * @param TblPerson|null  $tblPerson
      * @param TblCompany|null $tblCompany
-     * @param $CoachingRequestDate
-     * @param $CoachingCounselDate
-     * @param $CoachingDecisionDate
-     * @param $CoachingRequired
-     * @param $CoachingTime
-     * @param $CoachingRemark
+     * @param                 $CoachingRequestDate
+     * @param                 $CoachingCounselDate
+     * @param                 $CoachingDecisionDate
+     * @param                 $CoachingRequired
+     * @param                 $CoachingTime
+     * @param                 $CoachingRemark
      *
      * @return TblStudentIntegration
      */
@@ -229,9 +229,9 @@ abstract class Integration extends Subject
         $Entity = new TblStudentIntegration();
         $Entity->setServiceTblPerson($tblPerson);
         $Entity->setServiceTblCompany($tblCompany);
-        $Entity->setCoachingRequestDate(($CoachingRequestDate ? new \DateTime($CoachingRequestDate) : null));
-        $Entity->setCoachingCounselDate(($CoachingCounselDate ? new \DateTime($CoachingCounselDate) : null));
-        $Entity->setCoachingDecisionDate(($CoachingDecisionDate ? new \DateTime($CoachingDecisionDate) : null));
+        $Entity->setCoachingRequestDate(( $CoachingRequestDate ? new \DateTime($CoachingRequestDate) : null ));
+        $Entity->setCoachingCounselDate(( $CoachingCounselDate ? new \DateTime($CoachingCounselDate) : null ));
+        $Entity->setCoachingDecisionDate(( $CoachingDecisionDate ? new \DateTime($CoachingDecisionDate) : null ));
         $Entity->setCoachingRequired($CoachingRequired);
         $Entity->setCoachingTime($CoachingTime);
         $Entity->setCoachingRemark($CoachingRemark);
@@ -244,14 +244,14 @@ abstract class Integration extends Subject
 
     /**
      * @param TblStudentIntegration $tblStudentIntegration
-     * @param TblPerson|null $tblPerson
-     * @param TblCompany|null $tblCompany
-     * @param $CoachingRequestDate
-     * @param $CoachingCounselDate
-     * @param $CoachingDecisionDate
-     * @param $CoachingRequired
-     * @param $CoachingTime
-     * @param $CoachingRemark
+     * @param TblPerson|null        $tblPerson
+     * @param TblCompany|null       $tblCompany
+     * @param                       $CoachingRequestDate
+     * @param                       $CoachingCounselDate
+     * @param                       $CoachingDecisionDate
+     * @param                       $CoachingRequired
+     * @param                       $CoachingTime
+     * @param                       $CoachingRemark
      *
      * @return bool
      */
@@ -274,9 +274,9 @@ abstract class Integration extends Subject
             $Protocol = clone $Entity;
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setServiceTblCompany($tblCompany);
-            $Entity->setCoachingRequestDate(($CoachingRequestDate ? new \DateTime($CoachingRequestDate) : null));
-            $Entity->setCoachingCounselDate(($CoachingCounselDate ? new \DateTime($CoachingCounselDate) : null));
-            $Entity->setCoachingDecisionDate(($CoachingDecisionDate ? new \DateTime($CoachingDecisionDate) : null));
+            $Entity->setCoachingRequestDate(( $CoachingRequestDate ? new \DateTime($CoachingRequestDate) : null ));
+            $Entity->setCoachingCounselDate(( $CoachingCounselDate ? new \DateTime($CoachingCounselDate) : null ));
+            $Entity->setCoachingDecisionDate(( $CoachingDecisionDate ? new \DateTime($CoachingDecisionDate) : null ));
             $Entity->setCoachingRequired($CoachingRequired);
             $Entity->setCoachingTime($CoachingTime);
             $Entity->setCoachingRemark($CoachingRemark);
@@ -289,7 +289,7 @@ abstract class Integration extends Subject
     }
 
     /**
-     * @param TblStudent $tblStudent
+     * @param TblStudent             $tblStudent
      * @param TblStudentDisorderType $tblStudentDisorderType
      *
      * @return TblStudentDisorder
@@ -303,7 +303,7 @@ abstract class Integration extends Subject
 
         /** @var TblStudentDisorder $Entity */
         $Entity = $Manager->getEntity('TblStudentDisorder')->findOneBy(array(
-            TblStudentDisorder::ATTR_TBL_STUDENT => $tblStudent->getId(),
+            TblStudentDisorder::ATTR_TBL_STUDENT               => $tblStudent->getId(),
             TblStudentDisorder::ATTR_TBL_STUDENT_DISORDER_TYPE => $tblStudentDisorderType->getId()
         ));
 
@@ -339,7 +339,7 @@ abstract class Integration extends Subject
     }
 
     /**
-     * @param TblStudent $tblStudent
+     * @param TblStudent          $tblStudent
      * @param TblStudentFocusType $tblStudentFocusType
      *
      * @return TblStudentFocus
@@ -353,7 +353,7 @@ abstract class Integration extends Subject
 
         /** @var TblStudentFocus $Entity */
         $Entity = $Manager->getEntity('TblStudentFocus')->findOneBy(array(
-            TblStudentFocus::ATTR_TBL_STUDENT => $tblStudent->getId(),
+            TblStudentFocus::ATTR_TBL_STUDENT            => $tblStudent->getId(),
             TblStudentFocus::ATTR_TBL_STUDENT_FOCUS_TYPE => $tblStudentFocusType->getId()
         ));
 

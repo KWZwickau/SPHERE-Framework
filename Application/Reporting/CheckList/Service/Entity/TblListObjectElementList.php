@@ -26,6 +26,7 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblListObjectElementList extends Element
 {
+
     const ATTR_TBL_LIST = 'tblList';
     const ATTR_TBL_LIST_ELEMENT_LIST = 'tblListElementList';
     const ATTR_SERVICE_TBL_OBJECT = 'serviceTblObject';
@@ -61,6 +62,7 @@ class TblListObjectElementList extends Element
      */
     public function getTblList()
     {
+
         if (null === $this->tblList) {
             return false;
         } else {
@@ -73,7 +75,8 @@ class TblListObjectElementList extends Element
      */
     public function setTblList($tblList)
     {
-        $this->tblList = (null === $tblList ? null : $tblList->getId());
+
+        $this->tblList = ( null === $tblList ? null : $tblList->getId() );
     }
 
     /**
@@ -81,6 +84,7 @@ class TblListObjectElementList extends Element
      */
     public function getTblListElementList()
     {
+
         if (null === $this->tblListElementList) {
             return false;
         } else {
@@ -93,7 +97,8 @@ class TblListObjectElementList extends Element
      */
     public function setTblListElementList($tblListElementList)
     {
-        $this->tblListElementList = (null === $tblListElementList ? null : $tblListElementList->getId());
+
+        $this->tblListElementList = ( null === $tblListElementList ? null : $tblListElementList->getId() );
     }
 
     /**
@@ -101,6 +106,7 @@ class TblListObjectElementList extends Element
      */
     public function getServiceTblObject()
     {
+
         if (null === $this->serviceTblObject) {
             return false;
         } else {
@@ -119,7 +125,8 @@ class TblListObjectElementList extends Element
      */
     public function setServiceTblObject($serviceTblObject)
     {
-        $this->serviceTblObject = (null === $serviceTblObject ? null : $serviceTblObject->getId());
+
+        $this->serviceTblObject = ( null === $serviceTblObject ? null : $serviceTblObject->getId() );
     }
 
     /**
@@ -127,6 +134,7 @@ class TblListObjectElementList extends Element
      */
     public function getTblObjectType()
     {
+
         if (null === $this->tblObjectType) {
             return false;
         } else {
@@ -139,7 +147,8 @@ class TblListObjectElementList extends Element
      */
     public function setTblObjectType($tblObjectType)
     {
-        $this->tblObjectType = (null === $tblObjectType ? null : $tblObjectType->getId());
+
+        $this->tblObjectType = ( null === $tblObjectType ? null : $tblObjectType->getId() );
     }
 
     /**
@@ -147,6 +156,7 @@ class TblListObjectElementList extends Element
      */
     public function getValue()
     {
+
         return $this->Value;
     }
 
@@ -155,6 +165,7 @@ class TblListObjectElementList extends Element
      */
     public function setValue($Value)
     {
+
         $this->Value = $Value;
     }
 }

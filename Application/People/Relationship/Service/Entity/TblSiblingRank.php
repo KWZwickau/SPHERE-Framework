@@ -34,6 +34,7 @@ class TblSiblingRank extends Element
      */
     public function getName()
     {
+
         return $this->Name;
     }
 
@@ -42,6 +43,7 @@ class TblSiblingRank extends Element
      */
     public function setName($Name)
     {
+
         $this->Name = $Name;
     }
 }

@@ -275,7 +275,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        $PictureList = array_values( $DataList );
 
         $Stage->setContent(
-            Test::useService()->UploadNow(
+            Test::useService()->uploadNow(
                 (new Form(
                     new FormGroup(
                         new FormRow(array(
@@ -285,7 +285,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ))
                     )
                 ))->appendFormButton(new Primary('Hochladen', new Upload())), $FileUpload)
-            .self::PictureShow($PictureList)
+            .self::pictureShow($PictureList)
         );
 
         return $Stage;
@@ -296,7 +296,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Layout
      */
-    public function PictureShow($PictureList)
+    public function pictureShow($PictureList)
     {
 
         if (!empty( $PictureList )) {
@@ -312,7 +312,7 @@ class Frontend extends Extension implements IFrontendInterface
 ////                            jQuery("div#Thumb-'.$Key.'").load("/Api/Test/ShowThumbnail?Id='.$Picture->getId().'");
 ////                        });
 ////                    </script>'
-//                    (new \SPHERE\Application\Api\Test\Frontend())->ShowThumbnail($Picture->getId())
+//                    (new \SPHERE\Application\Api\Test\Frontend())->showThumbnail($Picture->getId())
 //                ), 6);
 //            }
 //
@@ -322,7 +322,7 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblTestPicture $Picture */
             foreach ((array)$PictureList as $Index => $Picture) {
                 $PictureList[$Index] = new LayoutColumn(array(
-                    (new \SPHERE\Application\Api\Test\Frontend())->ShowThumbnail($Picture->getId(), true)
+                    (new \SPHERE\Application\Api\Test\Frontend())->showThumbnail($Picture->getId(), true)
                 ), 3);
             }
         } else {
@@ -368,7 +368,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                             new LayoutColumn(array(
-                                (new \SPHERE\Application\Api\Test\Frontend())->ShowThumbnail($Id)
+                                (new \SPHERE\Application\Api\Test\Frontend())->showThumbnail($Id)
                             ), 4),
                             new LayoutColumn(array(
                                 new \SPHERE\Common\Frontend\Message\Repository\Warning('Soll das Bild wirklich gelöscht werden?')

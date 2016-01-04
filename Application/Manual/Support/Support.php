@@ -3,8 +3,7 @@ namespace SPHERE\Application\Manual\Support;
 
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
@@ -26,7 +25,7 @@ class Support implements IApplicationInterface, IModuleInterface
     {
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Ticket'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Feedback & Support'), new Link\Icon(new Comment()))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'Frontend::frontendSupport'
@@ -34,18 +33,20 @@ class Support implements IApplicationInterface, IModuleInterface
     }
 
     /**
-     * @return IServiceInterface
+     * @return Service
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
+        return new Service();
     }
 
     /**
-     * @return IFrontendInterface
+     * @return Frontend
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
+        return new Frontend();
     }
 }

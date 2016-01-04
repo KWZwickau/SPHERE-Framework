@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\System\Extension\Repository\Roadmap;
 
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
+
 /**
  * Class Status
  *
@@ -85,18 +87,7 @@ class Status
         $Work = 100 / $this->getCount() * $this->getWork();
         $Plan = 100 / $this->getCount() * $this->getPlan();
 
-        return
-            '<div class="progress" style="height: 4px; margin: 0;">
-          <div class="progress-bar progress-bar-success" style="width: '.$Done.'%;">
-            <span class="sr-only">'.$Done.'% Done</span>
-          </div>
-          <div class="progress-bar progress-bar-warning progress-bar-striped active" style="width: '.$Work.'%;">
-            <span class="sr-only">'.$Work.'% Work</span>
-          </div>
-          <div class="progress-bar progress-bar-striped" style="width: '.$Plan.'%; background-color: #DDD;">
-            <span class="sr-only">'.$Plan.'% Plan</span>
-          </div>
-        </div>';
+        return (new ProgressBar($Done, $Work, $Plan))->getContent();
     }
 
     /**

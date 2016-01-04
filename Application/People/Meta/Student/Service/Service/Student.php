@@ -39,13 +39,14 @@ abstract class Student extends AbstractService
 
     /**
      * @param TblPerson $tblPerson
-     * @param string $Identifier
-     * @param null $tblStudentMedicalRecord
-     * @param null $tblStudentTransport
-     * @param null $tblStudentBilling
-     * @param null $tblStudentLocker
-     * @param null $tblStudentBaptism
-     * @param null $tblStudentIntegration
+     * @param string    $Identifier
+     * @param null      $tblStudentMedicalRecord
+     * @param null      $tblStudentTransport
+     * @param null      $tblStudentBilling
+     * @param null      $tblStudentLocker
+     * @param null      $tblStudentBaptism
+     * @param null      $tblStudentIntegration
+     *
      * @return bool|TblStudent
      */
     public function insertStudent(
@@ -58,6 +59,7 @@ abstract class Student extends AbstractService
         $tblStudentBaptism = null,
         $tblStudentIntegration = null
     ) {
+
         $tblStudent = $this->getStudentByPerson($tblPerson);
 
         if ($tblStudent) {

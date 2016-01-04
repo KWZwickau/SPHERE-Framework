@@ -5,7 +5,6 @@ use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Assistance\Error\Error;
 use SPHERE\Application\Platform\Assistance\Support\Support;
 use SPHERE\Common\Main;
-use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 
 /**

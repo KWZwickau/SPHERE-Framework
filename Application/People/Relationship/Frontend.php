@@ -28,9 +28,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullClear;
-use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -39,6 +36,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
@@ -113,21 +111,12 @@ class Frontend extends Extension implements IFrontendInterface
     private function formRelationshipToPerson(TblToPerson $tblToPerson = null)
     {
 
-        $PanelSelectPersonTitle = new PullClear(
-            'zu folgender Person'
-            .new PullRight(
-                new Standard('Neue Person anlegen', '/People/Person', new PersonIcon()
-                    , array(), 'Die aktuell gewählte Person verlassen'
-                ))
-        );
-
         if ($tblToPerson) {
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['To'] )) {
                 $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
                 $Global->POST['To'] = $tblToPerson->getServiceTblPersonTo()->getId();
-                $Global->POST['PanelSearch-'.sha1($PanelSelectPersonTitle)] = $tblToPerson->getServiceTblPersonTo()->getFullName();
                 $Global->savePost();
             }
         }
@@ -136,20 +125,23 @@ class Frontend extends Extension implements IFrontendInterface
         $tblTypeAll = Relationship::useService()->getTypeAllByGroup($tblGroup);
         $tblPersonAll = Person::useService()->getPersonAll();
 
-        array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
+        if ($tblPersonAll) {
+            array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
 
-            $tblPerson = new PullClear(
-                new PullLeft(new RadioBox('To', $tblPerson->getFullName(), $tblPerson->getId()))
-                .new PullRight(
-                    new Standard('', '/People/Person/Relationship/Create',
+                $tblPerson = array(
+                    'Person' => new RadioBox('To', $tblPerson->getFullName(), $tblPerson->getId()),
+                    'ToPerson' => new Standard('', '/People/Person/Relationship/Create',
                         new PersonIcon(), array('Id' => $tblPerson->getId()),
                         'zu'
-                        .' '.$tblPerson->getSalutation()
-                        .' '.$tblPerson->getTitle()
-                        .' '.$tblPerson->getLastName()
+                        . ' ' . $tblPerson->getFullName()
                         .' wechseln'
-                    )));
-        });
+                    )
+                );
+            });
+            $tblPersonAll = array_filter($tblPersonAll);
+        } else {
+            $tblPersonAll = array();
+        }
 
         return new Form(
             new FormGroup(array(
@@ -170,7 +162,13 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                     ), 6),
                     new FormColumn(array(
-                        new Panel($PanelSelectPersonTitle, $tblPersonAll, Panel::PANEL_TYPE_INFO, null, 15),
+                        new Panel('zu folgender Person', array(
+                            new TableData($tblPersonAll, null,
+                                array('Person' => 'Person wählen', 'ToPerson' => 'Person wechseln')),
+                        ), Panel::PANEL_TYPE_INFO,
+                            new Standard('Neue Person anlegen', '/People/Person', new PersonIcon()
+                                , array(), 'Die aktuell gewählte Person verlassen'
+                            )),
                     ), 6),
                 )),
             ))
@@ -235,21 +233,12 @@ class Frontend extends Extension implements IFrontendInterface
     private function formRelationshipToCompany(TblToCompany $tblToCompany = null)
     {
 
-        $PanelSelectCompanyTitle = new PullClear(
-            'zu folgender Firma'
-            .new PullRight(
-                new Standard('Neue Firma anlegen', '/Corporation/Company', new Building()
-                    , array(), 'Die aktuell gewählte Person verlassen'
-                ))
-        );
-
         if ($tblToCompany) {
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['To'] )) {
                 $Global->POST['Type']['Type'] = $tblToCompany->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToCompany->getRemark();
                 $Global->POST['To'] = $tblToCompany->getServiceTblCompany()->getId();
-                $Global->POST['PanelSearch-'.sha1($PanelSelectCompanyTitle)] = $tblToCompany->getServiceTblCompany()->getName();
                 $Global->savePost();
             }
         }
@@ -261,12 +250,17 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblCompanyAll) {
             array_walk($tblCompanyAll, function (TblCompany &$tblCompany) {
 
-                $tblCompany = new PullClear(new RadioBox('To', $tblCompany->getName() . (
-                    $tblCompany->getDescription()
-                        ? ' - ' . $tblCompany->getDescription()
-                        : ''),
-                    $tblCompany->getId()));
+                $tblCompany = array(
+                    'Company' => new RadioBox('To', $tblCompany->getName() . (
+                        $tblCompany->getDescription()
+                            ? ' - ' . $tblCompany->getDescription()
+                            : ''),
+                        $tblCompany->getId())
+                );
             });
+            $tblCompanyAll = array_filter($tblCompanyAll);
+        } else {
+            $tblCompanyAll = array();
         }
 
         return new Form(
@@ -289,7 +283,13 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                     ), 6),
                     new FormColumn(array(
-                        new Panel($PanelSelectCompanyTitle, $tblCompanyAll, Panel::PANEL_TYPE_INFO, null, 15),
+                        new Panel('zu folgender Firma', array(
+                            new TableData($tblCompanyAll, null,
+                                array('Company' => 'Firma wählen')),
+                        ), Panel::PANEL_TYPE_INFO,
+                            new Standard('Neue Firma anlegen', '/Corporation/Company', new Building()
+                                , array(), 'Die aktuell gewählte Person verlassen'
+                            )),
                     ), 6),
                 )),
             ))
@@ -406,7 +406,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblRelationshipAll !== false) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblRelationshipAll, function (TblToPerson &$tblToPerson, $Index, TblPerson $tblPerson) {
+            array_walk($tblRelationshipAll, function (TblToPerson &$tblToPerson) use ($tblPerson) {
 
                 $Panel = array(
                     ( $tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
@@ -448,7 +448,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                     , 3);
-            }, $tblPerson);
+            });
         } else {
             $tblRelationshipAll = array(
                 new LayoutColumn(
@@ -495,7 +495,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblRelationshipAll !== false) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblRelationshipAll, function (TblToCompany &$tblToCompany, $Index, Element $tblEntity) {
+            array_walk($tblRelationshipAll, function (TblToCompany &$tblToCompany) use ($tblEntity) {
 
                 $Panel = array(
                     $tblToCompany->getServiceTblPerson()->getFullName(),
@@ -534,7 +534,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )
                     , 3);
-            }, $tblEntity);
+            });
         } else {
             $tblRelationshipAll = array(
                 new LayoutColumn(

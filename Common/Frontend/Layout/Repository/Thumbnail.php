@@ -19,8 +19,6 @@ class Thumbnail extends Extension implements ITemplateInterface
 
     /** @var \MOC\V\Component\Template\Component\IBridgeInterface $Template */
     private $Template = null;
-    /** @var IBridgeInterface $File */
-    private $File;
 
     /**
      * @param IBridgeInterface $File
@@ -58,7 +56,6 @@ class Thumbnail extends Extension implements ITemplateInterface
         $this->Template->setVariable('Title', $Title);
         $this->Template->setVariable('Description', $Description);
         $this->Template->setVariable('ButtonList', $ButtonList);
-        $this->File = $File;
     }
 
     /**

@@ -282,8 +282,8 @@ class Frontend extends Extension implements IFrontendInterface
                 if (!empty( $tblItemAccountByItem )) {
                     array_walk($tblItemAccountByItem, function (TblItemAccount $tblItemAccountByItem) {
 
-                        $tblItemAccountByItem->Number = $tblItemAccountByItem->getServiceBilling_Account()->getNumber();
-                        $tblItemAccountByItem->Description = $tblItemAccountByItem->getServiceBilling_Account()->getDescription();
+                        $tblItemAccountByItem->Number = $tblItemAccountByItem->getServiceBillingAccount()->getNumber();
+                        $tblItemAccountByItem->Description = $tblItemAccountByItem->getServiceBillingAccount()->getDescription();
                         $tblItemAccountByItem->Option =
                             new Standard('Entfernen', '/Billing/Inventory/Commodity/Item/Account/Remove',
                                 new Minus(), array(

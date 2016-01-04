@@ -108,14 +108,14 @@ class Data extends AbstractData
 
         // 1. Level Cache
         $Memory = $this->getCache(new MemoryHandler());
-        if (null === ($Entity = $Memory->getValue($Session, __METHOD__))) {
+        if (null === ( $Entity = $Memory->getValue($Session, __METHOD__) )) {
 
-            if (false !== ($tblAccount = Account::useService()->getAccountBySession($Session))) {
+            if (false !== ( $tblAccount = Account::useService()->getAccountBySession($Session) )) {
                 $Entity = $tblAccount->getServiceTblConsumer();
-                $Memory->setValue($Session, $Entity, 0, __METHOD__);
             } else {
                 $Entity = false;
             }
+            $Memory->setValue($Session, $Entity, 0, __METHOD__);
         }
         return $Entity;
     }

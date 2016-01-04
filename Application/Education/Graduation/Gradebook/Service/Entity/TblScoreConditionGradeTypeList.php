@@ -41,6 +41,7 @@ class TblScoreConditionGradeTypeList extends Element
      */
     public function getTblGradeType()
     {
+
         if (null === $this->tblGradeType) {
             return false;
         } else {
@@ -53,7 +54,8 @@ class TblScoreConditionGradeTypeList extends Element
      */
     public function setTblGradeType($tblGradeType)
     {
-        $this->tblGradeType = (null === $tblGradeType ? null : $tblGradeType->getId());
+
+        $this->tblGradeType = ( null === $tblGradeType ? null : $tblGradeType->getId() );
     }
 
     /**
@@ -61,6 +63,7 @@ class TblScoreConditionGradeTypeList extends Element
      */
     public function getTblScoreCondition()
     {
+
         if (null === $this->tblScoreCondition) {
             return false;
         } else {
@@ -73,6 +76,7 @@ class TblScoreConditionGradeTypeList extends Element
      */
     public function setTblScoreCondition($tblScoreCondition)
     {
-        $this->tblScoreCondition = (null === $tblScoreCondition ? null : $tblScoreCondition->getId());
+
+        $this->tblScoreCondition = ( null === $tblScoreCondition ? null : $tblScoreCondition->getId() );
     }
 }

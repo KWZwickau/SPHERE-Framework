@@ -39,10 +39,12 @@ use SPHERE\Application\People\Group\Service\Entity\TblGroup as PersonGroupEntity
 
 /**
  * Class Service
+ *
  * @package SPHERE\Application\Reporting\CheckList
  */
 class Service extends AbstractService
 {
+
     /**
      * @param bool $Simulate
      * @param bool $withData
@@ -134,6 +136,7 @@ class Service extends AbstractService
 
     /**
      * @param TblList $tblList
+     *
      * @return bool|TblListElementList[]
      */
     public function getListElementListByList(TblList $tblList)
@@ -155,6 +158,7 @@ class Service extends AbstractService
 
     /**
      * @param TblList $tblList
+     *
      * @return bool|TblListObjectList[]
      */
     public function getListObjectListByList(TblList $tblList)
@@ -164,9 +168,10 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblList $tblList
+     * @param TblList       $tblList
      * @param TblObjectType $tblObjectType
-     * @param Element $tblObject
+     * @param Element       $tblObject
+     *
      * @return bool|TblListObjectList
      */
     public function getListObjectListByListAndObjectTypeAndObject(
@@ -182,6 +187,7 @@ class Service extends AbstractService
 
     /**
      * @param TblList $tblList
+     *
      * @return bool|TblListObjectElementList[]
      */
     public function getListObjectElementListByList(TblList $tblList)
@@ -191,9 +197,10 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblList $tblList
+     * @param TblList       $tblList
      * @param TblObjectType $tblObjectType
-     * @param Element $tblObject
+     * @param Element       $tblObject
+     *
      * @return bool|TblListObjectElementList[]
      */
     public function getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
@@ -208,8 +215,9 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblList $tblList
+     * @param TblList       $tblList
      * @param TblObjectType $tblObjectType
+     *
      * @return bool|Element[]
      */
     public function getObjectAllByListAndObjectType(TblList $tblList, TblObjectType $tblObjectType)
@@ -251,6 +259,7 @@ class Service extends AbstractService
 
     /**
      * @param TblList $tblList
+     *
      * @return int
      */
     public function countListElementListByList(TblList $tblList)
@@ -261,6 +270,7 @@ class Service extends AbstractService
 
     /**
      * @param TblList $tblList
+     *
      * @return int
      */
     public function countListObjectListByList(TblList $tblList)
@@ -271,7 +281,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param $List
+     * @param                     $List
      *
      * @return IFormInterface|string
      */
@@ -286,10 +296,10 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (isset($List['Name']) && empty($List['Name'])) {
+        if (isset( $List['Name'] ) && empty( $List['Name'] )) {
             $Stage->setError('List[Name]', 'Bitte geben sie einen Namen an');
             $Error = true;
-        } elseif (isset($List['Name']) && $this->getListByName(trim($List['Name']))){
+        } elseif (isset( $List['Name'] ) && $this->getListByName(trim($List['Name']))) {
             $Stage->setError('List[Name]', 'Der Name ist schon vorhanden. Bitte geben sie einen anderen Namen an');
             $Error = true;
         }
@@ -300,7 +310,7 @@ class Service extends AbstractService
                 trim($List['Description'])
             );
             return new Stage('Die Check-Liste ist erfasst worden')
-            . new Redirect('/Reporting/CheckList', 0);
+            .new Redirect('/Reporting/CheckList', 0);
         }
 
         return $Stage;
@@ -308,8 +318,9 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param $Id
-     * @param $Element
+     * @param                     $Id
+     * @param                     $Element
+     *
      * @return IFormInterface|string
      */
     public function addElementToList(IFormInterface $Stage = null, $Id, $Element)
@@ -323,7 +334,7 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (isset($Element['Name']) && empty($Element['Name'])) {
+        if (isset( $Element['Name'] ) && empty( $Element['Name'] )) {
             $Stage->setError('List[Name]', 'Bitte geben sie einen Namen an');
             $Error = true;
         }
@@ -335,7 +346,7 @@ class Service extends AbstractService
                 $Element['Name']
             );
             return new Stage('Das Element ist zur Check-Liste hingefügt worden.')
-            . new Redirect('/Reporting/CheckList/Element/Select', 0, array('Id' => $Id));
+            .new Redirect('/Reporting/CheckList/Element/Select', 0, array('Id' => $Id));
         }
 
         return $Stage;
@@ -343,25 +354,27 @@ class Service extends AbstractService
 
     /**
      * @param null $Id
+     *
      * @return string
      */
     public function removeElementFromList($Id = null)
     {
+
         $tblListElementList = $this->getListElementListById($Id);
         $tblList = $tblListElementList->getTblList();
         if ((new Data($this->getBinding()))->removeElementFromList($tblListElementList)) {
             return new Stage('Das Element ist von Check-Liste entfernt worden.')
-            . new Redirect('/Reporting/CheckList/Element/Select', 0, array('Id' => $tblList->getId()));
+            .new Redirect('/Reporting/CheckList/Element/Select', 0, array('Id' => $tblList->getId()));
         } else {
             return new Stage('Das Element konnte nicht von Check-Liste entfernt werden.')
-            . new Redirect('/Reporting/CheckList/Element/Select', 0, array('Id' => $tblList->getId()));
+            .new Redirect('/Reporting/CheckList/Element/Select', 0, array('Id' => $tblList->getId()));
         }
     }
 
     /**
      * @param IFormInterface|null $Stage
-     * @param null $ListId
-     * @param null $ObjectTypeSelect
+     * @param null                $ListId
+     * @param null                $ObjectTypeSelect
      *
      * @return IFormInterface|Redirect|string
      */
@@ -376,7 +389,7 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (!isset($ObjectTypeSelect['Id'])) {
+        if (!isset( $ObjectTypeSelect['Id'] )) {
             $Error = true;
             $Stage .= new Warning('Objekt-Typ nicht gefunden');
         }
@@ -389,15 +402,15 @@ class Service extends AbstractService
         $tblObjectType = $this->getObjectTypeById($ObjectTypeSelect['Id']);
 
         return new Redirect('/Reporting/CheckList/Object/Select', 0, array(
-            'ListId' => $tblList->getId(),
+            'ListId'       => $tblList->getId(),
             'ObjectTypeId' => $tblObjectType->getId()
         ));
     }
 
     /**
-     * @param TblList $tblList
+     * @param TblList       $tblList
      * @param TblObjectType $tblObjectType
-     * @param Element $tblObject
+     * @param Element       $tblObject
      *
      * @return TblListElementList
      */
@@ -412,36 +425,41 @@ class Service extends AbstractService
 
     /**
      * @param null $Id
+     *
      * @return string
      */
     public function removeObjectFromList($Id = null)
     {
+
         $tblListObjectList = $this->getListObjectListById($Id);
         $tblList = $tblListObjectList->getTblList();
         $tblObjectType = $tblListObjectList->getTblObjectType();
         if ((new Data($this->getBinding()))->removeObjectFromList($tblListObjectList)) {
-            return new Stage('Die ' . $tblObjectType->getName() . ' ist von Check-Liste entfernt worden.')
-            . new Redirect('/Reporting/CheckList/Object/Select', 0,
+            return new Stage('Die '.$tblObjectType->getName().' ist von Check-Liste entfernt worden.')
+            .new Redirect('/Reporting/CheckList/Object/Select', 0,
                 array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
         } else {
-            return new Stage('Die ' . $tblObjectType->getName() . ' konnte nicht von Check-Liste entfernt werden.')
-            . new Redirect('/Reporting/CheckList/Object/Select', 3,
+            return new Stage('Die '.$tblObjectType->getName().' konnte nicht von Check-Liste entfernt werden.')
+            .new Redirect('/Reporting/CheckList/Object/Select', 3,
                 array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
         }
     }
 
     /**
      * @param IFormInterface|null $Stage
-     * @param null $Id
-     * @param null $Data
+     * @param null                $Id
+     * @param null                $Data
+     * @param null                $HasData
+     *
      * @return IFormInterface|Redirect
      */
     public function updateListObjectElementList(IFormInterface $Stage = null, $Id = null, $Data = null, $HasData = null)
     {
+
         /**
          * Skip to Frontend
          */
-        if (null === $Id || (null === $Data && null === $HasData)) {
+        if (null === $Id || ( null === $Data && null === $HasData )) {
             return $Stage;
         }
 
@@ -451,9 +469,9 @@ class Service extends AbstractService
         $tblListObjectElementListByList = CheckList::useService()->getListObjectElementListByList($tblList);
         if ($tblListObjectElementListByList) {
             foreach ($tblListObjectElementListByList as $tblListObjectElementList) {
-                if (!isset($Data[$tblListObjectElementList->getTblObjectType()->getId()]
+                if (!isset( $Data[$tblListObjectElementList->getTblObjectType()->getId()]
                     [$tblListObjectElementList->getServiceTblObject()->getId()]
-                    [$tblListObjectElementList->getTblListElementList()->getId()])
+                    [$tblListObjectElementList->getTblListElementList()->getId()] )
                 ) {
                     (new Data($this->getBinding()))->updateObjectElementToList(
                         $tblList,
@@ -466,18 +484,18 @@ class Service extends AbstractService
             }
         }
 
-        if (!empty($Data)) {
+        if (!empty( $Data )) {
             foreach ($Data as $objectTypeId => $objects) {
                 $tblObjectType = $this->getObjectTypeById($objectTypeId);
                 if ($tblObjectType) {
-                    if (!empty($objects)) {
+                    if (!empty( $objects )) {
                         foreach ($objects as $objectId => $elements) {
                             if ($tblObjectType->getIdentifier() === 'PERSON') {
                                 $tblObject = Person::useService()->getPersonById($objectId);
                             } else {   // COMPANY
                                 $tblObject = Company::useService()->getCompanyById($objectId);
                             }
-                            if (!empty($elements)) {
+                            if (!empty( $elements )) {
                                 foreach ($elements as $elementId => $value) {
                                     $tblListElementList = CheckList::useService()->getListElementListById($elementId);
                                     (new Data($this->getBinding()))->updateObjectElementToList(
@@ -500,12 +518,14 @@ class Service extends AbstractService
 
     /**
      * @param $tblList
+     *
      * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
     public function createCheckListExcel($tblList)
     {
+
         if ($tblList) {
 
             $fileLocation = Storage::useWriter()->getTemporary('xls');
@@ -619,7 +639,7 @@ class Service extends AbstractService
                                             $export->setValue($export->getCell($columnCount++, $rowCount),
                                                 trim($tblCompany->getName()));
                                             $export->setValue($export->getCell($columnCount, $rowCount),
-                                               $companyObjectType->getName());
+                                                $companyObjectType->getName());
 
                                             $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
                                                 $tblList, $companyObjectType, $tblCompany

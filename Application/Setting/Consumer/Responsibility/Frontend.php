@@ -69,8 +69,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (( $tblResponsibilityAll = Responsibility::useService()->getResponsibilityAll() )) {
 
-            $tblCompanyAll[] = null;
-
             $Form = null;
             foreach ($tblResponsibilityAll as $tblResponsibility) {
                 $tblCompany = $tblResponsibility->getServiceTblCompany();

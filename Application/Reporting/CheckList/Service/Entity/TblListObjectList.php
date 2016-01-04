@@ -52,6 +52,7 @@ class TblListObjectList extends Element
      */
     public function getTblList()
     {
+
         if (null === $this->tblList) {
             return false;
         } else {
@@ -64,7 +65,8 @@ class TblListObjectList extends Element
      */
     public function setTblList($tblList)
     {
-        $this->tblList = (null === $tblList ? null : $tblList->getId());
+
+        $this->tblList = ( null === $tblList ? null : $tblList->getId() );
     }
 
     /**
@@ -72,6 +74,7 @@ class TblListObjectList extends Element
      */
     public function getServiceTblObject()
     {
+
         if (null === $this->serviceTblObject) {
             return false;
         } else {
@@ -96,7 +99,8 @@ class TblListObjectList extends Element
      */
     public function setServiceTblObject($serviceTblObject)
     {
-        $this->serviceTblObject = (null === $serviceTblObject ? null : $serviceTblObject->getId());
+
+        $this->serviceTblObject = ( null === $serviceTblObject ? null : $serviceTblObject->getId() );
     }
 
     /**
@@ -104,6 +108,7 @@ class TblListObjectList extends Element
      */
     public function getTblObjectType()
     {
+
         if (null === $this->tblObjectType) {
             return false;
         } else {
@@ -116,6 +121,7 @@ class TblListObjectList extends Element
      */
     public function setTblObjectType($tblObjectType)
     {
-        $this->tblObjectType = (null === $tblObjectType ? null : $tblObjectType->getId());
+
+        $this->tblObjectType = ( null === $tblObjectType ? null : $tblObjectType->getId() );
     }
 }

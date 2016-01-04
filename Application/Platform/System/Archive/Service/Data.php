@@ -29,7 +29,16 @@ class Data extends AbstractData
     public function getArchiveAll()
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblArchive')->findAll();
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Query = $Manager->getQueryBuilder()
+            ->select('A')
+            ->from(__NAMESPACE__ . '\Entity\TblArchive', 'A')
+            ->orderBy('A.Id', 'DESC')
+            ->setMaxResults(100)
+            ->getQuery();
+
+        $EntityList = $Query->getResult();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 

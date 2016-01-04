@@ -157,7 +157,7 @@ abstract class Agreement extends Student
     }
 
     /**
-     * @param TblStudent $tblStudent
+     * @param TblStudent              $tblStudent
      * @param TblStudentAgreementType $tblStudentAgreementType
      *
      * @return TblStudentAgreement
@@ -171,7 +171,7 @@ abstract class Agreement extends Student
 
         /** @var TblStudentAgreement $Entity */
         $Entity = $Manager->getEntity('TblStudentAgreement')->findOneBy(array(
-            TblStudentAgreement::ATTR_TBL_STUDENT => $tblStudent->getId(),
+            TblStudentAgreement::ATTR_TBL_STUDENT                => $tblStudent->getId(),
             TblStudentAgreement::ATTR_TBL_STUDENT_AGREEMENT_TYPE => $tblStudentAgreementType->getId()
         ));
 

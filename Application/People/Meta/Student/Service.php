@@ -56,6 +56,7 @@ class Service extends Integration
         $LockerLocation,
         $KeyNumber
     ) {
+
         return (new Data($this->getBinding()))->createStudentLocker(
             $LockerNumber,
             $LockerLocation,
@@ -64,11 +65,11 @@ class Service extends Integration
     }
 
     /**
-     * @param $Disease
-     * @param $Medication
+     * @param                $Disease
+     * @param                $Medication
+     * @param                $Insurance
+     * @param int|null       $InsuranceState
      * @param TblPerson|null $tblPersonAttendingDoctor
-     * @param null $InsuranceState
-     * @param $Insurance
      *
      * @return TblStudentMedicalRecord
      */
@@ -79,6 +80,7 @@ class Service extends Integration
         $InsuranceState = 0,
         TblPerson $tblPersonAttendingDoctor = null
     ) {
+
         return (new Data($this->getBinding()))->createStudentMedicalRecord(
             $Disease,
             $Medication,
@@ -89,9 +91,9 @@ class Service extends Integration
     }
 
     /**
-     * @param $Route
-     * @param $StationEntrance
-     * @param $StationExit
+     * @param        $Route
+     * @param        $StationEntrance
+     * @param        $StationExit
      * @param string $Remark
      *
      * @return TblStudentTransport
@@ -102,6 +104,7 @@ class Service extends Integration
         $StationExit,
         $Remark = ''
     ) {
+
         return (new Data($this->getBinding()))->createStudentTransport(
             $Route,
             $StationEntrance,
@@ -112,9 +115,10 @@ class Service extends Integration
 
     /**
      * @param IFormInterface $Form
-     * @param TblPerson $tblPerson
-     * @param array $Meta
-     * @param $Group
+     * @param TblPerson      $tblPerson
+     * @param array          $Meta
+     * @param                $Group
+     *
      * @return IFormInterface|Redirect
      */
     public function createMeta(IFormInterface $Form = null, TblPerson $tblPerson, $Meta, $Group)
@@ -213,7 +217,7 @@ class Service extends Integration
                     $Meta['Integration']['Coaching']['RequestDate'],
                     $Meta['Integration']['Coaching']['CounselDate'],
                     $Meta['Integration']['Coaching']['DecisionDate'],
-                    isset($Meta['Integration']['Coaching']['Required']),
+                    isset( $Meta['Integration']['Coaching']['Required'] ),
                     $Meta['Integration']['School']['Time'],
                     $Meta['Integration']['School']['Remark']
                 );
@@ -224,7 +228,7 @@ class Service extends Integration
                     $Meta['Integration']['Coaching']['RequestDate'],
                     $Meta['Integration']['Coaching']['CounselDate'],
                     $Meta['Integration']['Coaching']['DecisionDate'],
-                    isset($Meta['Integration']['Coaching']['Required']),
+                    isset( $Meta['Integration']['Coaching']['Required'] ),
                     $Meta['Integration']['School']['Time'],
                     $Meta['Integration']['School']['Remark']
                 );
@@ -287,7 +291,7 @@ class Service extends Integration
                 $Meta['Integration']['Coaching']['RequestDate'],
                 $Meta['Integration']['Coaching']['CounselDate'],
                 $Meta['Integration']['Coaching']['DecisionDate'],
-                isset($Meta['Integration']['Coaching']['Required']),
+                isset( $Meta['Integration']['Coaching']['Required'] ),
                 $Meta['Integration']['School']['Time'],
                 $Meta['Integration']['School']['Remark']
             );
@@ -312,12 +316,12 @@ class Service extends Integration
             $tblStudentDisorderAll = $this->getStudentDisorderAllByStudent($tblStudent);
             if ($tblStudentDisorderAll) {
                 foreach ($tblStudentDisorderAll as $tblStudentDisorder) {
-                    if (!isset($Meta['Integration']['Disorder'][$tblStudentDisorder->getTblStudentDisorderType()->getId()])) {
+                    if (!isset( $Meta['Integration']['Disorder'][$tblStudentDisorder->getTblStudentDisorderType()->getId()] )) {
                         (new Data($this->getBinding()))->removeStudentDisorder($tblStudentDisorder);
                     }
                 }
             }
-            if (isset($Meta['Integration']['Disorder'])) {
+            if (isset( $Meta['Integration']['Disorder'] )) {
                 foreach ($Meta['Integration']['Disorder'] as $Category => $Type) {
                     $tblStudentDisorderType = $this->getStudentDisorderTypeById($Category);
                     if ($tblStudentDisorderType) {
@@ -329,12 +333,12 @@ class Service extends Integration
             $tblStudentFocusAll = $this->getStudentFocusAllByStudent($tblStudent);
             if ($tblStudentFocusAll) {
                 foreach ($tblStudentFocusAll as $tblStudentFocus) {
-                    if (!isset($Meta['Integration']['Focus'][$tblStudentFocus->getTblStudentFocusType()->getId()])) {
+                    if (!isset( $Meta['Integration']['Focus'][$tblStudentFocus->getTblStudentFocusType()->getId()] )) {
                         (new Data($this->getBinding()))->removeStudentFocus($tblStudentFocus);
                     }
                 }
             }
-            if (isset($Meta['Integration']['Focus'])) {
+            if (isset( $Meta['Integration']['Focus'] )) {
                 foreach ($Meta['Integration']['Focus'] as $Category => $Type) {
                     $tblStudentFocusType = $this->getStudentFocusTypeById($Category);
                     if ($tblStudentFocusType) {
@@ -478,7 +482,7 @@ class Service extends Integration
                     }
                 }
             }
-            if (isset($Meta['Subject'])) {
+            if (isset( $Meta['Subject'] )) {
                 foreach ($Meta['Subject'] as $Category => $Items) {
                     $tblStudentSubjectType = $this->getStudentSubjectTypeById($Category);
                     if ($tblStudentSubjectType) {
@@ -511,7 +515,7 @@ class Service extends Integration
                     }
                 }
             }
-            if (isset($Meta['Agreement'])) {
+            if (isset( $Meta['Agreement'] )) {
                 foreach ($Meta['Agreement'] as $Category => $Items) {
                     $tblStudentAgreementCategory = $this->getStudentAgreementTypeById($Category);
                     if ($tblStudentAgreementCategory) {
@@ -528,8 +532,8 @@ class Service extends Integration
         }
 
         return new Success('Die Daten wurde erfolgreich gespeichert')
-        . new Redirect('/People/Person', 3, array(
-            'Id' => $tblPerson->getId(),
+        .new Redirect('/People/Person', 3, array(
+            'Id'    => $tblPerson->getId(),
             'Group' => $Group
         ));
     }

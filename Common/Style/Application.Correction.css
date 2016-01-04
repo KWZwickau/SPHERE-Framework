@@ -162,6 +162,12 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > th:first-child:before
     margin-top: 0;
 }
 
+/* LABEL */
+
+.label {
+    font-weight: normal;
+}
+
 /* TYPEAHEAD RESPONSIVE */
 
 /*

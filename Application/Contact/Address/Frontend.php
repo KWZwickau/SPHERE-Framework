@@ -55,10 +55,10 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param int $Id
+     * @param int   $Id
      * @param array $Street
      * @param array $City
-     * @param int $State
+     * @param int   $State
      * @param array $Type
      *
      * @return Stage
@@ -76,7 +76,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new PersonIcon() . ' Person',
+                            new Panel(new PersonIcon().' Person',
                                 $tblPerson->getFullName(),
                                 Panel::PANEL_TYPE_SUCCESS,
                                 new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
@@ -156,10 +156,10 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $Id
+     * @param int   $Id
      * @param array $Street
      * @param array $City
-     * @param int $State
+     * @param int   $State
      * @param array $Type
      *
      * @return Stage
@@ -177,7 +177,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new Building() . ' Firma',
+                            new Panel(new Building().' Firma',
                                 $tblCompany->getName(),
                                 Panel::PANEL_TYPE_SUCCESS,
                                 new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
@@ -206,10 +206,10 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $Id
+     * @param int   $Id
      * @param array $Street
      * @param array $City
-     * @param int $State
+     * @param int   $State
      * @param array $Type
      *
      * @return Stage
@@ -223,7 +223,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblToPerson = Address::useService()->getAddressToPersonById($Id);
 
         $Global = $this->getGlobal();
-        if (!isset($Global->POST['Address'])) {
+        if (!isset( $Global->POST['Address'] )) {
             $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
             $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
             $Global->POST['Street']['Name'] = $tblToPerson->getTblAddress()->getStreetName();
@@ -242,7 +242,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new PersonIcon() . ' Person',
+                            new Panel(new PersonIcon().' Person',
                                 $tblToPerson->getServiceTblPerson()->getFullName(),
                                 Panel::PANEL_TYPE_SUCCESS,
                                 new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
@@ -270,10 +270,10 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $Id
+     * @param int   $Id
      * @param array $Street
      * @param array $City
-     * @param int $State
+     * @param int   $State
      * @param array $Type
      *
      * @return Stage
@@ -287,7 +287,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblToCompany = Address::useService()->getAddressToCompanyById($Id);
 
         $Global = $this->getGlobal();
-        if (!isset($Global->POST['Address'])) {
+        if (!isset( $Global->POST['Address'] )) {
             $Global->POST['Type']['Type'] = $tblToCompany->getTblType()->getId();
             $Global->POST['Type']['Remark'] = $tblToCompany->getRemark();
             $Global->POST['Street']['Name'] = $tblToCompany->getTblAddress()->getStreetName();
@@ -304,7 +304,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new PersonIcon() . ' Firma',
+                            new Panel(new PersonIcon().' Firma',
                                 $tblToCompany->getServiceTblCompany()->getName(),
                                 Panel::PANEL_TYPE_SUCCESS,
                                 new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
@@ -332,7 +332,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $Id
+     * @param int  $Id
      * @param bool $Confirm
      *
      * @return Stage
@@ -347,24 +347,24 @@ class Frontend extends Extension implements IFrontendInterface
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                        new Panel(new PersonIcon() . ' Person',
+                        new Panel(new PersonIcon().' Person',
                             $tblPerson->getFullName(),
                             Panel::PANEL_TYPE_SUCCESS,
                             new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
                                 array('Id' => $tblPerson->getId())
                             )
                         ),
-                        new Panel(new Question() . ' Diese Adresse wirklich löschen?', array(
-                            $tblToPerson->getTblType()->getName() . ' ' . $tblToPerson->getTblType()->getDescription(),
+                        new Panel(new Question().' Diese Adresse wirklich löschen?', array(
+                            $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription(),
                             new AddressLayout($tblToPerson->getTblAddress()),
-                            ($tblToPerson->getRemark() ? new Muted(new Small($tblToPerson->getRemark())) : '')
+                            ( $tblToPerson->getRemark() ? new Muted(new Small($tblToPerson->getRemark())) : '' )
                         ),
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/People/Person/Address/Destroy', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            . new Standard(
+                            .new Standard(
                                 'Nein', '/People/Person', new Disable(),
                                 array('Id' => $tblPerson->getId())
                             )
@@ -375,7 +375,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            (Address::useService()->removeAddressToPerson($tblToPerson)
+                            ( Address::useService()->removeAddressToPerson($tblToPerson)
                                 ? new Success('Die Adresse wurde gelöscht')
                                 : new Danger('Die Adresse konnte nicht gelöscht werden')
                             ),
@@ -398,7 +398,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $Id
+     * @param int  $Id
      * @param bool $Confirm
      *
      * @return Stage
@@ -413,24 +413,24 @@ class Frontend extends Extension implements IFrontendInterface
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                        new Panel(new Building() . ' Company',
+                        new Panel(new Building().' Company',
                             $tblCompany->getName(),
                             Panel::PANEL_TYPE_SUCCESS,
                             new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
                                 array('Id' => $tblCompany->getId())
                             )
                         ),
-                        new Panel(new Question() . ' Diese Adresse wirklich löschen?', array(
-                            $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription(),
+                        new Panel(new Question().' Diese Adresse wirklich löschen?', array(
+                            $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription(),
                             new AddressLayout($tblToCompany->getTblAddress()),
-                            ($tblToCompany->getRemark() ? new Muted(new Small($tblToCompany->getRemark())) : '')
+                            ( $tblToCompany->getRemark() ? new Muted(new Small($tblToCompany->getRemark())) : '' )
                         ),
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Corporation/Company/Address/Destroy', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            . new Standard(
+                            .new Standard(
                                 'Nein', '/Corporation/Company', new Disable(),
                                 array('Id' => $tblCompany->getId())
                             )
@@ -441,7 +441,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            (Address::useService()->removeAddressToCompany($tblToCompany)
+                            ( Address::useService()->removeAddressToCompany($tblToCompany)
                                 ? new Success('Die Adresse wurde gelöscht')
                                 : new Danger('Die Adresse konnte nicht gelöscht werden')
                             ),
@@ -482,14 +482,14 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblToPerson = new LayoutColumn(
                     new Panel(
-                        new MapMarker() . ' ' . $tblToPerson->getTblType()->getName(), $Panel,
+                        new MapMarker().' '.$tblToPerson->getTblType()->getName(), $Panel,
                         Panel::PANEL_TYPE_SUCCESS,
                         new Standard(
                             '', '/People/Person/Address/Edit', new Pencil(),
                             array('Id' => $tblToPerson->getId()),
                             'Bearbeiten'
                         )
-                        . new Standard(
+                        .new Standard(
                             '', '/People/Person/Address/Destroy', new Remove(),
                             array('Id' => $tblToPerson->getId()), 'Löschen'
                         )
@@ -514,10 +514,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $tblAddress = new LayoutColumn(
                                     new Panel(
-                                        new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
+                                        new MapMarker().' '.$tblAddress->getTblType()->getName(), $Panel,
                                         Panel::PANEL_TYPE_DEFAULT,
                                         $tblRelationship->getServiceTblPersonFrom()->getFullName()
-                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                        .' ('.$tblRelationship->getTblType()->getName().')'
                                     )
                                     , 3);
 
@@ -543,10 +543,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $tblAddress = new LayoutColumn(
                                     new Panel(
-                                        new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
+                                        new MapMarker().' '.$tblAddress->getTblType()->getName(), $Panel,
                                         Panel::PANEL_TYPE_DEFAULT,
                                         $tblRelationship->getServiceTblPersonTo()->getFullName()
-                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                        .' ('.$tblRelationship->getTblType()->getName().')'
                                     )
                                     , 3);
 
@@ -608,14 +608,14 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblToCompany = new LayoutColumn(
                     new Panel(
-                        new MapMarker() . ' ' . $tblToCompany->getTblType()->getName(), $Panel,
+                        new MapMarker().' '.$tblToCompany->getTblType()->getName(), $Panel,
                         Panel::PANEL_TYPE_SUCCESS,
                         new Standard(
                             '', '/Corporation/Company/Address/Edit', new Pencil(),
                             array('Id' => $tblToCompany->getId()),
                             'Bearbeiten'
                         )
-                        . new Standard(
+                        .new Standard(
                             '', '/Corporation/Company/Address/Destroy', new Remove(),
                             array('Id' => $tblToCompany->getId()), 'Löschen'
                         )

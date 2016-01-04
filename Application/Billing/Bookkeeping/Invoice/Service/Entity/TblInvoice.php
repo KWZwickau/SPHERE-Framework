@@ -92,7 +92,7 @@ class TblInvoice extends Element
     /**
      * @return boolean
      */
-    public function getIsPaymentDateModified()
+    public function isPaymentDateModified()
     {
 
         return $this->IsPaymentDateModified;
@@ -101,7 +101,7 @@ class TblInvoice extends Element
     /**
      * @param boolean $IsPaymentDateModified
      */
-    public function setIsPaymentDateModified($IsPaymentDateModified)
+    public function setPaymentDateModified($IsPaymentDateModified)
     {
 
         $this->IsPaymentDateModified = $IsPaymentDateModified;
@@ -110,7 +110,7 @@ class TblInvoice extends Element
     /**
      * @return boolean
      */
-    public function getIsConfirmed()
+    public function isConfirmed()
     {
 
         return ( Balance::useService()->getBalanceByInvoice($this) === false ? false : true );
@@ -119,7 +119,7 @@ class TblInvoice extends Element
     /**
      * @return boolean
      */
-    public function getIsPaid()
+    public function isPaid()
     {
 
         return $this->IsPaid;
@@ -128,7 +128,7 @@ class TblInvoice extends Element
     /**
      * @param boolean $IsPaid
      */
-    public function setIsPaid($IsPaid)
+    public function setPaid($IsPaid)
     {
 
         $this->IsPaid = $IsPaid;
@@ -173,7 +173,7 @@ class TblInvoice extends Element
     /**
      * @return boolean
      */
-    public function getIsVoid()
+    public function isVoid()
     {
 
         return $this->IsVoid;
@@ -182,7 +182,7 @@ class TblInvoice extends Element
     /**
      * @param boolean $IsVoid
      */
-    public function setIsVoid($IsVoid)
+    public function setVoid($IsVoid)
     {
 
         $this->IsVoid = $IsVoid;

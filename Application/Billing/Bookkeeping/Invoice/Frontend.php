@@ -92,7 +92,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblInvoice->TotalPrice = Invoice::useService()->sumPriceItemAllStringByInvoice($tblInvoice);
                 $tblInvoice->Option = (new Standard('Anzeige', '/Billing/Bookkeeping/Invoice/Show',
                     new EyeOpen(), array('Id' => $tblInvoice->getId())))->__toString();;
-                if ($tblInvoice->getIsPaid()) {
+                if ($tblInvoice->isPaid()) {
                     $tblInvoice->IsPaidString = "Bezahlt (manuell)";
                 } else {
                     if (Balance::useService()->getBalanceByInvoice($tblInvoice)
@@ -104,14 +104,14 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblInvoice->IsPaidString = "";
                     }
                 }
-                if ($tblInvoice->getIsVoid()) {
+                if ($tblInvoice->isVoid()) {
                     $tblInvoice->IsVoidString = "Storniert";
                 } else {
                     $tblInvoice->IsVoidString = "";
 //                    $tblInvoice->Option .= (new Danger( 'Stornieren', '/Billing/Bookkeeping/Invoice/Cancel',
 //                        new Remove(), array('Id' => $tblInvoice->getId())))->__toString();
                 }
-                if ($tblInvoice->getIsConfirmed()) {
+                if ($tblInvoice->isConfirmed()) {
                     $tblInvoice->IsConfirmedString = "Bestätigt";
                 } else {
                     $tblInvoice->IsConfirmedString = "";
@@ -173,7 +173,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblInvoice->PaymentType = "";
                 }
 
-                if ($tblInvoice->getIsPaymentDateModified()) {
+                if ($tblInvoice->isPaymentDateModified()) {
                     $tblInvoice->InvoiceDateString = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Info().' '.$tblInvoice->getInvoiceDate());
                     $tblInvoice->PaymentDateString = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Info().' '.$tblInvoice->getPaymentDate());
                 } else {
@@ -232,7 +232,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblInvoice = Invoice::useService()->getInvoiceById($Id);
         $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
 
-        if ($tblInvoice->getIsConfirmed()) {
+        if ($tblInvoice->isConfirmed()) {
             $Stage->setContent(new Warning('Die Rechnung wurde bereits bestätigt und freigegeben und kann nicht mehr bearbeitet werden')
                 .new Redirect('/Billing/Bookkeeping/Invoice', 2));
         } else {
@@ -248,7 +248,6 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblAccount = false;
                         }
 
-
                         if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
                             if ($tblAccount) {
                                 $tblCommodity = Commodity::useService()->getCommodityByName($tblInvoiceItem->getCommodityName());
@@ -258,7 +257,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     if ($tblDebtor) {
 //                                    if (Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor,
 //                                        $tblCommodity)) {
-                                        if (Banking::useService()->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity)) {
+                                        if (Banking::useService()->getReferenceByAccountAndCommodity($tblAccount,
+                                            $tblCommodity)
+                                        ) {
                                             $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Success(
                                                 'Mandatsreferenz'.' '.new Ok()
                                             );
@@ -283,7 +284,6 @@ class Frontend extends Extension implements IFrontendInterface
                         } else {
                             $tblInvoiceItem->Status = "";
                         }
-
 
                         $tblInvoiceItem->TotalPriceString = $tblInvoiceItem->getTotalPriceString();
                         $tblInvoiceItem->QuantityString = str_replace('.', ',', $tblInvoiceItem->getItemQuantity());
@@ -315,13 +315,15 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblDebtor) {
                     if (Banking::useService()->getActiveAccountByDebtor($tblDebtor)) {
                         if ($ReferenceOk) {
-                            $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
+                            $Stage->addButton(new Primary('Geprüft und Freigeben',
+                                '/Billing/Bookkeeping/Invoice/Confirm',
                                 new Ok(), array(
                                     'Id' => $Id
                                 )
                             ));
                         } else {
-                            $Stage->addButton(new Standard('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit',
+                            $Stage->addButton(new Standard('Geprüft und Freigeben',
+                                '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit',
                                 new Ok(), array(
                                     'Id' => $Id
                                 ), 'Fehlende Mandatsreferenz'
@@ -343,7 +345,6 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             ));
 
-
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(array(
@@ -356,12 +357,12 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                             new LayoutColumn(
                                 new Panel('Rechnungsdatum', $tblInvoice->getInvoiceDate(),
-                                    $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
+                                    $tblInvoice->isPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                                 3
                             ),
                             new LayoutColumn(
                                 new Panel('Zahlungsdatum', $tblInvoice->getPaymentDate(),
-                                    $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
+                                    $tblInvoice->isPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                                 3
                             ),
                         )),
@@ -387,7 +388,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     ? new Panel(
                                         new MapMarker().' Rechnungsadresse', array(
                                         $tblInvoice->getServiceManagementAddress()->getStreetName().' '.$tblInvoice->getServiceManagementAddress()->getStreetNumber().'<br/>'.
-                                        $tblInvoice->getServiceManagementAddress()->getTblCity()->getCode().' '.$tblInvoice->getServiceManagementAddress()->getTblCity()->getName()),
+                                        $tblInvoice->getServiceManagementAddress()->getTblCity()->getCode().' '.$tblInvoice->getServiceManagementAddress()->getTblCity()->getName()
+                                    ),
                                         Panel::PANEL_TYPE_DEFAULT,
                                         ( ( $tblDebtor = Banking::useService()->getDebtorByDebtorNumber(
                                             $tblInvoice->getDebtorNumber()) )
@@ -428,7 +430,8 @@ class Frontend extends Extension implements IFrontendInterface
                             ( $tblDebtor ) ?
                                 new LayoutRow(
                                     new LayoutColumn(
-                                        self::layoutAccount($tblDebtor, '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', $tblInvoice->getId())
+                                        self::layoutAccount($tblDebtor,
+                                            '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', $tblInvoice->getId())
                                     )
                                 ) : null
                             : null
@@ -502,11 +505,14 @@ class Frontend extends Extension implements IFrontendInterface
                             'Bankname'.new PullRight($tblAccount->getBankName()),
                         ), null, ( $tblAccount->getActive() === false ?
                             new Standard('', '/Billing/Accounting/Banking/Account/Activate', new Ok(),
-                                array('Id'      => $tblDebtor->getId(),
-                                      'Account' => $tblAccount->getId(),
-                                      'Path'    => $Path,
-                                      'IdBack'  => $IdBack)) : null )
-                        )), ( $tblAccount->getActive() ?
+                                array(
+                                    'Id'      => $tblDebtor->getId(),
+                                    'Account' => $tblAccount->getId(),
+                                    'Path'    => $Path,
+                                    'IdBack'  => $IdBack
+                                )) : null )
+                        )
+                    ), ( $tblAccount->getActive() ?
                         Panel::PANEL_TYPE_SUCCESS
                         : Panel::PANEL_TYPE_DEFAULT ))
                     , 4);
@@ -514,8 +520,9 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $tblAccountList = new LayoutColumn(new Warning('Es ist kein Konto für diesen Debitor angelegt'));
         }
-        if (!isset( $Warning ))
+        if (!isset( $Warning )) {
             $Warning = null;
+        }
 
         return new Layout(
             new LayoutGroup(array(new LayoutRow($tblAccountList), $Warning), new Title('Kontodaten'))
@@ -537,7 +544,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblInvoice = Invoice::useService()->getInvoiceById($Id);
 
-        if ($tblInvoice->getIsVoid()) {
+        if ($tblInvoice->isVoid()) {
             $Stage->setMessage(new \SPHERE\Common\Frontend\Message\Repository\Danger("Diese Rechnung wurde storniert"));
         }
 
@@ -606,12 +613,12 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         new LayoutColumn(
                             new Panel('Rechnungsdatum', $tblInvoice->getInvoiceDate(),
-                                $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
+                                $tblInvoice->isPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                             3
                         ),
                         new LayoutColumn(
                             new Panel('Zahlungsdatum', $tblInvoice->getPaymentDate(),
-                                $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
+                                $tblInvoice->isPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                             3
                         ),
                     )),
@@ -637,7 +644,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Panel(
                                     new MapMarker().' Rechnungsadresse', array(
                                     $tblInvoice->getServiceManagementAddress()->getStreetName().' '.$tblInvoice->getServiceManagementAddress()->getStreetNumber().'<br/>'.
-                                    $tblInvoice->getServiceManagementAddress()->getTblCity()->getCode().' '.$tblInvoice->getServiceManagementAddress()->getTblCity()->getName()),
+                                    $tblInvoice->getServiceManagementAddress()->getTblCity()->getCode().' '.$tblInvoice->getServiceManagementAddress()->getTblCity()->getName()
+                                ),
                                     Panel::PANEL_TYPE_DEFAULT
                                 )
                                 : new Warning(
@@ -664,8 +672,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 Invoice::useService()->sumPriceItemAllStringByInvoice($tblInvoice)), 3
                         ),
                         new LayoutColumn(
-                            $tblInvoice->getIsConfirmed() ?
-                                ( $tblInvoice->getIsPaid()
+                            $tblInvoice->isConfirmed() ?
+                                ( $tblInvoice->isPaid()
                                     ? new Success("Bezahlt")
                                     : ( round(Balance::useService()->sumPriceItemByBalance(Balance::useService()->getBalanceByInvoice($tblInvoice)),
                                         2)
@@ -801,7 +809,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty( $tblAddressList )) {
             /** @var TblToPerson[] $tblAddressList */
             foreach ($tblAddressList as &$tblToPerson) {
-                if ($invoiceAddress != null && $invoiceAddress->getId() === $tblToPerson->getTblAddress()->getId()) {
+                if ($invoiceAddress !== null && $invoiceAddress->getId() === $tblToPerson->getTblAddress()->getId()) {
                     $AddressType = new MapMarker().' Rechnungsadresse';
                     $PanelType = Panel::PANEL_TYPE_SUCCESS;
                 } else {

@@ -29,8 +29,8 @@ class Person
                 $fileLocation = ReportingPerson::useService()->createClassListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Klassenliste " . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()
-                    . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
+                    "Klassenliste ".$tblDivision->getTblLevel()->getName().$tblDivision->getName()
+                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }
 
@@ -52,8 +52,8 @@ class Person
                 $fileLocation = ReportingPerson::useService()->createExtendedClassListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Erweiterte_Klassenliste " . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()
-                    . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
+                    "Erweiterte_Klassenliste ".$tblDivision->getTblLevel()->getName().$tblDivision->getName()
+                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }
 
@@ -75,8 +75,8 @@ class Person
                 $fileLocation = ReportingPerson::useService()->createBirthdayClassListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Birthday_Klassenliste " . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()
-                    . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
+                    "Birthday_Klassenliste ".$tblDivision->getTblLevel()->getName().$tblDivision->getName()
+                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }
 
@@ -98,8 +98,8 @@ class Person
                 $fileLocation = ReportingPerson::useService()->createMedicalInsuranceClassListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Krankenkasse_Klassenliste " . $tblDivision->getTblLevel()->getName() . $tblDivision->getName()
-                    . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
+                    "Krankenkasse_Klassenliste ".$tblDivision->getTblLevel()->getName().$tblDivision->getName()
+                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }
 
@@ -108,6 +108,7 @@ class Person
 
     /**
      * @param null $GroupId
+     *
      * @return bool|string
      */
     public function downloadGroupList($GroupId = null)
@@ -120,8 +121,8 @@ class Person
                 $fileLocation = ReportingPerson::useService()->createGroupListExcel($groupList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Gruppenliste " . $tblGroup->getName()
-                    . " " . date("Y-m-d H:i:s") . ".xls")->__toString();
+                    "Gruppenliste ".$tblGroup->getName()
+                    ." ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }
 

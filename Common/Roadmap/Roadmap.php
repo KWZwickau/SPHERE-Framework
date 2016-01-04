@@ -8,6 +8,7 @@ use SPHERE\Common\Roadmap\Milestone\Major1Minor1;
 use SPHERE\Common\Roadmap\Milestone\Major1Minor2;
 use SPHERE\Common\Roadmap\Milestone\Major1Minor3;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Roadmap as RoadmapExtension;
 
@@ -30,18 +31,18 @@ class Roadmap extends Extension
 
         $this->Roadmap = $this->getRoadmap();
 
-        Major0Minor8::Patch0($this->Roadmap);
-        Major0Minor8::Patch0Fix1($this->Roadmap);
-        Major0Minor8::Patch1($this->Roadmap);
-        Major0Minor8::Patch2($this->Roadmap);
+        Major0Minor8::definePatch0($this->Roadmap);
+        Major0Minor8::definePatch0Fix1($this->Roadmap);
+        Major0Minor8::definePatch1($this->Roadmap);
+        Major0Minor8::definePatch2($this->Roadmap);
 
-        Major0Minor9::Patch0($this->Roadmap);
-        Major0Minor9::Patch1($this->Roadmap);
+        Major0Minor9::definePatch0($this->Roadmap);
+        Major0Minor9::definePatch1($this->Roadmap);
 
-        Major1Minor0::Patch0($this->Roadmap);
-        Major1Minor1::Patch0($this->Roadmap);
-        Major1Minor2::Patch0($this->Roadmap);
-        Major1Minor3::Patch0($this->Roadmap);
+        Major1Minor0::definePatch0($this->Roadmap);
+        Major1Minor1::definePatch0($this->Roadmap);
+        Major1Minor2::definePatch0($this->Roadmap);
+        Major1Minor3::definePatch0($this->Roadmap);
 
         $this->poolMajor1MinorXPatchX();
     }
@@ -125,18 +126,25 @@ class Roadmap extends Extension
     }
 
     /**
+     * @return null|RoadmapExtension
+     */
+    public function getRoadmapObject()
+    {
+
+        return $this->Roadmap;
+    }
+
+    /**
      * @return string
      */
     public function getVersionNumber()
     {
 
-        return $this->Roadmap->getVersionNumber();
-    }
-
-    public function pdfMap()
-    {
-
-        $this->getDebugger()->screenDump(__METHOD__);
-        $this->Roadmap->getPdf();
+        $Cache = $this->getCache(new MemcachedHandler());
+        if (null === ($Version = $Cache->getValue('Version', __METHOD__))) {
+            $Version = $this->Roadmap->getVersionNumber();
+            $Cache->setValue('Version', $Version, 0, __METHOD__);
+        }
+        return $Version;
     }
 }

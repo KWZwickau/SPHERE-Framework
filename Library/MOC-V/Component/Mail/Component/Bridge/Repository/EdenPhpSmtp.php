@@ -18,6 +18,8 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
 
     /** @var null|Smtp $Instance */
     private $Instance = null;
+    /** @var array $Header */
+    private $Header = array();
 
     /**
      *
@@ -83,6 +85,30 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
     }
 
     /**
+     * @param $Address
+     *
+     * @return EdenPhpSmtp
+     */
+    public function setFromHeader($Address)
+    {
+
+        $this->Header['From'] = $Address;
+        return $this;
+    }
+
+    /**
+     * @param $Address
+     *
+     * @return EdenPhpSmtp
+     */
+    public function setReplyHeader($Address)
+    {
+
+        $this->Header['Reply-To'] = $Address;
+        return $this;
+    }
+
+    /**
      * @return EdenPhpSmtp
      * @throws MailException
      */
@@ -90,7 +116,7 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
     {
 
         try {
-            $this->Instance->send();
+            $this->Instance->send($this->Header);
         } catch (\Exception $Exception) {
             throw new MailException($Exception->getMessage(), $Exception->getCode(), $Exception);
         }
@@ -133,7 +159,7 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
     }
 
     /**
-     * @param string $Address
+     * @param string      $Address
      * @param null|string $Name
      *
      * @return EdenPhpSmtp
@@ -151,7 +177,7 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
     }
 
     /**
-     * @param string $Address
+     * @param string      $Address
      * @param null|string $Name
      *
      * @return EdenPhpSmtp
@@ -169,7 +195,7 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
     }
 
     /**
-     * @param string $Address
+     * @param string      $Address
      * @param null|string $Name
      *
      * @return EdenPhpSmtp
@@ -196,7 +222,7 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
     {
 
         try {
-            $this->Instance->addAttachment($File->getFileInfo()->getFilename(),
+            $this->Instance->addAttachment($File->getFileInfo()->getRealPath(),
                 file_get_contents($File->getFileInfo()->getRealPath()));
         } catch (\Exception $Exception) {
             throw new MailException($Exception->getMessage(), $Exception->getCode(), $Exception);

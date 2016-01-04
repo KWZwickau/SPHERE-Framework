@@ -17,7 +17,7 @@ class Major1Minor2
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function Patch0(RoadmapExtension $Roadmap)
+    public static function definePatch0(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('1.2.0', 'KREDA (Ziel Q1 2016)');
@@ -27,12 +27,12 @@ class Major1Minor2
         $Feature = $Category->createFeature('Zensuren');
         $Feature->createTask('Erweiterung der Funktionalitäten')
             ->createDuty('Berechnungsvorschriften für Notendurchschnitt', true)
-            ->createDuty('Notenspiegel / Verteilung für Leistungsüberprüfung')
+            ->createDuty('Notenspiegel / Verteilung für Leistungsüberprüfung', false)
             ->createDuty('Hinterlegung von Aufgabenpunkten bei Leistungsüberprüfungen und automatische Wichtung für Notenbildung')
-            ->createDuty('Auftragserteilung für Stichtags- & Kopfnoten-Ermittlung (Schulleiter)')
+            ->createDuty('Auftragserteilung für Stichtags- & Kopfnoten-Ermittlung (Schulleiter)', false)
             ->createDuty('Zeugnisdruck mit Möglichkeit zur revisionssicheren Speicherung');
         $Feature->createTask('Zeugnisdruck (vorerst feste Zeugnislayouts)');
-        $Feature->createTask('Schüler & Elternansicht');
+        $Feature->createTask('Schüler & Elternansicht', '', false);
 
         // Fakturierung
         $Category = $Release->createCategory('Fakturierung');

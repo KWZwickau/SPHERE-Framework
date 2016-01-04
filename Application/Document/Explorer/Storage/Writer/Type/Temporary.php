@@ -11,15 +11,20 @@ use SPHERE\Application\Document\Explorer\Storage\Writer\AbstractWriter;
 class Temporary extends AbstractWriter
 {
 
+    /** @var bool $Destruct */
+    private $Destruct = true;
+
     /**
      * @param string $Prefix
      * @param string $Extension
+     * @param bool   $Destruct
      */
-    public function __construct($Prefix = 'SPHERE-Temporary', $Extension = 'storage')
+    public function __construct($Prefix = 'SPHERE-Temporary', $Extension = 'storage', $Destruct = true)
     {
 
         $Location = sys_get_temp_dir().DIRECTORY_SEPARATOR.$Prefix.'-'.sha1(uniqid($Prefix, true)).'.'.$Extension;
         $this->setFileLocation($Location);
+        $this->Destruct = (bool)$Destruct;
     }
 
     /**
@@ -28,7 +33,7 @@ class Temporary extends AbstractWriter
     public function __destruct()
     {
 
-        if ($this->getRealPath()) {
+        if ($this->Destruct && $this->getRealPath()) {
             unlink($this->getRealPath());
         }
     }

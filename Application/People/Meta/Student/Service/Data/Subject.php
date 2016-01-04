@@ -154,10 +154,10 @@ abstract class Subject extends Transfer
     /**
      * if already exists -> update entry
      *
-     * @param TblStudent $tblStudent
-     * @param TblStudentSubjectType $tblStudentSubjectType
+     * @param TblStudent               $tblStudent
+     * @param TblStudentSubjectType    $tblStudentSubjectType
      * @param TblStudentSubjectRanking $tblStudentSubjectRanking
-     * @param TblSubject $tblSubject
+     * @param TblSubject               $tblSubject
      *
      * @return TblStudentSubject
      */
@@ -172,8 +172,8 @@ abstract class Subject extends Transfer
 
         /** @var TblStudentSubject $Entity */
         $Entity = $Manager->getEntity('TblStudentSubject')->findOneBy(array(
-            TblStudentSubject::ATTR_TBL_STUDENT => $tblStudent->getId(),
-            TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_TYPE => $tblStudentSubjectType->getId(),
+            TblStudentSubject::ATTR_TBL_STUDENT                 => $tblStudent->getId(),
+            TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_TYPE    => $tblStudentSubjectType->getId(),
             TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_RANKING => $tblStudentSubjectRanking->getId()
         ));
 
@@ -235,8 +235,9 @@ abstract class Subject extends Transfer
     }
 
     /**
-     * @param TblStudent $tblStudent
+     * @param TblStudent            $tblStudent
      * @param TblStudentSubjectType $tblStudentSubjectType
+     *
      * @return bool|TblStudentSubject[]
      */
     public function getStudentSubjectAllByStudentAndSubjectType(
@@ -247,7 +248,7 @@ abstract class Subject extends Transfer
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblStudentSubject',
             array(
-                TblStudentSubject::ATTR_TBL_STUDENT => $tblStudent->getId(),
+                TblStudentSubject::ATTR_TBL_STUDENT              => $tblStudent->getId(),
                 TblStudentSubject::ATTR_TBL_STUDENT_SUBJECT_TYPE => $tblStudentSubjectType->getId(),
             )
         );

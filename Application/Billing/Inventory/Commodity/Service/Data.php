@@ -126,7 +126,7 @@ class Data extends AbstractData
         $tblItemAccountAllByItem = Item::useService()->getItemAccountAllByItem($tblItem);
         $tblAccount = array();
         foreach ($tblItemAccountAllByItem as $tblItemAccount) {
-            array_push($tblAccount, $tblItemAccount->getServiceBilling_Account());
+            array_push($tblAccount, $tblItemAccount->getServiceBillingAccount());
         }
 
         return $tblAccount;

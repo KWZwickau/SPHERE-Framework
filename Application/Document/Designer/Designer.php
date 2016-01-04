@@ -35,7 +35,7 @@ class Designer implements IApplicationInterface
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Designer'))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__ . '::frontendDashboard'
+            __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
     }
 

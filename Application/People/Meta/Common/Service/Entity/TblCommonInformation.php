@@ -74,7 +74,7 @@ class TblCommonInformation extends Element
     /**
      * @return int
      */
-    public function getIsAssistance()
+    public function isAssistance()
     {
 
         return $this->IsAssistance;
@@ -83,7 +83,7 @@ class TblCommonInformation extends Element
     /**
      * @param int $IsAssistance
      */
-    public function setIsAssistance($IsAssistance)
+    public function setAssistance($IsAssistance)
     {
 
         $this->IsAssistance = $IsAssistance;

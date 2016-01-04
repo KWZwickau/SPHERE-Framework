@@ -4,8 +4,8 @@ namespace SPHERE\Application\People\Search\Group;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
-use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -50,9 +50,9 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Suche', 'nach Gruppe');
 
         $tblGroupAll = Group::useService()->getGroupAll();
-        if (!empty( $tblGroupAll )) {
+        if (!empty($tblGroupAll)) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblGroupAll, function (TblGroup &$tblGroup, $Index, Stage $Stage) {
+            array_walk($tblGroupAll, function (TblGroup &$tblGroup) use ($Stage) {
 
                 $Stage->addButton(
                     new Standard(
@@ -62,68 +62,86 @@ class Frontend extends Extension implements IFrontendInterface
                             'Id' => $tblGroup->getId()
                         ), $tblGroup->getDescription())
                 );
-            }, $Stage);
+            });
         }
 
         $tblGroup = Group::useService()->getGroupById($Id);
         if ($tblGroup) {
 
-            $idPersonAll = Group::useService()->fetchIdPersonAllByGroup( $tblGroup );
-            $tblPersonAll = Person::useService()->fetchPersonAllByIdList( $idPersonAll );
+//            $idPersonAll = Group::useService()->fetchIdPersonAllByGroup($tblGroup);
+//            $tblPersonAll = Person::useService()->fetchPersonAllByIdList($idPersonAll);
+            $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
+
 //            $Cache = $this->getCache(new MemcachedHandler());
 //            if (null === ($Result = $Cache->getValue($Id, __METHOD__))) {
-                $Result = array();
-                if ($tblPersonAll) {
-                    (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartRun');
-                    array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result) {
 
+            // Check ESZC
+            $Acronym = Consumer::useService()->getConsumerBySession()->getAcronym();
 
-                        $idAddressAll = Address::useService()->fetchIdAddressAllByPerson( $tblPerson );
-                        $tblAddressAll = Address::useService()->fetchAddressAllByIdList( $idAddressAll );
-                        if (!empty($tblAddressAll)) {
-                            $tblAddress = current($tblAddressAll)->getGuiString();
-                        } else {
-                            $tblAddress = false;
-                        }
+            $Result = array();
+            if ($tblPersonAll) {
+                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartRun');
+                array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym) {
 
-                        array_push($Result, array(
-                            'FullName' => $tblPerson->getFullName(),
-                            'Address' => ($tblAddress
-                                ? $tblAddress
-                                : new Warning('Keine Adresse hinterlegt')
-                            ),
-                            'Option' => new Standard('', '/People/Person', new Pencil(), array(
-                                'Id' => $tblPerson->getId(),
-                                'Group' => $tblGroup->getId()
-                            ), 'Bearbeiten'),
-                            'Remark' => (($Common = Common::useService()->getCommonByPerson($tblPerson)) ? $Common->getRemark() : '')
-                        ));
-                    });
-                    (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopRun');
+                    $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
+                    $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
+                    if (!empty($tblAddressAll)) {
+                        $tblAddress = current($tblAddressAll)->getGuiString();
+                    } else {
+                        $tblAddress = false;
+                    }
+
+                    array_push($Result, array(
+                        'FullName' => $tblPerson->getFullName(),
+                        'Address' => ($tblAddress
+                            ? $tblAddress
+                            : new Warning('Keine Adresse hinterlegt')
+                        ),
+                        'Option' => new Standard('', '/People/Person', new Pencil(), array(
+                            'Id' => $tblPerson->getId(),
+                            'Group' => $tblGroup->getId()
+                        ), 'Bearbeiten'),
+                        'Remark' => (
+                        $Acronym == 'ESZC'
+                            ? (($Common = Common::useService()->getCommonByPerson($tblPerson)) ? $Common->getRemark() : '')
+                            : ''
+                        )
+                    ));
+                });
+                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopRun');
 
 //                    $Cache->setValue($Id, $Result, 0, __METHOD__);
 //                }
             }
+
+            if ($Acronym == 'ESZC') {
+                $ColumnArray = array(
+                    'FullName' => 'Name',
+                    'Address' => 'Adresse',
+                    'Remark' => 'Bemerkung',
+                    'Option' => 'Optionen',
+                );
+            } else {
+                $ColumnArray = array(
+                    'FullName' => 'Name',
+                    'Address' => 'Adresse',
+                    'Option' => 'Optionen',
+                );
+            }
+
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(
-                        new Panel(new PersonGroup().' Gruppe', array(
+                        new Panel(new PersonGroup() . ' Gruppe', array(
                             new Bold($tblGroup->getName()),
-                            ( $tblGroup->getDescription() ? new Small($tblGroup->getDescription()) : '' ),
-                            ( $tblGroup->getRemark() ? new Danger(new Italic(nl2br($tblGroup->getRemark()))) : '' )
+                            ($tblGroup->getDescription() ? new Small($tblGroup->getDescription()) : ''),
+                            ($tblGroup->getRemark() ? new Danger(new Italic(nl2br($tblGroup->getRemark()))) : '')
                         ), Panel::PANEL_TYPE_SUCCESS
                         )
                     )),
                     new LayoutRow(new LayoutColumn(array(
                         new Headline('Verfügbare Personen', 'in dieser Gruppe'),
-                        new TableData($Result, null,
-                            array(
-                                'FullName' => 'Name',
-                                'Address' => 'Adresse',
-                                'Remark'  => 'Bemerkung',
-                                'Option'  => 'Optionen',
-                            )
-                        )
+                        new TableData($Result, null, $ColumnArray)
                     )))
                 )))
             );

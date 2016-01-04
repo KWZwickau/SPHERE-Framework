@@ -54,7 +54,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblSchool')
             ->findOneBy(array(
                 TblSchool::SERVICE_TBL_COMPANY => $tblCompany->getId(),
-                TblSchool::SERVICE_TBL_TYPE => $tblType->getId(),
+                TblSchool::SERVICE_TBL_TYPE    => $tblType->getId(),
             ));
         if (null === $Entity) {
             $Entity = new TblSchool();

@@ -343,9 +343,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $tblMail = new LayoutColumn(
                                     new Panel(
-                                        new MailIcon().' '.$tblMail->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_DEFAULT,
+                                        new MailIcon().' '.$tblMail->getTblType()->getName(), $Panel,
+                                        Panel::PANEL_TYPE_DEFAULT,
                                         $tblRelationship->getServiceTblPersonFrom()->getFullName()
-                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                        .' ('.$tblRelationship->getTblType()->getName().')'
                                     )
                                     , 3);
 
@@ -372,9 +373,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $tblMail = new LayoutColumn(
                                     new Panel(
-                                        new MailIcon().' '.$tblMail->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_DEFAULT,
+                                        new MailIcon().' '.$tblMail->getTblType()->getName(), $Panel,
+                                        Panel::PANEL_TYPE_DEFAULT,
                                         $tblRelationship->getServiceTblPersonTo()->getFullName()
-                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                        .' ('.$tblRelationship->getTblType()->getName().')'
                                     )
                                     , 3);
 

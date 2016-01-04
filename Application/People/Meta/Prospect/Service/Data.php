@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\People\Meta\Prospect\Service;
 
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspect;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectAppointment;
@@ -64,10 +63,10 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string          $ReservationYear
-     * @param string          $ReservationDivision
-     * @param null|TblCompany $tblTypeOptionA
-     * @param null|TblCompany $tblTypeOptionB
+     * @param string       $ReservationYear
+     * @param string       $ReservationDivision
+     * @param null|TblType $tblTypeOptionA
+     * @param null|TblType $tblTypeOptionB
      *
      * @return TblProspectReservation
      */

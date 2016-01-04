@@ -16,13 +16,13 @@ abstract class Student extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param $Identifier
-     * @param null $tblStudentMedicalRecord
-     * @param null $tblStudentTransport
-     * @param null $tblStudentBilling
-     * @param null $tblStudentLocker
-     * @param null $tblStudentBaptism
-     * @param null $tblStudentIntegration
+     * @param           $Identifier
+     * @param null      $tblStudentMedicalRecord
+     * @param null      $tblStudentTransport
+     * @param null      $tblStudentBilling
+     * @param null      $tblStudentLocker
+     * @param null      $tblStudentBaptism
+     * @param null      $tblStudentIntegration
      *
      * @return TblStudent
      */
@@ -58,13 +58,13 @@ abstract class Student extends AbstractData
 
     /**
      * @param TblStudent $tblStudent
-     * @param $Identifier
-     * @param null $tblStudentMedicalRecord
-     * @param null $tblStudentTransport
-     * @param null $tblStudentBilling
-     * @param null $tblStudentLocker
-     * @param null $tblStudentBaptism
-     * @param null $tblStudentIntegration
+     * @param            $Identifier
+     * @param null       $tblStudentMedicalRecord
+     * @param null       $tblStudentTransport
+     * @param null       $tblStudentBilling
+     * @param null       $tblStudentLocker
+     * @param null       $tblStudentBaptism
+     * @param null       $tblStudentIntegration
      *
      * @return bool
      */

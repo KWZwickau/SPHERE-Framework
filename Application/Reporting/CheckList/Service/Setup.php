@@ -14,10 +14,12 @@ use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
+ *
  * @package SPHERE\Application\Reporting\CheckList\Service
  */
 class Setup extends AbstractSetup
 {
+
     /**
      * @param bool $Simulate
      *
@@ -85,6 +87,7 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
+     *
      * @return Table
      */
     private function setTableList(Schema &$Schema)
@@ -103,8 +106,9 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblList
-     * @param Table $tblObjectType
+     * @param Table  $tblList
+     * @param Table  $tblObjectType
+     *
      * @return Table
      */
     private function setTableListObjectList(Schema &$Schema, Table $tblList, Table $tblObjectType)
@@ -123,8 +127,9 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblList
-     * @param Table $tblElementType
+     * @param Table  $tblList
+     * @param Table  $tblElementType
+     *
      * @return Table
      */
     private function setTableListElementList(Schema &$Schema, Table $tblList, Table $tblElementType)
@@ -143,13 +148,18 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblList
-     * @param Table $tblListElementList
-     * @param Table $tblObjectType
+     * @param Table  $tblList
+     * @param Table  $tblListElementList
+     * @param Table  $tblObjectType
+     *
      * @return Table
      */
-    private function setTableListObjectElementList(Schema &$Schema, Table $tblList, Table $tblListElementList, Table $tblObjectType)
-    {
+    private function setTableListObjectElementList(
+        Schema &$Schema,
+        Table $tblList,
+        Table $tblListElementList,
+        Table $tblObjectType
+    ) {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblListObjectElementList');
         if (!$this->getConnection()->hasColumn('tblListObjectElementList', 'serviceTblObject')) {

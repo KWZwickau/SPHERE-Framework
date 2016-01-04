@@ -205,13 +205,13 @@ class Setup extends AbstractSetup
     }
 
     /**
-     * @param Schema                             $Schema
+     * @param Schema $Schema
      * @param Table  $tblStudentMedicalRecord
      * @param Table  $tblStudentTransport
      * @param Table  $tblStudentBilling
      * @param Table  $tblStudentLocker
      * @param Table  $tblStudentBaptism
-     * @param Table                              $tblStudentIntegration
+     * @param Table  $tblStudentIntegration
      *
      * @return Table
      */

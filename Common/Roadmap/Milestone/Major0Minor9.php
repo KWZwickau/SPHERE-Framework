@@ -17,7 +17,7 @@ class Major0Minor9
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function Patch0(RoadmapExtension $Roadmap)
+    public static function definePatch0(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('0.9.0', 'Demoversion (Ziel Oktober)');
@@ -46,7 +46,7 @@ class Major0Minor9
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function Patch1(RoadmapExtension $Roadmap)
+    public static function definePatch1(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('0.9.1', 'Demoversion (Ziel Oktober)');

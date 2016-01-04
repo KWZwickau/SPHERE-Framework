@@ -29,7 +29,7 @@ abstract class Transfer extends Agreement
     }
 
     /**
-     * @param TblStudent $tblStudent
+     * @param TblStudent             $tblStudent
      * @param TblStudentTransferType $tblStudentTransferType
      *
      * @return bool|TblStudentTransfer
@@ -53,6 +53,7 @@ abstract class Transfer extends Agreement
 
     /**
      * @param $Id
+     *
      * @return bool|TblStudentTransferType
      */
     public function getStudentTransferTypeById($Id)
@@ -62,14 +63,14 @@ abstract class Transfer extends Agreement
     }
 
     /**
-     * @param TblStudent $tblStudent
+     * @param TblStudent             $tblStudent
      * @param TblStudentTransferType $tblStudentTransferType
-     * @param TblCompany|null $tblCompany
-     * @param TblType|null $tblType
-     * @param TblCourse|null $tblCourse
-     * @param $TransferDate
+     * @param TblCompany|null        $tblCompany
+     * @param TblType|null           $tblType
+     * @param TblCourse|null         $tblCourse
+     * @param                        $TransferDate
      *
-     * @param $Remark
+     * @param                        $Remark
      */
     public function insertStudentTransfer(
         TblStudent $tblStudent,
@@ -80,6 +81,7 @@ abstract class Transfer extends Agreement
         $TransferDate,
         $Remark
     ) {
+
         $tblStudentTransfer = $this->getStudentTransferByType(
             $tblStudent,
             $tblStudentTransferType

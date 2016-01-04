@@ -3,6 +3,8 @@ namespace SPHERE\System\Cache\Handler;
 
 use SPHERE\System\Cache\CacheStatus;
 use SPHERE\System\Config\Reader\ReaderInterface;
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 
 /**
  * Class MemoryHandler
@@ -94,6 +96,7 @@ class MemoryHandler extends AbstractHandler implements HandlerInterface
     public function clearCache($Region = null)
     {
 
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Clear Memory');
         if (null === $Region) {
             $this->MemoryRegister = array();
         } else {
@@ -108,6 +111,7 @@ class MemoryHandler extends AbstractHandler implements HandlerInterface
     public function getStatus()
     {
 
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Status Memory');
         return new CacheStatus(
             self::$HitCount, self::$MissCount, $this->convertByte2Integer(ini_get('memory_limit')),
             memory_get_peak_usage(true),

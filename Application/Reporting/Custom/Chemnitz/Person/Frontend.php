@@ -32,11 +32,13 @@ use SPHERE\System\Extension\Extension;
  */
 class Frontend extends Extension implements IFrontendInterface
 {
+
     /**
      * @return Stage
      */
     public function frontendPerson()
     {
+
         $View = new Stage();
         $View->setTitle('ESZC Auswertung');
         $View->setDescription('Bitte wählen Sie eine Liste zur Auswertung');
@@ -50,7 +52,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendClassList($DivisionId, $Select)
+    public function frontendClassList($DivisionId = null, $Select = null)
     {
 
         $View = new Stage();
@@ -99,28 +101,28 @@ class Frontend extends Extension implements IFrontendInterface
                     , $Select, '/Reporting/Custom/Chemnitz/Person/ClassList')
             )
             .
-            ($DivisionId !== null ?
+            ( $DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getDisplayName(),
                             Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
                 .
                 new TableData($studentList, null,
                     array(
-                        'Salutation' => 'Anrede',
-                        'Father' => 'Vorname Sorgeberechtigter 1',
-                        'Mother' => 'Vorname Sorgeberechtigter 2',
-                        'LastName' => 'Name',
+                        'Salutation'   => 'Anrede',
+                        'Father'       => 'Vorname Sorgeberechtigter 1',
+                        'Mother'       => 'Vorname Sorgeberechtigter 2',
+                        'LastName'     => 'Name',
                         'Denomination' => 'Konfession',
-                        'Address' => 'Adresse',
-                        'FirstName' => 'Schüler',
-                        'Birthday' => 'Geburtsdatum',
-                        'Birthplace' => 'Geburtsort',
+                        'Address'      => 'Adresse',
+                        'FirstName'    => 'Schüler',
+                        'Birthday'     => 'Geburtsdatum',
+                        'Birthplace'   => 'Geburtsort',
                     ),
                     null
-                ) : '')
+                ) : '' )
         );
 
         return $View;
@@ -131,6 +133,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendStaffList()
     {
+
         $View = new Stage();
         $View->setTitle('ESZC Auswertung');
         $View->setDescription('Liste der Mitarbeiter');
@@ -147,18 +150,18 @@ class Frontend extends Extension implements IFrontendInterface
             new TableData($staffList, null,
                 array(
                     'Salutation' => 'Anrede',
-                    'FirstName' => 'Vorname',
-                    'LastName' => 'Name',
-                    'Birthday' => 'Geburtsdatum',
-                    'Division' => 'Unterbereich',
-                    'Address' => 'Adresse',
+                    'FirstName'  => 'Vorname',
+                    'LastName'   => 'Name',
+                    'Birthday'   => 'Geburtsdatum',
+                    'Division'   => 'Unterbereich',
+                    'Address'    => 'Adresse',
 //                    'StreetName'         => 'Straße',
 //                    'StreetNumber'         => 'Hausnr.',
 //                    'Code'         => 'PLZ',
 //                    'City'         => 'Ort',
-                    'Phone1' => 'Telefon 1',
-                    'Phone2' => 'Telefon 2',
-                    'Mail' => 'Mail',
+                    'Phone1'     => 'Telefon 1',
+                    'Phone2'     => 'Telefon 2',
+                    'Mail'       => 'Mail',
                 ),
                 null
             )
@@ -173,8 +176,9 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendMedicList($DivisionId, $Select)
+    public function frontendMedicList($DivisionId = null, $Select = null)
     {
+
         $View = new Stage();
         $View->setTitle('ESZC Auswertung');
         $View->setDescription('Arztliste');
@@ -221,23 +225,23 @@ class Frontend extends Extension implements IFrontendInterface
                     , $Select, '/Reporting/Custom/Chemnitz/Person/MedicList')
             )
             .
-            ($DivisionId !== null ?
+            ( $DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getDisplayName(),
                             Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
                 .
                 new TableData($studentList, null,
                     array(
-                        'LastName' => 'Name',
+                        'LastName'  => 'Name',
                         'FirstName' => 'Vorname',
-                        'Birthday' => 'Geburtsdatum',
-                        'Address' => 'Adresse',
+                        'Birthday'  => 'Geburtsdatum',
+                        'Address'   => 'Adresse',
                     ),
                     null
-                ) : '')
+                ) : '' )
         );
 
         return $View;
@@ -249,8 +253,9 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendParentTeacherConferenceList($DivisionId, $Select)
+    public function frontendParentTeacherConferenceList($DivisionId = null, $Select = null)
     {
+
         $View = new Stage();
         $View->setTitle('ESZC Auswertung');
         $View->setDescription('Liste für Elternabende');
@@ -298,22 +303,22 @@ class Frontend extends Extension implements IFrontendInterface
                     , $Select, '/Reporting/Custom/Chemnitz/Person/ParentTeacherConferenceList')
             )
             .
-            ($DivisionId !== null ?
+            ( $DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getDisplayName(),
                             Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
                 .
                 new TableData($studentList, null,
                     array(
-                        'LastName' => 'Name',
-                        'FirstName' => 'Vorname',
+                        'LastName'   => 'Name',
+                        'FirstName'  => 'Vorname',
                         'Attendance' => 'Anwesenheit',
                     ),
                     null
-                ) : '')
+                ) : '' )
         );
 
         return $View;
@@ -324,6 +329,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendClubMemberList()
     {
+
         $View = new Stage();
         $View->setTitle('ESZC Auswertung');
         $View->setDescription('Liste der Vereinsmitglieder');
@@ -339,16 +345,16 @@ class Frontend extends Extension implements IFrontendInterface
         $View->setContent(
             new TableData($clubMemberList, null,
                 array(
-                    'Salutation' => 'Anrede',
-                    'FirstName' => 'Vorname',
-                    'LastName' => 'Name',
-                    'Address' => 'Adresse',
+                    'Salutation'  => 'Anrede',
+                    'FirstName'   => 'Vorname',
+                    'LastName'    => 'Name',
+                    'Address'     => 'Adresse',
 //                    'StreetName'         => 'Straße',
 //                    'StreetNumber'         => 'Hausnr.',
 //                    'Code'         => 'PLZ',
 //                    'City'         => 'Ort',
-                    'Phone' => 'Telefon',
-                    'Mail' => 'Mail',
+                    'Phone'       => 'Telefon',
+                    'Mail'        => 'Mail',
                     'Directorate' => 'Vorstand'
                 ),
                 null
@@ -363,6 +369,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendInterestedPersonList()
     {
+
         $View = new Stage();
         $View->setTitle('ESZC Auswertung');
         $View->setDescription('Neuanmeldungen/Interessenten');
@@ -379,28 +386,28 @@ class Frontend extends Extension implements IFrontendInterface
             new TableData($interestedPersonList, null,
                 array(
                     'RegistrationDate' => 'Anmeldedatum',
-                    'FirstName' => 'Vorname',
-                    'LastName' => 'Name',
-                    'SchoolYear' => 'Schuljahr',
-                    'DivisionLevel' => 'Klassenstufe',
-                    'TypeOptionA' => 'Schulart 1',
-                    'TypeOptionB' => 'Schulart 2',
-                    'Address' => 'Adresse',
+                    'FirstName'        => 'Vorname',
+                    'LastName'         => 'Name',
+                    'SchoolYear'       => 'Schuljahr',
+                    'DivisionLevel'    => 'Klassenstufe',
+                    'TypeOptionA'      => 'Schulart 1',
+                    'TypeOptionB'      => 'Schulart 2',
+                    'Address'          => 'Adresse',
 //                    'StreetName'         => 'Straße',
 //                    'StreetNumber'         => 'Hausnummer',
 //                    'Code'         => 'PLZ',
 //                    'City'         => 'Ort',
-                    'Birthday' => 'Geburtsdatum',
-                    'Birthplace' => 'Geburtsort',
-                    'Nationality' => 'Staatsangeh.',
-                    'Denomination' => 'Bekenntnis',
-                    'Siblings' => 'Geschwister',
-                    'Hoard' => 'Hort',
-                    'Father' => 'Sorgeberechtigter 1',
+                    'Birthday'         => 'Geburtsdatum',
+                    'Birthplace'       => 'Geburtsort',
+                    'Nationality'      => 'Staatsangeh.',
+                    'Denomination'     => 'Bekenntnis',
+                    'Siblings'         => 'Geschwister',
+                    'Hoard'            => 'Hort',
+                    'Father'           => 'Sorgeberechtigter 1',
 //                    'FatherSalutation'         => 'Anrede V',
 //                    'FatherLastName'         => 'Name V',
 //                    'FatherFirstName'         => 'Vorname V',
-                    'Mother' => 'Sorgeberechtigter 2',
+                    'Mother'           => 'Sorgeberechtigter 2',
 //                    'MotherSalutation'         => 'Anrede M',
 //                    'MotherLastName'         => 'Name M',
 //                    'MotherFirstName'         => 'Vorname M',
@@ -417,6 +424,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendSchoolFeeList()
     {
+
         $View = new Stage();
         $View->setTitle('ESZC Auswertung');
         $View->setDescription('Schulgeldliste');
@@ -431,20 +439,20 @@ class Frontend extends Extension implements IFrontendInterface
         $View->setContent(
             new TableData($studentList, null,
                 array(
-                    'DebtorNumber' => 'Deb.-Nr.',
-                    'Reply' => 'Bescheid geschickt',
-                    'Father' => 'Sorgeberechtigter 1',
+                    'DebtorNumber'  => 'Deb.-Nr.',
+                    'Reply'         => 'Bescheid geschickt',
+                    'Father'        => 'Sorgeberechtigter 1',
 //                    'FatherSalutation'     => 'Anrede V',
 //                    'FatherLastName'         => 'Name V',
 //                    'FatherFirstName'         => 'Vorname V',
-                    'Mother' => 'Sorgeberechtigter 2',
+                    'Mother'        => 'Sorgeberechtigter 2',
 //                    'MotherSalutation'         => 'Anrede M',
 //                    'MotherLastName'         => 'Name M',
 //                    'MotherFirstName'         => 'Vorname M',
-                    'Records' => 'Unterlagen eingereicht',
+                    'Records'       => 'Unterlagen eingereicht',
                     'LastSchoolFee' => 'SG Vorjahr',
-                    'Remarks' => 'Bemerkungen',
-                    'Address' => 'Adresse',
+                    'Remarks'       => 'Bemerkungen',
+                    'Address'       => 'Adresse',
 //                    'StreetName'         => 'Straße',
 //                    'StreetNumber'         => 'Hausnummer',
 //                    'Code'         => 'PLZ',
@@ -465,6 +473,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendPrintClassList($DivisionId = null, $Select = null)
     {
+
         $View = new Stage();
         $View->setTitle('ESZC Auswertung');
         $View->setDescription('Klassenliste zum Ausdrucken');
@@ -497,16 +506,16 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tableData = ($tableData = new TableData($studentList, null,
+        $tableData = ( $tableData = new TableData($studentList, null,
             array(
-                'DisplayName' => 'Name',
-                'Birthday' => 'Geb.-Datum',
-                'Address' => 'Adresse',
+                'DisplayName'  => 'Name',
+                'Birthday'     => 'Geb.-Datum',
+                'Address'      => 'Adresse',
                 'PhoneNumbers' => 'Telefonnummer',
-                'Orientation' => 'NK',
+                'Orientation'  => 'NK',
             ),
             null
-        ));
+        ) );
 
         $View->setContent(
             new Well(
@@ -523,15 +532,15 @@ class Frontend extends Extension implements IFrontendInterface
                     , $Select, '/Reporting/Custom/Chemnitz/Person/PrintClassList')
             )
             .
-            ($DivisionId !== null ?
+            ( $DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
-                        new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                        new Panel('Klasse:', $tblDivision->getDisplayName(),
                             Panel::PANEL_TYPE_INFO), 12
                     ),
                 )))))
-                . $tableData
-                 : '')
+                .$tableData
+                : '' )
         );
 
         if ($DivisionId !== null) {

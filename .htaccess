@@ -26,7 +26,7 @@
         Order Deny,Allow
         Deny from All
     </FilesMatch>
-    <FilesMatch "^(index\.php|piwik\.php|.*\.(css|js|map|woff|woff2|ico|svg|png|jpg|ttf|gif))$">
+    <FilesMatch "^(index\.php|piwik\.php|robots\.txt|.*\.html|.*\.(css|js|map|woff|woff2|ico|svg|png|jpg|ttf|gif))$">
         Allow from All
     </FilesMatch>
 

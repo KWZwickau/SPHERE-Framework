@@ -176,7 +176,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel('Fach', $tblSubject->getAcronym().' - '.$tblSubject->getName(), Panel::PANEL_TYPE_INFO)
+                            new Panel('Fach', $tblSubject->getAcronym().' - '.$tblSubject->getName(),
+                                Panel::PANEL_TYPE_INFO)
                         )
                     )
                 )
@@ -216,7 +217,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblCategory->Option = new Standard('', '/Education/Lesson/Subject/Change/Category', new Pencil(),
                     array('Id' => $tblCategory->getId()))
-                .( $tblCategory->getIsLocked() ? ''
+                .( $tblCategory->isLocked() ? ''
                     : new Standard('', '/Education/Lesson/Subject/Destroy/Category', new Remove(),
                         array('Id' => $tblCategory->getId())) );
         });
@@ -323,7 +324,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel('Kategorie', $tblCategory->getName().' '.new Muted(new Small($tblCategory->getDescription())), Panel::PANEL_TYPE_INFO)
+                            new Panel('Kategorie',
+                                $tblCategory->getName().' '.new Muted(new Small($tblCategory->getDescription())),
+                                Panel::PANEL_TYPE_INFO)
                         )
                     )
                 )

@@ -7,6 +7,11 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 
+/**
+ * Class Custom
+ *
+ * @package SPHERE\Application\Reporting\Custom
+ */
 class Custom implements IApplicationInterface
 {
 

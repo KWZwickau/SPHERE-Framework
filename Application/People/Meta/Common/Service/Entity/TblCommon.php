@@ -74,7 +74,7 @@ class TblCommon extends Element
     public function setTblCommonBirthDates(TblCommonBirthDates $tblCommonBirthDates = null)
     {
 
-        $this->tblCommonBirthDates = (null === $tblCommonBirthDates ? null : $tblCommonBirthDates->getId());
+        $this->tblCommonBirthDates = ( null === $tblCommonBirthDates ? null : $tblCommonBirthDates->getId() );
     }
 
     /**
@@ -96,7 +96,7 @@ class TblCommon extends Element
     public function setTblCommonInformation(TblCommonInformation $tblCommonInformation = null)
     {
 
-        $this->tblCommonInformation = (null === $tblCommonInformation ? null : $tblCommonInformation->getId());
+        $this->tblCommonInformation = ( null === $tblCommonInformation ? null : $tblCommonInformation->getId() );
     }
 
     /**

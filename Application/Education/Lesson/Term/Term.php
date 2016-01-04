@@ -79,7 +79,6 @@ class Term implements IModuleInterface
             ->setParameterDefault('Id', null)
         );
 
-
     }
 
     /**
@@ -99,8 +98,10 @@ class Term implements IModuleInterface
 
         $Stage = new Stage('Schuljahr', 'Dashboard');
 
-        $Stage->addButton(new Standard('Schuljahr', __NAMESPACE__.'\Create\Year', new Calendar(), null, 'erstellen / bearbeiten'));
-        $Stage->addButton(new Standard('Zeitraum', __NAMESPACE__.'\Create\Period', new Time(), null, 'erstellen / bearbeiten'));
+        $Stage->addButton(new Standard('Schuljahr', __NAMESPACE__.'\Create\Year', new Calendar(), null,
+            'erstellen / bearbeiten'));
+        $Stage->addButton(new Standard('Zeitraum', __NAMESPACE__.'\Create\Period', new Time(), null,
+            'erstellen / bearbeiten'));
 
         $tblYearAll = Term::useService()->getYearAll();
         $Year = array();
@@ -110,14 +111,14 @@ class Term implements IModuleInterface
                 $tblPeriodAll = $tblYear->getTblPeriodAll();
                 if ($tblPeriodAll) {
                     /** @noinspection PhpUnusedParameterInspection */
-                    array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod, $index, TblYear $tblYear) {
+                    array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod) use ($tblYear) {
 
                         $tblPeriod = $tblPeriod->getName().' '.new Muted(new Small($tblPeriod->getDescription()))
 //                            .new PullRight(new Standard('', __NAMESPACE__.'\Remove\Period', new Remove(),
 //                                array('PeriodId' => $tblPeriod->getId(),
 //                                      'Id'       => $tblYear->getId()), 'Zeitraum entfernen'))
                             .'<br/>'.$tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
-                    }, $tblYear);
+                    });
                 } else {
                     $tblPeriodAll = array();
                 }
@@ -127,7 +128,8 @@ class Term implements IModuleInterface
                         ( empty( $tblPeriodAll ) ?
                             'Keine Zeiträume hinterlegt'
                             : count($tblPeriodAll).' Zeiträume' ),
-                        $tblPeriodAll, ( empty( $tblPeriodAll ) ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT )
+                        $tblPeriodAll,
+                        ( empty( $tblPeriodAll ) ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT )
                         , new Standard('', __NAMESPACE__.'\Choose\Period', new Clock(),
                         array('Id' => $tblYear->getId()), 'Zeitraum zuweisen'
                     )),
