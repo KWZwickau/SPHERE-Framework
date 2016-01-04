@@ -1400,12 +1400,12 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                     $tblDivisionStudent->FullName = $tblDivisionStudent->getLastName().', '.$tblDivisionStudent->getFirstName().' '.
                         $tblDivisionStudent->getSecondName();
-//                    $tblCommon = Common::useService()->getCommonByPerson($tblDivisionStudent);
-//                    if ($tblCommon) {
-//                        $tblDivisionStudent->Birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
-//                    } else {
-//                        $tblDivisionStudent->Birthday = 'Nicht hinterlegt';
-//                    }
+                    $tblCommon = Common::useService()->getCommonByPerson($tblDivisionStudent);
+                    if ($tblCommon) {
+                        $tblDivisionStudent->Birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
+                    } else {
+                        $tblDivisionStudent->Birthday = 'Nicht hinterlegt';
+                    }
 
                     $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblDivisionStudent);
                     $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
@@ -1594,7 +1594,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                                            'FirstName' => 'Vorname',
                                             'FullName' => 'Schüler',
                                             'Address'  => 'Adresse',
-//                                            'Birthday' => 'Geburtsdatum'
+                                            'Birthday' => 'Geburtsdatum'
                                         ), false)
                                     : new Warning('Keine Schüer der Klasse zugewiesen') )
                             ,
