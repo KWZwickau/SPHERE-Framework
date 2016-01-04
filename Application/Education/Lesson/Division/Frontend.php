@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division;
 
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
@@ -184,23 +185,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-
-//            new Layout(
-//                new LayoutGroup(
-//                    new LayoutRow(
-//                        new LayoutColumn(
-//                            (new Accordion())
-//                                ->addItem(new Info('Übersicht auf ein bestimmtes Schuljahr setzen'), new Well(
-//                                    Division::useService()->selectYear(
-//                                        $this->formYearSelect()
-//                                            ->appendFormButton(new Primary('Auswählen'))
-//                                        , $Year = null
-//                                    )
-//                                ), false), 6
-//                        )
-//                    )
-//                )
-//            ).
             new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
@@ -261,13 +245,10 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Global = $this->getGlobal();
-//        $Global->POST['Level']['Name'] = '';
-//        $Global->savePost();
 
         if (!isset( $Global->POST['Level'] ) && $tblLevel) {
             $Global->POST['Level']['Type'] = ( $tblLevel->getServiceTblType() ? $tblLevel->getServiceTblType()->getId() : 0 );
             $Global->POST['Level']['Name'] = $tblLevel->getName();
-//            $Global->POST['Level']['Description'] = $tblLevel->getDescription();
             $Global->POST['Division']['Year'] = ( $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getId() : 0 );
             $Global->POST['Division']['Name'] = $tblDivision->getName();
             $Global->POST['Division']['Description'] = $tblDivision->getDescription();
@@ -416,6 +397,20 @@ class Frontend extends Extension implements IFrontendInterface
             if (is_array($tblDivisionStudentActive)) {
                 array_walk($tblDivisionStudentActive, function (TblPerson &$Entity) use (&$Id) {
 
+                    $Entity->Name = $Entity->getFullName();
+                    $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($Entity);
+                    $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
+                    if (!empty( $tblAddressAll )) {
+                        $tblAddress = current($tblAddressAll)->getGuiString();
+                    } else {
+                        $tblAddress = false;
+                    }
+                    if (isset( $tblAddress ) && $tblAddress) {
+                        $Entity->Address = $tblAddress;
+                    } else {
+                        $Entity->Address = new Warning('Keine Adresse hinterlegt');
+                    }
+
                     /** @noinspection PhpUndefinedFieldInspection */
                     $Entity->Option = new PullRight(
                         new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
@@ -433,6 +428,20 @@ class Frontend extends Extension implements IFrontendInterface
             if (isset( $tblDivisionStudentAll ) && !empty( $tblDivisionStudentAll )) {
                 array_walk($tblDivisionStudentAll, function (TblPerson &$Entity) use ($Id) {
 
+                    $Entity->Name = $Entity->getFullName();
+                    $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($Entity);
+                    $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
+                    if (!empty( $tblAddressAll )) {
+                        $tblAddress = current($tblAddressAll)->getGuiString();
+                    } else {
+                        $tblAddress = false;
+                    }
+                    if (isset( $tblAddress ) && $tblAddress) {
+                        $Entity->Address = $tblAddress;
+                    } else {
+                        $Entity->Address = new Warning('Keine Adresse hinterlegt');
+                    }
+
                     /** @noinspection PhpUndefinedFieldInspection */
                     $Entity->Option = new PullRight(
                         new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
@@ -446,8 +455,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $Stage->setContent(
-//                new Info($tblPrivilege->getName())
-//                .
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(array(
@@ -457,10 +464,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     ? new Warning('Keine Schüler zugewiesen')
                                     : new TableData($tblDivisionStudentActive, null,
                                         array(
-                                            'FirstName' => 'Vorname',
-                                            'LastName'  => 'Nachname',
-//                                              'Description' => 'Beschreibung',
-                                            'Option'    => ''
+                                            'Name'    => 'Schüler',
+                                            'Address' => 'Adresse',
+                                            'Option'  => ''
                                         ))
                                 )
                             ), 6),
@@ -470,10 +476,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     ? new Info('Keine weiteren Schüler verfügbar')
                                     : new TableData($tblStudentAvailable, null,
                                         array(
-                                            'FirstName' => 'Vorname',
-                                            'LastName'  => 'Nachname',
-//                                              'Description' => 'Beschreibung',
-                                            'Option'    => ''
+                                            'Name'    => 'Schüler',
+                                            'Address' => 'Adresse',
+                                            'Option'  => ''
                                         ))
                                 )
                             ), 6)
@@ -596,8 +601,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $Stage->setContent(
-//                new Info($tblPrivilege->getName())
-//                .
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(array(
@@ -622,7 +625,6 @@ class Frontend extends Extension implements IFrontendInterface
                                         array(
                                             'FirstName' => 'Vorname',
                                             'LastName'  => 'Nachname',
-//                                              'Description' => 'Beschreibung',
                                             'Options'   => 'Beschreibung'
                                         ))
                                 )
@@ -1396,28 +1398,40 @@ class Frontend extends Extension implements IFrontendInterface
                 array_multisort($LastName, SORT_ASC, $FirstName, SORT_ASC, $tblDivisionStudentList);
 
                 foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                    $tblDivisionStudent->FullName = $tblDivisionStudent->getFirstName().' '.
-                        $tblDivisionStudent->getSecondName().' '.
-                        $tblDivisionStudent->getLastName();
-                    $tblCommon = Common::useService()->getCommonByPerson($tblDivisionStudent);
-                    if ($tblCommon) {
-                        $tblDivisionStudent->Birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
+                    $tblDivisionStudent->FullName = $tblDivisionStudent->getLastName().', '.$tblDivisionStudent->getFirstName().' '.
+                        $tblDivisionStudent->getSecondName();
+//                    $tblCommon = Common::useService()->getCommonByPerson($tblDivisionStudent);
+//                    if ($tblCommon) {
+//                        $tblDivisionStudent->Birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
+//                    } else {
+//                        $tblDivisionStudent->Birthday = 'Nicht hinterlegt';
+//                    }
+
+                    $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblDivisionStudent);
+                    $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
+                    if (!empty( $tblAddressAll )) {
+                        $tblAddress = current($tblAddressAll)->getGuiString();
                     } else {
-                        $tblDivisionStudent->Birthday = 'nicht eingetragen';
+                        $tblAddress = false;
+                    }
+                    if (isset( $tblAddress ) && $tblAddress) {
+                        $tblDivisionStudent->Address = $tblAddress;
+                    } else {
+                        $tblDivisionStudent->Address = new \SPHERE\Common\Frontend\Text\Repository\Warning('Keine Adresse hinterlegt');
                     }
 
-                    $tblSubjectStudentList = Division::useService()->getSubjectStudentByPerson($tblDivisionStudent);
-                    if ($tblSubjectStudentList) {
-                        $GroupList = array();
-                        /** @var TblSubjectStudent $tblSubjectStudent */
-                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                            $GroupList[] = $tblSubjectStudent->getTblDivisionSubject()->getServiceTblSubject()->getName();
-                        }
-                        asort($GroupList);
-                        $tblDivisionStudent->Group = implode(', ', $GroupList);
-                    } else {
-                        $tblDivisionStudent->Group = 'keine Zuordnung';
-                    }
+//                    $tblSubjectStudentList = Division::useService()->getSubjectStudentByPerson($tblDivisionStudent);
+//                    if ($tblSubjectStudentList) {
+//                        $GroupList = array();
+//                        /** @var TblSubjectStudent $tblSubjectStudent */
+//                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+//                            $GroupList[] = $tblSubjectStudent->getTblDivisionSubject()->getServiceTblSubject()->getName();
+//                        }
+//                        asort($GroupList);
+//                        $tblDivisionStudent->Group = implode(', ', $GroupList);
+//                    } else {
+//                        $tblDivisionStudent->Group = 'keine Zuordnung';
+//                    }
                 }
             } else {
                 $tblDivisionStudentList = array();
@@ -1576,8 +1590,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 ( ( !empty( $tblDivisionStudentList ) ) ?
                                     new TableData($tblDivisionStudentList, null
                                         , array(
-                                            'LastName'  => 'Nachname',
-                                            'FirstName' => 'Vorname',
+//                                            'LastName'  => 'Nachname',
+//                                            'FirstName' => 'Vorname',
+                                            'FullName' => 'Schüler',
+                                            'Address'  => 'Adresse',
+//                                            'Birthday' => 'Geburtsdatum'
                                         ), false)
                                     : new Warning('Keine Schüer der Klasse zugewiesen') )
                             ,
