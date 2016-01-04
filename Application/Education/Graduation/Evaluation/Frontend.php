@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -428,7 +429,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblTestList = array();
         }
 
-        $Form = $this->formTest()
+        $Form = $this->formTest($tblDivision->getServiceTblYear())
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
@@ -479,13 +480,14 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param TblYear $tblYear
      * @return Form
      */
-    private function formTest()
+    private function formTest(TblYear $tblYear)
     {
 
         $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllWhereTest();
-        $tblPeriodList = Term::useService()->getPeriodAll();
+        $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
 
         return new Form(new FormGroup(array(
             new FormRow(array(
