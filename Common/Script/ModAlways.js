@@ -5,13 +5,23 @@
     {
         $(document).ready(function ()
         {
+            var worldForm = $('form');
             /**
              * Autocomplete Attribute OFF
              */
-            $('form').attr('autocomplete', 'off');
+            worldForm.attr('autocomplete', 'off');
             $('input[type="password"]').attr('autocomplete', 'off');
             $('input[type="text"]').attr('autocomplete', 'off');
             $('input[type="number"]').attr('autocomplete', 'off');
+
+            /**
+             * Form Submit-Indicator
+             */
+            worldForm.on("submit", function()
+            {
+                $('button[type="submit"]').html(
+                    '<span class="glyphicon glyphicon-refresh loading-indicator-animate"></span> Bitte warten');
+            });
 
             //noinspection FunctionWithInconsistentReturnsJS
             /**
