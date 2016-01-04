@@ -98,6 +98,10 @@ class Evaluation implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\AppointedDate\Division\Remove',
                 __NAMESPACE__.'\Frontend::frontendHeadmasterTaskAppointedDateRemoveDivision')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\AppointedDate\Grades',
+                __NAMESPACE__.'\Frontend::frontendHeadmasterTaskAppointedDateGrades')
+        );
 
     }
 
