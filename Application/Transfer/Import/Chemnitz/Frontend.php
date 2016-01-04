@@ -33,6 +33,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Select
+     *
      * @return Stage
      */
     public function frontendStudent($Select = null)
@@ -76,7 +77,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param UploadedFile|null $File
-     * @param null $DivisionId
+     * @param null              $DivisionId
      *
      * @return Stage
      */
@@ -100,11 +101,11 @@ class Frontend extends Extension implements IFrontendInterface
         $View->setContent(
             new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(
-                    new Panel('Schulart:', $tblDivision->getTblLevel()->getServiceTblType()->getName(),
+                    new Panel('Schulart:', $tblDivision->getTypeName(),
                         Panel::PANEL_TYPE_INFO), 6
                 ),
                 new LayoutColumn(
-                    new Panel('Klasse:', $tblDivision->getTblLevel()->getName() . $tblDivision->getName(),
+                    new Panel('Klasse:', $tblDivision->getDisplayName(),
                         Panel::PANEL_TYPE_INFO), 6
                 ),
                 new LayoutColumn(array(

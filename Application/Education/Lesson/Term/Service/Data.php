@@ -76,6 +76,13 @@ class Data extends AbstractData
         return $Entity;
     }
 
+    /**
+     * @param TblYear $tblYear
+     * @param string  $Name
+     * @param string  $Description
+     *
+     * @return bool
+     */
     public function updateYear(
         TblYear $tblYear,
         $Name,
@@ -301,14 +308,19 @@ class Data extends AbstractData
         ));
     }
 
+    /**
+     * @param TblPeriod $tblPeriod
+     *
+     * @return array|bool
+     */
     public function getYearByPeriod(TblPeriod $tblPeriod)
     {
 
-        $TempList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYearPeriod', array(
-            TblYearPeriod::ATTR_TBL_PERIOD => $tblPeriod->getId()
-        ));
+        $TempList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblYearPeriod', array(
+                TblYearPeriod::ATTR_TBL_PERIOD => $tblPeriod->getId()
+            ));
         $EntityList = array();
-
 
         if ($TempList) {
             foreach ($TempList as $Temp) {

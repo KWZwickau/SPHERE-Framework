@@ -21,7 +21,7 @@ class ConfigFactory implements ConfigInterface
     private static $InstanceCache = array();
 
     /**
-     * @param string|array $Content
+     * @param string|array    $Content
      * @param ReaderInterface $Reader
      *
      * @return ReaderInterface
@@ -41,18 +41,18 @@ class ConfigFactory implements ConfigInterface
             $Source = realpath($Content);
             if ($Source) {
                 if (!$this->isAvailable($Source)) {
-                    (new DebuggerFactory())->createLogger()->addLog(__METHOD__ . ': ' . $Source);
+                    (new DebuggerFactory())->createLogger()->addLog(__METHOD__.': '.$Source);
                     $this->setReader($Reader, $Source);
                 }
                 return $this->getReader($Source);
             } else {
                 (new DebuggerFactory())->createLogger(new ErrorLogger())
-                    ->addLog(__METHOD__ . ' Error: File not available (' . $Content . ')');
+                    ->addLog(__METHOD__.' Error: File not available ('.$Content.')');
                 return $Reader;
             }
         } else {
             if (!$this->isAvailable($Content)) {
-                (new DebuggerFactory())->createLogger()->addLog(__METHOD__ . ': ' . json_encode($Content));
+                (new DebuggerFactory())->createLogger()->addLog(__METHOD__.': '.json_encode($Content));
                 $this->setReader($Reader, $Content);
             }
             return $this->getReader($Content);
@@ -67,7 +67,7 @@ class ConfigFactory implements ConfigInterface
     private function isAvailable($File)
     {
 
-        return isset(self::$InstanceCache[$this->getHash($File)]);
+        return isset( self::$InstanceCache[$this->getHash($File)] );
     }
 
     /**
@@ -78,12 +78,12 @@ class ConfigFactory implements ConfigInterface
     private function getHash($Mixed)
     {
 
-        return sha1(json_encode($Mixed));
+        return json_encode($Mixed);
     }
 
     /**
      * @param ReaderInterface $Reader
-     * @param string $File
+     * @param string          $File
      */
     private function setReader(ReaderInterface $Reader, $File)
     {

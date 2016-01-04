@@ -41,7 +41,7 @@ class Http implements ITypeInterface
     /**
      * @return null|string
      */
-    public function getUsernamePasswort()
+    public function getUsernamePassword()
     {
 
         $UserPass = $this->getUsername().':'.$this->getPassword();

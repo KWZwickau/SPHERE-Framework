@@ -38,7 +38,7 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
-    public function UploadNow(IFormInterface &$Stage = null, $FileUpload)
+    public function uploadNow(IFormInterface &$Stage = null, $FileUpload)
     {
 
         /**

@@ -168,7 +168,7 @@ class Data extends AbstractData
             $Entity = new TblGroup();
             $Entity->setName($Name);
             $Entity->setDescription($Description);
-            $Entity->setIsLocked($IsLocked);
+            $Entity->setLocked($IsLocked);
             $Entity->setIdentifier($Identifier);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -202,7 +202,7 @@ class Data extends AbstractData
             $Entity = new TblCategory();
             $Entity->setName($Name);
             $Entity->setDescription($Description);
-            $Entity->setIsLocked($IsLocked);
+            $Entity->setLocked($IsLocked);
             $Entity->setIdentifier($Identifier);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -635,12 +635,12 @@ class Data extends AbstractData
         $tblSubjectAll = $this->getSubjectAll();
         if ($tblSubjectAll) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblSubjectAll, function (TblSubject &$tblSubject, $Index, $Exclude) {
+            array_walk($tblSubjectAll, function (TblSubject &$tblSubject) use ($Exclude) {
 
                 if (in_array($tblSubject->getId(), $Exclude)) {
                     $tblSubject = false;
                 }
-            }, $Exclude);
+            });
             $EntityList = array_filter($tblSubjectAll);
         } else {
             $EntityList = null;
@@ -673,12 +673,12 @@ class Data extends AbstractData
         $tblCategoryAll = $this->getCategoryAll();
         if ($tblCategoryAll) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblCategoryAll, function (TblCategory &$tblCategory, $Index, $Exclude) {
+            array_walk($tblCategoryAll, function (TblCategory &$tblCategory) use ($Exclude) {
 
                 if (in_array($tblCategory->getId(), $Exclude)) {
                     $tblCategory = false;
                 }
-            }, $Exclude);
+            });
             $EntityList = array_filter($tblCategoryAll);
         } else {
             $EntityList = null;

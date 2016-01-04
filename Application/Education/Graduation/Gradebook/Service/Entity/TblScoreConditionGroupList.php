@@ -41,6 +41,7 @@ class TblScoreConditionGroupList extends Element
      */
     public function getTblScoreGroup()
     {
+
         if (null === $this->tblScoreGroup) {
             return false;
         } else {
@@ -53,7 +54,8 @@ class TblScoreConditionGroupList extends Element
      */
     public function setTblScoreGroup($tblScoreGroup)
     {
-        $this->tblScoreGroup = (null === $tblScoreGroup ? null : $tblScoreGroup->getId());
+
+        $this->tblScoreGroup = ( null === $tblScoreGroup ? null : $tblScoreGroup->getId() );
     }
 
     /**
@@ -61,6 +63,7 @@ class TblScoreConditionGroupList extends Element
      */
     public function getTblScoreCondition()
     {
+
         if (null === $this->tblScoreCondition) {
             return false;
         } else {
@@ -73,6 +76,7 @@ class TblScoreConditionGroupList extends Element
      */
     public function setTblScoreCondition($tblScoreCondition)
     {
-        $this->tblScoreCondition = (null === $tblScoreCondition ? null : $tblScoreCondition->getId());
+
+        $this->tblScoreCondition = ( null === $tblScoreCondition ? null : $tblScoreCondition->getId() );
     }
 }

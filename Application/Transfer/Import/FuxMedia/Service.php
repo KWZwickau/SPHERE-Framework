@@ -34,6 +34,11 @@ use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use SPHERE\Application\People\Meta\Student\Student;
 
+/**
+ * Class Service
+ *
+ * @package SPHERE\Application\Transfer\Import\FuxMedia
+ */
 class Service
 {
 
@@ -45,14 +50,14 @@ class Service
 
         return new Person(
             new Identifier('People', 'Person', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__ . '/../../../People/Person/Service/Entity', 'SPHERE\Application\People\Person\Service\Entity'
+            __DIR__.'/../../../People/Person/Service/Entity', 'SPHERE\Application\People\Person\Service\Entity'
         );
     }
 
     /**
      * @param IFormInterface|null $Stage
-     * @param null $Select
-     * @param string $Redirect
+     * @param null                $Select
+     * @param string              $Redirect
      *
      * @return IFormInterface|Redirect|string
      */
@@ -67,11 +72,11 @@ class Service
         }
 
         $Error = false;
-        if (!isset($Select['Type'])) {
+        if (!isset( $Select['Type'] )) {
             $Error = true;
             $Stage .= new Warning('Schulart nicht gefunden');
         }
-        if (!isset($Select['Year'])) {
+        if (!isset( $Select['Year'] )) {
             $Error = true;
             $Stage .= new Warning('Schuljahr nicht gefunden');
         }
@@ -87,9 +92,10 @@ class Service
 
     /**
      * @param IFormInterface|null $Form
-     * @param UploadedFile|null $File
-     * @param null $TypeId
-     * @param null $YearId
+     * @param UploadedFile|null   $File
+     * @param null                $TypeId
+     * @param null                $YearId
+     *
      * @return IFormInterface|Danger|string
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
@@ -115,7 +121,7 @@ class Service
                 /**
                  * Prepare
                  */
-                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                $File = $File->move($File->getPath(), $File->getFilename().'.'.$File->getClientOriginalExtension());
                 /**
                  * Read
                  */
@@ -134,55 +140,55 @@ class Service
                  * Header -> Location
                  */
                 $Location = array(
-                    'Schüler_Schülernummer' => null,
-                    'Schüler_Name' => null,
-                    'Schüler_Vorname' => null,
-                    'Schüler_Klasse' => null,
-                    'Schüler_Klassenstufe' => null,
-                    'Schüler_Geschlecht' => null,
-                    'Schüler_Staatsangehörigkeit' => null,
-                    'Schüler_Straße' => null,
-                    'Schüler_Plz' => null,
-                    'Schüler_Wohnort' => null,
-                    'Schüler_Ortsteil' => null,
-                    'Schüler_Geburtsdatum' => null,
-                    'Schüler_Geburtsort' => null,
-                    'Schüler_Konfession' => null,
-                    'Schüler_Einschulung_am' => null,
-                    'Schüler_Aufnahme_am' => null,
-                    'Schüler_Abgang_am' => null,
-                    'Schüler_abgebende_Schule_ID' => null,
-                    'Schüler_aufnehmende_Schule_ID' => null,
+                    'Schüler_Schülernummer'               => null,
+                    'Schüler_Name'                        => null,
+                    'Schüler_Vorname'                     => null,
+                    'Schüler_Klasse'                      => null,
+                    'Schüler_Klassenstufe'                => null,
+                    'Schüler_Geschlecht'                  => null,
+                    'Schüler_Staatsangehörigkeit'         => null,
+                    'Schüler_Straße'                      => null,
+                    'Schüler_Plz'                         => null,
+                    'Schüler_Wohnort'                     => null,
+                    'Schüler_Ortsteil'                    => null,
+                    'Schüler_Geburtsdatum'                => null,
+                    'Schüler_Geburtsort'                  => null,
+                    'Schüler_Konfession'                  => null,
+                    'Schüler_Einschulung_am'              => null,
+                    'Schüler_Aufnahme_am'                 => null,
+                    'Schüler_Abgang_am'                   => null,
+                    'Schüler_abgebende_Schule_ID'         => null,
+                    'Schüler_aufnehmende_Schule_ID'       => null,
                     'Schüler_Schließfach_Schlüsselnummer' => null,
-                    'Schüler_Schließfachnummer' => null,
-                    'Schüler_Krankenkasse' => null,
-                    'Sorgeberechtigter1_Name' => null,
-                    'Sorgeberechtigter1_Vorname' => null,
-                    'Sorgeberechtigter1_Straße' => null,
-                    'Sorgeberechtigter1_Plz' => null,
-                    'Sorgeberechtigter1_Wohnort' => null,
-                    'Sorgeberechtigter1_Ortsteil' => null,
-                    'Sorgeberechtigter2_Name' => null,
-                    'Sorgeberechtigter2_Vorname' => null,
-                    'Sorgeberechtigter2_Straße' => null,
-                    'Sorgeberechtigter2_Plz' => null,
-                    'Sorgeberechtigter2_Wohnort' => null,
-                    'Sorgeberechtigter2_Ortsteil' => null,
-                    'Kommunikation_Telefon1' => null,
-                    'Kommunikation_Telefon2' => null,
-                    'Kommunikation_Telefon3' => null,
-                    'Kommunikation_Telefon4' => null,
-                    'Kommunikation_Telefon5' => null,
-                    'Kommunikation_Telefon6' => null,
-                    'Kommunikation_Fax' => null,
-                    'Kommunikation_Email' => null,
-                    'Beförderung_Fahrtroute' => null,
-                    'Beförderung_Einsteigestelle' => null,
-                    'Fächer_Religionsunterricht' => null,
-                    'Fächer_Fremdsprache1' => null,
-                    'Fächer_Fremdsprache2' => null,
-                    'Fächer_Fremdsprache3' => null,
-                    'Fächer_Fremdsprache4' => null,
+                    'Schüler_Schließfachnummer'           => null,
+                    'Schüler_Krankenkasse'                => null,
+                    'Sorgeberechtigter1_Name'             => null,
+                    'Sorgeberechtigter1_Vorname'          => null,
+                    'Sorgeberechtigter1_Straße'           => null,
+                    'Sorgeberechtigter1_Plz'              => null,
+                    'Sorgeberechtigter1_Wohnort'          => null,
+                    'Sorgeberechtigter1_Ortsteil'         => null,
+                    'Sorgeberechtigter2_Name'             => null,
+                    'Sorgeberechtigter2_Vorname'          => null,
+                    'Sorgeberechtigter2_Straße'           => null,
+                    'Sorgeberechtigter2_Plz'              => null,
+                    'Sorgeberechtigter2_Wohnort'          => null,
+                    'Sorgeberechtigter2_Ortsteil'         => null,
+                    'Kommunikation_Telefon1'              => null,
+                    'Kommunikation_Telefon2'              => null,
+                    'Kommunikation_Telefon3'              => null,
+                    'Kommunikation_Telefon4'              => null,
+                    'Kommunikation_Telefon5'              => null,
+                    'Kommunikation_Telefon6'              => null,
+                    'Kommunikation_Fax'                   => null,
+                    'Kommunikation_Email'                 => null,
+                    'Beförderung_Fahrtroute'              => null,
+                    'Beförderung_Einsteigestelle'         => null,
+                    'Fächer_Religionsunterricht'          => null,
+                    'Fächer_Fremdsprache1'                => null,
+                    'Fächer_Fremdsprache2'                => null,
+                    'Fächer_Fremdsprache3'                => null,
+                    'Fächer_Fremdsprache4'                => null,
 
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
@@ -261,8 +267,7 @@ class Service
                                                 $RunY))),
                                             trim($Document->getValue($Document->getCell($Location['Schüler_Ortsteil'],
                                                 $RunY))),
-                                            '',
-                                            null
+                                            ''
                                         );
 
                                     }
@@ -271,7 +276,7 @@ class Service
 
                             // Student Contact
                             for ($i = 1; $i < 7; $i++) {
-                                $PhoneNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Telefon' . $i],
+                                $PhoneNumber = trim($Document->getValue($Document->getCell($Location['Kommunikation_Telefon'.$i],
                                     $RunY)));
                                 if ($PhoneNumber != '') {
                                     Phone::useService()->insertPhoneToPerson($tblPerson, $PhoneNumber,
@@ -292,16 +297,16 @@ class Service
                             }
 
                             // Division
-                            if (($Level = trim($Document->getValue($Document->getCell($Location['Schüler_Klassenstufe'],
-                                    $RunY)))) != ''
+                            if (( $Level = trim($Document->getValue($Document->getCell($Location['Schüler_Klassenstufe'],
+                                    $RunY))) ) != ''
                             ) {
                                 $tblLevel = Division::useService()->insertLevel($tblType, $Level);
                                 if ($tblLevel) {
                                     $Division = trim($Document->getValue($Document->getCell($Location['Schüler_Klasse'],
                                         $RunY)));
                                     if ($Division != '') {
-                                        if (($pos = strpos($Division, $Level)) !== false) {
-                                            if (strlen($Division) > (($start = $pos + strlen($Level)))) {
+                                        if (( $pos = strpos($Division, $Level) ) !== false) {
+                                            if (strlen($Division) > ( ( $start = $pos + strlen($Level) ) )) {
                                                 $Division = substr($Division, $start);
                                             }
                                         }
@@ -386,9 +391,9 @@ class Service
                                 $arriveDate = trim($Document->getValue($Document->getCell($Location['Schüler_Aufnahme_am'],
                                     $RunY)));
                                 $arriveSchool = null;
-                                if (($company = Company::useService()->getCompanyByDescription(trim(
+                                if (( $company = Company::useService()->getCompanyByDescription(trim(
                                     $Document->getValue($Document->getCell($Location['Schüler_aufnehmende_Schule_ID'],
-                                        $RunY)))))
+                                        $RunY)))) )
                                 ) {
                                     $arriveSchool = $company;
                                 }
@@ -405,9 +410,9 @@ class Service
                                     );
                                 }
                                 $leaveSchool = null;
-                                if (($company = Company::useService()->getCompanyByDescription(trim(
+                                if (( $company = Company::useService()->getCompanyByDescription(trim(
                                     $Document->getValue($Document->getCell($Location['Schüler_abgebende_Schule_ID'],
-                                        $RunY)))))
+                                        $RunY)))) )
                                 ) {
                                     $leaveSchool = $company;
                                 }
@@ -451,7 +456,7 @@ class Service
                                 }
 
                                 for ($i = 1; $i < 5; $i++) {
-                                    $subjectLanguage = trim($Document->getValue($Document->getCell($Location['Fächer_Fremdsprache' . $i],
+                                    $subjectLanguage = trim($Document->getValue($Document->getCell($Location['Fächer_Fremdsprache'.$i],
                                         $RunY)));
                                     $tblSubject = false;
                                     if ($subjectLanguage !== '') {
@@ -537,8 +542,7 @@ class Service
                                                         $RunY))),
                                                     trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter1_Ortsteil'],
                                                         $RunY))),
-                                                    '',
-                                                    null
+                                                    ''
                                                 );
 
                                             }
@@ -615,8 +619,7 @@ class Service
                                                         $RunY))),
                                                     trim($Document->getValue($Document->getCell($Location['Sorgeberechtigter2_Ortsteil'],
                                                         $RunY))),
-                                                    '',
-                                                    null
+                                                    ''
                                                 );
 
                                             }
@@ -643,10 +646,10 @@ class Service
                     $countExists = $countFatherExists + $countMotherExists;
 
                     return
-                        new Success('Es wurden ' . $countStudent . ' Schüler erfolgreich angelegt.') .
-                        new Success('Es wurden ' . ($countFather + $countMother) . ' Sorgeberechtigte erfolgreich angelegt.') .
-                        ($countExists > 0 ?
-                            new Warning($countExists . ' Sorgeberechtigte exisistieren bereits.') : '');
+                        new Success('Es wurden '.$countStudent.' Schüler erfolgreich angelegt.').
+                        new Success('Es wurden '.( $countFather + $countMother ).' Sorgeberechtigte erfolgreich angelegt.').
+                        ( $countExists > 0 ?
+                            new Warning($countExists.' Sorgeberechtigte exisistieren bereits.') : '' );
                 } else {
                     Debugger::screenDump($Location);
                     return new Danger(
@@ -659,7 +662,7 @@ class Service
 
     /**
      * @param IFormInterface|null $Form
-     * @param UploadedFile|null $File
+     * @param UploadedFile|null   $File
      *
      * @return IFormInterface|Danger|Success
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException#
@@ -684,7 +687,7 @@ class Service
                 /**
                  * Prepare
                  */
-                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                $File = $File->move($File->getPath(), $File->getFilename().'.'.$File->getClientOriginalExtension());
                 /**
                  * Read
                  */
@@ -704,22 +707,22 @@ class Service
                  */
                 $Location = array(
                     'Lehrerkürzel' => null,
-                    'Name' => null,
-                    'Vorname' => null,
-                    'Anrede' => null,
-                    'Geschlecht' => null,
-                    'Straße' => null,
-                    'Plz' => null,
-                    'Wohnort' => null,
-                    'Ortsteil' => null,
+                    'Name'         => null,
+                    'Vorname'      => null,
+                    'Anrede'       => null,
+                    'Geschlecht'   => null,
+                    'Straße'       => null,
+                    'Plz'          => null,
+                    'Wohnort'      => null,
+                    'Ortsteil'     => null,
                     'Geburtsdatum' => null,
-                    'Geburtsort' => null,
-                    'Geburtsname' => null,
-                    'Konfession' => null,
-                    'Telefon1' => null,
-                    'Telefon2' => null,
-                    'Fax' => null,
-                    'EMail' => null,
+                    'Geburtsort'   => null,
+                    'Geburtsname'  => null,
+                    'Konfession'   => null,
+                    'Telefon1'     => null,
+                    'Telefon2'     => null,
+                    'Fax'          => null,
+                    'EMail'        => null,
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
@@ -796,8 +799,7 @@ class Service
                                                     $RunY))),
                                                 trim($Document->getValue($Document->getCell($Location['Ortsteil'],
                                                     $RunY))),
-                                                '',
-                                                null
+                                                ''
                                             );
 
                                         }
@@ -806,7 +808,7 @@ class Service
 
                                 // Teacher Contact
                                 for ($i = 1; $i < 3; $i++) {
-                                    $PhoneNumber = trim($Document->getValue($Document->getCell($Location['Telefon' . $i],
+                                    $PhoneNumber = trim($Document->getValue($Document->getCell($Location['Telefon'.$i],
                                         $RunY)));
                                     if ($PhoneNumber != '') {
                                         Phone::useService()->insertPhoneToPerson($tblPerson, $PhoneNumber,
@@ -831,7 +833,7 @@ class Service
                         }
                     }
                     return
-                        new Success('Es wurden ' . $countTeacher . ' Lehrer erfolgreich angelegt.');
+                        new Success('Es wurden '.$countTeacher.' Lehrer erfolgreich angelegt.');
                 } else {
                     Debugger::screenDump($Location);
                     return new Danger(
@@ -844,9 +846,9 @@ class Service
 
     /**
      * @param IFormInterface|null $Form
-     * @param UploadedFile|null $File
-     * @param null $TypeId
-     * @param null $YearId
+     * @param UploadedFile|null   $File
+     * @param null                $TypeId
+     * @param null                $YearId
      *
      * @return IFormInterface|Danger|Success
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException #
@@ -873,7 +875,7 @@ class Service
                 /**
                  * Prepare
                  */
-                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                $File = $File->move($File->getPath(), $File->getFilename().'.'.$File->getClientOriginalExtension());
                 /**
                  * Read
                  */
@@ -892,9 +894,9 @@ class Service
                  * Header -> Location
                  */
                 $Location = array(
-                    'Klasse' => null,
-                    'Klassenstufe' => null,
-                    'Klassenlehrer_kurz' => null,
+                    'Klasse'                            => null,
+                    'Klassenstufe'                      => null,
+                    'Klassenlehrer_kurz'                => null,
                     'Stellvertreter_Klassenlehrer_kurz' => null,
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
@@ -917,16 +919,16 @@ class Service
 
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
 
-                        if (($Level = trim($Document->getValue($Document->getCell($Location['Klassenstufe'],
-                                $RunY)))) != ''
+                        if (( $Level = trim($Document->getValue($Document->getCell($Location['Klassenstufe'],
+                                $RunY))) ) != ''
                         ) {
                             $tblLevel = Division::useService()->insertLevel($tblType, $Level);
                             if ($tblLevel) {
                                 $Division = trim($Document->getValue($Document->getCell($Location['Klasse'],
                                     $RunY)));
                                 if ($Division != '') {
-                                    if (($pos = strpos($Division, $Level)) !== false) {
-                                        if (strlen($Division) > (($start = $pos + strlen($Level)))) {
+                                    if (( $pos = strpos($Division, $Level) ) !== false) {
+                                        if (strlen($Division) > ( ( $start = $pos + strlen($Level) ) )) {
                                             $Division = substr($Division, $start);
                                         }
                                     }
@@ -964,10 +966,10 @@ class Service
                         }
                     }
                     return
-                        new Success('Es wurden ' . $countDivision . ' Klassen erfolgreich angelegt.') .
-                        new Success('Es wurden ' . $countAddDivisionTeacher . ' Klassenlehrer und Stellvertreter erfolgreich zugeordnet.') .
-                        ($countTeacherNotExists > 0 ?
-                            new Warning($countTeacherNotExists . ' Lehrer nicht gefunden.') : '');
+                        new Success('Es wurden '.$countDivision.' Klassen erfolgreich angelegt.').
+                        new Success('Es wurden '.$countAddDivisionTeacher.' Klassenlehrer und Stellvertreter erfolgreich zugeordnet.').
+                        ( $countTeacherNotExists > 0 ?
+                            new Warning($countTeacherNotExists.' Lehrer nicht gefunden.') : '' );
                 } else {
                     Debugger::screenDump($Location);
                     return new Danger(
@@ -978,7 +980,14 @@ class Service
         return new Danger('File nicht gefunden');
     }
 
-    public function createCompanysFromFile(
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null   $File
+     *
+     * @return IFormInterface|Danger|Success|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createCompaniesFromFile(
         IFormInterface $Form = null,
         UploadedFile $File = null
     ) {
@@ -998,7 +1007,7 @@ class Service
                 /**
                  * Prepare
                  */
-                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                $File = $File->move($File->getPath(), $File->getFilename().'.'.$File->getClientOriginalExtension());
                 /**
                  * Read
                  */
@@ -1018,7 +1027,7 @@ class Service
                  */
                 $Location = array(
                     'Einrichtungsnummer' => null,
-                    'Einrichtungsname' => null,
+                    'Einrichtungsname'   => null,
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
@@ -1053,10 +1062,10 @@ class Service
                         }
                     }
                     return
-                        new Success('Es wurden ' . $countCompany . ' Firmen erfolgreich angelegt.');
+                        new Success('Es wurden '.$countCompany.' Firmen erfolgreich angelegt.');
                 } else {
                     Debugger::screenDump($Location);
-                    return new Info(json_encode($Location)) .
+                    return new Info(json_encode($Location)).
                     new Danger(
                         "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }

@@ -111,9 +111,9 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string        $Username
-     * @param string        $Password
-     * @param null|TblToken $tblToken
+     * @param string           $Username
+     * @param string           $Password
+     * @param null|TblToken    $tblToken
      * @param null|TblConsumer $tblConsumer
      *
      * @return TblAccount
@@ -135,7 +135,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblAccount $tblAccount
+     * @param TblAccount        $tblAccount
      * @param TblIdentification $tblIdentification
      *
      * @return TblAuthentication
@@ -146,7 +146,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblAuthentication')
             ->findOneBy(array(
-                TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
                 TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
             ));
         if (null === $Entity) {
@@ -195,7 +195,7 @@ class Data extends AbstractData
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSetting', array(
             TblSetting::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
-            TblSetting::ATTR_IDENTIFIER => $Identifier
+            TblSetting::ATTR_IDENTIFIER  => $Identifier
         ));
     }
 
@@ -212,7 +212,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblSetting')->findOneBy(array(
             TblSetting::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
-            TblSetting::ATTR_IDENTIFIER => $Identifier
+            TblSetting::ATTR_IDENTIFIER  => $Identifier
         ));
         if (null === $Entity) {
             $Entity = new TblSetting();
@@ -268,7 +268,7 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblAccount $tblAccount
+     * @param TblAccount        $tblAccount
      * @param TblIdentification $tblIdentification
      *
      * @return bool
@@ -280,7 +280,7 @@ class Data extends AbstractData
         /** @var TblAuthentication $Entity */
         $Entity = $Manager->getEntity('TblAuthentication')
             ->findOneBy(array(
-                TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
                 TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
             ));
         if (null !== $Entity) {
@@ -403,8 +403,8 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string $Username
-     * @param string $Password
+     * @param string            $Username
+     * @param string            $Password
      * @param TblIdentification $tblIdentification
      *
      * @return bool|TblAccount
@@ -424,7 +424,7 @@ class Data extends AbstractData
 
         $tblAuthentication = $this->getConnection()->getEntityManager()->getEntity('TblAuthentication')
             ->findOneBy(array(
-                TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
                 TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
             ));
         // Identification not valid
@@ -561,7 +561,7 @@ class Data extends AbstractData
 
         // 1. Level Cache
         $Memory = $this->getCache(new MemoryHandler());
-        if (null === ($Entity = $Memory->getValue($Session, __METHOD__))) {
+        if (null === ( $Entity = $Memory->getValue($Session, __METHOD__) )) {
             /** @var false|TblSession $Entity */
             $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSession',
                 array(
@@ -570,14 +570,14 @@ class Data extends AbstractData
 
             if ($Entity) {
                 $Entity = $Entity->getTblAccount();
-                $Memory->setValue($Session, $Entity, 0, __METHOD__);
             }
+            $Memory->setValue($Session, $Entity, 0, __METHOD__);
         }
-        return ($Entity ? $Entity : false);
+        return ( $Entity ? $Entity : false );
     }
 
     /**
-     * @param TblToken $tblToken
+     * @param TblToken   $tblToken
      * @param TblAccount $tblAccount
      *
      * @return bool
@@ -645,12 +645,12 @@ class Data extends AbstractData
         $tblPersonAll = Person::useService()->getPersonAll();
         if ($tblPersonAll) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblPersonAll, function (TblPerson &$tblPerson, $Index, $Exclude) {
+            array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($Exclude) {
 
                 if (in_array($tblPerson->getId(), $Exclude)) {
                     $tblPerson = false;
                 }
-            }, $Exclude);
+            });
             $EntityList = array_filter($tblPersonAll);
         } else {
             $EntityList = null;
@@ -705,7 +705,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblUser')
             ->findOneBy(array(
-                TblUser::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                TblUser::ATTR_TBL_ACCOUNT   => $tblAccount->getId(),
                 TblUser::SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null === $Entity) {
@@ -731,7 +731,7 @@ class Data extends AbstractData
         /** @var TblUser $Entity */
         $Entity = $Manager->getEntity('TblUser')
             ->findOneBy(array(
-                TblUser::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                TblUser::ATTR_TBL_ACCOUNT   => $tblAccount->getId(),
                 TblUser::SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null !== $Entity) {

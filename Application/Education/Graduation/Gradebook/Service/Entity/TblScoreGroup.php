@@ -44,6 +44,7 @@ class TblScoreGroup extends Element
      */
     public function getName()
     {
+
         return $this->Name;
     }
 
@@ -52,6 +53,7 @@ class TblScoreGroup extends Element
      */
     public function setName($Name)
     {
+
         $this->Name = $Name;
     }
 
@@ -60,6 +62,7 @@ class TblScoreGroup extends Element
      */
     public function getMultiplier()
     {
+
         return $this->Multiplier;
     }
 
@@ -68,6 +71,7 @@ class TblScoreGroup extends Element
      */
     public function setMultiplier($Multiplier)
     {
+
         $this->Multiplier = $Multiplier;
     }
 
@@ -76,6 +80,7 @@ class TblScoreGroup extends Element
      */
     public function getRound()
     {
+
         return $this->Round;
     }
 
@@ -84,6 +89,7 @@ class TblScoreGroup extends Element
      */
     public function setRound($Round)
     {
+
         $this->Round = $Round;
     }
 }

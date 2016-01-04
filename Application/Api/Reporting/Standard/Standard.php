@@ -21,13 +21,16 @@ class Standard implements IModuleInterface
             __NAMESPACE__.'/Person/ClassList/Download', __NAMESPACE__.'\Person\Person::downloadClassList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Person/ExtendedClassList/Download', __NAMESPACE__.'\Person\Person::downloadExtendedClassList'
+            __NAMESPACE__.'/Person/ExtendedClassList/Download',
+            __NAMESPACE__.'\Person\Person::downloadExtendedClassList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Person/BirthdayClassList/Download', __NAMESPACE__.'\Person\Person::downloadBirthdayClassList'
+            __NAMESPACE__.'/Person/BirthdayClassList/Download',
+            __NAMESPACE__.'\Person\Person::downloadBirthdayClassList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Person/MedicalInsuranceClassList/Download', __NAMESPACE__.'\Person\Person::downloadMedicalInsuranceClassList'
+            __NAMESPACE__.'/Person/MedicalInsuranceClassList/Download',
+            __NAMESPACE__.'\Person\Person::downloadMedicalInsuranceClassList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Person/GroupList/Download', __NAMESPACE__.'\Person\Person::downloadGroupList'
@@ -42,7 +45,7 @@ class Standard implements IModuleInterface
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+        // Implement useService() method.
     }
 
     /**
@@ -50,7 +53,7 @@ class Standard implements IModuleInterface
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+        // Implement useFrontend() method.
     }
 
 }

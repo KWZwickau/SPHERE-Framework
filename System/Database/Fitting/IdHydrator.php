@@ -10,12 +10,14 @@ use Doctrine\ORM\Internal\Hydration\ObjectHydrator;
  */
 class IdHydrator extends ObjectHydrator
 {
+
     const HYDRATION_MODE = 'ID_HYDRATOR';
 
     /**
      * Hydrates all rows from the current statement instance at once.
      *
      * @return array
+     * @throws \Exception
      */
     protected function hydrateAllData()
     {
@@ -26,10 +28,10 @@ class IdHydrator extends ObjectHydrator
             $this->hydrateRowData($Row, $Cache);
 
             $PossibleId = preg_grep('!^Id_[\d]!is', array_keys($Row));
-            if (!empty($PossibleId)) {
+            if (!empty( $PossibleId )) {
                 $Result[$Row[current($PossibleId)]] = current($Cache);
             } else {
-                throw new \Exception('Id field not found in ' . json_encode($Row));
+                throw new \Exception('Id field not found in '.json_encode($Row));
             }
         }
         return $Result;

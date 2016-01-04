@@ -17,7 +17,7 @@ class Major1Minor3
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function Patch0(RoadmapExtension $Roadmap)
+    public static function definePatch0(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('1.3.0', 'KREDA (Ziel Q2 2016)');
@@ -33,5 +33,11 @@ class Major1Minor3
         $Feature = $Category->createFeature('Zensuren');
         $Feature->createTask('Zeugnisdruck')
             ->createDuty('Layout-Designer');
+
+        // Fehlerbehebung
+        $Category = $Release->createCategory('Fehlerkorrekturen');
+        $Feature = $Category->createFeature('Code Style');
+        $Feature->createTask('PSR-1/PSR2');
+        $Category->createFeature('Code Performance', '', false);
     }
 }

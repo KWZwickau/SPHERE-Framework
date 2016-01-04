@@ -7,10 +7,12 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
 
 /**
  * Class BenchmarkLogger
+ *
  * @package SPHERE\System\Debugger\Logger
  */
 class BenchmarkLogger extends AbstractLogger implements LoggerInterface
 {
+
     /** @var float $TimerStart */
     private $TimerStart = 0.0;
     /** @var float $TimerStop */
@@ -25,6 +27,7 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
      */
     public function __construct()
     {
+
         $this->startTimer();
     }
 
@@ -33,6 +36,7 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
      */
     public function startTimer()
     {
+
         $this->addLog('- Start Timer -');
         if (!$this->TimerRunning) {
             $this->TimerStart = microtime(true);
@@ -43,10 +47,12 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
 
     /**
      * @param string $Content
+     *
      * @return BenchmarkLogger
      */
     public function addLog($Content)
     {
+
         if (strpos($Content, 'Memory') === 0) {
             $Content = new Success($Content);
         }
@@ -56,7 +62,7 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
         if (strpos($Content, 'Query') === 0) {
             $Content = new Danger($Content);
         }
-        return parent::addLog($this->getTimer() . ' (' . $this->getGap() . ') ' . $Content);
+        return parent::addLog($this->getTimer().' ('.$this->getGap().') '.$Content);
     }
 
     /**
@@ -64,6 +70,7 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
      */
     private function getTimer()
     {
+
         $this->TimerGap = microtime(true);
         if ($this->TimerRunning) {
             return number_format(microtime(true) - $this->TimerStart, 8);
@@ -77,6 +84,7 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
      */
     private function getGap()
     {
+
         return number_format(microtime(true) - $this->TimerGap, 8);
     }
 
@@ -85,6 +93,7 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
      */
     public function stopTimer()
     {
+
         $this->addLog('- Stop Timer -');
         if ($this->TimerRunning) {
             $this->TimerStop = microtime(true);
@@ -98,9 +107,9 @@ class BenchmarkLogger extends AbstractLogger implements LoggerInterface
      */
     public function getLog()
     {
+
         $this->addLog('- Get Log -');
         $Log = parent::getLog();
-//        krsort($Log);
         return $Log;
     }
 }

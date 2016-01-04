@@ -10,6 +10,7 @@ use Doctrine\ORM\Internal\Hydration\AbstractHydrator;
  */
 class ColumnHydrator extends AbstractHydrator
 {
+
     const HYDRATION_MODE = 'COLUMN_HYDRATOR';
 
     /**

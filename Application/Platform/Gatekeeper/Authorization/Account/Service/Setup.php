@@ -3,7 +3,6 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**

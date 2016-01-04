@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Corporation\Search;
 
 use SPHERE\Application\IApplicationInterface;
-use SPHERE\Common\Window\Navigation\Link;
 
 /**
  * Class Search

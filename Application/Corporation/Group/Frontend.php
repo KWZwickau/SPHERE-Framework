@@ -64,12 +64,12 @@ class Frontend extends Extension implements IFrontendInterface
                     ( $tblGroup->getRemark() ? nl2br($tblGroup->getRemark()) : false ),
                 );
                 $Content = array_filter($Content);
-                $Type = ( $tblGroup->getIsLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT );
+                $Type = ( $tblGroup->isLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT );
                 $Footer = new PullLeft(
                     new Standard('', '/Corporation/Group/Edit', new Edit(),
                         array('Id' => $tblGroup->getId()), 'Daten ändern'
                     )
-                    .( $tblGroup->getIsLocked()
+                    .( $tblGroup->isLocked()
                         ? ''
                         : new Standard('', '/Corporation/Group/Destroy', new Remove(),
                             array('Id' => $tblGroup->getId()), 'Gruppe löschen'
@@ -244,11 +244,12 @@ class Frontend extends Extension implements IFrontendInterface
 
                 // Remove Group-Member
                 $tblCompanyAll = Group::useService()->getCompanyAllByGroup($tblGroup);
-                /** @noinspection PhpUnusedParameterInspection */
-                array_walk($tblCompanyAll, function (TblCompany $tblCompany, $Index, TblGroup $tblGroup) {
+                if ($tblCompanyAll) {
+                    array_walk($tblCompanyAll, function (TblCompany $tblCompany) use ($tblGroup) {
 
-                    Group::useService()->removeGroupCompany($tblGroup, $tblCompany);
-                }, $tblGroup);
+                        Group::useService()->removeGroupCompany($tblGroup, $tblCompany);
+                    });
+                }
 
                 // Destroy Group
                 $Stage->setContent(

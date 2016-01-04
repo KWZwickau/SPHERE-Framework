@@ -2,6 +2,9 @@
 namespace SPHERE\Application\Platform\System\Cache\Frontend;
 
 use SPHERE\Common\Frontend\ITemplateInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Header;
+use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\System\Cache\CacheStatus;
 use SPHERE\System\Extension\Extension;
 
@@ -22,17 +25,56 @@ class Status extends Extension implements ITemplateInterface
     public function __construct(CacheStatus $Cache)
     {
 
-        $Rate = $this->getTemplate(__DIR__.'/Rate.twig');
-        $Rate->setVariable('CountHits', $Cache->getHitCount());
-        $Rate->setVariable('CountMisses', $Cache->getMissCount());
+        if ($Cache->getHitCount() != -1 || $Cache->getMissCount() != -1) {
+            $HitCount = 100 / ( $Cache->getHitCount() + $Cache->getMissCount() ) * $Cache->getHitCount();
+            $MissCount = 100 / ( $Cache->getHitCount() + $Cache->getMissCount() ) * $Cache->getMissCount();
+            $Quality = new Header('Hits: '.number_format($HitCount, 2, ',', '.').'%')
+                .(new ProgressBar($HitCount, $MissCount, 0))
+                    ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_DANGER)
+                    ->getContent();
+        } else {
+            $Quality = '';
+        }
 
-        $Memory = $this->getTemplate(__DIR__.'/Memory.twig');
-        $Memory->setVariable('SizeAvailable', $Cache->getAvailableSize());
-        $Memory->setVariable('SizeUsed', $Cache->getUsedSize());
-        $Memory->setVariable('SizeFree', $Cache->getFreeSize());
-        $Memory->setVariable('SizeWasted', $Cache->getWastedSize());
+        $Used = 100 / $Cache->getAvailableSize() * $Cache->getUsedSize();
+        $Free = 100 / $Cache->getAvailableSize() * $Cache->getFreeSize();
+        $Wasted = 100 / $Cache->getAvailableSize() * $Cache->getWastedSize();
 
-        $this->Stage = $Rate->getContent().$Memory->getContent();
+        if ($Cache->getAvailableSize() != -1) {
+            $Size = new Header('Memory: '.
+                    $this->formatBytes($Cache->getUsedSize())
+                    .' / '
+                    .$this->formatBytes($Cache->getAvailableSize() - $Cache->getWastedSize())
+                    .' ~ '
+                    .$this->formatBytes($Cache->getWastedSize())
+                    , number_format($Used, 2, ',', '.').'%').
+                (new ProgressBar($Used, $Free, $Wasted))
+                    ->setColor(
+                        ProgressBar::BAR_COLOR_WARNING, ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_STRIPED
+                    )
+                    ->getContent();
+        } else {
+            $Size = new Header(new Danger('Not available'))
+                .(new ProgressBar(0, 0, 100))
+                    ->getContent();
+        }
+        $this->Stage = $Quality.$Size;
+    }
+
+    private function formatBytes($Bytes, $usePrecision = 2)
+    {
+
+        $UnitList = array('B', 'KB', 'MB', 'GB', 'TB');
+
+        $Bytes = max($Bytes, 0);
+        $Power = floor(( $Bytes ? log($Bytes) : 0 ) / log(1024));
+        $Power = min($Power, count($UnitList) - 1);
+
+        // Uncomment one of the following alternatives
+        $Bytes /= pow(1024, $Power);
+        // $bytes /= (1 << (10 * $pow));
+
+        return round($Bytes, $usePrecision).' '.$UnitList[$Power];
     }
 
     /**

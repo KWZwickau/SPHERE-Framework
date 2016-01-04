@@ -115,13 +115,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Name
+     * @param        $Name
      * @param string $Description
      *
      * @return TblCompany
      */
     public function insertCompany($Name, $Description = '')
     {
+
         return (new Data($this->getBinding()))->createCompany($Name, $Description);
     }
 
@@ -138,9 +139,9 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblCompany $tblCompany
-     * @param array $Company
-     * @param null|int $Group
+     * @param TblCompany     $tblCompany
+     * @param array          $Company
+     * @param null|int       $Group
      *
      * @return IFormInterface|Redirect
      */

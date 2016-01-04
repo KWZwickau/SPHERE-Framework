@@ -12,6 +12,9 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -33,8 +36,8 @@ class TblGrade extends Element
 {
 
     const ATTR_TBL_GRADE_TYPE = 'tblGradeType';
-    const ATTR_TBL_TEST = 'tblTest';
-    const ATTR_TBL_TEST_TYPE = 'tblTestType';
+    const ATTR_SERVICE_TBL_TEST = 'serviceTblTest';
+    const ATTR_SERVICE_TBL_TEST_TYPE = 'serviceTblTestType';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_SERVICE_TBL_SUBJECT_GROUP = 'serviceTblSubjectGroup';
@@ -59,12 +62,12 @@ class TblGrade extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblTest;
+    protected $serviceTblTest;
 
     /**
      * @Column(type="bigint")
      */
-    protected $tblTestType;
+    protected $serviceTblTestType;
 
     /**
      * @Column(type="bigint")
@@ -96,6 +99,7 @@ class TblGrade extends Element
      */
     public function getGrade()
     {
+
         return $this->Grade;
     }
 
@@ -104,6 +108,7 @@ class TblGrade extends Element
      */
     public function setGrade($Grade)
     {
+
         $this->Grade = $Grade;
     }
 
@@ -112,6 +117,7 @@ class TblGrade extends Element
      */
     public function getComment()
     {
+
         return $this->Comment;
     }
 
@@ -120,6 +126,7 @@ class TblGrade extends Element
      */
     public function setComment($Comment)
     {
+
         $this->Comment = $Comment;
     }
 
@@ -128,6 +135,7 @@ class TblGrade extends Element
      */
     public function getTblGradeType()
     {
+
         if (null === $this->tblGradeType) {
             return false;
         } else {
@@ -140,47 +148,52 @@ class TblGrade extends Element
      */
     public function setTblGradeType($tblGradeType)
     {
-        $this->tblGradeType = (null === $tblGradeType ? null : $tblGradeType->getId());
+
+        $this->tblGradeType = ( null === $tblGradeType ? null : $tblGradeType->getId() );
     }
 
     /**
      * @return bool|TblTest
      */
-    public function getTblTest()
+    public function getServiceTblTest()
     {
-        if (null === $this->tblTest) {
+
+        if (null === $this->serviceTblTest) {
             return false;
         } else {
-            return Gradebook::useService()->getTestById($this->tblTest);
+            return Evaluation::useService()->getTestById($this->serviceTblTest);
         }
     }
 
     /**
-     * @param TblTest|null $tblTest
+     * @param TblTest|null $serviceTblTest
      */
-    public function setTblTest($tblTest)
+    public function setServiceTblTest($serviceTblTest)
     {
-        $this->tblTest = (null === $tblTest ? null : $tblTest->getId());
+
+        $this->serviceTblTest = ( null === $serviceTblTest ? null : $serviceTblTest->getId() );
     }
 
     /**
      * @return bool|TblTestType
      */
-    public function getTblTestType()
+    public function getServiceTblTestType()
     {
-        if (null === $this->tblTestType) {
+
+        if (null === $this->serviceTblTestType) {
             return false;
         } else {
-            return Gradebook::useService()->getTestTypeById($this->tblTestType);
+            return Evaluation::useService()->getTestTypeById($this->serviceTblTestType);
         }
     }
 
     /**
-     * @param TblTestType|null $tblTestType
+     * @param TblTestType|null $serviceTblTestType
      */
-    public function setTblTestType($tblTestType)
+    public function setServiceTblTestType($serviceTblTestType)
     {
-        $this->tblTestType = (null === $tblTestType ? null : $tblTestType->getId());
+
+        $this->serviceTblTestType = ( null === $serviceTblTestType ? null : $serviceTblTestType->getId() );
     }
 
     /**
@@ -202,7 +215,7 @@ class TblGrade extends Element
     public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
 
-        $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
+        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**
@@ -224,7 +237,7 @@ class TblGrade extends Element
     public function setServiceTblSubject(TblSubject $tblSubject = null)
     {
 
-        $this->serviceTblSubject = (null === $tblSubject ? null : $tblSubject->getId());
+        $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
     }
 
     /**
@@ -246,7 +259,7 @@ class TblGrade extends Element
     public function setServiceTblSubjectGroup(TblSubjectGroup $tblSubjectGroup = null)
     {
 
-        $this->serviceTblSubjectGroup = (null === $tblSubjectGroup ? null : $tblSubjectGroup->getId());
+        $this->serviceTblSubjectGroup = ( null === $tblSubjectGroup ? null : $tblSubjectGroup->getId() );
     }
 
     /**
@@ -268,7 +281,7 @@ class TblGrade extends Element
     public function setServiceTblPeriod(TblPeriod $tblPeriod = null)
     {
 
-        $this->serviceTblPeriod = (null === $tblPeriod ? null : $tblPeriod->getId());
+        $this->serviceTblPeriod = ( null === $tblPeriod ? null : $tblPeriod->getId() );
     }
 
     /**
@@ -290,6 +303,6 @@ class TblGrade extends Element
     public function setServiceTblDivision(TblDivision $tblDivision = null)
     {
 
-        $this->serviceTblDivision = (null === $tblDivision ? null : $tblDivision->getId());
+        $this->serviceTblDivision = ( null === $tblDivision ? null : $tblDivision->getId() );
     }
 }

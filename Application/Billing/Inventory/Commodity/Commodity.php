@@ -5,7 +5,6 @@ namespace SPHERE\Application\Billing\Inventory\Commodity;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Main;
-use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
 
 class Commodity implements IModuleInterface

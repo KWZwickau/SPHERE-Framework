@@ -81,7 +81,7 @@ class Service extends AbstractService
         if (empty( self::$AuthorizationCache )) {
             if (false !== ( $tblAccount = Account::useService()->getAccountBySession() )) {
                 $Cache = $this->getCache(new MemcachedHandler());
-                if (!($AuthorizationCache = $Cache->getValue( $tblAccount->getId(), __METHOD__))) {
+                if (!( $AuthorizationCache = $Cache->getValue($tblAccount->getId(), __METHOD__) )) {
                     if (false !== ( $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount) )) {
                         /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization $tblAuthorization */
                         foreach ($tblAuthorizationAll as $tblAuthorization) {
@@ -104,7 +104,7 @@ class Service extends AbstractService
                             }
                         }
                     }
-                    $Cache->setValue( $tblAccount->getId(), self::$AuthorizationCache, 0, __METHOD__);
+                    $Cache->setValue($tblAccount->getId(), self::$AuthorizationCache, 0, __METHOD__);
                 } else {
                     self::$AuthorizationCache = $AuthorizationCache;
                 }

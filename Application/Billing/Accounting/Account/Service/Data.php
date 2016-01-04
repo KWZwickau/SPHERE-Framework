@@ -171,7 +171,7 @@ class Data extends AbstractData
         $Entity = new TblAccount();
 
         $Entity->setDescription($Description);
-        $Entity->setIsActive($isActive);
+        $Entity->setActive($isActive);
         $Entity->setNumber($Number);
         $Entity->setTblAccountKey($Key);
         $Entity->setTblAccountType($Type);
@@ -267,7 +267,7 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Entity->setDescription($Description);
             $Entity->setNumber($Number);
-            $Entity->setIsActive($IsActive);
+            $Entity->setActive($IsActive);
             $Entity->setTblAccountKey($tblAccountKey);
             $Entity->setTblAccountType($tblAccountType);
 
@@ -294,7 +294,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblAccount', $Id);
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setIsActive('1');
+            $Entity->setActive('1');
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
@@ -319,7 +319,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblAccount', $Id);
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setIsActive('0');
+            $Entity->setActive('0');
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),

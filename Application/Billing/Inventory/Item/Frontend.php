@@ -70,13 +70,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblItem->Type = '';
                 $tblItem->Rank = '';
                 $tblCourse = $tblItem->getServiceStudentType();
-                if($tblCourse)
-                {
+                if ($tblCourse) {
                     $tblItem->Type = $tblCourse->getName();
                 }
                 $tblRank = $tblItem->getServiceStudentChildRank();
-                if($tblRank)
-                {
+                if ($tblRank) {
                     $tblItem->Rank = $tblRank->getName();
                 }
 
@@ -192,12 +190,14 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new SelectBox('Item[Course]', 'Bedingung Bildungsgang',
-                            array('Name' => $tblSchoolTypeAll
+                            array(
+                                'Name' => $tblSchoolTypeAll
                             ))
                         , 6),
                     new FormColumn(
                         new SelectBox('Item[ChildRank]', 'Bedingung Kind-Reihenfolge',
-                            array('Name' => $tblChildRankAll
+                            array(
+                                'Name' => $tblChildRankAll
                             ))
                         , 6)
                 ))

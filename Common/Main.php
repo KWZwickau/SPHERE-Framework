@@ -21,6 +21,10 @@ use SPHERE\Application\Platform\System;
 use SPHERE\Application\Reporting\Reporting;
 use SPHERE\Application\Setting\Setting;
 use SPHERE\Application\Transfer\Transfer;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Window\Display;
 use SPHERE\Common\Window\Error;
 use SPHERE\Common\Window\Navigation\Link;
@@ -44,6 +48,8 @@ use SPHERE\System\Extension\Extension;
 class Main extends Extension
 {
 
+    /** @var bool $EnableErrorHandler */
+    public static $EnableErrorHandler = true;
     /** @var Display $Display */
     private static $Display = null;
     /** @var Dispatcher $Dispatcher */
@@ -54,6 +60,7 @@ class Main extends Extension
      */
     public function __construct()
     {
+
         self::initCloudCache();
 
         if (self::getDisplay() === null) {
@@ -64,9 +71,13 @@ class Main extends Extension
         }
     }
 
+    /**
+     * @return string
+     */
     public static function initCloudCache()
     {
-        if (!isset($_SESSION['Memcached-Slot'])) {
+
+        if (!isset( $_SESSION['Memcached-Slot'] )) {
             try {
                 if (Consumer::useService()->getConsumerBySession()) {
                     $_SESSION['Memcached-Slot'] = Consumer::useService()->getConsumerBySession()->getAcronym();
@@ -133,7 +144,7 @@ class Main extends Extension
                 } else {
                     header('HTTP/1.0 400 Bad Request');
                 }
-                exit(0);
+                exit( 0 );
             } catch (\Exception $Exception) {
                 $this->runSelfHeal($Exception);
             }
@@ -193,7 +204,7 @@ class Main extends Extension
 
         try {
             echo self::getDisplay()->getContent();
-            exit(0);
+            exit( 0 );
         } catch (\Exception $Exception) {
             $this->runSelfHeal($Exception);
         }
@@ -205,14 +216,16 @@ class Main extends Extension
     private function setErrorHandler()
     {
 
-        set_error_handler(
-            function ($Code, $Message, $File, $Line) {
+        if (self::$EnableErrorHandler) {
+            set_error_handler(
+                function ($Code, $Message, $File, $Line) {
 
-                if (!preg_match('!apc_store.*?was.*?on.*?gc-list.*?for!is', $Message)) {
-                    throw new \ErrorException($Message, 0, $Code, $File, $Line);
-                }
-            }, E_ALL
-        );
+                    if (!preg_match('!apc_store.*?was.*?on.*?gc-list.*?for!is', $Message)) {
+                        throw new \ErrorException($Message, 0, $Code, $File, $Line);
+                    }
+                }, E_ALL
+            );
+        }
     }
 
     /**
@@ -221,24 +234,26 @@ class Main extends Extension
     private function setShutdownHandler()
     {
 
-        register_shutdown_function(
-            function () {
+        if (self::$EnableErrorHandler) {
+            register_shutdown_function(
+                function () {
 
-                $Error = error_get_last();
-                if (!$Error) {
-                    return;
+                    $Error = error_get_last();
+                    if (!$Error) {
+                        return;
+                    }
+                    $Display = new Display();
+                    $Display->addServiceNavigation(
+                        new Link(new Link\Route('/'), new Link\Name('Zurück zur Anwendung'))
+                    );
+                    $Display->setException(
+                        new \ErrorException($Error['message'], 0, $Error['type'], $Error['file'], $Error['line']),
+                        'Shutdown'
+                    );
+                    echo $Display->getContent(true);
                 }
-                $Display = new Display();
-                $Display->addServiceNavigation(
-                    new Link(new Link\Route('/'), new Link\Name('Zurück zur Anwendung'))
-                );
-                $Display->setException(
-                    new \ErrorException($Error['message'], 0, $Error['type'], $Error['file'], $Error['line']),
-                    'Shutdown'
-                );
-                echo $Display->getContent(true);
-            }
-        );
+            );
+        }
     }
 
     /**
@@ -249,7 +264,7 @@ class Main extends Extension
 
         $Get = (new Authenticator(new Get()))->getAuthenticator();
         $Post = (new Authenticator(new Post()))->getAuthenticator();
-        if (!($Get->validateSignature() && $Post->validateSignature())) {
+        if (!( $Get->validateSignature() && $Post->validateSignature() )) {
             self::getDisplay()->setClusterNavigation();
             self::getDisplay()->setApplicationNavigation();
             self::getDisplay()->setModuleNavigation();
@@ -273,15 +288,22 @@ class Main extends Extension
 
         $Display = new Display();
         $Display->setContent(
-            ($Exception
-                ? new Error($Exception->getCode(), $Exception->getMessage())
-                : ''
-            )
-            .(new Frontend\Message\Repository\Info('Es wird eine automatische Reparatur durchgeführt. Sollte der Fehler damit nicht behoben werden, senden Sie bitte einen Fehlerbericht.'))
-            .(new Redirect(self::getRequest()->getPathInfo(), 3))
-            .$Protocol
+            new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(array(
+                        ( $Exception
+                            ? new Error('Automatische Reparatur', $Exception->getMessage())
+                            : ''
+                        ),
+                        (new Frontend\Message\Repository\Success('Es wird eine automatische Reparatur durchgeführt. Sollte der Fehler damit nicht behoben werden, senden Sie bitte einen Fehlerbericht.')),
+                        (new Redirect(self::getRequest()->getPathInfo(), 10))
+                    )
+                    , 6),
+                new LayoutColumn(
+                    $Protocol
+                    , 6)
+            ))))
         );
         echo $Display->getContent(true);
-        exit(0);
+        exit( 0 );
     }
 }

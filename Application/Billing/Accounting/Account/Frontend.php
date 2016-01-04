@@ -49,7 +49,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblAccount->Taxes = $tblAccount->getTblAccountKey()->getValue();
                 $tblAccount->Code = $tblAccount->getTblAccountKey()->getCode();
                 $tblAccount->Typ = $tblAccount->getTblAccountType()->getName();
-                if ($tblAccount->getIsActive() === true) {
+                if ($tblAccount->isActive() === true) {
                     $tblAccount->Option =
                         (new Standard('', '/Billing/Accounting/Account/Deactivate',
                             new Remove(), array(

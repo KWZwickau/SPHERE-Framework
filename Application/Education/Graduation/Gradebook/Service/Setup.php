@@ -8,13 +8,13 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
-
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
+ *
  * @package SPHERE\Application\Education\Graduation\Gradebook\Service
  */
 class Setup extends AbstractSetup
@@ -32,10 +32,8 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $tblTestType = $this->setTableTestType($Schema);
-        $tblGradeType = $this->setTableGradeType($Schema, $tblTestType);
-        $tblTest = $this->setTableTest($Schema, $tblGradeType, $tblTestType);
-        $this->setTableGrade($Schema, $tblGradeType, $tblTest, $tblTestType);
+        $tblGradeType = $this->setTableGradeType($Schema);
+        $this->setTableGrade($Schema, $tblGradeType);
 
         $tblScoreRule = $this->setTableScoreRule($Schema);
         $tblScoreCondition = $this->setTableScoreCondition($Schema);
@@ -53,32 +51,13 @@ class Setup extends AbstractSetup
         return $this->getConnection()->getProtocol($Simulate);
     }
 
+
     /**
      * @param Schema $Schema
      *
      * @return Table
      */
-    private function setTableTestType(Schema &$Schema)
-    {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblTestType');
-        if (!$this->getConnection()->hasColumn('tblTestType', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblTestType', 'Identifier')) {
-            $Table->addColumn('Identifier', 'string');
-        }
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param Table $tblTestType
-     *
-     * @return Table
-     */
-    private function setTableGradeType(Schema &$Schema, Table $tblTestType)
+    private function setTableGradeType(Schema &$Schema)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblGradeType');
@@ -94,63 +73,20 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblGradeType', 'IsHighlighted')) {
             $Table->addColumn('IsHighlighted', 'boolean');
         }
-
-        $this->getConnection()->addForeignKey($Table, $tblTestType, true);
+        if (!$this->getConnection()->hasColumn('tblGradeType', 'serviceTblTestType')) {
+            $Table->addColumn('serviceTblTestType', 'bigint', array('notnull' => false));
+        }
 
         return $Table;
     }
 
     /**
      * @param Schema $Schema
-     * @param Table $tblGradeType
-     * @param Table $tblTestType
+     * @param Table  $tblGradeType
      *
      * @return Table
      */
-    private function setTableTest(Schema &$Schema, Table $tblGradeType, Table $tblTestType)
-    {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblTest');
-        if (!$this->getConnection()->hasColumn('tblTest', 'Date')) {
-            $Table->addColumn('Date', 'datetime', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblTest', 'CorrectionDate')) {
-            $Table->addColumn('CorrectionDate', 'datetime', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblTest', 'ReturnDate')) {
-            $Table->addColumn('ReturnDate', 'datetime', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblTest', 'Description')) {
-            $Table->addColumn('Description', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblTest', 'serviceTblSubject')) {
-            $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblTest', 'serviceTblSubjectGroup')) {
-            $Table->addColumn('serviceTblSubjectGroup', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblTest', 'serviceTblPeriod')) {
-            $Table->addColumn('serviceTblPeriod', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblTest', 'serviceTblDivision')) {
-            $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));
-        }
-
-        $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
-        $this->getConnection()->addForeignKey($Table, $tblTestType, true);
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param Table $tblGradeType
-     * @param Table $tblTest
-     * @param Table $tblTestType
-     *
-     * @return Table
-     */
-    private function setTableGrade(Schema &$Schema, Table $tblGradeType, Table $tblTest, Table $tblTestType)
+    private function setTableGrade(Schema &$Schema, Table $tblGradeType)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblGrade');
@@ -175,10 +111,14 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblDivision')) {
             $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblTest')) {
+            $Table->addColumn('serviceTblTest', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblTestType')) {
+            $Table->addColumn('serviceTblTestType', 'bigint', array('notnull' => false));
+        }
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
-        $this->getConnection()->addForeignKey($Table, $tblTest, true);
-        $this->getConnection()->addForeignKey($Table, $tblTestType, true);
 
         return $Table;
     }
@@ -248,8 +188,9 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblScoreRule
-     * @param Table $tblScoreCondition
+     * @param Table  $tblScoreRule
+     * @param Table  $tblScoreCondition
+     *
      * @return Table
      */
     private function setTableScoreRuleConditionList(Schema &$Schema, Table $tblScoreRule, Table $tblScoreCondition)
@@ -265,8 +206,9 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblGradeType
-     * @param Table $tblScoreCondition
+     * @param Table  $tblGradeType
+     * @param Table  $tblScoreCondition
+     *
      * @return Table
      */
     private function setTableScoreConditionGradeTypeList(Schema &$Schema, Table $tblGradeType, Table $tblScoreCondition)
@@ -282,8 +224,9 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblScoreCondition
-     * @param Table $tblScoreGroup
+     * @param Table  $tblScoreCondition
+     * @param Table  $tblScoreGroup
+     *
      * @return Table
      */
     private function setTableScoreConditionGroupList(Schema &$Schema, Table $tblScoreCondition, Table $tblScoreGroup)
@@ -299,8 +242,9 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table $tblGradeType
-     * @param Table $tblScoreGroup
+     * @param Table  $tblGradeType
+     * @param Table  $tblScoreGroup
+     *
      * @return Table
      */
     private function setTableScoreGroupGradeTypeList(Schema &$Schema, Table $tblGradeType, Table $tblScoreGroup)

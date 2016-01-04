@@ -261,10 +261,11 @@ class Service extends AbstractService
         // Remove link Group
         $tblGroupAll = Subject::useService()->getGroupAllByCategory($tblCategory);
         if ($tblGroupAll) {
-            foreach ($tblGroupAll as $tblGroup)
+            foreach ($tblGroupAll as $tblGroup) {
                 if (!$this->removeGroupCategory($tblGroup, $tblCategory)) {
                     $Error = true;
                 }
+            }
         }
 
         if (!$Error) {

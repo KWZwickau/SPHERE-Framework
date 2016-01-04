@@ -25,7 +25,7 @@ class LayoutColumn extends Extension implements ILayoutInterface
 
     /**
      * @param string|IFrontendInterface|IFrontendInterface[] $Frontend
-     * @param int|array                                      $Size int || array( xs, sm, md, lg )
+     * @param int|array                                      $Size       int || array( xs, sm, md, lg )
      * @param array                                          $GridOption LayoutColumn::GRID_OPTION_[..]
      */
     public function __construct($Frontend, $Size = 12, $GridOption = array())

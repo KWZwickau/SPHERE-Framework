@@ -153,7 +153,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Person'         => new Person().' Person',
                                 'Authentication' => new Lock().' Kontotyp',
                                 'Authorization'  => new Nameplate().' Berechtigungen',
-                                'Token' => new Key().' Hardware-Schlüssel',
+                                'Token'          => new Key().' Hardware-Schlüssel',
                                 'Option'         => 'Optionen'
                             )
                         )
@@ -235,7 +235,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblRoleAll) {
             array_walk($tblRoleAll, function (TblRole &$tblRole) {
 
-                if ($tblRole->getIsInternal()) {
+                if ($tblRole->isInternal()) {
                     $tblRole = false;
                 } else {
                     $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']', $tblRole->getName(),

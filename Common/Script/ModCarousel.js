@@ -42,8 +42,8 @@
                 }
             }
 
-            Element.jcarousel('items').css('width', ScreenCount + 'px');
-        }).jcarousel(
+            Element.jCarousel('items').css('width', ScreenCount + 'px');
+        }).jCarousel(
             // Your configurations options
             settings
         );

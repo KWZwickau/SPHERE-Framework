@@ -21,6 +21,7 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblList extends Element
 {
+
     const ATTR_NAME = 'Name';
     const ATTR_DESCRIPTION = 'Description';
 
@@ -39,6 +40,7 @@ class TblList extends Element
      */
     public function getName()
     {
+
         return $this->Name;
     }
 
@@ -47,6 +49,7 @@ class TblList extends Element
      */
     public function setName($Name)
     {
+
         $this->Name = $Name;
     }
 
@@ -55,6 +58,7 @@ class TblList extends Element
      */
     public function getDescription()
     {
+
         return $this->Description;
     }
 
@@ -63,6 +67,7 @@ class TblList extends Element
      */
     public function setDescription($Description)
     {
+
         $this->Description = $Description;
     }
 }

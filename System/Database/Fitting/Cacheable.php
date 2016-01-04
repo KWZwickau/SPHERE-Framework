@@ -2,7 +2,6 @@
 namespace SPHERE\System\Database\Fitting;
 
 use SPHERE\System\Cache\CacheFactory;
-use SPHERE\System\Cache\Handler\CouchbaseHandler;
 use SPHERE\System\Cache\Handler\HandlerInterface;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
@@ -26,10 +25,10 @@ abstract class Cacheable extends Extension
     private $Debug = false;
 
     /**
-     * @param string $__METHOD__ Initiator
+     * @param string  $__METHOD__ Initiator
      * @param Manager $EntityManager
-     * @param string $EntityName
-     * @param int $Id
+     * @param string  $EntityName
+     * @param int     $Id
      *
      * @return false|Element
      * @throws \Exception
@@ -40,11 +39,11 @@ abstract class Cacheable extends Extension
         $Key = $this->getKeyHash($EntityName, $Id);
 
         $Memory = (new CacheFactory())->createHandler(new MemoryHandler());
-        if (!$this->Enabled || null === ($Entity = $Memory->getValue($Key, $__METHOD__))) {
+        if (!$this->Enabled || null === ( $Entity = $Memory->getValue($Key, $__METHOD__) )) {
 
             $Cache = self::getCacheSystem($__METHOD__);
             $Entity = null;
-            if (!$this->Enabled || null === ($Entity = $Cache->getValue($Key, $__METHOD__))) {
+            if (!$this->Enabled || null === ( $Entity = $Cache->getValue($Key, $__METHOD__) )) {
                 $Entity = $EntityManager->getEntityById($EntityName, $Id);
                 if (null === $Entity) {
                     $Entity = false;
@@ -55,15 +54,16 @@ abstract class Cacheable extends Extension
                 $this->debugCache($__METHOD__, $Entity, $Id);
             }
             $Memory->setValue($Key, $Entity, 0, $__METHOD__);
-            return (null === $Entity || false === $Entity ? false : $Entity);
+            return ( null === $Entity || false === $Entity ? false : $Entity );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory (Id) ' . $EntityName . ' ' . $__METHOD__ . ' > ' . $Id);
-        return (null === $Entity || false === $Entity ? false : $Entity);
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory (Id) '.$EntityName.' '.$__METHOD__.' > '.$Id);
+        return ( null === $Entity || false === $Entity ? false : $Entity );
     }
 
     /**
-     * @param string $EntityName
+     * @param string       $EntityName
      * @param string|array $Parameter
+     *
      * @return string
      */
     private function getKeyHash($EntityName, $Parameter)
@@ -72,7 +72,7 @@ abstract class Cacheable extends Extension
         if (is_object($Parameter)) {
             $Parameter = json_decode(json_encode($Parameter), true);
         }
-        return sha1($EntityName . ':' . implode('#', (array)$Parameter));
+        return sha1($EntityName.':'.implode('#', (array)$Parameter));
     }
 
     /**
@@ -83,16 +83,9 @@ abstract class Cacheable extends Extension
     private function getCacheSystem($__METHOD__)
     {
 
-        if (class_exists($__METHOD__, false)) {
-            if (null === self::$CacheSystem || !self::$CacheSystem instanceof CouchbaseHandler) {
-                $this->debugSystem($__METHOD__, 'Couchbase');
-                self::$CacheSystem = $this->getCache(new CouchbaseHandler(), 'Couchbase');
-            }
-        } else {
-            if (null === self::$CacheSystem || !self::$CacheSystem instanceof MemcachedHandler) {
-                $this->debugSystem($__METHOD__, 'Memcached');
-                self::$CacheSystem = $this->getCache(new MemcachedHandler(), 'Memcached');
-            }
+        if (null === self::$CacheSystem || !self::$CacheSystem instanceof MemcachedHandler) {
+            $this->debugSystem($__METHOD__, 'Memcached');
+            self::$CacheSystem = $this->getCache(new MemcachedHandler(), 'Memcached');
         }
         return self::$CacheSystem;
     }
@@ -114,40 +107,40 @@ abstract class Cacheable extends Extension
     /**
      * @param string                $__METHOD__
      * @param array|object|bool|int $EntityList
-     * @param array|string|int $Parameter
+     * @param array|string|int      $Parameter
      */
     private function debugFactory($__METHOD__, $EntityList, $Parameter)
     {
 
         if ($this->Debug) {
             (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
-                'Factory: ' . $__METHOD__ . ' [' . implode('], [', (array)$Parameter) . '] Result: ' . (
-                $EntityList ? 'Ok' : (null === $EntityList ? 'None' : 'Error'))
+                'Factory: '.$__METHOD__.' ['.implode('], [', (array)$Parameter).'] Result: '.(
+                $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
             );
         }
     }
 
     /**
-     * @param string $__METHOD__
+     * @param string                $__METHOD__
      * @param array|object|bool|int $EntityList
-     * @param array |string|int $Parameter
+     * @param array |string|int     $Parameter
      */
     private function debugCache($__METHOD__, $EntityList, $Parameter)
     {
 
         if ($this->Debug) {
             (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
-                'Cache: ' . $__METHOD__ . ' [' . implode('], [', (array)$Parameter) . '] Result: ' . (
-                $EntityList ? 'Ok' : (null === $EntityList ? 'None' : 'Error'))
+                'Cache: '.$__METHOD__.' ['.implode('], [', (array)$Parameter).'] Result: '.(
+                $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
             );
         }
     }
 
     /**
-     * @param string $__METHOD__ Initiator
+     * @param string  $__METHOD__ Initiator
      * @param Manager $EntityManager
-     * @param string $EntityName
-     * @param array $Parameter Initiator Parameter-Array
+     * @param string  $EntityName
+     * @param array   $Parameter  Initiator Parameter-Array
      *
      * @return false|Element
      * @throws \Exception
@@ -158,11 +151,11 @@ abstract class Cacheable extends Extension
         $Key = $this->getKeyHash($EntityName, $Parameter);
 
         $Memory = (new CacheFactory())->createHandler(new MemoryHandler());
-        if (!$this->Enabled || null === ($Entity = $Memory->getValue($Key, $__METHOD__))) {
+        if (!$this->Enabled || null === ( $Entity = $Memory->getValue($Key, $__METHOD__) )) {
 
             $Cache = self::getCacheSystem($__METHOD__);
             $Entity = null;
-            if (!$this->Enabled || null === ($Entity = $Cache->getValue($Key, $__METHOD__))) {
+            if (!$this->Enabled || null === ( $Entity = $Cache->getValue($Key, $__METHOD__) )) {
                 $Entity = $EntityManager->getEntity($EntityName)->findOneBy($Parameter);
                 if (null === $Entity) {
                     $Entity = false;
@@ -173,17 +166,17 @@ abstract class Cacheable extends Extension
                 $this->debugCache($__METHOD__, $Entity, $Parameter);
             }
             $Memory->setValue($Key, $Entity, 0, $__METHOD__);
-            return (null === $Entity || false === $Entity ? false : $Entity);
+            return ( null === $Entity || false === $Entity ? false : $Entity );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory (Criteria) ' . $EntityName . ' ' . $__METHOD__);
-        return (null === $Entity || false === $Entity ? false : $Entity);
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory (Criteria) '.$EntityName.' '.$__METHOD__);
+        return ( null === $Entity || false === $Entity ? false : $Entity );
     }
 
     /**
-     * @param string $__METHOD__ Initiator
+     * @param string  $__METHOD__ Initiator
      * @param Manager $EntityManager
-     * @param string $EntityName
-     * @param array $Parameter Initiator Parameter-Array
+     * @param string  $EntityName
+     * @param array   $Parameter  Initiator Parameter-Array
      *
      * @return false|Element[]
      * @throws \Exception
@@ -194,11 +187,11 @@ abstract class Cacheable extends Extension
         $Key = $this->getKeyHash($EntityName, $Parameter);
 
         $Memory = (new CacheFactory())->createHandler(new MemoryHandler());
-        if (!$this->Enabled || null === ($EntityList = $Memory->getValue($Key, $__METHOD__))) {
+        if (!$this->Enabled || null === ( $EntityList = $Memory->getValue($Key, $__METHOD__) )) {
 
             $Cache = self::getCacheSystem($__METHOD__);
             $EntityList = null;
-            if (!$this->Enabled || null === ($EntityList = $Cache->getValue($Key, $__METHOD__))) {
+            if (!$this->Enabled || null === ( $EntityList = $Cache->getValue($Key, $__METHOD__) )) {
                 $EntityList = $EntityManager->getEntity($EntityName)->findBy($Parameter);
                 $Cache->setValue($Key, $EntityList, 0, $__METHOD__);
                 $this->debugFactory($__METHOD__, $EntityList, $Parameter);
@@ -206,16 +199,16 @@ abstract class Cacheable extends Extension
                 $this->debugCache($__METHOD__, $EntityList, $Parameter);
             }
             $Memory->setValue($Key, $EntityList, 0, $__METHOD__);
-            return (empty($EntityList) ? false : $EntityList);
+            return ( empty( $EntityList ) ? false : $EntityList );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory-List (Criteria) ' . $EntityName . ' ' . $__METHOD__);
-        return (empty($EntityList) ? false : $EntityList);
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory-List (Criteria) '.$EntityName.' '.$__METHOD__);
+        return ( empty( $EntityList ) ? false : $EntityList );
     }
 
     /**
-     * @param string $__METHOD__ Initiator
+     * @param string  $__METHOD__ Initiator
      * @param Manager $EntityManager
-     * @param string $EntityName
+     * @param string  $EntityName
      *
      * @return false|Element[]
      * @throws \Exception
@@ -226,11 +219,11 @@ abstract class Cacheable extends Extension
         $Key = $this->getKeyHash($EntityName, 'All');
 
         $Memory = (new CacheFactory())->createHandler(new MemoryHandler());
-        if (!$this->Enabled || null === ($EntityList = $Memory->getValue($Key, $__METHOD__))) {
+        if (!$this->Enabled || null === ( $EntityList = $Memory->getValue($Key, $__METHOD__) )) {
 
             $Cache = self::getCacheSystem($__METHOD__);
             $EntityList = null;
-            if (!$this->Enabled || null === ($EntityList = $Cache->getValue($Key, $__METHOD__))) {
+            if (!$this->Enabled || null === ( $EntityList = $Cache->getValue($Key, $__METHOD__) )) {
                 $EntityList = $EntityManager->getEntity($EntityName)->findAll();
                 $Cache->setValue($Key, $EntityList, 0, $__METHOD__);
                 $this->debugFactory($__METHOD__, $EntityList, 'All');
@@ -238,17 +231,17 @@ abstract class Cacheable extends Extension
                 $this->debugCache($__METHOD__, $EntityList, 'All');
             }
             $Memory->setValue($Key, $EntityList, 0, $__METHOD__);
-            return (empty($EntityList) ? false : $EntityList);
+            return ( empty( $EntityList ) ? false : $EntityList );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory-List ' . $EntityName . ' ' . $__METHOD__);
-        return (empty($EntityList) ? false : $EntityList);
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory-List '.$EntityName.' '.$__METHOD__);
+        return ( empty( $EntityList ) ? false : $EntityList );
     }
 
     /**
-     * @param string $__METHOD__ Initiator
+     * @param string  $__METHOD__ Initiator
      * @param Manager $EntityManager
-     * @param string $EntityName
-     * @param array $Parameter Initiator Parameter-Array
+     * @param string  $EntityName
+     * @param array   $Parameter  Initiator Parameter-Array
      *
      * @return false|Element
      * @throws \Exception
@@ -259,11 +252,11 @@ abstract class Cacheable extends Extension
         $Key = $this->getKeyHash($EntityName, $Parameter);
 
         $Memory = (new CacheFactory())->createHandler(new MemoryHandler());
-        if (!$this->Enabled || null === ($Entity = $Memory->getValue($Key, $__METHOD__))) {
+        if (!$this->Enabled || null === ( $Entity = $Memory->getValue($Key, $__METHOD__) )) {
 
             $Cache = self::getCacheSystem($__METHOD__);
             $Entity = null;
-            if (!$this->Enabled || null === ($Entity = $Cache->getValue($Key, $__METHOD__))) {
+            if (!$this->Enabled || null === ( $Entity = $Cache->getValue($Key, $__METHOD__) )) {
                 $Entity = $EntityManager->getEntity($EntityName)->countBy($Parameter);
                 if (null === $Entity) {
                     $Entity = false;
@@ -274,9 +267,9 @@ abstract class Cacheable extends Extension
                 $this->debugCache($__METHOD__, $Entity, $Parameter);
             }
             $Memory->setValue($Key, $Entity, 0, $__METHOD__);
-            return (null === $Entity || false === $Entity ? false : $Entity);
+            return ( null === $Entity || false === $Entity ? false : $Entity );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory (Criteria) ' . $EntityName . ' ' . $__METHOD__);
-        return (null === $Entity || false === $Entity ? false : $Entity);
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory (Criteria) '.$EntityName.' '.$__METHOD__);
+        return ( null === $Entity || false === $Entity ? false : $Entity );
     }
 }

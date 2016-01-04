@@ -5,6 +5,7 @@ use SPHERE\System\Config\ConfigContainer;
 
 /**
  * Class AbstractReader
+ *
  * @package SPHERE\System\Config\Reader
  */
 abstract class AbstractReader implements ReaderInterface
@@ -15,10 +16,12 @@ abstract class AbstractReader implements ReaderInterface
 
     /**
      * @param string $Key
+     *
      * @return mixed|null|ConfigContainer
      */
     public function getValue($Key)
     {
+
         return $this->Registry->getContainer($Key);
     }
 
@@ -27,6 +30,7 @@ abstract class AbstractReader implements ReaderInterface
      */
     public function getConfig()
     {
+
         return $this->Registry;
     }
 }

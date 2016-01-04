@@ -148,9 +148,9 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param string         $CredentialName
-     * @param string         $CredentialLock
+     * @param IFormInterface    $Form
+     * @param string            $CredentialName
+     * @param string            $CredentialLock
      * @param TblIdentification $tblIdentification
      *
      * @return IFormInterface|Redirect
@@ -187,9 +187,9 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Username
-     * @param string $Password
-     * @param bool   $TokenString
+     * @param string            $Username
+     * @param string            $Password
+     * @param bool              $TokenString
      * @param TblIdentification $tblIdentification
      *
      * @return null|bool
@@ -229,8 +229,8 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Username
-     * @param string $Password
+     * @param string            $Username
+     * @param string            $Password
      * @param TblIdentification $tblIdentification
      *
      * @return bool|TblAccount
@@ -248,17 +248,17 @@ class Service extends AbstractService
      *
      * @return Service\Entity\TblSession
      */
-    private function createSession(TblAccount $tblAccount, $Session = null, $Timeout = 1800)
+    public function createSession(TblAccount $tblAccount, $Session = null, $Timeout = 1800)
     {
 
         return (new Data($this->getBinding()))->createSession($tblAccount, $Session, $Timeout);
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param string         $CredentialName
-     * @param string         $CredentialLock
-     * @param string         $CredentialKey
+     * @param IFormInterface    $Form
+     * @param string            $CredentialName
+     * @param string            $CredentialLock
+     * @param string            $CredentialKey
      * @param TblIdentification $tblIdentification
      *
      * @return IFormInterface|Redirect
@@ -333,12 +333,12 @@ class Service extends AbstractService
 
         $tblAuthorization = $this->getAuthorizationAllByAccount($tblAccount);
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblAuthorization, function (TblAuthorization &$tblAuthorization, $Index, TblRole $tblRole) {
+        array_walk($tblAuthorization, function (TblAuthorization &$tblAuthorization) use ($tblRole) {
 
             if ($tblAuthorization->getServiceTblRole()->getId() != $tblRole->getId()) {
                 $tblAuthorization = false;
             }
-        }, $tblRole);
+        });
         $tblAuthorization = array_filter($tblAuthorization);
         if (!empty( $tblAuthorization )) {
             return true;

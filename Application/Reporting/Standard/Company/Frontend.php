@@ -29,8 +29,14 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Reporting\Standard\Company
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
+
     /**
      * @param null $GroupId
      * @param null $Select
@@ -81,7 +87,7 @@ class Frontend extends Extension implements IFrontendInterface
                     , $Select, '/Reporting/Standard/Company/GroupList')
             )
             .
-            ($GroupId !== null ?
+            ( $GroupId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
                     new LayoutColumn(
                         new Panel('Gruppe:', $tblGroup->getName(),
@@ -91,13 +97,13 @@ class Frontend extends Extension implements IFrontendInterface
                 .
                 new TableData($groupList, null,
                     array(
-                        'Number' => 'lfd. Nr.',
-                        'Name' => 'Name',
-                        'Description' => 'Beschreibung',
-                        'Address' => 'Anschrift',
-                        'PhoneNumber' => 'Telefon Festnetz',
+                        'Number'           => 'lfd. Nr.',
+                        'Name'             => 'Name',
+                        'Description'      => 'Beschreibung',
+                        'Address'          => 'Anschrift',
+                        'PhoneNumber'      => 'Telefon Festnetz',
                         'MobilPhoneNumber' => 'Telefon Mobil',
-                        'Mail' => 'E-mail',
+                        'Mail'             => 'E-mail',
                     ),
                     null
                 )

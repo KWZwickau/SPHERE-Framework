@@ -46,6 +46,7 @@ class TblScoreGroupGradeTypeList extends Element
      */
     public function getMultiplier()
     {
+
         return $this->Multiplier;
     }
 
@@ -54,6 +55,7 @@ class TblScoreGroupGradeTypeList extends Element
      */
     public function setMultiplier($Multiplier)
     {
+
         $this->Multiplier = $Multiplier;
     }
 
@@ -62,6 +64,7 @@ class TblScoreGroupGradeTypeList extends Element
      */
     public function getTblGradeType()
     {
+
         if (null === $this->tblGradeType) {
             return false;
         } else {
@@ -74,7 +77,8 @@ class TblScoreGroupGradeTypeList extends Element
      */
     public function setTblGradeType($tblGradeType)
     {
-        $this->tblGradeType = (null === $tblGradeType ? null : $tblGradeType->getId());
+
+        $this->tblGradeType = ( null === $tblGradeType ? null : $tblGradeType->getId() );
     }
 
     /**
@@ -82,6 +86,7 @@ class TblScoreGroupGradeTypeList extends Element
      */
     public function getTblScoreGroup()
     {
+
         if (null === $this->tblScoreGroup) {
             return false;
         } else {
@@ -94,7 +99,8 @@ class TblScoreGroupGradeTypeList extends Element
      */
     public function setTblScoreGroup($tblScoreGroup)
     {
-        $this->tblScoreGroup = (null === $tblScoreGroup ? null : $tblScoreGroup->getId());
+
+        $this->tblScoreGroup = ( null === $tblScoreGroup ? null : $tblScoreGroup->getId() );
     }
 
 }

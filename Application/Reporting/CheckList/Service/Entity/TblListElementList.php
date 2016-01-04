@@ -47,6 +47,7 @@ class TblListElementList extends Element
      */
     public function getName()
     {
+
         return $this->Name;
     }
 
@@ -55,6 +56,7 @@ class TblListElementList extends Element
      */
     public function setName($Name)
     {
+
         $this->Name = $Name;
     }
 
@@ -63,6 +65,7 @@ class TblListElementList extends Element
      */
     public function getTblList()
     {
+
         if (null === $this->tblList) {
             return false;
         } else {
@@ -75,7 +78,8 @@ class TblListElementList extends Element
      */
     public function setTblList($tblList)
     {
-        $this->tblList = (null === $tblList ? null : $tblList->getId());
+
+        $this->tblList = ( null === $tblList ? null : $tblList->getId() );
     }
 
     /**
@@ -83,6 +87,7 @@ class TblListElementList extends Element
      */
     public function getTblElementType()
     {
+
         if (null === $this->tblElementType) {
             return false;
         } else {
@@ -95,6 +100,7 @@ class TblListElementList extends Element
      */
     public function setTblElementType($tblElementType)
     {
-        $this->tblElementType = (null === $tblElementType ? null : $tblElementType->getId());
+
+        $this->tblElementType = ( null === $tblElementType ? null : $tblElementType->getId() );
     }
 }

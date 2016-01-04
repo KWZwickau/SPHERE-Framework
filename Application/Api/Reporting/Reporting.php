@@ -19,7 +19,8 @@ class Reporting implements IApplicationInterface
     {
 
         if (Consumer::useService()->getConsumerBySession()->getAcronym() == 'ESZC'
-            || Consumer::useService()->getConsumerBySession()->getAcronym() == 'DEMO') {
+            || Consumer::useService()->getConsumerBySession()->getAcronym() == 'DEMO'
+        ) {
             Custom::registerModule();
         }
         Standard::registerModule();

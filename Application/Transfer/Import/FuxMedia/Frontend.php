@@ -30,11 +30,17 @@ use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Transfer\Import\FuxMedia
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
      * @param null $Select
+     *
      * @return Stage
      */
     public function frontendStudent($Select = null)
@@ -81,8 +87,8 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param UploadedFile|null $File
-     * @param null $TypeId
-     * @param null $YearId
+     * @param null              $TypeId
+     * @param null              $YearId
      *
      * @return Stage
      */
@@ -180,6 +186,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Select
+     *
      * @return Stage
      */
     public function frontendDivision($Select = null)
@@ -226,8 +233,8 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param UploadedFile|null $File
-     * @param null $TypeId
-     * @param null $YearId
+     * @param null              $TypeId
+     * @param null              $YearId
      *
      * @return Stage
      */
@@ -297,7 +304,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(array(
                                 new Well(
-                                    FuxSchool::useService()->createCompanysFromFile(
+                                    FuxSchool::useService()->createCompaniesFromFile(
                                         new Form(
                                             new FormGroup(
                                                 new FormRow(

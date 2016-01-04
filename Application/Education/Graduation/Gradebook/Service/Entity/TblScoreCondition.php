@@ -21,6 +21,7 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblScoreCondition extends Element
 {
+
     const ATTR_NAME = 'Name';
 
     /**
@@ -43,6 +44,7 @@ class TblScoreCondition extends Element
      */
     public function getName()
     {
+
         return $this->Name;
     }
 
@@ -51,6 +53,7 @@ class TblScoreCondition extends Element
      */
     public function setName($Name)
     {
+
         $this->Name = $Name;
     }
 
@@ -59,6 +62,7 @@ class TblScoreCondition extends Element
      */
     public function getPriority()
     {
+
         return $this->Priority;
     }
 
@@ -67,6 +71,7 @@ class TblScoreCondition extends Element
      */
     public function setPriority($Priority)
     {
+
         $this->Priority = $Priority;
     }
 
@@ -75,6 +80,7 @@ class TblScoreCondition extends Element
      */
     public function getRound()
     {
+
         return $this->Round;
     }
 
@@ -83,6 +89,7 @@ class TblScoreCondition extends Element
      */
     public function setRound($Round)
     {
+
         $this->Round = $Round;
     }
 

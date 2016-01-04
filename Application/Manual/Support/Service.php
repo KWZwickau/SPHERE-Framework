@@ -12,9 +12,21 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Service
+ *
+ * @package SPHERE\Application\Manual\Support
+ */
 class Service extends Extension
 {
 
+    /**
+     * @param IFormInterface|null $Form
+     * @param null|array          $Ticket
+     * @param                     $Attachment
+     *
+     * @return IFormInterface|string
+     */
     public function createTicket(IFormInterface $Form = null, $Ticket, $Attachment)
     {
 
@@ -63,14 +75,15 @@ class Service extends Extension
             try {
                 /** @var EdenPhpSmtp $Mail */
                 $Mail = Mail::getSmtpMail()->connectServer(
-                    'smtp.kreda.schule', 'helpdesk@kreda.schule', '20!Kreide!15'
+                    'sslout.de', 'helpdesk@kreda.schule', '20!Kreide!15', 465, true
                 );
-                $Mail->setMailSubject($Ticket['Subject'].' - Account: '.Account::useService()->getAccountBySession()->getId().' ('.$Ticket['Mail'].')');
+                $Mail->setMailSubject(utf8_decode($Ticket['Subject']).' - Account: '.Account::useService()->getAccountBySession()->getId().' ('.$Ticket['Mail'].')');
                 $Mail->setMailBody($Ticket['Body']);
                 $Mail->addRecipientTO('helpdesk@kreda.schule');
                 if (isset( $Upload )) {
                     $Mail->addAttachment(new FileParameter($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename()));
                 }
+                $Mail->setFromHeader($Ticket['Mail']);
                 $Mail->sendMail();
                 $Mail->disconnectServer();
             } catch (\Exception $Exception) {

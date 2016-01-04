@@ -15,7 +15,7 @@ class Prospect implements IModuleInterface
 
     public static function registerModule()
     {
-        // TODO: Implement registerModule() method.
+        // Implement registerModule() method.
     }
 
     /**

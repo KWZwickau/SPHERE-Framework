@@ -70,8 +70,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (( $tblSponsorAssociationAll = SponsorAssociation::useService()->getSponsorAssociationAll() )) {
 
-            $tblCompanyAll[] = null;
-
             $Form = null;
             foreach ($tblSponsorAssociationAll as $tblSponsorAssociation) {
                 $tblCompany = $tblSponsorAssociation->getServiceTblCompany();

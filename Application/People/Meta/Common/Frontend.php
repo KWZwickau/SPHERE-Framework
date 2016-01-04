@@ -38,8 +38,9 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
-     * @param array $Meta
-     * @param null $Group
+     * @param array     $Meta
+     * @param null      $Group
+     *
      * @return Stage
      */
     public function frontendMeta(TblPerson $tblPerson = null, $Meta = array(), $Group = null)
@@ -72,7 +73,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblCommonInformation) {
                         $Global->POST['Meta']['Information']['Nationality'] = $tblCommonInformation->getNationality();
                         $Global->POST['Meta']['Information']['Denomination'] = $tblCommonInformation->getDenomination();
-                        $Global->POST['Meta']['Information']['IsAssistance'] = $tblCommonInformation->getIsAssistance();
+                        $Global->POST['Meta']['Information']['IsAssistance'] = $tblCommonInformation->isAssistance();
                         $Global->POST['Meta']['Information']['AssistanceActivity'] = $tblCommonInformation->getAssistanceActivity();
                     }
                     $Global->savePost();

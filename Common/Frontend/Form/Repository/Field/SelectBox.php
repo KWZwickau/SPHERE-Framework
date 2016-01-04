@@ -28,6 +28,10 @@ class SelectBox extends Field implements IFieldInterface
         IIconInterface $Icon = null
     ) {
 
+        // Sanitize (wrong) entity list parameter (e.g. bool instead of entities or empty
+        if (count($Data) == 1 && is_numeric(key($Data)) === false && current($Data) === false) {
+            $Data = array();
+        }
         if (empty( $Data )) {
             $Data[0] = '-[ Nicht verfügbar ]-';
         }
@@ -91,7 +95,7 @@ class SelectBox extends Field implements IFieldInterface
             asort($Convert);
             $this->Template->setVariable('ElementData', $Convert);
         } else {
-            if (array_key_exists(0, $Data)) {
+            if (array_key_exists(0, $Data) && $Data[0] != '-[ Nicht verfügbar ]-') {
                 $Data[0] = '-[ Nicht ausgewählt ]-';
             }
             asort($Data);

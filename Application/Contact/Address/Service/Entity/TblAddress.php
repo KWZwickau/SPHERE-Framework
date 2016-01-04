@@ -70,7 +70,7 @@ class TblAddress extends Element
     {
 
         $Cache = $this->getCache(new MemcachedHandler());
-        if (null === ($Return = $Cache->getValue($this->getId(), __METHOD__))) {
+        if (null === ( $Return = $Cache->getValue($this->getId(), __METHOD__) )) {
             $Return = new LayoutAddress($this);
             $Cache->setValue($this->getId(), (string)$Return, 0, __METHOD__);
         }
@@ -84,13 +84,13 @@ class TblAddress extends Element
     {
 
         $Cache = $this->getCache(new MemcachedHandler());
-        if (null === ($Return = $Cache->getValue($this->getId(), __METHOD__))) {
+        if (null === ( $Return = $Cache->getValue($this->getId(), __METHOD__) )) {
 
             $Return = $this->getStreetName()
-                . ' ' . $this->getStreetNumber()
-                . ', ' . $this->getTblCity()->getCode()
-                . ' ' . $this->getTblCity()->getName()
-                . ($this->getTblState() ? ' (' . $this->getTblState()->getName() . ')' : '');
+                .' '.$this->getStreetNumber()
+                .', '.$this->getTblCity()->getCode()
+                .' '.$this->getTblCity()->getName()
+                .( $this->getTblState() ? ' ('.$this->getTblState()->getName().')' : '' );
 
             $Cache->setValue($this->getId(), $Return, 0, __METHOD__);
         }
@@ -152,7 +152,7 @@ class TblAddress extends Element
     public function setTblCity(TblCity $tblCity = null)
     {
 
-        $this->tblCity = (null === $tblCity ? null : $tblCity->getId());
+        $this->tblCity = ( null === $tblCity ? null : $tblCity->getId() );
     }
 
     /**
@@ -174,6 +174,6 @@ class TblAddress extends Element
     public function setTblState(TblState $tblState = null)
     {
 
-        $this->tblState = (null === $tblState ? null : $tblState->getId());
+        $this->tblState = ( null === $tblState ? null : $tblState->getId() );
     }
 }

@@ -65,12 +65,12 @@ class Frontend extends Extension implements IFrontendInterface
                     ( $tblGroup->getRemark() ? nl2br($tblGroup->getRemark()) : false ),
                 );
                 $Content = array_filter($Content);
-                $Type = ( $tblGroup->getIsLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT );
+                $Type = ( $tblGroup->isLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT );
                 $Footer = new PullLeft(
                     new Standard('', '/People/Group/Edit', new Edit(),
                         array('Id' => $tblGroup->getId()), 'Daten ändern'
                     )
-                    .( $tblGroup->getIsLocked()
+                    .( $tblGroup->isLocked()
                         ? ''
                         : new Standard('', '/People/Group/Destroy', new Remove(),
                             array('Id' => $tblGroup->getId()), 'Gruppe löschen'
@@ -117,12 +117,12 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Well(
-                            Group::useService()->createGroup(
-                                $this->formGroup()
-                                    ->appendFormButton(new Primary('Hinzufügen'))
-                                    ->setConfirm('Die neue Gruppe wurde noch nicht gespeichert')
-                                , $Group
-                            )
+                                Group::useService()->createGroup(
+                                    $this->formGroup()
+                                        ->appendFormButton(new Primary('Hinzufügen'))
+                                        ->setConfirm('Die neue Gruppe wurde noch nicht gespeichert')
+                                    , $Group
+                                )
                             ))
                     ), new Title('Gruppe hinzufügen')
                 ),
@@ -246,11 +246,12 @@ class Frontend extends Extension implements IFrontendInterface
 
                 // Remove Group-Member
                 $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
-                /** @noinspection PhpUnusedParameterInspection */
-                array_walk($tblPersonAll, function (TblPerson $tblPerson, $Index, TblGroup $tblGroup) {
+                if ($tblPersonAll) {
+                    array_walk($tblPersonAll, function (TblPerson $tblPerson) use ($tblGroup) {
 
-                    Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
-                }, $tblGroup);
+                        Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
+                    });
+                }
 
                 // Destroy Group
                 $Stage->setContent(

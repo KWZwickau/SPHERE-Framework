@@ -163,16 +163,25 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getYearByName($Name);
     }
 
+    /**
+     * @param TblPeriod $tblPeriod
+     *
+     * @return array|bool
+     */
     public function getYearByPeriod(TblPeriod $tblPeriod)
     {
 
         return (new Data($this->getBinding()))->getYearByPeriod($tblPeriod);
     }
 
-    public function getYearByNow()
+    /**
+     * @param \DateTime $Date
+     *
+     * @return bool|TblYear[]
+     */
+    public function getYearAllByDate(\DateTime $Date)
     {
 
-        $Now = new \DateTime('now');
         $EntityList = array();
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll) {
@@ -193,8 +202,8 @@ class Service extends AbstractService
                             $tblPeriodTemp = $tblPeriod;
                         }
                     }
-                    if (new \DateTime($From) < new \DateTime($Now->format('d.m.Y')) &&
-                        new \DateTime($To) > new \DateTime($Now->format('d.m.Y'))
+                    if (new \DateTime($From) < new \DateTime($Date->format('d.m.Y')) &&
+                        new \DateTime($To) > new \DateTime($Date->format('d.m.Y'))
                     ) {
                         $tblYearTempList = Term::useService()->getYearByPeriod($tblPeriodTemp);
                         if ($tblYearTempList) {
@@ -232,6 +241,17 @@ class Service extends AbstractService
         $EntityList = array_filter($EntityList);
 
         return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     * @return bool|Service\Entity\TblYear[]
+     */
+    public function getYearByNow()
+    {
+
+        $Now = new \DateTime('now');
+        return $this->getYearAllByDate($Now);
+
     }
 
     /**
@@ -397,11 +417,12 @@ class Service extends AbstractService
             $Stage->setError('Year[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         } else {
-            if ($TempYear = $this->getYearByName($Year['Name']))
+            if (( $TempYear = $this->getYearByName($Year['Name']) )) {
                 if ($TempYear->getId() !== $tblYear->getId()) {
                     $Stage->setError('Year[Name]', 'Dieser Name wird bereits verwendet');
                     $Error = true;
                 }
+            }
         }
 
         if (!$Error) {
@@ -421,6 +442,13 @@ class Service extends AbstractService
         return $Stage;
     }
 
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblPeriod           $tblPeriod
+     * @param null|array          $Period
+     *
+     * @return IFormInterface|string
+     */
     public function changePeriod(
         IFormInterface &$Stage = null,
         TblPeriod $tblPeriod,

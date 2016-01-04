@@ -256,9 +256,9 @@ class Service extends AbstractService
 
         $tblInvoiceList = Invoice::useService()->getInvoiceAll();
         foreach ($tblInvoiceList as $tblInvoice) {
-            if (!$tblInvoice->getIsVoid()) {
-                if (!$tblInvoice->getIsPaid()) {
-                    if (!$tblInvoice->getIsConfirmed()) {
+            if (!$tblInvoice->isVoid()) {
+                if (!$tblInvoice->isPaid()) {
+                    if (!$tblInvoice->isConfirmed()) {
                         $tblDebtorInvoice = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
                         if ($tblDebtorInvoice->getId() === $tblDebtor->getId()) {
                             $Error = true;
@@ -373,13 +373,17 @@ class Service extends AbstractService
         if ((new Data($this->getBinding()))->deactivateReference($tblReference)) {
             return new Success('Die Deaktivierung ist erfasst worden')
             .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 1,
-                array('DebtorId'  => $tblReference->getServiceTblDebtor()->getId(),
-                      'AccountId' => $AccountId));
+                array(
+                    'DebtorId'  => $tblReference->getServiceTblDebtor()->getId(),
+                    'AccountId' => $AccountId
+                ));
         } else {
             return new Danger('Die Referenz konnte nicht deaktiviert werden')
             .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 3,
-                array('DebtorId'  => $tblReference->getServiceTblDebtor()->getId(),
-                      'AccountId' => $AccountId));
+                array(
+                    'DebtorId'  => $tblReference->getServiceTblDebtor()->getId(),
+                    'AccountId' => $AccountId
+                ));
         }
     }
 
@@ -610,12 +614,16 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen sind erfasst')
-                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 1, array('DebtorId'  => $DebtorId,
-                                                                                           'AccountId' => $AccountId));
+                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 1, array(
+                        'DebtorId'  => $DebtorId,
+                        'AccountId' => $AccountId
+                    ));
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 10, array('Id'        => $DebtorId,
-                                                                                            'AccountId' => $AccountId));
+                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 10, array(
+                        'Id'        => $DebtorId,
+                        'AccountId' => $AccountId
+                    ));
             }
             return $Stage;
         }
@@ -630,8 +638,12 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
-    public function createReference(IFormInterface &$Stage = null, TblDebtor $tblDebtor, TblAccount $tblAccount, $Reference)
-    {
+    public function createReference(
+        IFormInterface &$Stage = null,
+        TblDebtor $tblDebtor,
+        TblAccount $tblAccount,
+        $Reference
+    ) {
 
         /**
          * Skip to Frontend
@@ -660,8 +672,10 @@ class Service extends AbstractService
                 $tblAccount);
 
             return new Success('Die Referenz ist erfasst worden')
-            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 0, array('DebtorId'  => $tblDebtor->getId(),
-                                                                                   'AccountId' => $tblAccount->getId()));
+            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 0, array(
+                'DebtorId'  => $tblDebtor->getId(),
+                'AccountId' => $tblAccount->getId()
+            ));
         }
 
         return $Stage;

@@ -24,11 +24,11 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
+use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -39,6 +39,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -91,36 +92,41 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $Consumer
+     * @return Stage
+     */
+    public static function frontendSelectConsumer()
+    {
+
+        $tblConsumerAll = Consumer::useService()->getConsumerAll();
+        if ($tblConsumerAll) {
+            foreach ($tblConsumerAll as $tblConsumer) {
+                $tblConsumer->Option = new Standard('', '/Setting/MyAccount/Consumer/Change', new Select(),
+                    array('Id' => $tblConsumer->getId()), 'Auswählen');
+            }
+        }
+
+        $Stage = new Stage('Mandant', 'Auswählen');
+        $Stage->setContent(
+            new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                new TableData($tblConsumerAll, null, array('Acronym' => 'Kürzel', 'Name' => 'Name', 'Option' => ''))
+            )))));
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
      *
      * @return Stage
      */
-    public static function frontendChangeConsumer($Consumer = null)
+    public static function frontendChangeConsumer($Id = null)
     {
 
         $tblAccount = Account::useService()->getAccountBySession();
+        $tblConsumer = Consumer::useService()->getConsumerById($Id);
+        $Stage = new Stage('Mandant', 'Auswählen');
 
-        $Stage = new Stage('Mein Benutzerkonto', 'Mandant ändern');
-        $Stage->setContent(
-            new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                MyAccount::useService()->updateConsumer(
-                    new Form(
-                        new FormGroup(
-                            new FormRow(array(
-                                new FormColumn(
-                                    new Panel('Mandant', array(
-                                        new SelectBox('Consumer', 'Neuer Mandant',
-                                            array(
-                                                '{{ Acronym }} {{ Name }}' => Consumer::useService()->getConsumerAll()
-                                            ),
-                                            new Building()),
-                                    ), Panel::PANEL_TYPE_INFO)
-                                ),
-                            ))
-                        ), new Primary('Neuen Mandant speichern')
-                    ), $tblAccount, $Consumer
-                )
-            )), new Title('Mandant ändern'))));
+        $Stage->setContent(MyAccount::useService()->updateConsumer($tblAccount, $tblConsumer));
 
         return $Stage;
     }
@@ -253,6 +259,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return array
+     */
     private function listingSchool()
     {
 
@@ -302,6 +311,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Result;
     }
 
+    /**
+     * @return array
+     */
     private function listingResponsibility()
     {
 
@@ -350,6 +362,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Result;
     }
 
+    /**
+     * @return array
+     */
     private function listingSponsorAssociation()
     {
 

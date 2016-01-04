@@ -28,12 +28,10 @@ class TableVertical extends Extension implements ITemplateInterface
     /**
      * @param Object[] $DataList
      * @param Title    $TableTitle
-     * @param array    $ColumnDefinition
      */
     public function __construct(
         $DataList,
-        Title $TableTitle = null,
-        $ColumnDefinition = array()
+        Title $TableTitle = null
     ) {
 
         if (!is_array($DataList)) {
