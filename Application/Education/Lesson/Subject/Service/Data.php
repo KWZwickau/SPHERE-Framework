@@ -551,10 +551,12 @@ class Data extends AbstractData
                 TblGroupCategory::ATTR_TBL_CATEGORY => $tblCategory->getId()
             )
         );
-        array_walk($EntityList, function (TblGroupCategory &$V) {
+        if ($EntityList) {
+            array_walk($EntityList, function (TblGroupCategory &$V) {
 
-            $V = $V->getTblGroup();
-        });
+                $V = $V->getTblGroup();
+            });
+        }
         return ( null === $EntityList ? false : $EntityList );
     }
 
