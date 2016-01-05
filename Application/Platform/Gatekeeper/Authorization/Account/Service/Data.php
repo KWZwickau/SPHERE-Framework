@@ -236,6 +236,19 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool|TblSetting[]
+     */
+    public function getSettingAllByAccount(TblAccount $tblAccount)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSetting', array(
+            TblSetting::ATTR_TBL_ACCOUNT => $tblAccount->getId()
+        ));
+    }
+
+    /**
      * @return TblIdentification[]|bool
      */
     public function getIdentificationAll()
@@ -284,6 +297,25 @@ class Data extends AbstractData
                 TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
                 TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
             ));
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSetting $tblSetting
+     *
+     * @return bool
+     */
+    public function destroySetting(TblSetting $tblSetting)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblSetting $Entity */
+        $Entity = $Manager->getEntityById('TblSetting', $tblSetting->getId());
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
@@ -659,7 +691,7 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function changeToken(TblToken $tblToken, TblAccount $tblAccount = null)
+    public function changeToken(TblToken $tblToken = null, TblAccount $tblAccount = null)
     {
 
         if (null === $tblAccount) {

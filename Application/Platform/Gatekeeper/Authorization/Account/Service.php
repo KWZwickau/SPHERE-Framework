@@ -544,6 +544,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblToken $tblToken
+     * @param TblAccount $tblAccount
+     *
+     * @return bool
+     */
+    public function changeToken(TblToken $tblToken = null, TblAccount $tblAccount = null)
+    {
+
+        return (new Data($this->getBinding()))->changeToken($tblToken, $tblAccount);
+    }
+
+    /**
      * @param TblAccount $tblAccount
      * @param string $Identifier
      *
@@ -566,5 +578,26 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->setSettingByAccount($tblAccount, $Identifier, $Value);
+    }
+
+    /**
+     * @param TblSetting $tblSetting
+     *
+     * @return bool
+     */
+    public function destroySetting(TblSetting $tblSetting)
+    {
+
+        return (new Data($this->getBinding()))->destroySetting($tblSetting);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool|TblSetting[]
+     */
+    public function getSettingAllByAccount(TblAccount $tblAccount)
+    {
+        return (new Data($this->getBinding()))->getSettingAllByAccount($tblAccount);
     }
 }

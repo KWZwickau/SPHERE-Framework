@@ -66,6 +66,6 @@ class Major1Minor0
 
         $Feature = $Category->createFeature('Benutzer');
         $Feature->createTask('Benutzerkonten')
-            ->createDuty('Benutzerkonten bearbeiten', false);
+            ->createDuty('Benutzerkonten bearbeiten', true);
     }
 }
