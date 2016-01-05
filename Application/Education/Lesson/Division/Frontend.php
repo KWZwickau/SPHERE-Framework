@@ -51,6 +51,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -326,14 +327,16 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($Remove) {
                     Division::useService()->removeStudentToDivision($tblDivision, $tblPerson);
                     $Stage->setContent(
-                        new Redirect('/Education/Lesson/Division/Student/Add', 0,
+                        new Success('Schüler erfolgreich entfernt')
+                        .new Redirect('/Education/Lesson/Division/Student/Add', 0,
                             array('Id' => $Id))
                     );
                     return $Stage;
                 } else {
                     Division::useService()->addStudentToDivision($tblDivision, $tblPerson);
                     $Stage->setContent(
-                        new Redirect('/Education/Lesson/Division/Student/Add', 0,
+                        new Success('Schüler erfolgreich hinzugefügt')
+                        .new Redirect('/Education/Lesson/Division/Student/Add', 0,
                             array('Id' => $Id))
                     );
                     return $Stage;
@@ -523,14 +526,16 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($Remove) {
                     Division::useService()->removeTeacherToDivision($tblDivision, $tblPerson);
                     $Stage->setContent(
-                        new Redirect('/Education/Lesson/Division/Teacher/Add', 0,
+                        new Success('Klassenlehrer erfolgreich entfernt')
+                        .new Redirect('/Education/Lesson/Division/Teacher/Add', 0,
                             array('Id' => $Id))
                     );
                     return $Stage;
                 } else {
                     Division::useService()->addDivisionTeacher($tblDivision, $tblPerson, $Description);
                     $Stage->setContent(
-                        new Redirect('/Education/Lesson/Division/Teacher/Add', 0,
+                        new Success('Klassenlehrer erfolgreich hinzugefügt')
+                        .new Redirect('/Education/Lesson/Division/Teacher/Add', 0,
                             array('Id' => $Id))
                     );
                     return $Stage;
@@ -668,14 +673,16 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($Remove) {
                     Division::useService()->removeSubjectToDivision($tblDivision, $Subject);
                     $Stage->setContent(
-                        new Redirect('/Education/Lesson/Division/Subject/Add', 0,
+                        new Success('Fach erfolgreich entfernt')
+                        .new Redirect('/Education/Lesson/Division/Subject/Add', 0,
                             array('Id' => $Id))
                     );
                     return $Stage;
                 } else {
                     Division::useService()->addSubjectToDivision($tblDivision, $Subject);
                     $Stage->setContent(
-                        new Redirect('/Education/Lesson/Division/Subject/Add', 0,
+                        new Success('Fach erfolgreich hinzugefügt')
+                        .new Redirect('/Education/Lesson/Division/Subject/Add', 0,
                             array('Id' => $Id))
                     );
                     return $Stage;
