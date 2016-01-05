@@ -41,8 +41,6 @@ class Major1Minor0
         $Category = $Release->createCategory('Einstellungen');
 
         $Feature = $Category->createFeature('Benutzer');
-        $Feature->createTask('Benutzerkonten')
-            ->createDuty('Benutzerkonten bearbeiten', false);
         $Feature->createTask('Mein Benutzerkonto')
             ->createDuty('Informationen anzeigen (Vervollständigen)', true);
 
@@ -50,5 +48,24 @@ class Major1Minor0
         $Release->createCategory('Auswertungen')
             ->createFeature('Festdefinierte Auswertungen')
             ->createTask('für ESZC', '', true);
+    }
+
+    /**
+     * Version 1.0.1
+     * To be released Q1 2016
+     *
+     * @param RoadmapExtension $Roadmap
+     */
+    public static function definePatch1(RoadmapExtension $Roadmap)
+    {
+
+        $Release = $Roadmap->createRelease('1.0.1', 'KREDA (Ziel Q1 2016)');
+
+        // Einstellungen
+        $Category = $Release->createCategory('Einstellungen');
+
+        $Feature = $Category->createFeature('Benutzer');
+        $Feature->createTask('Benutzerkonten')
+            ->createDuty('Benutzerkonten bearbeiten', false);
     }
 }
