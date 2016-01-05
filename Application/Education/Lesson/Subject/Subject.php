@@ -96,9 +96,9 @@ class Subject implements IModuleInterface
         $Stage = new Stage('Fächer', 'Dashboard');
 
         $Stage->addButton(new Standard('Fächer', __NAMESPACE__.'\Create\Subject', new Education(), null,
-            'erstellen / bearbeiten'));
+            'Erstellen/Bearbeiten'));
         $Stage->addButton(new Standard('Kategorien', __NAMESPACE__.'\Create\Category', new MoreItems(), null,
-            'erstellen / bearbeiten'));
+            'Erstellen/Bearbeiten'));
 
         $tblGroupAll = $this->useService()->getGroupAll();
         $Content = array();

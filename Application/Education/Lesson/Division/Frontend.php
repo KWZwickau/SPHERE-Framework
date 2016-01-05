@@ -176,11 +176,11 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblDivision->SubjectList = $SubjectCount;
                 }
                 $tblDivision->Option = new Standard('&nbsp;Klassenansicht', '/Education/Lesson/Division/Show',
-                        new EyeOpen(), array('Id' => $tblDivision->getId()))
+                        new EyeOpen(), array('Id' => $tblDivision->getId()), 'Klasse einsehen')
                     .new Standard('', '/Education/Lesson/Division/Change/Division', new Pencil(),
-                        array('Id' => $tblDivision->getId()))
+                        array('Id' => $tblDivision->getId()), 'Beschreibung bearbeiten')
                     .new Standard('', '/Education/Lesson/Division/Destroy/Division', new Remove(),
-                        array('Id' => $tblDivision->getId()));
+                        array('Id' => $tblDivision->getId()), 'Klasse entfernen');
             }
         }
 
@@ -1382,11 +1382,11 @@ class Frontend extends Extension implements IFrontendInterface
             }
             $Stage->setMessage($tblDivision->getDescription());
             $Stage->addButton(new Standard('Fächer', '/Education/Lesson/Division/Subject/Add',
-                new Book(), array('Id' => $tblDivision->getId())));
+                new Book(), array('Id' => $tblDivision->getId()), 'Auswählen'));
             $Stage->addButton(new Standard('Klassenlehrer', '/Education/Lesson/Division/Teacher/Add',
-                new Person(), array('Id' => $tblDivision->getId())));
+                new Person(), array('Id' => $tblDivision->getId()), 'Auswählen'));
             $Stage->addButton(new Standard('Schüler', '/Education/Lesson/Division/Student/Add',
-                new \SPHERE\Common\Frontend\Icon\Repository\Group(), array('Id' => $tblDivision->getId())));
+                new \SPHERE\Common\Frontend\Icon\Repository\Group(), array('Id' => $tblDivision->getId()), 'Auswählen'));
             $StudentTableCount = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
             $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
             if ($tblDivisionStudentList) {
@@ -1487,7 +1487,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array(
                                 'Id'                => $tblDivision->getId(),
                                 'DivisionSubjectId' => $tblDivisionSubject->getId()
-                            )));
+                            ), 'Fachleher festlegen'));
 
                     $tblDivisionSubjectTestList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblDivisionSubject->getServiceTblSubject(),
                         $tblDivisionSubject->getTblDivision());
@@ -1521,7 +1521,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array(
                                             'Id'                => $tblDivision->getId(),
                                             'DivisionSubjectId' => $tblDivisionSubjectTest->getId()
-                                        )));
+                                        ), 'Gruppenlehrer festlegen'));
                                 $Grouparray[] = $tblDivisionSubjectTest->getTblSubjectGroup()->getName();
 
                                 $tblSubjectStudentsList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectTest);
@@ -1539,7 +1539,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array(
                                             'Id'                => $tblDivision->getId(),
                                             'DivisionSubjectId' => $tblDivisionSubjectTest->getId()
-                                        )));
+                                        ), 'Schüler zuordnen'));
                             }
                         }
 
@@ -1554,7 +1554,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'Id'                => $tblDivision->getId(),
                                     'DivisionSubjectId' => $tblDivisionSubject->getId()
-                                )));
+                                ), 'Gruppen bearbeiten'));
 
                         $tblDivisionSubject->GroupTeacher = $TeacherPanelArray;
                         $tblDivisionSubject->SubjectTeacher = $SubjectTeacherPanel;
@@ -1566,7 +1566,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'Id'                => $tblDivision->getId(),
                                     'DivisionSubjectId' => $tblDivisionSubject->getId()
-                                )));
+                                ), 'Gruppe erstellen'));
 
                         $tblDivisionSubject->SubjectTeacher = $SubjectTeacherPanel;
                     }
