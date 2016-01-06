@@ -8,8 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="KREDA Professional"/>
     <link hreflang="de">
-    <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"/>
-    <link rel="schema.DCTERMS" href="http://purl.org/dc/terms/"/>
+    {#<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"/>#}
+    {#<link rel="schema.DCTERMS" href="http://purl.org/dc/terms/"/>#}
     {{ ManagerStyle }}
     <link rel="apple-touch-icon" sizes="57x57"
           href="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/apple-icon-57x57.png">
@@ -142,8 +142,13 @@
     <div class="row">
         <div class="col-lg-offset-1 col-lg-10 col-xs-12">
             {#<div class="col-xs-12">#}
-            <span class="loading-indicator"><span class="glyphicon glyphicon-refresh loading-indicator-animate"></span> Zusätzliche Komponenten werden geladen</span>
-            <span class="loading-error"><span class="glyphicon glyphicon-alert text-danger"></span> Einige zusätzliche Komponenten konnten nicht geladen werden</span>
+            <span class="loading-indicator">
+                <span class="text-muted">Zusätzliche Komponenten werden geladen</span>
+                <span class="loading-indicator-animate"></span>
+            </span>
+            <span class="loading-error">
+                <span class="glyphicon glyphicon-alert text-danger"></span> Einige zusätzliche Komponenten konnten nicht geladen werden
+            </span>
             {{ Content }}
         </div>
     </div>
