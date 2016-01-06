@@ -850,8 +850,10 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblScoreCondition
                     );
                     $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName()
-                        . ($average && $tblTest->getTblTask() ? new Bold('&nbsp;&nbsp;&#216; ' . round($average,
-                                2)) : '');
+                        . ($average
+                        && $tblTest->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')->getId()
+                            ? new Bold('&nbsp;&nbsp;&#216; ' . round($average,
+                                    2)) : '');
                     $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                         $tblPerson);
 
@@ -1466,7 +1468,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendHeadmasterTaskGrades($Id = null)
     {
-        $Stage = new Stage('Stichtagsnotenauftrag', 'Zensurenübersicht');
+        $Stage = new Stage('Notenauftrag', 'Zensurenübersicht');
         $Stage->addButton(
             new Standard('Zurück', '/Education/Graduation/Evaluation/Headmaster/Task',
                 new ChevronLeft())
@@ -1475,11 +1477,11 @@ class Frontend extends Extension implements IFrontendInterface
         $tblTask = Evaluation::useService()->getTaskById($Id);
         if ($tblTask) {
 
-            $tblTestAllByTestAndTask = Evaluation::useService()->getTestAllByTask($tblTask);
+            $tblTestAllByTask = Evaluation::useService()->getTestAllByTask($tblTask);
 
             $divisionList = array();
-            if ($tblTestAllByTestAndTask) {
-                foreach ($tblTestAllByTestAndTask as $tblTest) {
+            if ($tblTestAllByTask) {
+                foreach ($tblTestAllByTask as $tblTest) {
                     $tblDivision = $tblTest->getServiceTblDivision();
                     if ($tblDivision) {
                         $divisionList[$tblDivision->getId()][$tblTest->getId()] = $tblTest;
@@ -1494,13 +1496,82 @@ class Frontend extends Extension implements IFrontendInterface
 
                 foreach ($divisionList as $divisionId => $testList) {
                     $tblDivision = Division::useService()->getDivisionById($divisionId);
-                    if (!empty($testList)) {
-                        /** @var TblTest $tblTest */
-                        foreach ($testList as $tblTest) {
-                            $tblSubject = $tblTest->getServiceTblSubject();
-                            if ($tblSubject) {
-                                $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
-                                $tableHeaderList[$tblDivision->getId()]['Subject' . $tblSubject->getId()] = $tblSubject->getAcronym();
+
+                    // Stichtagsnote
+                    if ($tblTask->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')) {
+                        if (!empty($testList)) {
+                            /** @var TblTest $tblTest */
+                            foreach ($testList as $tblTest) {
+                                $tblSubject = $tblTest->getServiceTblSubject();
+                                if ($tblSubject) {
+                                    $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
+                                    $tableHeaderList[$tblDivision->getId()]['Subject' . $tblSubject->getId()] = $tblSubject->getAcronym();
+
+                                    $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                                        $tblTest->getServiceTblDivision(),
+                                        $tblTest->getServiceTblSubject(),
+                                        $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
+                                    );
+
+                                    if ($tblDivisionSubject->getTblSubjectGroup()) {
+                                        $tblSubjectStudentAllByDivisionSubject =
+                                            Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+                                        if ($tblSubjectStudentAllByDivisionSubject) {
+                                            foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
+
+                                                $tblPerson = $tblSubjectStudent->getServiceTblPerson();
+
+                                                $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
+                                                    $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName();
+                                                $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+                                                    $tblPerson);
+                                                if ($tblGrade) {
+                                                    $studentList[$tblDivision->getId()][$tblPerson->getId()]
+                                                    ['Subject' . $tblSubject->getId()] = $tblGrade->getGrade() !== null ?
+                                                        $tblGrade->getGrade() : '';
+                                                } else {
+                                                    $studentList[$tblDivision->getId()][$tblPerson->getId()]
+                                                    ['Subject' . $tblSubject->getId()] =
+                                                        new \SPHERE\Common\Frontend\Text\Repository\Warning('fehlt');
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        $tblDivisionStudentAll = Division::useService()->getStudentAllByDivision($tblDivision);
+                                        if ($tblDivisionStudentAll) {
+                                            foreach ($tblDivisionStudentAll as $tblPerson) {
+
+                                                $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
+                                                    $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName();
+                                                $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+                                                    $tblPerson);
+                                                if ($tblGrade) {
+                                                    $studentList[$tblDivision->getId()][$tblPerson->getId()]
+                                                    ['Subject' . $tblSubject->getId()] = $tblGrade->getGrade() !== null ?
+                                                        $tblGrade->getGrade() : '';
+                                                } else {
+                                                    $studentList[$tblDivision->getId()][$tblPerson->getId()]
+                                                    ['Subject' . $tblSubject->getId()] =
+                                                        new \SPHERE\Common\Frontend\Text\Repository\Warning('fehlt');
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+
+                        // Kopfnoten
+                        $tableHeaderList[$tblDivision->getId()]['Name'] = 'Schüler';
+                        $grades = array();
+
+                        if (!empty($testList)) {
+                            /** @var TblTest $tblTest */
+                            foreach ($testList as $tblTest) {
+                                $tblGradeType = $tblTest->getServiceTblGradeType();
+                                $tableHeaderList[$tblDivision->getId()]['Type' . $tblGradeType->getId()]
+                                    = $tblGradeType->getCode() . ' (' . $tblGradeType->getName() . ')';
 
                                 $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
                                     $tblTest->getServiceTblDivision(),
@@ -1520,14 +1591,36 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName();
                                             $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                                                 $tblPerson);
+
+                                            $gradeTypeId = $tblTest->getServiceTblGradeType()->getId();
+                                            $tblSubject = $tblTest->getServiceTblSubject();
                                             if ($tblGrade) {
+                                                $gradeText = $tblSubject->getAcronym() . ': ' . ($tblGrade->getGrade() !== null ?
+                                                        $tblGrade->getGrade() : '');
+                                                if (is_numeric($tblGrade->getGrade())) {
+                                                    if (isset($grades[$tblPerson->getId()][$gradeTypeId]['Count'])) {
+                                                        $grades[$tblPerson->getId()][$gradeTypeId]['Count']++;
+                                                    } else {
+                                                        $grades[$tblPerson->getId()][$gradeTypeId]['Count'] = 1;
+                                                    }
+                                                    if (isset($grades[$tblPerson->getId()][$gradeTypeId]['Sum'])) {
+                                                        $grades[$tblPerson->getId()][$gradeTypeId]['Sum']
+                                                            = floatval($grades[$tblPerson->getId()][$gradeTypeId]['Sum']) + floatval($tblGrade->getGrade());
+                                                    } else {
+                                                        $grades[$tblPerson->getId()][$gradeTypeId]['Sum'] = floatval($tblGrade->getGrade());
+                                                    }
+                                                }
+                                            } else {
+                                                $gradeText = $tblSubject->getAcronym() . ': ' .
+                                                    new \SPHERE\Common\Frontend\Text\Repository\Warning('f');
+                                            }
+
+                                            if (!isset($studentList[$tblDivision->getId()][$tblPerson->getId()]['Type' . $gradeTypeId])) {
                                                 $studentList[$tblDivision->getId()][$tblPerson->getId()]
-                                                ['Subject' . $tblSubject->getId()] = $tblGrade->getGrade() !== null ?
-                                                    $tblGrade->getGrade() : '';
+                                                ['Type' . $gradeTypeId] = new Small(new Small($gradeText));
                                             } else {
                                                 $studentList[$tblDivision->getId()][$tblPerson->getId()]
-                                                ['Subject' . $tblSubject->getId()] =
-                                                    new \SPHERE\Common\Frontend\Text\Repository\Warning('fehlt');
+                                                ['Type' . $gradeTypeId] .= new Small(new Small(' | ' . $gradeText));
                                             }
                                         }
                                     }
@@ -1540,15 +1633,54 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName();
                                             $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                                                 $tblPerson);
+
+                                            $gradeTypeId = $tblTest->getServiceTblGradeType()->getId();
+                                            $tblSubject = $tblTest->getServiceTblSubject();
                                             if ($tblGrade) {
+                                                $gradeText = $tblSubject->getAcronym() . ': ' . ($tblGrade->getGrade() !== null ?
+                                                        $tblGrade->getGrade() : '');
+                                                if (is_numeric($tblGrade->getGrade())) {
+                                                    if (isset($grades[$tblPerson->getId()][$gradeTypeId]['Count'])) {
+                                                        $grades[$tblPerson->getId()][$gradeTypeId]['Count']++;
+                                                    } else {
+                                                        $grades[$tblPerson->getId()][$gradeTypeId]['Count'] = 1;
+                                                    }
+                                                    if (isset($grades[$tblPerson->getId()][$gradeTypeId]['Sum'])) {
+                                                        $grades[$tblPerson->getId()][$gradeTypeId]['Sum']
+                                                            = floatval($grades[$tblPerson->getId()][$gradeTypeId]['Sum']) + floatval($tblGrade->getGrade());
+                                                    } else {
+                                                        $grades[$tblPerson->getId()][$gradeTypeId]['Sum'] = floatval($tblGrade->getGrade());
+                                                    }
+                                                }
+                                            } else {
+                                                $gradeText = $tblSubject->getAcronym() . ': ' .
+                                                    new \SPHERE\Common\Frontend\Text\Repository\Warning('f');
+                                            }
+
+                                            if (!isset($studentList[$tblDivision->getId()][$tblPerson->getId()]['Type' . $gradeTypeId])) {
                                                 $studentList[$tblDivision->getId()][$tblPerson->getId()]
-                                                ['Subject' . $tblSubject->getId()] = $tblGrade->getGrade() !== null ?
-                                                    $tblGrade->getGrade() : '';
+                                                ['Type' . $gradeTypeId] = new Small(new Small($gradeText));
                                             } else {
                                                 $studentList[$tblDivision->getId()][$tblPerson->getId()]
-                                                ['Subject' . $tblSubject->getId()] =
-                                                    new \SPHERE\Common\Frontend\Text\Repository\Warning('fehlt');
+                                                ['Type' . $gradeTypeId] .= new Small(new Small('| ' . $gradeText));
                                             }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // calc Average
+                            foreach ($studentList[$tblDivision->getId()] as $personId => $studentListByDivision) {
+                                $tblPerson = Person::useService()->getPersonById($personId);
+                                $tblGradeTypeAllWhereBehavior = Gradebook::useService()->getGradeTypeAllWhereBehavior();
+                                if ($tblPerson && $tblGradeTypeAllWhereBehavior) {
+                                    foreach ($tblGradeTypeAllWhereBehavior as $tblGradeType) {
+                                        $gradeTypeId = $tblGradeType->getId();
+                                        if (isset($grades[$personId][$gradeTypeId]) && $grades[$personId][$gradeTypeId]['Count'] > 0) {
+                                            $studentList[$tblDivision->getId()][$personId]['Type' . $gradeTypeId] =
+                                                new Bold('&#216; ' .
+                                                    round(floatval($grades[$personId][$gradeTypeId]['Sum']) / floatval($grades[$personId][$gradeTypeId]['Count']),
+                                                        2) . ' | ') . $studentListByDivision['Type' . $gradeTypeId];
                                         }
                                     }
                                 }
@@ -1584,7 +1716,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(
                                 new Panel(
-                                    'Stichtagsauftrag',
+                                    $tblTask->getTblTestType()->getName(),
                                     $tblTask->getName() . ' ' . $tblTask->getDate()
                                     . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
                                         $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
