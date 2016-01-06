@@ -35,7 +35,6 @@ use SPHERE\System\Database\Link\Connection;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Database\Link\Register;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Database
@@ -136,10 +135,14 @@ class Database extends Extension
         // Manager Cache
         /** @var MemoryHandler $SystemMemcached */
         $ManagerCache = $this->getCache(new MemoryHandler());
-        $Manager = $ManagerCache->getValue((string)$this->Identifier.$EntityNamespace.$EntityPath, __METHOD__);
+        if (preg_match('!Education!is', $EntityNamespace)) {
+            $Manager = null;
+        } else {
+            $Manager = $ManagerCache->getValue((string)$this->Identifier.$EntityNamespace.$EntityPath, __METHOD__);
+        }
 
         // TODO: Unit of Work is out of Sync if Manager is cached (sometimes)
-        if (null === $Manager) {
+        if (true || null === $Manager) {
 
             // System Cache
             $MemcachedHandler = $this->getCache(new MemcachedHandler());
