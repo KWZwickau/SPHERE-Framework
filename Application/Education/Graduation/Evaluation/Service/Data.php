@@ -211,6 +211,15 @@ class Data extends AbstractData
     }
 
     /**
+     * @return bool|TblTask[]
+     */
+    public function getTaskAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTask');
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblTestType
@@ -245,6 +254,24 @@ class Data extends AbstractData
         $queryBuilder->select('t')
             ->from(__NAMESPACE__ . '\Entity\TblTestType', 't')
             ->where($queryBuilder->expr()->notLike('t.Identifier', '?1'))
+            ->setParameter(1, '%TASK%');
+
+        $query = $queryBuilder->getQuery();
+        $result = $query->getResult();
+
+        return $result;
+    }
+
+    /**
+     * @return bool|TblTestType[]
+     */
+    public function getTestTypeAllWhereTask()
+    {
+
+        $queryBuilder = $this->getConnection()->getEntityManager()->getQueryBuilder();
+        $queryBuilder->select('t')
+            ->from(__NAMESPACE__ . '\Entity\TblTestType', 't')
+            ->where($queryBuilder->expr()->like('t.Identifier', '?1'))
             ->setParameter(1, '%TASK%');
 
         $query = $queryBuilder->getQuery();
@@ -442,15 +469,16 @@ class Data extends AbstractData
 
     /**
      * @param TblTask $tblTask
-     * @param         $Name
+     * @param TblTestType $tblTestType
+     * @param $Name
      * @param null $Date
      * @param null $FromDate
      * @param null $ToDate
-     *
      * @return bool
      */
     public function updateTask(
         TblTask $tblTask,
+        TblTestType $tblTestType,
         $Name,
         $Date = null,
         $FromDate = null,
@@ -463,6 +491,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblTask', $tblTask->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
+            $Entity->setTblTestType($tblTestType);
             $Entity->setName($Name);
             $Entity->setDate($Date ? new \DateTime($Date) : null);
             $Entity->setFromDate($FromDate ? new \DateTime($FromDate) : null);
