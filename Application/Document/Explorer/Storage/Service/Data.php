@@ -20,10 +20,10 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->getDebugger()->screenDump($this->createDirectory(
+        $this->createDirectory(
             'Zeugnisse', 'enthält (revisionssicher) alle erzeugten Zeugnisse',
             null, true, 'GRADUATION_CERTIFICATE'
-        ));
+        );
     }
 
     /**
