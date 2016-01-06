@@ -1229,7 +1229,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendHeadmasterTaskDivision($Id = null)
     {
 
-        $Stage = new Stage('Stichtagsnotenauftrag', 'Klassen zuordnen');
+        $Stage = new Stage('Notenauftrag', 'Klassen zuordnen');
         $Stage->addButton(
             new Standard('Zurück', '/Education/Graduation/Evaluation/Headmaster/Task',
                 new ChevronLeft())
@@ -1240,11 +1240,9 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblDivisionList = array();
             $tblDivisionAvailableList = array();
-            $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
-            $tblTestAllByTestAndTask = Evaluation::useService()->getTestAllByTaskAndTestType($tblTask,
-                $tblTestType);
-            if ($tblTestAllByTestAndTask) {
-                foreach ($tblTestAllByTestAndTask as $tblTest) {
+            $tblTestAllByTest = Evaluation::useService()->getTestAllByTask($tblTask);
+            if ($tblTestAllByTest) {
+                foreach ($tblTestAllByTest as $tblTest) {
                     $tblDivision = $tblTest->getServiceTblDivision();
                     if ($tblDivision) {
                         $tblDivisionList[$tblDivision->getId()] = $tblDivision;
@@ -1304,7 +1302,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(
                                 new Panel(
-                                    'Stichtagsauftrag',
+                                    $tblTask->getTblTestType()->getName(),
                                     $tblTask->getName() . ' ' . $tblTask->getDate()
                                     . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
                                         $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
@@ -1336,7 +1334,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             );
         } else {
-            $Stage .= new Warning('Stichtagsauftrag nicht gefunden.', new Ban())
+            $Stage .= new Warning('Notenauftrag nicht gefunden.', new Ban())
                 . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/', 3);
         }
 
@@ -1352,15 +1350,14 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendHeadmasterTaskAddDivision($TaskId = null, $DivisionId = null)
     {
 
-        $Stage = new Stage('Stichtagsnotenauftrag', 'Klassen zuordnen');
+        $Stage = new Stage('Notenauftrag', 'Klassen zuordnen');
 
         $tblTask = Evaluation::useService()->getTaskById($TaskId);
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
 
         if ($tblTask && $tblDivision) {
 
-            Evaluation::useService()->addDivisionToTask($tblTask, $tblDivision, $tblTestType);
+            Evaluation::useService()->addDivisionToTask($tblTask, $tblDivision);
 
             $Stage->setContent(
                 new Layout(array(
@@ -1368,7 +1365,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(
                                 new Panel(
-                                    'Stichtagsauftrag',
+                                    $tblTask->getTblTestType()->getName(),
                                     $tblTask->getName() . ' ' . $tblTask->getDate()
                                     . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
                                         $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
@@ -1386,7 +1383,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
         } else {
             $Stage->setContent(
-                (!$tblTask ? new Warning('Stichtagsauftrag nicht gefunden.', new Ban()) : '')
+                (!$tblTask ? new Warning('Notenauftrag nicht gefunden.', new Ban()) : '')
                 . (!$tblDivision ? new Warning('Klasse nicht gefunden.', new Ban()) : '')
                 . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/Division', 3, array(
                     'Id' => $TaskId
@@ -1406,7 +1403,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendHeadmasterTaskRemoveDivision($TaskId = null, $DivisionId = null)
     {
 
-        $Stage = new Stage('Stichtagsnotenauftrag', 'Klassen zuordnen');
+        $Stage = new Stage('Notenauftrag', 'Klassen zuordnen');
 
         $tblTask = Evaluation::useService()->getTaskById($TaskId);
         $tblDivision = Division::useService()->getDivisionById($DivisionId);
@@ -1421,7 +1418,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(
                                 new Panel(
-                                    'Stichtagsauftrag',
+                                    $tblTask->getTblTestType()->getName(),
                                     $tblTask->getName() . ' ' . $tblTask->getDate()
                                     . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
                                         $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
@@ -1439,7 +1436,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
         } else {
             $Stage->setContent(
-                (!$tblTask ? new Warning('Stichtagsauftrag nicht gefunden.', new Ban()) : '')
+                (!$tblTask ? new Warning('Notenauftrag nicht gefunden.', new Ban()) : '')
                 . (!$tblDivision ? new Warning('Klasse nicht gefunden.', new Ban()) : '')
                 . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/Division', 3, array(
                     'Id' => $TaskId
@@ -1465,9 +1462,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblTask = Evaluation::useService()->getTaskById($Id);
         if ($tblTask) {
 
-            $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
-            $tblTestAllByTestAndTask = Evaluation::useService()->getTestAllByTaskAndTestType($tblTask,
-                $tblTestType);
+            $tblTestAllByTestAndTask = Evaluation::useService()->getTestAllByTask($tblTask);
 
             $divisionList = array();
             if ($tblTestAllByTestAndTask) {
@@ -1589,7 +1584,7 @@ class Frontend extends Extension implements IFrontendInterface
                 . new Layout($tableList)
             );
         } else {
-            $Stage .= new Warning('Stichtagsauftrag nicht gefunden.', new Ban())
+            $Stage .= new Warning('Notenauftrag nicht gefunden.', new Ban())
                 . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', 3);
         }
 

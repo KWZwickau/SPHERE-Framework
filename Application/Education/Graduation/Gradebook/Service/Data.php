@@ -221,6 +221,20 @@ class Data extends AbstractData
     /**
      * @return bool|TblGradeType[]
      */
+    public function getGradeTypeAllWhereBehavior()
+    {
+
+        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType',
+            array(
+                TblGradeType::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
+            ));
+    }
+
+    /**
+     * @return bool|TblGradeType[]
+     */
     public function getGradeTypeAllWhereTestOrBehavior()
     {
 

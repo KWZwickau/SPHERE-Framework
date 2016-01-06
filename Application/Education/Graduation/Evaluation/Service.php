@@ -351,29 +351,11 @@ class Service extends AbstractService
 
     /**
      * @param TblTask     $tblTask
-     * @param TblTestType $tblTestType
      * @param TblDivision $tblDivision
-     *
-     * @return bool|Service\Entity\TblTest[]
-     */
-    public function getTestAllByTaskAndTestType(
-        TblTask $tblTask,
-        TblTestType $tblTestType,
-        TblDivision $tblDivision = null
-    ) {
-
-        return (new Data($this->getBinding()))->getTestAllByTaskAndTestType($tblTask, $tblTestType, $tblDivision);
-    }
-
-    /**
-     * @param TblTask     $tblTask
-     * @param TblDivision $tblDivision
-     * @param TblTestType $tblTestType
      */
     public function addDivisionToTask(
         TblTask $tblTask,
-        TblDivision $tblDivision,
-        TblTestType $tblTestType
+        TblDivision $tblDivision
     ) {
 
         $tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision(
@@ -382,34 +364,72 @@ class Service extends AbstractService
 
         if ($tblDivisionSubjectAll) {
             foreach ($tblDivisionSubjectAll as $tblDivisionSubject) {
-                if ($tblDivisionSubject->getTblSubjectGroup()) {
-                    (new Data($this->getBinding()))->createTest(
-                        $tblDivision,
-                        $tblDivisionSubject->getServiceTblSubject(),
-                        $tblDivisionSubject->getTblSubjectGroup(),
-                        null,
-                        null,
-                        $tblTestType,
-                        $tblTask,
-                        '',
-                        $tblTask->getDate()
-                    );
-                } else {
-                    if (!Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
-                        $tblDivision, $tblDivisionSubject->getServiceTblSubject()
-                    )
-                    ) {
+                if ($tblTask->getTblTestType()->getId() == $this->getTestTypeByIdentifier('APPOINTED_DATE_TASK')) {
+                    if ($tblDivisionSubject->getTblSubjectGroup()) {
                         (new Data($this->getBinding()))->createTest(
                             $tblDivision,
                             $tblDivisionSubject->getServiceTblSubject(),
+                            $tblDivisionSubject->getTblSubjectGroup(),
                             null,
                             null,
-                            null,
-                            $tblTestType,
+                            $tblTask->getTblTestType(),
                             $tblTask,
                             '',
                             $tblTask->getDate()
                         );
+                    } else {
+                        if (!Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                            $tblDivision, $tblDivisionSubject->getServiceTblSubject()
+                        )
+                        ) {
+                            (new Data($this->getBinding()))->createTest(
+                                $tblDivision,
+                                $tblDivisionSubject->getServiceTblSubject(),
+                                null,
+                                null,
+                                null,
+                                $tblTask->getTblTestType(),
+                                $tblTask,
+                                '',
+                                $tblTask->getDate()
+                            );
+                        }
+                    }
+                } else {
+                    $tblGradeTypeAllWhereBehavior = Gradebook::useService()->getGradeTypeAllWhereBehavior();
+                    if ($tblGradeTypeAllWhereBehavior) {
+                        foreach ($tblGradeTypeAllWhereBehavior as $tblGradeType) {
+                            if ($tblDivisionSubject->getTblSubjectGroup()) {
+                                (new Data($this->getBinding()))->createTest(
+                                    $tblDivision,
+                                    $tblDivisionSubject->getServiceTblSubject(),
+                                    $tblDivisionSubject->getTblSubjectGroup(),
+                                    null,
+                                    $tblGradeType,
+                                    $tblTask->getTblTestType(),
+                                    $tblTask,
+                                    '',
+                                    $tblTask->getDate()
+                                );
+                            } else {
+                                if (!Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                                    $tblDivision, $tblDivisionSubject->getServiceTblSubject()
+                                )
+                                ) {
+                                    (new Data($this->getBinding()))->createTest(
+                                        $tblDivision,
+                                        $tblDivisionSubject->getServiceTblSubject(),
+                                        null,
+                                        null,
+                                        $tblGradeType,
+                                        $tblTask->getTblTestType(),
+                                        $tblTask,
+                                        '',
+                                        $tblTask->getDate()
+                                    );
+                                }
+                            }
+                        }
                     }
                 }
             }

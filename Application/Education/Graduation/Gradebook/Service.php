@@ -190,6 +190,15 @@ class Service extends AbstractService
     /**
      * @return bool|TblGradeType[]
      */
+    public function getGradeTypeAllWhereBehavior()
+    {
+
+        return (new Data($this->getBinding()))->getGradeTypeAllWhereBehavior();
+    }
+
+        /**
+     * @return bool|TblGradeType[]
+     */
     public function getGradeTypeAllWhereTestOrBehavior()
     {
 
