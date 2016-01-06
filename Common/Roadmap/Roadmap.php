@@ -40,6 +40,7 @@ class Roadmap extends Extension
         Major0Minor9::definePatch1($this->Roadmap);
 
         Major1Minor0::definePatch0($this->Roadmap);
+        Major1Minor0::definePatch1($this->Roadmap);
         Major1Minor1::definePatch0($this->Roadmap);
         Major1Minor2::definePatch0($this->Roadmap);
         Major1Minor3::definePatch0($this->Roadmap);

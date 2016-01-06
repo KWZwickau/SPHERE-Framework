@@ -6,6 +6,7 @@ use SPHERE\Application\Platform\System\Archive\Archive;
 use SPHERE\Application\Platform\System\Cache\Cache;
 use SPHERE\Application\Platform\System\Database\Database;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\Application\Platform\System\Session\Session;
 use SPHERE\Application\Platform\System\Test\Test;
 use SPHERE\Common\Frontend\Icon\Repository\Cog;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -33,6 +34,7 @@ class System implements IApplicationInterface
         Cache::registerModule();
         Archive::registerModule();
         Test::registerModule();
+        Session::registerModule();
         /**
          * Register Navigation
          */

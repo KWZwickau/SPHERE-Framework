@@ -154,7 +154,7 @@ class Manager extends Extension
     }
 
     /**
-     * @param $Entity
+     * @param Element $Entity
      *
      * @return EntityManager
      */
