@@ -74,6 +74,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblTestType[]
+     */
+    public function getTestTypesForGradeTypes()
+    {
+
+        return (new Data($this->getBinding()))->getTestTypesForGradeTypes();
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblTest
