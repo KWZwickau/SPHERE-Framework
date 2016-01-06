@@ -27,16 +27,19 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -257,7 +260,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblSchoolTypeAll = Type::useService()->getTypeAll();
-        $tblYearAll = Term::useService()->getYearAll();
+        $tblYearAll = Term::useService()->getYearAllSinceYears(0);
 
         return new Form(
             new FormGroup(array(
@@ -1710,21 +1713,77 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    /**
-     * @param int $Id
-     *
-     * @return Stage|string
-     */
-    public function frontendDivisionDestroy($Id)
+//    /**
+//     * @param int $Id
+//     *
+//     * @return Stage|string
+//     */
+//    public function frontendDivisionDestroy($Id)
+//    {
+//
+//        $Stage = new Stage('Klassengruppe', 'entfernen');
+//        $tblDivision = Division::useService()->getDivisionById($Id);
+//        if ($tblDivision) {
+//            $Stage->setContent(Division::useService()->destroyDivision($tblDivision));
+//        } else {
+//            return $Stage.new Warning('Klassengruppe nicht gefunden!')
+//            .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+//        }
+//        return $Stage;
+//    }
+
+    public function frontendDivisionDestroy($Id, $Confirm = false)
     {
 
         $Stage = new Stage('Klassengruppe', 'entfernen');
-        $tblDivision = Division::useService()->getDivisionById($Id);
-        if ($tblDivision) {
-            $Stage->setContent(Division::useService()->destroyDivision($tblDivision));
+        if ($Id) {
+            $tblDivision = Division::useService()->getDivisionById($Id);
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                        new Panel(new Question().' Diese Klasse wirklich löschen?', array(
+                            $tblDivision->getDisplayName().' '.$tblDivision->getDescription()
+//                            , new Muted(new Small($tblDivision->getDisplayName()))
+                        ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Education/Lesson/Division/Destroy/Division', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
+                            )
+                            .new Standard(
+                                'Nein', '/Education/Lesson/Division', new Disable()
+                            )
+                        )
+                    ))))
+                );
+            } else {
+
+                // Remove Group-Member
+//                $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
+//                if ($tblPersonAll) {
+//                    array_walk($tblPersonAll, function (TblPerson $tblPerson) use ($tblGroup) {
+//
+//                        Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
+//                    });
+//                }
+
+                // Destroy Division
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            ( Division::useService()->destroyDivision($tblDivision)
+                                ? new Success('Die Klasse wurde gelöscht')
+                                .new Redirect('/Education/Lesson/Division', 0)
+                                : new \SPHERE\Common\Frontend\Message\Repository\Danger('Die Klasse konnte nicht gelöscht werden')
+                                .new Redirect('/Education/Lesson/Division', 3)
+                            )
+                        )))
+                    )))
+                );
+            }
         } else {
-            return $Stage.new Warning('Klassengruppe nicht gefunden!')
-            .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+            return $Stage.new Warning('Klasse nicht gefunden!')
+            .new Redirect('/Education/Lesson/Division');
         }
         return $Stage;
     }
