@@ -53,7 +53,9 @@
             /**
              * Activate: Source-Code Highlighter
              */
-            hljs.initHighlighting();
+            if (window.hljs) {
+                hljs.initHighlighting();
+            }
             /**
              * Activate: iFrame-Styling
              */

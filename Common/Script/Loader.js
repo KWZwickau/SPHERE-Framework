@@ -3,13 +3,13 @@ var Client = (function ()
     'use strict';
     var useDelay = 30;
     var useConfig = {};
-    var setModule = function (Module, Depending)
+    var setModule = function (Module, Depending, cTag)
     {
         useConfig[Module] = {
             Depending: Depending,
             Source: window.location.pathname.slice(
                 0, window.location.pathname.search('/')
-            ) + '/Common/Script/' + Module + '.js',
+            ) + '/Common/Script/' + Module + '.js?cTag=' + cTag,
             /**
              * @return {boolean}
              */
