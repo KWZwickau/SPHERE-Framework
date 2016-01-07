@@ -6,6 +6,7 @@ use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Corporation\Search\Search;
 use SPHERE\Application\IClusterInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -35,7 +36,7 @@ class Corporation implements IClusterInterface
         Group::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Firmen'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Firmen'), new Link\Icon(new Building()))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
