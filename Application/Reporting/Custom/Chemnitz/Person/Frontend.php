@@ -543,15 +543,15 @@ class Frontend extends Extension implements IFrontendInterface
                 : '' )
         );
 
-        if ($DivisionId !== null) {
-            /** @var DomPdf $Document */
-            $Document = Document::getDocument('Roadmap.pdf');
-            $Document->setContent(
-                Template::getTwigTemplateString($tableData)
-            );
-
-            $Document->saveFile();
-        }
+//        if ($DivisionId !== null) {
+//            /** @var DomPdf $Document */
+//            $Document = Document::getDocument('Roadmap.pdf');
+//            $Document->setContent(
+//                Template::getTwigTemplateString($tableData)
+//            );
+//
+//            $Document->saveFile();
+//        }
 
         return $View;
     }
