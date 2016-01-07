@@ -150,6 +150,8 @@ class YouTrack extends Extension implements ITypeInterface
         curl_setopt($CurlHandler, CURLOPT_URL,
             $this->Host.'/rest/issue/byproject/KREDA?filter='.urlencode('Status: -Gelöst Ersteller: KREDA-Support Ersteller: SWE-Kreda')
         );
+        curl_setopt($CurlHandler, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($CurlHandler, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($CurlHandler, CURLOPT_HEADER, false);
         curl_setopt($CurlHandler, CURLOPT_VERBOSE, false);
         curl_setopt($CurlHandler, CURLOPT_COOKIE, $this->Cookie);
@@ -207,6 +209,8 @@ class YouTrack extends Extension implements ITypeInterface
 
         $CurlHandler = curl_init();
         curl_setopt($CurlHandler, CURLOPT_URL, $this->Host.'/rest/user/login');
+        curl_setopt($CurlHandler, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($CurlHandler, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($CurlHandler, CURLOPT_POST, true);
         curl_setopt($CurlHandler, CURLOPT_POSTFIELDS,
             'login='.$this->Username.'&password='.$this->Password);
@@ -245,6 +249,8 @@ class YouTrack extends Extension implements ITypeInterface
         curl_setopt($CurlHandler, CURLOPT_URL,
             $this->Host.'/rest/issue?project=KREDA&summary='.urlencode($Summary).'&description='.urlencode($Description)
         );
+        curl_setopt($CurlHandler, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($CurlHandler, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($CurlHandler, CURLOPT_HEADER, false);
         curl_setopt($CurlHandler, CURLOPT_VERBOSE, false);
         curl_setopt($CurlHandler, CURLOPT_PUT, true);
@@ -284,7 +290,7 @@ class YouTrack extends Extension implements ITypeInterface
         }
         $this->Cookie = "";
         if (trim($String) == "") {
-            foreach ($this->CookieList as $Key => $Value) {
+            foreach ((array)$this->CookieList as $Key => $Value) {
                 $this->Cookie .= "$Key=$Value; ";
             }
         }

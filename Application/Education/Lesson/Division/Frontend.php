@@ -40,6 +40,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -155,7 +156,7 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($tblPeriodAll as $tblPeriod) {
                         $Period[] = $tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
                     }
-                    $tblDivision->Period = implode('<br/>', $Period);
+                    $tblDivision->Period = new Listing($Period);
                 } else {
                     $tblDivision->Period = 'fehlt';
                 }
@@ -283,13 +284,12 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Klassenstufe',
                             array(
-                                new CheckBox('Level[Check]', 'jahrgangübergreifende Klasse anlegen', 1, array(
-                                    'Level[Name]',
-                                    'Level[Type]'
-                                )),
                                 new SelectBox('Level[Type]', 'Schulart', array(
                                     '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
                                 ), new Education()),
+                                new CheckBox('Level[Check]', 'jahrgangübergreifende Klasse anlegen', 1, array(
+                                    'Level[Name]'
+                                )),
                                 new AutoCompleter('Level[Name]', 'Klassenstufe (Nummer)', 'z.B: 5', $acNameAll,
                                     new Pencil()),
                             ), Panel::PANEL_TYPE_INFO
