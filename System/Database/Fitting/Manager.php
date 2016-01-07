@@ -150,7 +150,6 @@ class Manager extends Extension
         }
         $this->getCache(new MemoryHandler())->clearCache();
         $this->EntityManager->flush();
-        $this->EntityManager->clear();
         return $this;
     }
 

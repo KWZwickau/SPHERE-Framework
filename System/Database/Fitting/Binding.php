@@ -33,12 +33,14 @@ class Binding
     }
 
     /**
+     * @param bool $useCache
+     *
      * @return Manager
      */
-    public function getEntityManager()
+    public function getEntityManager($useCache = true)
     {
 
-        return $this->Database->getEntityManager($this->EntityPath, $this->EntityNamespace);
+        return $this->Database->getEntityManager($this->EntityPath, $this->EntityNamespace, $useCache);
     }
 
     /**
