@@ -128,7 +128,7 @@ class Data extends AbstractData
          */
 
         // Level: Benutzer - Einstellungen
-        $tblLevel = $this->createLevel('Benutzer - Einstellungen');
+        $toRoleUserSetup = $tblLevel = $this->createLevel('Benutzer - Einstellungen');
 
         // Privilege: Benutzer - Mein Benutzerkonto
         $tblPrivilege = $this->createPrivilege('Benutzer - Mein Benutzerkonto');
@@ -137,7 +137,6 @@ class Data extends AbstractData
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Setting/MyAccount');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-
         $tblRight = $this->createRight('/Setting/MyAccount/Password');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
@@ -147,7 +146,7 @@ class Data extends AbstractData
          */
 
         // Level: Administrator - Einstellungen
-        $tblLevel = $this->createLevel('Administrator - Einstellungen');
+        $toRoleAdminSetup = $tblLevel = $this->createLevel('Administrator - Einstellungen');
         // !!! Add To CLOUD Administrator
         $this->addRoleLevel($tblRoleCloud, $tblLevel);
 
@@ -204,6 +203,19 @@ class Data extends AbstractData
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Roadmap/Download');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
+
+        /**
+         * Role: Einstellungen: Administrator
+         */
+        $tblRole = $this->createRole('Einstellungen: Administrator');
+        $this->addRoleLevel($tblRole, $toRoleAdminSetup);
+
+        /**
+         * Role: Einstellungen: Benutzer
+         */
+        $tblRole = $this->createRole('Einstellungen: Benutzer');
+        $this->addRoleLevel($tblRole, $toRoleUserSetup);
+
     }
 
     /**

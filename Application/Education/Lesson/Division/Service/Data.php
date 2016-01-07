@@ -68,19 +68,12 @@ class Data extends AbstractData
     public function createDivision(TblYear $tblYear, TblLevel $tblLevel = null, $Name, $Description = '')
     {
 
-        $Manager = $this->getConnection()->getEntityManager();
-        if ($tblLevel === null) {
-            $Entity = $Manager->getEntity('TblDivision')->findOneBy(array(
-                TblDivision::ATTR_NAME => $Name,
-                TblDivision::ATTR_YEAR => $tblYear->getId(),
-            ));
-        } else {
-            $Entity = $Manager->getEntity('TblDivision')->findOneBy(array(
-                TblDivision::ATTR_NAME  => $Name,
-                TblDivision::ATTR_LEVEL => $tblLevel->getId(),
-                TblDivision::ATTR_YEAR  => $tblYear->getId(),
-            ));
-        }
+        $Manager = $this->getConnection()->getEntityManager(false);
+        $Entity = $Manager->getEntity('TblDivision')->findOneBy(array(
+            TblDivision::ATTR_YEAR  => $tblYear->getId(),
+            TblDivision::ATTR_NAME  => $Name,
+            TblDivision::ATTR_LEVEL => ( $tblLevel ? $tblLevel->getId() : null ),
+        ));
 
         if (null === $Entity) {
             $Entity = new TblDivision();
@@ -290,6 +283,28 @@ class Data extends AbstractData
         ));
 
         return empty( $EntityList ) ? false : $EntityList;
+    }
+
+    /**
+     * @param TblYear       $tblYear
+     * @param string        $Name
+     * @param TblLevel|null $tblLevel
+     *
+     * @return bool
+     */
+    public function checkDivisionExists(TblYear $tblYear, $Name, TblLevel $tblLevel = null)
+    {
+
+        if ($this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision',
+            array(
+                TblDivision::ATTR_YEAR  => $tblYear->getId(),
+                TblDivision::ATTR_NAME  => $Name,
+                TblDivision::ATTR_LEVEL => ( $tblLevel ? $tblLevel->getId() : null ),
+            ))
+        ) {
+            return true;
+        }
+        return false;
     }
 
     /**

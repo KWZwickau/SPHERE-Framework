@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Common;
 
+use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -138,7 +139,12 @@ class Script extends Extension
          */
 
         $this->setModule(
-            'ModAlways', array('Highlight.js', 'List.Js', 'Bootstrap', 'jQuery.Ui', 'jQuery')
+            'ModAlways', array(/*'Highlight.js',*/
+                'List.Js',
+                'Bootstrap',
+                'jQuery.Ui',
+                'jQuery'
+            )
         );
         $this->setModule(
             'ModTable',
@@ -204,7 +210,8 @@ class Script extends Extension
 
         $PathBase = $this->getRequest()->getPathBase();
         if (!in_array($Alias, self::$SourceList)) {
-            self::$SourceList[$Alias] = "Client.Source('".$Alias."','".$PathBase.$Location."',function(){return ".$Test.";});";
+            $cTag = '?cTag=' . md5(FileSystem::getFileLoader($Location)->getRealPath());
+            self::$SourceList[$Alias] = "Client.Source('" . $Alias . "','" . $PathBase . $Location . $cTag . "',function(){return " . $Test . ";});";
         }
     }
 
@@ -216,7 +223,8 @@ class Script extends Extension
     {
 
         if (!in_array($Alias, self::$ModuleList)) {
-            self::$ModuleList[$Alias] = "Client.Module('".$Alias."',".json_encode($Dependencies).");";
+            $cTag = md5(FileSystem::getFileLoader('/Common/Script/' . $Alias . '.js')->getRealPath());
+            self::$ModuleList[$Alias] = "Client.Module('" . $Alias . "'," . json_encode($Dependencies) . ",'" . $cTag . "');";
         }
     }
 

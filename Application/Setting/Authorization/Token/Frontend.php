@@ -96,7 +96,7 @@ class Frontend implements IFrontendInterface
                         $tblAccount = new PullClear(
                             new PullLeft(new PersonKey().' '.$tblAccount->getUsername())
                             .new PullRight(new Standard('',
-                                    '/Setting/Authorization/Account',
+                                    '/Setting/Authorization/Account/Edit',
                                     new PersonKey(), array('Id' => $tblAccount->getId()),
                                     'zu '.$tblAccount->getUsername().' wechseln'
                                 )

@@ -7,6 +7,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -139,9 +140,10 @@ class Dispatcher
                 $Stage->setContent(
                     '<h2><small>Mögliche Ursachen</small></h2>'
                     .new Danger('Sie sind nicht angemeldet')
+                    . new Warning('Sie waren zu lang inaktiv und wurden automatisch vom System abgemeldet')
                     .'<h2><small>Mögliche Lösungen</small></h2>'
                     .new Success('Bitte melden Sie sich an der Plattform an')
-                    .new Redirect('Platform/Gatekeeper/Authentication', 5)
+                    . new Redirect('Platform/Gatekeeper/Authentication', 10)
                 );
                 return $Stage;
             }

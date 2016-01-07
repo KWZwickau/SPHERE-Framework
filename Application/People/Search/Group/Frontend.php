@@ -102,7 +102,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Group' => $tblGroup->getId()
                         ), 'Bearbeiten'),
                         'Remark' => (
-                        $Acronym == 'ESZC'
+                        $Acronym == 'ESZC' && $tblGroup->getMetaTable() == 'CUSTODY'
                             ? (($Common = Common::useService()->getCommonByPerson($tblPerson)) ? $Common->getRemark() : '')
                             : ''
                         )
@@ -114,7 +114,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                }
             }
 
-            if ($Acronym == 'ESZC') {
+            if ($Acronym == 'ESZC' && $tblGroup->getMetaTable() == 'CUSTODY') {
                 $ColumnArray = array(
                     'FullName' => 'Name',
                     'Address' => 'Adresse',
