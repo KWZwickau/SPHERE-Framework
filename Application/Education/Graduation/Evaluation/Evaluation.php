@@ -35,8 +35,8 @@ class Evaluation implements IModuleInterface
                 new Link\Icon(new Document()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'\Headmaster\Task\AppointedDate'),
-                new Link\Name('Stichtagsnotenaufträge'),
+            new Link(new Link\Route(__NAMESPACE__.'\Headmaster\Task'),
+                new Link\Name('Notenaufträge'),
                 new Link\Icon(new Document()))
         );
 
@@ -79,24 +79,28 @@ class Evaluation implements IModuleInterface
         );
 
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\AppointedDate',
-                __NAMESPACE__.'\Frontend::frontendHeadmasterTaskAppointedDate')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task',
+                __NAMESPACE__.'\Frontend::frontendHeadmasterTask')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\AppointedDate\Edit',
-                __NAMESPACE__.'\Frontend::frontendHeadmasterTaskAppointedDateEdit')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\Edit',
+                __NAMESPACE__.'\Frontend::frontendHeadmasterTaskEdit')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\AppointedDate\Division',
-                __NAMESPACE__.'\Frontend::frontendHeadmasterTaskAppointedDateDivision')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\Division',
+                __NAMESPACE__.'\Frontend::frontendHeadmasterTaskDivision')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\AppointedDate\Division\Add',
-                __NAMESPACE__.'\Frontend::frontendHeadmasterTaskAppointedDateAddDivision')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\Division\Add',
+                __NAMESPACE__.'\Frontend::frontendHeadmasterTaskAddDivision')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\AppointedDate\Division\Remove',
-                __NAMESPACE__.'\Frontend::frontendHeadmasterTaskAppointedDateRemoveDivision')
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\Division\Remove',
+                __NAMESPACE__.'\Frontend::frontendHeadmasterTaskRemoveDivision')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\Grades',
+                __NAMESPACE__.'\Frontend::frontendHeadmasterTaskGrades')
         );
 
     }

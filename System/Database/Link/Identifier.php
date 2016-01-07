@@ -43,7 +43,7 @@ class Identifier
         $this->Module = $Module;
         $this->Service = $Service;
         $this->Consumer = $Consumer;
-        $this->Identifier = sha1($this->getConfiguration(true));
+        $this->Identifier = $this->getConfiguration(true);
     }
 
     /**

@@ -77,13 +77,15 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Zensuren-Typ', 'Übersicht');
 
-        $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAllWhereTest();
+        $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAllWhereTestOrBehavior();
         if ($tblGradeTypeAll) {
             foreach ($tblGradeTypeAll as $tblGradeType) {
                 $tblGradeType->DisplayName = $tblGradeType->isHighlighted()
                     ? new Bold($tblGradeType->getName()) : $tblGradeType->getName();
                 $tblGradeType->DisplayCode = $tblGradeType->isHighlighted()
                     ? new Bold($tblGradeType->getCode()) : $tblGradeType->getCode();
+                $tblGradeType->Category = $tblGradeType->isHighlighted()
+                    ? new Bold($tblGradeType->getServiceTblTestType()->getName()) : $tblGradeType->getServiceTblTestType()->getName();
                 $tblGradeType->Option = new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit',
                     new Edit(),
                     array(
@@ -104,6 +106,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new TableData($tblGradeTypeAll, null, array(
+                                'Category' => 'Kategorie',
                                 'DisplayName' => 'Name',
                                 'DisplayCode' => 'Abk&uuml;rzung',
                                 'Description' => 'Beschreibung',
@@ -115,7 +118,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Well(Gradebook::useService()->createGradeTypeWhereTest($Form, $GradeType))
+                            new Well(Gradebook::useService()->createGradeType($Form, $GradeType))
                         )
                     ))
                 ), new Title(new PlusSign().' Hinzufügen'))
@@ -131,13 +134,23 @@ class Frontend extends Extension implements IFrontendInterface
     private function formGradeType()
     {
 
+        $type = Evaluation::useService()->getTestTypeByIdentifier('TEST');
+        $typeList[$type->getId()] = $type->getName();
+        $type = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
+        $typeList[$type->getId()] = $type->getName();
+
+        $typeList = Evaluation::useService()->getTestTypesForGradeTypes();
+
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new TextField('GradeType[Name]', 'Leistungskontrolle', 'Name'), 9
+                    new SelectBox('GradeType[Type]', 'Kategorie', array('Name' =>$typeList)), 3
                 ),
                 new FormColumn(
                     new TextField('GradeType[Code]', 'LK', 'Abk&uuml;rzung'), 3
+                ),
+                new FormColumn(
+                    new TextField('GradeType[Name]', 'Leistungskontrolle', 'Name'), 6
                 ),
             )),
             new FormRow(array(
@@ -169,10 +182,12 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblGradeType) {
             $Global = $this->getGlobal();
             if (!$Global->POST) {
+                $Global->POST['GradeType']['Type'] = $tblGradeType->getServiceTblTestType()->getId();
                 $Global->POST['GradeType']['Name'] = $tblGradeType->getName();
                 $Global->POST['GradeType']['Code'] = $tblGradeType->getCode();
                 $Global->POST['GradeType']['IsHighlighted'] = $tblGradeType->isHighlighted();
                 $Global->POST['GradeType']['Description'] = $tblGradeType->getDescription();
+
                 $Global->savePost();
             }
 
@@ -346,10 +361,10 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            new Form(array(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(array(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
                             new TableData($divisionSubjectTable, null, array(
                                 'Year'         => 'Schuljahr',
                                 'Type'         => 'Schulart',
@@ -360,7 +375,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ))
                         ))
                     ))
-                ))
+                ), new Title(new Select() . ' Auswahl'))
             ))
         );
 
@@ -457,10 +472,10 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            new Form(array(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(array(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
                             new TableData($divisionSubjectTable, null, array(
                                 'Year'         => 'Schuljahr',
                                 'Type'         => 'Schulart',
@@ -1463,6 +1478,5 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
-
 
 }

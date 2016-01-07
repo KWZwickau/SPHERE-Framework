@@ -28,6 +28,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -77,14 +78,14 @@ class Frontend extends Extension implements IFrontendInterface
 
             $BasicTable = Person::useService()->createPerson(
                 $this->formPerson()
-                    ->appendFormButton(new Primary('Grunddaten anlegen'))
+                    ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
                 $Person);
 
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(
-                        new LayoutRow(new LayoutColumn($BasicTable)),
+                        new LayoutRow(new LayoutColumn(new Well($BasicTable))),
                         new Title(new PersonParent().' Grunddaten', 'der Person')
                     ),
                 ))
@@ -115,7 +116,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $BasicTable = Person::useService()->updatePerson(
                 $this->formPerson()
-                    ->appendFormButton(new Primary('Grunddaten speichern'))
+                    ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
                 $tblPerson, $Person, $Group);
 
@@ -203,7 +204,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(new LayoutColumn(array(
-                            $BasicTable
+                            new Well($BasicTable)
                         ))),
                         new Title(new PersonParent().' Grunddaten', 'der Person')
                     ),

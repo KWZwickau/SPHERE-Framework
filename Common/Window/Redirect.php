@@ -15,6 +15,10 @@ use SPHERE\System\Extension\Extension;
 class Redirect extends Extension implements ITemplateInterface
 {
 
+    const TIMEOUT_SUCCESS = 1;
+    const TIMEOUT_ERROR = 5;
+    const TIMEOUT_WAIT = 15;
+
     /** @var IBridgeInterface $Template */
     private $Template = null;
 
@@ -23,7 +27,7 @@ class Redirect extends Extension implements ITemplateInterface
      * @param int    $Timeout
      * @param array  $Data
      */
-    public function __construct($Route, $Timeout = 15, $Data = array())
+    public function __construct($Route, $Timeout = Redirect::TIMEOUT_WAIT, $Data = array())
     {
 
         if (!empty( $Data )) {
@@ -61,6 +65,4 @@ class Redirect extends Extension implements ITemplateInterface
 
         return $this->Template->getContent();
     }
-
-
 }
