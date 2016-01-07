@@ -85,11 +85,10 @@ class TableData extends Table
             $GridHead = array();
         }
 
-        array_walk($GridHead, function (&$V) {
+        if (empty( $ColumnDefinition )) {
+            $ColumnDefinition = array_combine(array_values($GridHead), array_values($GridHead));
+        }
 
-            $V = new TableColumn($V);
-        });
-        // Todo: Missing Data
         if (count($DataList) > 150 && $Interactive) {
             // JS Table Data
             $ObjectList = array();
@@ -180,6 +179,11 @@ class TableData extends Table
                 $Row = new TableRow($Row);
             }, $ColumnDefinition);
         }
+
+        array_walk($GridHead, function (&$V) {
+
+            $V = new TableColumn($V);
+        });
 
         if (count($DataList) > 0 || $Interactive) {
 
