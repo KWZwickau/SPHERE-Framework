@@ -112,7 +112,7 @@ class Chapter extends Extension
     public function getHash()
     {
 
-        return sha1($this->Title.$this->Description);
+        return md5($this->Title . $this->Description);
     }
 
     /**

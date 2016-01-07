@@ -22,7 +22,8 @@ class Temporary extends AbstractWriter
     public function __construct($Prefix = 'SPHERE-Temporary', $Extension = 'storage', $Destruct = true)
     {
 
-        $Location = sys_get_temp_dir().DIRECTORY_SEPARATOR.$Prefix.'-'.sha1(uniqid($Prefix, true)).'.'.$Extension;
+        $Location = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $Prefix . '-' . md5(uniqid($Prefix,
+                true)) . '.' . $Extension;
         $this->setFileLocation($Location);
         $this->Destruct = (bool)$Destruct;
     }

@@ -108,16 +108,16 @@ class Style extends Extension
 
         $PathBase = $this->getRequest()->getPathBase();
         if ($Combined) {
-            if (!in_array(sha1($Location), self::$CombinedList)) {
-                self::$CombinedList[sha1($Location)] = $PathBase.$Location;
+            if (!in_array(md5($Location), self::$CombinedList)) {
+                self::$CombinedList[md5($Location)] = $PathBase . $Location;
             }
         } elseif ($Additional) {
-            if (!in_array(sha1($Location), self::$AdditionalList)) {
-                self::$AdditionalList[sha1($Location)] = $PathBase.$Location;
+            if (!in_array(md5($Location), self::$AdditionalList)) {
+                self::$AdditionalList[md5($Location)] = $PathBase . $Location;
             }
         } else {
-            if (!in_array(sha1($Location), self::$SourceList)) {
-                self::$SourceList[sha1($Location)] = $PathBase.$Location;
+            if (!in_array(md5($Location), self::$SourceList)) {
+                self::$SourceList[md5($Location)] = $PathBase . $Location;
             }
         }
     }

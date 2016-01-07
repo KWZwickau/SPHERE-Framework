@@ -72,7 +72,7 @@ abstract class Cacheable extends Extension
         if (is_object($Parameter)) {
             $Parameter = json_decode(json_encode($Parameter), true);
         }
-        return sha1($EntityName.':'.implode('#', (array)$Parameter));
+        return md5($EntityName . ':' . implode('#', (array)$Parameter));
     }
 
     /**
