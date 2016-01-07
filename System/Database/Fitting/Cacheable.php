@@ -5,6 +5,8 @@ use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\HandlerInterface;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
+use SPHERE\System\Config\ConfigFactory;
+use SPHERE\System\Config\Reader\IniReader;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Extension\Extension;
@@ -21,8 +23,8 @@ abstract class Cacheable extends Extension
     private static $CacheSystem = null;
     /** @var bool $Enabled */
     private $Enabled = true;
-    /** @var bool $Debug */
-    private $Debug = false;
+    /** @var null|bool $Debug */
+    private $Debug = null;
 
     /**
      * @param string  $__METHOD__ Initiator
@@ -97,11 +99,32 @@ abstract class Cacheable extends Extension
     private function debugSystem($__METHOD__, $Type)
     {
 
-        if ($this->Debug) {
+        if ($this->useDebugger()) {
             (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
                 'System: '.$__METHOD__.' ['.$Type.']'
             );
         }
+    }
+
+    /**
+     * @return bool|null
+     */
+    private function useDebugger()
+    {
+        if ($this->Debug === null) {
+            $DebuggerConfig = (new ConfigFactory())
+                ->createReader(__DIR__ . '/../../../System/Debugger/Configuration.ini', new IniReader());
+            if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('Enabled')->getValue()) {
+                if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('DatabaseCache')->getValue()) {
+                    $this->Debug = true;
+                } else {
+                    $this->Debug = false;
+                }
+            } else {
+                $this->Debug = false;
+            }
+        }
+        return $this->Debug;
     }
 
     /**
@@ -112,7 +135,7 @@ abstract class Cacheable extends Extension
     private function debugFactory($__METHOD__, $EntityList, $Parameter)
     {
 
-        if ($this->Debug) {
+        if ($this->useDebugger()) {
             (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
                 'Factory: '.$__METHOD__.' ['.implode('], [', (array)$Parameter).'] Result: '.(
                 $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
@@ -128,7 +151,7 @@ abstract class Cacheable extends Extension
     private function debugCache($__METHOD__, $EntityList, $Parameter)
     {
 
-        if ($this->Debug) {
+        if ($this->useDebugger()) {
             (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
                 'Cache: '.$__METHOD__.' ['.implode('], [', (array)$Parameter).'] Result: '.(
                 $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )

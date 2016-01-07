@@ -54,6 +54,8 @@ class Database extends Extension
     private $Timeout = 1;
     /** @var bool $UseCache */
     private $UseCache = true;
+    /** @var null|bool $Debug */
+    private $Debug = null;
 
     /**
      * @param Identifier $Identifier
@@ -182,7 +184,7 @@ class Database extends Extension
                 }
             }
 
-            if ($this->getDebugger()->isActive()) {
+            if ($this->useDebugger()) {
                 $ConnectionConfig->setSQLLogger(new Logger());
             }
 
@@ -203,6 +205,27 @@ class Database extends Extension
     {
 
         return (new Register())->getConnection($this->Identifier)->getConnection();
+    }
+
+    /**
+     * @return bool|null
+     */
+    private function useDebugger()
+    {
+        if ($this->Debug === null) {
+            $DebuggerConfig = (new ConfigFactory())
+                ->createReader(__DIR__ . '/../../System/Debugger/Configuration.ini', new IniReader());
+            if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('Enabled')->getValue()) {
+                if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('DatabaseQuery')->getValue()) {
+                    $this->Debug = true;
+                } else {
+                    $this->Debug = false;
+                }
+            } else {
+                $this->Debug = false;
+            }
+        }
+        return $this->Debug;
     }
 
     /**
@@ -328,7 +351,6 @@ class Database extends Extension
             $this->Protocol[] = '<div>'.new Transfer().'&nbsp;<samp>'.$Item.'</samp></div>';
         }
     }
-
 
     /**
      * @param bool $Simulate
