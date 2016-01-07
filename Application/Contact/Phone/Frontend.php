@@ -16,6 +16,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -27,9 +28,11 @@ use SPHERE\Common\Frontend\Icon\Repository\PhoneFax;
 use SPHERE\Common\Frontend\Icon\Repository\PhoneMobil;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -53,9 +56,9 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param int    $Id
+     * @param int $Id
      * @param string $Number
-     * @param array  $Type
+     * @param array $Type
      *
      * @return Stage
      */
@@ -66,18 +69,20 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Eine Telefonnummer zur gewählten Person hinzufügen');
 
         $tblPerson = Person::useService()->getPersonById($Id);
+        $Stage->addButton(
+            new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
+                array('Id' => $tblPerson->getId())
+            )
+        );
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new PersonIcon().' Person',
+                            new Panel(new PersonIcon() . ' Person',
                                 $tblPerson->getFullName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                    array('Id' => $tblPerson->getId())
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     ),
@@ -85,11 +90,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Phone::useService()->createPhoneToPerson(
-                                $this->formNumber()
-                                    ->appendFormButton(new Primary('Telefonnummer hinzufügen'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblPerson, $Number, $Type
+                            new Well(
+                                Phone::useService()->createPhoneToPerson(
+                                    $this->formNumber()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblPerson, $Number, $Type
+                                )
                             )
                         )
                     )
@@ -134,9 +141,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int    $Id
+     * @param int $Id
      * @param string $Number
-     * @param array  $Type
+     * @param array $Type
      *
      * @return Stage
      */
@@ -153,7 +160,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new Building().' Firma',
+                            new Panel(new Building() . ' Firma',
                                 $tblCompany->getName(),
                                 Panel::PANEL_TYPE_SUCCESS,
                                 new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
@@ -182,9 +189,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int    $Id
+     * @param int $Id
      * @param string $Number
-     * @param array  $Type
+     * @param array $Type
      *
      * @return Stage
      */
@@ -195,9 +202,14 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Die Telefonnummer der gewählten Person ändern');
 
         $tblToPerson = Phone::useService()->getPhoneToPersonById($Id);
+        $Stage->addButton(
+            new Standard('Zurück', '/People/Person', new ChevronLeft(),
+                array('Id' => $tblToPerson->getServiceTblPerson()->getId())
+            )
+        );
 
         $Global = $this->getGlobal();
-        if (!isset( $Global->POST['Number'] )) {
+        if (!isset($Global->POST['Number'])) {
             $Global->POST['Number'] = $tblToPerson->getTblPhone()->getNumber();
             $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
             $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
@@ -209,12 +221,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new Building().' Person',
+                            new Panel(new Building() . ' Person',
                                 $tblToPerson->getServiceTblPerson()->getFullName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                    array('Id' => $tblToPerson->getServiceTblPerson()->getId())
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     ),
@@ -222,11 +231,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Phone::useService()->updatePhoneToPerson(
-                                $this->formNumber()
-                                    ->appendFormButton(new Primary('Änderungen speichern'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblToPerson, $Number, $Type
+                            new Well(
+                                Phone::useService()->updatePhoneToPerson(
+                                    $this->formNumber()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblToPerson, $Number, $Type
+                                )
                             )
                         )
                     )
@@ -238,9 +249,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int    $Id
+     * @param int $Id
      * @param string $Number
-     * @param array  $Type
+     * @param array $Type
      *
      * @return Stage
      */
@@ -253,7 +264,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblToCompany = Phone::useService()->getPhoneToCompanyById($Id);
 
         $Global = $this->getGlobal();
-        if (!isset( $Global->POST['Number'] )) {
+        if (!isset($Global->POST['Number'])) {
             $Global->POST['Number'] = $tblToCompany->getTblPhone()->getNumber();
             $Global->POST['Type']['Type'] = $tblToCompany->getTblType()->getId();
             $Global->POST['Type']['Remark'] = $tblToCompany->getRemark();
@@ -265,7 +276,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new Building().' Firma',
+                            new Panel(new Building() . ' Firma',
                                 $tblToCompany->getServiceTblCompany()->getName(),
                                 Panel::PANEL_TYPE_SUCCESS,
                                 new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
@@ -312,18 +323,18 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblToPerson = new LayoutColumn(
                     new Panel(
-                        ( preg_match('!Fax!is',
-                            $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription())
+                        (preg_match('!Fax!is',
+                            $tblToPerson->getTblType()->getName() . ' ' . $tblToPerson->getTblType()->getDescription())
                             ? new PhoneFax()
-                            : ( preg_match('!Mobil!is',
-                                $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription())
+                            : (preg_match('!Mobil!is',
+                                $tblToPerson->getTblType()->getName() . ' ' . $tblToPerson->getTblType()->getDescription())
                                 ? new PhoneMobil()
                                 : new PhoneIcon()
                             )
-                        ).' '.$tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription(),
+                        ) . ' ' . $tblToPerson->getTblType()->getName() . ' ' . $tblToPerson->getTblType()->getDescription(),
                         $Panel,
-                        ( preg_match('!Notfall!is',
-                            $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription())
+                        (preg_match('!Notfall!is',
+                            $tblToPerson->getTblType()->getName() . ' ' . $tblToPerson->getTblType()->getDescription())
                             ? Panel::PANEL_TYPE_DANGER
                             : Panel::PANEL_TYPE_SUCCESS
                         ),
@@ -332,7 +343,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array('Id' => $tblToPerson->getId()),
                             'Bearbeiten'
                         )
-                        .new Standard(
+                        . new Standard(
                             '', '/People/Person/Phone/Destroy', new Remove(),
                             array('Id' => $tblToPerson->getId()), 'Löschen'
                         )
@@ -358,23 +369,23 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $tblPhone = new LayoutColumn(
                                     new Panel(
-                                        ( preg_match('!Fax!is',
-                                            $tblPhone->getTblType()->getName().' '.$tblPhone->getTblType()->getDescription())
+                                        (preg_match('!Fax!is',
+                                            $tblPhone->getTblType()->getName() . ' ' . $tblPhone->getTblType()->getDescription())
                                             ? new PhoneFax()
-                                            : ( preg_match('!Mobil!is',
-                                                $tblPhone->getTblType()->getName().' '.$tblPhone->getTblType()->getDescription())
+                                            : (preg_match('!Mobil!is',
+                                                $tblPhone->getTblType()->getName() . ' ' . $tblPhone->getTblType()->getDescription())
                                                 ? new PhoneMobil()
                                                 : new PhoneIcon()
                                             )
-                                        ).' '.$tblPhone->getTblType()->getName().' '.$tblPhone->getTblType()->getDescription(),
+                                        ) . ' ' . $tblPhone->getTblType()->getName() . ' ' . $tblPhone->getTblType()->getDescription(),
                                         $Panel,
-                                        ( preg_match('!Notfall!is',
-                                            $tblPhone->getTblType()->getName().' '.$tblPhone->getTblType()->getDescription())
+                                        (preg_match('!Notfall!is',
+                                            $tblPhone->getTblType()->getName() . ' ' . $tblPhone->getTblType()->getDescription())
                                             ? Panel::PANEL_TYPE_DANGER
                                             : Panel::PANEL_TYPE_DEFAULT
                                         ),
                                         $tblRelationship->getServiceTblPersonFrom()->getFullName()
-                                        .' ('.$tblRelationship->getTblType()->getName().')'
+                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
                                     )
                                     , 3);
 
@@ -401,23 +412,23 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $tblPhone = new LayoutColumn(
                                     new Panel(
-                                        ( preg_match('!Fax!is',
-                                            $tblPhone->getTblType()->getName().' '.$tblPhone->getTblType()->getDescription())
+                                        (preg_match('!Fax!is',
+                                            $tblPhone->getTblType()->getName() . ' ' . $tblPhone->getTblType()->getDescription())
                                             ? new PhoneFax()
-                                            : ( preg_match('!Mobil!is',
-                                                $tblPhone->getTblType()->getName().' '.$tblPhone->getTblType()->getDescription())
+                                            : (preg_match('!Mobil!is',
+                                                $tblPhone->getTblType()->getName() . ' ' . $tblPhone->getTblType()->getDescription())
                                                 ? new PhoneMobil()
                                                 : new PhoneIcon()
                                             )
-                                        ).' '.$tblPhone->getTblType()->getName().' '.$tblPhone->getTblType()->getDescription(),
+                                        ) . ' ' . $tblPhone->getTblType()->getName() . ' ' . $tblPhone->getTblType()->getDescription(),
                                         $Panel,
-                                        ( preg_match('!Notfall!is',
-                                            $tblPhone->getTblType()->getName().' '.$tblPhone->getTblType()->getDescription())
+                                        (preg_match('!Notfall!is',
+                                            $tblPhone->getTblType()->getName() . ' ' . $tblPhone->getTblType()->getDescription())
                                             ? Panel::PANEL_TYPE_DANGER
                                             : Panel::PANEL_TYPE_DEFAULT
                                         ),
                                         $tblRelationship->getServiceTblPersonTo()->getFullName()
-                                        .' ('.$tblRelationship->getTblType()->getName().')'
+                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
                                     )
                                     , 3);
 
@@ -462,7 +473,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int  $Id
+     * @param int $Id
      * @param bool $Confirm
      *
      * @return Stage
@@ -474,18 +485,20 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Id) {
             $tblToPerson = Phone::useService()->getPhoneToPersonById($Id);
             $tblPerson = $tblToPerson->getServiceTblPerson();
+            $Stage->addButton(
+                new Standard('Zurück', '/People/Person', new ChevronLeft(),
+                    array('Id' => $tblPerson->getId())
+                )
+            );
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                        new Panel(new PersonIcon().' Person',
+                        new Panel(new PersonIcon() . ' Person',
                             $tblPerson->getFullName(),
-                            Panel::PANEL_TYPE_SUCCESS,
-                            new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                array('Id' => $tblPerson->getId())
-                            )
+                            Panel::PANEL_TYPE_INFO
                         ),
-                        new Panel(new Question().' Diese Telefonnummer wirklich löschen?', array(
-                            $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription(),
+                        new Panel(new Question() . ' Diese Telefonnummer wirklich löschen?', array(
+                            $tblToPerson->getTblType()->getName() . ' ' . $tblToPerson->getTblType()->getDescription(),
                             $tblToPerson->getTblPhone()->getNumber(),
                             new Muted(new Small($tblToPerson->getRemark()))
                         ),
@@ -494,7 +507,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Ja', '/People/Person/Phone/Destroy', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            .new Standard(
+                            . new Standard(
                                 'Nein', '/People/Person', new Disable(),
                                 array('Id' => $tblPerson->getId())
                             )
@@ -505,11 +518,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            ( Phone::useService()->removePhoneToPerson($tblToPerson)
-                                ? new Success('Die Telefonnummer wurde gelöscht')
-                                : new Danger('Die Telefonnummer konnte nicht gelöscht werden')
+                            (Phone::useService()->removePhoneToPerson($tblToPerson)
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Telefonnummer wurde gelöscht')
+                                : new Danger(new Ban() . ' Die Telefonnummer konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/People/Person', 1, array('Id' => $tblPerson->getId()))
+                            new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()))
                         )))
                     )))
                 );
@@ -518,8 +531,8 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
-                        new Danger('Die Telefonnummer konnte nicht gefunden werden'),
-                        new Redirect('/People/Search/Group')
+                        new Danger(new Ban() . ' Die Telefonnummer konnte nicht gefunden werden'),
+                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );
@@ -528,7 +541,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int  $Id
+     * @param int $Id
      * @param bool $Confirm
      *
      * @return Stage
@@ -543,15 +556,15 @@ class Frontend extends Extension implements IFrontendInterface
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                        new Panel(new Building().' Firma',
+                        new Panel(new Building() . ' Firma',
                             $tblCompany->getName(),
                             Panel::PANEL_TYPE_SUCCESS,
                             new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
                                 array('Id' => $tblCompany->getId())
                             )
                         ),
-                        new Panel(new Question().' Diese Telefonnummer wirklich löschen?', array(
-                            $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription(),
+                        new Panel(new Question() . ' Diese Telefonnummer wirklich löschen?', array(
+                            $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription(),
                             $tblToCompany->getTblPhone()->getNumber(),
                             new Muted(new Small($tblToCompany->getRemark()))
                         ),
@@ -560,7 +573,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Ja', '/Corporation/Company/Phone/Destroy', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            .new Standard(
+                            . new Standard(
                                 'Nein', '/Corporation/Company', new Disable(),
                                 array('Id' => $tblCompany->getId())
                             )
@@ -571,7 +584,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            ( Phone::useService()->removePhoneToCompany($tblToCompany)
+                            (Phone::useService()->removePhoneToCompany($tblToCompany)
                                 ? new Success('Die Telefonnummer wurde gelöscht')
                                 : new Danger('Die Telefonnummer konnte nicht gelöscht werden')
                             ),
@@ -612,18 +625,18 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblToCompany = new LayoutColumn(
                     new Panel(
-                        ( preg_match('!Fax!is',
-                            $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription())
+                        (preg_match('!Fax!is',
+                            $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription())
                             ? new PhoneFax()
-                            : ( preg_match('!Mobil!is',
-                                $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription())
+                            : (preg_match('!Mobil!is',
+                                $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription())
                                 ? new PhoneMobil()
                                 : new PhoneIcon()
                             )
-                        ).' '.$tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription(),
+                        ) . ' ' . $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription(),
                         $Panel,
-                        ( preg_match('!Notfall!is',
-                            $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription())
+                        (preg_match('!Notfall!is',
+                            $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription())
                             ? Panel::PANEL_TYPE_DANGER
                             : Panel::PANEL_TYPE_SUCCESS
                         ),
@@ -632,7 +645,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array('Id' => $tblToCompany->getId()),
                             'Bearbeiten'
                         )
-                        .new Standard(
+                        . new Standard(
                             '', '/Corporation/Company/Phone/Destroy', new Remove(),
                             array('Id' => $tblToCompany->getId()), 'Löschen'
                         )

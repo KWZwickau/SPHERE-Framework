@@ -10,6 +10,7 @@ use SPHERE\Application\Contact\Phone\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -126,11 +127,11 @@ class Service extends AbstractService
 
             if ((new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Type['Remark'])
             ) {
-                return new Success('Die Telefonnummer wurde erfolgreich hinzugefügt')
-                .new Redirect('/People/Person', 1, array('Id' => $tblPerson->getId()));
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Telefonnummer wurde erfolgreich hinzugefügt')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()));
             } else {
-                return new Danger('Die Telefonnummer konnte nicht hinzugefügt werden')
-                .new Redirect('/People/Person', 10, array('Id' => $tblPerson->getId()));
+                return new Danger(new Ban() . ' Die Telefonnummer konnte nicht hinzugefügt werden')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPerson->getId()));
             }
         }
         return $Form;
@@ -250,12 +251,12 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->addPhoneToPerson($tblToPerson->getServiceTblPerson(), $tblPhone,
                 $tblType, $Type['Remark'])
             ) {
-                return new Success('Die Telefonnummer wurde erfolgreich geändert')
-                .new Redirect('/People/Person', 1,
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Telefonnummer wurde erfolgreich geändert')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
             } else {
-                return new Danger('Die Telefonnummer konnte nicht geändert werden')
-                .new Redirect('/People/Person', 10,
+                return new Danger(new Ban() . ' Die Telefonnummer konnte nicht geändert werden')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
             }
         }
