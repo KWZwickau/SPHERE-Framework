@@ -3,6 +3,8 @@
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
+use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
@@ -13,8 +15,6 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGro
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
-use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Setup;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
@@ -178,22 +178,17 @@ class Service extends AbstractService
         ));
     }
 
-    /**
-     * @return bool|Service\Entity\TblGradeType[]
-     */
-    public function getGradeTypeAllWhereTest()
-    {
 
-        return (new Data($this->getBinding()))->getGradeTypeAllWhereTest();
-    }
 
     /**
-     * @return bool|TblGradeType[]
+     * @param $Id
+     *
+     * @return bool|TblScoreCondition
      */
-    public function getGradeTypeAllWhereBehavior()
+    public function getScoreConditionById($Id)
     {
 
-        return (new Data($this->getBinding()))->getGradeTypeAllWhereBehavior();
+        return (new Data($this->getBinding()))->getScoreConditionById($Id);
     }
 
         /**
@@ -202,10 +197,20 @@ class Service extends AbstractService
     public function getGradeTypeAllWhereTestOrBehavior()
     {
 
-        return (new Data($this->getBinding()))->getGradeTypeAllWhereTestOrBehavior();
-    }
+        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
+        if( !$tblTestType || !($tblGradeTypeAllTest = $this->getGradeTypeAllByTestType($tblTestType)) ) {
+            $tblGradeTypeAllTest = array();
+        }
 
-    /**
+        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
+        if( !$tblTestType || !($tblGradeTypeAllBehavior = $this->getGradeTypeAllByTestType($tblTestType)) ) {
+            $tblGradeTypeAllBehavior = array();
+        }
+
+        $tblGradeTypeAll = array_merge( $tblGradeTypeAllTest, $tblGradeTypeAllBehavior );
+
+        return ( empty( $tblGradeTypeAll ) ? false : $tblGradeTypeAll );
+    }    /**
      * @param $Id
      *
      * @return bool|Service\Entity\TblGradeType
@@ -217,26 +222,13 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblPerson $tblPerson
-     * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
-     * @param \SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType $tblTestType
-     * @param TblPeriod|null $tblPeriod
-     * @param TblSubjectGroup|null $tblSubjectGroup
-     *
-     * @return bool|Service\Entity\TblGrade[]
+     * @param TblTestType $tblTestType
+     * @return bool|TblGradeType[]
      */
-    public function getGradesByStudent(
-        TblPerson $tblPerson,
-        TblDivision $tblDivision,
-        TblSubject $tblSubject,
-        TblTestType $tblTestType,
-        TblPeriod $tblPeriod = null,
-        TblSubjectGroup $tblSubjectGroup = null
-    ) {
+    public function getGradeTypeAllByTestType( TblTestType $tblTestType )
+    {
 
-        return (new Data($this->getBinding()))->getGradesByStudent($tblPerson, $tblDivision, $tblSubject, $tblTestType,
-            $tblPeriod, $tblSubjectGroup);
+        return (new Data($this->getBinding()))->getGradeTypeAllByTestType( $tblTestType );
     }
 
     /**
@@ -248,20 +240,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getGradeById($Id);
-    }
-
-    /**
-     * @param TblTest $tblTest
-     * @param TblPerson $tblPerson
-     *
-     * @return bool|TblGrade
-     */
-    public function getGradeByTestAndStudent(
-        TblTest $tblTest,
-        TblPerson $tblPerson
-    ) {
-
-        return (new Data($this->getBinding()))->getGradeByTestAndStudent($tblTest, $tblPerson);
     }
 
     /**
@@ -361,6 +339,20 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblTest $tblTest
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblGrade
+     */
+    public function getGradeByTestAndStudent(
+        TblTest $tblTest,
+        TblPerson $tblPerson
+    ) {
+
+        return (new Data($this->getBinding()))->getGradeByTestAndStudent($tblTest, $tblPerson);
+    }
+
+    /**
      * @param TblGrade $tblGrade
      *
      * @return bool
@@ -372,34 +364,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     *
-     * @return bool|TblScoreGroup
-     */
-    public function getScoreGroupById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getScoreGroupById($Id);
-    }
-
-    /**
      * @return bool|TblScoreGroup[]
      */
     public function getScoreGroupAll()
     {
 
         return (new Data($this->getBinding()))->getScoreGroupAll();
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblScoreCondition
-     */
-    public function getScoreConditionById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getScoreConditionById($Id);
     }
 
     /**
@@ -420,6 +390,15 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getScoreRuleById($Id);
+    }    /**
+     * @param $Id
+     *
+     * @return bool|TblScoreCondition
+     */
+    public function getScoreConditionById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getScoreConditionById($Id);
     }
 
     /**
@@ -456,17 +435,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblScoreCondition $tblScoreCondition
-     *
-     * @return bool|TblScoreConditionGroupList[]
-     */
-    public function getScoreConditionGroupListByCondition(TblScoreCondition $tblScoreCondition)
-    {
-
-        return (new Data($this->getBinding()))->getScoreConditionGroupListByCondition($tblScoreCondition);
-    }
-
-    /**
      * @param $Id
      *
      * @return bool|TblScoreGroupGradeTypeList
@@ -475,17 +443,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getScoreGroupGradeTypeListById($Id);
-    }
-
-    /**
-     * @param TblScoreGroup $tblScoreGroup
-     *
-     * @return bool|TblScoreGroupGradeTypeList[]
-     */
-    public function getScoreGroupGradeTypeListByGroup(TblScoreGroup $tblScoreGroup)
-    {
-
-        return (new Data($this->getBinding()))->getScoreGroupGradeTypeListByGroup($tblScoreGroup);
     }
 
     /**
@@ -756,6 +713,62 @@ class Service extends AbstractService
         }
 
         return false;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param \SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType $tblTestType
+     * @param TblPeriod|null $tblPeriod
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     *
+     * @return bool|Service\Entity\TblGrade[]
+     */
+    public function getGradesByStudent(
+        TblPerson $tblPerson,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblTestType $tblTestType,
+        TblPeriod $tblPeriod = null,
+        TblSubjectGroup $tblSubjectGroup = null
+    ) {
+
+        return (new Data($this->getBinding()))->getGradesByStudent($tblPerson, $tblDivision, $tblSubject, $tblTestType,
+            $tblPeriod, $tblSubjectGroup);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool|TblScoreConditionGroupList[]
+     */
+    public function getScoreConditionGroupListByCondition(TblScoreCondition $tblScoreCondition)
+    {
+
+        return (new Data($this->getBinding()))->getScoreConditionGroupListByCondition($tblScoreCondition);
+    }
+
+    /**
+     * @param TblScoreGroup $tblScoreGroup
+     *
+     * @return bool|TblScoreGroupGradeTypeList[]
+     */
+    public function getScoreGroupGradeTypeListByGroup(TblScoreGroup $tblScoreGroup)
+    {
+
+        return (new Data($this->getBinding()))->getScoreGroupGradeTypeListByGroup($tblScoreGroup);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblScoreGroup
+     */
+    public function getScoreGroupById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getScoreGroupById($Id);
     }
 
     /**

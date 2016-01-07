@@ -77,23 +77,40 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Zensuren-Typ', 'Übersicht');
 
-        $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAllWhereTestOrBehavior();
-        if ($tblGradeTypeAll) {
-            foreach ($tblGradeTypeAll as $tblGradeType) {
-                $tblGradeType->DisplayName = $tblGradeType->isHighlighted()
-                    ? new Bold($tblGradeType->getName()) : $tblGradeType->getName();
-                $tblGradeType->DisplayCode = $tblGradeType->isHighlighted()
-                    ? new Bold($tblGradeType->getCode()) : $tblGradeType->getCode();
-                $tblGradeType->Category = $tblGradeType->isHighlighted()
-                    ? new Bold($tblGradeType->getServiceTblTestType()->getName()) : $tblGradeType->getServiceTblTestType()->getName();
-                $tblGradeType->Option = new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit',
-                    new Edit(),
-                    array(
-                        'Id' => $tblGradeType->getId()
-                    ),
-                    'Zensuren-Typ bearbeiten'
-                );
-            }
+        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
+        if (!$tblTestType || !($tblGradeTypeAllTest = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType))) {
+            $tblGradeTypeAllTest = array();
+        }
+
+        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
+        if (!$tblTestType || !($tblGradeTypeAllBehavior = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType))) {
+            $tblGradeTypeAllBehavior = array();
+        }
+        $tblGradeTypeAll = array_merge($tblGradeTypeAllTest, $tblGradeTypeAllBehavior);
+
+        $TableContent = array();
+        if (!empty($tblGradeTypeAll)) {
+            array_walk($tblGradeTypeAll, function (TblGradeType $tblGradeType) use (&$TableContent) {
+
+                if ($tblGradeType->isHighlighted()) {
+                    $Item = array(
+                        'DisplayName' => new Bold($tblGradeType->getName()),
+                        'DisplayCode' => new Bold($tblGradeType->getCode()),
+                        'Category' => new Bold($tblGradeType->getServiceTblTestType()->getName())
+                    );
+                } else {
+                    $Item = array(
+                        'DisplayName' => $tblGradeType->getName(),
+                        'DisplayCode' => $tblGradeType->getCode(),
+                        'Category' => $tblGradeType->getServiceTblTestType()->getName()
+                    );
+                }
+                $Item['Option'] = new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit', new Edit(), array(
+                    'Id' => $tblGradeType->getId()
+                ), 'Zensuren-Typ bearbeiten');
+
+                array_push($TableContent, $Item);
+            });
         }
 
         $Form = $this->formGradeType()
@@ -1174,7 +1191,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(new Warning('Die Zensuren-Gruppe konnte nicht abgerufen werden'));
             } else {
                 $tblScoreGroupGradeTypeListByGroup = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup);
-                $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAllWhereTest();
+                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
+                $tblGradeTypeAll = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
                 $tblGradeTypeAllByGroup = array();
                 if ($tblScoreGroupGradeTypeListByGroup) {
                     /** @var TblScoreGroupGradeTypeList $tblScoreGroupGradeType */
