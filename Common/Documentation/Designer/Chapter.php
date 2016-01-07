@@ -12,13 +12,14 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Link;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Chapter
  *
  * @package SPHERE\Common\Documentation\Designer
  */
-class Chapter
+class Chapter extends Extension
 {
 
     /** @var array $Directory */
@@ -71,13 +72,23 @@ class Chapter
      * @param string $Title
      * @param string $Description
      * @param string $Search
+     * @param bool   $useNumber
      *
      * @return Page
      */
-    public function createPage($Title, $Description, $Search)
+    public function createPage($Title, $Description, $Search, $useNumber = false)
     {
 
-        $Page = new Page($Title, $Description, $Search);
+        // Automatic Chapter Number
+        if ($useNumber) {
+            $NumberList = range('1', '99', 1);
+            $Number = $NumberList[count($this->Directory) - 1];
+            $Title = $Number.'. '.$Title;
+        } else {
+            $Number = null;
+        }
+
+        $Page = new Page($Title, $Description, $Search, $Number);
         if (!Book::getCurrentPage()) {
             Book::setCurrentPage($Page->getHash());
         }
@@ -87,7 +98,7 @@ class Chapter
         } else {
             array_push(
                 $this->Directory,
-                new Link($Title.' '.new Muted($Description), '/Manual/StyleBook', new TileBig(),
+                new Link($Title.' '.new Muted($Description), $this->getRequest()->getPathInfo(), new TileBig(),
                     array('Chapter' => Book::getCurrentChapter(), 'Page' => $Page->getHash())
                 )
             );
