@@ -99,7 +99,6 @@ class Manager extends Extension
 
         /** @var MemcachedHandler $Cache */
         $Cache = $this->getCache(new MemcachedHandler());
-        $this->EntityManager->flush();
         if (preg_match('!Gatekeeper!', $this->Namespace)) {
             (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
                 'Manager Full-Slot-Flush '.$Cache->getSlot().' Trigger: '.$this->Namespace
@@ -150,6 +149,8 @@ class Manager extends Extension
             }
         }
         $this->getCache(new MemoryHandler())->clearCache();
+        $this->EntityManager->flush();
+        $this->EntityManager->clear();
         return $this;
     }
 

@@ -20,7 +20,7 @@
             worldForm.on("submit", function()
             {
                 $('button[type="submit"]').html(
-                    '<span class="glyphicon glyphicon-refresh loading-indicator-animate"></span> Bitte warten');
+                    '<span class="loading-indicator-animate"></span> Bitte warten');
             });
 
             //noinspection FunctionWithInconsistentReturnsJS
