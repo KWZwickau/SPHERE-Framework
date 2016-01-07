@@ -7,6 +7,7 @@ use SPHERE\Application\People\Group\Service\Entity\TblMember;
 use SPHERE\Application\People\Group\Service\Setup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -89,9 +90,10 @@ class Service extends AbstractService
                 $Group['Name'], $Group['Description'], $Group['Remark']
             )
             ) {
-                return new Success('Die Gruppe wurde erfolgreich erstellt').new Redirect('/People/Group', 1);
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                . ' Die Gruppe wurde erfolgreich erstellt').new Redirect('/People/Group', Redirect::TIMEOUT_SUCCESS);
             } else {
-                return new Danger('Die Gruppe konnte nicht erstellt werden').new Redirect('/People/Group', 10);
+                return new Danger(new Ban() . ' Die Gruppe konnte nicht erstellt werden').new Redirect('/People/Group', Redirect::TIMEOUT_ERROR);
             }
         }
 
@@ -166,11 +168,11 @@ class Service extends AbstractService
                 $tblGroup, $Group['Name'], $Group['Description'], $Group['Remark']
             )
             ) {
-                return new Success('Die Änderungen wurden erfolgreich gespeichert')
-                .new Redirect('/People/Group', 1);
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Änderungen wurden erfolgreich gespeichert')
+                .new Redirect('/People/Group', Redirect::TIMEOUT_SUCCESS);
             } else {
-                return new Danger('Die Änderungen konnte nicht gespeichert werden')
-                .new Redirect('/People/Group', 10);
+                return new Danger(new Ban() . ' Die Änderungen konnte nicht gespeichert werden')
+                .new Redirect('/People/Group', Redirect::TIMEOUT_ERROR);
             }
         }
 

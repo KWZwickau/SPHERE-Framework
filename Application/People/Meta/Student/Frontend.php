@@ -49,6 +49,7 @@ use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Medicine;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Shield;
 use SPHERE\Common\Frontend\Icon\Repository\Stethoscope;
 use SPHERE\Common\Frontend\Icon\Repository\StopSign;
@@ -108,7 +109,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $this->formGroupGeneral($tblPerson, $Meta),
                     $this->formGroupSubject($tblPerson, $Meta),
                     $this->formGroupIntegration($tblPerson, $Meta),
-                ), new Primary('Informationen speichern'))
+                ), new Primary('Speichern', new Save()))
                 )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
                 , $tblPerson, $Meta, $Group
             )
