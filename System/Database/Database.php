@@ -123,10 +123,12 @@ class Database extends Extension
      *
      * @param string $EntityPath
      * @param string $EntityNamespace
+     * @param bool   $useCache
      *
      * @return Manager
+     * @throws \Doctrine\ORM\ORMException
      */
-    public function getEntityManager($EntityPath, $EntityNamespace)
+    public function getEntityManager($EntityPath, $EntityNamespace, $useCache = true)
     {
 
         // Sanitize Namespace
@@ -135,14 +137,10 @@ class Database extends Extension
         // Manager Cache
         /** @var MemoryHandler $SystemMemcached */
         $ManagerCache = $this->getCache(new MemoryHandler());
-        if (preg_match('!Education!is', $EntityNamespace)) {
-            $Manager = null;
-        } else {
-            $Manager = $ManagerCache->getValue((string)$this->Identifier.$EntityNamespace.$EntityPath, __METHOD__);
-        }
+        $Manager = $ManagerCache->getValue((string)$this->Identifier.$EntityNamespace.$EntityPath, __METHOD__);
 
         // TODO: Unit of Work is out of Sync if Manager is cached (sometimes)
-        if (true || null === $Manager) {
+        if (!$useCache || null === $Manager) {
 
             // System Cache
             $MemcachedHandler = $this->getCache(new MemcachedHandler());
