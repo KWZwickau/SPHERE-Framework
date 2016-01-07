@@ -90,106 +90,72 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset( $Division['Name'] ) && empty( $Division['Name'] )) {
-            $Form->setError('Division[Name]', 'Bitte geben Sie eine Klassengruppe an');
-            $Error = true;
-        }
+        // Year
         if (!isset( $Division['Year'] ) || empty( $Division['Year'] )) {
             $Form->setError('Division[Year]', 'Jahr erforderlich! Bitte zuerst einpflegen');
             $Error = true;
         }
-        if (isset( $Division['Name'] )
-            && !empty( $Division['Name'] )
-            && !isset( $Level['Name'] )
-            && !$Error
-        ) {
-
-            if (Division::useService()->getDivisionByGroupAndLevelAndYear($Division['Name'], null, $Division['Year'])) {
-                $Form->setError('Division[Name]', 'Name in diesem Schuljahr schon vergeben');
-                $Error = true;
-            }
-
-            if (isset( $Division['Year'] )) {
-                $tblYear = Term::useService()->getYearById($Division['Year']);
-                if (empty( $tblYear )) {
-                    $Form->setError('Division[Year]', 'Schuljahr nicht gefunden');
-                    $Error = true;
-                }
-            } else {
-                $Form->setError('Division[Year]', 'Schuljahr benötigt');
-                $Error = true;
-            }
-            if (isset( $Division['Year'] )) {
-
-                $tblYear = Term::useService()->getYearById($Division['Year']);
-                if (empty( $tblYear )) {
-                    $Form->setError('Division[Year]', 'Schuljahr nicht gefunden');
-                    $Error = true;
-                }
-            }
-            if (!$Error) {
-
-                $tblYear = Term::useService()->getYearById($Division['Year']);
-                (new Data($this->getBinding()))->createDivision($tblYear, null, $Division['Name'],
-                    $Division['Description']);
-                return new Success('Die KlassenGruppe wurde erfolgreich hinzugefügt')
-                .new Redirect($this->getRequest()->getUrl(), 1);
-            }
+        if ($Error) {
+            return $Form;
         }
-
-        if (isset( $Level['Name'] ) && empty( $Level['Name'] )) {
-            $Form->setError('Level[Name]', 'Bitte geben Sie eine Klassenstufe für die Schulart an <br/>');
+        $tblYear = Term::useService()->getYearById($Division['Year']);
+        if (empty( $tblYear )) {
+            $Form->setError('Division[Year]', 'Schuljahr nicht gefunden');
             $Error = true;
         }
 
+        // Group
+        if (isset( $Division['Name'] ) && empty( $Division['Name'] )) {
+            $Form->setError('Division[Name]', 'Bitte geben Sie eine Klassengruppe an');
+            $Error = true;
+        }
+
+        // Level
         if (!$Error) {
-            $tblType = Type::useService()->getTypeById($Level['Type']);
-            $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, $Level['Name']);
-
-            $Error = false;
-            if (isset( $Division['Year'] )) {
-                $tblYear = Term::useService()->getYearById($Division['Year']);
-                if (empty( $tblYear )) {
-                    $Form->setError('Division[Year]', 'Schuljahr nicht gefunden');
-                    $Error = true;
-                }
-            } else {
-                $Form->setError('Division[Year]', 'Schuljahr benötigt');
-                $Error = true;
-            }
-            if ($tblLevel) {
-                if (empty( $tblLevel )) {
-                    $Form->setError('Level[Name]', 'Klassenstufe nicht gefunden');
-                    $Error = true;
-                }
-            } else {
-                $Form->setError('Level[Name]', 'Klassenstufe benötigt');
-                $Error = true;
-            }
-
-            if (!$Error) {
-                if (isset( $Division['Name'] ) && empty( $Division['Name'] )) {
-                    $Form->setError('Division[Name]', 'Bitte geben Sie eine Klassengruppe an');
+            $tblLevel = null;
+            if (!isset( $Level['Check'] )) {
+                if (isset( $Level['Name'] ) && empty( $Level['Name'] )) {
+                    $Form->setError('Level[Name]', 'Bitte geben Sie eine Klassenstufe für die Schulart an <br/>');
                     $Error = true;
                 } else {
-                    if ($this->getDivisionByGroupAndLevelAndYear($Division['Name'], $tblLevel->getId(),
-                        $Division['Year'])
-                    ) {
-                        $Form->setError('Division[Name]', 'Name wird in der Klassenstufe/Jahrgang bereits verwendet');
-                        $Error = true;
-                    }
+                    $tblType = Type::useService()->getTypeById($Level['Type']);
+                    $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, $Level['Name']);
                 }
             }
+        } else {
+            return $Form;
+        }
 
-            if (!$Error) {
-                $tblYear = Term::useService()->getYearById($Division['Year']);
-                (new Data($this->getBinding()))->createDivision($tblYear, $tblLevel, $Division['Name'],
-                    $Division['Description']);
-                return new Success('Die KlassenGruppe wurde erfolgreich hinzugefügt')
+        // Create
+        if (!$Error) {
+
+            if ($this->checkDivisionExists($tblYear, $Division['Name'], $tblLevel)
+            ) {
+                $Form->setError('Division[Name]', 'Name wird in der Klassenstufe/Jahrgang bereits verwendet');
+            } else {
+
+                (new Data($this->getBinding()))->createDivision(
+                    $tblYear, $tblLevel, $Division['Name'], $Division['Description']
+                );
+                return new Success('Die Klassengruppe wurde erfolgreich hinzugefügt')
                 .new Redirect($this->getRequest()->getUrl(), 1);
             }
         }
+
         return $Form;
+    }
+
+    /**
+     * @param TblYear       $tblYear
+     * @param string        $Name
+     * @param TblLevel|null $tblLevel
+     *
+     * @return bool
+     */
+    public function checkDivisionExists(TblYear $tblYear, $Name, TblLevel $tblLevel = null)
+    {
+
+        return (new Data($this->getBinding()))->checkDivisionExists($tblYear, $Name, $tblLevel);
     }
 
     /**
@@ -247,17 +213,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param int $Id
-     *
-     * @return bool|TblLevel
-     */
-    public function getLevelById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getLevelById($Id);
-    }
-
-    /**
      * @param      $Name
      * @param null $Level
      * @param      $Year
@@ -274,6 +229,17 @@ class Service extends AbstractService
         }
         $tblYear = Term::useService()->getYearById($Year);
         return (new Data($this->getBinding()))->getDivisionByGroupAndLevelAndYear($Name, $tblLevel, $tblYear);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblLevel
+     */
+    public function getLevelById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getLevelById($Id);
     }
 
     /**
@@ -382,6 +348,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblDivisionSubject[]
+     */
+    public function getDivisionSubjectByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionSubjectByDivision($tblDivision);
+    }
+
+    /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
      * @return mixed
@@ -390,28 +367,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->removeDivisionSubject($tblDivisionSubject);
-    }
-
-    /**
-     * @param TblSubjectStudent $tblSubjectStudent
-     *
-     * @return string
-     */
-    public function removeSubjectStudent(TblSubjectStudent $tblSubjectStudent)
-    {
-
-        return (new Data($this->getBinding()))->removeSubjectStudent($tblSubjectStudent);
-    }
-
-    /**
-     * @param TblSubjectTeacher $tblSubjectTeacher
-     *
-     * @return bool
-     */
-    public function removeSubjectTeacher(TblSubjectTeacher $tblSubjectTeacher)
-    {
-
-        return (new Data($this->getBinding()))->removeSubjectTeacher($tblSubjectTeacher);
     }
 
     /**
@@ -571,6 +526,50 @@ class Service extends AbstractService
     }
 
     /**
+     * @param int $Id
+     *
+     * @return bool|TblDivision
+     */
+    public function getDivisionById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionById($Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblDivisionSubject
+     */
+    public function getDivisionSubjectById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionSubjectById($Id);
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool|TblSubjectStudent[]
+     */
+    public function getSubjectStudentByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+    }
+
+    /**
+     * @param TblSubjectStudent $tblSubjectStudent
+     *
+     * @return string
+     */
+    public function removeSubjectStudent(TblSubjectStudent $tblSubjectStudent)
+    {
+
+        return (new Data($this->getBinding()))->removeSubjectStudent($tblSubjectStudent);
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param array          $SubjectTeacher
      * @param int            $DivisionId
@@ -629,6 +628,28 @@ class Service extends AbstractService
             }
         }
         return $Form;
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool|TblSubjectTeacher[]
+     */
+    public function getSubjectTeacherByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
+    }
+
+    /**
+     * @param TblSubjectTeacher $tblSubjectTeacher
+     *
+     * @return bool
+     */
+    public function removeSubjectTeacher(TblSubjectTeacher $tblSubjectTeacher)
+    {
+
+        return (new Data($this->getBinding()))->removeSubjectTeacher($tblSubjectTeacher);
     }
 
     /**
@@ -698,51 +719,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param int $Id
-     *
-     * @return bool|TblDivision
-     */
-    public function getDivisionById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getDivisionById($Id);
-    }
-
-    /**
-     * @param int $Id
-     *
-     * @return bool|TblDivisionSubject
-     */
-    public function getDivisionSubjectById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getDivisionSubjectById($Id);
-    }
-
-    /**
-     * @param TblDivision $tblDivision
-     *
-     * @return bool|TblDivisionSubject[]
-     */
-    public function getDivisionSubjectByDivision(TblDivision $tblDivision)
-    {
-
-        return (new Data($this->getBinding()))->getDivisionSubjectByDivision($tblDivision);
-    }
-
-    /**
-     * @param TblSubject  $tblSubject
-     * @param TblDivision $tblDivision
-     *
-     * @return array|bool
-     */
-    public function getDivisionSubjectBySubjectAndDivision(TblSubject $tblSubject, TblDivision $tblDivision)
-    {
-
-        return (new Data($this->getBinding()))->getDivisionSubjectBySubjectAndDivision($tblSubject, $tblDivision);
-    }
-
-    /**
      * @param $Id
      *
      * @return false|TblSubjectStudent
@@ -762,17 +738,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getSubjectTeacherById($Id);
-    }
-
-    /**
-     * @param TblDivisionSubject $tblDivisionSubject
-     *
-     * @return bool|TblSubjectStudent[]
-     */
-    public function getSubjectStudentByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
-    {
-
-        return (new Data($this->getBinding()))->getSubjectStudentByDivisionSubject($tblDivisionSubject);
     }
 
     /**
@@ -866,17 +831,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDivisionSubject $tblDivisionSubject
-     *
-     * @return bool|TblSubjectTeacher[]
-     */
-    public function getSubjectTeacherByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
-    {
-
-        return (new Data($this->getBinding()))->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
-    }
-
-    /**
      * @param TblDivision $tblDivision
      *
      * @return string
@@ -952,17 +906,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDivisionSubject $tblDivisionSubject
-     *
-     * @return bool|TblSubjectTeacher[]
-     */
-    public function getTeacherAllByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
-    {
-
-        return (new Data($this->getBinding()))->getTeacherAllByDivisionSubject($tblDivisionSubject);
-    }
-
-    /**
      * @param TblDivision $tblDivision
      *
      * @return bool|TblSubject[]
@@ -971,6 +914,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getSubjectAllByDivision($tblDivision);
+    }
+
+    /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool|TblSubjectTeacher[]
+     */
+    public function getTeacherAllByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        return (new Data($this->getBinding()))->getTeacherAllByDivisionSubject($tblDivisionSubject);
     }
 
     /**
@@ -1107,6 +1061,18 @@ class Service extends AbstractService
             }
         }
         return $SubjectUsedCount;
+    }
+
+    /**
+     * @param TblSubject  $tblSubject
+     * @param TblDivision $tblDivision
+     *
+     * @return array|bool
+     */
+    public function getDivisionSubjectBySubjectAndDivision(TblSubject $tblSubject, TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionSubjectBySubjectAndDivision($tblSubject, $tblDivision);
     }
 
     /**

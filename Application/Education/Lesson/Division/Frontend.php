@@ -268,13 +268,12 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Klassenstufe',
                             array(
-                                new CheckBox('Level[Check]', 'jahrgangübergreifende Klasse anlegen', 1, array(
-                                    'Level[Name]',
-                                    'Level[Type]'
-                                )),
                                 new SelectBox('Level[Type]', 'Schulart', array(
                                     '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
                                 ), new Education()),
+                                new CheckBox('Level[Check]', 'jahrgangübergreifende Klasse anlegen', 1, array(
+                                    'Level[Name]'
+                                )),
                                 new AutoCompleter('Level[Name]', 'Klassenstufe (Nummer)', 'z.B: 5', $acNameAll,
                                     new Pencil()),
                             ), Panel::PANEL_TYPE_INFO
