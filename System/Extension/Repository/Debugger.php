@@ -154,9 +154,42 @@ class Debugger
             }
             self::addProtocol('ScreenDump: '.$Dump);
             if (self::$Enabled) {
-                print '<pre>'.$Dump.'</pre>';
+                print '<pre style="margin: 0; border-left: 0; border-right: 0; border-top:0;">'
+                    . '<div style="border-bottom: 1px dotted silver;">' . self::getCallingFunctionName() . '</div>'
+                    . $Dump
+                    . '</pre>';
             }
         }
+    }
+
+    /**
+     * @param bool|false $completeTrace
+     * @return string
+     */
+    private static function getCallingFunctionName($completeTrace = false)
+    {
+        if (function_exists('debug_backtrace')) {
+            $BackTrace = debug_backtrace();
+            if ($completeTrace) {
+                $Result = '';
+                foreach ($BackTrace as $Caller) {
+                    $Result .= " -- Called by [{$Caller['function']}]";
+                    if (isset($Caller['class'])) {
+                        $Result .= " from Class [{$Caller['class']}]";
+                    }
+                    $Result .= "\n";
+                }
+            } else {
+                $Caller = $BackTrace[2];
+                $Result = "Called by [{$Caller['function']}]";
+                if (isset($Caller['class'])) {
+                    $Result .= " from Class [{$Caller['class']}]";
+                }
+            }
+        } else {
+            $Result = 'Caller: Unknown';
+        }
+        return $Result;
     }
 
     /**
