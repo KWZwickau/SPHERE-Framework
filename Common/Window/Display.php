@@ -239,7 +239,7 @@ class Display extends Extension implements ITemplateInterface
                 .( isset( $Trace['line'] ) ? '<br/>Line: '.$Trace['line'] : '<br/>Line: ' )
                 .'</samp>');
         }
-        $Hit = '<samp class="text-danger"><p class="h6">'.nl2br($Exception->getMessage()).'</p><br/>File: '.$Exception->getFile().'<br/>Line: '.$Exception->getLine().'</samp>'.$TraceList;
+        $Hit = '<samp class="text-danger"><div class="h6">' . nl2br($Exception->getMessage()) . '</div>File: ' . $Exception->getFile() . '<br/>Line: ' . $Exception->getLine() . '</samp>' . $TraceList;
         $this->addContent(new Error(
             $Exception->getCode() == 0 ? $Name : $Exception->getCode(), $Hit
         ));
@@ -331,22 +331,6 @@ class Display extends Extension implements ITemplateInterface
         return $this->Template->getContent();
     }
 
-    private function formatBytes($Bytes, $usePrecision = 2)
-    {
-
-        $UnitList = array('B', 'KB', 'MB', 'GB', 'TB');
-
-        $Bytes = max($Bytes, 0);
-        $Power = floor(( $Bytes ? log($Bytes) : 0 ) / log(1024));
-        $Power = min($Power, count($UnitList) - 1);
-
-        // Uncomment one of the following alternatives
-        $Bytes /= pow(1024, $Power);
-        // $bytes /= (1 << (10 * $pow));
-
-        return round($Bytes, $usePrecision).' '.$UnitList[$Power];
-    }
-
     /**
      * @param $Content
      *
@@ -357,5 +341,24 @@ class Display extends Extension implements ITemplateInterface
 
         $this->Content = array($Content);
         return $this;
+    }
+
+    /**
+     * @param $Bytes
+     * @param int $usePrecision
+     * @return string
+     */
+    private function formatBytes($Bytes, $usePrecision = 2)
+    {
+
+        $UnitList = array('B', 'KB', 'MB', 'GB', 'TB');
+
+        $Bytes = max($Bytes, 0);
+        $Power = floor(( $Bytes ? log($Bytes) : 0 ) / log(1024));
+        $Power = min($Power, count($UnitList) - 1);
+
+        $Bytes /= pow(1024, $Power);
+
+        return round($Bytes, $usePrecision).' '.$UnitList[$Power];
     }
 }

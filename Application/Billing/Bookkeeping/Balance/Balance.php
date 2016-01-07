@@ -6,6 +6,10 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Main;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class Balance
+ * @package SPHERE\Application\Billing\Bookkeeping\Balance
+ */
 class Balance implements IModuleInterface
 {
 

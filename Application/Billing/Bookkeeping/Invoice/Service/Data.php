@@ -24,6 +24,10 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
+/**
+ * Class Data
+ * @package SPHERE\Application\Billing\Bookkeeping\Invoice\Service
+ */
 class Data extends AbstractData
 {
 
@@ -282,7 +286,7 @@ class Data extends AbstractData
 
                         } else {
                             if (!( $tblItem->getServiceStudentType() ) && $tblItem->getServiceStudentChildRank()) {
-                                if ($tblStudent = Student::useService()->getStudentByPerson($tblPerson)) {
+                                if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
                                     if (( $SiblingRank = $tblStudent->getTblStudentBilling()->getServiceTblSiblingRank() )
                                         && $tblItem->getServiceStudentType()->getId() == $SiblingRank->getId()
                                     ) {
@@ -293,7 +297,7 @@ class Data extends AbstractData
 
                             } else {
                                 if ($tblItem->getServiceStudentType() && $tblItem->getServiceStudentChildRank()) {
-                                    if ($tblStudent = Student::useService()->getStudentByPerson($tblPerson)) {
+                                    if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
                                         $studentType = 0;
                                         $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                                         if ($tblTransferType) {

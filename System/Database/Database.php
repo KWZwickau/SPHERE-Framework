@@ -123,7 +123,7 @@ class Database extends Extension
      *
      * @param string $EntityPath
      * @param string $EntityNamespace
-     * @param bool   $useCache
+     * @param bool $useCache disable this if Unit-of-Work is Out-of-Sync with cached Manager (sometimes)
      *
      * @return Manager
      * @throws \Doctrine\ORM\ORMException
@@ -139,7 +139,6 @@ class Database extends Extension
         $ManagerCache = $this->getCache(new MemoryHandler());
         $Manager = $ManagerCache->getValue((string)$this->Identifier.$EntityNamespace.$EntityPath, __METHOD__);
 
-        // TODO: Unit of Work is out of Sync if Manager is cached (sometimes)
         if (!$useCache || null === $Manager) {
 
             // System Cache

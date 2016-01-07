@@ -61,6 +61,11 @@ class Status extends Extension implements ITemplateInterface
         $this->Stage = $Quality.$Size;
     }
 
+    /**
+     * @param int $Bytes
+     * @param int $usePrecision
+     * @return string
+     */
     private function formatBytes($Bytes, $usePrecision = 2)
     {
 

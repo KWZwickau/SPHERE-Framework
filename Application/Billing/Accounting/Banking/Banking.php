@@ -7,6 +7,10 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Main;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class Banking
+ * @package SPHERE\Application\Billing\Accounting\Banking
+ */
 class Banking implements IModuleInterface
 {
 

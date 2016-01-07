@@ -24,7 +24,7 @@
         {
             var guiSelect = jQuery('select[name="{{ ElementName }}"]');
             guiSelect.find('option[value="{{ ElementValue }}"]').attr('selected', 'selected');
-            guiSelect.on('change', function(Event, Element)
+            guiSelect.on('change', function (Event)
             {
                 var noSelection = jQuery(Event.currentTarget);
                 var useColor = noSelection.parent().find('span.selecter-selected');
@@ -34,7 +34,7 @@
                 } else {
                     useColor.css('color', '');
                 }
-            })
+            });
             guiSelect.ModSelecter();
 
             var noSelection = guiSelect;

@@ -144,6 +144,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Id
+     *
+     * @return bool|Service\Entity\TblGradeType
+     */
+    public function getGradeTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getGradeTypeById($Id);
+    }
+
+    /**
      * @param IFormInterface|null $Stage
      * @param null $DivisionSubjectId
      * @param null $Select
@@ -178,8 +189,6 @@ class Service extends AbstractService
         ));
     }
 
-
-
     /**
      * @param $Id
      *
@@ -191,7 +200,7 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getScoreConditionById($Id);
     }
 
-        /**
+    /**
      * @return bool|TblGradeType[]
      */
     public function getGradeTypeAllWhereTestOrBehavior()
@@ -210,15 +219,6 @@ class Service extends AbstractService
         $tblGradeTypeAll = array_merge( $tblGradeTypeAllTest, $tblGradeTypeAllBehavior );
 
         return ( empty( $tblGradeTypeAll ) ? false : $tblGradeTypeAll );
-    }    /**
-     * @param $Id
-     *
-     * @return bool|Service\Entity\TblGradeType
-     */
-    public function getGradeTypeById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getGradeTypeById($Id);
     }
 
     /**
@@ -390,15 +390,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getScoreRuleById($Id);
-    }    /**
-     * @param $Id
-     *
-     * @return bool|TblScoreCondition
-     */
-    public function getScoreConditionById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getScoreConditionById($Id);
     }
 
     /**
