@@ -40,6 +40,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -155,7 +156,7 @@ class Frontend extends Extension implements IFrontendInterface
                     foreach ($tblPeriodAll as $tblPeriod) {
                         $Period[] = $tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
                     }
-                    $tblDivision->Period = implode('<br/>', $Period);
+                    $tblDivision->Period = new Listing($Period);
                 } else {
                     $tblDivision->Period = 'fehlt';
                 }
