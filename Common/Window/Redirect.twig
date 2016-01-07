@@ -2,7 +2,7 @@
     <small>Sollten Sie nicht automatisch weitergeleitet werden, klicken Sie bitte hier</small>
     <br/><br/>
     <a href="{{ UrlBase }}{{ Route }}" class="btn btn-default">Weiter
-        {% if(Timeout is not empty) %}
+        {% if(Timeout is not empty and Timeout > 1 ) %}
             <span class="text-muted small">(<span class="ModCountDown"></span>)</span>
         {% endif %}
     </a>
