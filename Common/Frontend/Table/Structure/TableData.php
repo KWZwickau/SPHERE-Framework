@@ -89,7 +89,7 @@ class TableData extends Table
             $ColumnDefinition = array_combine(array_values($GridHead), array_values($GridHead));
         }
 
-        if (count($DataList) > 150 && $Interactive) {
+        if (count($DataList) > 15 && $Interactive) {
             // JS Table Data
             $ObjectList = array();
             array_walk($DataList, function (&$Row) use (&$ObjectList, $ColumnDefinition) {
@@ -187,11 +187,16 @@ class TableData extends Table
 
         if (count($DataList) > 0 || $Interactive) {
 
-            if (is_array($Interactive) && isset( $ObjectList ) && isset( $IndexList )) {
-                $Interactive = array_merge($Interactive, array('data' => $ObjectList, 'columns' => $IndexList));
-            }
-            if (!is_array($Interactive) && isset( $ObjectList ) && isset( $IndexList )) {
-                $Interactive = array('data' => $ObjectList, 'columns' => $IndexList);
+            if (isset( $ObjectList ) && isset( $IndexList )) {
+                // Fix missing Data .. WHY DOES THIS WORK???
+                $ObjectList = array_slice($ObjectList, 0);
+
+                if (is_array($Interactive)) {
+                    $Interactive = array_merge($Interactive, array('data' => $ObjectList, 'columns' => $IndexList));
+                }
+                if (!is_array($Interactive)) {
+                    $Interactive = array('data' => $ObjectList, 'columns' => $IndexList);
+                }
             }
 
             parent::__construct(
