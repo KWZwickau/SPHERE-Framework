@@ -75,11 +75,11 @@ class Data extends AbstractData
 
     /**
      * @param TblGradeType $tblGradeType
-     * @param              $Name
-     * @param              $Code
-     * @param              $Description
-     * @param              $IsHighlighted
-     *
+     * @param $Name
+     * @param $Code
+     * @param $Description
+     * @param $IsHighlighted
+     * @param TblTestType $tblTestType
      * @return bool
      */
     public function updateGradeType(
@@ -87,7 +87,8 @@ class Data extends AbstractData
         $Name,
         $Code,
         $Description,
-        $IsHighlighted
+        $IsHighlighted,
+        TblTestType $tblTestType
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -100,6 +101,7 @@ class Data extends AbstractData
             $Entity->setCode($Code);
             $Entity->setDescription($Description);
             $Entity->setHighlighted($IsHighlighted);
+            $Entity->setServiceTblTestType($tblTestType);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
 
@@ -203,12 +205,11 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblTestType $tblTestType
      * @return bool|TblGradeType[]
      */
-    public function getGradeTypeAllWhereTest()
+    public function getGradeTypeAllByTestType(TblTestType $tblTestType)
     {
-
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType',
             array(

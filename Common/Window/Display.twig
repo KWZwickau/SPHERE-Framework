@@ -174,11 +174,11 @@
                 <a href="/Roadmap/Current"><span class="glyphicons glyphicons-bookmark"></span> {{ RoadmapVersion }}</a>
                 |
                 <a href="http://www.beyondsecurity.com/vulnerability-scanner-verification/www.kreda.schule"
-                   class="text-success">
+                   class="text-success" rel="external">
                     <span class="glyphicons glyphicons-shield"></span> Secure Website
                 </a>
                 |
-                <a href="http://www.evangelische-schulen-sachsen.de/" class="text-warning">
+                <a href="http://www.evangelische-schulen-sachsen.de/" class="text-warning" rel="external">
                     <span class="halflings halflings-copyright-mark"></span> 2014 - {{ "now"|date("Y") }}
                 </a>
 
@@ -192,31 +192,28 @@
 
 
 <script>
-    Client.Use('ModAlways', function()
-    {
-        jQuery().ModAlways();
-    });
-    //    var Host = jQuery('<a>').prop('href', window.location).prop('hostname');
-
-    <!-- Piwik -->
     var _paq = _paq || [];
     _paq.push(["setDoNotTrack", true]);
     _paq.push(["disableCookies"]);
     _paq.push(['trackPageView']);
     _paq.push(['enableLinkTracking']);
-    (function()
+
+    Client.Use('ModAlways', function()
     {
-        var u = "/Library/Piwik/";
-        _paq.push(['setTrackerUrl', u + 'piwik.php']);
-        _paq.push(['setSiteId', 1]);
-        var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
-        g.type = 'text/javascript';
-        g.async = true;
-        g.defer = true;
-        g.src = u + 'piwik.js';
-        s.parentNode.insertBefore(g, s);
-    })();
-    <!-- End Piwik Code -->
+        jQuery().ModAlways();
+        (function ()
+        {
+            var u = "/Library/Piwik/";
+            _paq.push(['setTrackerUrl', u + 'piwik.php']);
+            _paq.push(['setSiteId', 1]);
+            var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+            g.type = 'text/javascript';
+            g.async = true;
+            g.defer = true;
+            g.src = u + 'piwik.js';
+            s.parentNode.insertBefore(g, s);
+        })();
+    });
 </script>
 </body>
 </html>

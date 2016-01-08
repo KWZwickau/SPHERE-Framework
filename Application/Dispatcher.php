@@ -11,15 +11,15 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Dispatcher
  *
  * @package SPHERE\Application
  */
-class Dispatcher
+class Dispatcher extends Extension
 {
 
     /** @var IBridgeInterface|null $Router */
@@ -44,7 +44,7 @@ class Dispatcher
                     'SPHERE\Common\Roadmap\Roadmap::frontendMap')
                 );
             } catch (\Exception $Exception) {
-                (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('Unable to register Roadmap');
+                $this->getLogger(new ErrorLogger())->addLog('Unable to register Roadmap');
             }
         }
     }
@@ -175,6 +175,11 @@ class Dispatcher
             $Row = 1;
             $Column = 1;
             foreach ((array)self::$Widget[$Location] as $Index => $Widget) {
+
+                if (is_callable($Widget[0])) {
+                    $Widget[0] = call_user_func($Widget[0]);
+                }
+
                 $Dashboard .= '<li id="Widget-'.$Location.'-'.$Index.'" '
                     .'data-row="'.$Row.'" '
                     .'data-col="'.$Column.'" '

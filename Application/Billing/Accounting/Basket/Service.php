@@ -20,6 +20,10 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
+/**
+ * Class Service
+ * @package SPHERE\Application\Billing\Accounting\Basket
+ */
 class Service extends AbstractService
 {
 

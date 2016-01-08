@@ -21,6 +21,10 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
+/**
+ * Class Service
+ * @package SPHERE\Application\Billing\Accounting\Banking
+ */
 class Service extends AbstractService
 {
 
@@ -218,7 +222,7 @@ class Service extends AbstractService
     public function getLeadTimeByDebtor(TblDebtor $tblDebtor)   //ToDO get first/followLeadTime from School
     {
 
-        if ($tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor)) {
+        if (($tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor))) {
             if (Invoice::useService()->checkInvoiceFromDebtorIsPaidByDebtor($tblDebtor) ||
                 Balance::useService()->checkPaymentFromDebtorExistsByDebtor($tblDebtor)
             ) {

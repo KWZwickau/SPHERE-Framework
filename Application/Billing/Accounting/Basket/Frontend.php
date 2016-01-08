@@ -51,6 +51,10 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Frontend
+ * @package SPHERE\Application\Billing\Accounting\Basket
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 
@@ -312,7 +316,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Options = true;
         if (!empty( $tblCommodityAll )) {
-            if (empty( Basket::useService()->getCommodityAllByBasket($tblBasket) )) {
+            if (empty($tblCommodityAllByBasket)) {
                 /** @noinspection PhpUnusedParameterInspection */
                 array_walk($tblCommodityAll, function (TblCommodity $tblCommodity, $Index, TblBasket $tblBasket) {
 

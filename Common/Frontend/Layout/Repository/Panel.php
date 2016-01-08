@@ -62,7 +62,7 @@ class Panel extends Extension implements ITemplateInterface
     {
 
         if (empty( $this->FormName )) {
-            return sha1(serialize($this->Content));
+            return md5(serialize($this->Content));
         } else {
             return $this->FormName;
         }
@@ -103,15 +103,15 @@ class Panel extends Extension implements ITemplateInterface
                     $this->Filter = 50;
                 }
                 $this->Template->setVariable('FilterSize', $this->Filter);
-                if (isset( $this->getGlobal()->POST['PanelSearch-'.sha1($this->Title)] )) {
-                    $Value = $this->getGlobal()->POST['PanelSearch-'.sha1($this->Title)];
+                if (isset($this->getGlobal()->POST['PanelSearch-' . md5($this->Title)])) {
+                    $Value = $this->getGlobal()->POST['PanelSearch-' . md5($this->Title)];
                     $this->Template->setVariable('FilterValue', "'".$Value."'");
                 } else {
                     $Value = '';
                     $this->Template->setVariable('FilterValue', '');
                 }
                 array_unshift($this->Content,
-                    '<input type="text" class="form-control search" name="PanelSearch-'.sha1($this->Title).'" placeholder="Filtern" value="'.$Value.'">'
+                    '<input type="text" class="form-control search" name="PanelSearch-' . md5($this->Title) . '" placeholder="Filtern" value="' . $Value . '">'
                     .( $this->Filter < count($this->Content)
                         ? new PullRight(new Label($this->Filter.' von '.count($this->Content).' Einträgen'))
                         : new PullRight(new Label(count($this->Content).' Einträge'))
@@ -148,7 +148,7 @@ class Panel extends Extension implements ITemplateInterface
                     $G = serialize($G);
                 }
             });
-            $this->Hash = sha1(json_encode($Content));
+            $this->Hash = md5(json_encode($Content));
         }
         return $this->Hash;
     }

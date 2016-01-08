@@ -78,7 +78,7 @@ class NamespaceLoader
         }
 
         if ( self::$Cacheable ) {
-            $Hash = sha1($this->Namespace.$this->Path.$this->Separator.$this->Extension.$this->Prefix);
+            $Hash = md5($this->Namespace . $this->Path . $this->Separator . $this->Extension . $this->Prefix);
             // @codeCoverageIgnoreStart
             if (false === ( $Result = apc_fetch($Hash.'#'.$ClassName) )) {
                 $Result = $this->checkCanLoadClass($ClassName);
@@ -112,8 +112,8 @@ class NamespaceLoader
     private function checkExists($Name, $Load = false)
     {
 
-        return class_exists($Name, $Load)
-        || interface_exists($Name, $Load)/*|| ( function_exists( 'trait_exists' ) && trait_exists( $Name, $Load ) )*/
+        return interface_exists($Name, $Load)
+        || class_exists($Name, $Load)/*|| ( function_exists( 'trait_exists' ) && trait_exists( $Name, $Load ) )*/
             ;
     }
 

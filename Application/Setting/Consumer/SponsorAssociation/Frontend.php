@@ -232,7 +232,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function formSponsorAssociationCompanyDelete($Id, $Confirm = false)
+    public function frontendSponsorAssociationDestroy($Id, $Confirm = false)
     {
 
         $Stage = new Stage('Förderverein', 'Löschen');

@@ -24,7 +24,6 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Extension\Extension;
 
@@ -68,7 +67,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblCompanyAll = Group::useService()->getCompanyAllByGroup($tblGroup);
             $Result = array();
             if ($tblCompanyAll) {
-                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__.':StartRun');
+                $this->getLogger(new BenchmarkLogger())->addLog(__METHOD__.':StartRun');
                 array_walk($tblCompanyAll, function (TblCompany &$tblCompany) use ($tblGroup, &$Result) {
 
                     $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
@@ -94,7 +93,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Description' => $tblCompany->getDescription()
                     ));
                 });
-                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__.':StopRun');
+                $this->getLogger(new BenchmarkLogger())->addLog(__METHOD__.':StopRun');
             }
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(

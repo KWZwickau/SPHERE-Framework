@@ -33,6 +33,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -279,20 +280,22 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblYear = Term::useService()->getYearById($Id);
         if ($tblYear) {
-            $Stage = new Stage('Zeitraum', 'bearbeiten');
+            $Stage = new Stage('Zeitraum', 'Bearbeiten');
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
             if ($tblYear && null !== $Period && ( $Period = Term::useService()->getPeriodById($Period) )) {
                 if ($Remove) {
                     Term::useService()->removeYearPeriod($tblYear->getId(), $Period);
                     $Stage->setContent(
-                        new Redirect('/Education/Lesson/Term/Choose/Period', 0, array('Id' => $Id))
+                        new Success('Zeitraum erfolgreich entfernt')
+                        .new Redirect('/Education/Lesson/Term/Choose/Period', 0, array('Id' => $Id))
                     );
                     return $Stage;
                 } else {
                     Term::useService()->addYearPeriod($tblYear->getId(), $Period);
                     $Stage->setContent(
-                        new Redirect('/Education/Lesson/Term/Choose/Period', 0, array('Id' => $Id))
+                        new Success('Zeitraum erfolgreich hinzugefügt')
+                        .new Redirect('/Education/Lesson/Term/Choose/Period', 0, array('Id' => $Id))
                     );
                     return $Stage;
                 }
@@ -384,7 +387,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
 
         } else {
-            $Stage = new Stage('Zeiträume', 'bearbeiten');
+            $Stage = new Stage('Zeiträume', 'Bearbeiten');
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
             $Stage->setContent(new Warning('Jahr nicht gefunden'));
         }

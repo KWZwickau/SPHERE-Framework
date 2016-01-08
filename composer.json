@@ -1,6 +1,7 @@
 {
     "name": "sphere-framework/kreda",
     "description": "",
+    "license": "AGPL-3.0",
     "minimum-stability": "stable",
     "homepage": "https://github.com/DerDu/SPHERE-Framework",
     "authors": [

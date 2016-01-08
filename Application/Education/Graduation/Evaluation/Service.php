@@ -52,43 +52,28 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     *
-     * @return bool|TblTestType
+     * @return bool|TblTestType[]
      */
-    public function getTestTypeById($Id)
+    public function getTestTypesForGradeTypes()
     {
 
-        return (new Data($this->getBinding()))->getTestTypeById($Id);
+        return (new Data($this->getBinding()))->getTestTypesForGradeTypes();
     }
 
     /**
-     * @param string $Identifier
-     *
-     * @return bool|TblTestType
+     * @return bool|TblTestType[]
      */
-    public function getTestTypeByIdentifier($Identifier)
+    public function getTestTypeAllWhereTask()
     {
 
-        return (new Data($this->getBinding()))->getTestTypeByIdentifier($Identifier);
+        return (new Data($this->getBinding()))->getTestTypeAllWhereTask();
     }
 
     /**
-     * @param $Id
-     *
-     * @return bool|TblTest
-     */
-    public function getTestById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getTestById($Id);
-    }
-
-    /**
-     * @param TblTestType          $tblTestType
-     * @param TblDivision          $tblDivision
-     * @param TblSubject           $tblSubject
-     * @param null|TblPeriod       $tblPeriod
+     * @param TblTestType $tblTestType
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param null|TblPeriod $tblPeriod
      * @param TblSubjectGroup|null $tblSubjectGroup
      *
      * @return bool|TblTest[]
@@ -107,18 +92,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblTask          $tblTask
-     * @param TblDivision|null $tblDivision
-     *
-     * @return bool|Service\Entity\TblTest[]
-     */
-    public function getTestAllByTask(TblTask $tblTask, TblDivision $tblDivision = null)
-    {
-
-        return (new Data($this->getBinding()))->getTestAllByTask($tblTask, $tblDivision);
-    }
-
-    /**
      * @param TblTestType $tblTestType
      *
      * @return bool|TblTest[]
@@ -130,14 +103,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     *
-     * @return bool|TblTask
+     * @return bool|TblTask[]
      */
-    public function getTaskById($Id)
+    public function getTaskAll()
     {
 
-        return (new Data($this->getBinding()))->getTaskById($Id);
+        return (new Data($this->getBinding()))->getTaskAll();
     }
 
     /**
@@ -153,9 +124,9 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param null                $DivisionSubjectId
-     * @param null                $Test
-     * @param string              $BasicRoute
+     * @param null $DivisionSubjectId
+     * @param null $Test
+     * @param string $BasicRoute
      *
      * @return IFormInterface|string
      */
@@ -170,11 +141,11 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (!isset( $Test['Period'] )) {
+        if (!isset($Test['Period'])) {
             $Error = true;
             $Stage .= new Warning('Zeitraum nicht gefunden');
         }
-        if (!isset( $Test['GradeType'] )) {
+        if (!isset($Test['GradeType'])) {
             $Error = true;
             $Stage .= new Warning('Zensuren-Typ nicht gefunden');
         }
@@ -199,16 +170,27 @@ class Service extends AbstractService
         );
 
         return new Stage('Der Test ist erfasst worden')
-        .new Redirect($BasicRoute.'/Selected', 0,
+        . new Redirect($BasicRoute . '/Selected', 0,
             array('DivisionSubjectId' => $tblDivisionSubject->getId()));
 
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return bool|TblTestType
+     */
+    public function getTestTypeByIdentifier($Identifier)
+    {
+
+        return (new Data($this->getBinding()))->getTestTypeByIdentifier($Identifier);
     }
 
     /**
      * @param IFormInterface|null $Stage
      * @param                     $Id
      * @param                     $Test
-     * @param string              $BasicRoute
+     * @param string $BasicRoute
      *
      * @return IFormInterface|Redirect
      */
@@ -237,10 +219,20 @@ class Service extends AbstractService
             $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
         );
 
-        return new Redirect($BasicRoute.'/Selected', 0,
+        return new Redirect($BasicRoute . '/Selected', 0,
             array('DivisionSubjectId' => $tblDivisionSubject->getId()));
     }
 
+    /**
+     * @param $Id
+     *
+     * @return bool|TblTest
+     */
+    public function getTestById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getTestById($Id);
+    }
 
     /**
      * @param IFormInterface|null $Stage
@@ -259,34 +251,45 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        if (isset( $Task['Name'] ) && empty( $Task['Name'] )) {
+        if (isset($Task['Name']) && empty($Task['Name'])) {
             $Stage->setError('Task[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         }
-        if (isset( $Task['Date'] ) && empty( $Task['Date'] )) {
+        if (isset($Task['Date']) && empty($Task['Date'])) {
             $Stage->setError('Task[Date]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
-        if (isset( $Task['FromDate'] ) && empty( $Task['FromDate'] )) {
+        if (isset($Task['FromDate']) && empty($Task['FromDate'])) {
             $Stage->setError('Task[FromDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
-        if (isset( $Task['ToDate'] ) && empty( $Task['ToDate'] )) {
+        if (isset($Task['ToDate']) && empty($Task['ToDate'])) {
             $Stage->setError('Task[ToDate]', 'Bitte geben Sie ein Datum an');
             $Error = true;
         }
 
         if (!$Error) {
-            $tblTestType = $this->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
+            $tblTestType = $this->getTestTypeById($Task['Type']);
             (new Data($this->getBinding()))->createTask(
                 $tblTestType, $Task['Name'], $Task['Date'], $Task['FromDate'],
                 $Task['ToDate']
             );
-            $Stage .= new Success('Erfolgreich angelegt')
-                .new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate', 0);
+            $Stage .= new Success('Notenauftrag erfolgreich angelegt')
+                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', 0);
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblTestType
+     */
+    public function getTestTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getTestTypeById($Id);
     }
 
     /**
@@ -309,43 +312,37 @@ class Service extends AbstractService
         $tblTask = $this->getTaskById($Id);
         (new Data($this->getBinding()))->updateTask(
             $tblTask,
+            $this->getTestTypeById($Task['Type']),
             $Task['Name'],
             $Task['Date'],
             $Task['FromDate'],
             $Task['ToDate']
         );
 
-        $Stage .= new Success('Erfolgreich geändert')
-            .new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/AppointedDate', 0);
+        $Stage .= new Success('Notenauftrag erfolgreich geändert')
+            . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', 1);
 
         return $Stage;
     }
 
     /**
-     * @param TblTask     $tblTask
-     * @param TblTestType $tblTestType
-     * @param TblDivision $tblDivision
+     * @param $Id
      *
-     * @return bool|Service\Entity\TblTest[]
+     * @return bool|TblTask
      */
-    public function getTestAllByTaskAndTestType(
-        TblTask $tblTask,
-        TblTestType $tblTestType,
-        TblDivision $tblDivision = null
-    ) {
+    public function getTaskById($Id)
+    {
 
-        return (new Data($this->getBinding()))->getTestAllByTaskAndTestType($tblTask, $tblTestType, $tblDivision);
+        return (new Data($this->getBinding()))->getTaskById($Id);
     }
 
     /**
-     * @param TblTask     $tblTask
+     * @param TblTask $tblTask
      * @param TblDivision $tblDivision
-     * @param TblTestType $tblTestType
      */
     public function addDivisionToTask(
         TblTask $tblTask,
-        TblDivision $tblDivision,
-        TblTestType $tblTestType
+        TblDivision $tblDivision
     ) {
 
         $tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision(
@@ -354,34 +351,73 @@ class Service extends AbstractService
 
         if ($tblDivisionSubjectAll) {
             foreach ($tblDivisionSubjectAll as $tblDivisionSubject) {
-                if ($tblDivisionSubject->getTblSubjectGroup()) {
-                    (new Data($this->getBinding()))->createTest(
-                        $tblDivision,
-                        $tblDivisionSubject->getServiceTblSubject(),
-                        $tblDivisionSubject->getTblSubjectGroup(),
-                        null,
-                        null,
-                        $tblTestType,
-                        $tblTask,
-                        '',
-                        $tblTask->getDate()
-                    );
-                } else {
-                    if (!Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
-                        $tblDivision, $tblDivisionSubject->getServiceTblSubject()
-                    )
-                    ) {
+                if ($tblTask->getTblTestType()->getId() == $this->getTestTypeByIdentifier('APPOINTED_DATE_TASK')) {
+                    if ($tblDivisionSubject->getTblSubjectGroup()) {
                         (new Data($this->getBinding()))->createTest(
                             $tblDivision,
                             $tblDivisionSubject->getServiceTblSubject(),
+                            $tblDivisionSubject->getTblSubjectGroup(),
                             null,
                             null,
-                            null,
-                            $tblTestType,
+                            $tblTask->getTblTestType(),
                             $tblTask,
                             '',
                             $tblTask->getDate()
                         );
+                    } else {
+                        if (!Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                            $tblDivision, $tblDivisionSubject->getServiceTblSubject()
+                        )
+                        ) {
+                            (new Data($this->getBinding()))->createTest(
+                                $tblDivision,
+                                $tblDivisionSubject->getServiceTblSubject(),
+                                null,
+                                null,
+                                null,
+                                $tblTask->getTblTestType(),
+                                $tblTask,
+                                '',
+                                $tblTask->getDate()
+                            );
+                        }
+                    }
+                } else {
+                    $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
+                    $tblGradeTypeAllWhereBehavior = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
+                    if ($tblGradeTypeAllWhereBehavior) {
+                        foreach ($tblGradeTypeAllWhereBehavior as $tblGradeType) {
+                            if ($tblDivisionSubject->getTblSubjectGroup()) {
+                                (new Data($this->getBinding()))->createTest(
+                                    $tblDivision,
+                                    $tblDivisionSubject->getServiceTblSubject(),
+                                    $tblDivisionSubject->getTblSubjectGroup(),
+                                    null,
+                                    $tblGradeType,
+                                    $tblTask->getTblTestType(),
+                                    $tblTask,
+                                    '',
+                                    $tblTask->getDate()
+                                );
+                            } else {
+                                if (!Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                                    $tblDivision, $tblDivisionSubject->getServiceTblSubject()
+                                )
+                                ) {
+                                    (new Data($this->getBinding()))->createTest(
+                                        $tblDivision,
+                                        $tblDivisionSubject->getServiceTblSubject(),
+                                        null,
+                                        null,
+                                        $tblGradeType,
+                                        $tblTask->getTblTestType(),
+                                        $tblTask,
+                                        '',
+                                        $tblTask->getDate()
+                                    );
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -403,6 +439,18 @@ class Service extends AbstractService
                 (new Data($this->getBinding()))->destroyTest($tblTest);
             }
         }
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblDivision|null $tblDivision
+     *
+     * @return bool|Service\Entity\TblTest[]
+     */
+    public function getTestAllByTask(TblTask $tblTask, TblDivision $tblDivision = null)
+    {
+
+        return (new Data($this->getBinding()))->getTestAllByTask($tblTask, $tblDivision);
     }
 
 }

@@ -44,7 +44,7 @@ class Accordion extends Extension implements IFrontendInterface
             'Content' => $Content,
             'Toggle'  => $Toggle,
             'Header'  => $Header,
-            'Hash'    => sha1(serialize(func_get_args()))
+            'Hash' => md5(serialize(func_get_args()))
         );
         return $this;
     }
@@ -64,7 +64,7 @@ class Accordion extends Extension implements IFrontendInterface
     public function getContent()
     {
 
-        $this->Template->setVariable('Hash', sha1(serialize($this->ContentList)));
+        $this->Template->setVariable('Hash', md5(serialize($this->ContentList)));
         $this->Template->setVariable('ContentList', $this->ContentList);
         return $this->Template->getContent();
     }

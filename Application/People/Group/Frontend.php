@@ -13,10 +13,13 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -55,7 +58,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendGroup($Group = null)
     {
 
-        $Stage = new Stage('Gruppen');
+        $Stage = new Stage('Personen', 'Gruppen');
         $tblGroupAll = Group::useService()->getGroupAll();
         if ($tblGroupAll) {
             array_walk($tblGroupAll, function (TblGroup &$tblGroup) {
@@ -111,7 +114,7 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(
                     $LayoutRowList
-                    , new Title('Gruppen')
+                    , new Title(new ListingTable() . ' Übersicht')
                 ),
                 new LayoutGroup(
                     new LayoutRow(
@@ -119,12 +122,12 @@ class Frontend extends Extension implements IFrontendInterface
                             new Well(
                                 Group::useService()->createGroup(
                                     $this->formGroup()
-                                        ->appendFormButton(new Primary('Hinzufügen'))
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Die neue Gruppe wurde noch nicht gespeichert')
                                     , $Group
                                 )
                             ))
-                    ), new Title('Gruppe hinzufügen')
+                    ), new Title(new PlusSign() . ' Hinzufügen')
                 ),
             ))
         );

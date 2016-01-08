@@ -11,6 +11,10 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
 
+/**
+ * Class Data
+ * @package SPHERE\Application\Billing\Bookkeeping\Balance\Service
+ */
 class Data extends AbstractData
 {
 
