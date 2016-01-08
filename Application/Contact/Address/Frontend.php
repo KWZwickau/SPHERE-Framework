@@ -209,7 +209,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     )
-                )),
+                ), new Title(new PlusSign() . ' Hinzufügen')),
             ))
         );
 
@@ -313,7 +313,9 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['City']['Code'] = $tblToCompany->getTblAddress()->getTblCity()->getCode();
             $Global->POST['City']['Name'] = $tblToCompany->getTblAddress()->getTblCity()->getName();
             $Global->POST['City']['District'] = $tblToCompany->getTblAddress()->getTblCity()->getDistrict();
-            $Global->POST['State'] = $tblToCompany->getTblAddress()->getTblState()->getId();
+            if ($tblToCompany->getTblAddress()->getTblState()) {
+                $Global->POST['State'] = $tblToCompany->getTblAddress()->getTblState()->getId();
+            }
             $Global->savePost();
         }
 
@@ -342,7 +344,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     )
-                )),
+                ), new Title(new Edit() . ' Bearbeiten')),
             ))
         );
         return $Stage;
@@ -398,7 +400,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adresse wurde gelöscht')
                                 : new Danger(new Ban() . ' Die Adresse konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()))
+                            new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
+                                array('Id' => $tblPerson->getId()))
                         )))
                     )))
                 );
