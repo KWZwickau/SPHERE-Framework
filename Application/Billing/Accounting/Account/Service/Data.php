@@ -9,6 +9,10 @@ use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccountType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
+/**
+ * Class Data
+ * @package SPHERE\Application\Billing\Accounting\Account\Service
+ */
 class Data extends AbstractData
 {
 

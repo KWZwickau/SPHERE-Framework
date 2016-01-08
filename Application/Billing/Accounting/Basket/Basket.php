@@ -8,6 +8,10 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class Basket
+ * @package SPHERE\Application\Billing\Accounting\Basket
+ */
 class Basket implements IModuleInterface
 {
 

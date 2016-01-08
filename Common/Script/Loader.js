@@ -38,11 +38,12 @@ var Client = (function ()
                 if (this.Test()) {
                     this.isLoaded = true;
                     return true;
+                } else {
+                    if ('undefined' !== typeof Callback) {
+                        loadModule(Module, Callback);
+                    }
+                    return false;
                 }
-                if ('undefined' !== typeof Callback) {
-                    loadModule(Module, Callback);
-                }
-                return false;
             }
         };
     };
@@ -61,8 +62,7 @@ var Client = (function ()
             Retry: 0,
             isReady: function (Callback)
             {
-                var dependingModule;
-                var dependingSize = this.Depending.length - 1;
+                var dependingModule, dependingSize = this.Depending.length - 1;
                 for (dependingSize; 0 <= dependingSize; dependingSize--) {
                     dependingModule = this.Depending[dependingSize];
                     if (useConfig[dependingModule].Test()) {

@@ -205,66 +205,16 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblTestType $tblTestType
      * @return bool|TblGradeType[]
      */
-    public function getGradeTypeAllWhereTest()
+    public function getGradeTypeAllByTestType(TblTestType $tblTestType)
     {
-
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType',
             array(
                 TblGradeType::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
             ));
-    }
-
-    /**
-     * @return bool|TblGradeType[]
-     */
-    public function getGradeTypeAllWhereBehavior()
-    {
-
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType',
-            array(
-                TblGradeType::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
-            ));
-    }
-
-    /**
-     * @return bool|TblGradeType[]
-     */
-    public function getGradeTypeAllWhereTestOrBehavior()
-    {
-
-        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
-        $testTypeList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType',
-            array(
-                TblGradeType::ATTR_SERVICE_TBL_TEST_TYPE => $tblTestType->getId()
-            ));
-
-        $tblBehaviorType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
-        $behaviorTypeList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGradeType',
-            array(
-                TblGradeType::ATTR_SERVICE_TBL_TEST_TYPE => $tblBehaviorType->getId()
-            ));
-
-        if ($testTypeList && $behaviorTypeList){
-            foreach ($behaviorTypeList as $type){
-                $testTypeList[] = $type;
-            }
-
-            return $testTypeList;
-
-        } elseif ($testTypeList) {
-
-            return $testTypeList;
-
-        } else {
-
-            return $behaviorTypeList;
-        }
     }
 
     /**

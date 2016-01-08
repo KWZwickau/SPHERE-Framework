@@ -873,12 +873,14 @@ class Service extends AbstractService
                 return new Success('Die Klassengruppe wurde erfolgreich gelöscht')
                 .new Redirect('/Education/Lesson/Division', 1);
             } else {
-                return new Danger('Die Klassengruppe konnte nicht gelöscht werden')
-                .new Redirect('/Education/Lesson/Division');
+                return false;
+//                return new Danger('Die Klassengruppe konnte nicht gelöscht werden')
+//                .new Redirect('/Education/Lesson/Division');
             }
         }
-        return new Danger('Die Klassengruppe konnte nicht gelöscht werden, da Personen zugeordnet sind')
-        .new Redirect('/Education/Lesson/Division');
+        return false;
+//        return new Danger('Die Klassengruppe konnte nicht gelöscht werden, da Personen zugeordnet sind')
+//        .new Redirect('/Education/Lesson/Division');
     }
 
     /**

@@ -49,8 +49,9 @@ class Service
              * Nothing to do
              */
             try {
-                $Youtrack = (new SupportSystem(new YouTrack()))->getSupport();
-                $Form->prependGridGroup($Youtrack->ticketCurrent());
+                /** @var YouTrack $YouTrack */
+                $YouTrack = (new SupportSystem(new YouTrack()))->getSupport();
+                $Form->prependGridGroup($YouTrack->ticketCurrent());
                 return $Form;
             } catch (\Exception $E) {
                 return new Danger('Das Support-System konnte nicht geladen werden');
@@ -60,8 +61,8 @@ class Service
              * Submit Ticket
              */
             try {
-                $Youtrack = (new SupportSystem(new YouTrack()))->getSupport();
-                $Youtrack->createTicket(urldecode($TicketSubject), urldecode($TicketMessage));
+                $YouTrack = (new SupportSystem(new YouTrack()))->getSupport();
+                $YouTrack->createTicket(urldecode($TicketSubject), urldecode($TicketMessage));
                 return new Success('Das Problem wurde erfolgreich dem Support mitgeteilt');
             } catch (\Exception $E) {
                 return new Danger('Das Problem konnte nicht übertragen werden');

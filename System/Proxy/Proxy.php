@@ -1,15 +1,15 @@
 <?php
 namespace SPHERE\System\Proxy;
 
-use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Proxy
  *
  * @package SPHERE\System\Proxy
  */
-class Proxy
+class Proxy extends Extension
 {
 
     /** @var ITypeInterface $Type */
@@ -25,7 +25,7 @@ class Proxy
 
         $this->Type = $Type;
         if ($this->Type->getConfiguration() !== null) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__);
+            $this->getLogger(new BenchmarkLogger())->addLog(__METHOD__);
             $Configuration = parse_ini_file(__DIR__.'/Configuration.ini', true);
             if (isset( $Configuration[$this->Type->getConfiguration()] )) {
                 $this->Type->setConfiguration($Configuration[$this->Type->getConfiguration()]);

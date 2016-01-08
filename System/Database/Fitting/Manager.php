@@ -8,7 +8,6 @@ use Doctrine\ORM\ORMException;
 use Doctrine\ORM\TransactionRequiredException;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
-use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Extension\Extension;
 
@@ -100,7 +99,7 @@ class Manager extends Extension
         /** @var MemcachedHandler $Cache */
         $Cache = $this->getCache(new MemcachedHandler());
         if (preg_match('!Gatekeeper!', $this->Namespace)) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
+            $this->getLogger(new BenchmarkLogger())->addLog(
                 'Manager Full-Slot-Flush '.$Cache->getSlot().' Trigger: '.$this->Namespace
             );
             $KeyList = $Cache->getCache()->getAllKeys();
@@ -115,7 +114,7 @@ class Manager extends Extension
                     /** @var MemcachedHandler $Cache */
                     $KeyList = $Cache->getCache()->getAllKeys();
                     $ClearList = preg_grep("/^".preg_quote($Cache->getSlot()).".*/is", $KeyList);
-                    (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
+                    $this->getLogger(new BenchmarkLogger())->addLog(
                         'Manager Slot-Flush '.$Cache->getSlot().' Trigger: '.$this->Namespace
                     );
                     $Cache->getCache()->deleteMulti($ClearList);
@@ -138,7 +137,7 @@ class Manager extends Extension
                     foreach ($RegionList as $Region) {
                         $ClearList = preg_grep("/^".preg_quote($Region).".*/is", $KeyList);
                         if (!empty( $ClearList ) && substr_count($Region, '\\') > 1) {
-                            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
+                            $this->getLogger(new BenchmarkLogger())->addLog(
                                 'Manager Region-Flush '.$Cache->getSlot().' '.$Region.' Trigger: '.$this->Namespace
                             );
                             $Cache->getCache()->deleteMulti($ClearList);

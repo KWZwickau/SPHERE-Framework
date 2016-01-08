@@ -6,6 +6,7 @@ use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Corporation\Search\Search;
 use SPHERE\Application\IClusterInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -35,11 +36,30 @@ class Corporation implements IClusterInterface
         Group::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Firmen'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Firmen'), new Link\Icon(new Building()))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
+
+        Main::getDispatcher()->registerWidget('Firmen', array(__CLASS__, 'widgetCorporationGroupList'), 4, 6);
+        Main::getDispatcher()->registerWidget('Firmen', array(__CLASS__, 'widgetCorporationCount'));
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetCorporationCount()
+    {
+        $tblCompanyAll = Company::useService()->getCompanyAll();
+        return new Panel('Anzahl an Firmen', 'Insgesamt: ' . count($tblCompanyAll));
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetCorporationGroupList()
+    {
 
         $tblGroupAll = Group::useService()->getGroupAll();
         if ($tblGroupAll) {
@@ -66,12 +86,9 @@ class Corporation implements IClusterInterface
                 $tblGroupAll[$Index] = false;
             }
             $tblGroupAll = array_filter($tblGroupAll);
-            Main::getDispatcher()->registerWidget('Firmen', new Panel('Firmen in Gruppen', $tblGroupAll), 4, 6);
         }
 
-        $tblCompanyAll = Company::useService()->getCompanyAll();
-        Main::getDispatcher()->registerWidget('Firmen',
-            new Panel('Anzahl an Firmen', 'Insgesamt: '.count($tblCompanyAll)));
+        return new Panel('Firmen in Gruppen', $tblGroupAll);
     }
 
     /**

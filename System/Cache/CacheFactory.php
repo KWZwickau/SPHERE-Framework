@@ -4,14 +4,15 @@ namespace SPHERE\System\Cache;
 use SPHERE\System\Cache\Handler\DefaultHandler;
 use SPHERE\System\Cache\Handler\HandlerInterface;
 use SPHERE\System\Config\ConfigInterface;
-use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class CacheFactory
  *
  * @package SPHERE\System\Cache
  */
-class CacheFactory
+class CacheFactory extends Extension
 {
 
     /**
@@ -33,7 +34,7 @@ class CacheFactory
             if (null === $Handler) {
                 $Handler = new DefaultHandler();
             }
-            (new DebuggerFactory())->createLogger()->addLog(__METHOD__.': '.get_class($Handler));
+            $this->getLogger(new BenchmarkLogger())->addLog(__METHOD__ . ': ' . get_class($Handler));
             $this->setHandler($Handler, $Name, $Config);
         }
         return $this->getHandler($Handler);

@@ -37,6 +37,10 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Frontend
+ * @package SPHERE\Application\Billing\Inventory\Commodity
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 
@@ -129,6 +133,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Form
+     */
     public function formCommodity()
     {
 

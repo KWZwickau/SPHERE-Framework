@@ -12,6 +12,10 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
 
+/**
+ * Class Data
+ * @package SPHERE\Application\Billing\Inventory\Item\Service
+ */
 class Data extends AbstractData
 {
 
@@ -122,10 +126,12 @@ class Data extends AbstractData
 
     /**
      * @param TblItem $tblItem
-     * @param         $Name
-     * @param         $Description
-     * @param         $Price
-     * @param         $CostUnit
+     * @param $Name
+     * @param $Description
+     * @param $Price
+     * @param $CostUnit
+     * @param $Course
+     * @param $ChildRank
      *
      * @return bool
      */                         //ToDO $Course, $ChildRank

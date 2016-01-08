@@ -45,6 +45,11 @@ if (false) {
     (new CacheFactory())->createHandler(new SmartyHandler(), $CacheConfig)->clearCache();
 }
 
-Debugger::$Enabled = false;
+$DebuggerConfig = (new ConfigFactory())->createReader(__DIR__ . '/System/Debugger/Configuration.ini', new IniReader());
+if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('Enabled')->getValue()) {
+    Debugger::$Enabled = true;
+} else {
+    Debugger::$Enabled = false;
+}
 
 $Main->runPlatform();

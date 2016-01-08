@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\System\Debugger;
 
+use SPHERE\System\Config\ConfigInterface;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Debugger\Logger\LoggerInterface;
 
@@ -19,17 +20,19 @@ class DebuggerFactory
 
     /**
      * @param LoggerInterface $Logger
+     * @param ConfigInterface $Config
+     * @param string $Name
      *
      * @return LoggerInterface
      */
-    public function createLogger(LoggerInterface $Logger = null)
+    public function createLogger(LoggerInterface $Logger = null, ConfigInterface $Config = null, $Name = 'Debugger')
     {
 
         if (null === $Logger) {
             $Logger = new BenchmarkLogger();
         }
         if (!$this->isAvailable($Logger)) {
-            $this->setLogger($Logger);
+            $this->setLogger($Logger, $Name, $Config);
         }
         return $this->getLogger($Logger);
     }
@@ -58,11 +61,13 @@ class DebuggerFactory
 
     /**
      * @param LoggerInterface $Logger
+     * @param $Name
+     * @param ConfigInterface $Config
      */
-    private function setLogger(LoggerInterface $Logger)
+    private function setLogger(LoggerInterface $Logger, $Name, ConfigInterface $Config = null)
     {
 
-        self::$InstanceCache[$this->getHash($Logger)] = $Logger;
+        self::$InstanceCache[$this->getHash($Logger)] = $Logger->setConfig($Name, $Config);
     }
 
     /**

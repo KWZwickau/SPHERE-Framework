@@ -51,6 +51,9 @@ class Billing implements IClusterInterface
         ));
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendBilling()
     {
 
