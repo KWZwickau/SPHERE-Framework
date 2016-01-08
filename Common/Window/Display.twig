@@ -192,31 +192,33 @@
 
 
 <script>
-    Client.Use('ModAlways', function()
-    {
-        jQuery().ModAlways();
-    });
-    //    var Host = jQuery('<a>').prop('href', window.location).prop('hostname');
-
-    <!-- Piwik -->
+    <!--
+    Piwik -->
     var _paq = _paq || [];
     _paq.push(["setDoNotTrack", true]);
     _paq.push(["disableCookies"]);
     _paq.push(['trackPageView']);
     _paq.push(['enableLinkTracking']);
-    (function()
-    {
-        var u = "/Library/Piwik/";
-        _paq.push(['setTrackerUrl', u + 'piwik.php']);
-        _paq.push(['setSiteId', 1]);
-        var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
-        g.type = 'text/javascript';
-        g.async = true;
-        g.defer = true;
-        g.src = u + 'piwik.js';
-        s.parentNode.insertBefore(g, s);
-    })();
     <!-- End Piwik Code -->
+
+    Client.Use('ModAlways', function()
+    {
+        jQuery().ModAlways();
+        <!-- Piwik -->
+        (function ()
+        {
+            var u = "/Library/Piwik/";
+            _paq.push(['setTrackerUrl', u + 'piwik.php']);
+            _paq.push(['setSiteId', 1]);
+            var d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
+            g.type = 'text/javascript';
+            g.async = true;
+            g.defer = true;
+            g.src = u + 'piwik.js';
+            s.parentNode.insertBefore(g, s);
+        })();
+        <!-- End Piwik Code -->
+    });
 </script>
 </body>
 </html>
