@@ -405,7 +405,7 @@ class Service extends AbstractService
         $tblList = $this->getListById($ListId);
         $tblObjectType = $this->getObjectTypeById($ObjectTypeSelect['Id']);
 
-        return new Redirect('/Reporting/CheckList/Object/Select', 0, array(
+        return new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS, array(
             'ListId'       => $tblList->getId(),
             'ObjectTypeId' => $tblObjectType->getId()
         ));
@@ -520,7 +520,7 @@ class Service extends AbstractService
             }
         }
 
-        return new Redirect('/Reporting/CheckList/Object/Element/Edit', 0, array('Id' => $Id));
+        return new Redirect('/Reporting/CheckList/Object/Element/Edit', Redirect::TIMEOUT_SUCCESS, array('Id' => $Id));
     }
 
     /**

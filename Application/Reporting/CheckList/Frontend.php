@@ -719,7 +719,7 @@ class Frontend extends Extension implements IFrontendInterface
                         . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
                             array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                     } else {
-                        return$Stage . new Danger(new Ban() .
+                        return $Stage . new Danger(new Ban() .
                             ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
                         . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
                             array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
@@ -761,8 +761,9 @@ class Frontend extends Extension implements IFrontendInterface
                         . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
                             array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                     } else {
-                        return new Stage('Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
-                        . new Redirect('/Reporting/CheckList/Object/Select', 3,
+                        return $Stage . new Danger(new Ban() .
+                            ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
+                        . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
                             array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                     }
 
