@@ -46,7 +46,7 @@ class Service
 
         $tblDivision = Division::useService()->getDivisionById($Select['Division']);
 
-        return new Redirect($Redirect, 0, array(
+        return new Redirect($Redirect, Redirect::TIMEOUT_SUCCESS, array(
             'DivisionId' => $tblDivision->getId(),
         ));
     }
