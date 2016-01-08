@@ -1012,13 +1012,13 @@ class Service
                 if ($fatherPhoneList) {
                     foreach ($fatherPhoneList as $phone) {
                         $phoneNumbers[] = $phone->getTblPhone()->getNumber().' '.$phone->getTblType()->getName()
-                            .' V.'.( $phone->getRemark() !== '' ? ' '.$phone->getRemark() : '' );
+                            . $phone->getServiceTblPerson()->getFullName() .( $phone->getRemark() !== '' ? ' '.$phone->getRemark() : '' );
                     }
                 }
                 if ($motherPhoneList) {
                     foreach ($motherPhoneList as $phone) {
                         $phoneNumbers[] = $phone->getTblPhone()->getNumber().' '.$phone->getTblType()->getName()
-                            .' M.'.( $phone->getRemark() !== '' ? ' '.$phone->getRemark() : '' );
+                            . $phone->getServiceTblPerson()->getFullName() .( $phone->getRemark() !== '' ? ' '.$phone->getRemark() : '' );
                     }
                 }
 

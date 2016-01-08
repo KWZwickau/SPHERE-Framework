@@ -1,9 +1,6 @@
 <?php
 namespace SPHERE\Application\Reporting\Custom\Chemnitz\Person;
 
-use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
-use MOC\V\Component\Document\Document;
-use MOC\V\Component\Template\Template;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
