@@ -96,13 +96,15 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item = array(
                         'DisplayName' => new Bold($tblGradeType->getName()),
                         'DisplayCode' => new Bold($tblGradeType->getCode()),
-                        'Category' => new Bold($tblGradeType->getServiceTblTestType()->getName())
+                        'Category' => new Bold($tblGradeType->getServiceTblTestType()->getName()),
+                        'Description' => $tblGradeType->getDescription()
                     );
                 } else {
                     $Item = array(
                         'DisplayName' => $tblGradeType->getName(),
                         'DisplayCode' => $tblGradeType->getCode(),
-                        'Category' => $tblGradeType->getServiceTblTestType()->getName()
+                        'Category' => $tblGradeType->getServiceTblTestType()->getName(),
+                        'Description' => $tblGradeType->getDescription()
                     );
                 }
                 $Item['Option'] = new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit', new Edit(), array(
@@ -122,7 +124,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new TableData($tblGradeTypeAll, null, array(
+                            new TableData($TableContent, null, array(
                                 'Category' => 'Kategorie',
                                 'DisplayName' => 'Name',
                                 'DisplayCode' => 'Abk&uuml;rzung',
