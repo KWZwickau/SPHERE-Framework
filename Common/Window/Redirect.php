@@ -43,7 +43,7 @@ class Redirect extends Extension implements ITemplateInterface
 
         $this->Template = $this->getTemplate(__DIR__.'/Redirect.twig');
         $this->Template->setVariable('Route', '/'.trim($Route, '/').$Data);
-        $this->Template->setVariable('Timeout', $Timeout);
+        $this->Template->setVariable('Timeout', ($Timeout < 1 ? $Timeout = 1 : $Timeout));
         $this->Template->setVariable('UrlBase', $this->getRequest()->getUrlBase());
 
     }
