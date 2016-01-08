@@ -16,14 +16,17 @@ use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -100,27 +103,22 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendSponsorAssociationCreate($SponsorAssociation)
     {
 
-        $Stage = new Stage('Förderverein', 'anlegen');
-
+        $Stage = new Stage('Förderverein', 'Hinzufügen');
+        $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/SponsorAssociation', new ChevronLeft()));
         $Stage->setContent(
-            new Form(
-                new FormGroup(
-                    new FormRow(
-                        new FormColumn(
-                            new Panel(new Standard(new ChevronLeft(),
-                                    '/Setting/Consumer/SponsorAssociation').'Zurück zur Übersicht',
-                                array(),
-                                Panel::PANEL_TYPE_SUCCESS)
-                            , 6)
-                    )
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            SponsorAssociation::useService()->createSponsorAssociation(
+                                $this->formSponsorAssociationCompanyCreate()
+                                    ->appendFormButton(new Primary('Speichern', new Save()))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
+                                $SponsorAssociation
+                            )
+                        ))
+                    ), new Title(new PlusSign().' Hinzufügen')
                 )
-            )
-            .
-            SponsorAssociation::useService()->createSponsorAssociation(
-                $this->formSponsorAssociationCompanyCreate()
-                    ->appendFormButton(new Primary('Förderverein hinzufügen'))
-                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
-                $SponsorAssociation
             )
         );
 
@@ -166,8 +164,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendSponsorAssociationDelete()
     {
 
-        $Stage = new Stage('Förderverein', 'entfernen');
-
+        $Stage = new Stage('Förderverein', 'Entfernen');
+        $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/SponsorAssociation', new ChevronLeft()));
         $tblSponsorAssociationAll = SponsorAssociation::useService()->getSponsorAssociationAll();
         if ($tblSponsorAssociationAll) {
             array_walk($tblSponsorAssociationAll, function (TblSponsorAssociation &$tblSponsorAssociation) {
@@ -276,9 +274,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(new LayoutColumn(array(
                             ( SponsorAssociation::useService()->destroySponsorAssociation($tblSponsorAssociation)
                                 ? new Success('Der Förderverein wurde gelöscht')
-                                .new Redirect('/Setting/Consumer/SponsorAssociation', 0)
+                                .new Redirect('/Setting/Consumer/SponsorAssociation', Redirect::TIMEOUT_SUCCESS)
                                 : new Danger('Der Förderverein konnte nicht gelöscht werden')
-                                .new Redirect('/Setting/Consumer/SponsorAssociation', 10)
+                                .new Redirect('/Setting/Consumer/SponsorAssociation', Redirect::TIMEOUT_ERROR)
                             )
                         )))
                     )))
@@ -289,7 +287,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new Danger('Der Förderverein konnte nicht gefunden werden'),
-                        new Redirect('/Setting/Consumer/SponsorAssociation', 3)
+                        new Redirect('/Setting/Consumer/SponsorAssociation', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );
