@@ -192,19 +192,15 @@
 
 
 <script>
-    <!--
-    Piwik -->
     var _paq = _paq || [];
     _paq.push(["setDoNotTrack", true]);
     _paq.push(["disableCookies"]);
     _paq.push(['trackPageView']);
     _paq.push(['enableLinkTracking']);
-    <!-- End Piwik Code -->
 
     Client.Use('ModAlways', function()
     {
         jQuery().ModAlways();
-        <!-- Piwik -->
         (function ()
         {
             var u = "/Library/Piwik/";
@@ -217,7 +213,6 @@
             g.src = u + 'piwik.js';
             s.parentNode.insertBefore(g, s);
         })();
-        <!-- End Piwik Code -->
     });
 </script>
 </body>
