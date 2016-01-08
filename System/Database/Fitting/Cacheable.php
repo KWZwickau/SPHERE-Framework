@@ -7,7 +7,6 @@ use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Config\ConfigFactory;
 use SPHERE\System\Config\Reader\IniReader;
-use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Extension\Extension;
 
@@ -58,7 +57,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $Entity, 0, $__METHOD__);
             return ( null === $Entity || false === $Entity ? false : $Entity );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory (Id) '.$EntityName.' '.$__METHOD__.' > '.$Id);
+        $this->getLogger(new BenchmarkLogger())->addLog('Memory (Id) ' . $EntityName . ' ' . $__METHOD__ . ' > ' . $Id);
         return ( null === $Entity || false === $Entity ? false : $Entity );
     }
 
@@ -100,7 +99,7 @@ abstract class Cacheable extends Extension
     {
 
         if ($this->useDebugger()) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
+            $this->getLogger(new BenchmarkLogger())->addLog(
                 'System: '.$__METHOD__.' ['.$Type.']'
             );
         }
@@ -136,7 +135,7 @@ abstract class Cacheable extends Extension
     {
 
         if ($this->useDebugger()) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
+            $this->getLogger(new BenchmarkLogger())->addLog(
                 'Factory: '.$__METHOD__.' ['.implode('], [', (array)$Parameter).'] Result: '.(
                 $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
             );
@@ -152,7 +151,7 @@ abstract class Cacheable extends Extension
     {
 
         if ($this->useDebugger()) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
+            $this->getLogger(new BenchmarkLogger())->addLog(
                 'Cache: '.$__METHOD__.' ['.implode('], [', (array)$Parameter).'] Result: '.(
                 $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
             );
@@ -191,7 +190,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $Entity, 0, $__METHOD__);
             return ( null === $Entity || false === $Entity ? false : $Entity );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory (Criteria) '.$EntityName.' '.$__METHOD__);
+        $this->getLogger(new BenchmarkLogger())->addLog('Memory (Criteria) ' . $EntityName . ' ' . $__METHOD__);
         return ( null === $Entity || false === $Entity ? false : $Entity );
     }
 
@@ -224,7 +223,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $EntityList, 0, $__METHOD__);
             return ( empty( $EntityList ) ? false : $EntityList );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory-List (Criteria) '.$EntityName.' '.$__METHOD__);
+        $this->getLogger(new BenchmarkLogger())->addLog('Memory-List (Criteria) ' . $EntityName . ' ' . $__METHOD__);
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -256,7 +255,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $EntityList, 0, $__METHOD__);
             return ( empty( $EntityList ) ? false : $EntityList );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory-List '.$EntityName.' '.$__METHOD__);
+        $this->getLogger(new BenchmarkLogger())->addLog('Memory-List ' . $EntityName . ' ' . $__METHOD__);
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -292,7 +291,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $Entity, 0, $__METHOD__);
             return ( null === $Entity || false === $Entity ? false : $Entity );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory (Criteria) '.$EntityName.' '.$__METHOD__);
+        $this->getLogger(new BenchmarkLogger())->addLog('Memory (Criteria) ' . $EntityName . ' ' . $__METHOD__);
         return ( null === $Entity || false === $Entity ? false : $Entity );
     }
 }

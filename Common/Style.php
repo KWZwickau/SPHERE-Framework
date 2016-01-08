@@ -4,7 +4,6 @@ namespace SPHERE\Common;
 use MOC\V\Core\HttpKernel\Vendor\Universal\Request;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\MyAccount\MyAccount;
-use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Extension\Extension;
 
@@ -223,7 +222,7 @@ class Style extends Extension
                 }
                 $Result .= "\n\n".$Content;
             } else {
-                (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('Style not found '.$Location);
+                $this->getLogger(new ErrorLogger())->addLog('Style not found ' . $Location);
             }
         });
         return $Result;

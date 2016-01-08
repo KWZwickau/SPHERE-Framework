@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\System\Debugger\Logger;
 
+use SPHERE\System\Config\Reader\ReaderInterface;
+
 /**
  * Class AbstractLogger
  *
@@ -48,6 +50,25 @@ abstract class AbstractLogger implements LoggerInterface
     }
 
     /**
+     * @param string $Name
+     * @param ReaderInterface $Config
+     *
+     * @return LoggerInterface
+     */
+    public function setConfig($Name, ReaderInterface $Config = null)
+    {
+        if ($Config) {
+            $Value = $Config->getValue($Name);
+            if ($Value->getContainer('Enabled')->getValue()) {
+                $this->enableLog();
+            } else {
+                $this->disableLog();
+            }
+        }
+        return $this;
+    }
+
+    /**
      * @return LoggerInterface
      */
     public function enableLog()
@@ -66,4 +87,6 @@ abstract class AbstractLogger implements LoggerInterface
         $this->LogEnabled = false;
         return $this;
     }
+
+
 }

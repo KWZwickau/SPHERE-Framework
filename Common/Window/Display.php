@@ -11,10 +11,10 @@ use SPHERE\Common\Script;
 use SPHERE\Common\Style;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
-use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Display
@@ -288,18 +288,26 @@ class Display extends Extension implements ITemplateInterface
 
         $Debug = $this->getDebugger();
         $Runtime = $Debug->getRuntime();
-        $Protocol = $Debug->getProtocol();
-        if (!empty( $Protocol )) {
-            $this->Template->setVariable('DebuggerProtocol',
-                (new Accordion())
-//                    ->addItem('Debug Protocol ' . $Runtime, $Protocol)
-                    ->addItem('Debugger (Benchmark)',
-                        implode('<br/>', (new DebuggerFactory())->createLogger(new BenchmarkLogger())->getLog())
-                        , true)
-                    ->addItem('Debugger (Error)',
-                        implode('<br/>', (new DebuggerFactory())->createLogger(new ErrorLogger())->getLog())
-                        , true)
-            );
+
+        if (Debugger::$Enabled) {
+            $Debugger = new Accordion();
+            $ProtocolBenchmark = $this->getLogger(new BenchmarkLogger())->getLog();
+            if (!empty($ProtocolBenchmark)) {
+                $Debugger->addItem('Debugger (Benchmark)',
+                    implode('<br/>', $this->getLogger(new BenchmarkLogger())->getLog())
+                    , true);
+            }
+            $ProtocolError = $this->getLogger(new ErrorLogger())->getLog();
+            if (!empty($ProtocolError)) {
+                $Debugger->addItem('Debugger (Error)',
+                    implode('<br/>', $this->getLogger(new ErrorLogger())->getLog())
+                    , true);
+            }
+            $Protocol = $Debug->getProtocol();
+            if (!empty($Protocol)) {
+                $Debugger->addItem('Debug Protocol ' . $Runtime, $Protocol);
+            }
+            $this->Template->setVariable('DebuggerProtocol', $Debugger);
         }
         $this->Template->setVariable('DebuggerHost', gethostname());
         $this->Template->setVariable('DebuggerRuntime', $Runtime);

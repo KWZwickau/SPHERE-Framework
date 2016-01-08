@@ -42,6 +42,25 @@ class Corporation implements IClusterInterface
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
 
+        Main::getDispatcher()->registerWidget('Firmen', array(__CLASS__, 'widgetCorporationGroupList'), 4, 6);
+        Main::getDispatcher()->registerWidget('Firmen', array(__CLASS__, 'widgetCorporationCount'));
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetCorporationCount()
+    {
+        $tblCompanyAll = Company::useService()->getCompanyAll();
+        return new Panel('Anzahl an Firmen', 'Insgesamt: ' . count($tblCompanyAll));
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetCorporationGroupList()
+    {
+
         $tblGroupAll = Group::useService()->getGroupAll();
         if ($tblGroupAll) {
             /** @var TblGroup $tblGroup */
@@ -67,12 +86,9 @@ class Corporation implements IClusterInterface
                 $tblGroupAll[$Index] = false;
             }
             $tblGroupAll = array_filter($tblGroupAll);
-            Main::getDispatcher()->registerWidget('Firmen', new Panel('Firmen in Gruppen', $tblGroupAll), 4, 6);
         }
 
-        $tblCompanyAll = Company::useService()->getCompanyAll();
-        Main::getDispatcher()->registerWidget('Firmen',
-            new Panel('Anzahl an Firmen', 'Insgesamt: '.count($tblCompanyAll)));
+        return new Panel('Firmen in Gruppen', $tblGroupAll);
     }
 
     /**

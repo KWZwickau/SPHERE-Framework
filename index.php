@@ -33,13 +33,6 @@ AutoLoader::getNamespaceAutoLoader('MOC\V', __DIR__ . '/Library/MOC-V');
 AutoLoader::getNamespaceAutoLoader('SPHERE', __DIR__ . '/', 'SPHERE');
 AutoLoader::getNamespaceAutoLoader('Markdownify', __DIR__ . '/Library/Markdownify/2.1.6/src');
 
-$DebuggerConfig = (new ConfigFactory())->createReader(__DIR__ . '/System/Debugger/Configuration.ini', new IniReader());
-if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('Enabled')->getValue()) {
-    Debugger::$Enabled = true;
-} else {
-    Debugger::$Enabled = false;
-}
-
 $Main = new Main();
 
 if (false) {
@@ -50,6 +43,13 @@ if (false) {
     (new CacheFactory())->createHandler(new OpCacheHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new TwigHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new SmartyHandler(), $CacheConfig)->clearCache();
+}
+
+$DebuggerConfig = (new ConfigFactory())->createReader(__DIR__ . '/System/Debugger/Configuration.ini', new IniReader());
+if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('Enabled')->getValue()) {
+    Debugger::$Enabled = true;
+} else {
+    Debugger::$Enabled = false;
 }
 
 $Main->runPlatform();

@@ -46,6 +46,24 @@ class People implements IClusterInterface
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
 
+        Main::getDispatcher()->registerWidget('Personen', array(__CLASS__, 'widgetPersonGroupList'), 4, 6);
+        Main::getDispatcher()->registerWidget('Personen', array(__CLASS__, 'widgetPersonCount'));
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetPersonCount()
+    {
+        return new Panel('Anzahl an Personen', 'Insgesamt: ' . Person::useService()->countPersonAll());
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetPersonGroupList()
+    {
+
         $tblGroupAll = Group::useService()->getGroupAll();
         if ($tblGroupAll) {
             /** @var TblGroup $tblGroup */
@@ -71,12 +89,9 @@ class People implements IClusterInterface
                 $tblGroupAll[$Index] = false;
             }
             $tblGroupAll = array_filter($tblGroupAll);
-            Main::getDispatcher()->registerWidget('Personen', new Panel('Personen in Gruppen', $tblGroupAll), 4, 6);
         }
 
-        Main::getDispatcher()->registerWidget('Personen',
-            new Panel('Anzahl an Personen', 'Insgesamt: '.Person::useService()->countPersonAll())
-        );
+        return new Panel('Personen in Gruppen', $tblGroupAll);
     }
 
     /**

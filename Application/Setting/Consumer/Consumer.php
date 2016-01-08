@@ -48,6 +48,16 @@ class Consumer implements IApplicationInterface
             __NAMESPACE__, 'Consumer::frontendDashboard'
         ));
 
+        Main::getDispatcher()->registerWidget('Consumer', array(__CLASS__, 'widgetSchool'), 2, 2);
+        Main::getDispatcher()->registerWidget('Consumer', array(__CLASS__, 'widgetResponsibility'), 2, 2);
+        Main::getDispatcher()->registerWidget('Consumer', array(__CLASS__, 'widgetSponsorAssociation'), 2, 2);
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetSchool()
+    {
         $tblSchoolAll = School::useService()->getSchoolAll();
         if ($tblSchoolAll) {
             /** @var TblSchool $tblSchool */
@@ -67,6 +77,24 @@ class Consumer implements IApplicationInterface
             $tblSchoolAll = new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Warning('Kein Eintrag',
                 new Remove())))));
         }
+
+        if (empty($tblSchoolAll)) {
+            $tblSchoolAll = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(array(
+                    new Muted('Kein Eintrag'),
+                    new PullRight(new Standard(new Pencil(), '/Setting/Consumer/School/Create'))
+                ), 12),
+            ))));
+        }
+
+        return new Panel('Schule', $tblSchoolAll);
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetResponsibility()
+    {
         $tblResponsibilityAll = Responsibility::useService()->getResponsibilityAll();
         if ($tblResponsibilityAll) {
             /** @var TblResponsibility $tblResponsibility */
@@ -86,6 +114,23 @@ class Consumer implements IApplicationInterface
             $tblResponsibilityAll = new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Warning('Kein Eintrag',
                 new Remove())))));
         }
+
+        if (empty($tblResponsibilityAll)) {
+            $tblResponsibilityAll = new Layout(new LayoutGroup(new LayoutRow(array(
+                new LayoutColumn(array(
+                    new Muted('Kein Eintrag'),
+                    new PullRight(new Standard(new Pencil(), '/Setting/Consumer/Responsibility/Create'))
+                ), 12),
+            ))));
+        }
+        return new Panel('Schulträger', $tblResponsibilityAll);
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetSponsorAssociation()
+    {
         $tblSponsorAssociationAll = SponsorAssociation::useService()->getSponsorAssociationAll();
         if ($tblSponsorAssociationAll) {
             /** @var TblSponsorAssociation $tblSponsorAssociation */
@@ -105,22 +150,7 @@ class Consumer implements IApplicationInterface
             $tblSponsorAssociationAll = new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(new Warning('Kein Eintrag',
                 new Remove())))));
         }
-        if (empty( $tblSchoolAll )) {
-            $tblSchoolAll = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(array(
-                    new Muted('Kein Eintrag'),
-                    new PullRight(new Standard(new Pencil(), '/Setting/Consumer/School/Create'))
-                ), 12),
-            ))));
-        }
-        if (empty( $tblResponsibilityAll )) {
-            $tblResponsibilityAll = new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(array(
-                    new Muted('Kein Eintrag'),
-                    new PullRight(new Standard(new Pencil(), '/Setting/Consumer/Responsibility/Create'))
-                ), 12),
-            ))));
-        }
+
         if (empty( $tblSponsorAssociationAll )) {
             $tblSponsorAssociationAll = new Layout(new LayoutGroup(new LayoutRow(array(
                 new LayoutColumn(array(
@@ -129,13 +159,7 @@ class Consumer implements IApplicationInterface
                 ), 12),
             ))));
         }
-
-        Main::getDispatcher()->registerWidget('Consumer',
-            new Panel('Schule', $tblSchoolAll), 2, 2);
-        Main::getDispatcher()->registerWidget('Consumer',
-            new Panel('Schulträger', $tblResponsibilityAll), 2, 2);
-        Main::getDispatcher()->registerWidget('Consumer',
-            new Panel('Förderverein', $tblSponsorAssociationAll), 2, 2);
+        return new Panel('Förderverein', $tblSponsorAssociationAll);
     }
 
     /**
