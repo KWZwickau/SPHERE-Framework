@@ -52,7 +52,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -652,8 +652,8 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage;
         } else {
 
-            return new Warning('Test nicht gefunden')
-            . new Redirect($BasicRoute, 2);
+            return new Danger(new Ban() . ' Test nicht gefunden')
+            . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
         }
     }
 
@@ -711,8 +711,8 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage;
         } else {
 
-            return new Warning('Test nicht gefunden')
-            . new Redirect('/Education/Graduation/Evaluation/Test', 2);
+            return new Danger(new Ban() . ' Test nicht gefunden')
+            . new Redirect('/Education/Graduation/Evaluation/Test', Redirect::TIMEOUT_ERROR);
         }
     }
 
@@ -1065,8 +1065,8 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage;
         } else {
 
-            return new Warning('Test nicht gefunden')
-            . new Redirect('/Education/Graduation/Evaluation/Headmaster/Test', 2);
+            return new Danger(new Ban() . ' Test nicht gefunden')
+            . new Redirect('/Education/Graduation/Evaluation/Headmaster/Test', Redirect::TIMEOUT_ERROR);
         }
     }
 
@@ -1231,8 +1231,8 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             );
         } else {
-            $Stage .= new Warning('Stichtagsauftrag nicht gefunden.')
-                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', 3);
+            $Stage .= new Danger(new Ban() . ' Stichtagsauftrag nicht gefunden.')
+                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_ERROR);
         }
 
         return $Stage;
@@ -1351,8 +1351,8 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             );
         } else {
-            $Stage .= new Warning('Notenauftrag nicht gefunden.', new Ban())
-                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/', 3);
+            $Stage .= new Danger('Notenauftrag nicht gefunden.', new Ban())
+                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/', Redirect::TIMEOUT_ERROR);
         }
 
         return $Stage;
@@ -1394,15 +1394,15 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
                 . new \SPHERE\Common\Frontend\Message\Repository\Success('Klasse erfolgreich hinzugefügt.',
                     new \SPHERE\Common\Frontend\Icon\Repository\Success())
-                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/Division', 1, array(
+                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/Division', Redirect::TIMEOUT_SUCCESS, array(
                     'Id' => $TaskId
                 ))
             );
         } else {
             $Stage->setContent(
-                (!$tblTask ? new Warning('Notenauftrag nicht gefunden.', new Ban()) : '')
-                . (!$tblDivision ? new Warning('Klasse nicht gefunden.', new Ban()) : '')
-                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/Division', 3, array(
+                (!$tblTask ? new Danger('Notenauftrag nicht gefunden.', new Ban()) : '')
+                . (!$tblDivision ? new Danger('Klasse nicht gefunden.', new Ban()) : '')
+                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/Division', Redirect::TIMEOUT_ERROR, array(
                     'Id' => $TaskId
                 ))
             );
@@ -1447,15 +1447,15 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
                 . new \SPHERE\Common\Frontend\Message\Repository\Success('Klasse erfolgreich entfernt.',
                     new \SPHERE\Common\Frontend\Icon\Repository\Success())
-                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/Division', 1, array(
+                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/Division', Redirect::TIMEOUT_SUCCESS, array(
                     'Id' => $TaskId
                 ))
             );
         } else {
             $Stage->setContent(
-                (!$tblTask ? new Warning('Notenauftrag nicht gefunden.', new Ban()) : '')
-                . (!$tblDivision ? new Warning('Klasse nicht gefunden.', new Ban()) : '')
-                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/Division', 3, array(
+                (!$tblTask ? new Danger('Notenauftrag nicht gefunden.', new Ban()) : '')
+                . (!$tblDivision ? new Danger('Klasse nicht gefunden.', new Ban()) : '')
+                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task/Division', Redirect::TIMEOUT_ERROR, array(
                     'Id' => $TaskId
                 ))
             );
@@ -1644,8 +1644,8 @@ class Frontend extends Extension implements IFrontendInterface
                 . new Layout($tableList)
             );
         } else {
-            $Stage .= new Warning('Notenauftrag nicht gefunden.', new Ban())
-                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', 3);
+            $Stage .= new Danger(' Notenauftrag nicht gefunden.', new Ban())
+                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_ERROR);
         }
 
         return $Stage;

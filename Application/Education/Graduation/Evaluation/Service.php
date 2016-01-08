@@ -24,7 +24,6 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -169,8 +168,8 @@ class Service extends AbstractService
             $Test['ReturnDate']
         );
 
-        return new Stage('Der Test ist erfasst worden')
-        . new Redirect($BasicRoute . '/Selected', 0,
+        return new Success('Der Test ist erfasst worden', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+        . new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_SUCCESS,
             array('DivisionSubjectId' => $tblDivisionSubject->getId()));
 
     }
@@ -219,7 +218,8 @@ class Service extends AbstractService
             $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
         );
 
-        return new Redirect($BasicRoute . '/Selected', 0,
+        return new Success('Test erfolgreich geändert.', new \SPHERE\Common\Frontend\Icon\Repository\Success()) .
+            new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_SUCCESS,
             array('DivisionSubjectId' => $tblDivisionSubject->getId()));
     }
 
@@ -274,8 +274,8 @@ class Service extends AbstractService
                 $tblTestType, $Task['Name'], $Task['Date'], $Task['FromDate'],
                 $Task['ToDate']
             );
-            $Stage .= new Success('Notenauftrag erfolgreich angelegt')
-                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', 0);
+            $Stage .= new Success('Notenauftrag erfolgreich angelegt', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+                . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
@@ -319,8 +319,8 @@ class Service extends AbstractService
             $Task['ToDate']
         );
 
-        $Stage .= new Success('Notenauftrag erfolgreich geändert')
-            . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', 1);
+        $Stage .= new Success('Notenauftrag erfolgreich geändert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_SUCCESS);
 
         return $Stage;
     }
