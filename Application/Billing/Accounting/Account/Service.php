@@ -12,6 +12,10 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
+/**
+ * Class Service
+ * @package SPHERE\Application\Billing\Accounting\Account
+ */
 class Service extends AbstractService
 {
 

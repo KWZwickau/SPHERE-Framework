@@ -32,7 +32,7 @@
                     col: Grid.col,
                     row: Grid.row,
                     size_x: Grid.size_x,
-                    size_y: Grid.size_y,
+                    size_y: Grid.size_y
                 };
             },
             draggable: {

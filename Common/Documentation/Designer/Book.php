@@ -148,11 +148,19 @@ class Book extends Extension
     /**
      * @param string $Title
      * @param string $Description
+     * @param bool   $useNumber
      *
      * @return Chapter
      */
-    public function createChapter($Title, $Description)
+    public function createChapter($Title, $Description, $useNumber = false)
     {
+
+        // Automatic Chapter Number
+        if ($useNumber) {
+            $NumberList = range('A', 'Z', 1);
+            $Number = $NumberList[count($this->Directory) - 1];
+            $Title = $Number.'. '.$Title;
+        }
 
         $Chapter = new Chapter($Title, $Description);
         if (!Book::getCurrentChapter()) {
@@ -164,7 +172,7 @@ class Book extends Extension
         } else {
             array_push(
                 $this->Directory,
-                new Link($Title.' '.new Muted($Description), '/Manual/StyleBook', new TileBig(),
+                new Link($Title.' '.new Muted($Description), $this->getRequest()->getPathInfo(), new TileBig(),
                     array('Chapter' => $Chapter->getHash())
                 )
             );

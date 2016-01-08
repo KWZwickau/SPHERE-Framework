@@ -9,6 +9,10 @@ use SPHERE\Application\IApplicationInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
+/**
+ * Class Accounting
+ * @package SPHERE\Application\Billing\Accounting
+ */
 class Accounting implements IApplicationInterface
 {
 

@@ -35,6 +35,23 @@ class Course implements IModuleInterface
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
 
+        Main::getDispatcher()->registerWidget('School-Course', array(__CLASS__, 'widgetCourse'), 3, 3);
+    }
+
+    /**
+     * @return Frontend
+     */
+    public static function useFrontend()
+    {
+
+        return new Frontend();
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetCourse()
+    {
         $tblCourseAll = self::useService()->getCourseAll();
         if ($tblCourseAll) {
             /** @var TblCourse $tblCourse */
@@ -43,15 +60,14 @@ class Course implements IModuleInterface
                     new Layout(new LayoutGroup(new LayoutRow(array(
                         new LayoutColumn(
                             $tblCourse->getName()
-                            .new Muted(new Small('<br/>'.$tblCourse->getDescription()))
+                            . new Muted(new Small('<br/>' . $tblCourse->getDescription()))
                         ),
                     ))));
                 $tblCourseAll[$Index] = false;
             }
             $tblCourseAll = array_filter($tblCourseAll);
-            Main::getDispatcher()->registerWidget('School-Course', new Panel('Bildungsgänge verfügbar', $tblCourseAll),
-                3, 3);
         }
+        return new Panel('Bildungsgänge verfügbar', $tblCourseAll);
     }
 
     /**
@@ -62,17 +78,8 @@ class Course implements IModuleInterface
 
         return new Service(
             new Identifier('Education', 'School', 'Course', null, Consumer::useService()->getConsumerBySession()),
-            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
+            __DIR__ . '/Service/Entity', __NAMESPACE__ . '\Service\Entity'
         );
-    }
-
-    /**
-     * @return Frontend
-     */
-    public static function useFrontend()
-    {
-
-        return new Frontend();
     }
 
     /**

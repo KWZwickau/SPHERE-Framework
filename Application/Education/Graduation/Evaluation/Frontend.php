@@ -491,7 +491,8 @@ class Frontend extends Extension implements IFrontendInterface
     private function formTest(TblYear $tblYear)
     {
 
-        $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllWhereTest();
+        $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
+        $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
         $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
 
         return new Form(new FormGroup(array(
@@ -1585,7 +1586,8 @@ class Frontend extends Extension implements IFrontendInterface
                             // calc Average
                             foreach ($studentList[$tblDivision->getId()] as $personId => $studentListByDivision) {
                                 $tblPerson = Person::useService()->getPersonById($personId);
-                                $tblGradeTypeAllWhereBehavior = Gradebook::useService()->getGradeTypeAllWhereBehavior();
+                                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
+                                $tblGradeTypeAllWhereBehavior = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
                                 if ($tblPerson && $tblGradeTypeAllWhereBehavior) {
                                     foreach ($tblGradeTypeAllWhereBehavior as $tblGradeType) {
                                         $gradeTypeId = $tblGradeType->getId();
@@ -1652,12 +1654,51 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param TblDivision $tblDivision
      * @param TblTest $tblTest
+     * @param TblSubject $tblSubject
+     * @param TblPerson $tblPerson
+     * @param $studentList
+     * @return $studentList
+     */
+    private function setTableContentForAppointedDateTask(
+        TblDivision $tblDivision,
+        TblTest $tblTest,
+        TblSubject $tblSubject,
+        TblPerson $tblPerson,
+        $studentList
+    )
+    {
+        $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
+            $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName();
+        $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
+            $tblPerson);
+        if ($tblGrade) {
+            $studentList[$tblDivision->getId()][$tblPerson->getId()]
+            ['Subject' . $tblSubject->getId()] = $tblGrade->getGrade() !== null ?
+                $tblGrade->getGrade() : '';
+            return $studentList;
+        } else {
+            $studentList[$tblDivision->getId()][$tblPerson->getId()]
+            ['Subject' . $tblSubject->getId()] =
+                new \SPHERE\Common\Frontend\Text\Repository\Warning('fehlt');
+            return $studentList;
+        }
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblTest $tblTest
      * @param TblPerson $tblPerson
      * @param $studentList
      * @param $grades
      * @return array
      */
-    private function setTableContentForBehaviourTask(TblDivision $tblDivision, TblTest $tblTest, TblPerson $tblPerson, $studentList, $grades)
+    private function setTableContentForBehaviourTask(
+        TblDivision $tblDivision,
+        TblTest $tblTest,
+        TblPerson $tblPerson,
+        $studentList,
+        $grades
+    )
     {
         $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
             $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName();
@@ -1695,33 +1736,6 @@ class Frontend extends Extension implements IFrontendInterface
             $studentList[$tblDivision->getId()][$tblPerson->getId()]
             ['Type' . $gradeTypeId] .= new Small(new Small(' | ' . $gradeText));
             return array($studentList, $grades);
-        }
-    }
-
-    /**
-     * @param TblDivision $tblDivision
-     * @param TblTest $tblTest
-     * @param TblSubject $tblSubject
-     * @param TblPerson $tblPerson
-     * @param $studentList
-     * @return $studentList
-     */
-    private function setTableContentForAppointedDateTask(TblDivision $tblDivision, TblTest $tblTest, TblSubject $tblSubject, TblPerson $tblPerson, $studentList)
-    {
-        $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
-            $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName();
-        $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
-            $tblPerson);
-        if ($tblGrade) {
-            $studentList[$tblDivision->getId()][$tblPerson->getId()]
-            ['Subject' . $tblSubject->getId()] = $tblGrade->getGrade() !== null ?
-                $tblGrade->getGrade() : '';
-            return $studentList;
-        } else {
-            $studentList[$tblDivision->getId()][$tblPerson->getId()]
-            ['Subject' . $tblSubject->getId()] =
-                new \SPHERE\Common\Frontend\Text\Repository\Warning('fehlt');
-            return $studentList;
         }
     }
 }

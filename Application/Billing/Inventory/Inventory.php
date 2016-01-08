@@ -8,6 +8,10 @@ use SPHERE\Application\IApplicationInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
+/**
+ * Class Inventory
+ * @package SPHERE\Application\Billing\Inventory
+ */
 class Inventory implements IApplicationInterface
 {
 

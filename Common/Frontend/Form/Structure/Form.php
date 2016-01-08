@@ -242,7 +242,7 @@ class Form extends Extension implements IFormInterface
                     $G = serialize($G);
                 }
             });
-            $this->Hash = sha1(json_encode($GroupList));
+            $this->Hash = md5(json_encode($GroupList));
         }
         return $this->Hash;
     }

@@ -1732,6 +1732,11 @@ class Frontend extends Extension implements IFrontendInterface
 //        return $Stage;
 //    }
 
+    /**
+     * @param int $Id
+     * @param bool|false $Confirm
+     * @return Stage|string
+     */
     public function frontendDivisionDestroy($Id, $Confirm = false)
     {
 

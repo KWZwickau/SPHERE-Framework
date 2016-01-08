@@ -2,7 +2,6 @@
 namespace SPHERE\System\Authenticator\Type;
 
 use SPHERE\System\Authenticator\ITypeInterface;
-use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Extension\Extension;
 
@@ -58,7 +57,7 @@ class Post extends Extension implements ITypeInterface
     {
 
         // MUST NOT USE
-        (new DebuggerFactory())->createLogger(new ErrorLogger())
+        $this->getLogger(new ErrorLogger())
             ->addLog(__METHOD__.' Error: SIGNATURE - MUST NOT BE USED!');
         return array();
     }

@@ -6,6 +6,10 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Main;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class Item
+ * @package SPHERE\Application\Billing\Inventory\Item
+ */
 class Item implements IModuleInterface
 {
 

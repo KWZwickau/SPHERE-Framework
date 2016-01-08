@@ -11,10 +11,10 @@ use SPHERE\Common\Script;
 use SPHERE\Common\Style;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
-use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Display
@@ -239,7 +239,7 @@ class Display extends Extension implements ITemplateInterface
                 .( isset( $Trace['line'] ) ? '<br/>Line: '.$Trace['line'] : '<br/>Line: ' )
                 .'</samp>');
         }
-        $Hit = '<samp class="text-danger"><p class="h6">'.nl2br($Exception->getMessage()).'</p><br/>File: '.$Exception->getFile().'<br/>Line: '.$Exception->getLine().'</samp>'.$TraceList;
+        $Hit = '<samp class="text-danger"><div class="h6">' . nl2br($Exception->getMessage()) . '</div>File: ' . $Exception->getFile() . '<br/>Line: ' . $Exception->getLine() . '</samp>' . $TraceList;
         $this->addContent(new Error(
             $Exception->getCode() == 0 ? $Name : $Exception->getCode(), $Hit
         ));
@@ -288,18 +288,26 @@ class Display extends Extension implements ITemplateInterface
 
         $Debug = $this->getDebugger();
         $Runtime = $Debug->getRuntime();
-        $Protocol = $Debug->getProtocol();
-        if (!empty( $Protocol )) {
-            $this->Template->setVariable('DebuggerProtocol',
-                (new Accordion())
-//                    ->addItem('Debug Protocol ' . $Runtime, $Protocol)
-                    ->addItem('Debugger (Benchmark)',
-                        implode('<br/>', (new DebuggerFactory())->createLogger(new BenchmarkLogger())->getLog())
-                        , true)
-                    ->addItem('Debugger (Error)',
-                        implode('<br/>', (new DebuggerFactory())->createLogger(new ErrorLogger())->getLog())
-                        , true)
-            );
+
+        if (Debugger::$Enabled) {
+            $Debugger = new Accordion();
+            $ProtocolBenchmark = $this->getLogger(new BenchmarkLogger())->getLog();
+            if (!empty($ProtocolBenchmark)) {
+                $Debugger->addItem('Debugger (Benchmark)',
+                    implode('<br/>', $this->getLogger(new BenchmarkLogger())->getLog())
+                    , true);
+            }
+            $ProtocolError = $this->getLogger(new ErrorLogger())->getLog();
+            if (!empty($ProtocolError)) {
+                $Debugger->addItem('Debugger (Error)',
+                    implode('<br/>', $this->getLogger(new ErrorLogger())->getLog())
+                    , true);
+            }
+            $Protocol = $Debug->getProtocol();
+            if (!empty($Protocol)) {
+                $Debugger->addItem('Debug Protocol ' . $Runtime, $Protocol);
+            }
+            $this->Template->setVariable('DebuggerProtocol', $Debugger);
         }
         $this->Template->setVariable('DebuggerHost', gethostname());
         $this->Template->setVariable('DebuggerRuntime', $Runtime);
@@ -331,22 +339,6 @@ class Display extends Extension implements ITemplateInterface
         return $this->Template->getContent();
     }
 
-    private function formatBytes($Bytes, $usePrecision = 2)
-    {
-
-        $UnitList = array('B', 'KB', 'MB', 'GB', 'TB');
-
-        $Bytes = max($Bytes, 0);
-        $Power = floor(( $Bytes ? log($Bytes) : 0 ) / log(1024));
-        $Power = min($Power, count($UnitList) - 1);
-
-        // Uncomment one of the following alternatives
-        $Bytes /= pow(1024, $Power);
-        // $bytes /= (1 << (10 * $pow));
-
-        return round($Bytes, $usePrecision).' '.$UnitList[$Power];
-    }
-
     /**
      * @param $Content
      *
@@ -357,5 +349,24 @@ class Display extends Extension implements ITemplateInterface
 
         $this->Content = array($Content);
         return $this;
+    }
+
+    /**
+     * @param $Bytes
+     * @param int $usePrecision
+     * @return string
+     */
+    private function formatBytes($Bytes, $usePrecision = 2)
+    {
+
+        $UnitList = array('B', 'KB', 'MB', 'GB', 'TB');
+
+        $Bytes = max($Bytes, 0);
+        $Power = floor(( $Bytes ? log($Bytes) : 0 ) / log(1024));
+        $Power = min($Power, count($UnitList) - 1);
+
+        $Bytes /= pow(1024, $Power);
+
+        return round($Bytes, $usePrecision).' '.$UnitList[$Power];
     }
 }

@@ -18,6 +18,10 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Session
+ * @package SPHERE\Application\Platform\System\Session
+ */
 class Session extends Extension implements IModuleInterface
 {
     public static function registerModule()
@@ -48,6 +52,9 @@ class Session extends Extension implements IModuleInterface
         // TODO: Implement useFrontend() method.
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendSession()
     {
         $Stage = new Stage('Aktive Sessions', 'der aktuell angemeldete Benutzer');

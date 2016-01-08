@@ -5,7 +5,8 @@ use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\HandlerInterface;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
-use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Config\ConfigFactory;
+use SPHERE\System\Config\Reader\IniReader;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Extension\Extension;
 
@@ -21,8 +22,8 @@ abstract class Cacheable extends Extension
     private static $CacheSystem = null;
     /** @var bool $Enabled */
     private $Enabled = true;
-    /** @var bool $Debug */
-    private $Debug = false;
+    /** @var null|bool $Debug */
+    private $Debug = null;
 
     /**
      * @param string  $__METHOD__ Initiator
@@ -56,7 +57,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $Entity, 0, $__METHOD__);
             return ( null === $Entity || false === $Entity ? false : $Entity );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory (Id) '.$EntityName.' '.$__METHOD__.' > '.$Id);
+        $this->getLogger(new BenchmarkLogger())->addLog('Memory (Id) ' . $EntityName . ' ' . $__METHOD__ . ' > ' . $Id);
         return ( null === $Entity || false === $Entity ? false : $Entity );
     }
 
@@ -72,7 +73,7 @@ abstract class Cacheable extends Extension
         if (is_object($Parameter)) {
             $Parameter = json_decode(json_encode($Parameter), true);
         }
-        return sha1($EntityName.':'.implode('#', (array)$Parameter));
+        return md5($EntityName . ':' . implode('#', (array)$Parameter));
     }
 
     /**
@@ -97,11 +98,32 @@ abstract class Cacheable extends Extension
     private function debugSystem($__METHOD__, $Type)
     {
 
-        if ($this->Debug) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
+        if ($this->useDebugger()) {
+            $this->getLogger(new BenchmarkLogger())->addLog(
                 'System: '.$__METHOD__.' ['.$Type.']'
             );
         }
+    }
+
+    /**
+     * @return bool|null
+     */
+    private function useDebugger()
+    {
+        if ($this->Debug === null) {
+            $DebuggerConfig = (new ConfigFactory())
+                ->createReader(__DIR__ . '/../../../System/Debugger/Configuration.ini', new IniReader());
+            if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('Enabled')->getValue()) {
+                if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('DatabaseCache')->getValue()) {
+                    $this->Debug = true;
+                } else {
+                    $this->Debug = false;
+                }
+            } else {
+                $this->Debug = false;
+            }
+        }
+        return $this->Debug;
     }
 
     /**
@@ -112,8 +134,8 @@ abstract class Cacheable extends Extension
     private function debugFactory($__METHOD__, $EntityList, $Parameter)
     {
 
-        if ($this->Debug) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
+        if ($this->useDebugger()) {
+            $this->getLogger(new BenchmarkLogger())->addLog(
                 'Factory: '.$__METHOD__.' ['.implode('], [', (array)$Parameter).'] Result: '.(
                 $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
             );
@@ -128,8 +150,8 @@ abstract class Cacheable extends Extension
     private function debugCache($__METHOD__, $EntityList, $Parameter)
     {
 
-        if ($this->Debug) {
-            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
+        if ($this->useDebugger()) {
+            $this->getLogger(new BenchmarkLogger())->addLog(
                 'Cache: '.$__METHOD__.' ['.implode('], [', (array)$Parameter).'] Result: '.(
                 $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
             );
@@ -168,7 +190,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $Entity, 0, $__METHOD__);
             return ( null === $Entity || false === $Entity ? false : $Entity );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory (Criteria) '.$EntityName.' '.$__METHOD__);
+        $this->getLogger(new BenchmarkLogger())->addLog('Memory (Criteria) ' . $EntityName . ' ' . $__METHOD__);
         return ( null === $Entity || false === $Entity ? false : $Entity );
     }
 
@@ -201,7 +223,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $EntityList, 0, $__METHOD__);
             return ( empty( $EntityList ) ? false : $EntityList );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory-List (Criteria) '.$EntityName.' '.$__METHOD__);
+        $this->getLogger(new BenchmarkLogger())->addLog('Memory-List (Criteria) ' . $EntityName . ' ' . $__METHOD__);
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -233,7 +255,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $EntityList, 0, $__METHOD__);
             return ( empty( $EntityList ) ? false : $EntityList );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory-List '.$EntityName.' '.$__METHOD__);
+        $this->getLogger(new BenchmarkLogger())->addLog('Memory-List ' . $EntityName . ' ' . $__METHOD__);
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -269,7 +291,7 @@ abstract class Cacheable extends Extension
             $Memory->setValue($Key, $Entity, 0, $__METHOD__);
             return ( null === $Entity || false === $Entity ? false : $Entity );
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Memory (Criteria) '.$EntityName.' '.$__METHOD__);
+        $this->getLogger(new BenchmarkLogger())->addLog('Memory (Criteria) ' . $EntityName . ' ' . $__METHOD__);
         return ( null === $Entity || false === $Entity ? false : $Entity );
     }
 }
