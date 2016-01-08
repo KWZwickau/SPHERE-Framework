@@ -202,11 +202,11 @@ class Service extends AbstractService
 
             if ((new Data($this->getBinding()))->addPhoneToCompany($tblCompany, $tblPhone, $tblType, $Type['Remark'])
             ) {
-                return new Success('Die Telefonnummer wurde erfolgreich hinzugefügt')
-                .new Redirect('/Corporation/Company', 1, array('Id' => $tblCompany->getId()));
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Telefonnummer wurde erfolgreich hinzugefügt')
+                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCompany->getId()));
             } else {
-                return new Danger('Die Telefonnummer konnte nicht hinzugefügt werden')
-                .new Redirect('/Corporation/Company', 10, array('Id' => $tblCompany->getId()));
+                return new Danger(new Ban() . ' Die Telefonnummer konnte nicht hinzugefügt werden')
+                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR, array('Id' => $tblCompany->getId()));
             }
         }
         return $Form;
@@ -302,12 +302,12 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->addPhoneToCompany($tblToCompany->getServiceTblCompany(), $tblPhone,
                 $tblType, $Type['Remark'])
             ) {
-                return new Success('Die Telefonnummer wurde erfolgreich geändert')
-                .new Redirect('/Corporation/Company', 1,
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Telefonnummer wurde erfolgreich geändert')
+                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
             } else {
-                return new Danger('Die Telefonnummer konnte nicht geändert werden')
-                .new Redirect('/Corporation/Company', 10,
+                return new Danger(new Ban() .  ' Die Telefonnummer konnte nicht geändert werden')
+                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
             }
         }

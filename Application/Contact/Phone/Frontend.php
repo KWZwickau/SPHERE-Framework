@@ -157,6 +157,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Eine Telefonnummer zur gewählten Firma hinzufügen');
 
         $tblCompany = Company::useService()->getCompanyById($Id);
+        $Stage->addButton(
+            new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
+                array('Id' => $tblCompany->getId())
+            )
+        );
 
         $Stage->setContent(
             new Layout(array(
@@ -165,10 +170,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel(new Building() . ' Firma',
                                 $tblCompany->getName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
-                                    array('Id' => $tblCompany->getId())
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     ),
@@ -176,15 +178,17 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Phone::useService()->createPhoneToCompany(
-                                $this->formNumber()
-                                    ->appendFormButton(new Primary('Telefonnummer hinzufügen'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblCompany, $Number, $Type
+                            new Well(
+                                Phone::useService()->createPhoneToCompany(
+                                    $this->formNumber()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblCompany, $Number, $Type
+                                )
                             )
                         )
                     )
-                )),
+                ), new Title(new PlusSign() . ' Hinzufügen')),
             ))
         );
 
@@ -265,6 +269,9 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Die Telefonnummer der gewählten Firma ändern');
 
         $tblToCompany = Phone::useService()->getPhoneToCompanyById($Id);
+        $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
+            array('Id' => $tblToCompany->getServiceTblCompany()->getId())
+        ));
 
         $Global = $this->getGlobal();
         if (!isset($Global->POST['Number'])) {
@@ -281,10 +288,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel(new Building() . ' Firma',
                                 $tblToCompany->getServiceTblCompany()->getName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
-                                    array('Id' => $tblToCompany->getServiceTblCompany()->getId())
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     ),
@@ -292,15 +296,17 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Phone::useService()->updatePhoneToCompany(
-                                $this->formNumber()
-                                    ->appendFormButton(new Primary('Änderungen speichern'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblToCompany, $Number, $Type
+                            new Well(
+                                Phone::useService()->updatePhoneToCompany(
+                                    $this->formNumber()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblToCompany, $Number, $Type
+                                )
                             )
                         )
                     )
-                )),
+                ), new Title(new Edit() . ' Bearbeiten')),
             ))
         );
 
@@ -525,7 +531,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Telefonnummer wurde gelöscht')
                                 : new Danger(new Ban() . ' Die Telefonnummer konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()))
+                            new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
+                                array('Id' => $tblPerson->getId()))
                         )))
                     )))
                 );
@@ -556,15 +563,15 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Id) {
             $tblToCompany = Phone::useService()->getPhoneToCompanyById($Id);
             $tblCompany = $tblToCompany->getServiceTblCompany();
+            $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
+                array('Id' => $tblCompany->getId())
+            ));
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new Building() . ' Firma',
                             $tblCompany->getName(),
-                            Panel::PANEL_TYPE_SUCCESS,
-                            new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
-                                array('Id' => $tblCompany->getId())
-                            )
+                            Panel::PANEL_TYPE_INFO
                         ),
                         new Panel(new Question() . ' Diese Telefonnummer wirklich löschen?', array(
                             $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription(),
@@ -588,10 +595,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             (Phone::useService()->removePhoneToCompany($tblToCompany)
-                                ? new Success('Die Telefonnummer wurde gelöscht')
-                                : new Danger('Die Telefonnummer konnte nicht gelöscht werden')
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Telefonnummer wurde gelöscht')
+                                : new Danger(new Ban() . ' Die Telefonnummer konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/Corporation/Company', 1, array('Id' => $tblCompany->getId()))
+                            new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCompany->getId()))
                         )))
                     )))
                 );
@@ -600,8 +607,8 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
-                        new Danger('Die Telefonnummer konnte nicht gefunden werden'),
-                        new Redirect('/Corporation/Search/Group')
+                        new Danger(new Ban() . ' Die Telefonnummer konnte nicht gefunden werden'),
+                        new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );

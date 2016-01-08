@@ -155,6 +155,9 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Eine E-Mail Adresse zur gewählten Firma hinzufügen');
 
         $tblCompany = Company::useService()->getCompanyById($Id);
+        $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
+            array('Id' => $tblCompany->getId())
+        ));
 
         $Stage->setContent(
             new Layout(array(
@@ -163,10 +166,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel(new PersonIcon() . ' Firma',
                                 $tblCompany->getName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
-                                    array('Id' => $tblCompany->getId())
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     ),
@@ -174,15 +174,17 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Mail::useService()->createMailToCompany(
-                                $this->formAddress()
-                                    ->appendFormButton(new Primary('E-Mail Adresse hinzufügen'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblCompany, $Address, $Type
+                            new Well(
+                                Mail::useService()->createMailToCompany(
+                                    $this->formAddress()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblCompany, $Address, $Type
+                                )
                             )
                         )
                     )
-                )),
+                ), new Title(new PlusSign() . ' Hinzufügen')),
             ))
         );
 
@@ -263,6 +265,9 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Die E-Mail Adresse der gewählten Firma ändern');
 
         $tblToCompany = Mail::useService()->getMailToCompanyById($Id);
+        $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
+            array('Id' => $tblToCompany->getServiceTblCompany()->getId())
+        ));
 
         $Global = $this->getGlobal();
         if (!isset($Global->POST['Address'])) {
@@ -279,10 +284,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new Panel(new Building() . ' Firma',
                                 $tblToCompany->getServiceTblCompany()->getName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
-                                    array('Id' => $tblToCompany->getServiceTblCompany()->getId())
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     ),
@@ -290,15 +292,17 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Mail::useService()->updateMailToCompany(
-                                $this->formAddress()
-                                    ->appendFormButton(new Primary('Änderungen speichern'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblToCompany, $Address, $Type
+                            new Well(
+                                Mail::useService()->updateMailToCompany(
+                                    $this->formAddress()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblToCompany, $Address, $Type
+                                )
                             )
                         )
                     )
-                )),
+                ), new Title(new Edit() . ' Bearbeiten')),
             ))
         );
 
@@ -484,7 +488,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die E-Mail Adresse wurde gelöscht')
                                 : new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()))
+                            new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
+                                array('Id' => $tblPerson->getId()))
                         )))
                     )))
                 );
@@ -515,15 +520,15 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Id) {
             $tblToCompany = Mail::useService()->getMailToCompanyById($Id);
             $tblCompany = $tblToCompany->getServiceTblCompany();
+            $Stage->addButton( new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
+                array('Id' => $tblCompany->getId())
+            ));
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
                         new Panel(new PersonIcon() . ' Firma',
                             $tblCompany->getName(),
-                            Panel::PANEL_TYPE_SUCCESS,
-                            new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
-                                array('Id' => $tblCompany->getId())
-                            )
+                            Panel::PANEL_TYPE_INFO
                         ),
                         new Panel(new Question() . ' Diese E-Mail Adresse wirklich löschen?', array(
                             $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription(),
@@ -547,10 +552,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             (Mail::useService()->removeMailToCompany($tblToCompany)
-                                ? new Success('Die E-Mail Adresse wurde gelöscht')
-                                : new Danger('Die E-Mail Adresse konnte nicht gelöscht werden')
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .  ' Die E-Mail Adresse wurde gelöscht')
+                                : new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/Corporation/Company', 1, array('Id' => $tblCompany->getId()))
+                            new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCompany->getId()))
                         )))
                     )))
                 );
@@ -559,8 +564,8 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
-                        new Danger('Die E-Mail Adresse konnte nicht gefunden werden'),
-                        new Redirect('/Corporation/Search/Group')
+                        new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht gefunden werden'),
+                        new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );
