@@ -29,6 +29,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
@@ -50,6 +51,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
@@ -97,16 +99,15 @@ class Frontend extends Extension implements IFrontendInterface
                         'DisplayName' => new Bold($tblGradeType->getName()),
                         'DisplayCode' => new Bold($tblGradeType->getCode()),
                         'Category' => new Bold($tblGradeType->getServiceTblTestType()->getName()),
-                        'Description' => $tblGradeType->getDescription()
                     );
                 } else {
                     $Item = array(
                         'DisplayName' => $tblGradeType->getName(),
                         'DisplayCode' => $tblGradeType->getCode(),
                         'Category' => $tblGradeType->getServiceTblTestType()->getName(),
-                        'Description' => $tblGradeType->getDescription()
                     );
                 }
+                $Item['Description'] = $tblGradeType->getDescription();
                 $Item['Option'] = new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit', new Edit(), array(
                     'Id' => $tblGradeType->getId()
                 ), 'Zensuren-Typ bearbeiten');
@@ -240,8 +241,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage;
         } else {
-            return new Stage('Zensuren-Typ nicht gefunden')
-            .new Redirect('/Education/Graduation/Gradebook/GradeType', 2);
+            return new Danger(new Ban() . ' Zensuren-Typ nicht gefunden')
+            .new Redirect('/Education/Graduation/Gradebook/GradeType', Redirect::TIMEOUT_ERROR);
         }
     }
 
@@ -525,8 +526,8 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Notenbuch', 'Anzeigen');
 
         if ($DivisionSubjectId === null || !( $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId) )) {
-            return $Stage.new Warning('Notenbuch nicht gefunden.').new Redirect('/Education/Graduation/Gradebook/Gradebook',
-                2);
+            return $Stage.new Danger(new Ban() . ' Notenbuch nicht gefunden.').new Redirect('/Education/Graduation/Gradebook/Gradebook',
+                Redirect::TIMEOUT_ERROR);
         }
 
         $this->contentSelectedGradeBook($Stage, $tblDivisionSubject, $ScoreConditionId, $Select,
@@ -780,8 +781,8 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Notenbuch (Leitung)', 'Anzeigen');
 
         if ($DivisionSubjectId === null || !( $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId) )) {
-            return $Stage.new Warning('Notenbuch nicht gefunden.').new Redirect('/Education/Graduation/Gradebook/Headmaster/Gradebook',
-                2);
+            return $Stage.new Danger(new Ban() . ' Notenbuch nicht gefunden.').new Redirect('/Education/Graduation/Gradebook/Headmaster/Gradebook',
+                Redirect::TIMEOUT_ERROR);
         }
 
         $this->contentSelectedGradeBook($Stage, $tblDivisionSubject, $ScoreConditionId, $Select,
@@ -1031,7 +1032,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Form = $this->formScoreCondition()
-            ->appendFormButton(new Primary('Hinzufügen', new Plus()))
+            ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $Stage->setContent(
@@ -1120,7 +1121,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Form = $this->formScoreGroup()
-            ->appendFormButton(new Primary('Hinzufügen', new Plus()))
+            ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $Stage->setContent(
