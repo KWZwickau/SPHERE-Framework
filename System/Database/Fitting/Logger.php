@@ -2,7 +2,6 @@
 namespace SPHERE\System\Database\Fitting;
 
 use Doctrine\DBAL\Logging\SQLLogger;
-use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Extension\Extension;
 
@@ -44,7 +43,7 @@ class Logger extends Extension implements SQLLogger
                 }
             }
         }
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(
+        $this->getLogger(new BenchmarkLogger())->addLog(
             'Query: '.$Parsed
         );
 

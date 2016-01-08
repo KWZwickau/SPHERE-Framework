@@ -31,7 +31,7 @@ class Warning extends Extension implements IMessageInterface
         if (null !== $Icon) {
             $this->Template->setVariable('Icon', $Icon);
         }
-        $this->Template->setVariable('Hash', sha1(uniqid(__METHOD__, true)));
+        $this->Template->setVariable('Hash', md5(uniqid(__METHOD__, true)));
         $this->Template->setVariable('Toggle', $Toggle);
     }
 

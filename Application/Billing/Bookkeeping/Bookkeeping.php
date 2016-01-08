@@ -8,6 +8,10 @@ use SPHERE\Application\IApplicationInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
+/**
+ * Class Bookkeeping
+ * @package SPHERE\Application\Billing\Bookkeeping
+ */
 class Bookkeeping implements IApplicationInterface
 {
 

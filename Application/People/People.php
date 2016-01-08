@@ -8,6 +8,7 @@ use SPHERE\Application\People\Meta\Meta;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Search\Search;
+use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -39,11 +40,29 @@ class People implements IClusterInterface
         Relationship::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Personen'))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Personen'), new Link\Icon(new PersonIcon()))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
+
+        Main::getDispatcher()->registerWidget('Personen', array(__CLASS__, 'widgetPersonGroupList'), 4, 6);
+        Main::getDispatcher()->registerWidget('Personen', array(__CLASS__, 'widgetPersonCount'));
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetPersonCount()
+    {
+        return new Panel('Anzahl an Personen', 'Insgesamt: ' . Person::useService()->countPersonAll());
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetPersonGroupList()
+    {
 
         $tblGroupAll = Group::useService()->getGroupAll();
         if ($tblGroupAll) {
@@ -70,12 +89,9 @@ class People implements IClusterInterface
                 $tblGroupAll[$Index] = false;
             }
             $tblGroupAll = array_filter($tblGroupAll);
-            Main::getDispatcher()->registerWidget('Personen', new Panel('Personen in Gruppen', $tblGroupAll), 4, 6);
         }
 
-        Main::getDispatcher()->registerWidget('Personen',
-            new Panel('Anzahl an Personen', 'Insgesamt: '.Person::useService()->countPersonAll())
-        );
+        return new Panel('Personen in Gruppen', $tblGroupAll);
     }
 
     /**

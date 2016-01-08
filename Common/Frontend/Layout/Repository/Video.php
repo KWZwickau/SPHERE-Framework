@@ -74,7 +74,7 @@ class Video extends Extension implements ITemplateInterface
                     $G = serialize($G);
                 }
             });
-            $this->Hash = sha1(json_encode($CarouselItem));
+            $this->Hash = md5(json_encode($CarouselItem));
         }
         return $this->Hash;
     }

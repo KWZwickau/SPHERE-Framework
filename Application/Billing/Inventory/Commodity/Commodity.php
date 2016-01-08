@@ -7,6 +7,10 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Main;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class Commodity
+ * @package SPHERE\Application\Billing\Inventory\Commodity
+ */
 class Commodity implements IModuleInterface
 {
 

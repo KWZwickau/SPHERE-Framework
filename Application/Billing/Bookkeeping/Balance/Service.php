@@ -10,6 +10,10 @@ use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\System\Database\Binding\AbstractService;
 
+/**
+ * Class Service
+ * @package SPHERE\Application\Billing\Bookkeeping\Balance
+ */
 class Service extends AbstractService
 {
 

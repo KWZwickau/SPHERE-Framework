@@ -25,7 +25,6 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 use SPHERE\System\Extension\Extension;
 
@@ -44,8 +43,6 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendSearch($Id = false)
     {
-
-        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->enableLog();
 
         $Stage = new Stage('Suche', 'nach Gruppe');
 
@@ -80,7 +77,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Result = array();
             if ($tblPersonAll) {
-                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartRun');
+                $this->getLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartRun');
                 array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym) {
 
                     $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
@@ -108,7 +105,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     ));
                 });
-                (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopRun');
+                $this->getLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopRun');
 
 //                    $Cache->setValue($Id, $Result, 0, __METHOD__);
 //                }

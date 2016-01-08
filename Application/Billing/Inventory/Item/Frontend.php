@@ -41,6 +41,10 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Frontend
+ * @package SPHERE\Application\Billing\Inventory\Item
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 
@@ -161,6 +165,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Form
+     */
     public function formItem()
     {
 

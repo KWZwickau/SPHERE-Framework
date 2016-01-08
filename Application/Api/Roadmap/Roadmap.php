@@ -70,7 +70,7 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                 .'</body></html>'
             )
         );
-        $Location = sys_get_temp_dir().DIRECTORY_SEPARATOR.'Roadmap-'.sha1(uniqid('Roadmap', true)).'.pdf';
+        $Location = sys_get_temp_dir().DIRECTORY_SEPARATOR.'Roadmap-'.md5(uniqid('Roadmap', true)).'.pdf';
 
         /** @var DomPdf $Document */
         $Document = Document::getDocument($Location);

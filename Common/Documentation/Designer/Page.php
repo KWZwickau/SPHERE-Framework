@@ -28,27 +28,40 @@ class Page
     private $Title = '{{ Title }}';
     private $Description = '{{ Description }}';
 
+    private $Headline = 0;
+
     /**
      * @param string      $Title
      * @param string      $Description
      * @param null|string $Search
+     * @param null|string $Number
      */
-    public function __construct($Title, $Description = '', $Search = null)
+    public function __construct($Title, $Description = '', $Search = null, $Number = null)
     {
 
         $this->Title = $Title;
         $this->Description = $Description;
         $this->Search = $Search;
+        $this->Number = $Number;
     }
 
     /**
      * @param string $Title
      * @param string $Description
+     * @param bool   $useNumber
      *
      * @return Page
      */
-    public function addHeadline($Title, $Description = '')
+    public function addHeadline($Title, $Description = '', $useNumber = false)
     {
+
+        if ($useNumber) {
+            $this->Headline++;
+            $Title = $this->Headline.'. '.$Title;
+        }
+        if ($this->Number) {
+            $Title = $this->Number.'.'.$Title;
+        }
 
         $Element = new Headline(new TagList().' '.$this->markSearch($Title), $this->markSearch($Description));
         array_push($this->ElementList, $Element);
@@ -153,6 +166,6 @@ class Page
     public function getHash()
     {
 
-        return sha1($this->Title.$this->Description);
+        return md5($this->Title . $this->Description);
     }
 }

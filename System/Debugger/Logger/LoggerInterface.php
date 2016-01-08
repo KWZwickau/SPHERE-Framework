@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\System\Debugger\Logger;
 
+use SPHERE\System\Config\Reader\ReaderInterface;
 use SPHERE\System\Debugger\DebuggerInterface;
 
 /**
@@ -10,6 +11,13 @@ use SPHERE\System\Debugger\DebuggerInterface;
  */
 interface LoggerInterface extends DebuggerInterface
 {
+    /**
+     * @param string $Name
+     * @param ReaderInterface $Config
+     *
+     * @return LoggerInterface
+     */
+    public function setConfig($Name, ReaderInterface $Config = null);
 
     /**
      * @param string $Content

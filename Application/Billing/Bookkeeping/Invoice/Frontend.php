@@ -47,6 +47,10 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Frontend
+ * @package SPHERE\Application\Billing\Bookkeeping\Invoice
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 
@@ -473,6 +477,12 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param TblDebtor $tblDebtor
+     * @param $Path
+     * @param $IdBack
+     * @return Layout
+     */
     public function layoutAccount(TblDebtor $tblDebtor, $Path, $IdBack)
     {
 

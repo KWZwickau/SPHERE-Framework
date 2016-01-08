@@ -35,6 +35,23 @@ class Type implements IModuleInterface
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
 
+        Main::getDispatcher()->registerWidget('School-Type', array(__CLASS__, 'widgetType'), 3, 3);
+    }
+
+    /**
+     * @return Frontend
+     */
+    public static function useFrontend()
+    {
+
+        return new Frontend();
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetType()
+    {
         $tblTypeAll = self::useService()->getTypeAll();
         if ($tblTypeAll) {
             /** @var TblType $tblType */
@@ -43,14 +60,14 @@ class Type implements IModuleInterface
                     new Layout(new LayoutGroup(new LayoutRow(array(
                         new LayoutColumn(
                             $tblType->getName()
-                            .new Muted(new Small('<br/>'.$tblType->getDescription()))
+                            . new Muted(new Small('<br/>' . $tblType->getDescription()))
                         ),
                     ))));
                 $tblTypeAll[$Index] = false;
             }
             $tblTypeAll = array_filter($tblTypeAll);
-            Main::getDispatcher()->registerWidget('School-Type', new Panel('Schularten verfügbar', $tblTypeAll), 3, 3);
         }
+        return new Panel('Schularten verfügbar', $tblTypeAll);
     }
 
     /**
@@ -61,17 +78,8 @@ class Type implements IModuleInterface
 
         return new Service(
             new Identifier('Education', 'School', 'Type', null, Consumer::useService()->getConsumerBySession()),
-            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
+            __DIR__ . '/Service/Entity', __NAMESPACE__ . '\Service\Entity'
         );
-    }
-
-    /**
-     * @return Frontend
-     */
-    public static function useFrontend()
-    {
-
-        return new Frontend();
     }
 
     /**

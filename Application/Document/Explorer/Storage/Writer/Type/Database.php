@@ -30,9 +30,7 @@ class Database extends AbstractWriter
         $this->loadFile();
     }
 
-    /**
-     *
-     */
+    /** @noinspection PhpMissingParentCallCommonInspection */
     public function loadFile()
     {
 

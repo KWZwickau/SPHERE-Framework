@@ -462,7 +462,7 @@ class Data extends AbstractData
     public function fetchAddressAllByIdList($IdArray)
     {
 
-        $Key = sha1(json_encode($IdArray));
+        $Key = md5(json_encode($IdArray));
         $Cache = $this->getCache(new MemcachedHandler());
         if (null === ($tblAddressAll = $Cache->getValue($Key, __METHOD__))) {
 

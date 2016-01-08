@@ -8,6 +8,10 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class Invoice
+ * @package SPHERE\Application\Billing\Bookkeeping\Invoice
+ */
 class Invoice implements IModuleInterface
 {
 

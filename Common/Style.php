@@ -4,7 +4,6 @@ namespace SPHERE\Common;
 use MOC\V\Core\HttpKernel\Vendor\Universal\Request;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Setting\MyAccount\MyAccount;
-use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\ErrorLogger;
 use SPHERE\System\Extension\Extension;
 
@@ -108,16 +107,16 @@ class Style extends Extension
 
         $PathBase = $this->getRequest()->getPathBase();
         if ($Combined) {
-            if (!in_array(sha1($Location), self::$CombinedList)) {
-                self::$CombinedList[sha1($Location)] = $PathBase.$Location;
+            if (!in_array(md5($Location), self::$CombinedList)) {
+                self::$CombinedList[md5($Location)] = $PathBase . $Location;
             }
         } elseif ($Additional) {
-            if (!in_array(sha1($Location), self::$AdditionalList)) {
-                self::$AdditionalList[sha1($Location)] = $PathBase.$Location;
+            if (!in_array(md5($Location), self::$AdditionalList)) {
+                self::$AdditionalList[md5($Location)] = $PathBase . $Location;
             }
         } else {
-            if (!in_array(sha1($Location), self::$SourceList)) {
-                self::$SourceList[sha1($Location)] = $PathBase.$Location;
+            if (!in_array(md5($Location), self::$SourceList)) {
+                self::$SourceList[md5($Location)] = $PathBase . $Location;
             }
         }
     }
@@ -223,7 +222,7 @@ class Style extends Extension
                 }
                 $Result .= "\n\n".$Content;
             } else {
-                (new DebuggerFactory())->createLogger(new ErrorLogger())->addLog('Style not found '.$Location);
+                $this->getLogger(new ErrorLogger())->addLog('Style not found ' . $Location);
             }
         });
         return $Result;

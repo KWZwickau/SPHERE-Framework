@@ -127,7 +127,7 @@ class Table extends Extension implements ITemplateInterface
                     $H = serialize($H);
                 }
             });
-            $this->Hash = sha1(json_encode($HeadList).json_encode($BodyList).json_encode($FootList));
+            $this->Hash = md5(json_encode($HeadList) . json_encode($BodyList) . json_encode($FootList));
         }
         return $this->Hash;
     }
