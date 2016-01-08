@@ -288,14 +288,14 @@ class Frontend extends Extension implements IFrontendInterface
                     Term::useService()->removeYearPeriod($tblYear->getId(), $Period);
                     $Stage->setContent(
                         new Success('Zeitraum erfolgreich entfernt')
-                        .new Redirect('/Education/Lesson/Term/Choose/Period', 0, array('Id' => $Id))
+                        .new Redirect('/Education/Lesson/Term/Choose/Period', Redirect::TIMEOUT_SUCCESS, array('Id' => $Id))
                     );
                     return $Stage;
                 } else {
                     Term::useService()->addYearPeriod($tblYear->getId(), $Period);
                     $Stage->setContent(
                         new Success('Zeitraum erfolgreich hinzugefügt')
-                        .new Redirect('/Education/Lesson/Term/Choose/Period', 0, array('Id' => $Id))
+                        .new Redirect('/Education/Lesson/Term/Choose/Period', Redirect::TIMEOUT_SUCCESS, array('Id' => $Id))
                     );
                     return $Stage;
                 }
@@ -484,7 +484,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(Term::useService()->destroyYear($tblYear));
         } else {
             return $Stage.new Warning('Jahr nicht gefunden!')
-            .new Redirect('/Education/Lesson/Term/Create/Year');
+            .new Redirect('/Education/Lesson/Term/Create/Year', Redirect::TIMEOUT_ERROR);
         }
         return $Stage;
     }
@@ -555,7 +555,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(Term::useService()->destroyPeriod($tblPeriod));
         } else {
             return $Stage.new Warning('Zeitraum nicht gefunden!')
-            .new Redirect('/Education/Lesson/Term/Create/Period');
+            .new Redirect('/Education/Lesson/Term/Create/Period', Redirect::TIMEOUT_ERROR);
         }
         return $Stage;
     }
