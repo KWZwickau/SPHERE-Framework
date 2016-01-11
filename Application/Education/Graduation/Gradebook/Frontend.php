@@ -506,7 +506,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ))
                         ))
                     ))
-                ))
+                ), new Title(new Select() . ' Auswahl'))
             ))
         );
 
@@ -537,11 +537,11 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param Stage              $Stage
+     * @param Stage $Stage
      * @param TblDivisionSubject $tblDivisionSubject
-     * @param                    $ScoreConditionId
-     * @param                    $Select
-     * @param string             $BasicRoute
+     * @param $ScoreConditionId
+     * @param $Select
+     * @param string $BasicRoute
      */
     private function contentSelectedGradeBook(
         Stage $Stage,
@@ -553,9 +553,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->addButton(new Standard('Zurück', $BasicRoute, new ChevronLeft()));
 
-        $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
-
         $tblDivision = $tblDivisionSubject->getTblDivision();
+
+        $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
         $tblScoreCondition = new TblScoreCondition();
         $grades = array();
         $rowList = array();

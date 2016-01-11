@@ -203,10 +203,10 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            new Form(array(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(array(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
                             new TableData($divisionSubjectTable, null, array(
                                 'Year' => 'Schuljahr',
                                 'Type' => 'Schulart',
@@ -217,7 +217,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ))
                         ))
                     ))
-                ))
+                ), new Title(new Select() . ' Auswahl'))
             ))
         );
 
@@ -313,10 +313,10 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            new Form(array(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(array(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
                             new TableData($divisionSubjectTable, null, array(
                                 'Year' => 'Schuljahr',
                                 'Type' => 'Schulart',
@@ -327,7 +327,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ))
                         ))
                     ))
-                ))
+                ), new Title(new Select() . ' Auswahl'))
             ))
         );
 
