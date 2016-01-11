@@ -102,6 +102,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblTestType $tblTestType
+     * @param TblDivision $tblDivision
+     * @return bool|TblTest[]
+     */
+    public function getTestAllByTestTypeAndDivision(TblTestType $tblTestType, TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getTestAllByTestTypeAndDivision($tblTestType, $tblDivision);
+    }
+
+    /**
      * @return bool|TblTask[]
      */
     public function getTaskAll()
