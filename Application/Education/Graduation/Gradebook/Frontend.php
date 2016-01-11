@@ -5,7 +5,6 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroup;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
@@ -542,6 +541,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $ScoreConditionId
      * @param $Select
      * @param string $BasicRoute
+     * @return Stage
      */
     private function contentSelectedGradeBook(
         Stage $Stage,
@@ -556,7 +556,13 @@ class Frontend extends Extension implements IFrontendInterface
         $tblDivision = $tblDivisionSubject->getTblDivision();
 
         $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
-        $tblScoreCondition = new TblScoreCondition();
+        if (!$tblScoreConditionAll){
+            $Stage->setContent(new Warning(new Ban() . ' Keine Berechnungsvorschrift hinterlegt. Bitte legen Sie zuerst eine Berechnungsvorschrift an.'));
+
+            return $Stage;
+        }
+
+        $tblScoreCondition = null;
         $grades = array();
         $rowList = array();
         if ($ScoreConditionId !== null) {
@@ -763,6 +769,8 @@ class Frontend extends Extension implements IFrontendInterface
             ))
             .( $ScoreConditionId !== null ? new Layout(new LayoutGroup($rowList)) : '' )
         );
+
+        return $Stage;
     }
 
     /**
