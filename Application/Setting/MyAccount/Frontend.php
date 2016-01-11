@@ -24,16 +24,19 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -67,26 +70,28 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblAccount = Account::useService()->getAccountBySession();
         $Stage = new Stage('Mein Benutzerkonto', 'Passwort ändern');
+        $Stage->addButton(new Standard('Zruück', '/Setting/MyAccount', new ChevronLeft()));
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                MyAccount::useService()->updatePassword(
-                    new Form(
-                        new FormGroup(
-                            new FormRow(array(
-                                new FormColumn(
-                                    new Panel('Passwort', array(
-                                        new PasswordField('CredentialLock', 'Neues Passwort',
-                                            'Neues Passwort',
-                                            new Lock()),
-                                        new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
-                                            'Passwort wiederholen',
-                                            new Repeat())
-                                    ), Panel::PANEL_TYPE_INFO)
-                                ),
-                            ))
-                        ), new Primary('Neues Passwort speichern')
-                    ), $tblAccount, $CredentialLock, $CredentialLockSafety
-                )
+                new Well(
+                    MyAccount::useService()->updatePassword(
+                        new Form(
+                            new FormGroup(
+                                new FormRow(array(
+                                    new FormColumn(
+                                        new Panel('Passwort', array(
+                                            new PasswordField('CredentialLock', 'Neues Passwort',
+                                                'Neues Passwort',
+                                                new Lock()),
+                                            new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
+                                                'Passwort wiederholen',
+                                                new Repeat())
+                                        ), Panel::PANEL_TYPE_INFO)
+                                    ),
+                                ))
+                            ), new Primary('Speichern', new Save())
+                        ), $tblAccount, $CredentialLock, $CredentialLockSafety
+                    ))
             )), new Title('Neues Passwort'))));
         return $Stage;
     }
@@ -106,10 +111,11 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage = new Stage('Mandant', 'Auswählen');
+        $Stage->addButton(new Standard('Zurück', '/Setting/MyAccount', new ChevronLeft()));
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                 new TableData($tblConsumerAll, null, array('Acronym' => 'Kürzel', 'Name' => 'Name', 'Option' => ''))
-            )))));
+            )), new Title(new Select().' Auswahl'))));
 
         return $Stage;
     }
@@ -205,30 +211,32 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new Title('Konfiguration', 'Benutzereinstellungen'),
-                            MyAccount::useService()->updateSetting(
-                                new Form(
-                                    new FormGroup(
-                                        new FormRow(
-                                            new FormColumn(array(
-                                                new Panel(
-                                                    'Oberfläche', array(
-                                                        new SelectBox(
-                                                            'Setting[Surface]',
-                                                            'Aussehen der Programmoberfläche',
-                                                            array(1 => 'Webseite', 2 => 'Anwendung')
-                                                        ),
-                                                    )
-                                                    , Panel::PANEL_TYPE_INFO),
+                            new Well(
+                                MyAccount::useService()->updateSetting(
+                                    new Form(
+                                        new FormGroup(
+                                            new FormRow(
+                                                new FormColumn(array(
+                                                    new Panel(
+                                                        'Oberfläche', array(
+                                                            new SelectBox(
+                                                                'Setting[Surface]',
+                                                                'Aussehen der Programmoberfläche',
+                                                                array(1 => 'Webseite', 2 => 'Anwendung')
+                                                            ),
+                                                        )
+                                                        , Panel::PANEL_TYPE_INFO),
 //                                                new Panel(
 //                                                    'Statistik', array(
 //                                                        '<iframe class="sphere-iframe-style" src="/Library/Piwik/index.php?module=CoreAdminHome&action=optOut&language=de"></iframe>',
 //                                                    )
 //                                                    , Panel::PANEL_TYPE_DEFAULT),
-                                            ))
+                                                ))
+                                            )
                                         )
-                                    )
-                                    , new Primary('Einstellungen speichern')
-                                ), $tblAccount, $Setting)
+                                        , new Primary('Speichern', new Save())
+                                    ), $tblAccount, $Setting)
+                            )
                         ), 4),
                         new LayoutColumn(array(
                             new Title('Profil', 'Informationen'),

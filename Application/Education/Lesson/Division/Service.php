@@ -138,7 +138,7 @@ class Service extends AbstractService
                     $tblYear, $tblLevel, $Division['Name'], $Division['Description']
                 );
                 return new Success('Die Klassengruppe wurde erfolgreich hinzugefügt')
-                .new Redirect($this->getRequest()->getUrl(), 1);
+                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
             }
         }
 
@@ -181,7 +181,7 @@ class Service extends AbstractService
             $Error = true;
         }
         if (!$Error) {
-            return new Redirect('/Education/Lesson/Division', 1, array('Year' => $Year));
+            return new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_SUCCESS, array('Year' => $Year));
         }
 
         return $Form;
@@ -445,13 +445,13 @@ class Service extends AbstractService
             if ($tblGroup) {
                 if ((new Data($this->getBinding()))->addDivisionSubject($tblDivision, $tblSubject, $tblGroup)) {
                     return new Success('Die Gruppe '.new Bold($Group['Name']).' wurde erfolgreich angelegt')
-                    .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', 1, array(
+                    .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', Redirect::TIMEOUT_SUCCESS, array(
                         'Id'                => $tblDivision->getId(),
                         'DivisionSubjectId' => $DivisionSubjectId
                     ));
                 } else {
                     return new Danger('Die Gruppe '.new Bold($Group['Name']).' wurde nicht angelegt')
-                    .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', 1, array(
+                    .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', Redirect::TIMEOUT_ERROR, array(
                         'Id'                => $tblDivision->getId(),
                         'DivisionSubjectId' => $DivisionSubjectId
                     ));
@@ -516,10 +516,10 @@ class Service extends AbstractService
 
             if (!$Error) {
                 return new Success('Die Gruppe mit Personen wurden erfolgreich angelegt')
-                .new Redirect('/Education/Lesson/Division/Show', 1, array('Id' => $tblDivision->getId()));
+                .new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblDivision->getId()));
             } else {
                 return new Danger('Einige Personen konnte nicht in der Gruppe angelegt werden')
-                .new Redirect('/Education/Lesson/Division/Show', 15, array('Id' => $tblDivision->getId()));
+                .new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_ERROR, array('Id' => $tblDivision->getId()));
             }
         }
         return $Form;
@@ -621,10 +621,10 @@ class Service extends AbstractService
 
             if (!$Error) {
                 return new Success('Fachlehrerzuweisung erfolgreich ausgewählt')
-                .new Redirect('/Education/Lesson/Division/Show', 1, array('Id' => $DivisionId));
+                .new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_SUCCESS, array('Id' => $DivisionId));
             } else {
                 return new Danger('Einige Fachlehrer konnten für das Fach nicht ausgewählt werden')
-                .new Redirect('/Education/Lesson/Division/Show', 15, array('Id' => $DivisionId));
+                .new Redirect('/Education/Lesson/Division/Show', Redirect::TIMEOUT_ERROR, array('Id' => $DivisionId));
             }
         }
         return $Form;
@@ -705,14 +705,14 @@ class Service extends AbstractService
                 )
                 ) {
                     return new Success('Die Beschreibung wurde erfolgreich geändert')
-                    .new Redirect('/Education/Lesson/Division', 1);
+                    .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_SUCCESS);
                 } else {
                     return new Danger('Die Beschreibung konnte nicht geändert werden')
-                    .new Redirect('/Education/Lesson/Division');
+                    .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
                 }
             } else {
                 return new Danger('Die Klassen wurde nicht gefunden')
-                .new Redirect('/Education/Lesson/Division');
+                .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -797,20 +797,20 @@ class Service extends AbstractService
                 )
                 ) {
                     return new Success('Die Gruppe wurde erfolgreich geändert')
-                    .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', 1, array(
+                    .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', Redirect::TIMEOUT_SUCCESS, array(
                         'Id'                => $DivisionId,
                         'DivisionSubjectId' => $DivisionSubjectId
                     ));
                 } else {
                     return new Danger('Die Gruppe konnte nicht geändert werden')
-                    .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', 15, array(
+                    .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', Redirect::TIMEOUT_ERROR, array(
                         'Id'                => $DivisionId,
                         'DivisionSubjectId' => $DivisionSubjectId
                     ));
                 }
             } else {
                 return new Danger('Die Gruppe wurde nicht gefunden')
-                .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', 15, array(
+                .new Redirect('/Education/Lesson/Division/SubjectGroup/Add', Redirect::TIMEOUT_ERROR, array(
                     'Id'                => $DivisionId,
                     'DivisionSubjectId' => $DivisionSubjectId
                 ));
@@ -871,7 +871,7 @@ class Service extends AbstractService
 
             if ((new Data($this->getBinding()))->destroyDivision($tblDivision)) {
                 return new Success('Die Klassengruppe wurde erfolgreich gelöscht')
-                .new Redirect('/Education/Lesson/Division', 1);
+                .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return false;
 //                return new Danger('Die Klassengruppe konnte nicht gelöscht werden')
@@ -946,14 +946,14 @@ class Service extends AbstractService
         if (!$Error) {
             if ((new Data($this->getBinding()))->destroyLevel($tblLevel)) {
                 return new Success('Die Klassenstufe wurde erfolgreich gelöscht')
-                .new Redirect('/Education/Lesson/Division/Create/LevelDivision', 1);
+                .new Redirect('/Education/Lesson/Division/Create/LevelDivision', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Die Klassenstufe konnte nicht gelöscht werden')
-                .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+                .new Redirect('/Education/Lesson/Division/Create/LevelDivision', Redirect::TIMEOUT_ERROR);
             }
         }
         return new Danger('Die Klassenstufe enthält Klassengruppen!')
-        .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
+        .new Redirect('/Education/Lesson/Division/Create/LevelDivision', Redirect::TIMEOUT_ERROR);
     }
 
     /**

@@ -92,10 +92,10 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->addSponsorAssociation($tblCompany)
             ) {
                 return new Success('Der Förderverein wurde erfolgreich hinzugefügt')
-                .new Redirect('/Setting/Consumer/SponsorAssociation', 1, array('Id' => $tblCompany->getId()));
+                .new Redirect('/Setting/Consumer/SponsorAssociation', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCompany->getId()));
             } else {
                 return new Danger('Der Förderverein konnte nicht hinzugefügt werden')
-                .new Redirect('/Setting/Consumer/SponsorAssociation', 10, array('Id' => $tblCompany->getId()));
+                .new Redirect('/Setting/Consumer/SponsorAssociation', Redirect::TIMEOUT_ERROR, array('Id' => $tblCompany->getId()));
             }
         }
 

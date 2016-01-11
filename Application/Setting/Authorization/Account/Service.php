@@ -25,7 +25,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
 
     /**
      * @param IFormInterface $Form
-     * @param array $Account
+     * @param array          $Account
      *
      * @return IFormInterface
      */
@@ -44,16 +44,16 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $PasswordSafety = trim($Account['PasswordSafety']);
 
         $tblConsumer = GatekeeperConsumer::useService()->getConsumerBySession();
-        if (!isset($Account['Token']) || !($tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']))) {
+        if (!isset( $Account['Token'] ) || !( $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']) )) {
             $tblToken = null;
         }
 
-        if (empty($Username)) {
+        if (empty( $Username )) {
             $Form->setError('Account[Name]', 'Bitte geben Sie einen Benutzernamen an');
             $Error = true;
         } else {
             if (preg_match('!^[a-z0-9öäüß]{4,}$!is', $Username)) {
-                $Username = $tblConsumer->getAcronym() . '-' . $Username;
+                $Username = $tblConsumer->getAcronym().'-'.$Username;
                 if (!GatekeeperAccount::useService()->getAccountByUsername($Username)) {
                     $Form->setSuccess('Account[Name]', '');
                 } else {
@@ -67,7 +67,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             }
         }
 
-        if (empty($Password)) {
+        if (empty( $Password )) {
             $Form->setError('Account[Password]', 'Bitte geben Sie ein Passwort an');
             $Error = true;
         } else {
@@ -79,7 +79,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             }
         }
 
-        if (empty($PasswordSafety)) {
+        if (empty( $PasswordSafety )) {
             $Form->setError('Account[PasswordSafety]', 'Bitte geben Sie das Passwort erneut an');
             $Error = true;
         }
@@ -88,14 +88,14 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             $Form->setError('Account[PasswordSafety]', 'Die beiden Passworte stimmen nicht überein');
             $Error = true;
         } else {
-            if (!empty($Password) && !empty($PasswordSafety)) {
+            if (!empty( $Password ) && !empty( $PasswordSafety )) {
                 $Form->setSuccess('Account[PasswordSafety]', '');
             } else {
                 $Form->setError('Account[PasswordSafety]', '');
             }
         }
 
-        if (!isset($Account['User'])) {
+        if (!isset( $Account['User'] )) {
             $Form->prependGridGroup(
                 new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie einen Besitzer des Kontos aus (Person wählen)'))))
             );
@@ -107,21 +107,21 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             if ($tblAccount) {
                 $tblIdentification = GatekeeperAccount::useService()->getIdentificationById($Account['Identification']);
                 GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentification);
-                if (isset($Account['Role'])) {
+                if (isset( $Account['Role'] )) {
                     foreach ((array)$Account['Role'] as $Role) {
                         $tblRole = GatekeeperAccess::useService()->getRoleById($Role);
                         GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);
                     }
                 }
-                if (isset($Account['User'])) {
+                if (isset( $Account['User'] )) {
                     $tblPerson = Person::useService()->getPersonById($Account['User']);
                     GatekeeperAccount::useService()->addAccountPerson($tblAccount, $tblPerson);
                 }
                 return new Success('Das Benutzerkonnto wurde erstellt')
-                . new Redirect('/Setting/Authorization/Account', 3);
+                .new Redirect('/Setting/Authorization/Account', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Das Benutzerkonnto konnte nicht erstellt werden')
-                . new Redirect('/Setting/Authorization/Account', 3);
+                .new Redirect('/Setting/Authorization/Account', Redirect::TIMEOUT_ERROR);
             }
         }
 
@@ -130,8 +130,9 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
 
     /**
      * @param IFormInterface $Form
-     * @param TblAccount $tblAccount
-     * @param array $Account
+     * @param TblAccount     $tblAccount
+     * @param array          $Account
+     *
      * @return IFormInterface
      */
     public function changeAccount(IFormInterface $Form, TblAccount $tblAccount, $Account)
@@ -147,11 +148,11 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $Password = trim($Account['Password']);
         $PasswordSafety = trim($Account['PasswordSafety']);
 
-        if (!isset($Account['Token']) || !($tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']))) {
+        if (!isset( $Account['Token'] ) || !( $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']) )) {
             $tblToken = null;
         }
 
-        if (!empty($Password)) {
+        if (!empty( $Password )) {
             if (strlen($Password) >= 8) {
                 $Form->setSuccess('Account[Password]', '');
             } else {
@@ -159,17 +160,17 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 $Error = true;
             }
         }
-        if (!empty($Password) && empty($PasswordSafety)) {
+        if (!empty( $Password ) && empty( $PasswordSafety )) {
             $Form->setError('Account[PasswordSafety]', 'Bitte geben Sie das Passwort erneut an');
             $Error = true;
         }
-        if (!empty($Password) && $Password != $PasswordSafety) {
+        if (!empty( $Password ) && $Password != $PasswordSafety) {
             $Form->setError('Account[Password]', '');
             $Form->setError('Account[PasswordSafety]', 'Die beiden Passworte stimmen nicht überein');
             $Error = true;
         }
 
-        if (!isset($Account['User'])) {
+        if (!isset( $Account['User'] )) {
             $Form->prependGridGroup(
                 new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie einen Besitzer des Kontos aus (Person wählen)'))))
             );
@@ -205,7 +206,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                             $tblAccessRemove->getServiceTblRole());
                     }
                 }
-                if (isset($Account['Role'])) {
+                if (isset( $Account['Role'] )) {
                     foreach ((array)$Account['Role'] as $Role) {
                         $tblRole = GatekeeperAccess::useService()->getRoleById($Role);
                         GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);
@@ -213,15 +214,15 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 }
 
                 // Edit Password
-                if (!empty($Password)) {
+                if (!empty( $Password )) {
                     GatekeeperAccount::useService()->changePassword($Password, $tblAccount);
                 }
 
                 return new Success('Das Benutzerkonnto wurde geändert')
-                . new Redirect('/Setting/Authorization/Account', 1);
+                .new Redirect('/Setting/Authorization/Account', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Das Benutzerkonnto konnte nicht geändert werden')
-                . new Redirect('/Setting/Authorization/Account', 3);
+                .new Redirect('/Setting/Authorization/Account', Redirect::TIMEOUT_ERROR);
             }
         }
 
