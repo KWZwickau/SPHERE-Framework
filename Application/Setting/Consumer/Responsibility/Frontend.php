@@ -16,14 +16,17 @@ use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -100,28 +103,24 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendResponsibilityCreate($Responsibility)
     {
 
-        $Stage = new Stage('Schulträger', 'anlegen');
-
+        $Stage = new Stage('Schulträger', 'Hinzufügen');
+        $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/Responsibility', new ChevronLeft()));
         $Stage->setContent(
-            new Form(
-                new FormGroup(
-                    new FormRow(
-                        new FormColumn(
-                            new Panel(new Standard(new ChevronLeft(),
-                                    '/Setting/Consumer/Responsibility').'Zurück zur Übersicht',
-                                array(),
-                                Panel::PANEL_TYPE_SUCCESS)
-                            , 6)
-                    )
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            Responsibility::useService()->createResponsibility(
+                                $this->formResponsibilityCompanyCreate()
+                                    ->appendFormButton(new Primary('Speichern', new Save()))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
+                                $Responsibility
+                            )
+                        ))
+                    ), new Title(new PlusSign().' Hinzufügen')
                 )
             )
-            .
-            Responsibility::useService()->createResponsibility(
-                $this->formResponsibilityCompanyCreate()
-                    ->appendFormButton(new Primary('Schulträger hinzufügen'))
-                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
-                $Responsibility
-            )
+
         );
 
         return $Stage;
@@ -165,8 +164,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendResponsibilityDelete()
     {
 
-        $Stage = new Stage('Schulträger', 'entfernen');
-
+        $Stage = new Stage('Schulträger', 'Entfernen');
+        $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/Responsibility', new ChevronLeft()));
         $tblResponsibilityAll = Responsibility::useService()->getResponsibilityAll();
         if ($tblResponsibilityAll) {
             array_walk($tblResponsibilityAll, function (TblResponsibility &$tblResponsibility) {
@@ -275,9 +274,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(new LayoutColumn(array(
                             ( Responsibility::useService()->destroyResponsibility($tblResponsibility)
                                 ? new Success('Der Schulträger wurde gelöscht')
-                                .new Redirect('/Setting/Consumer/Responsibility', 0)
+                                .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_SUCCESS)
                                 : new Danger('Der Schulträger konnte nicht gelöscht werden')
-                                .new Redirect('/Setting/Consumer/Responsibility', 10)
+                                .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_ERROR)
                             )
                         )))
                     )))
@@ -288,7 +287,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new Danger('Der Schulträger konnte nicht gefunden werden'),
-                        new Redirect('/Setting/Consumer/Responsibility', 3)
+                        new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );

@@ -72,9 +72,9 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             return $Form;
         } else {
             if (Account::useService()->changePassword($CredentialLock, $tblAccount)) {
-                return new Success('Das Passwort wurde erfolgreich geändert').new Redirect('/Setting/MyAccount', 1);
+                return new Success('Das Passwort wurde erfolgreich geändert').new Redirect('/Setting/MyAccount', Redirect::TIMEOUT_SUCCESS);
             } else {
-                return new Danger('Das Passwort konnte nicht geändert werden').new Redirect('/Setting/MyAccount', 10);
+                return new Danger('Das Passwort konnte nicht geändert werden').new Redirect('/Setting/MyAccount', Redirect::TIMEOUT_ERROR);
             }
         }
     }
@@ -91,9 +91,9 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
     ) {
 
         if (Account::useService()->changeConsumer($tblConsumer, $tblAccount)) {
-            return new Success('Der Mandant wurde erfolgreich geändert').new Redirect('/Setting/MyAccount', 0);
+            return new Success('Der Mandant wurde erfolgreich geändert').new Redirect('/Setting/MyAccount', Redirect::TIMEOUT_SUCCESS);
         } else {
-            return new Danger('Der Mandant konnte nicht geändert werden').new Redirect('/Setting/MyAccount', 10);
+            return new Danger('Der Mandant konnte nicht geändert werden').new Redirect('/Setting/MyAccount', Redirect::TIMEOUT_ERROR);
         }
     }
 
@@ -124,10 +124,10 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
 
         if ($Error) {
             return new Danger('Einige Einstellungen konnten nicht gespeichert werden').new Redirect('/Setting/MyAccount',
-                10);
+                Redirect::TIMEOUT_ERROR);
         } else {
             return new Success('Die Einstellungen wurden erfolgreich gespeichert').new Redirect('/Setting/MyAccount',
-                1);
+                Redirect::TIMEOUT_SUCCESS);
         }
     }
 

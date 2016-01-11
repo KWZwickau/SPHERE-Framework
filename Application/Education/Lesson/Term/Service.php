@@ -143,10 +143,10 @@ class Service extends AbstractService
 
             if ((new Data($this->getBinding()))->createYear($Year['Name'], $Year['Description'])) {
                 return new Success('Das Schuljahr wurde erfolgreich hinzugefügt')
-                .new Redirect($this->getRequest()->getUrl(), 2);
+                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Das Schuljahr konnte nicht hinzugefügt werden')
-                .new Redirect($this->getRequest()->getUrl());
+                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -268,10 +268,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->addYearPeriod($tblYear, $tblPeriod)) {
             return new Success('Zeitraum festgelegt').
-            new Redirect('/Education/Lesson/Term', 1);
+            new Redirect('/Education/Lesson/Term', Redirect::TIMEOUT_SUCCESS);
         }
         return new Warning('Zeitraum konnte nicht festgelegt werden').
-        new Redirect('/Education/Lesson/Term');
+        new Redirect('/Education/Lesson/Term', Redirect::TIMEOUT_ERROR);
     }
 
     /**
@@ -310,10 +310,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->removeYearPeriod($tblYear, $tblPeriod)) {
             return new Success('Zeitraum entfernt').
-            new Redirect('/Education/Lesson/Term', 1);
+            new Redirect('/Education/Lesson/Term', Redirect::TIMEOUT_SUCCESS);
         }
         return new Warning('Zeitraum konnte nicht entfernt werden').
-        new Redirect('/Education/Lesson/Term');
+        new Redirect('/Education/Lesson/Term', Redirect::TIMEOUT_ERROR);
     }
 
     /**
@@ -370,10 +370,10 @@ class Service extends AbstractService
                 $Period['Name'], $Period['From'], $Period['To'], $Period['Description'])
             ) {
                 return new Success('Der Zeitraum wurde erfolgreich hinzugefügt')
-                .new Redirect($this->getRequest()->getUrl(), 3);
+                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Der Zeitraum konnte nicht hinzugefügt werden')
-                .new Redirect($this->getRequest()->getUrl());
+                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -433,10 +433,10 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Education/Lesson/Term/Create/Year', 1);
+                    .new Redirect('/Education/Lesson/Term/Create/Year', Redirect::TIMEOUT_SUCCESS);
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Education/Lesson/Term/Create/Year');
+                    .new Redirect('/Education/Lesson/Term/Create/Year', Redirect::TIMEOUT_ERROR);
             };
         }
         return $Stage;
@@ -488,10 +488,10 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Education/Lesson/Term/Create/Period', 1);
+                    .new Redirect('/Education/Lesson/Term/Create/Period', Redirect::TIMEOUT_SUCCESS);
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Education/Lesson/Term/Create/Period');
+                    .new Redirect('/Education/Lesson/Term/Create/Period', Redirect::TIMEOUT_ERROR);
             };
         }
         return $Stage;
@@ -510,10 +510,10 @@ class Service extends AbstractService
         }
         if ((new Data($this->getBinding()))->destroyYear($tblYear)) {
             return new Success('Das Jahr wurde erfolgreich gelöscht')
-            .new Redirect('/Education/Lesson/Term/Create/Year', 1);
+            .new Redirect('/Education/Lesson/Term/Create/Year', Redirect::TIMEOUT_SUCCESS);
         } else {
             return new Danger('Das Jahr konnte nicht gelöscht werden')
-            .new Redirect('/Education/Lesson/Term/Create/Year');
+            .new Redirect('/Education/Lesson/Term/Create/Year', Redirect::TIMEOUT_ERROR);
         }
 
     }
@@ -537,14 +537,14 @@ class Service extends AbstractService
         if (!$Error) {
             if ((new Data($this->getBinding()))->destroyPeriod($tblPeriod)) {
                 return new Success('Der Zeitraum wurde erfolgreich gelöscht')
-                .new Redirect('/Education/Lesson/Term/Create/Period', 1);
+                .new Redirect('/Education/Lesson/Term/Create/Period', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Der Zeitraum konnte nicht gelöscht werden')
-                .new Redirect('/Education/Lesson/Term/Create/Period');
+                .new Redirect('/Education/Lesson/Term/Create/Period', Redirect::TIMEOUT_ERROR);
             }
         }
         return new Danger('Der Zeitraum wird benutzt!')
-        .new Redirect('/Education/Lesson/Term/Create/Period');
+        .new Redirect('/Education/Lesson/Term/Create/Period', Redirect::TIMEOUT_ERROR);
     }
 
     /**
