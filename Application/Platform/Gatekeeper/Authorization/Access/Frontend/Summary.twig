@@ -78,8 +78,12 @@
 
 
 <script>
-    Client.Use('ModTable', function()
+    //noinspection JSUnresolvedFunction
+    executeScript(function()
     {
-        jQuery('#TableAccountRoleList').ModTable();
-    })
+        Client.Use('ModTable', function()
+        {
+            jQuery('#TableAccountRoleList').ModTable();
+        });
+    });
 </script>
