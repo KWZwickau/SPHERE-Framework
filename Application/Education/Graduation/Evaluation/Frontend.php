@@ -1635,27 +1635,29 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPerson = $tblPersonAllByAccount[0];
             }
         }
-        $tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson);
-        if ($tblDivisionTeacherAllByTeacher) {
-            foreach ($tblDivisionTeacherAllByTeacher as $tblDivisionTeacher) {
-                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
-                $tblTestList = Evaluation::useService()->getTestAllByTestTypeAndDivision(
-                    $tblTestType,
-                    $tblDivisionTeacher->getTblDivision()
-                );
-                if ($tblTestList) {
-                    foreach($tblTestList as $tblTest){
-                        $taskList[$tblTest->getTblTask()->getId()] = $tblTest->getTblTask();
+        if ($tblPerson) {
+            $tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson);
+            if ($tblDivisionTeacherAllByTeacher) {
+                foreach ($tblDivisionTeacherAllByTeacher as $tblDivisionTeacher) {
+                    $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK');
+                    $tblTestList = Evaluation::useService()->getTestAllByTestTypeAndDivision(
+                        $tblTestType,
+                        $tblDivisionTeacher->getTblDivision()
+                    );
+                    if ($tblTestList) {
+                        foreach ($tblTestList as $tblTest) {
+                            $taskList[$tblTest->getTblTask()->getId()] = $tblTest->getTblTask();
+                        }
                     }
-                }
-                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
-                $tblTestList = Evaluation::useService()->getTestAllByTestTypeAndDivision(
-                    $tblTestType,
-                    $tblDivisionTeacher->getTblDivision()
-                );
-                if ($tblTestList) {
-                    foreach($tblTestList as $tblTest){
-                        $taskList[$tblTest->getTblTask()->getId()] = $tblTest->getTblTask();
+                    $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR_TASK');
+                    $tblTestList = Evaluation::useService()->getTestAllByTestTypeAndDivision(
+                        $tblTestType,
+                        $tblDivisionTeacher->getTblDivision()
+                    );
+                    if ($tblTestList) {
+                        foreach ($tblTestList as $tblTest) {
+                            $taskList[$tblTest->getTblTask()->getId()] = $tblTest->getTblTask();
+                        }
                     }
                 }
             }
