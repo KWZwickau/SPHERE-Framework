@@ -1631,6 +1631,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
             $tblPersonAllByAccount = Account::useService()->getPersonAllByAccount($tblAccount);
+            var_dump($tblPersonAllByAccount);
             if ($tblPersonAllByAccount) {
                 $tblPerson = $tblPersonAllByAccount[0];
             }
