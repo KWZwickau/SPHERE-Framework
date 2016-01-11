@@ -16,6 +16,7 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -120,11 +121,11 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
                 $Type['Remark'])
             ) {
-                return new Success('Die Beziehung wurde erfolgreich hinzugefügt')
-                .new Redirect('/People/Person', 1, array('Id' => $tblPersonFrom->getId()));
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich hinzugefügt')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPersonFrom->getId()));
             } else {
-                return new Danger('Die Beziehung konnte nicht hinzugefügt werden')
-                .new Redirect('/People/Person', 10, array('Id' => $tblPersonFrom->getId()));
+                return new Danger(new Ban() . ' Die Beziehung konnte nicht hinzugefügt werden')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPersonFrom->getId()));
             }
         }
         return $Form;
@@ -212,11 +213,11 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->addCompanyRelationshipToPerson($tblCompanyTo, $tblPersonFrom, $tblType,
                 $Type['Remark'])
             ) {
-                return new Success('Die Beziehung wurde erfolgreich hinzugefügt')
-                .new Redirect('/People/Person', 1, array('Id' => $tblPersonFrom->getId()));
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich hinzugefügt')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPersonFrom->getId()));
             } else {
-                return new Danger('Die Beziehung konnte nicht hinzugefügt werden')
-                .new Redirect('/People/Person', 10, array('Id' => $tblPersonFrom->getId()));
+                return new Danger(new Ban() . ' Die Beziehung konnte nicht hinzugefügt werden')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR, array('Id' => $tblPersonFrom->getId()));
             }
         }
         return $Form;
@@ -249,12 +250,12 @@ class Service extends AbstractService
         $Error = false;
 
         if (empty( $tblPersonTo )) {
-            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Person')))));
+            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger(new Ban() . ' Bitte wählen Sie eine Person')))));
             $Error = true;
         } else {
             $tblPersonTo = Person::useService()->getPersonById($tblPersonTo);
             if ($tblPersonFrom->getId() == $tblPersonTo->getId()) {
-                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Eine Person kann nur mit einer anderen Person verknüpft werden')))));
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger(new Ban() . ' Eine Person kann nur mit einer anderen Person verknüpft werden')))));
                 $Error = true;
             }
         }
@@ -267,12 +268,12 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
                 $Type['Remark'])
             ) {
-                return new Success('Die Beziehung wurde erfolgreich geändert')
-                .new Redirect('/People/Person', 1,
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich geändert')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()));
             } else {
-                return new Danger('Die Beziehung konnte nicht geändert werden')
-                .new Redirect('/People/Person', 10,
+                return new Danger(new Ban() . ' Die Beziehung konnte nicht geändert werden')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()));
             }
         }
@@ -320,12 +321,12 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->addCompanyRelationshipToPerson($tblCompanyTo, $tblPersonFrom, $tblType,
                 $Type['Remark'])
             ) {
-                return new Success('Die Beziehung wurde erfolgreich geändert')
-                .new Redirect('/People/Person', 1,
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich geändert')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblToCompany->getServiceTblPerson()->getId()));
             } else {
-                return new Danger('Die Beziehung konnte nicht geändert werden')
-                .new Redirect('/People/Person', 10,
+                return new Danger(new Ban() . ' Die Beziehung konnte nicht geändert werden')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblToCompany->getServiceTblPerson()->getId()));
             }
         }

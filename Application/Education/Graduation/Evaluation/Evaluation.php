@@ -35,6 +35,11 @@ class Evaluation implements IModuleInterface
                 new Link\Icon(new Document()))
         );
         Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__.'\DivisionTeacher\Task'),
+                new Link\Name('Notenaufträge (Klassenlehrer)'),
+                new Link\Icon(new Document()))
+        );
+        Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\Headmaster\Task'),
                 new Link\Name('Notenaufträge'),
                 new Link\Icon(new Document()))
@@ -101,6 +106,18 @@ class Evaluation implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\Grades',
                 __NAMESPACE__.'\Frontend::frontendHeadmasterTaskGrades')
+        );
+
+        /**
+         * DivisionTeacher
+         */
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\DivisionTeacher\Task',
+                __NAMESPACE__.'\Frontend::frontendDivisionTeacherTask')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\DivisionTeacher\Task\Grades',
+                __NAMESPACE__.'\Frontend::frontendDivisionTeacherTaskGrades')
         );
 
     }
