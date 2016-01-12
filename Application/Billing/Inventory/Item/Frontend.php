@@ -274,9 +274,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(new LayoutColumn(array(
                             ( Item::useService()->destroyItem($tblItem)
                                 ? new Success('Der Artikel wurde gelöscht')
-                                .new Redirect('/Billing/Inventory/Item', 0)
+                                .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS)
                                 : new Danger('Der Artikel konnte nicht gelöscht werden')
-                                .new Redirect('/Billing/Inventory/Item', 10)
+                                .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR)
                             )
                         )))
                     )))
@@ -287,7 +287,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new Danger('Der Artikel konnte nicht gefunden werden'),
-                        new Redirect('/Billing/Inventory/Item', 3)
+                        new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );

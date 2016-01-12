@@ -244,7 +244,8 @@ class Service extends AbstractService
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
                     .new Redirect('/Billing/Inventory/Commodity', Redirect::TIMEOUT_SUCCESS);
             } else {
-                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden', Redirect::TIMEOUT_ERROR);
+                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
+                    .new Redirect('/Billing/Inventory/Commodity', Redirect::TIMEOUT_ERROR);
             };
         }
         return $Stage;
@@ -335,16 +336,16 @@ class Service extends AbstractService
         if (!$Error) {
             if ((new Data($this->getBinding()))->removeItemToCommodity($tblCommodityItem)) {
                 return new Success('Der Artikel '.$tblCommodityItem->getTblItem()->getName().' wurde erfolgreich entfernt')
-                .new Redirect('/Billing/Inventory/Commodity/Item/Select', 1,
+                .new Redirect('/Billing/Inventory/Commodity/Item/Select', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblCommodityItem->getTblCommodity()->getId()));
             } else {
                 return new Warning('Der Artikel '.$tblCommodityItem->getTblItem()->getName().' konnte nicht entfernt werden')
-                .new Redirect('/Billing/Inventory/Commodity/Item/Select', 3,
+                .new Redirect('/Billing/Inventory/Commodity/Item/Select', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblCommodityItem->getTblCommodity()->getId()));
             }
         }
         return new Warning('Der Artikel '.$tblCommodityItem->getTblItem()->getName().' konnte nicht entfernt werden da er im Warenkorb benutzt wird')
-        .new Redirect('/Billing/Inventory/Commodity/Item/Select', 3,
+        .new Redirect('/Billing/Inventory/Commodity/Item/Select', Redirect::TIMEOUT_ERROR,
             array('Id' => $tblCommodityItem->getTblCommodity()->getId()));
     }
 }
