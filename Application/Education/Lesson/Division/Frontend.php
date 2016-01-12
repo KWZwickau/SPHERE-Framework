@@ -149,13 +149,8 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent) {
 
                 $Temp['Year'] = $tblDivision->getServiceTblYear()->getName();
-                if ($tblDivision->getTblLevel()) {
-                    $Temp['ClassGroup'] = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
-                    $Temp['SchoolType'] = $tblDivision->getTblLevel()->getServiceTblType()->getName();
-                } else {
-                    $Temp['ClassGroup'] = $tblDivision->getName();
-                    $Temp['SchoolType'] = '';
-                }
+                $Temp['SchoolType'] = $tblDivision->getTypeName();
+                $Temp['ClassGroup'] = $tblDivision->getDisplayName();
 
                 $tblPeriodAll = $tblDivision->getServiceTblYear()->getTblPeriodAll();
                 $Period = array();
@@ -314,11 +309,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblDivision = Division::useService()->getDivisionById($Id);
         if ($tblDivision) {
 
-            if ($tblDivision->getTblLevel()) {
-                $Title = 'der Klasse '.new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName());
-            } else {
-                $Title = 'der Klasse '.new Bold($tblDivision->getName());
-            }
+            $Title = 'der Klasse '.new Bold($tblDivision->getDisplayName());
 
             $Stage = new Stage('Schüler', $Title);
             if ($tblDivision->getTblLevel()) {
@@ -520,11 +511,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblDivision = Division::useService()->getDivisionById($Id);
         if ($tblDivision) {
 
-            if ($tblDivision->getTblLevel()) {
-                $Title = 'der Klasse '.new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName());
-            } else {
-                $Title = 'der Klasse '.new Bold($tblDivision->getName());
-            }
+            $Title = 'der Klasse '.new Bold($tblDivision->getDisplayName());
 
             $Stage = new Stage('Klassenlehrer', $Title);
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
@@ -668,11 +655,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblDivision = Division::useService()->getDivisionById($Id);
         if ($tblDivision) {
-            if ($tblDivision->getTblLevel()) {
-                $Title = 'der Klasse '.new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName());
-            } else {
-                $Title = 'der Klasse '.new Bold($tblDivision->getName());
-            }
+            $Title = 'der Klasse '.new Bold($tblDivision->getDisplayName());
             $Stage = new Stage('Fächer', $Title);
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
                 array('Id' => $tblDivision->getId())));
@@ -803,11 +786,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblDivision) {
             $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId);
             if ($tblDivisionSubject) {
-                if ($tblDivision->getTblLevel()) {
-                    $Titel = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
-                } else {
-                    $Titel = $tblDivision->getName();
-                }
+                $Titel = $tblDivision->getDisplayName();
                 $Stage = new Stage('Schüler', 'Klasse '.new Bold($Titel));
                 $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
                     array('Id' => $Id)));
@@ -961,11 +940,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId);
             if ($tblDivisionSubject) {
 
-                if ($tblDivision->getTblLevel()) {
-                    $Title = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
-                } else {
-                    $Title = $tblDivision->getName();
-                }
+                $Title = $tblDivision->getDisplayName();
                 if ($tblDivisionSubject->getTblSubjectGroup()) {
                     $Fach = new Bold($tblDivisionSubject->getServiceTblSubject()->getName())
                         .' und die Gruppe '.new Bold($tblDivisionSubject->getTblSubjectGroup()->getName());
@@ -1085,11 +1060,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tblDivision = Division::useService()->getDivisionById($Id);
             $tblSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId)->getServiceTblSubject();
 
-            if ($tblDivision->getTblLevel()) {
-                $Titel = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
-            } else {
-                $Titel = $tblDivision->getName();
-            }
+            $Titel = $tblDivision->getDisplayName();
             $Stage->setDescription('Klasse '.new Bold($Titel));
             $tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject,
                 $tblDivision);
@@ -1318,19 +1289,27 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
-        if ($tblDivision->getTblLevel()) {
+        if (!$tblDivision->getTblLevel()) {
             $PanelShow = new Panel('Beschreibung für', array(
-                    $tblDivision->getTblLevel()->getServiceTblType()->getName()
-                    .' - '.$tblDivision->getTblLevel()->getName().$tblDivision->getName()
-                    .' - '.$tblDivision->getServiceTblYear()->getName(),
-                    $tblDivision->getDescription()
-                )
-                , Panel::PANEL_TYPE_INFO);
-        } else {
-            $PanelShow = new Panel('',
                 $tblDivision->getServiceTblYear()->getName()
-                .' - '.$tblDivision->getName()
-                , Panel::PANEL_TYPE_INFO);
+                .' - '.$tblDivision->getDisplayName(),
+                $tblDivision->getDescription()
+            ), Panel::PANEL_TYPE_INFO);
+
+        } elseif ($tblDivision->getTblLevel()->getName() == '') {
+            $PanelShow = new Panel('Beschreibung für', array(
+                $tblDivision->getServiceTblYear()->getName()
+                .' - '.$tblDivision->getTblLevel()->getServiceTblType()->getName()
+                .' - '.$tblDivision->getDisplayName(),
+                $tblDivision->getDescription()
+            ), Panel::PANEL_TYPE_INFO);
+        } else {
+            $PanelShow = new Panel('Beschreibung für', array(
+                $tblDivision->getServiceTblYear()->getName()
+                .' - '.$tblDivision->getTblLevel()->getServiceTblType()->getName()
+                .' - '.$tblDivision->getDisplayName(),
+                $tblDivision->getDescription()
+            ), Panel::PANEL_TYPE_INFO);
         }
 
         if ($tblDivision) {
@@ -1395,11 +1374,8 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
         $tblDivision = Division::useService()->getDivisionById($Id);
         if ($tblDivision) {
-            if ($tblDivision->getTblLevel()) {
-                $Stage->setDescription('Übersicht '.new Bold($tblDivision->getTblLevel()->getName().$tblDivision->getName()));
-            } else {
-                $Stage->setDescription('Übersicht '.new Bold($tblDivision->getName()));
-            }
+            $Stage->setDescription('Übersicht '.new Bold($tblDivision->getDisplayName()));
+
             $Stage->setMessage($tblDivision->getDescription());
             $Stage->addButton(new Standard('Fächer', '/Education/Lesson/Division/Subject/Add',
                 new Book(), array('Id' => $tblDivision->getId()), 'Auswählen'));
@@ -1595,12 +1571,7 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 $tblDivisionSubjectList = array();
             }
-
-            if ($tblDivision->getTblLevel()) {
-                $TitleClass = new \SPHERE\Common\Frontend\Icon\Repository\Group().' Schüler in der Klasse '.$tblDivision->getTblLevel()->getName().$tblDivision->getName();
-            } else {
-                $TitleClass = new \SPHERE\Common\Frontend\Icon\Repository\Group().' Schüler in der Klasse '.$tblDivision->getName();
-            }
+            $TitleClass = new \SPHERE\Common\Frontend\Icon\Repository\Group().' Schüler in der Klasse '.$tblDivision->getDisplayName();
 
             $Stage->setContent(
                 new Layout(
