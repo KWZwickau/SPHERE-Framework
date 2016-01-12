@@ -23,11 +23,14 @@ use SPHERE\Common\Frontend\Icon\Repository\Money;
 use SPHERE\Common\Frontend\Icon\Repository\MoneyEuro;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
-use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -51,20 +54,20 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendItemStatus()
+    public function frontendItemStatus($Item = null)
     {
 
         $Stage = new Stage();
         $Stage->setTitle('Artikel');
         $Stage->setDescription('Übersicht');
-        $Stage->setMessage(
-            'Zeigt alle verfügbaren Artikel an. <br>');
+//        $Stage->setMessage(
+//            'Zeigt alle verfügbaren Artikel an. <br>');
 //            Artikel sind Preise für erbrachte Dienste, die Abhängigkeiten zugewiesen bekommen können. <br />
 //            Somit werden bei Rechnungen nur die Artikel berechnet, <br />
 //            die <b>keine</b> oder die <b>zutreffenden</b> Abhängigkeiten für die einzelne Person besitzen.');
-        $Stage->addButton(
-            new Standard('Artikel anlegen', '/Billing/Inventory/Item/Create', new Plus())
-        );
+//        $Stage->addButton(
+//            new Standard('Artikel anlegen', '/Billing/Inventory/Item/Create', new Plus())
+//        );
 
         $tblItemAll = Item::useService()->getItemAll();
 
@@ -110,16 +113,36 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             });
         }
+        $Form = $this->formItem()
+            ->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $Stage->setContent(
-            new TableData($tblItemAll, null,
-                array(
-                    'Name'        => 'Name',
-                    'Description' => 'Beschreibung',
-                    'PriceString' => 'Preis',
-                    'Type'        => 'Schulart',
-                    'Rank'        => 'Geschwisterkind',
-                    'Option'      => 'Option'
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($tblItemAll, null,
+                                array(
+                                    'Name'        => 'Name',
+                                    'Description' => 'Beschreibung',
+                                    'PriceString' => 'Preis',
+                                    'Type'        => 'Schulart',
+                                    'Rank'        => 'Geschwisterkind',
+                                    'Option'      => ''
+                                )
+                            )
+                        )
+                    ), new Title(new Listing().' Übersicht')
+                )
+            )
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            Item::useService()->createItem($Form, $Item)
+                        ))
+                    ), new Title(new PlusSign().' Hinzufügen')
                 )
             )
         );
@@ -285,15 +308,14 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Artikel');
         $Stage->setDescription('Bearbeiten');
-        $Stage->setMessage(
-            '<b>Hinweis:</b> <br>
-            Ist ein Bildungsgang unter der <i>Bedingung Bildungsgang</i> ausgewählt, wird der Artikel nur für
-            Personen (Schüler) berechnet welche diesem Bildungsgang angehören. <br>
-            Ist eine Kind-Reihenfolge unter der <i>Bedingung Kind-Reihenfolge</i> ausgewählt, wird der Artikel nur für
-            Personen (Schüler) berechnet welche dieser Kind-Reihenfolge entsprechen. <br>
-            Beide Bedingungen können einzeln ausgewählt werden, bei der Wahl beider Bedingungen werden diese
-            <b>Und</b> verknüpft.
-        ');
+//        $Stage->setMessage(
+//            '<b>Hinweis:</b> <br>
+//            Ist ein Bildungsgang unter der '.new Italic('Bedingung Bildungsgang').' ausgewählt, wird der Artikel nur für
+//            Personen (Schüler) berechnet welche diesem Bildungsgang angehören. <br>
+//            Ist eine Kind-Reihenfolge unter der '.new Italic('Bedingung Kind-Reihenfolge').' ausgewählt, wird der Artikel nur für
+//            Personen (Schüler) berechnet welche dieser Kind-Reihenfolge entsprechen. <br>
+//            Beide Bedingungen können einzeln ausgewählt werden, bei der Wahl beider Bedingungen werden diese'
+//            .new Bold('Und').' verknüpft.');
         $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item',
             new ChevronLeft()
         ));
@@ -321,11 +343,78 @@ class Frontend extends Extension implements IFrontendInterface
                     $Global->savePost();
                 }
 
+                $PanelValue = array();
+
+                $PanelValue[0] = $tblItem->getName();
+                $PanelValue[1] = Item::useService()->formatPrice($tblItem->getPrice());
+                $PanelValue[2] = $tblItem->getCostUnit();
+                $PanelValue[3] = $tblItem->getDescription();
+                if ($tblItem->getServiceStudentType()) {
+                    $PanelValue[4] = $tblItem->getServiceStudentType()->getName();
+                } else {
+                    $PanelValue[4] = 'Nicht ausgewählt';
+                }
+                if ($tblItem->getServiceStudentChildRank()) {
+                    $PanelValue[5] = $tblItem->getServiceStudentChildRank()->getName();
+                } else {
+                    $PanelValue[5] = 'Nicht ausgewählt';
+                }
+
+                $PanelContent = new Layout(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel('Name', $PanelValue[0], Panel::PANEL_TYPE_INFO)
+                                , 4),
+                            new LayoutColumn(
+                                new Panel('Preis', $PanelValue[1], Panel::PANEL_TYPE_INFO)
+                                , 4),
+                            new LayoutColumn(
+                                new Panel('Kostenstelle', $PanelValue[2], Panel::PANEL_TYPE_INFO)
+                                , 4),
+                        )),
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Panel('Beschreibung', $PanelValue[3], Panel::PANEL_TYPE_INFO)
+                            )
+                        ),
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel('Bildungsgang', $PanelValue[4], Panel::PANEL_TYPE_INFO)
+                                , 6),
+                            new LayoutColumn(
+                                new Panel('Geschwisterkind', $PanelValue[5], Panel::PANEL_TYPE_INFO)
+                                , 6),
+                        )),
+                    ))
+                );
+
+
                 $Form = $this->formItem()
-                    ->appendFormButton(new Primary('Hinzufügen'))
+                    ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-                $Stage->setContent(Item::useService()->changeItem($Form, $tblItem, $Item));
+                $Stage->setContent(
+                    new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    $PanelContent
+                                )
+                            )
+                        )
+                    )
+                    .new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(array(
+
+                                new LayoutColumn(new Well(
+                                    Item::useService()->changeItem($Form, $tblItem, $Item)
+                                ))
+                            )), new Title(new Pencil().' Bearbeiten')
+                        )
+                    )
+                );
             }
         }
 
