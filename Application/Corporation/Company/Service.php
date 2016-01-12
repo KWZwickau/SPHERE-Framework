@@ -7,6 +7,7 @@ use SPHERE\Application\Corporation\Company\Service\Setup;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -101,13 +102,13 @@ class Service extends AbstractService
                         );
                     }
                 }
-                return new Success('Die Firma wurde erfolgreich erstellt')
-                .new Redirect('/Corporation/Company', 3,
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .  ' Die Firma wurde erfolgreich erstellt')
+                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblCompany->getId())
                 );
             } else {
-                return new Danger('Die Firma konnte nicht erstellt werden')
-                .new Redirect('/Corporation/Company', 10);
+                return new Danger(new Ban() . ' Die Firma konnte nicht erstellt werden')
+                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR);
             }
         }
 
@@ -187,13 +188,13 @@ class Service extends AbstractService
                         Group::useService()->removeGroupCompany($tblGroup, $tblCompany);
                     }
                 }
-                return new Success('Die Firma wurde erfolgreich aktualisiert')
-                .new Redirect('/Corporation/Company', 1,
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Firma wurde erfolgreich aktualisiert')
+                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblCompany->getId(), 'Group' => $Group)
                 );
             } else {
-                return new Danger('Die Firma konnte nicht aktualisiert werden')
-                .new Redirect('/Corporation/Company', 10);
+                return new Danger(new Ban() . ' Die Firma konnte nicht aktualisiert werden')
+                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR);
             }
         }
 

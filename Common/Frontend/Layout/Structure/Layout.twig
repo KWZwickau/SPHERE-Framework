@@ -32,16 +32,20 @@
         </div>
         {% if(LayoutRow.IsSortable) %}
             <script>
-                Client.Use('ModSortable', function()
+                //noinspection JSUnresolvedFunction
+                executeScript(function()
                 {
-                    jQuery('div.row.{{ LayoutRow.IsSortable }}').ModSortable({
-                        containment: "parent",
-                        cursor: "move",
-                        forceHelperSize: true,
-                        forcePlaceholderSize: true,
-                        opacity: 0.5,
-                        tolerance: "pointer",
-                        cursorAt: {left: 5}
+                    Client.Use('ModSortable', function()
+                    {
+                        jQuery('div.row.{{ LayoutRow.IsSortable }}').ModSortable({
+                            containment: "parent",
+                            cursor: "move",
+                            forceHelperSize: true,
+                            forcePlaceholderSize: true,
+                            opacity: 0.5,
+                            tolerance: "pointer",
+                            cursorAt: {left: 5}
+                        });
                     });
                 });
             </script>

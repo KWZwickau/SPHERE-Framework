@@ -47,7 +47,7 @@ class People implements IClusterInterface
         ));
 
         Main::getDispatcher()->registerWidget('Personen', array(__CLASS__, 'widgetPersonGroupList'), 4, 6);
-        Main::getDispatcher()->registerWidget('Personen', array(__CLASS__, 'widgetPersonCount'));
+//        Main::getDispatcher()->registerWidget('Personen', array(__CLASS__, 'widgetPersonCount'));
     }
 
     /**

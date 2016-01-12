@@ -10,8 +10,12 @@
 </div>
 
 <script type="text/javascript">
-    Client.Use('ModVideo', function()
+    //noinspection JSUnresolvedFunction
+    executeScript(function()
     {
-        $(".Video-{{ Hash }}").flowplayer().show();
+        Client.Use('ModVideo', function()
+        {
+            $(".Video-{{ Hash }}").flowplayer().show();
+        });
     });
 </script>

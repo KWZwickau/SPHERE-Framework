@@ -14,6 +14,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -82,7 +83,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ), 6),
                         )),
                     )),
-                ), new Primary('Informationen speichern')
+                ), new Primary('Speichern', new Save())
                 ))->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.'), $tblPerson, $Meta, $Group)
         );
 

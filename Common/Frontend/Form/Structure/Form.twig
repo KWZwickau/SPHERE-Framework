@@ -19,16 +19,20 @@
             </div>
             {% if(FormRow.IsSortable) %}
             <script>
-                Client.Use('ModSortable', function()
+                //noinspection JSUnresolvedFunction
+                executeScript(function()
                 {
-                    jQuery('div.row.{{ FormRow.IsSortable }}').ModSortable({
-                        containment: "parent",
-                        cursor: "move",
-                        forceHelperSize: true,
-                        forcePlaceholderSize: true,
-                        opacity: 0.5,
-                        tolerance: "pointer",
-                        cursorAt: {left: 5}
+                    Client.Use('ModSortable', function()
+                    {
+                        jQuery('div.row.{{ FormRow.IsSortable }}').ModSortable({
+                            containment: "parent",
+                            cursor: "move",
+                            forceHelperSize: true,
+                            forcePlaceholderSize: true,
+                            opacity: 0.5,
+                            tolerance: "pointer",
+                            cursorAt: {left: 5}
+                        });
                     });
                 });
             </script>
@@ -46,10 +50,14 @@
     {% endif %}
 </form>
 <script type="text/javascript">
-    Client.Use('ModForm', function()
+    //noinspection JSUnresolvedFunction
+    executeScript(function()
     {
-        {% if FormConfirm is not empty %}
-        jQuery("form#{{ Hash }}").ModForm({notifyChangedMessage: "{{ FormConfirm }}"});
-        {% endif %}
+        Client.Use('ModForm', function()
+        {
+            {% if FormConfirm is not empty %}
+            jQuery("form#{{ Hash }}").ModForm({notifyChangedMessage: "{{ FormConfirm }}"});
+            {% endif %}
+        });
     });
 </script>

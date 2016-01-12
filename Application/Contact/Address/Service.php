@@ -12,6 +12,7 @@ use SPHERE\Application\Contact\Address\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -185,12 +186,12 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->addAddressToPerson($tblPerson, $tblAddress, $tblType,
                 $Type['Remark'])
             ) {
-                return new Success('Die Adresse wurde erfolgreich hinzugefügt')
-                .new Redirect('/People/Person', 1,
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adresse wurde erfolgreich hinzugefügt')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblPerson->getId()));
             } else {
-                return new Danger('Die Adresse konnte nicht hinzugefügt werden')
-                .new Redirect('/People/Person', 10,
+                return new Danger(new Ban() . ' Die Adresse konnte nicht hinzugefügt werden')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblPerson->getId()));
             }
         }
@@ -332,12 +333,12 @@ class Service extends AbstractService
                 $tblType,
                 $Type['Remark'])
             ) {
-                return new Success('Die Adresse wurde erfolgreich geändert')
-                .new Redirect('/People/Person', 1,
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adresse wurde erfolgreich geändert')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
             } else {
-                return new Danger('Die Adresse konnte nicht geändert werden')
-                .new Redirect('/People/Person', 10,
+                return new Danger(new Ban() . ' Die Adresse konnte nicht geändert werden')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
             }
         }
@@ -405,6 +406,9 @@ class Service extends AbstractService
 
             $tblType = $this->getTypeById($Type['Type']);
             $tblState = $this->getStateById($State);
+            if (!$tblState) {
+                $tblState = null;
+            }
             $tblCity = (new Data($this->getBinding()))->createCity(
                 $City['Code'], $City['Name'], $City['District']
             );
@@ -418,12 +422,12 @@ class Service extends AbstractService
                 $tblType,
                 $Type['Remark'])
             ) {
-                return new Success('Die Adresse wurde erfolgreich geändert')
-                .new Redirect('/Corporation/Company', 1,
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adresse wurde erfolgreich geändert')
+                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
             } else {
-                return new Danger('Die Adresse konnte nicht geändert werden')
-                .new Redirect('/Corporation/Company', 10,
+                return new Danger(new Ban() . ' Die Adresse konnte nicht geändert werden')
+                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
             }
         }
@@ -490,7 +494,11 @@ class Service extends AbstractService
         if (!$Error) {
 
             $tblType = $this->getTypeById($Type['Type']);
-            $tblState = $this->getStateById($State);
+            if ($State) {
+                $tblState = $this->getStateById($State);
+            } else {
+                $tblState = null;
+            }
             $tblCity = (new Data($this->getBinding()))->createCity(
                 $City['Code'], $City['Name'], $City['District']
             );
@@ -501,12 +509,12 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->addAddressToCompany($tblCompany, $tblAddress, $tblType,
                 $Type['Remark'])
             ) {
-                return new Success('Die Adresse wurde erfolgreich hinzugefügt')
-                .new Redirect('/Corporation/Company', 1,
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adresse wurde erfolgreich hinzugefügt')
+                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblCompany->getId()));
             } else {
-                return new Danger('Die Adresse konnte nicht hinzugefügt werden')
-                .new Redirect('/Corporation/Company', 10,
+                return new Danger(new Ban() . ' Die Adresse konnte nicht hinzugefügt werden')
+                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblCompany->getId()));
             }
         }
