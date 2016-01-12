@@ -141,27 +141,23 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Stage
+     * @param IFormInterface $Form
      * @param                $Account
      *
      * @return IFormInterface|string
      */
-    public function createAccount(IFormInterface &$Stage = null, $Account)
+    public function createAccount(IFormInterface &$Form = null, $Account)
     {
 
         /**
          * Skip to Frontend
          */
         if (null === $Account) {
-            return $Stage;
+            return $Form;
         }
         $Error = false;
-        if (isset( $Account['Description'] ) && empty( $Account['Description'] )) {
-            $Stage->setError('Account[Description]', 'Bitte geben sie eine Beschreibung an');
-            $Error = true;
-        }
         if (isset( $Account['Number'] ) && empty( $Account['Number'] )) {
-            $Stage->setError('Account[Number]', 'Bitte geben sie die Nummer an');
+            $Form->setError('Account[Number]', 'Bitte geben sie die Nummer an');
             $Error = true;
         }
         $Account['IsActive'] = 1;
@@ -174,9 +170,9 @@ class Service extends AbstractService
                 (new Data($this->getBinding()))->getAccountKeyById($Account['Key']),
                 (new Data($this->getBinding()))->getAccountTypeById($Account['Type']));
             return new Success('Das Konto ist erfasst worden')
-            .new Redirect('/Billing/Accounting/Account', 2);
+            .new Redirect('/Billing/Accounting/Account', Redirect::TIMEOUT_SUCCESS);
         }
-        return $Stage;
+        return $Form;
     }
 
 }
