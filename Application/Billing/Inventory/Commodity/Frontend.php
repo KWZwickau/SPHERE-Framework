@@ -68,14 +68,16 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblCommodityAll = Commodity::useService()->getCommodityAll();
 
+        $TableContent = array();
         if (!empty( $tblCommodityAll )) {
-            array_walk($tblCommodityAll, function (TblCommodity $tblCommodity) {
+            array_walk($tblCommodityAll, function (TblCommodity $tblCommodity) use (&$TableContent) {
 
-                $tblCommodity->Type = $tblCommodity->getTblCommodityType()->getName();
-                $tblCommodity->ItemCount = Commodity::useService()->countItemAllByCommodity($tblCommodity);
-                $tblCommodity->SumPriceItem = Commodity::useService()->sumPriceItemAllByCommodity($tblCommodity);
-                $tblCommodity->Option =
-                    (new Standard('Bearbeiten', '/Billing/Inventory/Commodity/Change',
+                $Temp['Name'] = $tblCommodity->getName();
+                $Temp['Description'] = $tblCommodity->getDescription();
+                $Temp['Type'] = $tblCommodity->getTblCommodityType()->getName();
+                $Temp['ItemCount'] = Commodity::useService()->countItemAllByCommodity($tblCommodity);
+                $Temp['SumPriceItem'] = Commodity::useService()->sumPriceItemAllByCommodity($tblCommodity);
+                $Temp['Option'] = (new Standard('Bearbeiten', '/Billing/Inventory/Commodity/Change',
                         new Pencil(), array(
                             'Id' => $tblCommodity->getId()
                         )))->__toString().
@@ -87,6 +89,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                        new Remove(), array(
 //                            'Id' => $tblCommodity->getId()
 //                        )))->__toString();
+                array_push($TableContent, $Temp);
             });
         }
         $Form = $this->formCommodity()
@@ -98,7 +101,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($tblCommodityAll, null,
+                            new TableData($TableContent, null,
                                 array(
                                     'Name'         => 'Name',
                                     'Description'  => 'Beschreibung',
