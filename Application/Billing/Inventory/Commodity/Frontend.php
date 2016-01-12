@@ -11,6 +11,7 @@ use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -170,24 +171,16 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new TextField('Commodity[Name]', 'Name', 'Name', new Conversation()
-                        ), 6),
-                    new FormColumn(
-                        new SelectBox('Commodity[Type]', 'Leistungsart', array(
-                            'Name' => Commodity::useService()->getCommodityTypeAll()
-                        ))
+                        new Panel('Leistung', array(new TextField('Commodity[Name]', 'Name', 'Name', new Conversation()),
+                                new SelectBox('Commodity[Type]', 'Leistungsart', array(
+                                    'Name' => Commodity::useService()->getCommodityTypeAll())))
+                            , Panel::PANEL_TYPE_INFO)
                         , 6),
-                )),
-//                new FormRow(array(
-//                    new FormColumn( new HiddenField('') , 6),
-//                    new FormColumn(
-//                        ''
-//                    ),
-//                )),
-                new FormRow(array(
                     new FormColumn(
-                        new TextField('Commodity[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
-                        ), 12)
+                        new Panel('Sonstiges',
+                            new TextArea('Commodity[Description]', 'Beschreibung', 'Beschreibung', new Conversation()),
+                            Panel::PANEL_TYPE_INFO)
+                        , 6)
                 ))
             ))
         ));

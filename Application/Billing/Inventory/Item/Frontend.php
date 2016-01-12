@@ -10,6 +10,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -207,34 +208,30 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(array(
             new FormGroup(array(
                 new FormRow(array(
+                    new FormColumn(new Panel('Artikel', array(
+                            new TextField('Item[Name]', 'Name', 'Name', new Conversation()),
+                            new TextField('Item[Price]', 'Preis in €', 'Preis', new MoneyEuro()),
+                            new TextField('Item[CostUnit]', 'Kostenstelle', 'Kostenstelle', new Money())
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
                     new FormColumn(
-                        new TextField('Item[Name]', 'Name', 'Name', new Conversation()
-                        ), 4),
+                        new Panel('Bedingungen', array(
+                            new SelectBox('Item[Course]', 'Bedingung Bildungsgang',
+                                array(
+                                    'Name' => $tblSchoolTypeAll
+                                )),
+                            new SelectBox('Item[ChildRank]', 'Bedingung Kind-Reihenfolge',
+                                array(
+                                    'Name' => $tblChildRankAll
+                                ))
+                        ), Panel::PANEL_TYPE_INFO
+                        )
+                        , 4),
                     new FormColumn(
-                        new TextField('Item[Price]', 'Preis in €', 'Preis', new MoneyEuro()
-                        ), 4),
-                    new FormColumn(
-                        new TextField('Item[CostUnit]', 'Kostenstelle', 'Kostenstelle', new Money()
-                        ), 4)
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new TextField('Item[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
-                        ), 12)
-                )),
-                new FormRow(array(
-                    new FormColumn(
-                        new SelectBox('Item[Course]', 'Bedingung Bildungsgang',
-                            array(
-                                'Name' => $tblSchoolTypeAll
-                            ))
-                        , 6),
-                    new FormColumn(
-                        new SelectBox('Item[ChildRank]', 'Bedingung Kind-Reihenfolge',
-                            array(
-                                'Name' => $tblChildRankAll
-                            ))
-                        , 6)
+                        new Panel('Sonstiges',
+                            new TextArea('Item[Description]', 'Beschreibung', 'Beschreibung', new Conversation()),
+                            Panel::PANEL_TYPE_INFO)
+                        , 4)
                 ))
             ))
         ));
