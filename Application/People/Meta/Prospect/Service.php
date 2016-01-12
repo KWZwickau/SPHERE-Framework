@@ -98,8 +98,8 @@ class Service extends AbstractService
                 $Meta['Remark']
             );
         }
-        return new Success('Die Daten wurde erfolgreich gespeichert')
-        .new Redirect('/People/Person', 3, array(
+        return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Daten wurde erfolgreich gespeichert')
+        .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array(
             'Id'    => $tblPerson->getId(),
             'Group' => $Group
         ));

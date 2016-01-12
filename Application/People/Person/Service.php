@@ -8,6 +8,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Person\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -116,13 +117,13 @@ class Service extends AbstractService
                         );
                     }
                 }
-                return new Success('Die Person wurde erfolgreich erstellt')
-                .new Redirect('/People/Person', 1,
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Person wurde erfolgreich erstellt')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblPerson->getId())
                 );
             } else {
-                return new Danger('Die Person konnte nicht erstellt werden')
-                .new Redirect('/People/Person', 10);
+                return new Danger(new Ban() . ' Die Person konnte nicht erstellt werden')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR);
             }
         }
 
@@ -236,13 +237,13 @@ class Service extends AbstractService
                         Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
                     }
                 }
-                return new Success('Die Person wurde erfolgreich aktualisiert')
-                .new Redirect('/People/Person', 1,
+                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Person wurde erfolgreich aktualisiert')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
                     array('Id' => $tblPerson->getId(), 'Group' => $Group)
                 );
             } else {
-                return new Danger('Die Person konnte nicht aktualisiert werden')
-                .new Redirect('/People/Person', 10);
+                return new Danger(new Ban() . 'Die Person konnte nicht aktualisiert werden')
+                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR);
             }
         }
 

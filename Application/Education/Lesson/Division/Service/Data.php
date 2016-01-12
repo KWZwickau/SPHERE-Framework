@@ -40,7 +40,7 @@ class Data extends AbstractData
     public function createLevel(TblType $tblType, $Name, $Description = '')
     {
 
-        $Manager = $this->getConnection()->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager(false);
         $Entity = $Manager->getEntity('TblLevel')->findOneBy(array(
             TblLevel::ATTR_NAME        => $Name,
             TblLevel::SERVICE_TBL_TYPE => $tblType->getId()

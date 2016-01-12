@@ -600,4 +600,13 @@ class Service extends AbstractService
     {
         return (new Data($this->getBinding()))->getSettingAllByAccount($tblAccount);
     }
+
+    /**
+     * @return int
+     */
+    public function countSessionAll()
+    {
+
+        return (new Data($this->getBinding()))->countSessionAll();
+    }
 }

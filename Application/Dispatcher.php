@@ -193,6 +193,7 @@ class Dispatcher extends Extension
                 $Column++;
             }
         }
-        return $Dashboard.'</div><script>Client.Use( "ModGrid", function() { jQuery( "div.Location-'.$Location.'.gridster ul" ).ModGrid({ storage: "Widget-'.$Location.'" }); } );</script>';
+        return $Dashboard.'</div>'
+        .'<script>executeScript(function(){Client.Use( "ModGrid", function() { jQuery( "div.Location-'.$Location.'.gridster ul" ).ModGrid({ storage: "Widget-'.$Location.'" }); } );});</script>';
     }
 }

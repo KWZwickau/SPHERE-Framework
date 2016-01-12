@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -30,13 +31,16 @@ use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -86,7 +90,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblAccountAll, function (TblAccount &$tblAccount) {
 
                 if (
-                    ($tblAccount->getServiceTblIdentification() && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId())
+                    ( $tblAccount->getServiceTblIdentification() && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId() )
                     && $tblAccount->getServiceTblConsumer()->getId() == Consumer::useService()->getConsumerBySession()->getId()
                 ) {
 
@@ -107,32 +111,32 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $tblAccount = array(
-                        'Username' => new Listing(array($tblAccount->getUsername())),
-                        'Person' => new Listing(!empty($tblPersonAll)
+                        'Username'       => new Listing(array($tblAccount->getUsername())),
+                        'Person'         => new Listing(!empty( $tblPersonAll )
                             ? $tblPersonAll
-                            : array(new Danger(new Exclamation() . new Small(' Keine Person angeben')))
+                            : array(new Danger(new Exclamation().new Small(' Keine Person angeben')))
                         ),
                         'Authentication' => new Listing(array($tblAccount->getServiceTblIdentification() ? $tblAccount->getServiceTblIdentification()->getDescription() : '')),
-                        'Authorization' => new Listing(!empty($tblAuthorizationAll)
+                        'Authorization'  => new Listing(!empty( $tblAuthorizationAll )
                             ? $tblAuthorizationAll
-                            : array(new Danger(new Exclamation() . new Small(' Keine Berechtigungen vergeben')))
+                            : array(new Danger(new Exclamation().new Small(' Keine Berechtigungen vergeben')))
                         ),
-                        'Token' => new Listing(array(
+                        'Token'          => new Listing(array(
                             $tblAccount->getServiceTblToken()
                                 ? substr($tblAccount->getServiceTblToken()->getSerial(), 0,
-                                    4) . ' ' . substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
+                                    4).' '.substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
                                 : new Muted(new Small('Kein Hardware-Schlüssel vergeben'))
                         )),
-                        'Option' =>
+                        'Option'         =>
                             new Standard('',
                                 '/Setting/Authorization/Account/Edit',
                                 new Edit(), array('Id' => $tblAccount->getId()),
-                                'Benutzer ' . $tblAccount->getUsername() . ' bearbeiten'
+                                'Benutzer '.$tblAccount->getUsername().' bearbeiten'
                             )
-                            . new Standard('',
+                            .new Standard('',
                                 '/Setting/Authorization/Account/Destroy',
                                 new Remove(), array('Id' => $tblAccount->getId()),
-                                'Benutzer ' . $tblAccount->getUsername() . ' löschen'
+                                'Benutzer '.$tblAccount->getUsername().' löschen'
                             )
                     );
                 } else {
@@ -150,16 +154,16 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblAccountAll,
                             null,
                             array(
-                                'Username' => new PersonKey() . ' Benutzerkonto',
-                                'Person' => new Person() . ' Person',
-                                'Authentication' => new Lock() . ' Kontotyp',
-                                'Authorization' => new Nameplate() . ' Berechtigungen',
-                                'Token' => new Key() . ' Hardware-Schlüssel',
-                                'Option' => 'Optionen'
+                                'Username'       => new PersonKey().' Benutzerkonto',
+                                'Person'         => new Person().' Person',
+                                'Authentication' => new Lock().' Kontotyp',
+                                'Authorization'  => new Nameplate().' Berechtigungen',
+                                'Token'          => new Key().' Hardware-Schlüssel',
+                                'Option'         => 'Optionen'
                             )
                         )
                     )
-                )
+                ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Listing().' Übersicht')
             )
         );
     }
@@ -173,18 +177,19 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Benutzerkonto', 'Hinzufügen');
+        $Stage->addButton(new Standard('Zurück', '/Setting/Authorization/Account', new ChevronLeft()));
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
-                        new LayoutColumn(
+                        new LayoutColumn(new Well(
                             Account::useService()->createAccount(
                                 $this->formAccount()
-                                    ->appendFormButton(new Primary('Benutzerkonto hinzufügen'))
+                                    ->appendFormButton(new Primary('Speichern', new Save()))
                                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $Account)
-                        )
-                    ), new Title('Benutzerkonto hinzufügen')
+                        ))
+                    ), new Title(new PlusSign().' Hinzufügen')
                 ),
             ))
         );
@@ -212,14 +217,14 @@ class Frontend extends Extension implements IFrontendInterface
                     switch (strtoupper($tblIdentification->getName())) {
                         case 'CREDENTIAL':
                             $Global = $this->getGlobal();
-                            if (!isset($Global->POST['Account']['Identification'])) {
+                            if (!isset( $Global->POST['Account']['Identification'] )) {
                                 $Global->POST['Account']['Identification'] = $tblIdentification->getId();
                                 $Global->savePost();
                             }
                             $Label = $tblIdentification->getDescription();
                             break;
                         default:
-                            $Label = $tblIdentification->getDescription() . ' (' . new Key() . ')';
+                            $Label = $tblIdentification->getDescription().' ('.new Key().')';
                     }
                     $tblIdentification = new RadioBox(
                         'Account[Identification]', $Label, $tblIdentification->getId()
@@ -239,7 +244,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblRole->isInternal()) {
                     $tblRole = false;
                 } else {
-                    $tblRole = new CheckBox('Account[Role][' . $tblRole->getId() . ']', $tblRole->getName(),
+                    $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']', $tblRole->getName(),
                         $tblRole->getId());
                 }
             });
@@ -250,7 +255,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Token
         $Global = $this->getGlobal();
-        if (!isset($Global->POST['Account']['Token'])) {
+        if (!isset( $Global->POST['Account']['Token'] )) {
             $Global->POST['Account']['Token'] = 0;
             $Global->savePost();
         }
@@ -265,7 +270,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblTokenAll, function (TblToken &$tblTokenItem) use ($tblToken) {
 
                 if (
-                    ($tblToken === false || $tblTokenItem->getId() != $tblToken->getId())
+                    ( $tblToken === false || $tblTokenItem->getId() != $tblToken->getId() )
                     && !Account::useService()->getAccountAllByToken($tblTokenItem)
                 ) {
                     $tblTokenItem = new RadioBox('Account[Token]',
@@ -294,10 +299,10 @@ class Frontend extends Extension implements IFrontendInterface
             );
             array_unshift($tblTokenAll, new Danger('AKTUELL hinterlegter Schlüssel, '));
 
-            $PanelToken = new Panel(new Key() . ' mit folgendem Hardware-Schlüssel', $tblTokenAll
+            $PanelToken = new Panel(new Key().' mit folgendem Hardware-Schlüssel', $tblTokenAll
                 , Panel::PANEL_TYPE_INFO);
         } else {
-            $PanelToken = new Panel(new Person() . ' mit folgendem Hardware-Schlüssel',
+            $PanelToken = new Panel(new Person().' mit folgendem Hardware-Schlüssel',
                 $tblTokenAll
                 , Panel::PANEL_TYPE_INFO);
         }
@@ -306,7 +311,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblAccount) {
             $User = Account::useService()->getUserAllByAccount($tblAccount);
         }
-        if (!empty($User)) {
+        if (!empty( $User )) {
             $tblPerson = $User[0]->getServiceTblPerson();
         } else {
             $tblPerson = false;
@@ -323,7 +328,7 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                 } else {
                     $tblPersonItem = array(
-                        'Person' => new Warning($tblPersonItem->getFullName()) . ' (Aktuell hinterlegt)'
+                        'Person' => new Warning($tblPersonItem->getFullName()).' (Aktuell hinterlegt)'
                     );
                 }
             });
@@ -334,21 +339,21 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Person Panel
         if ($tblPerson) {
-            $PanelPerson = new Panel(new Person() . ' für folgende Person', array(
+            $PanelPerson = new Panel(new Person().' für folgende Person', array(
                 new Danger('AKTUELL hinterlegte Person, '),
                 new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId()),
                 new Danger('ODER eine andere Person wählen: '),
                 new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
             ), Panel::PANEL_TYPE_INFO);
         } else {
-            $PanelPerson = new Panel(new Person() . ' für folgende Person', array(
+            $PanelPerson = new Panel(new Person().' für folgende Person', array(
                 new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
             ), Panel::PANEL_TYPE_INFO);
         }
 
         // Username Panel
         if ($tblAccount) {
-            $UsernamePanel = new Panel(new PersonKey() . ' Benutzerkonto', array(
+            $UsernamePanel = new Panel(new PersonKey().' Benutzerkonto', array(
                 (new TextField('Account[Name]', 'Benutzername (min. 5 Zeichen)', 'Benutzername',
                     new Person()))
                     ->setPrefixValue($tblConsumer->getAcronym())->setDisabled(),
@@ -361,7 +366,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
             ), Panel::PANEL_TYPE_INFO);
         } else {
-            $UsernamePanel = new Panel(new PersonKey() . ' Benutzerkonto', array(
+            $UsernamePanel = new Panel(new PersonKey().' Benutzerkonto', array(
                 (new TextField('Account[Name]', 'Benutzername (min. 5 Zeichen)', 'Benutzername',
                     new Person()))
                     ->setPrefixValue($tblConsumer->getAcronym()),
@@ -379,7 +384,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(array(
                         $UsernamePanel,
-                        new Panel(new Lock() . ' Authentifizierungstyp wählen', $tblIdentificationAll,
+                        new Panel(new Lock().' Authentifizierungstyp wählen', $tblIdentificationAll,
                             Panel::PANEL_TYPE_INFO),
                         $PanelToken,
                     ), 4),
@@ -387,7 +392,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $PanelPerson,
                     ), 4),
                     new FormColumn(array(
-                        new Panel(new Nameplate() . ' Berechtigungen zuweisen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
+                        new Panel(new Nameplate().' Berechtigungen zuweisen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
                     ), 4),
                 )),
                 new FormRow(array(
@@ -399,7 +404,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null|int $Id
+     * @param null|int   $Id
      * @param null|array $Account
      *
      * @return Stage
@@ -408,6 +413,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Benutzerkonto', 'Bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Setting/Authorization/Account', new ChevronLeft()));
         $tblAccount = Account::useService()->getAccountById($Id);
         if ($tblAccount) {
 
@@ -443,14 +449,14 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(
-                            new LayoutColumn(
+                            new LayoutColumn(new Well(
                                 Account::useService()->changeAccount(
                                     $this->formAccount($tblAccount)
-                                        ->appendFormButton(new Primary('Änderungen speichern'))
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
                                         ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
                                     $tblAccount, $Account)
-                            )
-                        ), new Title('Benutzerkonto ändern')
+                            ))
+                        ), new Title(new Pencil().' Bearbeiten')
                     ),
                 ))
             );
@@ -473,7 +479,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int $Id
+     * @param int  $Id
      * @param bool $Confirm
      *
      * @return Stage
@@ -488,15 +494,15 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Content = array(
                     $tblAccount->getUsername(),
-                    ($tblAccount->getServiceTblIdentification() ? new Lock() . ' ' . $tblAccount->getServiceTblIdentification()->getDescription() : '')
-                    . ($tblAccount->getServiceTblToken() ? ' ' . new Key() . ' ' . $tblAccount->getServiceTblToken()->getSerial() : '')
+                    ( $tblAccount->getServiceTblIdentification() ? new Lock().' '.$tblAccount->getServiceTblIdentification()->getDescription() : '' )
+                    .( $tblAccount->getServiceTblToken() ? ' '.new Key().' '.$tblAccount->getServiceTblToken()->getSerial() : '' )
                 );
 
                 $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
                 if ($tblPersonAll) {
                     array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
 
-                        $tblPerson = new Person() . ' ' . $tblPerson->getFullName();
+                        $tblPerson = new Person().' '.$tblPerson->getFullName();
                     });
                     $Content = array_merge($Content, $tblPersonAll);
                 }
@@ -505,21 +511,21 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblAuthorizationAll) {
                     array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
 
-                        $tblAuthorization = new Nameplate() . ' ' . $tblAuthorization->getServiceTblRole()->getName();
+                        $tblAuthorization = new Nameplate().' '.$tblAuthorization->getServiceTblRole()->getName();
                     });
                     $Content = array_merge($Content, $tblAuthorizationAll);
                 }
 
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                        new Panel(new PersonKey() . ' Benutzerkonto', $Content, Panel::PANEL_TYPE_SUCCESS),
-                        new Panel(new Question() . ' Dieses Benutzerkonto wirklich löschen?', array(),
+                        new Panel(new PersonKey().' Benutzerkonto', $Content, Panel::PANEL_TYPE_SUCCESS),
+                        new Panel(new Question().' Dieses Benutzerkonto wirklich löschen?', array(),
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Setting/Authorization/Account/Destroy', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            . new Standard(
+                            .new Standard(
                                 'Nein', '/Setting/Authorization/Account', new Disable()
                             )
                         )
@@ -529,7 +535,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 // Remove Session
                 $tblSessionAll = Account::useService()->getSessionAllByAccount($tblAccount);
-                if (!empty($tblSessionAll)) {
+                if (!empty( $tblSessionAll )) {
                     /** @var TblSession $tblSession */
                     foreach ($tblSessionAll as $tblSession) {
                         Account::useService()->destroySession(null, $tblSession->getSession());
@@ -538,7 +544,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 // Remove User
                 $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
-                if (!empty($tblPersonAll)) {
+                if (!empty( $tblPersonAll )) {
                     /** @var TblPerson $tblPerson */
                     foreach ($tblPersonAll as $tblPerson) {
                         Account::useService()->removeAccountPerson($tblAccount, $tblPerson);
@@ -547,14 +553,14 @@ class Frontend extends Extension implements IFrontendInterface
 
                 // Remove Authentication
                 $tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount);
-                if (!empty($tblAuthentication)) {
+                if (!empty( $tblAuthentication )) {
                     Account::useService()->removeAccountAuthentication($tblAccount,
                         $tblAuthentication->getTblIdentification());
                 }
 
                 // Remove Authorization
                 $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
-                if (!empty($tblAuthorizationAll)) {
+                if (!empty( $tblAuthorizationAll )) {
                     /** @var TblAuthorization $tblAuthorization */
                     foreach ($tblAuthorizationAll as $tblAuthorization) {
                         Account::useService()->removeAccountAuthorization($tblAccount,
@@ -564,7 +570,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 // Remove Setting
                 $tblSettingAll = Account::useService()->getSettingAllByAccount($tblAccount);
-                if (!empty($tblSettingAll)) {
+                if (!empty( $tblSettingAll )) {
                     /** @var TblAuthorization $tblAuthorization */
                     foreach ($tblSettingAll as $tblSetting) {
                         Account::useService()->destroySetting($tblSetting);
@@ -574,11 +580,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            (Account::useService()->destroyAccount($tblAccount)
+                            ( Account::useService()->destroyAccount($tblAccount)
                                 ? new Success('Das Benutzerkonto wurde gelöscht')
                                 : new Danger('Das Benutzerkonto konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/Setting/Authorization/Account', 1)
+                            new Redirect('/Setting/Authorization/Account', Redirect::TIMEOUT_SUCCESS)
                         )))
                     )))
                 );
@@ -588,7 +594,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new Danger('Das Benutzerkonto konnte nicht gefunden werden'),
-                        new Redirect('/Setting/Authorization/Account')
+                        new Redirect('/Setting/Authorization/Account', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );

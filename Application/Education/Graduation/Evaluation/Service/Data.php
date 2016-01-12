@@ -173,6 +173,22 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblTestType $tblTestType
+     * @param TblDivision $tblDivision
+     * @return bool|TblTest[]
+     */
+    public function getTestAllByTestTypeAndDivision(TblTestType $tblTestType, TblDivision $tblDivision)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+            array(
+                TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
+                TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+            )
+        );
+    }
+
+    /**
      * @param TblTask $tblTask
      * @param TblDivision $tblDivision
      *

@@ -16,23 +16,27 @@
 
 {% if( ElementToggleTarget is not empty ) %}
     <script type="text/javascript">
-        Client.Use('ModCheckBox', function()
+        //noinspection JSUnresolvedFunction
+        executeScript(function()
         {
-            var toggleTargets = function()
+            Client.Use('ModCheckBox', function()
             {
-                {% for ToggleTarget in ElementToggleTarget %}
-                jQuery('[name="{{ ToggleTarget }}"]:eq(0)').prop('disabled', function(i, v)
+                var toggleTargets = function()
                 {
-                    return !v;
+                    {% for ToggleTarget in ElementToggleTarget %}
+                    jQuery('[name="{{ ToggleTarget }}"]:eq(0)').prop('disabled', function(i, v)
+                    {
+                        return !v;
+                    });
+                    {% endfor %}
+                };
+                if (jQuery('#{{ ElementHash }}').prop('checked')) {
+                    toggleTargets();
+                }
+                jQuery('#{{ ElementHash }}').on('click', function()
+                {
+                    toggleTargets();
                 });
-                {% endfor %}
-            };
-            if (jQuery('#{{ ElementHash }}').prop('checked')) {
-                toggleTargets();
-            }
-            jQuery('#{{ ElementHash }}').on('click', function()
-            {
-                toggleTargets();
             });
         });
     </script>

@@ -545,7 +545,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(Subject::useService()->destroySubject($tblSubject));
         } else {
             return $Stage.new Warning('Fach nicht gefunden!')
-            .new Redirect('/Education/Lesson/Subject/Create/Subject');
+            .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
         }
         return $Stage;
     }
@@ -565,7 +565,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(Subject::useService()->destroyCategory($tblCategory));
         } else {
             return $Stage.new Warning('Kategorie nicht gefunden!')
-            .new Redirect('/Education/Lesson/Subject/Create/Subject');
+            .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
         }
         return $Stage;
     }

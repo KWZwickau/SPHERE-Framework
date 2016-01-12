@@ -212,14 +212,14 @@ class Service extends AbstractService
         if (!$Error) {
             if ((new Data($this->getBinding()))->destroySubject($tblSubject)) {
                 return new Success('Das Fach wurde erfolgreich gelöscht')
-                .new Redirect('/Education/Lesson/Subject/Create/Subject', 1);
+                .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Das Fach konnte nicht gelöscht werden')
-                .new Redirect('/Education/Lesson/Subject/Create/Subject');
+                .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
             }
         }
         return new Danger('Das Fach wird benutzt!')
-        .new Redirect('/Education/Lesson/Subject/Create/Subject');
+        .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
     }
 
     /**
@@ -271,14 +271,14 @@ class Service extends AbstractService
         if (!$Error) {
             if ((new Data($this->getBinding()))->destroyCategory($tblCategory)) {
                 return new Success('Die Kategorie wurde erfolgreich gelöscht')
-                .new Redirect('/Education/Lesson/Subject/Create/Category', 1);
+                .new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Die Kategorie konnte nicht gelöscht werden')
-                .new Redirect('/Education/Lesson/Subject/Create/Category');
+                .new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_ERROR);
             }
         }
         return new Danger('Die Kategorie wurde benutzt!')
-        .new Redirect('/Education/Lesson/Subject/Create/Category');
+        .new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_ERROR);
 
     }
 
@@ -430,10 +430,10 @@ class Service extends AbstractService
             )
             ) {
                 return new Success('Das Fach wurde erfolgreich hinzugefügt')
-                .new Redirect($this->getRequest()->getUrl(), 3);
+                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Das Fach konnte nicht hinzugefügt werden')
-                .new Redirect($this->getRequest()->getUrl());
+                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -495,14 +495,14 @@ class Service extends AbstractService
                 )
                 ) {
                     return new Success('Das Fach wurde erfolgreich geändert')
-                    .new Redirect('/Education/Lesson/Subject/Create/Subject', 3);
+                    .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_SUCCESS);
                 } else {
                     return new Danger('Das Fach konnte nicht geändert werden')
-                    .new Redirect('/Education/Lesson/Subject/Create/Subject');
+                    .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
                 }
             } else {
                 return new Danger('Das Fach wurde nicht gefunden')
-                .new Redirect('/Education/Lesson/Subject/Create/Subject');
+                .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -556,14 +556,14 @@ class Service extends AbstractService
                 )
                 ) {
                     return new Success('Die Kategorie wurde erfolgreich geändert')
-                    .new Redirect('/Education/Lesson/Subject/Create/Category', 3);
+                    .new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_SUCCESS);
                 } else {
                     return new Danger('Die Kategorie konnte nicht geändert werden')
-                    .new Redirect('/Education/Lesson/Subject/Create/Category');
+                    .new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_ERROR);
                 }
             } else {
                 return new Danger('Die Kategorie wurde nicht gefunden')
-                .new Redirect('/Education/Lesson/Subject/Create/Category');
+                .new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -646,10 +646,10 @@ class Service extends AbstractService
             )
             ) {
                 return new Success('Die Kategorie wurde erfolgreich hinzugefügt')
-                .new Redirect($this->getRequest()->getUrl(), 3);
+                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Die Kategorie konnte nicht hinzugefügt werden')
-                .new Redirect($this->getRequest()->getUrl());
+                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -697,10 +697,10 @@ class Service extends AbstractService
 
             if (!$Error) {
                 return new Success('Die Kategorien wurden erfolgreich geändert')
-                .new Redirect($this->getRequest()->getUrl(), 3);
+                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Einige Kategorien konnte nicht geändert werden')
-                .new Redirect($this->getRequest()->getUrl());
+                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;
@@ -766,10 +766,10 @@ class Service extends AbstractService
 
             if (!$Error) {
                 return new Success('Die Fächer wurden erfolgreich geändert')
-                .new Redirect($this->getRequest()->getUrl(), 3);
+                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Einige Fächer konnte nicht geändert werden')
-                .new Redirect($this->getRequest()->getUrl());
+                .new Redirect($this->getRequest()->getUrl(), Redirect::TIMEOUT_ERROR);
             }
         }
         return $Form;

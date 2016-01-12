@@ -16,6 +16,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -23,6 +24,7 @@ use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -61,13 +63,13 @@ class Frontend implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
-                        new LayoutColumn(
+                        new LayoutColumn(new Well(
                             Token::useService()->createToken(
                                 $this->formYubiKey()
-                                    ->appendFormButton(new Primary('Hardware-Schlüssel hinzufügen'))
+                                    ->appendFormButton(new Primary('Speichern', new Save()))
                                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $CredentialKey, Consumer::useService()->getConsumerBySession())
-                        )
+                        ))
                     ), new Title('Hardware-Schlüssel', 'Hinzufügen')
                 ),
             ))
@@ -216,7 +218,7 @@ class Frontend implements IFrontendInterface
                                     ? new Success('Der Hardware-Schlüssel wurde gelöscht')
                                     : new Danger('Der Hardware-Schlüssel konnte nicht gelöscht werden')
                                 ),
-                                new Redirect('/Setting/Authorization/Token', 1)
+                                new Redirect('/Setting/Authorization/Token', Redirect::TIMEOUT_SUCCESS)
                             )))
                         )))
                     );
@@ -226,7 +228,7 @@ class Frontend implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             new Danger('Der Hardware-Schlüssel kann nicht gelöscht werden'),
-                            new Redirect('/Setting/Authorization/Token')
+                            new Redirect('/Setting/Authorization/Token', Redirect::TIMEOUT_ERROR)
                         )))
                     )))
                 );
@@ -236,7 +238,7 @@ class Frontend implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new Danger('Der Hardware-Schlüssel konnte nicht gefunden werden'),
-                        new Redirect('/Setting/Authorization/Token')
+                        new Redirect('/Setting/Authorization/Token', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );

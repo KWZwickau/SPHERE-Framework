@@ -42,8 +42,23 @@
     <meta name="msapplication-TileImage"
           content="{{ PathBase }}/Common/Style/Resource/Logo/Favicon/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
-    <script src="{{ PathBase }}/Common/Script/Loader.js"></script>
-    {{ ManagerScript }}
+    <script type="text/javascript">
+        function executeScript(Callback)
+        {
+            var Event = window.onload;
+            if (typeof window.onload != 'function') {
+                window.onload = Callback;
+            } else {
+                window.onload = function()
+                {
+                    if (Event) {
+                        Event();
+                    }
+                    Callback();
+                }
+            }
+        }
+    </script>
 </head>
 <body>
 
@@ -167,6 +182,8 @@
                 |
                 <span class="glyphicons glyphicons-globe"></span> {{ DebuggerHost }} {{ CpuLoad }}
                 |
+                <span class="glyphicons glyphicons-person-running"></span> {{ DebuggerSessionCount }}
+                |
                 <span class="glyphicons glyphicons-cluster"></span> {{ CacheSlot }} {{ MemoryPeak }}
 
                 <br/>
@@ -190,7 +207,8 @@
     </div>
 </div>
 
-
+<script src="{{ PathBase }}/Common/Script/Loader.js"></script>
+{{ ManagerScript }}
 <script>
     var _paq = _paq || [];
     _paq.push(["setDoNotTrack", true]);
@@ -198,10 +216,15 @@
     _paq.push(['trackPageView']);
     _paq.push(['enableLinkTracking']);
 
-    Client.Use('ModAlways', function()
+    executeScript(function()
     {
-        jQuery().ModAlways();
-        (function ()
+        Client.Use('ModAlways', function()
+        {
+            jQuery().ModAlways();
+
+        });
+
+        (function()
         {
             var u = "/Library/Piwik/";
             _paq.push(['setTrackerUrl', u + 'piwik.php']);

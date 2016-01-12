@@ -44,7 +44,7 @@ class Reporting implements IClusterInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Dashboard', 'Auswertung');
+        $Stage = new Stage('Auswertung', 'Dashboard');
 
         $Stage->setContent(Main::getDispatcher()->fetchDashboard('Auswertung'));
 

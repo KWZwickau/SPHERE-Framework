@@ -28,8 +28,10 @@ use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Phone as PhoneIcon;
 use SPHERE\Common\Frontend\Icon\Repository\PhoneFax;
 use SPHERE\Common\Frontend\Icon\Repository\PhoneMobil;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -37,6 +39,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -290,28 +293,24 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendSchoolCreate($School, $Type)
     {
 
-        $Stage = new Stage('Schule', 'anlegen');
+        $Stage = new Stage('Schule', 'Hinzufügen');
+        $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/School', new ChevronLeft()));
         $tblCompanyAll = Company::useService()->getCompanyAll();
         if (!empty( $tblCompanyAll )) {
             $Stage->setContent(
-                new Form(
-                    new FormGroup(
-                        new FormRow(
-                            new FormColumn(
-                                new Panel(new Standard(new ChevronLeft(),
-                                        '/Setting/Consumer/School').'Zurück zur Übersicht',
-                                    array(),
-                                    Panel::PANEL_TYPE_SUCCESS)
-                                , 6)
-                        )
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(new Well(
+                                School::useService()->createSchool(
+                                    $this->formSchoolCompanyCreate()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
+                                    $Type, $School
+                                )
+                            ))
+                        ), new Title(new PlusSign().' Hinzufügen')
                     )
-                )
-                .
-                School::useService()->createSchool(
-                    $this->formSchoolCompanyCreate()
-                        ->appendFormButton(new Primary('Schule hinzufügen'))
-                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
-                    $Type, $School
                 )
             );
         } else {
@@ -369,8 +368,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendSchoolDelete()
     {
 
-        $Stage = new Stage('Schule', 'entfernen');
-
+        $Stage = new Stage('Schule', 'Entfernen');
+        $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/School', new ChevronLeft()));
         $tblSchoolAll = School::useService()->getSchoolAll();
         if ($tblSchoolAll) {
             array_walk($tblSchoolAll, function (TblSchool &$tblSchool) {
@@ -480,9 +479,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(new LayoutColumn(array(
                             ( School::useService()->destroySchool($tblSchool)
                                 ? new Success('Die Schule wurde gelöscht')
-                                .new Redirect('/Setting/Consumer/School', 0)
+                                .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_SUCCESS)
                                 : new Danger('Die Schule konnte nicht gelöscht werden')
-                                .new Redirect('/Setting/Consumer/School', 10)
+                                .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_ERROR)
                             )
                         )))
                     )))
@@ -493,7 +492,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new Danger('Die Schule konnte nicht gefunden werden'),
-                        new Redirect('/Setting/Consumer/School', 3)
+                        new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );

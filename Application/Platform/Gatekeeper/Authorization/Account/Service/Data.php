@@ -605,10 +605,10 @@ class Data extends AbstractData
                 $Type = $this->getAuthenticationByAccount($Account)->getTblIdentification()->getName();
                 switch (strtoupper($Type)) {
                     case 'SYSTEM':
-                        $Timeout = (60 * 60);
+                        $Timeout = ( 60 * 60 * 4 );
                         break;
                     case 'TOKEN':
-                        $Timeout = (60 * 30);
+                        $Timeout = ( 60 * 60 );
                         break;
                     case 'CREDENTIAL':
                         $Timeout = (60 * 15);
@@ -849,5 +849,14 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @return int
+     */
+    public function countSessionAll()
+    {
+
+        return $this->getConnection()->getEntityManager()->getEntity('TblSession')->count();
     }
 }

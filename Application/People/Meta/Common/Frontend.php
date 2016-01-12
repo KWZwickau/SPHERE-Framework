@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Sheriff;
 use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -185,7 +186,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ), 3),
                         )),
                     )),
-                ), new Primary('Informationen speichern')
+                ), new Primary('Speichern', new Save())
                 ))->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.'), $tblPerson, $Meta, $Group)
         );
 

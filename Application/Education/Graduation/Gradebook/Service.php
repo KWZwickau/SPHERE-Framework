@@ -23,10 +23,11 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\Common\Window\Stage;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -87,8 +88,8 @@ class Service extends AbstractService
                 isset($GradeType['IsHighlighted']) ? true : false,
                 Evaluation::useService()->getTestTypeById($GradeType['Type'])
             );
-            return new Success('Der Zensuren-Typ ist erfasst worden')
-            . new Redirect('/Education/Graduation/Gradebook/GradeType', 1);
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Der Zensuren-Typ ist erfasst worden')
+            . new Redirect('/Education/Graduation/Gradebook/GradeType', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
@@ -117,14 +118,14 @@ class Service extends AbstractService
             $Error = true;
         }
         if (isset($GradeType['Code']) && empty($GradeType['Code'])) {
-            $Stage->setError('GradeType[Code]', 'Bitte geben sie eine Abk&uuml;rzung an');
+            $Stage->setError('GradeType[Code]', 'Bitte geben sie eine Abkürzung an');
             $Error = true;
         }
 
         $tblGradeType = $this->getGradeTypeById($Id);
         if (!$tblGradeType) {
-            return new Stage('Zensuren-Typ nicht gefunden')
-            . new Redirect('/Education/Graduation/Gradebook/GradeType', 2);
+            return new Danger(new Ban() . ' Zensuren-Typ nicht gefunden')
+            . new Redirect('/Education/Graduation/Gradebook/GradeType', Redirect::TIMEOUT_ERROR);
         }
 
         if (!$Error) {
@@ -136,8 +137,8 @@ class Service extends AbstractService
                 isset($GradeType['IsHighlighted']) ? true : false,
                 Evaluation::useService()->getTestTypeById($GradeType['Type'])
             );
-            return new Success('Der Zensuren-Typ ist erfolgreich gespeichert worden')
-            . new Redirect('/Education/Graduation/Gradebook/GradeType', 1);
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Der Zensuren-Typ ist erfolgreich gespeichert worden')
+            . new Redirect('/Education/Graduation/Gradebook/GradeType', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
@@ -175,7 +176,7 @@ class Service extends AbstractService
         $Error = false;
         if (!isset($Select['ScoreCondition'])) {
             $Error = true;
-            $Stage .= new Warning('Berechnungsvorschrift nicht gefunden');
+            $Stage .= new Warning(new Ban() . ' Berechnungsvorschrift nicht gefunden');
         }
         if ($Error) {
             return $Stage;
@@ -183,7 +184,7 @@ class Service extends AbstractService
 
         $tblScoreCondition = Gradebook::useService()->getScoreConditionById($Select['ScoreCondition']);
 
-        return new Redirect($BasicRoute . '/Selected', 0, array(
+        return new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_SUCCESS, array(
             'DivisionSubjectId' => $DivisionSubjectId,
             'ScoreConditionId' => $tblScoreCondition->getId()
         ));
@@ -334,7 +335,7 @@ class Service extends AbstractService
 //        );
 //        return new Redirect($BasicRoute . '/Selected', 0,
 //            array('DivisionSubjectId' => $tblDivisionSubject->getId()));
-        return new Redirect($BasicRoute . '/Grade/Edit', 0,
+        return new Redirect($BasicRoute . '/Grade/Edit', Redirect::TIMEOUT_SUCCESS,
             array('Id' => $tblTest->getId()));
     }
 
@@ -470,8 +471,8 @@ class Service extends AbstractService
                 $ScoreCondition['Round'],
                 $priority
             );
-            return new Stage('Die Berechnungsvorschrift ist erfasst worden')
-            . new Redirect('/Education/Graduation/Gradebook/Score', 0);
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfasst worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
@@ -509,8 +510,8 @@ class Service extends AbstractService
                 $ScoreGroup['Round'],
                 $ScoreGroup['Multiplier']
             );
-            return new Stage('Die Zensuren-Gruppe ist erfasst worden')
-            . new Redirect('/Education/Graduation/Gradebook/Score/Group', 0);
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zensuren-Gruppe ist erfasst worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score/Group', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
@@ -530,12 +531,12 @@ class Service extends AbstractService
     ) {
 
         if ((new Data($this->getBinding()))->addScoreGroupGradeTypeList($tblGradeType, $tblScoreGroup, $Multiplier)) {
-            return new Success('Erfolgreich hinzugefügt.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', 0,
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich hinzugefügt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblScoreGroup->getId()));
         } else {
-            return new Warning('Konnte nicht hinzugefügt werden.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', 0,
+            return new Danger(new Ban() . ' Konnte nicht hinzugefügt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblScoreGroup->getId()));
         }
     }
@@ -551,12 +552,12 @@ class Service extends AbstractService
 
         $tblScoreGroup = $tblScoreGroupGradeTypeList->getTblScoreGroup();
         if ((new Data($this->getBinding()))->removeScoreGroupGradeTypeList($tblScoreGroupGradeTypeList)) {
-            return new Success('Erfolgreich entfernt.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', 0,
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich entfernt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblScoreGroup->getId()));
         } else {
-            return new Warning('Konnte nicht entfernt werden.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', 0,
+            return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/GradeType/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblScoreGroup->getId()));
         }
     }
@@ -573,12 +574,12 @@ class Service extends AbstractService
     ) {
 
         if ((new Data($this->getBinding()))->addScoreConditionGroupList($tblScoreCondition, $tblScoreGroup)) {
-            return new Success('Erfolgreich hinzugefügt.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', 0,
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich hinzugefügt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblScoreCondition->getId()));
         } else {
-            return new Warning('Konnte nicht hinzugefügt werden.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', 0,
+            return new Danger('Konnte nicht hinzugefügt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblScoreCondition->getId()));
         }
     }
@@ -594,12 +595,12 @@ class Service extends AbstractService
 
         $tblScoreCondition = $tblScoreConditionGroupList->getTblScoreCondition();
         if ((new Data($this->getBinding()))->removeScoreConditionGroupList($tblScoreConditionGroupList)) {
-            return new Success('Erfolgreich entfernt.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', 0,
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success(). ' Erfolgreich entfernt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblScoreCondition->getId()));
         } else {
-            return new Warning('Konnte nicht entfernt werden.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', 0,
+            return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblScoreCondition->getId()));
         }
     }
@@ -788,7 +789,7 @@ class Service extends AbstractService
             return $Stage;
         }
 
-        return new Redirect($Redirect, 0, array(
+        return new Redirect($Redirect, Redirect::TIMEOUT_SUCCESS, array(
             'YearId' => $Select['Year'],
         ));
     }
