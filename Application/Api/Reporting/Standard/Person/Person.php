@@ -29,7 +29,7 @@ class Person
                 $fileLocation = ReportingPerson::useService()->createClassListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Klassenliste ".$tblDivision->getTblLevel()->getName().$tblDivision->getName()
+                    "Klassenliste ".$tblDivision->getDisplayName()
                     ." ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }
@@ -52,7 +52,7 @@ class Person
                 $fileLocation = ReportingPerson::useService()->createExtendedClassListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Erweiterte_Klassenliste ".$tblDivision->getTblLevel()->getName().$tblDivision->getName()
+                    "Erweiterte_Klassenliste ".$tblDivision->getDisplayName()
                     ." ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }
@@ -75,7 +75,7 @@ class Person
                 $fileLocation = ReportingPerson::useService()->createBirthdayClassListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Birthday_Klassenliste ".$tblDivision->getTblLevel()->getName().$tblDivision->getName()
+                    "Birthday_Klassenliste ".$tblDivision->getDisplayName()
                     ." ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }
@@ -98,7 +98,7 @@ class Person
                 $fileLocation = ReportingPerson::useService()->createMedicalInsuranceClassListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Krankenkasse_Klassenliste ".$tblDivision->getTblLevel()->getName().$tblDivision->getName()
+                    "Krankenkasse_Klassenliste ".$tblDivision->getDisplayName()
                     ." ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }
