@@ -71,23 +71,24 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblItemAll = Item::useService()->getItemAll();
 
+        $TableContent = array();
         if (!empty( $tblItemAll )) {
-            array_walk($tblItemAll, function (TblItem $tblItem) {
+            array_walk($tblItemAll, function (TblItem $tblItem) use (&$TableContent) {
 
-                $tblItem->Type = '';
-                $tblItem->Rank = '';
+                $Temp['Type'] = '';
+                $Temp['Rank'] = '';
                 $tblCourse = $tblItem->getServiceStudentType();
                 if ($tblCourse) {
-                    $tblItem->Type = $tblCourse->getName();
+                    $Temp['Type'] = $tblCourse->getName();
                 }
                 $tblRank = $tblItem->getServiceStudentChildRank();
                 if ($tblRank) {
-                    $tblItem->Rank = $tblRank->getName();
+                    $Temp['Rank'] = $tblRank->getName();
                 }
 
-                $tblItem->PriceString = $tblItem->getPriceString();
+                $Temp['PriceString'] = $tblItem->getPriceString();
                 if (Commodity::useService()->getCommodityItemAllByItem($tblItem)) {
-                    $tblItem->Option =
+                    $Temp['Option'] =
                         (new Standard('Bearbeiten', '/Billing/Inventory/Item/Change',
                             new Pencil(), array(
                                 'Id' => $tblItem->getId()
@@ -97,7 +98,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Id' => $tblItem->getId()
                             )))->__toString();
                 } else {
-                    $tblItem->Option =
+                    $Temp['Option'] =
                         (new Standard('Bearbeiten', '/Billing/Inventory/Item/Change',
                             new Pencil(), array(
                                 'Id' => $tblItem->getId()
@@ -111,7 +112,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Id' => $tblItem->getId()
                             )))->__toString();
                 }
+                $Temp['Name'] = $tblItem->getName();
+                $Temp['Description'] = $tblItem->getDescription();
+                array_push($TableContent, $Temp);
             });
+
         }
         $Form = $this->formItem()
             ->appendFormButton(new Primary('Speichern', new Save()))
@@ -122,7 +127,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($tblItemAll, null,
+                            new TableData($TableContent, null,
                                 array(
                                     'Name'        => 'Name',
                                     'Description' => 'Beschreibung',
