@@ -184,7 +184,7 @@ class Service extends AbstractService
                 $this->getCommodityTypeById($Commodity['Type'])
             );
             return new Success('Die Leistung wurde erfolgreich angelegt')
-            .new Redirect('/Billing/Inventory/Commodity', 1);
+            .new Redirect('/Billing/Inventory/Commodity', Redirect::TIMEOUT_SUCCESS);
         }
         return $Stage;
     }
@@ -242,9 +242,9 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Billing/Inventory/Commodity', 1);
+                    .new Redirect('/Billing/Inventory/Commodity', Redirect::TIMEOUT_SUCCESS);
             } else {
-                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden');
+                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden', Redirect::TIMEOUT_ERROR);
             };
         }
         return $Stage;
@@ -272,10 +272,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->destroyCommodity($tblCommodity)) {
             return new Success('Die Leistung wurde erfolgreich gelöscht')
-            .new Redirect('/Billing/Inventory/Commodity', 1);
+            .new Redirect('/Billing/Inventory/Commodity', Redirect::TIMEOUT_SUCCESS);
         } else {
             return new Danger('Die Leistung konnte nicht gelöscht werden')
-            .new Redirect('/Billing/Inventory/Commodity', 3);
+            .new Redirect('/Billing/Inventory/Commodity', Redirect::TIMEOUT_ERROR);
         }
     }
 
@@ -306,10 +306,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->addItemToCommodity($tblCommodity, $tblItem, $Item['Quantity'])) {
             return new Success('Der Artikel '.$tblItem->getName().' wurde erfolgreich hinzugefügt')
-            .new Redirect('/Billing/Inventory/Commodity/Item/Select', 1, array('Id' => $tblCommodity->getId()));
+            .new Redirect('/Billing/Inventory/Commodity/Item/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCommodity->getId()));
         } else {
             return new Warning('Der Artikel '.$tblItem->getName().' konnte nicht entfernt werden')
-            .new Redirect('/Billing/Inventory/Commodity/Item/Select', 3, array('Id' => $tblCommodity->getId()));
+            .new Redirect('/Billing/Inventory/Commodity/Item/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblCommodity->getId()));
         }
     }
 

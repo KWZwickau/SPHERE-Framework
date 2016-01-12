@@ -22,15 +22,17 @@ use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -45,22 +47,24 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
+     * @param null $Commodity
+     *
      * @return Stage
      */
-    public function frontendStatus()
+    public function frontendStatus($Commodity = null)
     {
 
         $Stage = new Stage();
         $Stage->setTitle('Leistungen');
         $Stage->setDescription('Übersicht');
         // ToDo
-        $Stage->setMessage('Zeigt die verfügbaren Leistungen an. <br />
-                            Leistungen sind Zusammenfassungen aller Artikel,
-                            die unter einem Punkt für den Debitor abgerechnet werden. <br />
-                            Beispielsweise: Schulgeld, Hortgeld, Klassenfahrt usw.');
-        $Stage->addButton(
-            new Standard('Leistung anlegen', '/Billing/Inventory/Commodity/Create', new Plus())
-        );
+//        $Stage->setMessage('Zeigt die verfügbaren Leistungen an. <br />
+//                            Leistungen sind Zusammenfassungen aller Artikel,
+//                            die unter einem Punkt für den Debitor abgerechnet werden. <br />
+//                            Beispielsweise: Schulgeld, Hortgeld, Klassenfahrt usw.');
+//        $Stage->addButton(
+//            new Standard('Leistung anlegen', '/Billing/Inventory/Commodity/Create', new Plus())
+//        );
 
         $tblCommodityAll = Commodity::useService()->getCommodityAll();
 
@@ -85,16 +89,36 @@ class Frontend extends Extension implements IFrontendInterface
 //                        )))->__toString();
             });
         }
+        $Form = $this->formCommodity()
+            ->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $Stage->setContent(
-            new TableData($tblCommodityAll, null,
-                array(
-                    'Name'         => 'Name',
-                    'Description'  => 'Beschreibung',
-                    'Type'         => 'Leistungsart',
-                    'ItemCount'    => 'Artikelanzahl',
-                    'SumPriceItem' => 'Gesamtpreis',
-                    'Option'       => 'Option'
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($tblCommodityAll, null,
+                                array(
+                                    'Name'         => 'Name',
+                                    'Description'  => 'Beschreibung',
+                                    'Type'         => 'Leistungsart',
+                                    'ItemCount'    => 'Artikelanzahl',
+                                    'SumPriceItem' => 'Gesamtpreis',
+                                    'Option'       => ''
+                                )
+                            )
+                        )
+                    ), new Title(new Listing().' Übersicht')
+                )
+            )
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            Commodity::useService()->createCommodity($Form, $Commodity)
+                        ))
+                    ), new Title(new PlusSign().' Hinzufügen')
                 )
             )
         );
@@ -102,36 +126,36 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    /**
-     * @param $Commodity
-     *
-     * @return Stage
-     */
-    public function frontendCreate($Commodity)
-    {
-
-        $Stage = new Stage();
-        $Stage->setTitle('Leistung');
-        $Stage->setDescription('Hinzufügen');
-        $Stage->setMessage(
-            '<b>Hinweis:</b> <br>
-            Bei einer Einzelleistung wird für jede Person der gesamten Betrag berechnet. <br>
-            Hingegen bei einer Sammelleisung bezahlt jede Person einen Teil des gesamten Betrags, abhängig von der
-            Personenanzahl. <br>
-            (z.B.: für Klassenfahrten)
-        ');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity',
-            new ChevronLeft()
-        ));
-
-        $Form = $this->formCommodity()
-            ->appendFormButton(new Primary('Hinzufügen'))
-            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
-        $Stage->setContent(Commodity::useService()->createCommodity($Form, $Commodity));
-
-        return $Stage;
-    }
+//    /**
+//     * @param $Commodity
+//     *
+//     * @return Stage
+//     */
+//    public function frontendCreate($Commodity)
+//    {
+//
+//        $Stage = new Stage();
+//        $Stage->setTitle('Leistung');
+//        $Stage->setDescription('Hinzufügen');
+//        $Stage->setMessage(
+//            '<b>Hinweis:</b> <br>
+//            Bei einer Einzelleistung wird für jede Person der gesamten Betrag berechnet. <br>
+//            Hingegen bei einer Sammelleisung bezahlt jede Person einen Teil des gesamten Betrags, abhängig von der
+//            Personenanzahl. <br>
+//            (z.B.: für Klassenfahrten)
+//        ');
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity',
+//            new ChevronLeft()
+//        ));
+//
+//        $Form = $this->formCommodity()
+//            ->appendFormButton(new Primary('Hinzufügen'))
+//            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+//
+//        $Stage->setContent(Commodity::useService()->createCommodity($Form, $Commodity));
+//
+//        return $Stage;
+//    }
 
     /**
      * @return Form
@@ -149,8 +173,14 @@ class Frontend extends Extension implements IFrontendInterface
                         new SelectBox('Commodity[Type]', 'Leistungsart', array(
                             'Name' => Commodity::useService()->getCommodityTypeAll()
                         ))
-                        , 6)
+                        , 6),
                 )),
+//                new FormRow(array(
+//                    new FormColumn( new HiddenField('') , 6),
+//                    new FormColumn(
+//                        ''
+//                    ),
+//                )),
                 new FormRow(array(
                     new FormColumn(
                         new TextField('Commodity[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
@@ -190,13 +220,13 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Leistungen');
         $Stage->setDescription('Bearbeiten');
-        $Stage->setMessage(
-            '<b>Hinweis:</b> <br>
-            Bei einer Einzelleistung wird für jede Person der gesamten Betrag berechnet. <br>
-            Hingegen bei einer Sammelleisung bezahlt jede Person einen Teil des gesamten Betrags, abhängig von der
-            Personenanzahl. <br>
-            (z.B.: für Klassenfahrten)
-        ');
+//        $Stage->setMessage(
+//            '<b>Hinweis:</b> <br>
+//            Bei einer Einzelleistung wird für jede Person der gesamten Betrag berechnet. <br>
+//            Hingegen bei einer Sammelleisung bezahlt jede Person einen Teil des gesamten Betrags, abhängig von der
+//            Personenanzahl. <br>
+//            (z.B.: für Klassenfahrten)
+//        ');
         $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity',
             new ChevronLeft()
         ));
@@ -217,11 +247,52 @@ class Frontend extends Extension implements IFrontendInterface
                     $Global->savePost();
                 }
 
+                $PanelValue = array();
+                $PanelValue[0] = $tblCommodity->getName();
+                $PanelValue[1] = $tblCommodity->getTblCommodityType()->getName();
+                $PanelValue[2] = $tblCommodity->getDescription();
+                $PanelContent = new Layout(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel('Name', $PanelValue[0], Panel::PANEL_TYPE_INFO)
+                                , 6),
+                            new LayoutColumn(
+                                new Panel('Leistungsart', $PanelValue[1], Panel::PANEL_TYPE_INFO)
+                                , 6),
+                        )),
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Panel('Beschreibung', $PanelValue[2], Panel::PANEL_TYPE_INFO)
+                            )
+                        )
+                    ))
+                );
+
                 $Form = $this->formCommodity()
-                    ->appendFormButton(new Primary('Änderungen speichern'))
+                    ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-                $Stage->setContent(Commodity::useService()->changeCommodity($Form, $tblCommodity, $Commodity));
+                $Stage->setContent(
+                    new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    $PanelContent
+                                )
+                            )
+                        )
+                    )
+                    .new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(new Well(
+                                    Commodity::useService()->changeCommodity($Form, $tblCommodity, $Commodity)
+                                ))
+                            ), new Title(new Pencil().' Bearbeiten')
+                        )
+                    )
+                );
             }
         }
 
@@ -292,7 +363,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblItemAccountByItem->Number = $tblItemAccountByItem->getServiceBillingAccount()->getNumber();
                         $tblItemAccountByItem->Description = $tblItemAccountByItem->getServiceBillingAccount()->getDescription();
                         $tblItemAccountByItem->Option =
-                            new Standard('Entfernen', '/Billing/Inventory/Commodity/Item/Account/Remove',
+                            new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Billing/Inventory/Commodity/Item/Account/Remove',
                                 new Minus(), array(
                                     'Id' => $tblItemAccountByItem->getId()
                                 ));
@@ -305,7 +376,7 @@ class Frontend extends Extension implements IFrontendInterface
                         function (TblAccount $tblAccountAllByActiveState, $Index, TblItem $tblItem) {
 
                             $tblAccountAllByActiveState->Option =
-                                new Standard('Hinzufügen', '/Billing/Inventory/Commodity/Item/Account/Add',
+                                new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Billing/Inventory/Commodity/Item/Account/Add',
                                     new Plus(), array(
                                         'tblAccountId' => $tblAccountAllByActiveState->getId(),
                                         'tblItemId'    => $tblItem->getId()
@@ -332,7 +403,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             array(
                                                 'Number'      => 'Nummer',
                                                 'Description' => 'Beschreibung',
-                                                'Option'      => 'Option'
+                                                'Option'      => ''
                                             )
                                         )
                                     )
@@ -346,7 +417,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             array(
                                                 'Number'      => 'Nummer',
                                                 'Description' => 'Beschreibung',
-                                                'Option'      => 'Option '
+                                                'Option'      => ''
                                             )
                                         )
                                     )
@@ -408,7 +479,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblCommodityItem->QuantityString = str_replace('.', ',', $tblCommodityItem->getQuantity());
                         $tblCommodityItem->CostUnit = $tblItem->getCostUnit();
                         $tblCommodityItem->Option =
-                            (new Danger('Entfernen', '/Billing/Inventory/Commodity/Item/Remove',
+                            (new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Billing/Inventory/Commodity/Item/Remove',
                                 new Minus(), array(
                                     'Id' => $tblCommodityItem->getId()
                                 )))->__toString();
@@ -465,7 +536,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 'PriceString'      => 'Preis',
                                                 'QuantityString'   => 'Menge',
                                                 'TotalPriceString' => 'Gesamtpreis',
-                                                'Option'           => 'Option'
+                                                'Option'           => ''
                                             )
                                         )
                                     )
@@ -481,7 +552,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                 'Description' => 'Beschreibung',
                                                 'CostUnit'    => 'Kostenstelle',
                                                 'PriceString' => 'Preis',
-                                                'Option'      => 'Option'
+                                                'Option'      => 'Anzahl'
                                             )
                                         )
                                     )
