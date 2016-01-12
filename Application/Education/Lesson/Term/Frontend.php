@@ -62,11 +62,14 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
         $tblYearAll = Term::useService()->getYearAll();
+        $TableContent = array();
         if ($tblYearAll) {
-            array_walk($tblYearAll, function (TblYear &$tblYear) {
+            array_walk($tblYearAll, function (TblYear &$tblYear) use (&$TableContent) {
 
                 $tblPeriodAll = $tblYear->getTblPeriodAll();
-                $tblYear->Option =
+                $Temp['Name'] = $tblYear->getName();
+                $Temp['Description'] = $tblYear->getDescription();
+                $Temp['Option'] =
                     new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
                         array('Id' => $tblYear->getId())
                     ).
@@ -75,6 +78,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array('Id' => $tblYear->getId())
                         ) : ''
                     );
+                array_push($TableContent, $Temp);
             });
         }
 
@@ -83,7 +87,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($tblYearAll, null, array(
+                            new TableData($TableContent, null, array(
                                 'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
                                 'Option'      => '',
@@ -167,18 +171,21 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
         $tblPeriodAll = Term::useService()->getPeriodAll();
+        $TableContent = array();
         if ($tblPeriodAll) {
-            array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod) {
+            array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod) use (&$TableContent) {
 
-                $tblPeriod->Period = $tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
-
-                $tblPeriod->Option =
+                $Temp['Name'] = $tblPeriod->getName();
+                $Temp['Description'] = $tblPeriod->getDescription();
+                $Temp['Period'] = $tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
+                $Temp['Option'] =
                     new Standard('', __NAMESPACE__.'\Edit\Period', new Pencil(),
                         array('Id' => $tblPeriod->getId()))
                     .( ( Term::useService()->getPeriodExistWithYear($tblPeriod) === false ) ?
                         new Standard('', __NAMESPACE__.'\Destroy\Period', new Remove(),
                             array('Id' => $tblPeriod->getId()))
                         : '' );
+                array_push($TableContent, $Temp);
             });
         }
 
@@ -187,7 +194,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($tblPeriodAll, null, array(
+                            new TableData($TableContent, null, array(
                                 'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
                                 'Period'      => 'Zeitraum',
