@@ -3,6 +3,7 @@ namespace SPHERE\Application\Transfer\Import\Chemnitz;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
@@ -98,10 +99,21 @@ class Service
 //                        'Import Vater' => null,
 //                        'Import Mutter' => null,
                     );
+
+                    $phoneLocation = false;
+                    $emailLocation = false;
+
                     for ($RunX = 0; $RunX < $X; $RunX++) {
                         $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
                         if (array_key_exists($Value, $Location)) {
                             $Location[$Value] = $RunX;
+                        }
+
+                        if ($Value == 'Telefon'){
+                            $phoneLocation = $RunX;
+                        }
+                        if ($Value == 'E-Mail Adresse'){
+                            $emailLocation = $RunX;
                         }
                     }
 
@@ -284,6 +296,36 @@ class Service
                                         $this->useContactAddress()->createAddressToPersonFromImport(
                                             $tblPersonMother, $StreetName, $StreetNumber, $CityCode, $CityName
                                         );
+                                    }
+
+                                    // Contact
+                                    if ($phoneLocation){
+                                        $phoneNumber =  trim($Document->getValue($Document->getCell($phoneLocation,
+                                            $RunY)));
+                                        if ($phoneNumber != ''){
+                                            $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(1);
+                                            if (0 === strpos($phoneNumber, '01')) {
+                                                $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(2);
+                                            }
+                                            $this->useContactPhone()->createPhoneToPersonFromImport(
+                                                $tblPerson,
+                                                $phoneNumber,
+                                                $tblType
+                                            );
+                                        }
+                                    }
+                                    if ($emailLocation){
+                                        $emailAddress =  trim($Document->getValue($Document->getCell($emailLocation,
+                                            $RunY)));
+                                        if ($emailAddress != ''){
+                                            $tblType = \SPHERE\Application\Contact\Mail\Mail::useService()->getTypeById(1);
+                                            Mail::useService()->insertMailToPerson(
+                                                $tblPerson,
+                                                $emailAddress,
+                                                $tblType,
+                                                ''
+                                            );
+                                        }
                                     }
                                 }
                             }
