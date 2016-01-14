@@ -145,10 +145,15 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
         if ($tblPersonAll) {
-            array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
+            if ($tblPersonAll[0] != false) {
+                array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
 
-                $tblPerson = $tblPerson->getFullName();
-            });
+                    $tblPerson = $tblPerson->getFullName();
+                });
+            } else {
+                $tblPersonAll = false;
+            }
+
         }
 
         $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
