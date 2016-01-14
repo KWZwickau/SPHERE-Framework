@@ -825,4 +825,36 @@ class Data extends AbstractData
         return false;
     }
 
+    /**
+     * @param TblScoreGroup $tblScoreGroup
+     * @param $Name
+     * @param $Round
+     * @param $Multiplier
+     * @return bool
+     */
+    public function updateScoreGroup(
+        TblScoreGroup $tblScoreGroup,
+        $Name,
+        $Round,
+        $Multiplier
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblScoreGroup $Entity */
+        $Entity = $Manager->getEntityById('TblScoreGroup', $tblScoreGroup->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setRound($Round);
+            $Entity->setMultiplier($Multiplier);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
 }

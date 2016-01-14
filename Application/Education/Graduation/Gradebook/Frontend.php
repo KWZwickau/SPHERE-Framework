@@ -1121,8 +1121,8 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $tblScoreGroup->GradeTypes = $gradeTypes;
                 $tblScoreGroup->Option =
-//                    (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Edit', new Pencil(),
-//                        array('Id' => $tblScoreGroup->getId()), 'Bearbeiten')) .
+                    (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Edit', new Edit(),
+                        array('Id' => $tblScoreGroup->getId()), 'Bearbeiten')) .
                     (new Standard('', '/Education/Graduation/Gradebook/Score/Group/GradeType/Select', new Listing(),
                         array('Id' => $tblScoreGroup->getId()), 'Zensuren-Typen auswählen'));
             }
@@ -1562,6 +1562,63 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             return new Danger(new Ban() . ' Berechnungsvorschrift nicht gefunden')
             .new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_ERROR);
+        }
+    }
+
+    /**
+     * @param null $Id
+     * @param null $ScoreGroup
+     * @return Stage|string
+     */
+    public function frontendEditScoreGroup($Id = null, $ScoreGroup = null)
+    {
+
+        $Stage = new Stage('Zensuren-Gruppe', 'Bearbeiten');
+        $Stage->addButton(
+            new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Score/Group', new ChevronLeft())
+        );
+
+        $tblScoreGroup = Gradebook::useService()->getScoreGroupById($Id);
+        if ($tblScoreGroup) {
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                $Global->POST['ScoreGroup']['Name'] = $tblScoreGroup->getName();
+                $Global->POST['ScoreGroup']['Round'] = $tblScoreGroup->getRound();
+                $Global->POST['ScoreGroup']['Multiplier'] = $tblScoreGroup->getMultiplier();
+
+                $Global->savePost();
+            }
+
+            $Form = $this->formScoreGroup()
+                ->appendFormButton(new Primary('Speichern', new Save()))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel(
+                                    'Zensuren-Gruppe',
+                                    $tblScoreGroup->getName(),
+                                    Panel::PANEL_TYPE_INFO
+                                )
+                            ),
+                        ))
+                    )),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Well(Gradebook::useService()->updateScoreGroup($Form, $Id, $ScoreGroup))
+                            ),
+                        ))
+                    ), new Title(new Edit().' Bearbeiten'))
+                ))
+            );
+
+            return $Stage;
+        } else {
+            return new Danger(new Ban() . ' Zensuren-Gruppe nicht gefunden')
+            .new Redirect('/Education/Graduation/Gradebook/Score/Group', Redirect::TIMEOUT_ERROR);
         }
     }
 

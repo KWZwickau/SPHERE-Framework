@@ -794,6 +794,12 @@ class Service extends AbstractService
         ));
     }
 
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Id
+     * @param $ScoreCondition
+     * @return IFormInterface|string
+     */
     public function updateScoreCondition(IFormInterface $Stage = null, $Id, $ScoreCondition)
     {
 
@@ -825,6 +831,48 @@ class Service extends AbstractService
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfolgreich gespeichert worden')
             . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Id
+     * @param $ScoreGroup
+     * @return IFormInterface|string
+     */
+    public function updateScoreGroup(IFormInterface $Stage = null, $Id, $ScoreGroup)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ScoreGroup || null === $Id) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($ScoreGroup['Name']) && empty($ScoreGroup['Name'])) {
+            $Stage->setError('ScoreGroup[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        $tblScoreGroup = $this->getScoreGroupById($Id);
+        if (!$tblScoreGroup) {
+            return new Danger(new Ban() . ' Zensuren-Gruppe nicht gefunden')
+            . new Redirect('/Education/Graduation/Gradebook/Score/Group', Redirect::TIMEOUT_ERROR);
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->updateScoreGroup(
+                $tblScoreGroup,
+                $ScoreGroup['Name'],
+                $ScoreGroup['Round'],
+                $ScoreGroup['Multiplier']
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zensuren-Gruppe ist erfolgreich gespeichert worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score/Group', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
