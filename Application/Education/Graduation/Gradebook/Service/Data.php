@@ -793,4 +793,36 @@ class Data extends AbstractData
         return false;
     }
 
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     * @param $Name
+     * @param $Round
+     * @param $Priority
+     * @return bool
+     */
+    public function updateScoreCondition(
+        TblScoreCondition $tblScoreCondition,
+        $Name,
+        $Round,
+        $Priority
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblScoreCondition $Entity */
+        $Entity = $Manager->getEntityById('TblScoreCondition', $tblScoreCondition->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setRound($Round);
+            $Entity->setPriority($Priority);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
 }

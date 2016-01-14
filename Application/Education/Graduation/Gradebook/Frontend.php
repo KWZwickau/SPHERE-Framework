@@ -1032,8 +1032,8 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $tblScoreCondition->ScoreGroups = $scoreGroups;
                 $tblScoreCondition->Option =
-//                    (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Edit', new Pencil(),
-//                        array('Id' => $tblScoreCondition->getId()), 'Bearbeiten')) .
+                    (new Standard('', '/Education/Graduation/Gradebook/Score/Edit', new Edit(),
+                        array('Id' => $tblScoreCondition->getId()), 'Bearbeiten')) .
                     (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Select', new Listing(),
                         array('Id' => $tblScoreCondition->getId()), 'Zensuren-Gruppen auswählen'));
             }
@@ -1506,6 +1506,63 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $ScoreCondition
+     * @return Stage|string
+     */
+    public function frontendEditScore($Id = null, $ScoreCondition = null)
+    {
+
+        $Stage = new Stage('Berechnungsvorschrift', 'Bearbeiten');
+        $Stage->addButton(
+            new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Score', new ChevronLeft())
+        );
+
+        $tblScoreCondition = Gradebook::useService()->getScoreConditionById($Id);
+        if ($tblScoreCondition) {
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                $Global->POST['ScoreCondition']['Name'] = $tblScoreCondition->getName();
+                $Global->POST['ScoreCondition']['Round'] = $tblScoreCondition->getRound();
+                $Global->POST['ScoreCondition']['Priority'] = $tblScoreCondition->getPriority();
+
+                $Global->savePost();
+            }
+
+            $Form = $this->formScoreCondition()
+                ->appendFormButton(new Primary('Speichern', new Save()))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel(
+                                    'Berechnungsvorschrift',
+                                    $tblScoreCondition->getName(),
+                                    Panel::PANEL_TYPE_INFO
+                                )
+                            ),
+                        ))
+                    )),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Well(Gradebook::useService()->updateScoreCondition($Form, $Id, $ScoreCondition))
+                            ),
+                        ))
+                    ), new Title(new Edit().' Bearbeiten'))
+                ))
+            );
+
+            return $Stage;
+        } else {
+            return new Danger(new Ban() . ' Berechnungsvorschrift nicht gefunden')
+            .new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_ERROR);
+        }
     }
 
 }

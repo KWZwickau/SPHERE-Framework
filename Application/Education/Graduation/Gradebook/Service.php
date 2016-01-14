@@ -793,4 +793,40 @@ class Service extends AbstractService
             'YearId' => $Select['Year'],
         ));
     }
+
+    public function updateScoreCondition(IFormInterface $Stage = null, $Id, $ScoreCondition)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ScoreCondition || null === $Id) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($ScoreCondition['Name']) && empty($ScoreCondition['Name'])) {
+            $Stage->setError('ScoreCondition[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        $tblScoreCondition = $this->getScoreConditionById($Id);
+        if (!$tblScoreCondition) {
+            return new Danger(new Ban() . ' Berechnungsvorschrift nicht gefunden')
+            . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_ERROR);
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->updateScoreCondition(
+                $tblScoreCondition,
+                $ScoreCondition['Name'],
+                $ScoreCondition['Round'],
+                $ScoreCondition['Priority']
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfolgreich gespeichert worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $Stage;
+    }
 }
