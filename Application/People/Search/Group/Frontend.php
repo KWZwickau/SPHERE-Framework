@@ -2,8 +2,11 @@
 namespace SPHERE\Application\People\Search\Group;
 
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -75,10 +78,16 @@ class Frontend extends Extension implements IFrontendInterface
             // Check ESZC
             $Acronym = Consumer::useService()->getConsumerBySession()->getAcronym();
 
+            if ($tblGroup->getMetaTable() == 'STUDENT') {
+                $tblYearList = Term::useService()->getYearByNow();
+            } else {
+                $tblYearList = false;
+            }
+
             $Result = array();
             if ($tblPersonAll) {
                 $this->getLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StartRun');
-                array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym) {
+                array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($tblGroup, &$Result, $Acronym, $tblYearList) {
 
                     $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
                     $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
@@ -88,8 +97,55 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblAddress = false;
                     }
 
+                    // Division
+                    $tblDivision = false;
+                    if ($tblGroup->getMetaTable() == 'STUDENT'){
+                        if ($tblYearList) {
+                            $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
+                            if ($tblDivisionStudentList) {
+                                foreach ($tblDivisionStudentList as $tblDivisionStudent) {
+                                    foreach ($tblYearList as $tblYear){
+                                        $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
+                                        if ($divisionYear && $divisionYear->getId() == $tblYear->getId()){
+                                            $tblDivision = $tblDivisionStudent->getTblDivision();
+                                            break;
+                                        }
+                                    }
+
+                                    if ($tblDivision){
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Prospect
+                    $level = false;
+                    $year = false;
+                    $option = false;
+                    if ($tblGroup->getMetaTable() == 'PROSPECT'){
+                        $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
+                        if ($tblProspect){
+                            $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                            if ($tblProspectReservation){
+                                $level = $tblProspectReservation->getReservationDivision();
+                                $year = $tblProspectReservation->getReservationYear();
+                                $optionA = $tblProspectReservation->getServiceTblTypeOptionA();
+                                $optionB = $tblProspectReservation->getServiceTblTypeOptionB();
+                                if ($optionA && $optionB){
+                                    $option = $optionA->getName() . ', ' . $optionB->getName();
+                                } elseif ($optionA) {
+                                    $option = $optionA->getName();
+                                } elseif ($optionB) {
+                                    $option = $optionB->getName();
+                                }
+                            }
+                        }
+                    }
+
                     array_push($Result, array(
-                        'FullName' => $tblPerson->getFullName(),
+                        'FullName' => $tblPerson->getLastFirstName(),
                         'Address' => ($tblAddress
                             ? $tblAddress
                             : new Warning('Keine Adresse hinterlegt')
@@ -102,7 +158,11 @@ class Frontend extends Extension implements IFrontendInterface
                         $Acronym == 'ESZC' && $tblGroup->getMetaTable() == 'CUSTODY'
                             ? (($Common = Common::useService()->getCommonByPerson($tblPerson)) ? $Common->getRemark() : '')
                             : ''
-                        )
+                        ),
+                        'Division' => ($tblDivision ? $tblDivision->getDisplayName() : ''),
+                        'Year' => ($year ? $year :''),
+                        'Level' => ($level ? $level :''),
+                        'SchoolOption' => ($option ? $option : '')
                     ));
                 });
                 $this->getLogger(new BenchmarkLogger())->addLog(__METHOD__ . ':StopRun');
@@ -116,13 +176,29 @@ class Frontend extends Extension implements IFrontendInterface
                     'FullName' => 'Name',
                     'Address' => 'Adresse',
                     'Remark' => 'Bemerkung',
-                    'Option' => 'Optionen',
+                    'Option' => '',
+                );
+            } elseif ($tblGroup->getMetaTable() == 'STUDENT') {
+                $ColumnArray = array(
+                    'FullName' => 'Name',
+                    'Address' => 'Adresse',
+                    'Division' => 'Klasse',
+                    'Option' => '',
+                );
+            } elseif ($tblGroup->getMetaTable() == 'PROSPECT') {
+                $ColumnArray = array(
+                    'FullName' => 'Name',
+                    'Address' => 'Adresse',
+                    'Year' => 'Schuljahr',
+                    'Level' => 'Klassenstufe',
+                    'SchoolOption' => 'Schulart',
+                    'Option' => '',
                 );
             } else {
                 $ColumnArray = array(
                     'FullName' => 'Name',
                     'Address' => 'Adresse',
-                    'Option' => 'Optionen',
+                    'Option' => '',
                 );
             }
 
