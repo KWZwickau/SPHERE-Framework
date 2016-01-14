@@ -57,8 +57,12 @@
     {% endif %}
 </table>
 <script>
-    Client.Use('ModTable', function()
+    //noinspection JSUnresolvedFunction
+    executeScript(function()
     {
-        jQuery('table#{{ Hash }}').ModTable({{ InteractiveOption }});
+        Client.Use('ModTable', function()
+        {
+            jQuery('table#{{ Hash }}').ModTable({{ InteractiveOption }});
+        });
     });
 </script>

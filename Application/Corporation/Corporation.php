@@ -43,7 +43,7 @@ class Corporation implements IClusterInterface
         ));
 
         Main::getDispatcher()->registerWidget('Firmen', array(__CLASS__, 'widgetCorporationGroupList'), 4, 6);
-        Main::getDispatcher()->registerWidget('Firmen', array(__CLASS__, 'widgetCorporationCount'));
+//        Main::getDispatcher()->registerWidget('Firmen', array(__CLASS__, 'widgetCorporationCount'));
     }
 
     /**

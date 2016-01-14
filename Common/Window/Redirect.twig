@@ -9,13 +9,16 @@
 </div>
 <br/>
 <br/>
-<!--suppress DynamicallyGeneratedCodeJS -->
 <script language=javascript>
-    Client.Use('ModCountDown', function()
+    //noinspection JSUnresolvedFunction
+    executeScript(function()
     {
-        {% if Timeout is not empty %}
-        jQuery('span.ModCountDown').ModCountDown('{{ Timeout }}');
-        {% endif %}
+        Client.Use('ModCountDown', function()
+        {
+            {% if Timeout is not empty %}
+            jQuery('span.ModCountDown').ModCountDown('{{ Timeout }}');
+            {% endif %}
+        });
+        setTimeout("location.href='{{ UrlBase }}{{ Route }}'", {{ Timeout }}000);
     });
-    setTimeout("location.href='{{ UrlBase }}{{ Route }}'", {{ Timeout }}000);
 </script>

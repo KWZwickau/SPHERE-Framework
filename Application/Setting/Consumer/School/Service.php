@@ -95,10 +95,10 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->addSchool($tblCompany, $tblType)
             ) {
                 return new Success('Die Schule wurde erfolgreich hinzugefügt')
-                .new Redirect('/Setting/Consumer/School', 1, array('Id' => $tblCompany->getId()));
+                .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCompany->getId()));
             } else {
                 return new Danger('Die Schule konnte nicht hinzugefügt werden')
-                .new Redirect('/Setting/Consumer/School', 10, array('Id' => $tblCompany->getId()));
+                .new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_ERROR, array('Id' => $tblCompany->getId()));
             }
         }
 

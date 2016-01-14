@@ -32,7 +32,17 @@ class Chemnitz implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/InterestedPerson', __NAMESPACE__.'\Frontend::frontendInterestedPersonImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Staff', __NAMESPACE__.'\Frontend::frontendStaffImport'
+        ));
 
+        Main::getDispatcher()->registerWidget('Import',
+            new Thumbnail(
+                FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),
+                'Chemntiz', 'Mitarbeiterdaten',
+                new Standard('', '/Transfer/Import/Chemnitz/Staff', new Upload(), array(), 'Upload')
+            ), 2, 2
+        );
         Main::getDispatcher()->registerWidget('Import',
             new Thumbnail(
                 FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),

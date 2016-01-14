@@ -28,7 +28,7 @@ class Common
                 $fileLocation = Person::useService()->createClassListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Chemnitz Klassenliste ".$tblDivision->getTblLevel()->getName().$tblDivision->getName()
+                    "Chemnitz Klassenliste ".$tblDivision->getDisplayName()
                     ." ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }
@@ -69,7 +69,7 @@ class Common
                 $fileLocation = Person::useService()->createMedicListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Chemnitz Arztliste ".$tblDivision->getTblLevel()->getName().$tblDivision->getName()
+                    "Chemnitz Arztliste ".$tblDivision->getDisplayName()
                     ." ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }
@@ -92,7 +92,7 @@ class Common
                 $fileLocation = Person::useService()->createParentTeacherConferenceListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Chemnitz Elternabende ".$tblDivision->getTblLevel()->getName().$tblDivision->getName()
+                    "Chemnitz Elternabende ".$tblDivision->getDisplayName()
                     ." ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }
@@ -167,7 +167,7 @@ class Common
                 $fileLocation = Person::useService()->createPrintClassListExcel($studentList);
 
                 return FileSystem::getDownload($fileLocation->getRealPath(),
-                    "Chemnitz Klassenliste ".$tblDivision->getTblLevel()->getName().$tblDivision->getName()
+                    "Chemnitz Klassenliste ".$tblDivision->getDisplayName()
                     ." ".date("Y-m-d H:i:s").".xls")->__toString();
             }
         }

@@ -46,7 +46,7 @@ class Service
 
         $tblDivision = Division::useService()->getDivisionById($Select['Division']);
 
-        return new Redirect($Redirect, 0, array(
+        return new Redirect($Redirect, Redirect::TIMEOUT_SUCCESS, array(
             'DivisionId' => $tblDivision->getId(),
         ));
     }
@@ -1011,14 +1011,14 @@ class Service
                 }
                 if ($fatherPhoneList) {
                     foreach ($fatherPhoneList as $phone) {
-                        $phoneNumbers[] = $phone->getTblPhone()->getNumber().' '.$phone->getTblType()->getName()
-                            .' V.'.( $phone->getRemark() !== '' ? ' '.$phone->getRemark() : '' );
+                        $phoneNumbers[] = $phone->getTblPhone()->getNumber().' '.$phone->getTblType()->getName() . ' '
+                            . $phone->getServiceTblPerson()->getFullName() .( $phone->getRemark() !== '' ? ' '.$phone->getRemark() : '' );
                     }
                 }
                 if ($motherPhoneList) {
                     foreach ($motherPhoneList as $phone) {
-                        $phoneNumbers[] = $phone->getTblPhone()->getNumber().' '.$phone->getTblType()->getName()
-                            .' M.'.( $phone->getRemark() !== '' ? ' '.$phone->getRemark() : '' );
+                        $phoneNumbers[] = $phone->getTblPhone()->getNumber().' '.$phone->getTblType()->getName() . ' '
+                            . $phone->getServiceTblPerson()->getFullName() .( $phone->getRemark() !== '' ? ' '.$phone->getRemark() : '' );
                     }
                 }
 

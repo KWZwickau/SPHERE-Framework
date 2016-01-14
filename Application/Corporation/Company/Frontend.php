@@ -20,10 +20,12 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -68,14 +70,14 @@ class Frontend extends Extension implements IFrontendInterface
 
             $BasicTable = Company::useService()->createCompany(
                 $this->formCompany()
-                    ->appendFormButton(new Primary('Grunddaten anlegen'))
+                    ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
                 $Company);
 
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(
-                        new LayoutRow(new LayoutColumn($BasicTable)),
+                        new LayoutRow(new LayoutColumn(new Well($BasicTable))),
                         new Title(new Building().' Grunddaten', 'der Firma')
                     ),
                 ))
@@ -100,7 +102,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $BasicTable = Company::useService()->updateCompany(
                 $this->formCompany()
-                    ->appendFormButton(new Primary('Grunddaten speichern'))
+                    ->appendFormButton(new Primary('Speichern', new Save()))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
                 $tblCompany, $Company, $Group);
 
@@ -155,9 +157,9 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(
-                        new LayoutRow(new LayoutColumn(array(
+                        new LayoutRow(new LayoutColumn(array(new Well(
                             $BasicTable
-                        ))),
+                        )))),
                         new Title(new Building().' Grunddaten', 'der Firma')
                     ),
 //                    new LayoutGroup(array(

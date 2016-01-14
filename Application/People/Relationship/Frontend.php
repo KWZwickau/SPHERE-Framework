@@ -15,6 +15,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -25,9 +26,11 @@ use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -53,8 +56,8 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param int   $Id
-     * @param int   $To
+     * @param int $Id
+     * @param int $To
      * @param array $Type
      *
      * @return Stage
@@ -65,22 +68,24 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Beziehungen', 'Hinzufügen');
         $Stage->setMessage(
             'Eine Beziehungen zur gewählten Person hinzufügen'
-            .'<br/>Beispiel: Die Person (Vater) > hat folgende Beziehung (Sorgeberechtigt), Bemerkung: Vater > zu folgender Person (Kind)'
+            . '<br/>Beispiel: Die Person (Vater) > hat folgende Beziehung (Sorgeberechtigt), Bemerkung: Vater > zu folgender Person (Kind)'
         );
 
         $tblPerson = Person::useService()->getPersonById($Id);
+        $Stage->addButton(
+            new Standard('Zurück', '/People/Person', new ChevronLeft(),
+                array('Id' => $tblPerson->getId())
+            )
+        );
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new PersonIcon().' Die Person',
+                            new Panel(new PersonIcon() . ' Die Person',
                                 $tblPerson->getFullName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                    array('Id' => $tblPerson->getId())
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     ),
@@ -88,11 +93,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Relationship::useService()->createRelationshipToPerson(
-                                $this->formRelationshipToPerson()
-                                    ->appendFormButton(new Primary('Beziehungen hinzufügen'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblPerson, $To, $Type
+                            new Well(
+                                Relationship::useService()->createRelationshipToPerson(
+                                    $this->formRelationshipToPerson()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblPerson, $To, $Type
+                                )
                             )
                         )
                     )
@@ -113,7 +120,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblToPerson) {
             $Global = $this->getGlobal();
-            if (!isset( $Global->POST['To'] )) {
+            if (!isset($Global->POST['To'])) {
                 $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
                 $Global->POST['To'] = $tblToPerson->getServiceTblPersonTo()->getId();
@@ -134,7 +141,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new PersonIcon(), array('Id' => $tblPerson->getId()),
                         'zu'
                         . ' ' . $tblPerson->getFullName()
-                        .' wechseln'
+                        . ' wechseln'
                     )
                 );
             });
@@ -156,7 +163,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Pencil()
                                 ),
                                 new \SPHERE\Common\Frontend\Text\Repository\Danger(
-                                    new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
+                                    new Info() . ' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
                                 ),
                             ), Panel::PANEL_TYPE_INFO
                         ),
@@ -176,8 +183,8 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int   $Id
-     * @param int   $To
+     * @param int $Id
+     * @param int $To
      * @param array $Type
      *
      * @return Stage
@@ -191,18 +198,20 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $tblPerson = Person::useService()->getPersonById($Id);
+        $Stage->addButton(
+            new Standard('Zurück', '/People/Person', new ChevronLeft(),
+                array('Id' => $tblPerson->getId())
+            )
+        );
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new PersonIcon().' Die Person',
+                            new Panel(new PersonIcon() . ' Die Person',
                                 $tblPerson->getFullName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                    array('Id' => $tblPerson->getId())
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     ),
@@ -210,11 +219,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Relationship::useService()->createRelationshipToCompany(
-                                $this->formRelationshipToCompany()
-                                    ->appendFormButton(new Primary('Beziehungen hinzufügen'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblPerson, $To, $Type
+                            new Well(
+                                Relationship::useService()->createRelationshipToCompany(
+                                    $this->formRelationshipToCompany()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblPerson, $To, $Type
+                                )
                             )
                         )
                     )
@@ -235,7 +246,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblToCompany) {
             $Global = $this->getGlobal();
-            if (!isset( $Global->POST['To'] )) {
+            if (!isset($Global->POST['To'])) {
                 $Global->POST['Type']['Type'] = $tblToCompany->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToCompany->getRemark();
                 $Global->POST['To'] = $tblToCompany->getServiceTblCompany()->getId();
@@ -277,7 +288,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Pencil()
                                 ),
                                 new \SPHERE\Common\Frontend\Text\Repository\Danger(
-                                    new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
+                                    new Info() . ' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
                                 ),
                             ), Panel::PANEL_TYPE_INFO
                         ),
@@ -297,8 +308,8 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int   $Id
-     * @param int   $To
+     * @param int $Id
+     * @param int $To
      * @param array $Type
      *
      * @return Stage
@@ -311,18 +322,20 @@ class Frontend extends Extension implements IFrontendInterface
 
         /** @Var TblToPerson $tblToPerson */
         $tblToPerson = Relationship::useService()->getRelationshipToPersonById($Id);
+        $Stage->addButton(
+            new Standard('Zurück', '/People/Person', new ChevronLeft(),
+                array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId())
+            )
+        );
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new PersonIcon().' Person',
+                            new Panel(new PersonIcon() . ' Person',
                                 $tblToPerson->getServiceTblPersonFrom()->getFullName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                    array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId())
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     ),
@@ -330,11 +343,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Relationship::useService()->updateRelationshipToPerson(
-                                $this->formRelationshipToPerson($tblToPerson)
-                                    ->appendFormButton(new Primary('Änderungen speichern'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblToPerson, $tblToPerson->getServiceTblPersonFrom(), $To, $Type
+                            new Well(
+                                Relationship::useService()->updateRelationshipToPerson(
+                                    $this->formRelationshipToPerson($tblToPerson)
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblToPerson, $tblToPerson->getServiceTblPersonFrom(), $To, $Type
+                                )
                             )
                         )
                     )
@@ -346,8 +361,8 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int   $Id
-     * @param int   $To
+     * @param int $Id
+     * @param int $To
      * @param array $Type
      *
      * @return Stage
@@ -360,18 +375,20 @@ class Frontend extends Extension implements IFrontendInterface
 
         /** @Var TblToPerson $tblToPerson */
         $tblToCompany = Relationship::useService()->getRelationshipToCompanyById($Id);
+        $Stage->addButton(
+            new Standard('Zurück', '/People/Person', new ChevronLeft(),
+                array('Id' => $tblToCompany->getServiceTblPerson()->getId())
+            )
+        );
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new PersonIcon().' Person',
+                            new Panel(new PersonIcon() . ' Person',
                                 $tblToCompany->getServiceTblPerson()->getFullName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                    array('Id' => $tblToCompany->getServiceTblPerson()->getId())
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     ),
@@ -379,11 +396,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Relationship::useService()->updateRelationshipToCompany(
-                                $this->formRelationshipToCompany($tblToCompany)
-                                    ->appendFormButton(new Primary('Änderungen speichern'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblToCompany, $tblToCompany->getServiceTblPerson(), $To, $Type
+                            new Well(
+                                Relationship::useService()->updateRelationshipToCompany(
+                                    $this->formRelationshipToCompany($tblToCompany)
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblToCompany, $tblToCompany->getServiceTblPerson(), $To, $Type
+                                )
                             )
                         )
                     )
@@ -409,7 +428,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblRelationshipAll, function (TblToPerson &$tblToPerson) use ($tblPerson) {
 
                 $Panel = array(
-                    ( $tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
+                    ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
                         ? $tblToPerson->getServiceTblPersonTo()->getFullName()
                         : $tblToPerson->getServiceTblPersonFrom()->getFullName()
                     )
@@ -420,22 +439,22 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblToPerson = new LayoutColumn(
                     new Panel(
-                        new PersonIcon().' '.new Link().' '.$tblToPerson->getTblType()->getName(), $Panel,
-                        ( $tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
+                        new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName(), $Panel,
+                        ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
                             ? Panel::PANEL_TYPE_SUCCESS
                             : Panel::PANEL_TYPE_DEFAULT
                         ),
-                        ( $tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
+                        ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
                             ? new Standard(
                                 '', '/People/Person/Relationship/Edit', new Pencil(),
                                 array('Id' => $tblToPerson->getId()),
                                 'Bearbeiten'
                             )
-                            .new Standard(
+                            . new Standard(
                                 '', '/People/Person/Relationship/Destroy', new Remove(),
                                 array('Id' => $tblToPerson->getId()), 'Löschen'
                             )
-                            .new Standard(
+                            . new Standard(
                                 '', '/People/Person', new PersonIcon(),
                                 array('Id' => $tblToPerson->getServiceTblPersonTo()->getId()), 'zur Person'
                             )
@@ -507,22 +526,22 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblToCompany = new LayoutColumn(
                     new Panel(
-                        new Building().' '.new Link().' '.$tblToCompany->getTblType()->getName(), $Panel,
-                        ( $tblEntity instanceof TblPerson
+                        new Building() . ' ' . new Link() . ' ' . $tblToCompany->getTblType()->getName(), $Panel,
+                        ($tblEntity instanceof TblPerson
                             ? Panel::PANEL_TYPE_INFO
                             : Panel::PANEL_TYPE_DEFAULT
                         ),
-                        ( $tblEntity instanceof TblPerson
+                        ($tblEntity instanceof TblPerson
                             ? new Standard(
                                 '', '/Corporation/Company/Relationship/Edit', new Pencil(),
                                 array('Id' => $tblToCompany->getId()),
                                 'Bearbeiten'
                             )
-                            .new Standard(
+                            . new Standard(
                                 '', '/Corporation/Company/Relationship/Destroy', new Remove(),
                                 array('Id' => $tblToCompany->getId()), 'Löschen'
                             )
-                            .new Standard(
+                            . new Standard(
                                 '', '/Corporation/Company', new Building(),
                                 array('Id' => $tblToCompany->getServiceTblCompany()->getId()), 'zur Firma'
                             )
@@ -562,7 +581,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int  $Id
+     * @param int $Id
      * @param bool $Confirm
      *
      * @return Stage
@@ -574,18 +593,20 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Id) {
             $tblToPerson = Relationship::useService()->getRelationshipToPersonById($Id);
             $tblPersonFrom = $tblToPerson->getServiceTblPersonFrom();
+            $Stage->addButton(
+                new Standard('Zurück', '/People/Person', new ChevronLeft(),
+                    array('Id' => $tblPersonFrom->getId())
+                )
+            );
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                        new Panel(new PersonIcon().' Person',
+                        new Panel(new PersonIcon() . ' Person',
                             $tblPersonFrom->getFullName(),
-                            Panel::PANEL_TYPE_SUCCESS,
-                            new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                array('Id' => $tblPersonFrom->getId())
-                            )
+                            Panel::PANEL_TYPE_INFO
                         ),
-                        new Panel(new Question().' Diese Beziehung wirklich löschen?', array(
-                            $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription(),
+                        new Panel(new Question() . ' Diese Beziehung wirklich löschen?', array(
+                            $tblToPerson->getTblType()->getName() . ' ' . $tblToPerson->getTblType()->getDescription(),
                             $tblToPerson->getServiceTblPersonTo()->getFullName(),
                             new Muted(new Small($tblToPerson->getRemark()))
                         ),
@@ -594,7 +615,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Ja', '/People/Person/Relationship/Destroy', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            .new Standard(
+                            . new Standard(
                                 'Nein', '/People/Person', new Disable(),
                                 array('Id' => $tblPersonFrom->getId())
                             )
@@ -605,11 +626,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            ( Relationship::useService()->removePersonRelationshipToPerson($tblToPerson)
-                                ? new Success('Die Beziehung wurde gelöscht')
-                                : new Danger('Die Beziehung konnte nicht gelöscht werden')
+                            (Relationship::useService()->removePersonRelationshipToPerson($tblToPerson)
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde gelöscht')
+                                : new Danger(new Ban() . ' Die Beziehung konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/People/Person', 1, array('Id' => $tblPersonFrom->getId()))
+                            new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
+                                array('Id' => $tblPersonFrom->getId()))
                         )))
                     )))
                 );
@@ -618,8 +640,8 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
-                        new Danger('Die Beziehung konnte nicht gefunden werden'),
-                        new Redirect('/People/Search/Group')
+                        new Danger(new Ban() . ' Die Beziehung konnte nicht gefunden werden'),
+                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );
@@ -628,7 +650,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int  $Id
+     * @param int $Id
      * @param bool $Confirm
      *
      * @return Stage
@@ -640,18 +662,20 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Id) {
             $tblToCompany = Relationship::useService()->getRelationshipToCompanyById($Id);
             $tblPerson = $tblToCompany->getServiceTblPerson();
+            $Stage->addButton(
+                new Standard('Zurück', '/People/Person', new ChevronLeft(),
+                    array('Id' => $tblPerson->getId())
+                )
+            );
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                        new Panel(new PersonIcon().' Person',
+                        new Panel(new PersonIcon() . ' Person',
                             $tblPerson->getFullName(),
-                            Panel::PANEL_TYPE_SUCCESS,
-                            new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                array('Id' => $tblPerson->getId())
-                            )
+                            Panel::PANEL_TYPE_INFO
                         ),
-                        new Panel(new Question().' Diese Beziehung wirklich löschen?', array(
-                            $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription(),
+                        new Panel(new Question() . ' Diese Beziehung wirklich löschen?', array(
+                            $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription(),
                             $tblToCompany->getServiceTblCompany()->getName(),
                             new Muted(new Small($tblToCompany->getRemark()))
                         ),
@@ -660,7 +684,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Ja', '/Corporation/Company/Relationship/Destroy', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            .new Standard(
+                            . new Standard(
                                 'Nein', '/People/Person', new Disable(),
                                 array('Id' => $tblPerson->getId())
                             )
@@ -671,11 +695,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            ( Relationship::useService()->removeCompanyRelationshipToPerson($tblToCompany)
-                                ? new Success('Die Beziehung wurde gelöscht')
-                                : new Danger('Die Beziehung konnte nicht gelöscht werden')
+                            (Relationship::useService()->removeCompanyRelationshipToPerson($tblToCompany)
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde gelöscht')
+                                : new Danger(new Ban() . ' Die Beziehung konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/People/Person', 1, array('Id' => $tblPerson->getId()))
+                            new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()))
                         )))
                     )))
                 );
@@ -684,8 +708,8 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
-                        new Danger('Die Beziehung konnte nicht gefunden werden'),
-                        new Redirect('/People/Search/Group')
+                        new Danger(new Ban() . ' Die Beziehung konnte nicht gefunden werden'),
+                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );

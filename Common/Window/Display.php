@@ -3,6 +3,7 @@ namespace SPHERE\Common\Window;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
@@ -311,7 +312,11 @@ class Display extends Extension implements ITemplateInterface
         }
         $this->Template->setVariable('DebuggerHost', gethostname());
         $this->Template->setVariable('DebuggerRuntime', $Runtime);
-
+        if (!$NoConnection) {
+            $this->Template->setVariable('DebuggerSessionCount', Account::useService()->countSessionAll());
+        } else {
+            $this->Template->setVariable('DebuggerSessionCount', '-NA-');
+        }
         $this->Template->setVariable('RoadmapVersion', (new Roadmap())->getVersionNumber());
 
         $this->Template->setVariable('Content', implode('', $this->Content));

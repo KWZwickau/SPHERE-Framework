@@ -13,10 +13,13 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -24,6 +27,7 @@ use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -54,22 +58,22 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendGroup($Group)
     {
 
-        $Stage = new Stage('Gruppen');
+        $Stage = new Stage('Gruppen', 'Übersicht');
         $tblGroupAll = Group::useService()->getGroupAll();
         if ($tblGroupAll) {
             array_walk($tblGroupAll, function (TblGroup &$tblGroup) {
 
                 $Content = array(
-                    ( $tblGroup->getDescription() ? new Small(new Muted($tblGroup->getDescription())) : false ),
-                    ( $tblGroup->getRemark() ? nl2br($tblGroup->getRemark()) : false ),
+                    ($tblGroup->getDescription() ? new Small(new Muted($tblGroup->getDescription())) : false),
+                    ($tblGroup->getRemark() ? nl2br($tblGroup->getRemark()) : false),
                 );
                 $Content = array_filter($Content);
-                $Type = ( $tblGroup->isLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT );
+                $Type = ($tblGroup->isLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT);
                 $Footer = new PullLeft(
                     new Standard('', '/Corporation/Group/Edit', new Edit(),
                         array('Id' => $tblGroup->getId()), 'Daten ändern'
                     )
-                    .( $tblGroup->isLocked()
+                    . ($tblGroup->isLocked()
                         ? ''
                         : new Standard('', '/Corporation/Group/Destroy', new Remove(),
                             array('Id' => $tblGroup->getId()), 'Gruppe löschen'
@@ -77,7 +81,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 );
                 $Footer .= new PullRight(
-                    new Label(CorporationCompany::useService()->countCompanyAllByGroup($tblGroup).' Firmen',
+                    new Label(CorporationCompany::useService()->countCompanyAllByGroup($tblGroup) . ' Firmen',
                         Label::LABEL_TYPE_INFO)
                 );
                 $tblGroup = new LayoutColumn(
@@ -110,19 +114,21 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(
                     $LayoutRowList
-                    , new Title('Gruppen')
+                    , new Title(new ListingTable() . ' Übersicht')
                 ),
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            Group::useService()->createGroup(
-                                $this->formGroup()
-                                    ->appendFormButton(new Primary('Hinzufügen'))
-                                    ->setConfirm('Die neue Gruppe wurde noch nicht gespeichert')
-                                , $Group
+                            new Well(
+                                Group::useService()->createGroup(
+                                    $this->formGroup()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Die neue Gruppe wurde noch nicht gespeichert')
+                                    , $Group
+                                )
                             )
                         )
-                    ), new Title('Gruppe hinzufügen')
+                    ), new Title(new PlusSign() . ' Hinzufügen')
                 ),
             ))
         );
@@ -155,7 +161,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int        $Id
+     * @param int $Id
      * @param null|array $Group
      *
      * @return Stage
@@ -180,14 +186,16 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
-                                Group::useService()->updateGroup(
-                                    $this->formGroup()
-                                        ->appendFormButton(new Primary('Änderungen speichern'))
-                                        ->setConfirm('Die Änderungen wurden noch nicht gespeichert')
-                                    , $tblGroup, $Group
+                                new Well(
+                                    Group::useService()->updateGroup(
+                                        $this->formGroup()
+                                            ->appendFormButton(new Primary('Speichern', new Save()))
+                                            ->setConfirm('Die Änderungen wurden noch nicht gespeichert')
+                                        , $tblGroup, $Group
+                                    )
                                 )
                             )
-                        ), new Title('Gruppe ändern')
+                        ), new Title(new Edit() . ' Bearbeiten')
                     ),
                 ))
             );
@@ -211,7 +219,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int  $Id
+     * @param int $Id
      * @param bool $Confirm
      *
      * @return Stage
@@ -225,8 +233,8 @@ class Frontend extends Extension implements IFrontendInterface
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        new Panel(new Question().' Diese Gruppe wirklich löschen?', array(
-                            $tblGroup->getName().' '.$tblGroup->getDescription(),
+                        new Panel(new Question() . ' Diese Gruppe wirklich löschen?', array(
+                            $tblGroup->getName() . ' ' . $tblGroup->getDescription(),
                             new Muted(new Small($tblGroup->getRemark()))
                         ),
                             Panel::PANEL_TYPE_DANGER,
@@ -234,7 +242,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Ja', '/Corporation/Group/Destroy', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            .new Standard(
+                            . new Standard(
                                 'Nein', '/Corporation/Group', new Disable()
                             )
                         )
@@ -255,11 +263,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            ( Group::useService()->destroyGroup($tblGroup)
+                            (Group::useService()->destroyGroup($tblGroup)
                                 ? new Success('Die Gruppe wurde gelöscht')
-                                .new Redirect('/Corporation/Group', 0)
+                                . new Redirect('/Corporation/Group', 0)
                                 : new Danger('Die Gruppe konnte nicht gelöscht werden')
-                                .new Redirect('/Corporation/Group', 3)
+                                . new Redirect('/Corporation/Group', 3)
                             )
                         )))
                     )))

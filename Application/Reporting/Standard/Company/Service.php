@@ -48,7 +48,7 @@ class Service
 
         $tblGroup = Group::useService()->getGroupById($Select['Group']);
 
-        return new Redirect($Redirect, 0, array(
+        return new Redirect($Redirect, Redirect::TIMEOUT_SUCCESS, array(
             'GroupId' => $tblGroup->getId(),
         ));
     }

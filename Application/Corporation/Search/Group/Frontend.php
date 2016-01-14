@@ -102,7 +102,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Bold($tblGroup->getName()),
                             ( $tblGroup->getDescription() ? new Small($tblGroup->getDescription()) : '' ),
                             ( $tblGroup->getRemark() ? new Danger(new Italic(nl2br($tblGroup->getRemark()))) : '' )
-                        ), Panel::PANEL_TYPE_SUCCESS
+                        ), Panel::PANEL_TYPE_INFO
                         )
                     )),
                     new LayoutRow(new LayoutColumn(array(

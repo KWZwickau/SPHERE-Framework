@@ -33,6 +33,9 @@ class Major1Minor3
         $Feature = $Category->createFeature('Zensuren');
         $Feature->createTask('Zeugnisdruck')
             ->createDuty('Layout-Designer');
+        $Feature = $Category->createFeature('Unterricht');
+        $Feature->createTask('Klassen')
+            ->createDuty('Klassenwechsel');
 
         // Fehlerbehebung
         $Category = $Release->createCategory('Fehlerkorrekturen');

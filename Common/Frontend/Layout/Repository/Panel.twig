@@ -23,19 +23,23 @@
     {% endif %}
 </div>
 <script type="text/javascript">
-    Client.Use('ModAlways', function()
+    //noinspection JSUnresolvedFunction
+    executeScript(function()
     {
-        {% if Filter is not empty %}
-        var Option = {
-            listClass: "list-group",
-            indexAsync: true,
-            page: {{ FilterSize }},
-            valueNames: [
-                'sphere-label'
-            ]
-        };
-        var PanelList = new List("{{ Hash }}", Option);
+        Client.Use('ModAlways', function()
+        {
+            {% if Filter is not empty %}
+            var Option = {
+                listClass: "list-group",
+                indexAsync: true,
+                page: {{ FilterSize }},
+                valueNames: [
+                    'sphere-label'
+                ]
+            };
+            var PanelList = new List("{{ Hash }}", Option);
             PanelList.search({{ FilterValue }});
-        {% endif %}
+            {% endif %}
+        });
     });
 </script>

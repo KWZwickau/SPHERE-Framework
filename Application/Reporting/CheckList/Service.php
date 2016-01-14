@@ -27,6 +27,9 @@ use SPHERE\Application\Reporting\CheckList\Service\Entity\TblListObjectList;
 use SPHERE\Application\Reporting\CheckList\Service\Entity\TblObjectType;
 use SPHERE\Application\Reporting\CheckList\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -309,8 +312,8 @@ class Service extends AbstractService
                 trim($List['Name']),
                 trim($List['Description'])
             );
-            return new Stage('Die Check-Liste ist erfasst worden')
-            .new Redirect('/Reporting/CheckList', 0);
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Check-Liste ist erfasst worden')
+            .new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
@@ -345,8 +348,8 @@ class Service extends AbstractService
                 $this->getElementTypeById($Element['Type']),
                 $Element['Name']
             );
-            return new Stage('Das Element ist zur Check-Liste hingefügt worden.')
-            .new Redirect('/Reporting/CheckList/Element/Select', 0, array('Id' => $Id));
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Das Element ist zur Check-Liste hingefügt worden.')
+            .new Redirect('/Reporting/CheckList/Element/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $Id));
         }
 
         return $Stage;
@@ -362,12 +365,13 @@ class Service extends AbstractService
 
         $tblListElementList = $this->getListElementListById($Id);
         $tblList = $tblListElementList->getTblList();
+        $Stage = new Stage('Check-Listen', 'Element entfernen');
         if ((new Data($this->getBinding()))->removeElementFromList($tblListElementList)) {
-            return new Stage('Das Element ist von Check-Liste entfernt worden.')
-            .new Redirect('/Reporting/CheckList/Element/Select', 0, array('Id' => $tblList->getId()));
+            return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Das Element ist von Check-Liste entfernt worden.')
+            .new Redirect('/Reporting/CheckList/Element/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblList->getId()));
         } else {
-            return new Stage('Das Element konnte nicht von Check-Liste entfernt werden.')
-            .new Redirect('/Reporting/CheckList/Element/Select', 0, array('Id' => $tblList->getId()));
+            return $Stage . new Danger(new Ban() . ' Das Element konnte nicht von Check-Liste entfernt werden.')
+            .new Redirect('/Reporting/CheckList/Element/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblList->getId()));
         }
     }
 
@@ -401,7 +405,7 @@ class Service extends AbstractService
         $tblList = $this->getListById($ListId);
         $tblObjectType = $this->getObjectTypeById($ObjectTypeSelect['Id']);
 
-        return new Redirect('/Reporting/CheckList/Object/Select', 0, array(
+        return new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS, array(
             'ListId'       => $tblList->getId(),
             'ObjectTypeId' => $tblObjectType->getId()
         ));
@@ -431,16 +435,19 @@ class Service extends AbstractService
     public function removeObjectFromList($Id = null)
     {
 
+        $Stage = new Stage('Check-Listen', 'Ein Object von einer Check-Liste entfernen');
         $tblListObjectList = $this->getListObjectListById($Id);
         $tblList = $tblListObjectList->getTblList();
         $tblObjectType = $tblListObjectList->getTblObjectType();
         if ((new Data($this->getBinding()))->removeObjectFromList($tblListObjectList)) {
-            return new Stage('Die '.$tblObjectType->getName().' ist von Check-Liste entfernt worden.')
-            .new Redirect('/Reporting/CheckList/Object/Select', 0,
+            return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
+                ' Die '.$tblObjectType->getName().' ist von Check-Liste entfernt worden.')
+            .new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
                 array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
         } else {
-            return new Stage('Die '.$tblObjectType->getName().' konnte nicht von Check-Liste entfernt werden.')
-            .new Redirect('/Reporting/CheckList/Object/Select', 3,
+            return $Stage . new Danger(new Ban() .
+                ' Die '.$tblObjectType->getName().' konnte nicht von Check-Liste entfernt werden.')
+            .new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
                 array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
         }
     }
@@ -513,7 +520,7 @@ class Service extends AbstractService
             }
         }
 
-        return new Redirect('/Reporting/CheckList/Object/Element/Edit', 0, array('Id' => $Id));
+        return new Redirect('/Reporting/CheckList/Object/Element/Edit', Redirect::TIMEOUT_SUCCESS, array('Id' => $Id));
     }
 
     /**

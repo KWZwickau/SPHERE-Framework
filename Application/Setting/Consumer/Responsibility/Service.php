@@ -91,10 +91,10 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->addResponsibility($tblCompany)
             ) {
                 return new Success('Der Schulträger wurde erfolgreich hinzugefügt')
-                .new Redirect('/Setting/Consumer/Responsibility', 1, array('Id' => $tblCompany->getId()));
+                .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCompany->getId()));
             } else {
                 return new Danger('Der Schulträger konnte nicht hinzugefügt werden')
-                .new Redirect('/Setting/Consumer/Responsibility', 10, array('Id' => $tblCompany->getId()));
+                .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_ERROR, array('Id' => $tblCompany->getId()));
             }
         }
 

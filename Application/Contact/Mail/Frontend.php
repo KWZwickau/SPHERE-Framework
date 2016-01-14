@@ -16,18 +16,24 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
+use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -51,9 +57,9 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param int    $Id
+     * @param int $Id
      * @param string $Address
-     * @param array  $Type
+     * @param array $Type
      *
      * @return Stage
      */
@@ -64,18 +70,20 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Eine E-Mail Adresse zur gewählten Person hinzufügen');
 
         $tblPerson = Person::useService()->getPersonById($Id);
+        $Stage->addButton(
+            new Standard('Zurück', '/People/Person', new ChevronLeft(),
+                array('Id' => $tblPerson->getId())
+            )
+        );
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new PersonIcon().' Person',
+                            new Panel(new PersonIcon() . ' Person',
                                 $tblPerson->getFullName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                    array('Id' => $tblPerson->getId())
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     ),
@@ -83,15 +91,17 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Mail::useService()->createMailToPerson(
-                                $this->formAddress()
-                                    ->appendFormButton(new Primary('E-Mail Adresse hinzufügen'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblPerson, $Address, $Type
+                            new Well(
+                                Mail::useService()->createMailToPerson(
+                                    $this->formAddress()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblPerson, $Address, $Type
+                                )
                             )
                         )
                     )
-                )),
+                ), new Title(new PlusSign() . ' Hinzufügen')),
             ))
         );
 
@@ -132,9 +142,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int    $Id
+     * @param int $Id
      * @param string $Address
-     * @param array  $Type
+     * @param array $Type
      *
      * @return Stage
      */
@@ -145,18 +155,18 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Eine E-Mail Adresse zur gewählten Firma hinzufügen');
 
         $tblCompany = Company::useService()->getCompanyById($Id);
+        $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
+            array('Id' => $tblCompany->getId())
+        ));
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new PersonIcon().' Firma',
+                            new Panel(new PersonIcon() . ' Firma',
                                 $tblCompany->getName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
-                                    array('Id' => $tblCompany->getId())
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     ),
@@ -164,15 +174,17 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Mail::useService()->createMailToCompany(
-                                $this->formAddress()
-                                    ->appendFormButton(new Primary('E-Mail Adresse hinzufügen'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblCompany, $Address, $Type
+                            new Well(
+                                Mail::useService()->createMailToCompany(
+                                    $this->formAddress()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblCompany, $Address, $Type
+                                )
                             )
                         )
                     )
-                )),
+                ), new Title(new PlusSign() . ' Hinzufügen')),
             ))
         );
 
@@ -180,9 +192,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int    $Id
+     * @param int $Id
      * @param string $Address
-     * @param array  $Type
+     * @param array $Type
      *
      * @return Stage
      */
@@ -193,9 +205,14 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Die E-Mail Adresse der gewählten Person ändern');
 
         $tblToPerson = Mail::useService()->getMailToPersonById($Id);
+        $Stage->addButton(
+            new Standard('Zurück', '/People/Person', new ChevronLeft(),
+                array('Id' => $tblToPerson->getServiceTblPerson()->getId())
+            )
+        );
 
         $Global = $this->getGlobal();
-        if (!isset( $Global->POST['Address'] )) {
+        if (!isset($Global->POST['Address'])) {
             $Global->POST['Address'] = $tblToPerson->getTblMail()->getAddress();
             $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
             $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
@@ -207,12 +224,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new PersonIcon().' Person',
+                            new Panel(new PersonIcon() . ' Person',
                                 $tblToPerson->getServiceTblPerson()->getFullName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                    array('Id' => $tblToPerson->getServiceTblPerson()->getId())
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     ),
@@ -220,15 +234,17 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Mail::useService()->updateMailToPerson(
-                                $this->formAddress()
-                                    ->appendFormButton(new Primary('Änderungen speichern'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblToPerson, $Address, $Type
+                            new Well(
+                                Mail::useService()->updateMailToPerson(
+                                    $this->formAddress()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblToPerson, $Address, $Type
+                                )
                             )
                         )
                     )
-                )),
+                ), new Title(new Edit() . ' Bearbeiten')),
             ))
         );
 
@@ -236,9 +252,9 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int    $Id
+     * @param int $Id
      * @param string $Address
-     * @param array  $Type
+     * @param array $Type
      *
      * @return Stage
      */
@@ -249,9 +265,12 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Die E-Mail Adresse der gewählten Firma ändern');
 
         $tblToCompany = Mail::useService()->getMailToCompanyById($Id);
+        $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
+            array('Id' => $tblToCompany->getServiceTblCompany()->getId())
+        ));
 
         $Global = $this->getGlobal();
-        if (!isset( $Global->POST['Address'] )) {
+        if (!isset($Global->POST['Address'])) {
             $Global->POST['Address'] = $tblToCompany->getTblMail()->getAddress();
             $Global->POST['Type']['Type'] = $tblToCompany->getTblType()->getId();
             $Global->POST['Type']['Remark'] = $tblToCompany->getRemark();
@@ -263,12 +282,9 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new Building().' Firma',
+                            new Panel(new Building() . ' Firma',
                                 $tblToCompany->getServiceTblCompany()->getName(),
-                                Panel::PANEL_TYPE_SUCCESS,
-                                new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
-                                    array('Id' => $tblToCompany->getServiceTblCompany()->getId())
-                                )
+                                Panel::PANEL_TYPE_INFO
                             )
                         )
                     ),
@@ -276,15 +292,17 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Mail::useService()->updateMailToCompany(
-                                $this->formAddress()
-                                    ->appendFormButton(new Primary('Änderungen speichern'))
-                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                , $tblToCompany, $Address, $Type
+                            new Well(
+                                Mail::useService()->updateMailToCompany(
+                                    $this->formAddress()
+                                        ->appendFormButton(new Primary('Speichern', new Save()))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $tblToCompany, $Address, $Type
+                                )
                             )
                         )
                     )
-                )),
+                ), new Title(new Edit() . ' Bearbeiten')),
             ))
         );
 
@@ -310,14 +328,14 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblToPerson = new LayoutColumn(
                     new Panel(
-                        new MailIcon().' '.$tblToPerson->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_SUCCESS,
+                        new MailIcon() . ' ' . $tblToPerson->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_SUCCESS,
 
                         new Standard(
                             '', '/People/Person/Mail/Edit', new Pencil(),
                             array('Id' => $tblToPerson->getId()),
                             'Bearbeiten'
                         )
-                        .new Standard(
+                        . new Standard(
                             '', '/People/Person/Mail/Destroy', new Remove(),
                             array('Id' => $tblToPerson->getId()), 'Löschen'
                         )
@@ -343,10 +361,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $tblMail = new LayoutColumn(
                                     new Panel(
-                                        new MailIcon().' '.$tblMail->getTblType()->getName(), $Panel,
+                                        new MailIcon() . ' ' . $tblMail->getTblType()->getName(), $Panel,
                                         Panel::PANEL_TYPE_DEFAULT,
                                         $tblRelationship->getServiceTblPersonFrom()->getFullName()
-                                        .' ('.$tblRelationship->getTblType()->getName().')'
+                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
                                     )
                                     , 3);
 
@@ -373,10 +391,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $tblMail = new LayoutColumn(
                                     new Panel(
-                                        new MailIcon().' '.$tblMail->getTblType()->getName(), $Panel,
+                                        new MailIcon() . ' ' . $tblMail->getTblType()->getName(), $Panel,
                                         Panel::PANEL_TYPE_DEFAULT,
                                         $tblRelationship->getServiceTblPersonTo()->getFullName()
-                                        .' ('.$tblRelationship->getTblType()->getName().')'
+                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
                                     )
                                     , 3);
 
@@ -421,7 +439,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int  $Id
+     * @param int $Id
      * @param bool $Confirm
      *
      * @return Stage
@@ -433,18 +451,20 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Id) {
             $tblToPerson = Mail::useService()->getMailToPersonById($Id);
             $tblPerson = $tblToPerson->getServiceTblPerson();
+            $Stage->addButton(
+                new Standard('Zurück', '/People/Person', new ChevronLeft(),
+                    array('Id' => $tblPerson->getId())
+                )
+            );
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                        new Panel(new PersonIcon().' Person',
+                        new Panel(new PersonIcon() . ' Person',
                             $tblPerson->getFullName(),
-                            Panel::PANEL_TYPE_SUCCESS,
-                            new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                array('Id' => $tblPerson->getId())
-                            )
+                            Panel::PANEL_TYPE_INFO
                         ),
-                        new Panel(new Question().' Diese E-Mail Adresse wirklich löschen?', array(
-                            $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription(),
+                        new Panel(new Question() . ' Diese E-Mail Adresse wirklich löschen?', array(
+                            $tblToPerson->getTblType()->getName() . ' ' . $tblToPerson->getTblType()->getDescription(),
                             $tblToPerson->getTblMail()->getAddress(),
                             new Muted(new Small($tblToPerson->getRemark()))
                         ),
@@ -453,7 +473,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Ja', '/People/Person/Mail/Destroy', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            .new Standard(
+                            . new Standard(
                                 'Nein', '/People/Person', new Disable(),
                                 array('Id' => $tblPerson->getId())
                             )
@@ -464,11 +484,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            ( Mail::useService()->removeMailToPerson($tblToPerson)
-                                ? new Success('Die E-Mail Adresse wurde gelöscht')
-                                : new Danger('Die E-Mail Adresse konnte nicht gelöscht werden')
+                            (Mail::useService()->removeMailToPerson($tblToPerson)
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die E-Mail Adresse wurde gelöscht')
+                                : new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/People/Person', 1, array('Id' => $tblPerson->getId()))
+                            new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
+                                array('Id' => $tblPerson->getId()))
                         )))
                     )))
                 );
@@ -477,8 +498,8 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
-                        new Danger('Die E-Mail Adresse konnte nicht gefunden werden'),
-                        new Redirect('/People/Search/Group')
+                        new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht gefunden werden'),
+                        new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );
@@ -487,7 +508,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int  $Id
+     * @param int $Id
      * @param bool $Confirm
      *
      * @return Stage
@@ -499,18 +520,18 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Id) {
             $tblToCompany = Mail::useService()->getMailToCompanyById($Id);
             $tblCompany = $tblToCompany->getServiceTblCompany();
+            $Stage->addButton( new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
+                array('Id' => $tblCompany->getId())
+            ));
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
-                        new Panel(new PersonIcon().' Firma',
+                        new Panel(new PersonIcon() . ' Firma',
                             $tblCompany->getName(),
-                            Panel::PANEL_TYPE_SUCCESS,
-                            new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
-                                array('Id' => $tblCompany->getId())
-                            )
+                            Panel::PANEL_TYPE_INFO
                         ),
-                        new Panel(new Question().' Diese E-Mail Adresse wirklich löschen?', array(
-                            $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription(),
+                        new Panel(new Question() . ' Diese E-Mail Adresse wirklich löschen?', array(
+                            $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription(),
                             $tblToCompany->getTblMail()->getAddress(),
                             new Muted(new Small($tblToCompany->getRemark()))
                         ),
@@ -519,7 +540,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Ja', '/Corporation/Company/Mail/Destroy', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            .new Standard(
+                            . new Standard(
                                 'Nein', '/Corporation/Company', new Disable(),
                                 array('Id' => $tblCompany->getId())
                             )
@@ -530,11 +551,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            ( Mail::useService()->removeMailToCompany($tblToCompany)
-                                ? new Success('Die E-Mail Adresse wurde gelöscht')
-                                : new Danger('Die E-Mail Adresse konnte nicht gelöscht werden')
+                            (Mail::useService()->removeMailToCompany($tblToCompany)
+                                ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .  ' Die E-Mail Adresse wurde gelöscht')
+                                : new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/Corporation/Company', 1, array('Id' => $tblCompany->getId()))
+                            new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblCompany->getId()))
                         )))
                     )))
                 );
@@ -543,8 +564,8 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
-                        new Danger('Die E-Mail Adresse konnte nicht gefunden werden'),
-                        new Redirect('/Corporation/Search/Group')
+                        new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht gefunden werden'),
+                        new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );
@@ -571,14 +592,15 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblToCompany = new LayoutColumn(
                     new Panel(
-                        new MailIcon().' '.$tblToCompany->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_SUCCESS,
+                        new MailIcon() . ' ' . $tblToCompany->getTblType()->getName(), $Panel,
+                        Panel::PANEL_TYPE_SUCCESS,
 
                         new Standard(
                             '', '/Corporation/Company/Mail/Edit', new Pencil(),
                             array('Id' => $tblToCompany->getId()),
                             'Bearbeiten'
                         )
-                        .new Standard(
+                        . new Standard(
                             '', '/Corporation/Company/Mail/Destroy', new Remove(),
                             array('Id' => $tblToCompany->getId()), 'Löschen'
                         )

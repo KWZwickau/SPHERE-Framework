@@ -60,12 +60,16 @@
     <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|css|swf|woff|woff2|map)$">
         Header set Cache-Control "max-age=290304000, public, must-revalidate"
     </FilesMatch>
+    # 7 DAYS Js + cTag
+    <FilesMatch "\.(js)$">
+        Header set Cache-Control "max-age=604800, public, must-revalidate"
+    </FilesMatch>
     # 2 DAYS
     <FilesMatch "\.(xml|txt)$">
         Header set Cache-Control "max-age=172800, public, must-revalidate"
     </FilesMatch>
     # 2 HOURS
-    <FilesMatch "\.(html|htm|js)$">
+    <FilesMatch "\.(html|htm)$">
         Header set Cache-Control "max-age=7200, public, must-revalidate"
     </FilesMatch>
 
