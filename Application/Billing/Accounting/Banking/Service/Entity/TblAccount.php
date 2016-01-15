@@ -222,4 +222,35 @@ class TblAccount extends Element
         $this->Active = $Active;
     }
 
+    /**
+     * @return string
+     */
+    public function getIBANFrontend()
+    {
+
+        $IBAN = $this->IBAN;
+        $tmp = array();
+        for ($i = 0, $j = strlen($IBAN); $i < $j; $i += 4) {
+            array_push($tmp, substr($IBAN, $i, 4));
+        }
+        $result = implode(' ', $tmp);
+        return $result;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBICFrontend()
+    {
+
+        $BIC = $this->BIC;
+        $tmp = array();
+        array_push($tmp, substr($BIC, 0, 4));
+        array_push($tmp, substr($BIC, 4, 2));
+        array_push($tmp, substr($BIC, 6, 2));
+        array_push($tmp, substr($BIC, 8, 3));
+        $result = implode(' ', $tmp);
+        return $result;
+    }
+
 }
