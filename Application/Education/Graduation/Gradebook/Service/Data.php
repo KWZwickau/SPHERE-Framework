@@ -456,6 +456,15 @@ class Data extends AbstractData
     }
 
     /**
+     * @return bool|TblScoreRule[]
+     */
+    public function getScoreRuleAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreRule');
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblScoreRuleConditionList
@@ -848,6 +857,35 @@ class Data extends AbstractData
             $Entity->setName($Name);
             $Entity->setRound($Round);
             $Entity->setMultiplier($Multiplier);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param $Name
+     * @param $Description
+     * @return bool
+     */
+    public function updateScoreRule(
+        TblScoreRule $tblScoreRule,
+        $Name,
+        $Description
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblScoreRule $Entity */
+        $Entity = $Manager->getEntityById('TblScoreRule', $tblScoreRule->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
 

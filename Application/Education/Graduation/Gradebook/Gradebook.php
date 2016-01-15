@@ -87,6 +87,18 @@ class Gradebook implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendEditScore')
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition',
+                __NAMESPACE__.'\Frontend::frontendScoreCondition')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\Edit',
+                __NAMESPACE__.'\Frontend::frontendEditScoreCondition')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\Select',
+                __NAMESPACE__.'\Frontend::frontendScoreConditionSelect')
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Group',
                 __NAMESPACE__.'\Frontend::frontendScoreGroup')
         );
@@ -95,15 +107,15 @@ class Gradebook implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendEditScoreGroup')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Group\Select',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\Group\Select',
                 __NAMESPACE__.'\Frontend::frontendScoreGroupSelect')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Group\Add',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\Group\Add',
                 __NAMESPACE__.'\Frontend::frontendScoreGroupAdd')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Group\Remove',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\Group\Remove',
                 __NAMESPACE__.'\Frontend::frontendScoreGroupRemove')
         );
         Main::getDispatcher()->registerRoute(

@@ -1003,19 +1003,87 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param null $ScoreCondition
+     * @param null $ScoreRule
      *
      * @return Stage
      */
     public function frontendScore(
-        $ScoreCondition = null
+        $ScoreRule = null
     ) {
 
         $Stage = new Stage('Berechnungsvorschrift', 'Übersicht');
-        $Stage->addButton(
-            new Standard('Zensuren-Gruppe', '/Education/Graduation/Gradebook/Score/Group', new ListingTable(), null,
-                'Erstellen/Berarbeiten')
+        $this->setScoreStageMenuButtons($Stage);
+
+        $tblScoreRuleAll = Gradebook::useService()->getScoreRuleAll();
+        if ($tblScoreRuleAll) {
+            foreach ($tblScoreRuleAll as &$tblScoreCondition) {
+                $tblScoreCondition->Option =
+                    (new Standard('', '/Education/Graduation/Gradebook/Score/Edit', new Edit(),
+                        array('Id' => $tblScoreCondition->getId()), 'Bearbeiten')) .
+                    (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Select', new Listing(),
+                        array('Id' => $tblScoreCondition->getId()), 'Berechnungsvarianten auswählen'));
+            }
+        }
+
+        $Form = $this->formScoreRule()
+            ->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new TableData($tblScoreRuleAll, null, array(
+                                'Name'        => 'Name',
+                                'Description' => 'Beschreibung',
+                                'Option'      => '',
+                            ))
+                        ))
+                    ))
+                ), new Title(new ListingTable().' Übersicht')),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Well(Gradebook::useService()->createScoreRule($Form, $ScoreRule))
+                        ))
+                    ))
+                ), new Title(new PlusSign().' Hinzufügen'))
+            ))
         );
+
+        return $Stage;
+    }
+
+    /**
+     * @return Form
+     */
+    private function formScoreRule()
+    {
+
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new TextField('ScoreRule[Name]', '', 'Name'), 4
+                ),
+                new FormColumn(
+                    new TextField('ScoreRule[Description]', '', 'Beschreibung'), 8
+                ),
+            ))
+        )));
+    }
+
+    /**
+     * @param null $ScoreCondition
+     *
+     * @return Stage
+     */
+    public function frontendScoreCondition(
+        $ScoreCondition = null
+    ) {
+
+        $Stage = new Stage('Berechnungsvariante', 'Übersicht');
+        $this->setScoreStageMenuButtons($Stage);
 
         $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
         if ($tblScoreConditionAll) {
@@ -1032,9 +1100,9 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $tblScoreCondition->ScoreGroups = $scoreGroups;
                 $tblScoreCondition->Option =
-                    (new Standard('', '/Education/Graduation/Gradebook/Score/Edit', new Edit(),
+                    (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Edit', new Edit(),
                         array('Id' => $tblScoreCondition->getId()), 'Bearbeiten')) .
-                    (new Standard('', '/Education/Graduation/Gradebook/Score/Group/Select', new Listing(),
+                    (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Group/Select', new Listing(),
                         array('Id' => $tblScoreCondition->getId()), 'Zensuren-Gruppen auswählen'));
             }
         }
@@ -1102,9 +1170,7 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $Stage = new Stage('Zensuren-Gruppe', 'Übersicht');
-        $Stage->addButton(
-            new Standard('Zurück', '/Education/Graduation/Gradebook/Score', new ChevronLeft())
-        );
+        $this->setScoreStageMenuButtons($Stage);
 
         $tblScoreGroupAll = Gradebook::useService()->getScoreGroupAll();
         if ($tblScoreGroupAll) {
@@ -1360,9 +1426,9 @@ class Frontend extends Extension implements IFrontendInterface
         $Id = null
     ) {
 
-        $Stage = new Stage('Berechnungsvorschrift', 'Zensuren-Gruppen auswählen');
+        $Stage = new Stage('Berechnungsvariante', 'Zensuren-Gruppen auswählen');
 
-        $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Gradebook/Score', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Gradebook/Score/Condition', new ChevronLeft()));
 
         if (empty( $Id )) {
             $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
@@ -1396,7 +1462,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblScoreConditionGroupList->Name = $tblScoreConditionGroupList->getTblScoreGroup()->getName();
                         $tblScoreConditionGroupList->Option =
                             (new \SPHERE\Common\Frontend\Link\Repository\Primary(
-                                'Entfernen', '/Education/Graduation/Gradebook/Score/Group/Remove',
+                                'Entfernen', '/Education/Graduation/Gradebook/Score/Condition/Group/Remove',
                                 new Minus(), array(
                                 'Id' => $tblScoreConditionGroupList->getId()
                             )))->__toString();
@@ -1406,16 +1472,11 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblScoreGroupAll) {
                     foreach ($tblScoreGroupAll as $tblScoreGroup) {
                         $tblScoreGroup->Option =
-                            (new Form(
-                                new FormGroup(
-                                    new FormRow(array(
-                                        new FormColumn(
-                                            new Primary('Hinzufügen',
-                                                new Plus())
-                                            , 5)
-                                    ))
-                                ), null,
-                                '/Education/Graduation/Gradebook/Score/Group/Add', array(
+                            (new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                                'Hinzufügen',
+                                '/Education/Graduation/Gradebook/Score/Condition/Group/Add',
+                                new Plus(),
+                                array(
                                     'tblScoreGroupId'     => $tblScoreGroup->getId(),
                                     'tblScoreConditionId' => $tblScoreCondition->getId()
                                 )
@@ -1428,7 +1489,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Panel('Berechnungsvorschrift', $tblScoreCondition->getName(),
+                                    new Panel('Berechnungsvariante', $tblScoreCondition->getName(),
                                         Panel::PANEL_TYPE_INFO), 12
                                 ),
                             ))
@@ -1476,7 +1537,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblScoreConditionId = null
     ) {
 
-        $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Gruppe einer Berechnungsvorschrift hinzufügen');
+        $Stage = new Stage('Berechnungsvariante', 'Zensuren-Gruppe einer Berechnungsvariante hinzufügen');
 
         $tblScoreGroup = Gradebook::useService()->getScoreGroupById($tblScoreGroupId);
         $tblScoreCondition = Gradebook::useService()->getScoreConditionById($tblScoreConditionId);
@@ -1498,7 +1559,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Id = null
     ) {
 
-        $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Gruppe von einer Berechnungsvorschrift entfernen');
+        $Stage = new Stage('Berechnungsvariante', 'Zensuren-Gruppe von einer Berechnungsvariante entfernen');
 
         $tblScoreConditionGroupList = Gradebook::useService()->getScoreConditionGroupListById($Id);
         if ($tblScoreConditionGroupList) {
@@ -1510,10 +1571,10 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $Id
-     * @param null $ScoreCondition
+     * @param null $ScoreRule
      * @return Stage|string
      */
-    public function frontendEditScore($Id = null, $ScoreCondition = null)
+    public function frontendEditScore($Id = null, $ScoreRule = null)
     {
 
         $Stage = new Stage('Berechnungsvorschrift', 'Bearbeiten');
@@ -1521,18 +1582,16 @@ class Frontend extends Extension implements IFrontendInterface
             new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Score', new ChevronLeft())
         );
 
-        $tblScoreCondition = Gradebook::useService()->getScoreConditionById($Id);
-        if ($tblScoreCondition) {
+        $tblScoreRule = Gradebook::useService()->getScoreRuleById($Id);
+        if ($tblScoreRule) {
             $Global = $this->getGlobal();
             if (!$Global->POST) {
-                $Global->POST['ScoreCondition']['Name'] = $tblScoreCondition->getName();
-                $Global->POST['ScoreCondition']['Round'] = $tblScoreCondition->getRound();
-                $Global->POST['ScoreCondition']['Priority'] = $tblScoreCondition->getPriority();
-
+                $Global->POST['ScoreRule']['Name'] = $tblScoreRule->getName();
+                $Global->POST['ScoreRule']['Description'] = $tblScoreRule->getDescription();
                 $Global->savePost();
             }
 
-            $Form = $this->formScoreCondition()
+            $Form = $this->formScoreRule()
                 ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
             $Stage->setContent(
@@ -1542,7 +1601,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel(
                                     'Berechnungsvorschrift',
-                                    $tblScoreCondition->getName(),
+                                    new Bold($tblScoreRule->getName()) . '&nbsp;&nbsp;'
+                                        . new Muted(new Small(new Small($tblScoreRule->getDescription()))),
                                     Panel::PANEL_TYPE_INFO
                                 )
                             ),
@@ -1551,7 +1611,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(
-                                new Well(Gradebook::useService()->updateScoreCondition($Form, $Id, $ScoreCondition))
+                                new Well(Gradebook::useService()->updateScoreRule($Form, $Id, $ScoreRule))
                             ),
                         ))
                     ), new Title(new Edit().' Bearbeiten'))
@@ -1622,4 +1682,80 @@ class Frontend extends Extension implements IFrontendInterface
         }
     }
 
+    /**
+     * @param null $Id
+     * @param null $ScoreCondition
+     * @return Stage|string
+     */
+    public function frontendEditScoreCondition($Id = null, $ScoreCondition = null)
+    {
+
+        $Stage = new Stage('Berechnungsvariante', 'Bearbeiten');
+        $Stage->addButton(
+            new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Score/Condition', new ChevronLeft())
+        );
+
+        $tblScoreCondition = Gradebook::useService()->getScoreConditionById($Id);
+        if ($tblScoreCondition) {
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                $Global->POST['ScoreCondition']['Name'] = $tblScoreCondition->getName();
+                $Global->POST['ScoreCondition']['Round'] = $tblScoreCondition->getRound();
+                $Global->POST['ScoreCondition']['Priority'] = $tblScoreCondition->getPriority();
+
+                $Global->savePost();
+            }
+
+            $Form = $this->formScoreCondition()
+                ->appendFormButton(new Primary('Speichern', new Save()))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel(
+                                    'Berechnungsvariante',
+                                    $tblScoreCondition->getName(),
+                                    Panel::PANEL_TYPE_INFO
+                                )
+                            ),
+                        ))
+                    )),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Well(Gradebook::useService()->updateScoreCondition($Form, $Id, $ScoreCondition))
+                            ),
+                        ))
+                    ), new Title(new Edit().' Bearbeiten'))
+                ))
+            );
+
+            return $Stage;
+        } else {
+            return new Danger(new Ban() . ' Berechnungsvariante nicht gefunden')
+            .new Redirect('/Education/Graduation/Gradebook/Score/Condition', Redirect::TIMEOUT_ERROR);
+        }
+    }
+
+    /**
+     * @param $Stage
+     */
+    private function setScoreStageMenuButtons(Stage $Stage)
+    {
+        $Stage->addButton(
+            new Standard('Berechnungsvorschriften', '/Education/Graduation/Gradebook/Score', new ListingTable(), null,
+                'Erstellen/Berarbeiten')
+        );
+        $Stage->addButton(
+            new Standard('Berechnungsvarianten', '/Education/Graduation/Gradebook/Score/Condition', new ListingTable(),
+                null,
+                'Erstellen/Berarbeiten')
+        );
+        $Stage->addButton(
+            new Standard('Zensuren-Gruppen', '/Education/Graduation/Gradebook/Score/Group', new ListingTable(), null,
+                'Erstellen/Berarbeiten')
+        );
+    }
 }

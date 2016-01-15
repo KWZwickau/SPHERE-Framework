@@ -394,6 +394,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblScoreRule[]
+     */
+    public function getScoreRuleAll()
+    {
+
+        return (new Data($this->getBinding()))->getScoreRuleAll();
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblScoreRuleConditionList
@@ -471,8 +480,8 @@ class Service extends AbstractService
                 $ScoreCondition['Round'],
                 $priority
             );
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfasst worden')
-            . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_SUCCESS);
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvariante ist erfasst worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score/Condition', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
@@ -575,11 +584,11 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->addScoreConditionGroupList($tblScoreCondition, $tblScoreGroup)) {
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich hinzugefügt.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', Redirect::TIMEOUT_SUCCESS,
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Group/Select', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblScoreCondition->getId()));
         } else {
             return new Danger('Konnte nicht hinzugefügt werden.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', Redirect::TIMEOUT_ERROR,
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Group/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblScoreCondition->getId()));
         }
     }
@@ -596,11 +605,11 @@ class Service extends AbstractService
         $tblScoreCondition = $tblScoreConditionGroupList->getTblScoreCondition();
         if ((new Data($this->getBinding()))->removeScoreConditionGroupList($tblScoreConditionGroupList)) {
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success(). ' Erfolgreich entfernt.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', Redirect::TIMEOUT_SUCCESS,
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Group/Select', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblScoreCondition->getId()));
         } else {
             return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', Redirect::TIMEOUT_ERROR,
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Group/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblScoreCondition->getId()));
         }
     }
@@ -818,7 +827,7 @@ class Service extends AbstractService
 
         $tblScoreCondition = $this->getScoreConditionById($Id);
         if (!$tblScoreCondition) {
-            return new Danger(new Ban() . ' Berechnungsvorschrift nicht gefunden')
+            return new Danger(new Ban() . ' Berechnungsvariante nicht gefunden')
             . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_ERROR);
         }
 
@@ -829,8 +838,8 @@ class Service extends AbstractService
                 $ScoreCondition['Round'],
                 $ScoreCondition['Priority']
             );
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfolgreich gespeichert worden')
-            . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_SUCCESS);
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvariante ist erfolgreich gespeichert worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score/Condition', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
@@ -873,6 +882,81 @@ class Service extends AbstractService
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zensuren-Gruppe ist erfolgreich gespeichert worden')
             . new Redirect('/Education/Graduation/Gradebook/Score/Group', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param                     $ScoreRule
+     *
+     * @return IFormInterface|string
+     */
+    public function createScoreRule(IFormInterface $Stage = null, $ScoreRule = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ScoreRule) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($ScoreRule['Name']) && empty($ScoreRule['Name'])) {
+            $Stage->setError('ScoreRule[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->createScoreRule(
+                $ScoreRule['Name'],
+                $ScoreRule['Description']
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfasst worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Id
+     * @param $ScoreRule
+     * @return IFormInterface|string
+     */
+    public function updateScoreRule(IFormInterface $Stage = null, $Id, $ScoreRule)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ScoreRule || null === $Id) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($ScoreRule['Name']) && empty($ScoreRule['Name'])) {
+            $Stage->setError('ScoreRule[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        $tblScoreRule = $this->getScoreRuleById($Id);
+        if (!$tblScoreRule) {
+            return new Danger(new Ban() . ' Berechnungsvorschrift nicht gefunden')
+            . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_ERROR);
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->updateScoreRule(
+                $tblScoreRule,
+                $ScoreRule['Name'],
+                $ScoreRule['Description']
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfolgreich gespeichert worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
