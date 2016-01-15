@@ -42,6 +42,7 @@ class Setup extends AbstractSetup
         $this->setTableScoreConditionGradeTypeList($Schema, $tblGradeType, $tblScoreCondition);
         $this->setTableScoreConditionGroupList($Schema, $tblScoreCondition, $tblScoreGroup);
         $this->setTableScoreGroupGradeTypeList($Schema, $tblGradeType, $tblScoreGroup);
+        $this->setTableScoreRuleDivisionSubject($Schema, $tblScoreRule);
 
         /**
          * Migration & Protocol
@@ -257,6 +258,23 @@ class Setup extends AbstractSetup
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
         $this->getConnection()->addForeignKey($Table, $tblScoreGroup, true);
+
+        return $Table;
+    }
+
+    private function setTableScoreRuleDivisionSubject(Schema &$Schema, Table $tblScoreRule)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreRuleDivisionSubject');
+
+        if (!$this->getConnection()->hasColumn('tblScoreRuleDivisionSubject', 'serviceTblDivision')) {
+            $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreRuleDivisionSubject', 'serviceTblSubject')) {
+            $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
+        }
+
+        $this->getConnection()->addForeignKey($Table, $tblScoreRule, true);
 
         return $Table;
     }
