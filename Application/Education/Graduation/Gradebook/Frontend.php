@@ -5,10 +5,12 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreConditionGroupList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroup;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
@@ -1931,4 +1933,156 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param $Id
+     *
+     * @return Stage
+     */
+    public function frontendScoreRuleConditionSelect(
+        $Id = null
+    ) {
+
+        $Stage = new Stage('Berechnungsvorschrift', 'Berechnungsvarianten auswählen');
+
+        $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Gradebook/Score', new ChevronLeft()));
+
+        if (empty($Id)) {
+            $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
+        } else {
+            $tblScoreRule = Gradebook::useService()->getScoreRuleById($Id);
+            if (empty($tblScoreRule)) {
+                $Stage->setContent(new Warning('Die Berechnungsvorschrift konnte nicht abgerufen werden'));
+            } else {
+                $tblScoreRuleConditionListByRule = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
+                $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
+                $tblScoreConditionAllByRule = array();
+                if ($tblScoreRuleConditionListByRule) {
+                    /** @var TblScoreRuleConditionList $tblScoreRuleConditionList */
+                    foreach ($tblScoreRuleConditionListByRule as $tblScoreRuleConditionList) {
+                        $tblScoreConditionAllByRule[] = $tblScoreRuleConditionList->getTblScoreCondition();
+                    }
+                }
+
+                if (!empty($tblScoreConditionAllByRule) && $tblScoreConditionAll) {
+                    $tblScoreConditionAll = array_udiff($tblScoreConditionAll, $tblScoreConditionAllByRule,
+                        function (TblScoreCondition $ObjectA, TblScoreCondition $ObjectB) {
+
+                            return $ObjectA->getId() - $ObjectB->getId();
+                        }
+                    );
+                }
+
+                if ($tblScoreRuleConditionListByRule) {
+                    foreach ($tblScoreRuleConditionListByRule as &$tblScoreRuleCondition) {
+                        $tblScoreRuleCondition->Name = $tblScoreRuleCondition->getTblScoreCondition()->getName();
+                        $tblScoreRuleCondition->Priority = $tblScoreRuleCondition->getTblScoreCondition()->getPriority();
+                        $tblScoreRuleCondition->Option =
+                            (new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                                'Entfernen', '/Education/Graduation/Gradebook/Score/Condition/Remove',
+                                new Minus(), array(
+                                'Id' => $tblScoreRuleCondition->getId()
+                            )))->__toString();
+                    }
+                }
+
+                if ($tblScoreConditionAll) {
+                    foreach ($tblScoreConditionAll as $tblScoreCondition) {
+                        $tblScoreCondition->Option =
+                            (new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                                'Hinzufügen',
+                                '/Education/Graduation/Gradebook/Score/Condition/Add',
+                                new Plus(),
+                                array(
+                                    'tblScoreRuleId' => $tblScoreRule->getId(),
+                                    'tblScoreConditionId' => $tblScoreCondition->getId()
+                                )
+                            ))->__toString();
+                    }
+                }
+
+                $Stage->setContent(
+                    new Layout(array(
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Panel('Berechnungsvariante', $tblScoreRule->getName(), Panel::PANEL_TYPE_INFO),
+                                    12
+                                ),
+                            ))
+                        )),
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(array(
+                                    new Title('Ausgewählte', 'Berechnungsvarianten'),
+                                    new TableData($tblScoreRuleConditionListByRule, null,
+                                        array(
+                                            'Name' => 'Name',
+                                            'Priority' => 'Priorität',
+                                            'Option' => ''
+                                        )
+                                    )
+                                ), 6
+                                ),
+                                new LayoutColumn(array(
+                                    new Title('Verfügbare', 'Berechnungsvarianten'),
+                                    new TableData($tblScoreConditionAll, null,
+                                        array(
+                                            'Name' => 'Name',
+                                            'Priority' => 'Priorität',
+                                            'Option' => ''
+                                        )
+                                    )
+                                ), 6
+                                )
+                            )),
+                        )),
+                    ))
+                );
+            }
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $tblScoreRuleId
+     * @param null $tblScoreConditionId
+     *
+     * @return Stage
+     */
+    public function frontendScoreRuleConditionAdd(
+        $tblScoreRuleId = null,
+        $tblScoreConditionId = null
+    ) {
+
+        $Stage = new Stage('Berechnungsvorschrift', 'Berechnungsvariante einer Berechnungsvorschrift hinzufügen');
+
+        $tblScoreRule = Gradebook::useService()->getScoreRuleById($tblScoreRuleId);
+        $tblScoreCondition = Gradebook::useService()->getScoreConditionById($tblScoreConditionId);
+
+        if ($tblScoreRule && $tblScoreCondition) {
+            $Stage->setContent(Gradebook::useService()->addScoreRuleConditionList($tblScoreRule, $tblScoreCondition));
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return Stage
+     */
+    public function frontendScoreRuleConditionRemove(
+        $Id = null
+    ) {
+
+        $Stage = new Stage('Berechnungsvorschrift', 'Berechnungsvariante von einer Berechnungsvorschrift entfernen');
+
+        $tblScoreRuleCondition = Gradebook::useService()->getScoreRuleConditionListById($Id);
+        if ($tblScoreRuleCondition) {
+            $Stage->setContent(Gradebook::useService()->removeScoreRuleConditionList($tblScoreRuleCondition));
+        }
+
+        return $Stage;
+    }
 }

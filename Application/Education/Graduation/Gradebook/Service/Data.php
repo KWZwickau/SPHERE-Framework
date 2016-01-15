@@ -555,6 +555,20 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return bool|TblScoreRuleConditionList[]
+     */
+    public function getScoreRuleConditionListByRule(TblScoreRule $tblScoreRule)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblScoreRuleConditionList',
+            array(TblScoreRuleConditionList::ATTR_TBL_SCORE_RULE => $tblScoreRule->getId())
+        );
+    }
+
+    /**
      * @param        $Name
      * @param string $Description
      *
@@ -827,6 +841,25 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         /** @var TblScoreConditionGroupList $Entity */
         $Entity = $Manager->getEntityById('TblScoreConditionGroupList', $tblScoreConditionGroupList->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblScoreRuleConditionList $tblScoreRuleConditionList
+     *
+     * @return bool
+     */
+    public function removeScoreRuleConditionList(TblScoreRuleConditionList $tblScoreRuleConditionList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblScoreConditionGroupList $Entity */
+        $Entity = $Manager->getEntityById('TblScoreRuleConditionList', $tblScoreRuleConditionList->getId());
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);

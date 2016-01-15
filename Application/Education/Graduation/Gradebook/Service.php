@@ -658,6 +658,48 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblScoreRule      $tblScoreRule
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return TblScoreRuleConditionList
+     */
+    public function addScoreRuleConditionList(
+        TblScoreRule $tblScoreRule,
+        TblScoreCondition $tblScoreCondition
+    ) {
+
+        if ((new Data($this->getBinding()))->addScoreRuleConditionList($tblScoreRule, $tblScoreCondition)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich hinzugefügt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Select', Redirect::TIMEOUT_SUCCESS,
+                array('Id' => $tblScoreRule->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht hinzugefügt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Select', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblScoreRule->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreRuleConditionList $tblScoreRuleConditionList
+     * @return string
+     */
+    public function removeScoreRuleConditionList(
+        TblScoreRuleConditionList $tblScoreRuleConditionList
+    ) {
+
+        $tblScoreRule = $tblScoreRuleConditionList->getTblScoreRule();
+        if ((new Data($this->getBinding()))->removeScoreRuleConditionList($tblScoreRuleConditionList)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich entfernt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Select', Redirect::TIMEOUT_SUCCESS,
+                array('Id' => $tblScoreRule->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Select', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblScoreRule->getId()));
+        }
+    }
+
+    /**
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
@@ -813,6 +855,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getScoreConditionGradeTypeListByCondition($tblScoreCondition);
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return bool|TblScoreRuleConditionList[]
+     */
+    public function getScoreRuleConditionListByRule(TblScoreRule $tblScoreRule)
+    {
+
+        return (new Data($this->getBinding()))->getScoreRuleConditionListByRule($tblScoreRule);
     }
 
     /**
