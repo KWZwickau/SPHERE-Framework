@@ -208,28 +208,28 @@ class Service extends AbstractService
     {
 
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
-        if( !$tblTestType || !($tblGradeTypeAllTest = $this->getGradeTypeAllByTestType($tblTestType)) ) {
+        if (!$tblTestType || !($tblGradeTypeAllTest = $this->getGradeTypeAllByTestType($tblTestType))) {
             $tblGradeTypeAllTest = array();
         }
 
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
-        if( !$tblTestType || !($tblGradeTypeAllBehavior = $this->getGradeTypeAllByTestType($tblTestType)) ) {
+        if (!$tblTestType || !($tblGradeTypeAllBehavior = $this->getGradeTypeAllByTestType($tblTestType))) {
             $tblGradeTypeAllBehavior = array();
         }
 
-        $tblGradeTypeAll = array_merge( $tblGradeTypeAllTest, $tblGradeTypeAllBehavior );
+        $tblGradeTypeAll = array_merge($tblGradeTypeAllTest, $tblGradeTypeAllBehavior);
 
-        return ( empty( $tblGradeTypeAll ) ? false : $tblGradeTypeAll );
+        return (empty($tblGradeTypeAll) ? false : $tblGradeTypeAll);
     }
 
     /**
      * @param TblTestType $tblTestType
      * @return bool|TblGradeType[]
      */
-    public function getGradeTypeAllByTestType( TblTestType $tblTestType )
+    public function getGradeTypeAllByTestType(TblTestType $tblTestType)
     {
 
-        return (new Data($this->getBinding()))->getGradeTypeAllByTestType( $tblTestType );
+        return (new Data($this->getBinding()))->getGradeTypeAllByTestType($tblTestType);
     }
 
     /**
@@ -604,12 +604,55 @@ class Service extends AbstractService
 
         $tblScoreCondition = $tblScoreConditionGroupList->getTblScoreCondition();
         if ((new Data($this->getBinding()))->removeScoreConditionGroupList($tblScoreConditionGroupList)) {
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success(). ' Erfolgreich entfernt.') .
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich entfernt.') .
             new Redirect('/Education/Graduation/Gradebook/Score/Condition/Group/Select', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblScoreCondition->getId()));
         } else {
             return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
             new Redirect('/Education/Graduation/Gradebook/Score/Condition/Group/Select', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param TblGradeType      $tblGradeType
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return TblScoreConditionGradeTypeList
+     */
+    public function addScoreConditionGradeTypeList(
+        TblGradeType $tblGradeType,
+        TblScoreCondition $tblScoreCondition
+    ) {
+
+        if ((new Data($this->getBinding()))->addScoreConditionGradeTypeList($tblGradeType, $tblScoreCondition)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich hinzugefügt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
+                array('Id' => $tblScoreCondition->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht hinzugefügt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreConditionGradeTypeList $tblScoreConditionGradeTypeList
+     *
+     * @return string
+     */
+    public function removeScoreConditionGradeTypeList(
+        TblScoreConditionGradeTypeList $tblScoreConditionGradeTypeList
+    ) {
+
+        $tblScoreCondition = $tblScoreConditionGradeTypeList->getTblScoreCondition();
+        if ((new Data($this->getBinding()))->removeScoreConditionGradeTypeList($tblScoreConditionGradeTypeList)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich entfernt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
+                array('Id' => $tblScoreCondition->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblScoreCondition->getId()));
         }
     }
@@ -759,6 +802,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getScoreGroupGradeTypeListByGroup($tblScoreGroup);
+    }
+
+    /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool|TblScoreConditionGradeTypeList[]
+     */
+    public function getScoreConditionGradeTypeListByCondition(TblScoreCondition $tblScoreCondition)
+    {
+
+        return (new Data($this->getBinding()))->getScoreConditionGradeTypeListByCondition($tblScoreCondition);
     }
 
     /**
@@ -961,4 +1015,5 @@ class Service extends AbstractService
 
         return $Stage;
     }
+
 }
