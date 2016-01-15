@@ -1020,12 +1020,27 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblScoreRuleAll = Gradebook::useService()->getScoreRuleAll();
         if ($tblScoreRuleAll) {
-            foreach ($tblScoreRuleAll as &$tblScoreCondition) {
-                $tblScoreCondition->Option =
+            foreach ($tblScoreRuleAll as &$tblScoreRule) {
+                $scoreConditions = array();
+                $tblScoreConditions = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
+                if ($tblScoreConditions){
+                    foreach ($tblScoreConditions as $tblScoreCondition){
+                        $scoreConditions[] = $tblScoreCondition->getTblScoreCondition()->getName() . ' (P:'
+                        . $tblScoreCondition->getTblScoreCondition()->getPriority() . ')';
+                    }
+                }
+                if (empty($scoreConditions)){
+                    $scoreConditions = '';
+                } else {
+                    $scoreConditions = implode(', ',$scoreConditions);
+                }
+
+                $tblScoreRule->ScoreConditions = $scoreConditions;
+                $tblScoreRule->Option =
                     (new Standard('', '/Education/Graduation/Gradebook/Score/Edit', new Edit(),
-                        array('Id' => $tblScoreCondition->getId()), 'Bearbeiten')) .
+                        array('Id' => $tblScoreRule->getId()), 'Bearbeiten')) .
                     (new Standard('', '/Education/Graduation/Gradebook/Score/Condition/Select', new Listing(),
-                        array('Id' => $tblScoreCondition->getId()), 'Berechnungsvarianten auswählen'));
+                        array('Id' => $tblScoreRule->getId()), 'Berechnungsvarianten auswählen'));
             }
         }
 
@@ -1041,6 +1056,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($tblScoreRuleAll, null, array(
                                 'Name' => 'Name',
                                 'Description' => 'Beschreibung',
+                                'ScoreConditions' => 'Berechnungsvarianten',
                                 'Option' => '',
                             ))
                         ))
