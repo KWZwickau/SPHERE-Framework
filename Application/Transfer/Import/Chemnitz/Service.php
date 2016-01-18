@@ -343,7 +343,8 @@ class Service
                                 new Warning($countMotherExists . ' Mütter exisistieren bereits.') : '');
                     } else {
                         Debugger::screenDump($Location);
-                        return new Danger(
+                        return new Warning(json_encode($Location))
+                        . new Danger(
                             "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                     }
                 }
@@ -778,7 +779,8 @@ class Service
                         new Success('Es wurden ' . $countPhone . ' Telefonnummern erfolgreich angelegt.');
                 } else {
                     Debugger::screenDump($Location);
-                    return new Danger("File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                    return new Warning(json_encode($Location))
+                    . new Danger("File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }
         }
@@ -1132,7 +1134,7 @@ class Service
                             new Warning($countMotherExists . ' Mütter exisistieren bereits.') : '');
                 } else {
                     Debugger::screenDump($Location);
-                    return new Danger(
+                    return new Warning(json_encode($Location)) . new Danger(
                         "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }
@@ -1221,7 +1223,7 @@ class Service
 
                                 if (!$tblPerson) {
 
-                                    if ($salutation == 'Frau'){
+                                    if ($salutation == 'Frau') {
                                         $tblSalutation = \SPHERE\Application\People\Person\Person::useService()->getSalutationById(2);
                                     } else {
                                         $tblSalutation = \SPHERE\Application\People\Person\Person::useService()->getSalutationById(1);
@@ -1323,7 +1325,8 @@ class Service
                         new Success('Es wurden ' . $countPhone . ' Telefonnummern erfolgreich angelegt.');
                 } else {
                     Debugger::screenDump($Location);
-                    return new Danger("File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                    return new Warning(json_encode($Location)) .
+                    new Danger("File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }
         }
