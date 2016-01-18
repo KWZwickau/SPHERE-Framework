@@ -150,6 +150,10 @@ class Gradebook implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\GradeType\Remove',
                 __NAMESPACE__.'\Frontend::frontendScoreConditionGradeTypeRemove')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Division',
+                __NAMESPACE__.'\Frontend::frontendScoreDivision')
+        );
     }
 
     /**

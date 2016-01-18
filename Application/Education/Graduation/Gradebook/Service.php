@@ -15,11 +15,14 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGro
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleDivisionSubject;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Setup;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -1079,5 +1082,86 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getScoreTypeById($Id);
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return bool|TblScoreType
+     */
+    public function getScoreTypeByIdentifier($Identifier)
+    {
+
+        return (new Data($this->getBinding()))->getScoreTypeByIdentifier($Identifier);
+    }
+
+    /**
+     * @return bool|TblScoreType[]
+     */
+    public function getScoreTypeAll()
+    {
+
+        return (new Data($this->getBinding()))->getScoreTypeAll();
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     *
+     * @return bool|TblScoreRuleDivisionSubject
+     */
+    public function getScoreRuleDivisionSubjectByDivisionAndSubject(TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+
+        return (new Data($this->getBinding()))->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision, $tblSubject);
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Data
+     *
+     * @return IFormInterface
+     */
+    public function updateScoreRuleDivisionSubject(IFormInterface $Stage = null, $Data)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Button']['Submit'] )) {
+            return $Stage;
+        }
+
+        if (isset($Data)){
+            foreach($Data as $divisionId => $subjectItemList){
+                $tblDivision = Division::useService()->getDivisionById($divisionId);
+                foreach ($subjectItemList as $subjectId => $item){
+                    $tblSubject = Subject::useService()->getSubjectById($subjectId);
+                    if ($tblDivision && $tblSubject){
+                        $tblScoreRuleDivisionSubject = $this->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision, $tblSubject);
+                        $tblScoreRule = Gradebook::useService()->getScoreRuleById($item['Rule']);
+                        if (!$tblScoreRule){
+                            $tblScoreRule = null;
+                        }
+                        $tblScoreType = Gradebook::useService()->getScoreTypeById($item['Type']);
+                        if (!$tblScoreType){
+                            $tblScoreType = null;
+                        }
+                        if ($tblScoreRuleDivisionSubject){
+                            (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
+                                $tblScoreRuleDivisionSubject, $tblScoreRule, $tblScoreType
+                            );
+                        } else {
+                            (new Data($this->getBinding()))->createScoreRuleDivisionSubject(
+                                $tblDivision, $tblSubject, $tblScoreRule, $tblScoreType
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        return $Stage;
     }
 }
