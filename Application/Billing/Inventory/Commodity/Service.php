@@ -301,7 +301,7 @@ class Service extends AbstractService
     public function addItemToCommodity(TblCommodity $tblCommodity, TblItem $tblItem, $Item)
     {
 
-        if ($Item['Quantity'] === null) {
+        if (empty( $Item['Quantity'] ) || $Item['Quantity'] <= 0) {
             $Item['Quantity'] = 1;
         }
 
