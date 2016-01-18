@@ -1,4 +1,4 @@
-#Despicable and evil robots to keep out :)
+# Despicable and evil robots to keep out :)
 
 User-agent: grub-client
 Disallow: /
@@ -375,7 +375,7 @@ Disallow: /
 User-agent: ScoutJet
 Disallow: /
 
-#Default settings
+# Default settings
 
 User-agent: *
 Disallow: /Application/
@@ -383,3 +383,5 @@ Disallow: /Common/
 Disallow: /Library/
 Disallow: /System/
 Disallow: /UnitTest/
+Allow: /Common/Style/
+Allow: /Common/Script/
