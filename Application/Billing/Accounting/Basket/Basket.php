@@ -26,11 +26,11 @@ class Basket implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendBasketList'
             )
         );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Create',
-                __NAMESPACE__.'\Frontend::frontendBasketCreate'
-            )->setParameterDefault('Basket', null)
-        );
+//        Main::getDispatcher()->registerRoute(
+//            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Create',
+//                __NAMESPACE__.'\Frontend::frontendBasketCreate'
+//            )->setParameterDefault('Basket', null)
+//        );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Change',
                 __NAMESPACE__.'\Frontend::frontendBasketChange'

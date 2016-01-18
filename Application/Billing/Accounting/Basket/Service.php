@@ -12,6 +12,7 @@ use SPHERE\Application\Billing\Accounting\Basket\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityItem;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -548,5 +549,63 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getBasketById($Id);
+    }
+
+    /**
+     * @param TblBasketItem $tblBasketItem
+     * @param TblStudent    $tblStudent
+     * @param array         $tblPersonByBasketList
+     * @param int           $Result
+     *
+     * @return float
+     */
+    public function getPricePerPerson(TblBasketItem $tblBasketItem, TblStudent $tblStudent, $tblPersonByBasketList, $Result)
+    {
+
+        $tblCommodityItem = $tblBasketItem->getServiceBillingCommodityItem();
+        if ($tblCommodityItem) {
+            $tblCommodity = $tblCommodityItem->getTblCommodity();
+            $tblItem = $tblCommodityItem->getTblItem();
+            if ($tblCommodity && $tblItem) {
+                if ($tblCommodity->getTblCommodityType()->getName() === 'Sammelleistung') {
+                    $PersonCount = count($tblPersonByBasketList);
+                    if ($tblItemRank = $tblItem->getServiceStudentChildRank()) {
+                        if ($tblStudent) {
+                            if ($tblStudentBilling = $tblStudent->getTblStudentBilling()) {
+                                if ($SiblingRank = $tblStudentBilling->getServiceTblSiblingRank()) {
+                                    if (
+                                        $tblItemRank->getId() === $SiblingRank->getId()
+                                    ) {
+                                        $Result = ( ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) / $PersonCount ) + $Result;
+                                    }
+                                } elseif ($SiblingRank === false && $tblItemRank->getName() === '1. Geschwisterkind') {
+                                    $Result = ( ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) / $PersonCount ) + $Result;
+                                }
+                            }
+                        }
+                    } else {
+                        $Result = ( ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) / $PersonCount ) + $Result;
+                    }
+                } else {
+                    if ($tblItemRank = $tblItem->getServiceStudentChildRank()) {
+                        if ($tblStudent) {
+                            if ($tblStudentBilling = $tblStudent->getTblStudentBilling()) {
+                                if ($SiblingRank = $tblStudentBilling->getServiceTblSiblingRank()) {
+                                    if ($tblItemRank->getId() === $SiblingRank->getId()
+                                    ) {
+                                        $Result = ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) + $Result;
+                                    }
+                                } elseif ($SiblingRank === false && $tblItemRank->getName() === '1. Geschwisterkind') {
+                                    $Result = ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) + $Result;
+                                }
+                            }
+                        }
+                    } else {
+                        $Result = ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) + $Result;
+                    }
+                }
+            }
+        }
+        return $Result;
     }
 }
