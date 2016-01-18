@@ -15,6 +15,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGro
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Setup;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
@@ -615,7 +616,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblGradeType      $tblGradeType
+     * @param TblGradeType $tblGradeType
      * @param TblScoreCondition $tblScoreCondition
      *
      * @return TblScoreConditionGradeTypeList
@@ -658,7 +659,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblScoreRule      $tblScoreRule
+     * @param TblScoreRule $tblScoreRule
      * @param TblScoreCondition $tblScoreCondition
      *
      * @return TblScoreRuleConditionList
@@ -1069,4 +1070,14 @@ class Service extends AbstractService
         return $Stage;
     }
 
+    /**
+     * @param $Id
+     *
+     * @return bool|TblScoreType
+     */
+    public function getScoreTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getScoreTypeById($Id);
+    }
 }

@@ -20,6 +20,7 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGro
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -39,6 +40,9 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        $this->createScoreType('Noten (1-6)', 'GRADES');
+        $this->createScoreType('Punkte (0-15)', 'POINTS');
+        $this->createScoreType('Verbale Bewertung', 'VERBAL');
     }
 
     /**
@@ -961,4 +965,67 @@ class Data extends AbstractData
         return false;
     }
 
+    /**
+     * @param $Id
+     *
+     * @return bool|TblScoreType
+     */
+    public function getScoreTypeById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreType', $Id);
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return bool|TblScoreType
+     */
+    public function getScoreTypeByIdentifier($Identifier)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreType', array(
+            TblScoreType::ATTR_IDENTIFIER => strtoupper($Identifier)
+        ));
+    }
+
+    /**
+     * @return bool|TblScoreType[]
+     */
+    public function getScoreTypeAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblScoreType');
+    }
+
+    /**
+     * @param $Name
+     * @param $Identifier
+     * @return TblScoreType
+     */
+    public function createScoreType(
+        $Name,
+        $Identifier
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Identifier = strtoupper($Identifier);
+
+        $Entity = $Manager->getEntity('TblScoreType')
+            ->findOneBy(array(
+                TblScoreType::ATTR_IDENTIFIER => $Identifier,
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblScoreType();
+            $Entity->setName($Name);
+            $Entity->setIdentifier($Identifier);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
 }

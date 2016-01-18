@@ -30,6 +30,7 @@ class TblScoreRuleDivisionSubject extends Element
     const ATTR_TBL_SCORE_RULE = 'tblScoreRule';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+    const ATTR_TBL_SCORE_TYPE = 'tblScoreType';
 
     /**
      * @Column(type="bigint")
@@ -45,6 +46,11 @@ class TblScoreRuleDivisionSubject extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblSubject;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblScoreType;
 
     /**
      * @return bool|TblScoreRule
@@ -110,6 +116,28 @@ class TblScoreRuleDivisionSubject extends Element
     {
 
         $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
+    }
+
+    /**
+     * @return bool|TblScoreType
+     */
+    public function getTblScoreType()
+    {
+
+        if (null === $this->tblScoreType) {
+            return false;
+        } else {
+            return Gradebook::useService()->getScoreTypeById($this->tblScoreType);
+        }
+    }
+
+    /**
+     * @param TblScoreType|null $tblScoreType
+     */
+    public function setTblScoreType($tblScoreType)
+    {
+
+        $this->tblScoreType = ( null === $tblScoreType ? null : $tblScoreType->getId() );
     }
 
 }

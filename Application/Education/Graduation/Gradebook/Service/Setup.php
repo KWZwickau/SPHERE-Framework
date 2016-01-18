@@ -38,11 +38,12 @@ class Setup extends AbstractSetup
         $tblScoreRule = $this->setTableScoreRule($Schema);
         $tblScoreCondition = $this->setTableScoreCondition($Schema);
         $tblScoreGroup = $this->setTableScoreGroup($Schema);
+        $tblScoreType = $this->setTableScoreType($Schema);
         $this->setTableScoreRuleConditionList($Schema, $tblScoreRule, $tblScoreCondition);
         $this->setTableScoreConditionGradeTypeList($Schema, $tblGradeType, $tblScoreCondition);
         $this->setTableScoreConditionGroupList($Schema, $tblScoreCondition, $tblScoreGroup);
         $this->setTableScoreGroupGradeTypeList($Schema, $tblGradeType, $tblScoreGroup);
-        $this->setTableScoreRuleDivisionSubject($Schema, $tblScoreRule);
+        $this->setTableScoreRuleDivisionSubject($Schema, $tblScoreRule, $tblScoreType);
 
         /**
          * Migration & Protocol
@@ -262,7 +263,7 @@ class Setup extends AbstractSetup
         return $Table;
     }
 
-    private function setTableScoreRuleDivisionSubject(Schema &$Schema, Table $tblScoreRule)
+    private function setTableScoreRuleDivisionSubject(Schema &$Schema, Table $tblScoreRule, Table $tblScoreType)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblScoreRuleDivisionSubject');
@@ -275,7 +276,28 @@ class Setup extends AbstractSetup
         }
 
         $this->getConnection()->addForeignKey($Table, $tblScoreRule, true);
+        $this->getConnection()->addForeignKey($Table, $tblScoreType, true);
 
         return $Table;
     }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableScoreType(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreType');
+        if (!$this->getConnection()->hasColumn('tblScoreType', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreType', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+
+        return $Table;
+    }
+
 }
