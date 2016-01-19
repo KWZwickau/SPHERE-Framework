@@ -279,7 +279,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
 
-        $availableHeader =  array(
+        $availableHeader = array(
             'DisplayName' => 'Name',
             'Option' => ''
         );
@@ -626,14 +626,14 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
 
-                        if ($tblObjectType->getIdentifier() === 'PERSON' || $tblObjectType->getIdentifier() === 'COMPANY'){
-                            $availableHeader =  array(
+                        if ($tblObjectType->getIdentifier() === 'PERSON' || $tblObjectType->getIdentifier() === 'COMPANY') {
+                            $availableHeader = array(
                                 'DisplayName' => 'Name',
                                 'Groups' => 'Gruppen ', // space important
                                 'Option' => ''
                             );
                         } else {
-                            $availableHeader =  array(
+                            $availableHeader = array(
                                 'DisplayName' => 'Name',
                                 'Option' => ''
                             );
@@ -909,13 +909,20 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param      $Id
+     * @param null $Filter
      * @param null $Data
      * @param null $HasData
+     * @param null $YearPersonId
      *
      * @return Stage
      */
-    public function frontendListObjectElementEdit($Id = null, $Data = null, $HasData = null)
-    {
+    public function frontendListObjectElementEdit(
+        $Id = null,
+        $Filter = null,
+        $Data = null,
+        $HasData = null,
+        $YearPersonId = null
+    ) {
 
         $Stage = new Stage('Check-Listen', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
@@ -924,6 +931,30 @@ class Frontend extends Extension implements IFrontendInterface
             'Name' => 'Name',
         );
         $list = array();
+        $objectList = array();
+
+        $isProspectList = false;
+        $filterPersonObjectList = array();
+        $hasFilter = false;
+        $filterYear = '';
+
+        if ($YearPersonId !== null) {
+            $Global = $this->getGlobal();
+            $Global->POST['Filter']['Year'] = $YearPersonId;
+            $Global->savePost();
+
+            $yearPerson = Person::useService()->getPersonById($YearPersonId);
+            if ($yearPerson) {
+                $hasFilter = true;
+                $tblProspect = Prospect::useService()->getProspectByPerson($yearPerson);
+                if ($tblProspect) {
+                    $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                    if ($tblProspectReservation) {
+                        $filterYear = trim($tblProspectReservation->getReservationYear());
+                    }
+                }
+            }
+        }
 
         $tblList = CheckList::useService()->getListById($Id);
         if ($tblList) {
@@ -950,48 +981,26 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $tblListObjectListByList = CheckList::useService()->getListObjectListByList($tblList);
-            $objectList = array();
 
             // get Objects
-            if ($tblListObjectListByList) {
-                foreach ($tblListObjectListByList as &$tblListObjectList) {
-                    if (($tblObject = $tblListObjectList->getServiceTblObject())) {
-                        if ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSON') {
-                            /** @var TblPerson $tblObject */
-                            $objectList[$tblListObjectList->getTblObjectType()->getId()][$tblObject->getId()] = 1;
-                        } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANY') {
-                            /** @var TblCompany $tblObject */
-                            $objectList[$tblListObjectList->getTblObjectType()->getId()][$tblObject->getId()] = 1;
-                        } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSONGROUP') {
-                            /** @var PersonGroupEntity $tblObject */
-                            $tblPersonAllByGroup = PersonGroup::useService()->getPersonAllByGroup($tblObject);
-                            if ($tblPersonAllByGroup) {
-                                foreach ($tblPersonAllByGroup as $tblPerson) {
-                                    $objectList[CheckList::useService()->getObjectTypeByIdentifier('PERSON')->getId()]
-                                    [$tblPerson->getId()] = 1;
-                                }
-                            }
-                        } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
-                            /** @var CompanyGroupEntity $tblObject */
-                            $tblCompanyAllByGroup = CompanyGroup::useService()->getCompanyAllByGroup($tblObject);
-                            if ($tblCompanyAllByGroup) {
-                                foreach ($tblCompanyAllByGroup as $tblCompany) {
-                                    $objectList[CheckList::useService()->getObjectTypeByIdentifier('COMPANY')->getId()]
-                                    [$tblCompany->getId()] = 1;
-                                }
-                            }
-                        } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'DIVISIONGROUP') {
-                            /** @var TblDivision $tblObject */
-                            $tblStudentAllByDivision = Division::useService()->getStudentAllByDivision($tblObject);
-                            if ($tblStudentAllByDivision) {
-                                foreach ($tblStudentAllByDivision as $tblPerson) {
-                                    $objectList[CheckList::useService()->getObjectTypeByIdentifier('PERSON')->getId()]
-                                    [$tblPerson->getId()] = 1;
+            $objectList = CheckList::useService()->getObjectList($tblListObjectListByList, $objectList);
+            if ($hasFilter) {
+                // build filter selectBox content from all
+                if (!empty($objectList)) {
+                    foreach ($objectList as $objectTypeId => $objects) {
+                        $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
+                        if (!empty($objects)) {
+                            foreach ($objects as $objectId => $value) {
+                                if ($tblObjectType->getIdentifier() === 'PERSON') {
+                                    $tblPerson = Person::useService()->getPersonById($objectId);
+                                    $filterPersonObjectList[$tblPerson->getId()] = $tblPerson;
                                 }
                             }
                         }
                     }
                 }
+
+                $objectList = CheckList::useService()->filterObjectList($objectList, $filterYear);
             }
 
             if (!empty($objectList)) {
@@ -1005,7 +1014,7 @@ class Frontend extends Extension implements IFrontendInterface
                             if ($tblObjectType->getIdentifier() === 'PERSON') {
                                 $tblPerson = Person::useService()->getPersonById($objectId);
                                 $prospectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
-                                if (!Group::useService()->existsGroupPerson($prospectGroup, $tblPerson)){
+                                if (!Group::useService()->existsGroupPerson($prospectGroup, $tblPerson)) {
                                     $isProspectList = false;
                                 }
                             } else {
@@ -1014,7 +1023,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                 }
-                if ($isProspectList){
+                if ($isProspectList) {
                     $columnDefinition = array(
                         'Name' => 'Name',
                         'Address' => 'Adresse',
@@ -1040,7 +1049,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblPerson = Person::useService()->getPersonById($objectId);
                                 $list[$count]['Name'] = $tblPerson->getLastName() . ', ' . $tblPerson->getFirstName();
 
-                                if ($isProspectList){
+                                if ($isProspectList) {
+
+                                    if (!$hasFilter) {
+                                        $filterPersonObjectList[$tblPerson->getId()] = $tblPerson;
+                                    }
+
                                     // address
                                     $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
                                     $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
@@ -1055,14 +1069,14 @@ class Frontend extends Extension implements IFrontendInterface
                                     $year = false;
                                     $option = false;
                                     $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
-                                    if ($tblProspect){
+                                    if ($tblProspect) {
                                         $tblProspectReservation = $tblProspect->getTblProspectReservation();
-                                        if ($tblProspectReservation){
+                                        if ($tblProspectReservation) {
                                             $level = $tblProspectReservation->getReservationDivision();
                                             $year = $tblProspectReservation->getReservationYear();
                                             $optionA = $tblProspectReservation->getServiceTblTypeOptionA();
                                             $optionB = $tblProspectReservation->getServiceTblTypeOptionB();
-                                            if ($optionA && $optionB){
+                                            if ($optionA && $optionB) {
                                                 $option = $optionA->getName() . ', ' . $optionB->getName();
                                             } elseif ($optionA) {
                                                 $option = $optionA->getName();
@@ -1118,6 +1132,13 @@ class Frontend extends Extension implements IFrontendInterface
             );
         }
 
+        if ($isProspectList) {
+            $form = $this->formCheckListFilter($filterPersonObjectList)->appendFormButton(new Primary('Filtern',
+                new Select()));
+        } else {
+            $form = $this->formCheckListFilter(array())->appendFormButton(new Primary('Filtern', new Select()));
+        }
+
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
@@ -1131,9 +1152,19 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                     ))
                 )),
+                ($isProspectList ? new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                                new Title(new Select() . ' Filter'),
+                                new Well(CheckList::useService()->getFilteredCheckList($form, $Id, $Filter))
+                            )
+                        ),
+                    ))
+                )) : null),
                 new LayoutGroup(array(
                     new LayoutRow(array(
-                        new LayoutColumn(
+                        new LayoutColumn(array(
+                            new Title(new Edit() . ' Bearbeiten'),
                             CheckList::useService()->updateListObjectElementList(
                                 new Form(
                                     new FormGroup(array(
@@ -1147,9 +1178,9 @@ class Frontend extends Extension implements IFrontendInterface
                                         ))
                                     ))
                                     , new Primary('Speichern', new Save()))
-                                , $Id, $Data, $HasData
+                                , $Id, $Data, $HasData, ($hasFilter ? $objectList : null)
                             )
-                        )
+                        ))
                     ))
                 ))
             ))
@@ -1157,4 +1188,52 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
+
+    private function formCheckListFilter($filterPersonObjectList)
+    {
+
+//        $tblYearAll = array(new TblYear());
+        $tblYearAll = array();
+//        $count = 1;
+        if (is_array($filterPersonObjectList) && !empty($filterPersonObjectList)) {
+            /** @var TblPerson $tblPerson */
+            foreach ($filterPersonObjectList as $tblPerson) {
+                $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
+                if ($tblProspect) {
+                    $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                    if ($tblProspectReservation) {
+//                        $level = $tblProspectReservation->getReservationDivision();
+                        $year = trim($tblProspectReservation->getReservationYear());
+                        if ($year !== '') {
+//                            $tblYearAll[$count++] = $year;
+                            $tblYearAll[$tblPerson->getId()] = $year;
+                        }
+//                        $optionA = $tblProspectReservation->getServiceTblTypeOptionA();
+//                        $optionB = $tblProspectReservation->getServiceTblTypeOptionB();
+//                        if ($optionA && $optionB) {
+//                            $option = $optionA->getName() . ', ' . $optionB->getName();
+//                        } elseif ($optionA) {
+//                            $option = $optionA->getName();
+//                        } elseif ($optionB) {
+//                            $option = $optionB->getName();
+//                        }
+                    }
+                }
+
+            }
+            $tblYearAll = array_unique($tblYearAll, SORT_REGULAR);
+            $tblYearAll[0] = '';
+        }
+
+//        Debugger::screenDump($tblYearAll);
+
+        return new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(new SelectBox('Filter[Year]', 'Schuljahr', $tblYearAll), 4)
+                ))
+            ))
+        ));
+    }
+
 }
