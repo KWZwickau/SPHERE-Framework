@@ -115,6 +115,10 @@ class Roadmap extends Extension
         $Feature = $Category->createFeature('Archiv');
         $Feature->createTask('Allowed memory size')
             ->createDuty('Speicherverbrauch minimieren');
+        $Feature = $Category->createFeature('Wiederherstellung');
+        $Feature->createTask('Zurücksetzen')
+            ->createDuty('Snapshot der Datenbanken des Mandanten erstellen')
+            ->createDuty('Datenbanken des Mandanten auf früheren Snapshot zurücksetzen');
     }
 
     /**

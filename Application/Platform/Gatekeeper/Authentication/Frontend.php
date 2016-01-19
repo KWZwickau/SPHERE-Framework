@@ -14,6 +14,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -104,6 +105,9 @@ class Frontend implements IFrontendInterface
     {
 
         $View = new Stage('Anmeldung', 'System');
+        $View->addButton(
+            new External('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', null, array(), false)
+        );
         $View->setMessage('Bitte geben Sie Ihre Benutzerdaten ein');
         $View->setContent(Account::useService()->createSessionCredentialToken(
             new Form(
@@ -169,6 +173,9 @@ class Frontend implements IFrontendInterface
     {
 
         $View = new Stage('Anmeldung', 'Personal');
+        $View->addButton(
+            new External('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', null, array(), false)
+        );
         $View->setMessage('Bitte geben Sie Ihre Benutzerdaten ein');
         $View->setContent(Account::useService()->createSessionCredentialToken(
             new Form(

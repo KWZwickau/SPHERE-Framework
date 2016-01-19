@@ -281,110 +281,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $List = array();
 
                 $tblCompany = $tblSchool->getServiceTblCompany();
-
-                $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
-                if ($tblAddressAll) {
-                    array_walk($tblAddressAll, function (TblToCompany $tblToCompany) use (&$List) {
-
-                        if ($tblToCompany->getTblType()->getId() == 1) // TODO: Find 'Hauptadresse' by Identifier
-                        {
-                            $tblAddress = $tblToCompany->getTblAddress();
-                            $List[] = $tblAddress->getGuiLayout();
-                        }
-                    });
-                }
-                $tblPhoneAll = Phone::useService()->getPhoneAllByCompany($tblCompany);
-                if ($tblPhoneAll) {
-                    array_walk($tblPhoneAll, function (TblToCompanyPhone $tblToCompany) use (&$List) {
-
-                        $tblPhone = $tblToCompany->getTblPhone();
-                        $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblPhone->getNumber();
-                    });
-                }
-                $tblMailAll = Mail::useService()->getMailAllByCompany($tblCompany);
-                if ($tblMailAll) {
-                    array_walk($tblMailAll, function (TblToCompanyMail $tblToCompany) use (&$List) {
-
-                        $tblMail = $tblToCompany->getTblMail();
-                        $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblMail->getAddress();
-                    });
-                }
-                $Result[] = new Panel(
-                    new Bold($tblSchool->getServiceTblType()->getName()).' - '.$tblCompany->getName().' '.$tblCompany->getDescription(),
-                    $List,
-                    Panel::PANEL_TYPE_DEFAULT
-                );
-            });
-        }
-        return $Result;
-    }
-
-    /**
-     * @return array
-     */
-    private function listingResponsibility()
-    {
-
-        $tblResponsibilityAll = Responsibility::useService()->getResponsibilityAll();
-        $Result = array();
-        if ($tblResponsibilityAll) {
-            array_walk($tblResponsibilityAll, function (TblResponsibility $tblResponsibility) use (&$Result) {
-
-                $List = array();
-
-                $tblCompany = $tblResponsibility->getServiceTblCompany();
-
-                $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
-                if ($tblAddressAll) {
-                    array_walk($tblAddressAll, function (TblToCompany $tblToCompany) use (&$List) {
-
-                        if ($tblToCompany->getTblType()->getId() == 1) // TODO: Find 'Hauptadresse' by Identifier
-                        {
-                            $tblAddress = $tblToCompany->getTblAddress();
-                            $List[] = $tblAddress->getGuiLayout();
-                        }
-                    });
-                }
-                $tblPhoneAll = Phone::useService()->getPhoneAllByCompany($tblCompany);
-                if ($tblPhoneAll) {
-                    array_walk($tblPhoneAll, function (TblToCompanyPhone $tblToCompany) use (&$List) {
-
-                        $tblPhone = $tblToCompany->getTblPhone();
-                        $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblPhone->getNumber();
-                    });
-                }
-                $tblMailAll = Mail::useService()->getMailAllByCompany($tblCompany);
-                if ($tblMailAll) {
-                    array_walk($tblMailAll, function (TblToCompanyMail $tblToCompany) use (&$List) {
-
-                        $tblMail = $tblToCompany->getTblMail();
-                        $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblMail->getAddress();
-                    });
-                }
-                $Result[] = new Panel(
-                    new Bold('Schulträger: ').$tblCompany->getName().' '.$tblCompany->getDescription(), $List,
-                    Panel::PANEL_TYPE_DEFAULT
-                );
-            });
-        }
-        return $Result;
-    }
-
-    /**
-     * @return array
-     */
-    private function listingSponsorAssociation()
-    {
-
-        $tblSponsorAssociationAll = SponsorAssociation::useService()->getSponsorAssociationAll();
-        $Result = array();
-        if ($tblSponsorAssociationAll) {
-            array_walk($tblSponsorAssociationAll,
-                function (TblSponsorAssociation $tblSponsorAssociation) use (&$Result) {
-
-                    $List = array();
-
-                    $tblCompany = $tblSponsorAssociation->getServiceTblCompany();
+                if ($tblCompany) {
 
                     $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
                     if ($tblAddressAll) {
@@ -414,9 +311,118 @@ class Frontend extends Extension implements IFrontendInterface
                         });
                     }
                     $Result[] = new Panel(
-                        new Bold('Förderverein: ').$tblCompany->getName().' '.$tblCompany->getDescription(), $List,
+                        new Bold($tblSchool->getServiceTblType()->getName()).' - '.$tblCompany->getName().' '.$tblCompany->getDescription(),
+                        $List,
                         Panel::PANEL_TYPE_DEFAULT
                     );
+                }
+            });
+        }
+        return $Result;
+    }
+
+    /**
+     * @return array
+     */
+    private function listingResponsibility()
+    {
+
+        $tblResponsibilityAll = Responsibility::useService()->getResponsibilityAll();
+        $Result = array();
+        if ($tblResponsibilityAll) {
+            array_walk($tblResponsibilityAll, function (TblResponsibility $tblResponsibility) use (&$Result) {
+
+                $List = array();
+
+                $tblCompany = $tblResponsibility->getServiceTblCompany();
+                if ($tblCompany) {
+
+                    $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
+                    if ($tblAddressAll) {
+                        array_walk($tblAddressAll, function (TblToCompany $tblToCompany) use (&$List) {
+
+                            if ($tblToCompany->getTblType()->getId() == 1) // TODO: Find 'Hauptadresse' by Identifier
+                            {
+                                $tblAddress = $tblToCompany->getTblAddress();
+                                $List[] = $tblAddress->getGuiLayout();
+                            }
+                        });
+                    }
+                    $tblPhoneAll = Phone::useService()->getPhoneAllByCompany($tblCompany);
+                    if ($tblPhoneAll) {
+                        array_walk($tblPhoneAll, function (TblToCompanyPhone $tblToCompany) use (&$List) {
+
+                            $tblPhone = $tblToCompany->getTblPhone();
+                            $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblPhone->getNumber();
+                        });
+                    }
+                    $tblMailAll = Mail::useService()->getMailAllByCompany($tblCompany);
+                    if ($tblMailAll) {
+                        array_walk($tblMailAll, function (TblToCompanyMail $tblToCompany) use (&$List) {
+
+                            $tblMail = $tblToCompany->getTblMail();
+                            $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblMail->getAddress();
+                        });
+                    }
+                    $Result[] = new Panel(
+                        new Bold('Schulträger: ').$tblCompany->getName().' '.$tblCompany->getDescription(), $List,
+                        Panel::PANEL_TYPE_DEFAULT
+                    );
+                }
+            });
+        }
+        return $Result;
+    }
+
+    /**
+     * @return array
+     */
+    private function listingSponsorAssociation()
+    {
+
+        $tblSponsorAssociationAll = SponsorAssociation::useService()->getSponsorAssociationAll();
+        $Result = array();
+        if ($tblSponsorAssociationAll) {
+            array_walk($tblSponsorAssociationAll,
+                function (TblSponsorAssociation $tblSponsorAssociation) use (&$Result) {
+
+                    $List = array();
+
+                    $tblCompany = $tblSponsorAssociation->getServiceTblCompany();
+                    if ($tblCompany) {
+
+                        $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
+                        if ($tblAddressAll) {
+                            array_walk($tblAddressAll, function (TblToCompany $tblToCompany) use (&$List) {
+
+                                if ($tblToCompany->getTblType()->getId() == 1) // TODO: Find 'Hauptadresse' by Identifier
+                                {
+                                    $tblAddress = $tblToCompany->getTblAddress();
+                                    $List[] = $tblAddress->getGuiLayout();
+                                }
+                            });
+                        }
+                        $tblPhoneAll = Phone::useService()->getPhoneAllByCompany($tblCompany);
+                        if ($tblPhoneAll) {
+                            array_walk($tblPhoneAll, function (TblToCompanyPhone $tblToCompany) use (&$List) {
+
+                                $tblPhone = $tblToCompany->getTblPhone();
+                                $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblPhone->getNumber();
+                            });
+                        }
+                        $tblMailAll = Mail::useService()->getMailAllByCompany($tblCompany);
+                        if ($tblMailAll) {
+                            array_walk($tblMailAll, function (TblToCompanyMail $tblToCompany) use (&$List) {
+
+                                $tblMail = $tblToCompany->getTblMail();
+                                $List[] = $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription().': '.$tblMail->getAddress();
+                            });
+                        }
+                        $Result[] = new Panel(
+                            new Bold('Förderverein: ').$tblCompany->getName().' '.$tblCompany->getDescription(), $List,
+                            Panel::PANEL_TYPE_DEFAULT
+                        );
+                    }
                 });
         }
         return $Result;

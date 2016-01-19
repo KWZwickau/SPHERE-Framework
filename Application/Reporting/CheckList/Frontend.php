@@ -290,7 +290,7 @@ class Frontend extends Extension implements IFrontendInterface
                         if (($tblObject = $tblListObjectList->getServiceTblObject())) {
                             if ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSON') {
                                 /** @var TblPerson $tblObject */
-                                $tblListObjectList->DisplayName = $tblObject->getFullName();
+                                $tblListObjectList->DisplayName = $tblObject->getLastName() . ', ' . $tblObject->getFirstName();
                             } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANY') {
                                 /** @var TblCompany $tblObject */
                                 $tblListObjectList->DisplayName = $tblObject->getName();
@@ -354,7 +354,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                             if ($tblPersonAll) {
                                 foreach ($tblPersonAll as $tblPerson) {
-                                    $tblPerson->DisplayName = $tblPerson->getFullName();
+                                    $tblPerson->DisplayName =  $tblPerson->getLastName() . ', ' . $tblPerson->getFirstName();;
                                     $tblPerson->Option =
                                         (new Form(
                                             new FormGroup(
@@ -825,7 +825,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $columnDefinition = array(
             'Name' => 'Name',
-            'Type' => 'Typ'
         );
         $list = array();
 
@@ -906,15 +905,13 @@ class Frontend extends Extension implements IFrontendInterface
                         foreach ($objects as $objectId => $value) {
                             if ($tblObjectType->getIdentifier() === 'PERSON') {
                                 $tblPerson = Person::useService()->getPersonById($objectId);
-                                $list[$count]['Name'] = $tblPerson->getFullName();
+                                $list[$count]['Name'] = $tblPerson->getLastName() . ', ' . $tblPerson->getFirstName();
                             } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
                                 $tblCompany = Company::useService()->getCompanyById($objectId);
                                 $list[$count]['Name'] = $tblCompany->getName();
                             } else {
                                 $list[$count]['Name'] = '';
                             }
-
-                            $list[$count]['Type'] = $tblObjectType->getName();
 
                             if ($tblListElementListByList) {
                                 foreach ($tblListElementListByList as $tblListElementList) {
