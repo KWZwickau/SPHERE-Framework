@@ -277,6 +277,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
 
+        $availableHeader =  array(
+            'DisplayName' => 'Name',
+            'Option' => ''
+        );
+
         if (empty($ListId)) {
             $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
         } else {
@@ -618,21 +623,20 @@ class Frontend extends Extension implements IFrontendInterface
                                 $selectList = $tblDivisionAll;
                             }
                         }
+
+                        if ($tblObjectType->getIdentifier() === 'PERSON' || $tblObjectType->getIdentifier() === 'COMPANY'){
+                            $availableHeader =  array(
+                                'DisplayName' => 'Name',
+                                'Groups' => 'Gruppen ', // space important
+                                'Option' => ''
+                            );
+                        } else {
+                            $availableHeader =  array(
+                                'DisplayName' => 'Name',
+                                'Option' => ''
+                            );
+                        }
                     }
-
-                }
-
-                if ($tblObjectType->getIdentifier() === 'PERSON' || $tblObjectType->getIdentifier() === 'COMPANY'){
-                    $availableHeader =  array(
-                        'DisplayName' => 'Name',
-                        'Groups' => 'Gruppen ', // space important
-                        'Option' => ''
-                    );
-                } else {
-                    $availableHeader =  array(
-                        'DisplayName' => 'Name',
-                        'Option' => ''
-                    );
                 }
 
                 $Stage->setContent(
