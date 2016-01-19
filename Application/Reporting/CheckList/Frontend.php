@@ -8,6 +8,7 @@
 
 namespace SPHERE\Application\Reporting\CheckList;
 
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup as CompanyGroupEntity;
@@ -15,6 +16,7 @@ use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup as PersonGroupEntity;
+use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -993,6 +995,42 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             if (!empty($objectList)) {
+
+                // prospectList
+                $isProspectList = true;
+                foreach ($objectList as $objectTypeId => $objects) {
+                    $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
+                    if (!empty($objects)) {
+                        foreach ($objects as $objectId => $value) {
+                            if ($tblObjectType->getIdentifier() === 'PERSON') {
+                                $tblPerson = Person::useService()->getPersonById($objectId);
+                                $prospectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
+                                if (!Group::useService()->existsGroupPerson($prospectGroup, $tblPerson)){
+                                    $isProspectList = false;
+                                }
+                            } else {
+                                $isProspectList = false;
+                            }
+                        }
+                    }
+                }
+                if ($isProspectList){
+                    $columnDefinition = array(
+                        'Name' => 'Name',
+                        'Address' => 'Adresse',
+                        'Year' => 'Schuljahr',
+                        'Level' => 'Klassenstufe',
+                        'SchoolOption' => 'Schulart',
+                    );
+                    // set Header for prospectList
+                    $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
+                    if ($tblListElementListByList) {
+                        foreach ($tblListElementListByList as $tblListElementList) {
+                            $columnDefinition['Field' . $tblListElementList->getId()] = $tblListElementList->getName();
+                        }
+                    }
+                }
+
                 $count = 0;
                 foreach ($objectList as $objectTypeId => $objects) {
                     $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
@@ -1001,6 +1039,43 @@ class Frontend extends Extension implements IFrontendInterface
                             if ($tblObjectType->getIdentifier() === 'PERSON') {
                                 $tblPerson = Person::useService()->getPersonById($objectId);
                                 $list[$count]['Name'] = $tblPerson->getLastName() . ', ' . $tblPerson->getFirstName();
+
+                                if ($isProspectList){
+                                    // address
+                                    $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
+                                    $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
+                                    if (!empty($tblAddressAll)) {
+                                        $list[$count]['Address'] = current($tblAddressAll)->getGuiString();
+                                    } else {
+                                        $list[$count]['Address'] = '';
+                                    }
+
+                                    // Prospect
+                                    $level = false;
+                                    $year = false;
+                                    $option = false;
+                                    $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
+                                    if ($tblProspect){
+                                        $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                                        if ($tblProspectReservation){
+                                            $level = $tblProspectReservation->getReservationDivision();
+                                            $year = $tblProspectReservation->getReservationYear();
+                                            $optionA = $tblProspectReservation->getServiceTblTypeOptionA();
+                                            $optionB = $tblProspectReservation->getServiceTblTypeOptionB();
+                                            if ($optionA && $optionB){
+                                                $option = $optionA->getName() . ', ' . $optionB->getName();
+                                            } elseif ($optionA) {
+                                                $option = $optionA->getName();
+                                            } elseif ($optionB) {
+                                                $option = $optionB->getName();
+                                            }
+                                        }
+                                    }
+                                    $list[$count]['Year'] = $year;
+                                    $list[$count]['Level'] = $level;
+                                    $list[$count]['SchoolOption'] = $option;
+                                }
+
                             } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
                                 $tblCompany = Company::useService()->getCompanyById($objectId);
                                 $list[$count]['Name'] = $tblCompany->getName();
