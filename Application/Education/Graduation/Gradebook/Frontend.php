@@ -575,7 +575,7 @@ class Frontend extends Extension implements IFrontendInterface
         $grades = array();
         $rowList = array();
 
-        $tblScoreCondition = Gradebook::useService()->getScoreConditionById($ScoreConditionId);
+        $tblScoreCondition = Gradebook::useService()->getScoreConditionAll()[0];
         $tblYear = $tblDivision->getServiceTblYear();
         $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
@@ -744,16 +744,16 @@ class Frontend extends Extension implements IFrontendInterface
                                     ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
                                 Panel::PANEL_TYPE_INFO
                             )
-                        ), $ScoreConditionId !== null ? 6 : 12),
-                        ($ScoreConditionId !== null ? new LayoutColumn(new Panel(
+                        ),  6),
+                        new LayoutColumn(new Panel(
                             'Berechnungsvorschrift',
                             $tblScoreCondition->getName(),
                             Panel::PANEL_TYPE_INFO
-                        ), 6) : null),
+                        ), 6),
                     )),
                 ))
             ))
-            . ($ScoreConditionId !== null ? new Layout(new LayoutGroup($rowList)) : '')
+            . new Layout(new LayoutGroup($rowList))
         );
 
         return $Stage;
@@ -761,15 +761,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param null $DivisionSubjectId
-     * @param null $ScoreConditionId
-     * @param null $Select
      *
      * @return Stage|string
      */
     public function frontendHeadmasterSelectedGradeBook(
-        $DivisionSubjectId = null,
-        $ScoreConditionId = null,
-        $Select = null
+        $DivisionSubjectId = null
     ) {
 
         $Stage = new Stage('Notenbuch (Leitung)', 'Anzeigen');
@@ -779,8 +775,7 @@ class Frontend extends Extension implements IFrontendInterface
                 Redirect::TIMEOUT_ERROR);
         }
 
-        $this->contentSelectedGradeBook($Stage, $tblDivisionSubject, $ScoreConditionId, $Select,
-            '/Education/Graduation/Gradebook/Headmaster/Gradebook');
+        $this->contentSelectedGradeBook($Stage, $tblDivisionSubject, '/Education/Graduation/Gradebook/Headmaster/Gradebook');
 
         return $Stage;
     }
