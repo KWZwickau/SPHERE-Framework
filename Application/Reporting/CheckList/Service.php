@@ -11,12 +11,14 @@ namespace SPHERE\Application\Reporting\CheckList;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -581,13 +583,22 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $tblList
+     * @param TblList $tblList
+     * @param null $YearPersonId
+     * @param null $LevelPersonId
+     * @param null $SchoolOptionPersonId
      *
      * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
+     *
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createCheckListExcel($tblList)
+    public function createCheckListExcel(
+        TblList $tblList,
+        $YearPersonId = null,
+        $LevelPersonId = null,
+        $SchoolOptionPersonId = null
+    )
     {
 
         if ($tblList) {
@@ -598,171 +609,191 @@ class Service extends AbstractService
 
             $columnCount = 0;
             $rowCount = 0;
+
+            $isProspectList = false;
+            $hasFilter = false;
+            $filterYear = false;
+            $filterLevel = false;
+            $filterSchoolOption = false;
+
+            // filter
+            if ($YearPersonId !== null) {
+                $yearPerson = Person::useService()->getPersonById($YearPersonId);
+                if ($yearPerson) {
+                    $hasFilter = true;
+                    $tblProspect = Prospect::useService()->getProspectByPerson($yearPerson);
+                    if ($tblProspect) {
+                        $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                        if ($tblProspectReservation) {
+                            $filterYear = trim($tblProspectReservation->getReservationYear());
+                        }
+                    }
+                }
+            }
+            if ($LevelPersonId !== null) {
+                $levelPerson = Person::useService()->getPersonById($LevelPersonId);
+                if ($levelPerson) {
+                    $hasFilter = true;
+                    $tblProspect = Prospect::useService()->getProspectByPerson($levelPerson);
+                    if ($tblProspect) {
+                        $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                        if ($tblProspectReservation) {
+                            $filterLevel = trim($tblProspectReservation->getReservationDivision());
+                        }
+                    }
+                }
+            }
+            if ($SchoolOptionPersonId !== null) {
+                $schoolOptionPerson = Person::useService()->getPersonById($SchoolOptionPersonId);
+                if ($schoolOptionPerson) {
+                    $hasFilter = true;
+                    $tblProspect = Prospect::useService()->getProspectByPerson($schoolOptionPerson);
+                    if ($tblProspect) {
+                        $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                        if ($tblProspectReservation) {
+                            $filterSchoolOption = $tblProspectReservation->getServiceTblTypeOptionA();
+                        }
+                    }
+                }
+            }
+
             $tblListElementListByList = $this->getListElementListByList($tblList);
             if ($tblListElementListByList) {
-                $export->setValue($export->getCell($columnCount++, $rowCount), 'Name');
-                $export->setValue($export->getCell($columnCount++, $rowCount), 'Typ');
-                foreach ($tblListElementListByList as $tblListElementList) {
-                    // Header
-                    $export->setValue($export->getCell($columnCount++, $rowCount),
-                        $tblListElementList->getName());
+                $tblListObjectListByList = CheckList::useService()->getListObjectListByList($tblList);
+                $objectList = array();
+                // get Objects
+                $objectList = CheckList::useService()->getObjectList($tblListObjectListByList, $objectList);
+                if ($hasFilter){
+                    $objectList = CheckList::useService()->filterObjectList($objectList, $filterYear, $filterLevel,
+                        $filterSchoolOption);
                 }
 
-                $tblListObjectListByList = $this->getListObjectListByList($tblList);
-                if ($tblListObjectListByList) {
-                    foreach ($tblListObjectListByList as $tblListObjectList) {
-                        $columnCount = 0;
-                        $tblObject = $tblListObjectList->getServiceTblObject();
-                        $tblObjectType = $tblListObjectList->getTblObjectType();
-                        if (strpos($tblObjectType->getIdentifier(), 'GROUP') === false) {
+                if (!empty($objectList)) {
 
-                            $rowCount++;
-                            $name = '';
-                            if ($tblObjectType->getIdentifier() === 'PERSON') {
-                                /** @var TblPerson $tblObject */
-                                $name = $tblObject->getFullName();
-                            } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
-                                /** @var TblCompany $tblObject */
-                                $name = $tblObject->getName();
+                    // prospectList
+                    $isProspectList = true;
+                    if (!$hasFilter) {
+                        foreach ($objectList as $objectTypeId => $objects) {
+                            $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
+                            if (!empty($objects)) {
+                                foreach ($objects as $objectId => $value) {
+                                    if ($tblObjectType->getIdentifier() === 'PERSON') {
+                                        $tblPerson = Person::useService()->getPersonById($objectId);
+                                        $prospectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
+                                        if (!Group::useService()->existsGroupPerson($prospectGroup, $tblPerson)) {
+                                            $isProspectList = false;
+                                        }
+                                    } else {
+                                        $isProspectList = false;
+                                    }
+                                }
                             }
+                        }
+                    }
+
+                    if ($isProspectList) {
+                        // set Header for prospectList
+                        $export->setValue($export->getCell($columnCount++, $rowCount), 'Name');
+                        $export->setValue($export->getCell($columnCount++, $rowCount), 'Adresse');
+                        $export->setValue($export->getCell($columnCount++, $rowCount), 'Schuljahr');
+                        $export->setValue($export->getCell($columnCount++, $rowCount), 'Klassenstufe');
+                        $export->setValue($export->getCell($columnCount++, $rowCount), 'Schulart');
+
+                        $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
+                        if ($tblListElementListByList) {
+                            foreach ($tblListElementListByList as $tblListElementList) {
+                                $export->setValue($export->getCell($columnCount++, $rowCount),
+                                    $tblListElementList->getName());
+                            }
+                        }
+                    } else {
+                        // set header
+                        $export->setValue($export->getCell($columnCount++, $rowCount), 'Name');
+                        foreach ($tblListElementListByList as $tblListElementList) {
                             $export->setValue($export->getCell($columnCount++, $rowCount),
-                                trim($name));
-                            $export->setValue($export->getCell($columnCount, $rowCount),
-                                $tblObjectType->getName());
+                                $tblListElementList->getName());
+                        }
 
-                            $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
-                                $tblList, $tblObjectType, $tblObject
-                            );
-                            if ($tblListObjectElementList) {
-                                foreach ($tblListObjectElementList as $item) {
-                                    $columnCount = 2;
-                                    foreach ($tblListElementListByList as $tblListElementList) {
-                                        if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
-                                            $export->setValue($export->getCell($columnCount, $rowCount),
-                                                $item->getValue());
-                                            break;
+                    }
+                }
+
+                $rowCount = 1;
+                if (!empty($objectList)) {
+                    foreach ($objectList as $objectTypeId => $objects) {
+                        $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
+                        if (!empty($objects)) {
+                            foreach ($objects as $objectId => $value) {
+                                $columnCount = 0;
+                                if ($tblObjectType->getIdentifier() === 'PERSON') {
+                                    $tblPerson = Person::useService()->getPersonById($objectId);
+                                    $tblObject = $tblPerson;
+                                    $name = $tblPerson->getLastName() . ', ' . $tblPerson->getFirstName();
+                                    $export->setValue($export->getCell($columnCount++, $rowCount), trim($name));
+
+                                    if ($isProspectList) {
+
+                                        // address
+                                        $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
+                                        $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
+                                        if (!empty($tblAddressAll)) {
+                                            $address = current($tblAddressAll)->getGuiString();
                                         } else {
-                                            $columnCount++;
+                                            $address = '';
                                         }
-                                    }
-                                }
-                            }
-                        } else {
+                                        $export->setValue($export->getCell($columnCount++, $rowCount), trim($address));
 
-                            if ($tblObjectType->getIdentifier() === 'PERSONGROUP') {
-                                /** @var PersonGroupEntity $tblObject */
-                                $tblPersonAllByGroup = PersonGroup::useService()->getPersonAllByGroup($tblObject);
-                                if ($tblPersonAllByGroup) {
-                                    foreach ($tblPersonAllByGroup as $tblPerson) {
-
-                                        $personObjectType = $this->getObjectTypeByIdentifier('PERSON');
-                                        if (!$this->getListObjectListByListAndObjectTypeAndObject(
-                                            $tblList, $personObjectType, $tblPerson
-                                        )
-                                        ) {
-                                            $rowCount++;
-                                            $columnCount = 0;
-                                            $export->setValue($export->getCell($columnCount++, $rowCount),
-                                                trim($tblPerson->getFullName()));
-                                            $export->setValue($export->getCell($columnCount, $rowCount),
-                                                $personObjectType->getName());
-
-                                            $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
-                                                $tblList, $personObjectType, $tblPerson
-                                            );
-                                            if ($tblListObjectElementList) {
-                                                foreach ($tblListObjectElementList as $item) {
-                                                    $columnCount = 2;
-                                                    foreach ($tblListElementListByList as $tblListElementList) {
-                                                        if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
-                                                            $export->setValue($export->getCell($columnCount, $rowCount),
-                                                                $item->getValue());
-                                                            break;
-                                                        } else {
-                                                            $columnCount++;
-                                                        }
-                                                    }
+                                        // Prospect
+                                        $level = false;
+                                        $year = false;
+                                        $option = false;
+                                        $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
+                                        if ($tblProspect) {
+                                            $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                                            if ($tblProspectReservation) {
+                                                $level = $tblProspectReservation->getReservationDivision();
+                                                $year = $tblProspectReservation->getReservationYear();
+                                                $optionA = $tblProspectReservation->getServiceTblTypeOptionA();
+                                                $optionB = $tblProspectReservation->getServiceTblTypeOptionB();
+                                                if ($optionA && $optionB) {
+                                                    $option = $optionA->getName() . ', ' . $optionB->getName();
+                                                } elseif ($optionA) {
+                                                    $option = $optionA->getName();
+                                                } elseif ($optionB) {
+                                                    $option = $optionB->getName();
                                                 }
+                                            }
+                                        }
+                                        $export->setValue($export->getCell($columnCount++, $rowCount), trim($year));
+                                        $export->setValue($export->getCell($columnCount++, $rowCount), trim($level));
+                                        $export->setValue($export->getCell($columnCount, $rowCount), trim($option));
+                                    }
+
+                                } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
+                                    $tblCompany = Company::useService()->getCompanyById($objectId);
+                                    $tblObject = $tblCompany;
+                                    $export->setValue($export->getCell($columnCount, $rowCount), trim($tblCompany->getName()));
+                                } else {
+                                    $tblObject = null;
+                                }
+
+                                $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
+                                    $tblList, $tblObjectType, $tblObject
+                                );
+                                if ($tblListObjectElementList) {
+                                    foreach ($tblListObjectElementList as $item) {
+                                        $columnCount = $isProspectList ? 5 : 1;
+                                        foreach ($tblListElementListByList as $tblListElementList) {
+                                            if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
+                                                $export->setValue($export->getCell($columnCount, $rowCount),
+                                                    $item->getValue());
+                                                break;
+                                            } else {
+                                                $columnCount++;
                                             }
                                         }
                                     }
                                 }
-                            } elseif ($tblObjectType->getIdentifier() === 'COMPANYGROUP') {
-                                /** @var CompanyGroupEntity $tblObject */
-                                $tblCompanyAllByGroup = CompanyGroup::useService()->getCompanyAllByGroup($tblObject);
-                                if ($tblCompanyAllByGroup) {
-                                    foreach ($tblCompanyAllByGroup as $tblCompany) {
-
-                                        $companyObjectType = $this->getObjectTypeByIdentifier('COMPANY');
-                                        if (!$this->getListObjectListByListAndObjectTypeAndObject(
-                                            $tblList, $companyObjectType, $tblCompany
-                                        )
-                                        ) {
-                                            $rowCount++;
-                                            $columnCount = 0;
-                                            $export->setValue($export->getCell($columnCount++, $rowCount),
-                                                trim($tblCompany->getName()));
-                                            $export->setValue($export->getCell($columnCount, $rowCount),
-                                                $companyObjectType->getName());
-
-                                            $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
-                                                $tblList, $companyObjectType, $tblCompany
-                                            );
-                                            if ($tblListObjectElementList) {
-                                                foreach ($tblListObjectElementList as $item) {
-                                                    $columnCount = 2;
-                                                    foreach ($tblListElementListByList as $tblListElementList) {
-                                                        if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
-                                                            $export->setValue($export->getCell($columnCount, $rowCount),
-                                                                $item->getValue());
-                                                            break;
-                                                        } else {
-                                                            $columnCount++;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } elseif ($tblObjectType->getIdentifier() === 'DIVISIONGROUP') {
-                                /** @var TblDivision $tblObject */
-                                $tblStudentAllByDivision = Division::useService()->getStudentAllByDivision($tblObject);
-                                if ($tblStudentAllByDivision) {
-                                    foreach ($tblStudentAllByDivision as $tblPerson) {
-
-                                        $personObjectType = $this->getObjectTypeByIdentifier('PERSON');
-                                        if (!$this->getListObjectListByListAndObjectTypeAndObject(
-                                            $tblList, $personObjectType, $tblPerson
-                                        )
-                                        ) {
-                                            $rowCount++;
-                                            $columnCount = 0;
-                                            $export->setValue($export->getCell($columnCount++, $rowCount),
-                                                trim($tblPerson->getFullName()));
-                                            $export->setValue($export->getCell($columnCount, $rowCount),
-                                                $personObjectType->getName());
-
-                                            $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
-                                                $tblList, $personObjectType, $tblPerson
-                                            );
-                                            if ($tblListObjectElementList) {
-                                                foreach ($tblListObjectElementList as $item) {
-                                                    $columnCount = 2;
-                                                    foreach ($tblListElementListByList as $tblListElementList) {
-                                                        if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
-                                                            $export->setValue($export->getCell($columnCount, $rowCount),
-                                                                $item->getValue());
-                                                            break;
-                                                        } else {
-                                                            $columnCount++;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                                $rowCount++;
                             }
                         }
                     }

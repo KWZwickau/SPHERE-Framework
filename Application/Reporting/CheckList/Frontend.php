@@ -1190,7 +1190,12 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty($list)) {
             $Stage->addButton(
                 new \SPHERE\Common\Frontend\Link\Repository\Primary('Herunterladen',
-                    '/Api/Reporting/CheckList/Download', new Download(), array('ListId' => $tblList->getId()))
+                    '/Api/Reporting/CheckList/Download', new Download(), array(
+                        'ListId' => $tblList->getId(),
+                        'YearPersonId' => $YearPersonId,
+                        'LevelPersonId' => $LevelPersonId,
+                        'SchoolOptionPersonId' => $SchoolOptionPersonId
+                    ))
             );
         }
 
