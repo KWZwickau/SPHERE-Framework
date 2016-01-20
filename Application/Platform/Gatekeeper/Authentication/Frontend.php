@@ -106,7 +106,7 @@ class Frontend implements IFrontendInterface
 
         $View = new Stage('Anmeldung', 'System');
         $View->addButton(
-            new External('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', null, array(), false)
+            new External('Zur Live-Umgebung wechseln', 'http://www.kreda.schule/', null, array(), false)
         );
         $View->setMessage('Bitte geben Sie Ihre Benutzerdaten ein');
         $View->setContent(Account::useService()->createSessionCredentialToken(
@@ -174,7 +174,7 @@ class Frontend implements IFrontendInterface
 
         $View = new Stage('Anmeldung', 'Personal');
         $View->addButton(
-            new External('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', null, array(), false)
+            new External('Zur Live-Umgebung wechseln', 'http://www.kreda.schule/', null, array(), false)
         );
         $View->setMessage('Bitte geben Sie Ihre Benutzerdaten ein');
         $View->setContent(Account::useService()->createSessionCredentialToken(

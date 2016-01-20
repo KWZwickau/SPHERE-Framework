@@ -19,35 +19,6 @@ class FuxSchool implements IModuleInterface
     public static function registerModule()
     {
 
-        Main::getDispatcher()->registerWidget('Import',
-            new Thumbnail(
-                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-                'FuxSchool', 'Firmendaten (Einrichtungsdaten)',
-                new Standard('', '/Transfer/Import/FuxMedia/Company', new Upload(), array(), 'Upload')
-            ), 2, 2
-        );
-        Main::getDispatcher()->registerWidget('Import',
-            new Thumbnail(
-                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-                'FuxSchool', 'Schülerdaten',
-                new Standard('', '/Transfer/Import/FuxMedia/Student', new Upload(), array(), 'Upload')
-            ), 2, 2
-        );
-        Main::getDispatcher()->registerWidget('Import',
-            new Thumbnail(
-                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-                'FuxSchool', 'Lehrerdaten',
-                new Standard('', '/Transfer/Import/FuxMedia/Teacher', new Upload(), array(), 'Upload')
-            ), 2, 2
-        );
-        Main::getDispatcher()->registerWidget('Import',
-            new Thumbnail(
-                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
-                'FuxSchool', 'Klassendaten',
-                new Standard('', '/Transfer/Import/FuxMedia/Division', new Upload(), array(), 'Upload')
-            ), 2, 2
-        );
-
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Student', __NAMESPACE__.'\Frontend::frontendStudent'
         ));
@@ -66,6 +37,11 @@ class FuxSchool implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Company', __NAMESPACE__.'\Frontend::frontendCompanyImport'
         ));
+
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetFuxMediaCompany'), 2, 2);
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetFuxMediaStudent'), 2, 2);
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetFuxMediaTeacher'), 2, 2);
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetFuxMediaDivision'), 2, 2);
     }
 
     /**
@@ -86,4 +62,55 @@ class FuxSchool implements IModuleInterface
         return new Frontend();
     }
 
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetFuxMediaCompany()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
+            'FuxSchool', 'Firmendaten (Einrichtungsdaten)',
+            new Standard('', '/Transfer/Import/FuxMedia/Company', new Upload(), array(), 'Upload')
+        );
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetFuxMediaStudent()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
+            'FuxSchool', 'Schülerdaten',
+            new Standard('', '/Transfer/Import/FuxMedia/Student', new Upload(), array(), 'Upload')
+        );
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetFuxMediaTeacher()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
+            'FuxSchool', 'Lehrerdaten',
+            new Standard('', '/Transfer/Import/FuxMedia/Teacher', new Upload(), array(), 'Upload')
+        );
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetFuxMediaDivision()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
+            'FuxSchool', 'Klassendaten',
+            new Standard('', '/Transfer/Import/FuxMedia/Division', new Upload(), array(), 'Upload')
+        );
+    }
 }
