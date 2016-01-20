@@ -7,6 +7,7 @@ use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Accounting\Basket\Basket;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketItem;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceAccount;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem;
@@ -285,19 +286,24 @@ class Data extends AbstractData
                             }
 
                         } else {
-                            if (!( $tblItem->getServiceStudentType() ) && $tblItem->getServiceStudentChildRank()) {
-                                if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                                    if (( $SiblingRank = $tblStudent->getTblStudentBilling()->getServiceTblSiblingRank() )
-                                        && $tblItem->getServiceStudentType()->getId() == $SiblingRank->getId()
-                                    ) {
-                                        $this->createInvoiceItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem,
-                                            $Entity);
+                            if (!( $tblItem->getServiceStudentType() ) && $tblChildRank = $tblItem->getServiceStudentChildRank()) {
+                                if (( $tblStudent = Student::useService()->getStudentByPerson($tblPerson) )) {
+                                    $SiblingRank = $tblStudent->getTblStudentBilling()->getServiceTblSiblingRank();
+                                    if (!$SiblingRank) {
+                                        if ($tblChildRank->getName() === '1. Geschwisterkind') {
+                                            $this->createInvoiceItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem,
+                                                $Entity);
+                                        }
+                                    } else {
+                                        if ($tblChildRank->getId() === $SiblingRank->getId()) {
+                                            $this->createInvoiceItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem,
+                                                $Entity);
+                                        }
                                     }
                                 }
-
                             } else {
                                 if ($tblItem->getServiceStudentType() && $tblItem->getServiceStudentChildRank()) {
-                                    if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
+                                    if (( $tblStudent = Student::useService()->getStudentByPerson($tblPerson) )) {
                                         $studentType = 0;
                                         $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                                         if ($tblTransferType) {
@@ -321,6 +327,15 @@ class Data extends AbstractData
                             }
                         }
                     }
+                }
+            }
+        }
+        $tblInvoiceList = Invoice::useService()->getInvoiceAllByIsConfirmedState(false);
+        if ($tblInvoiceList) {
+            foreach ($tblInvoiceList as $tblInvoice) {
+
+                if (!$emptyInvoice = Invoice::useService()->getInvoiceItemAllByInvoice($tblInvoice)) {
+                    Invoice::useService()->removeInvoice($tblInvoice);
                 }
             }
         }
@@ -493,6 +508,29 @@ class Data extends AbstractData
         $Entity = $Manager->getEntity('TblInvoiceItem')->findOneBy(
             array(
                 'Id' => $tblInvoiceItem->getId()
+            ));
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     *
+     * @return bool
+     */
+    public function destroyInvoice(TblInvoice $tblInvoice)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblInvoice')->findOneBy(
+            array(
+                'Id' => $tblInvoice->getId()
             ));
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),

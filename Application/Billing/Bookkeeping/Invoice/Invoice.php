@@ -40,6 +40,11 @@ class Invoice implements IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Clean',
+                __NAMESPACE__.'\Frontend::frontendInvoiceClean'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed',
                 __NAMESPACE__.'\Frontend::frontendInvoiceIsNotConfirmedList'
             )
@@ -58,7 +63,6 @@ class Invoice implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Confirm',
                 __NAMESPACE__.'\Frontend::frontendInvoiceConfirm'
             )->setParameterDefault('Id', null)
-                ->setParameterDefault('Data', null)
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Cancel',

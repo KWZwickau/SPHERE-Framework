@@ -54,6 +54,10 @@ class TblBalance extends Element
      * @Column(type="string")
      */
     protected $CashSign;
+    /**
+     * @Column(type="string")
+     */
+    protected $Reference;
 
 
     /**
@@ -215,5 +219,23 @@ class TblBalance extends Element
     {
 
         $this->CashSign = $CashSign;
+    }
+
+    /**
+     * @return string $Reference
+     */
+    public function getReference()
+    {
+
+        return $this->Reference;
+    }
+
+    /**
+     * @param string $Reference
+     */
+    public function setReference($Reference)
+    {
+
+        $this->Reference = $Reference;
     }
 }

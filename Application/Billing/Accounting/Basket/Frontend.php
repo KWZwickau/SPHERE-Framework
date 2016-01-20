@@ -8,6 +8,7 @@ use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketItem;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketPerson;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -66,7 +67,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function  frontendBasketList($Basket = null)
+    public function frontendBasketList($Basket = null)
     {
 
         $Stage = new Stage();
@@ -186,7 +187,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function  frontendBasketChange($Id, $Basket)
+    public function frontendBasketChange($Id, $Basket)
     {
 
         $Stage = new Stage();
@@ -274,7 +275,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function  frontendBasketDestroy($Id, $Confirm = false)
+    public function frontendBasketDestroy($Id, $Confirm = false)
     {
 
         $Stage = new Stage('Warenkorb', 'Löschen');
@@ -324,9 +325,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(new LayoutColumn(array(
                             ( Basket::useService()->destroyBasket($tblBasket)
                                 ? new \SPHERE\Common\Frontend\Message\Repository\Success('Der Warenkorb wurde gelöscht')
-                                .new Redirect('/Billing/Accounting/Basket', 0)
+                                .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_SUCCESS)
                                 : new \SPHERE\Common\Frontend\Message\Repository\Danger('Der Warenkorb konnte nicht gelöscht werden')
-                                .new Redirect('/Billing/Accounting/Basket', 10)
+                                .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR)
                             )
                         )))
                     )))
@@ -337,7 +338,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new \SPHERE\Common\Frontend\Message\Repository\Danger('Der Warenkorb konnte nicht gefunden werden'),
-                        new Redirect('/Billing/Accounting/Basket', 10)
+                        new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR)
                     )))
                 )))
             );
@@ -351,7 +352,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function  frontendBasketCommoditySelect($Id)
+    public function frontendBasketCommoditySelect($Id)
     {
 
         $Stage = new Stage();
@@ -501,7 +502,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function  frontendBasketCommodityAdd($Id, $CommodityId)
+    public function frontendBasketCommodityAdd($Id, $CommodityId)
     {
 
         $Stage = new Stage();
@@ -521,7 +522,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function  frontendBasketCommodityRemove($Id, $CommodityId)
+    public function frontendBasketCommodityRemove($Id, $CommodityId)
     {
 
         $Stage = new Stage();
@@ -540,7 +541,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function  frontendBasketItemStatus($Id)
+    public function frontendBasketItemStatus($Id)
     {
 
         $Stage = new Stage();
@@ -639,7 +640,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function  frontendBasketItemRemove($Id)
+    public function frontendBasketItemRemove($Id)
     {
 
         $Stage = new Stage();
@@ -658,7 +659,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function  frontendBasketItemChange($Id, $BasketItem)
+    public function frontendBasketItemChange($Id, $BasketItem)
     {
 
         $tblBasketItem = Basket::useService()->getBasketItemById($Id);
@@ -746,7 +747,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function  frontendBasketPersonSelect($Id)
+    public function frontendBasketPersonSelect($Id)
     {
 
         $Stage = new Stage();
@@ -772,31 +773,56 @@ class Frontend extends Extension implements IFrontendInterface
             );
         }
 
+        $TableContent = array();
         if (!empty( $tblBasketPersonList )) {
-            array_walk($tblBasketPersonList, function (TblBasketPerson &$tblBasketPerson) {
+            array_walk($tblBasketPersonList, function (TblBasketPerson $tblBasketPerson) use (&$TableContent) {
 
                 $tblPerson = $tblBasketPerson->getServiceManagementPerson();
-                $tblBasketPerson->FirstName = $tblPerson->getFirstName();
-                $tblBasketPerson->LastName = $tblPerson->getLastName();
-                $tblBasketPerson->Option =
+                $Temp['Salutation'] = $tblPerson->getSalutation();
+                $Temp['Name'] = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
+
+                $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
+                $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
+                if (!empty( $tblAddressAll )) {
+                    $tblAddress = current($tblAddressAll)->getGuiString();
+                } else {
+                    $tblAddress = new \SPHERE\Common\Frontend\Text\Repository\Warning(
+                        new \SPHERE\Common\Frontend\Icon\Repository\Warning().' Keine Adresse hinterlegt');
+                }
+                $Temp['Address'] = $tblAddress;
+                $Temp['Option'] =
                     (new Standard('Entfernen', '/Billing/Accounting/Basket/Person/Remove',
                         new Minus(), array(
                             'Id' => $tblBasketPerson->getId()
                         )))->__toString();
+                array_push($TableContent, $Temp);
             });
         }
 
+        $TableContentPerson = array();
         if (!empty( $tblPersonAll )) {
-            /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblPersonAll, function (TblPerson &$tblPerson, $Index, TblBasket $tblBasket) {
+            array_walk($tblPersonAll, function (TblPerson $tblPerson) use (&$TableContentPerson, $tblBasket) {
 
-                $tblPerson->Option =
+                $Temp['Salutation'] = $tblPerson->getSalutation();
+                $Temp['Name'] = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
+
+                $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
+                $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
+                if (!empty( $tblAddressAll )) {
+                    $tblAddress = current($tblAddressAll)->getGuiString();
+                } else {
+                    $tblAddress = new \SPHERE\Common\Frontend\Text\Repository\Warning(
+                        new \SPHERE\Common\Frontend\Icon\Repository\Warning().' Keine Adresse hinterlegt');
+                }
+                $Temp['Address'] = $tblAddress;
+                $Temp['Option'] =
                     (new Standard('Hinzufügen', '/Billing/Accounting/Basket/Person/Add',
                         new Plus(), array(
                             'Id'       => $tblBasket->getId(),
                             'PersonId' => $tblPerson->getId()
                         )))->__toString();
-            }, $tblBasket);
+                array_push($TableContentPerson, $Temp);
+            });
         }
 
         $Stage->setContent(
@@ -820,11 +846,12 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                                new TableData($tblBasketPersonList, null,
+                                new TableData($TableContent, null,
                                     array(
-                                        'FirstName' => 'Vorname',
-                                        'LastName'  => 'Nachname',
-                                        'Option'    => 'Option '
+                                        'Salutation' => 'Anrede',
+                                        'Name'       => 'Name',
+                                        'Address'    => 'Adresse',
+                                        'Option'     => 'Option '
                                     )
                                 )
                             )
@@ -834,11 +861,12 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                                new TableData($tblPersonAll, null,
+                                new TableData($TableContentPerson, null,
                                     array(
-                                        'FirstName' => 'Vorname',
-                                        'LastName'  => 'Nachname',
-                                        'Option'    => 'Option'
+                                        'Salutation' => 'Anrede',
+                                        'Name'       => 'Name',
+                                        'Address'    => 'Adresse',
+                                        'Option'     => 'Option '
                                     )
                                 )
                             )
@@ -857,7 +885,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function  frontendBasketPersonAdd($Id, $PersonId)
+    public function frontendBasketPersonAdd($Id, $PersonId)
     {
 
         $Stage = new Stage();
@@ -876,7 +904,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function  frontendBasketPersonRemove($Id)
+    public function frontendBasketPersonRemove($Id)
     {
 
         $Stage = new Stage();
@@ -895,7 +923,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function  frontendBasketSummary($Id, $Basket = null)
+    public function frontendBasketSummary($Id, $Basket = null)
     {
 
         $Stage = new Stage();
@@ -939,21 +967,21 @@ class Frontend extends Extension implements IFrontendInterface
                 $Result = 0.00;
                 foreach ($tblBasketItemList as $tblBasketItem) {
                     if (isset( $SchoolType ) && $SchoolType === false) {
-                        $Result = Basket::useService()->getPricePerPerson($tblBasketItem, $tblStudent, $tblPersonByBasketList, $Result);
+                        $Result = Basket::useService()->getPricePerPerson($tblBasketItem, $tblPerson, $tblPersonByBasketList, $Result);
                     } elseif (isset( $SchoolType ) && $SchoolType) {
                         if ($tblCommodityItem = $tblBasketItem->getServiceBillingCommodityItem()) {
                             if ($tblItem = $tblCommodityItem->getTblItem()) {
                                 if ($tblItemType = $tblItem->getServiceStudentType()) {
                                     if ($tblItem->getServiceStudentType()->getId() === $SchoolType->getId()) {
-                                        $Result = Basket::useService()->getPricePerPerson($tblBasketItem, $tblStudent, $tblPersonByBasketList, $Result);
+                                        $Result = Basket::useService()->getPricePerPerson($tblBasketItem, $tblPerson, $tblPersonByBasketList, $Result);
                                     }
                                 } else {
-                                    $Result = Basket::useService()->getPricePerPerson($tblBasketItem, $tblStudent, $tblPersonByBasketList, $Result);
+                                    $Result = Basket::useService()->getPricePerPerson($tblBasketItem, $tblPerson, $tblPersonByBasketList, $Result);
                                 }
                             }
                         }
                     } else {
-                        $Result = Basket::useService()->getPricePerPerson($tblBasketItem, $tblStudent, $tblPersonByBasketList, $Result);
+                        $Result = Basket::useService()->getPricePerPerson($tblBasketItem, $tblPerson, $tblPersonByBasketList, $Result);
                     }
                 }
                 $Temp['Price'] = str_replace('.', ',', $Result)." €";
@@ -1077,7 +1105,6 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(
                             Basket::useService()->checkBasket($Form, $tblBasket, $Basket)
-                        // ToDO Argument 2 passed to SPHERE\Application\Billing\Bookkeeping\Invoice\Service::createTempInvoice()
                         )
                     ))
                 ))
@@ -1095,7 +1122,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function  frontendBasketDebtorSelect($Id, $Date, $Data, $Save)
+    public function frontendBasketDebtorSelect($Id, $Date, $Data, $Save)
     {
 
         $Stage = new Stage();
@@ -1113,20 +1140,23 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblBasket = Basket::useService()->getBasketById($Id);
         $tblBasketCommodityList = Basket::useService()->getBasketCommodityAllByBasket($tblBasket);
+
+        $TableContent = array();
         /**@var TblBasketCommodity $tblBasketCommodity */
-        array_walk($tblBasketCommodityList, function (TblBasketCommodity $tblBasketCommodity) {
+        array_walk($tblBasketCommodityList, function (TblBasketCommodity $tblBasketCommodity) use (&$TableContent) {
 
             $tblBasketCommodityDebtorList = Basket::useService()->getBasketCommodityDebtorAllByBasketCommodity($tblBasketCommodity);
 
-            $tblBasketCommodity->Name = $tblBasketCommodity->getServiceManagementPerson()->getFullName();
-            $tblBasketCommodity->Commodity = $tblBasketCommodity->getServiceBillingCommodity()->getName();
+            $Temp['Name'] = $tblBasketCommodity->getServiceManagementPerson()->getFullName();
+            $Temp['Commodity'] = $tblBasketCommodity->getServiceBillingCommodity()->getName();
 
-            $tblBasketCommodity->Select = new SelectBox('Data['.$tblBasketCommodity->getId().']', '', array(
+            $Temp['Select'] = new SelectBox('Data['.$tblBasketCommodity->getId().']', '', array(
                 '{{ ServiceBillingDebtor.DebtorNumber }}'
                 .' - {{ ServiceBillingDebtor.ServiceManagementPerson.FullName }}'
                 .'{% if( ServiceBillingDebtor.Description is not empty) %} - {{ ServiceBillingDebtor.Description }}{% endif %}'
                 => $tblBasketCommodityDebtorList
             ));
+            array_push($TableContent, $Temp);
         });
 
         $Form = new Form(
@@ -1134,7 +1164,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(
                     new FormColumn(
                         new TableData(
-                            $tblBasketCommodityList, null, array(
+                            $TableContent, null, array(
                             'Name'      => 'Person',
                             'Commodity' => 'Leistung',
                             'Select'    => 'Debitorennummer - Debitor - Beschreibung'

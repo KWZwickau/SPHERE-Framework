@@ -584,7 +584,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return bool|TblReference
      */
-    private function layoutReference(TblAccount $tblAccount)
+    public function layoutReference(TblAccount $tblAccount)
     {
 
         $tblReferenceList = Banking::useService()->getReferenceActiveByAccount($tblAccount);

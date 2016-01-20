@@ -12,6 +12,7 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblTempInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Setup;
+use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -227,34 +228,63 @@ class Service extends AbstractService
 
     /**
      * @param TblInvoice $tblInvoice
-     * @param            $Data
      * @param            $Account
      *
      * @return string
      */
-    public function confirmInvoice(TblInvoice $tblInvoice, $Data, $Account)
+    public function confirmInvoice(TblInvoice $tblInvoice, $Account)
     {
 
         If ($Account !== false) {
             $tblAccount = Banking::useService()->getAccountById($Account);
-            if (Balance::useService()->createBalance(
-                Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
-                $tblInvoice,
-                null,
-                $tblAccount->getBankName(),
-                $tblAccount->getIBAN(),
-                $tblAccount->getBIC(),
-                $tblAccount->getOwner(),
-                $tblAccount->getCashSign()
-            )
-            ) {
-                return new Success('Die Rechnung wurde erfolgreich bestätigt und freigegeben')
-                .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', 0);
-            } else {
-                return new Warning('Die Rechnung wurde konnte nicht bestätigt und freigegeben werden')
-                .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 2,
-                    array('Id' => $tblInvoice->getId()));
+
+            $tblInvoiceItemList = Invoice::useService()->getInvoiceItemAllByInvoice($tblInvoice);
+            if (!empty( $tblInvoiceItemList )) {
+                if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
+                    if ($tblAccount) {
+                        $tblCommodity = Commodity::useService()->getCommodityByName($tblInvoiceItemList[0]->getCommodityName());
+                        if ($tblCommodity) {
+                            $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+                            if ($tblDebtor) {
+//                                    if (Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor,
+//                                        $tblCommodity)) {
+                                if (Banking::useService()->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity)) {
+                                    $tblReference = Banking::useService()->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity);
+                                    $Reference = $tblReference->getReference();
+                                }
+                            }
+                        }
+                    }
+                }
+                if (!isset( $Reference )) {
+                    $Reference = null;
+                }
+
+                if (Balance::useService()->createBalance(
+                    Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
+                    $tblInvoice,
+                    null,
+                    $tblAccount->getBankName(),
+                    $tblAccount->getIBAN(),
+                    $tblAccount->getBIC(),
+                    $tblAccount->getOwner(),
+                    $tblAccount->getCashSign(),
+                    $Reference
+                )
+                ) {
+                    return new Success('Die Rechnung wurde erfolgreich bestätigt und freigegeben')
+                    .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', Redirect::TIMEOUT_SUCCESS);
+                } else {
+                    return new Warning('Die Rechnung konnte nicht bestätigt und freigegeben werden')
+                    .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', Redirect::TIMEOUT_ERROR,
+                        array('Id' => $tblInvoice->getId()));
+                }
             }
+            return new Warning('Die Rechnung konnte nicht bestätigt und freigegeben werden. Fehlende Artikel!')
+            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblInvoice->getId()));
+
+
         } else {
             if (Balance::useService()->createBalance(
                 Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
@@ -262,10 +292,10 @@ class Service extends AbstractService
             )
             ) {
                 return new Success('Die Rechnung wurde erfolgreich bestätigt und freigegeben')
-                .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', 0);
+                .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', Redirect::TIMEOUT_SUCCESS);
             } else {
-                return new Warning('Die Rechnung wurde konnte nicht bestätigt und freigegeben werden')
-                .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 2,
+                return new Warning('Die Rechnung konnte nicht bestätigt und freigegeben werden')
+                .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblInvoice->getId()));
             }
         }
@@ -283,20 +313,20 @@ class Service extends AbstractService
         if (!$tblInvoice->isConfirmed()) {
             if ((new Data($this->getBinding()))->cancelInvoice($tblInvoice)) {
                 return new Success('Die Rechnung wurde erfolgreich storniert')
-                .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', 0);
+                .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Warning('Die Rechnung konnte nicht storniert werden')
-                .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 2,
+                .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', Redirect::TIMEOUT_ERROR,
                     array('Id' => $tblInvoice->getId()));
             }
         } else {
             //TODO cancel confirmed invoice
             if ((new Data($this->getBinding()))->cancelInvoice($tblInvoice)) {
                 return new Success('Die Rechnung wurde erfolgreich storniert')
-                .new Redirect('/Billing/Bookkeeping/Invoice', 0);
+                .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Warning('Die Rechnung konnte nicht storniert werden')
-                .new Redirect('/Billing/Bookkeeping/Invoice', 2);
+                .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
             }
         }
     }
@@ -314,10 +344,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->updateInvoiceAddress($tblInvoice, $tblAddress)) {
             return new Success('Die Rechnungsadresse wurde erfolgreich geändert')
-            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 0, array('Id' => $tblInvoice->getId()));
+            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblInvoice->getId()));
         } else {
             return new Warning('Die Rechnungsadresse konnte nicht geändert werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 2, array('Id' => $tblInvoice->getId()));
+            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', Redirect::TIMEOUT_ERROR, array('Id' => $tblInvoice->getId()));
         }
     }
 
@@ -332,10 +362,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->changeInvoicePaymentType($tblInvoice, $tblPaymentType)) {
             return new Success('Die Zahlungsart wurde erfolgreich geändert')
-            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 0, array('Id' => $tblInvoice->getId()));
+            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblInvoice->getId()));
         } else {
             return new Warning('Die Zahlungsart konnte nicht geändert werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 2, array('Id' => $tblInvoice->getId()));
+            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', Redirect::TIMEOUT_ERROR, array('Id' => $tblInvoice->getId()));
         }
     }
 
@@ -350,10 +380,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->createPayInvoice($tblInvoice)) {
             return new Success('Die Rechnung wurde erfolgreich bezahlt')
-            .new Redirect('/Billing/Bookkeeping/Balance', 0);
+            .new Redirect('/Billing/Bookkeeping/Balance', Redirect::TIMEOUT_SUCCESS);
         } else {
             return new Warning('Die Rechnung konnte nicht bezahlt werden')
-            .new Redirect('/Billing/Bookkeeping/Balance', 2);
+            .new Redirect('/Billing/Bookkeeping/Balance', Redirect::TIMEOUT_ERROR);
         }
     }
 
@@ -394,11 +424,11 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 1,
+                    .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', Redirect::TIMEOUT_SUCCESS,
                         array('Id' => $tblInvoiceItem->getTblInvoice()->getId()));
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 2,
+                    .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', Redirect::TIMEOUT_ERROR,
                         array('Id' => $tblInvoiceItem->getTblInvoice()->getId()));
             };
         }
@@ -416,13 +446,25 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->destroyInvoiceItem($tblInvoiceItem)) {
             return new Success('Der Artikel '.$tblInvoiceItem->getItemName().' wurde erfolgreich entfernt')
-            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 0,
+            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblInvoiceItem->getTblInvoice()->getId()));
         } else {
             return new Warning('Der Artikel '.$tblInvoiceItem->getItemName().' konnte nicht entfernt werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 2,
+            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblInvoiceItem->getTblInvoice()->getId()));
         }
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     *
+     * @return bool|string
+     */
+    public function removeInvoice(
+        TblInvoice $tblInvoice
+    ) {
+
+        return (new Data($this->getBinding()))->destroyInvoice($tblInvoice);
     }
 
     /**

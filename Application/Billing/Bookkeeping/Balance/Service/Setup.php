@@ -71,6 +71,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblBalance', 'CashSign')) {
             $Table->addColumn('CashSign', 'string', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblBalance', 'Reference')) {
+            $Table->addColumn('Reference', 'string', array('notnull' => false));
+        }
 
         return $Table;
     }

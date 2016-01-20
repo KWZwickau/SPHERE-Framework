@@ -204,6 +204,7 @@ class Data extends AbstractData
      * @param null       $BIC
      * @param null       $Owner
      * @param null       $CashSign
+     * @param null       $Reference
      *
      * @return bool
      */
@@ -215,7 +216,8 @@ class Data extends AbstractData
         $IBAN = null,
         $BIC = null,
         $Owner = null,
-        $CashSign = null
+        $CashSign = null,
+        $Reference = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -245,6 +247,9 @@ class Data extends AbstractData
             }
             if ($CashSign !== null) {
                 $Entity->setCashSign($CashSign);
+            }
+            if ($Reference !== null) {
+                $Entity->setReference($Reference);
             }
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
