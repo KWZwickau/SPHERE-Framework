@@ -31,6 +31,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
@@ -48,6 +49,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -1087,7 +1089,10 @@ class Frontend extends Extension implements IFrontendInterface
                         foreach ($objects as $objectId => $value) {
                             if ($tblObjectType->getIdentifier() === 'PERSON') {
                                 $tblPerson = Person::useService()->getPersonById($objectId);
-                                $list[$count]['Name'] = $tblPerson->getLastName() . ', ' . $tblPerson->getFirstName();
+                                $list[$count]['Name'] = $tblPerson->getLastName() . ', ' . $tblPerson->getFirstName()
+                                    . new PullRight(new Standard('', '/People/Person',
+                                        new \SPHERE\Common\Frontend\Icon\Repository\Person(),
+                                        array('Id' => $tblPerson->getId()), 'Zur Person'));
 
                                 if ($isProspectList) {
 
@@ -1132,7 +1137,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                             } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
                                 $tblCompany = Company::useService()->getCompanyById($objectId);
-                                $list[$count]['Name'] = $tblCompany->getName();
+                                $list[$count]['Name'] = $tblCompany->getName()
+                                    . new PullRight(new Standard('', '/Corporation/Company',
+                                        new Building(),
+                                        array('Id' => $tblCompany->getId()), 'Zur Firma'));
                             } else {
                                 $list[$count]['Name'] = '';
                             }
