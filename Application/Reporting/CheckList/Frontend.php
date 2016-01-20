@@ -1042,25 +1042,28 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                $objectList = CheckList::useService()->filterObjectList($objectList, $filterYear, $filterLevel, $filterSchoolOption);
+                $objectList = CheckList::useService()->filterObjectList($objectList, $filterYear, $filterLevel,
+                    $filterSchoolOption);
             }
 
             if (!empty($objectList)) {
 
                 // prospectList
                 $isProspectList = true;
-                foreach ($objectList as $objectTypeId => $objects) {
-                    $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
-                    if (!empty($objects)) {
-                        foreach ($objects as $objectId => $value) {
-                            if ($tblObjectType->getIdentifier() === 'PERSON') {
-                                $tblPerson = Person::useService()->getPersonById($objectId);
-                                $prospectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
-                                if (!Group::useService()->existsGroupPerson($prospectGroup, $tblPerson)) {
+                if (!$hasFilter) {
+                    foreach ($objectList as $objectTypeId => $objects) {
+                        $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
+                        if (!empty($objects)) {
+                            foreach ($objects as $objectId => $value) {
+                                if ($tblObjectType->getIdentifier() === 'PERSON') {
+                                    $tblPerson = Person::useService()->getPersonById($objectId);
+                                    $prospectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
+                                    if (!Group::useService()->existsGroupPerson($prospectGroup, $tblPerson)) {
+                                        $isProspectList = false;
+                                    }
+                                } else {
                                     $isProspectList = false;
                                 }
-                            } else {
-                                $isProspectList = false;
                             }
                         }
                     }
@@ -1164,6 +1167,23 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                 }
+            } else {
+                if ($hasFilter) {
+                    $columnDefinition = array(
+                        'Name' => 'Name',
+                        'Address' => 'Adresse',
+                        'Year' => 'Schuljahr',
+                        'Level' => 'Klassenstufe',
+                        'SchoolOption' => 'Schulart',
+                    );
+                    // set Header for prospectList
+                    $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
+                    if ($tblListElementListByList) {
+                        foreach ($tblListElementListByList as $tblListElementList) {
+                            $columnDefinition['Field' . $tblListElementList->getId()] = $tblListElementList->getName();
+                        }
+                    }
+                }
             }
         }
 
@@ -1174,7 +1194,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
         }
 
-        if ($isProspectList) {
+        if ($isProspectList || $hasFilter) {
             $form = $this->formCheckListFilter($filterPersonObjectList)->appendFormButton(new Primary('Filtern',
                 new Filter()));
         } else {
@@ -1183,18 +1203,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->setContent(
             new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Check-Liste', new Bold($tblList->getName()) .
-                                ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
-                                    . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
-                                Panel::PANEL_TYPE_INFO),
-                            12
-                        ),
-                    ))
-                )),
-                ($isProspectList ? new LayoutGroup(array(
+                ($isProspectList || $hasFilter ? new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
                                 new Title(new Filter() . ' Filter'),
@@ -1203,6 +1212,26 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                     ))
                 )) : null),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Check-Liste', new Bold($tblList->getName()) .
+                                ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                    . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
+                                Panel::PANEL_TYPE_INFO),
+                            $hasFilter ? 6 : 12
+                        ),
+                        ($hasFilter ?
+                            new LayoutColumn(
+                                new Panel(new Filter() . ' Filter',
+                                    ($filterYear ? new Bold('Schuljahr: ') . $filterYear : '') . '&nbsp;&nbsp;' .
+                                    ($filterLevel ? new Bold(' Klassenstufe: ') . $filterLevel : '') . '&nbsp;&nbsp;' .
+                                    ($filterSchoolOption ? new Bold(' Schulart: ') . $filterSchoolOption->getName() : ''),
+                                    Panel::PANEL_TYPE_INFO),
+                                $hasFilter ? 6 : 12
+                            ) : null)
+                    ))
+                )),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
@@ -1257,7 +1286,7 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($year !== '') {
                             $yearAll[$tblPerson->getId()] = $year;
                         }
-                        if ($level !== ''){
+                        if ($level !== '') {
                             $levelAll[$tblPerson->getId()] = $level;
                         }
                         $optionA = $tblProspectReservation->getServiceTblTypeOptionA();
@@ -1266,7 +1295,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $schoolOptionAll[$tblPerson->getId()] = $optionA->getName();
                         }
                         if ($optionB) {
-                            $schoolOptionAll[$tblPerson->getId()] = $optionA->getName();
+                            $schoolOptionAll[$tblPerson->getId()] = $optionB->getName();
                         }
                     }
                 }
