@@ -47,15 +47,6 @@ class People implements IClusterInterface
         ));
 
         Main::getDispatcher()->registerWidget('Personen', array(__CLASS__, 'widgetPersonGroupList'), 4, 6);
-//        Main::getDispatcher()->registerWidget('Personen', array(__CLASS__, 'widgetPersonCount'));
-    }
-
-    /**
-     * @return Panel
-     */
-    public static function widgetPersonCount()
-    {
-        return new Panel('Anzahl an Personen', 'Insgesamt: ' . Person::useService()->countPersonAll());
     }
 
     /**
