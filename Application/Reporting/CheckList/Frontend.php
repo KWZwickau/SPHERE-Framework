@@ -14,6 +14,7 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup as CompanyGroupEntity;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup as PersonGroupEntity;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
@@ -915,7 +916,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $HasData
      * @param null $YearPersonId
      * @param null $LevelPersonId
-     * @param null $SchoolOptionPersonId
+     * @param null $SchoolOptionId
      *
      * @return Stage
      */
@@ -926,7 +927,7 @@ class Frontend extends Extension implements IFrontendInterface
         $HasData = null,
         $YearPersonId = null,
         $LevelPersonId = null,
-        $SchoolOptionPersonId = null
+        $SchoolOptionId = null
     ) {
 
         $Stage = new Stage('Check-Listen', 'Bearbeiten');
@@ -980,21 +981,15 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-        if ($SchoolOptionPersonId !== null) {
+        if ($SchoolOptionId !== null) {
             $Global = $this->getGlobal();
-            $Global->POST['Filter']['SchoolOption'] = $SchoolOptionPersonId;
+            $Global->POST['Filter']['SchoolOption'] = $SchoolOptionId;
             $Global->savePost();
 
-            $schoolOptionPerson = Person::useService()->getPersonById($SchoolOptionPersonId);
-            if ($schoolOptionPerson) {
+            $schoolOption = Type::useService()->getTypeById($SchoolOptionId);
+            if ($schoolOption) {
                 $hasFilter = true;
-                $tblProspect = Prospect::useService()->getProspectByPerson($schoolOptionPerson);
-                if ($tblProspect) {
-                    $tblProspectReservation = $tblProspect->getTblProspectReservation();
-                    if ($tblProspectReservation) {
-                        $filterSchoolOption = $tblProspectReservation->getServiceTblTypeOptionA();
-                    }
-                }
+                $filterSchoolOption = $schoolOption;
             }
         }
 
@@ -1194,7 +1189,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'ListId' => $tblList->getId(),
                         'YearPersonId' => $YearPersonId,
                         'LevelPersonId' => $LevelPersonId,
-                        'SchoolOptionPersonId' => $SchoolOptionPersonId
+                        'SchoolOptionId' => $SchoolOptionId
                     ))
             );
         }
@@ -1257,7 +1252,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 , $Id, $Data, $HasData, ($hasFilter ? $objectList : null),
                                 $YearPersonId,
                                 $LevelPersonId,
-                                $SchoolOptionPersonId
+                                $SchoolOptionId
                             )
                         ))
                     ))
@@ -1297,10 +1292,10 @@ class Frontend extends Extension implements IFrontendInterface
                         $optionA = $tblProspectReservation->getServiceTblTypeOptionA();
                         $optionB = $tblProspectReservation->getServiceTblTypeOptionB();
                         if ($optionA) {
-                            $schoolOptionAll[$tblPerson->getId()] = $optionA->getName();
+                            $schoolOptionAll[$optionA->getId()] = $optionA->getName();
                         }
                         if ($optionB) {
-                            $schoolOptionAll[$tblPerson->getId()] = $optionB->getName();
+                            $schoolOptionAll[$optionB->getId()] = $optionB->getName();
                         }
                     }
                 }

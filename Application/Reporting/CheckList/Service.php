@@ -18,6 +18,7 @@ use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
@@ -466,7 +467,7 @@ class Service extends AbstractService
      * @param null $objectList
      * @param null $YearPersonId
      * @param null $LevelPersonId
-     * @param null $SchoolOptionPersonId
+     * @param null $SchoolOptionId
      *
      * @return IFormInterface|Redirect
      */
@@ -478,7 +479,7 @@ class Service extends AbstractService
         $objectList = null,
         $YearPersonId = null,
         $LevelPersonId = null,
-        $SchoolOptionPersonId = null
+        $SchoolOptionId = null
     ) {
 
         /**
@@ -578,7 +579,7 @@ class Service extends AbstractService
             'Id' => $Id,
             'YearPersonId' => $YearPersonId,
             'LevelPersonId' => $LevelPersonId,
-            'SchoolOptionPersonId' => $SchoolOptionPersonId
+            'SchoolOptionId' => $SchoolOptionId
         ));
     }
 
@@ -586,7 +587,7 @@ class Service extends AbstractService
      * @param TblList $tblList
      * @param null $YearPersonId
      * @param null $LevelPersonId
-     * @param null $SchoolOptionPersonId
+     * @param null $SchoolOptionId
      *
      * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      *
@@ -597,7 +598,7 @@ class Service extends AbstractService
         TblList $tblList,
         $YearPersonId = null,
         $LevelPersonId = null,
-        $SchoolOptionPersonId = null
+        $SchoolOptionId = null
     )
     {
 
@@ -643,17 +644,11 @@ class Service extends AbstractService
                     }
                 }
             }
-            if ($SchoolOptionPersonId !== null) {
-                $schoolOptionPerson = Person::useService()->getPersonById($SchoolOptionPersonId);
-                if ($schoolOptionPerson) {
+            if ($SchoolOptionId !== null) {
+                $schoolOption = Type::useService()->getTypeById($SchoolOptionId);
+                if ($schoolOption) {
                     $hasFilter = true;
-                    $tblProspect = Prospect::useService()->getProspectByPerson($schoolOptionPerson);
-                    if ($tblProspect) {
-                        $tblProspectReservation = $tblProspect->getTblProspectReservation();
-                        if ($tblProspectReservation) {
-                            $filterSchoolOption = $tblProspectReservation->getServiceTblTypeOptionA();
-                        }
-                    }
+                    $filterSchoolOption = $schoolOption;
                 }
             }
 
@@ -830,7 +825,7 @@ class Service extends AbstractService
             'Id' => $ListId,
             'YearPersonId' => $Filter['Year'],
             'LevelPersonId' => $Filter['Level'],
-            'SchoolOptionPersonId' => $Filter['SchoolOption']
+            'SchoolOptionId' => $Filter['SchoolOption']
         ));
     }
 
@@ -929,7 +924,7 @@ class Service extends AbstractService
                                         }
                                         if ($filterSchoolOption) {
                                             $schoolOptionA = $tblProspectReservation->getServiceTblTypeOptionA();
-                                            $schoolOptionB = $tblProspectReservation->getServiceTblTypeOptionA();
+                                            $schoolOptionB = $tblProspectReservation->getServiceTblTypeOptionB();
                                             if ($schoolOptionA && $schoolOptionB) {
                                                 if (($schoolOptionA->getId() == $filterSchoolOption->getId())
                                                     || ($schoolOptionB->getId() == $filterSchoolOption->getId())
