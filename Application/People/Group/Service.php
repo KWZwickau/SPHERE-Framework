@@ -59,7 +59,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param array          $Group
+     * @param array $Group
      *
      * @return IFormInterface|Redirect
      */
@@ -75,7 +75,7 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset( $Group['Name'] ) && empty( $Group['Name'] )) {
+        if (isset($Group['Name']) && empty($Group['Name'])) {
             $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen für die Gruppe an');
             $Error = true;
         } else {
@@ -91,9 +91,11 @@ class Service extends AbstractService
             )
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
-                . ' Die Gruppe wurde erfolgreich erstellt').new Redirect('/People/Group', Redirect::TIMEOUT_SUCCESS);
+                    . ' Die Gruppe wurde erfolgreich erstellt') . new Redirect('/People/Group',
+                    Redirect::TIMEOUT_SUCCESS);
             } else {
-                return new Danger(new Ban() . ' Die Gruppe konnte nicht erstellt werden').new Redirect('/People/Group', Redirect::TIMEOUT_ERROR);
+                return new Danger(new Ban() . ' Die Gruppe konnte nicht erstellt werden') . new Redirect('/People/Group',
+                    Redirect::TIMEOUT_ERROR);
             }
         }
 
@@ -135,8 +137,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblGroup       $tblGroup
-     * @param array          $Group
+     * @param TblGroup $tblGroup
+     * @param array $Group
      *
      * @return IFormInterface|Redirect
      */
@@ -152,7 +154,7 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset( $Group['Name'] ) && empty( $Group['Name'] )) {
+        if (isset($Group['Name']) && empty($Group['Name'])) {
             $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen für die Gruppe an');
             $Error = true;
         } else {
@@ -169,10 +171,10 @@ class Service extends AbstractService
             )
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Änderungen wurden erfolgreich gespeichert')
-                .new Redirect('/People/Group', Redirect::TIMEOUT_SUCCESS);
+                . new Redirect('/People/Group', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger(new Ban() . ' Die Änderungen konnte nicht gespeichert werden')
-                .new Redirect('/People/Group', Redirect::TIMEOUT_ERROR);
+                . new Redirect('/People/Group', Redirect::TIMEOUT_ERROR);
             }
         }
 
@@ -225,7 +227,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblGroup  $tblGroup
+     * @param TblGroup $tblGroup
      * @param TblPerson $tblPerson
      *
      * @return bool
@@ -237,7 +239,7 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblGroup  $tblGroup
+     * @param TblGroup $tblGroup
      * @param TblPerson $tblPerson
      *
      * @return TblMember
@@ -269,4 +271,17 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->fetchIdPersonAllByGroup($tblGroup);
     }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblMember
+     */
+    public function existsGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->existsGroupPerson($tblGroup, $tblPerson);
+    }
+
 }
