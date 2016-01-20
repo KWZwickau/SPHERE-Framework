@@ -16,6 +16,7 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -785,7 +786,9 @@ class Service extends AbstractService
 
         return new Redirect('/Reporting/CheckList/Object/Element/Edit', Redirect::TIMEOUT_SUCCESS, array(
             'Id' => $ListId,
-            'YearPersonId' => $Filter['Year']
+            'YearPersonId' => $Filter['Year'],
+            'LevelPersonId' => $Filter['Level'],
+            'SchoolOptionPersonId' => $Filter['SchoolOption']
         ));
     }
 
@@ -845,10 +848,12 @@ class Service extends AbstractService
 
     /**
      * @param $objectList
-     * @param $filterYear
+     * @param string $filterYear
+     * @param string $filterLevel
+     * @param bool|TblType $filterSchoolOption
      * @return array
      */
-    public function filterObjectList($objectList, $filterYear)
+    public function filterObjectList($objectList, $filterYear, $filterLevel, $filterSchoolOption)
     {
 
         $resultList = array();
@@ -865,10 +870,36 @@ class Service extends AbstractService
                                 if ($tblProspect) {
                                     $tblProspectReservation = $tblProspect->getTblProspectReservation();
                                     if ($tblProspectReservation) {
-//                                        $level = $tblProspectReservation->getReservationDivision();
-                                        $year = trim($tblProspectReservation->getReservationYear());
-                                        if ($year == $filterYear) {
-                                            $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
+                                        if ($filterYear) {
+                                            $year = trim($tblProspectReservation->getReservationYear());
+                                            if ($year == $filterYear) {
+                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
+                                            }
+                                        }
+                                        if ($filterLevel) {
+                                            $level = trim($tblProspectReservation->getReservationDivision());
+                                            if ($level == $filterLevel) {
+                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
+                                            }
+                                        }
+                                        if ($filterSchoolOption) {
+                                            $schoolOptionA = $tblProspectReservation->getServiceTblTypeOptionA();
+                                            $schoolOptionB = $tblProspectReservation->getServiceTblTypeOptionA();
+                                            if ($schoolOptionA && $schoolOptionB) {
+                                                if (($schoolOptionA->getId() == $filterSchoolOption->getId())
+                                                    || ($schoolOptionB->getId() == $filterSchoolOption->getId())
+                                                ) {
+                                                    $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
+                                                }
+                                            } elseif ($schoolOptionA) {
+                                                if ($schoolOptionA->getId() == $filterSchoolOption->getId()) {
+                                                    $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
+                                                }
+                                            }  elseif ($schoolOptionB) {
+                                                if ($schoolOptionB->getId() == $filterSchoolOption->getId()) {
+                                                    $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
+                                                }
+                                            }
                                         }
                                     }
                                 }

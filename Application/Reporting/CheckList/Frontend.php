@@ -37,6 +37,7 @@ use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
+use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
@@ -913,6 +914,8 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Data
      * @param null $HasData
      * @param null $YearPersonId
+     * @param null $LevelPersonId
+     * @param null $SchoolOptionPersonId
      *
      * @return Stage
      */
@@ -921,7 +924,9 @@ class Frontend extends Extension implements IFrontendInterface
         $Filter = null,
         $Data = null,
         $HasData = null,
-        $YearPersonId = null
+        $YearPersonId = null,
+        $LevelPersonId = null,
+        $SchoolOptionPersonId = null
     ) {
 
         $Stage = new Stage('Check-Listen', 'Bearbeiten');
@@ -936,8 +941,11 @@ class Frontend extends Extension implements IFrontendInterface
         $isProspectList = false;
         $filterPersonObjectList = array();
         $hasFilter = false;
-        $filterYear = '';
+        $filterYear = false;
+        $filterLevel = false;
+        $filterSchoolOption = false;
 
+        // filter
         if ($YearPersonId !== null) {
             $Global = $this->getGlobal();
             $Global->POST['Filter']['Year'] = $YearPersonId;
@@ -951,6 +959,40 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblProspectReservation = $tblProspect->getTblProspectReservation();
                     if ($tblProspectReservation) {
                         $filterYear = trim($tblProspectReservation->getReservationYear());
+                    }
+                }
+            }
+        }
+        if ($LevelPersonId !== null) {
+            $Global = $this->getGlobal();
+            $Global->POST['Filter']['Level'] = $LevelPersonId;
+            $Global->savePost();
+
+            $levelPerson = Person::useService()->getPersonById($LevelPersonId);
+            if ($levelPerson) {
+                $hasFilter = true;
+                $tblProspect = Prospect::useService()->getProspectByPerson($levelPerson);
+                if ($tblProspect) {
+                    $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                    if ($tblProspectReservation) {
+                        $filterLevel = trim($tblProspectReservation->getReservationDivision());
+                    }
+                }
+            }
+        }
+        if ($SchoolOptionPersonId !== null) {
+            $Global = $this->getGlobal();
+            $Global->POST['Filter']['SchoolOption'] = $SchoolOptionPersonId;
+            $Global->savePost();
+
+            $schoolOptionPerson = Person::useService()->getPersonById($SchoolOptionPersonId);
+            if ($schoolOptionPerson) {
+                $hasFilter = true;
+                $tblProspect = Prospect::useService()->getProspectByPerson($schoolOptionPerson);
+                if ($tblProspect) {
+                    $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                    if ($tblProspectReservation) {
+                        $filterSchoolOption = $tblProspectReservation->getServiceTblTypeOptionA();
                     }
                 }
             }
@@ -1000,7 +1042,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                $objectList = CheckList::useService()->filterObjectList($objectList, $filterYear);
+                $objectList = CheckList::useService()->filterObjectList($objectList, $filterYear, $filterLevel, $filterSchoolOption);
             }
 
             if (!empty($objectList)) {
@@ -1134,9 +1176,9 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($isProspectList) {
             $form = $this->formCheckListFilter($filterPersonObjectList)->appendFormButton(new Primary('Filtern',
-                new Select()));
+                new Filter()));
         } else {
-            $form = $this->formCheckListFilter(array())->appendFormButton(new Primary('Filtern', new Select()));
+            $form = $this->formCheckListFilter(array())->appendFormButton(new Primary('Filtern', new Filter()));
         }
 
         $Stage->setContent(
@@ -1155,7 +1197,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ($isProspectList ? new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                                new Title(new Select() . ' Filter'),
+                                new Title(new Filter() . ' Filter'),
                                 new Well(CheckList::useService()->getFilteredCheckList($form, $Id, $Filter))
                             )
                         ),
@@ -1189,12 +1231,17 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param $filterPersonObjectList
+     * @return Form
+     */
     private function formCheckListFilter($filterPersonObjectList)
     {
 
-//        $tblYearAll = array(new TblYear());
-        $tblYearAll = array();
-//        $count = 1;
+        $yearAll = array();
+        $levelAll = array();
+        $schoolOptionAll = array();
+
         if (is_array($filterPersonObjectList) && !empty($filterPersonObjectList)) {
             /** @var TblPerson $tblPerson */
             foreach ($filterPersonObjectList as $tblPerson) {
@@ -1202,35 +1249,46 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblProspect) {
                     $tblProspectReservation = $tblProspect->getTblProspectReservation();
                     if ($tblProspectReservation) {
-//                        $level = $tblProspectReservation->getReservationDivision();
+                        $level = trim($tblProspectReservation->getReservationDivision());
                         $year = trim($tblProspectReservation->getReservationYear());
                         if ($year !== '') {
-//                            $tblYearAll[$count++] = $year;
-                            $tblYearAll[$tblPerson->getId()] = $year;
+                            $yearAll[$tblPerson->getId()] = $year;
                         }
-//                        $optionA = $tblProspectReservation->getServiceTblTypeOptionA();
-//                        $optionB = $tblProspectReservation->getServiceTblTypeOptionB();
-//                        if ($optionA && $optionB) {
-//                            $option = $optionA->getName() . ', ' . $optionB->getName();
-//                        } elseif ($optionA) {
-//                            $option = $optionA->getName();
-//                        } elseif ($optionB) {
-//                            $option = $optionB->getName();
-//                        }
+                        if ($level !== ''){
+                            $levelAll[$tblPerson->getId()] = $level;
+                        }
+                        $optionA = $tblProspectReservation->getServiceTblTypeOptionA();
+                        $optionB = $tblProspectReservation->getServiceTblTypeOptionB();
+                        if ($optionA) {
+                            $schoolOptionAll[$tblPerson->getId()] = $optionA->getName();
+                        }
+                        if ($optionB) {
+                            $schoolOptionAll[$tblPerson->getId()] = $optionA->getName();
+                        }
                     }
                 }
 
             }
-            $tblYearAll = array_unique($tblYearAll, SORT_REGULAR);
-            $tblYearAll[0] = '';
+            $yearAll = array_unique($yearAll, SORT_REGULAR);
+            $yearAll[0] = '';
+            $levelAll = array_unique($levelAll, SORT_REGULAR);
+            $levelAll[0] = '';
+            $schoolOptionAll = array_unique($schoolOptionAll, SORT_REGULAR);
+            $schoolOptionAll[0] = '';
         }
-
-//        Debugger::screenDump($tblYearAll);
 
         return new Form(array(
             new FormGroup(array(
                 new FormRow(array(
-                    new FormColumn(new SelectBox('Filter[Year]', 'Schuljahr', $tblYearAll), 4)
+                    new FormColumn(
+                        new SelectBox('Filter[Year]', 'Schuljahr', $yearAll), 4
+                    ),
+                    new FormColumn(
+                        new SelectBox('Filter[Level]', 'Klassenstufe', $levelAll), 4
+                    ),
+                    new FormColumn(
+                        new SelectBox('Filter[SchoolOption]', 'Schulart', $schoolOptionAll), 4
+                    ),
                 ))
             ))
         ));
