@@ -1220,7 +1220,10 @@ class Frontend extends Extension implements IFrontendInterface
                                         ))
                                     ))
                                     , new Primary('Speichern', new Save()))
-                                , $Id, $Data, $HasData, ($hasFilter ? $objectList : null)
+                                , $Id, $Data, $HasData, ($hasFilter ? $objectList : null),
+                                $YearPersonId,
+                                $LevelPersonId,
+                                $SchoolOptionPersonId
                             )
                         ))
                     ))

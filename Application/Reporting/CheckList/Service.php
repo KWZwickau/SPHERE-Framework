@@ -462,6 +462,9 @@ class Service extends AbstractService
      * @param null $Data
      * @param null $HasData
      * @param null $objectList
+     * @param null $YearPersonId
+     * @param null $LevelPersonId
+     * @param null $SchoolOptionPersonId
      *
      * @return IFormInterface|Redirect
      */
@@ -470,7 +473,10 @@ class Service extends AbstractService
         $Id = null,
         $Data = null,
         $HasData = null,
-        $objectList = null
+        $objectList = null,
+        $YearPersonId = null,
+        $LevelPersonId = null,
+        $SchoolOptionPersonId = null
     ) {
 
         /**
@@ -566,7 +572,12 @@ class Service extends AbstractService
             }
         }
 
-        return new Redirect('/Reporting/CheckList/Object/Element/Edit', Redirect::TIMEOUT_SUCCESS, array('Id' => $Id));
+        return new Redirect('/Reporting/CheckList/Object/Element/Edit', Redirect::TIMEOUT_SUCCESS, array(
+            'Id' => $Id,
+            'YearPersonId' => $YearPersonId,
+            'LevelPersonId' => $LevelPersonId,
+            'SchoolOptionPersonId' => $SchoolOptionPersonId
+        ));
     }
 
     /**
@@ -898,38 +909,39 @@ class Service extends AbstractService
                                                 if ($schoolOptionA->getId() == $filterSchoolOption->getId()) {
                                                     $hasSchoolOption = true;
                                                 }
-                                            }  elseif ($schoolOptionB) {
+                                            } elseif ($schoolOptionB) {
                                                 if ($schoolOptionB->getId() == $filterSchoolOption->getId()) {
                                                     $hasSchoolOption = true;
                                                 }
                                             }
                                         }
 
-                                        if ($filterYear && $filterLevel && $filterSchoolOption){
-                                            if ($hasYear && $hasLevel && $hasSchoolOption){
+                                        // Filter "Und"-Verknüpfen
+                                        if ($filterYear && $filterLevel && $filterSchoolOption) {
+                                            if ($hasYear && $hasLevel && $hasSchoolOption) {
                                                 $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
                                             }
-                                        } elseif ($filterYear && $filterLevel){
-                                            if ($hasYear && $hasLevel){
+                                        } elseif ($filterYear && $filterLevel) {
+                                            if ($hasYear && $hasLevel) {
                                                 $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
                                             }
-                                        } elseif ($filterYear && $filterSchoolOption){
-                                            if ($hasYear && $hasSchoolOption){
+                                        } elseif ($filterYear && $filterSchoolOption) {
+                                            if ($hasYear && $hasSchoolOption) {
                                                 $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
                                             }
-                                        } elseif ($filterLevel && $filterSchoolOption){
-                                            if ($hasLevel && $hasSchoolOption){
+                                        } elseif ($filterLevel && $filterSchoolOption) {
+                                            if ($hasLevel && $hasSchoolOption) {
                                                 $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
                                             }
-                                        } elseif ($filterYear){
+                                        } elseif ($filterYear) {
                                             if ($hasYear) {
                                                 $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
                                             }
-                                        } elseif ($filterLevel){
+                                        } elseif ($filterLevel) {
                                             if ($hasLevel) {
                                                 $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
                                             }
-                                        } elseif ($filterSchoolOption){
+                                        } elseif ($filterSchoolOption) {
                                             if ($hasSchoolOption) {
                                                 $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
                                             }
