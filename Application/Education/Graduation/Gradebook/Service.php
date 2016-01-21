@@ -771,11 +771,13 @@ class Service extends AbstractService
 
                                     if ($hasConditions) {
                                         $tblScoreCondition = $tblScoreRuleConditionList->getTblScoreCondition();
+                                        break;
                                     }
 
                                 } else {
                                     // no Conditions
                                     $tblScoreCondition = $tblScoreRuleConditionList->getTblScoreCondition();
+                                    break;
                                 }
                             }
                         }
@@ -846,10 +848,10 @@ class Service extends AbstractService
                     }
                 }
 
-                if (!empty($averageGroup[$tblScoreRule->getId()])) {
+                if (!empty($averageGroup[$tblScoreCondition->getId()])) {
                     $average = 0;
                     $totalMultiplier = 0;
-                    foreach ($averageGroup[$tblScoreRule->getId()] as $groupId => $group) {
+                    foreach ($averageGroup[$tblScoreCondition->getId()] as $groupId => $group) {
                         $tblScoreGroup = Gradebook::useService()->getScoreGroupById($groupId);
                         $multiplier = floatval($tblScoreGroup->getMultiplier());
                         if ($group['Value'] > 0) {
