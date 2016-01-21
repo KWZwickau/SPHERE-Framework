@@ -44,6 +44,62 @@ class System implements IApplicationInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
+
+        Main::getDispatcher()->registerWidget('System', array(__CLASS__, 'widgetDrive'), 2, 2);
+        Main::getDispatcher()->registerWidget('System', array(__CLASS__, 'widgetMemory'), 2, 2);
+        Main::getDispatcher()->registerWidget('System', array(__CLASS__, 'widgetLoad'), 2, 2);
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetLoad()
+    {
+
+        $load = sys_getloadavg();
+
+        return new Panel('Rechenkapazität', array(
+            (new ProgressBar(( 50 * ( 2 - $load[0] ) ), ( 50 * ( $load[0] ) ),
+                0))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_DANGER),
+            'Genutzt: '.number_format($load[0], 5, ',', '.'),
+            'Frei: '.number_format(2 - $load[0], 5, ',', '.')
+        ));
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetDrive()
+    {
+        $Value = 100 / disk_total_space(__DIR__) * disk_free_space(__DIR__);
+
+        return new Panel('Festplattenkapazität', array(
+            (new ProgressBar($Value, ( 100 - $Value ), 0))->setColor(ProgressBar::BAR_COLOR_SUCCESS,
+                ProgressBar::BAR_COLOR_DANGER),
+            'Gesamt: '.number_format(disk_total_space(__DIR__), 0, ',', '.'),
+            'Frei: '.number_format(disk_free_space(__DIR__), 0, ',', '.')
+        ));
+    }
+
+    /**
+     * @return Panel
+     */
+    public static function widgetMemory()
+    {
+        $free = shell_exec('free');
+        $free = (string)trim($free);
+        $free_arr = explode("\n", $free);
+        $mem = explode(" ", $free_arr[1]);
+        $mem = array_filter($mem);
+        $mem = array_merge($mem);
+        $Value = $mem[2] / $mem[1] * 100;
+
+        return new Panel('Speicherkapazität', array(
+            (new ProgressBar($Value, ( 100 - $Value ), 0))->setColor(ProgressBar::BAR_COLOR_SUCCESS,
+                ProgressBar::BAR_COLOR_DANGER),
+            'Gesamt: '.number_format($mem[1], 0, ',', '.'),
+            'Frei: '.number_format($mem[2], 0, ',', '.')
+        ));
     }
 
     /**
@@ -53,39 +109,6 @@ class System implements IApplicationInterface
     {
 
         $Stage = new Stage('Dashboard', 'System');
-
-        $Value = 100 / disk_total_space(__DIR__) * disk_free_space(__DIR__);
-
-        Main::getDispatcher()->registerWidget('System', new Panel('Festplattenkapazität', array(
-            (new ProgressBar($Value, ( 100 - $Value ), 0))->setColor(ProgressBar::BAR_COLOR_SUCCESS,
-                ProgressBar::BAR_COLOR_DANGER),
-            'Gesamt: '.number_format(disk_total_space(__DIR__), 0, ',', '.'),
-            'Frei: '.number_format(disk_free_space(__DIR__), 0, ',', '.')
-        )), 2, 2);
-
-        $free = shell_exec('free');
-        $free = (string)trim($free);
-        $free_arr = explode("\n", $free);
-        $mem = explode(" ", $free_arr[1]);
-        $mem = array_filter($mem);
-        $mem = array_merge($mem);
-        $Value = $mem[2] / $mem[1] * 100;
-
-        Main::getDispatcher()->registerWidget('System', new Panel('Speicherkapazität', array(
-            (new ProgressBar($Value, ( 100 - $Value ), 0))->setColor(ProgressBar::BAR_COLOR_SUCCESS,
-                ProgressBar::BAR_COLOR_DANGER),
-            'Gesamt: '.number_format($mem[1], 0, ',', '.'),
-            'Frei: '.number_format($mem[2], 0, ',', '.')
-        )), 2, 2);
-
-        $load = sys_getloadavg();
-
-        Main::getDispatcher()->registerWidget('System', new Panel('Rechenkapazität', array(
-            (new ProgressBar(( 50 * ( 2 - $load[0] ) ), ( 50 * ( $load[0] ) ),
-                0))->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_DANGER),
-            'Genutzt: '.number_format($load[0], 5, ',', '.'),
-            'Frei: '.number_format(2 - $load[0], 5, ',', '.')
-        )), 2, 2);
 
         $Stage->setContent(Main::getDispatcher()->fetchDashboard('System'));
 

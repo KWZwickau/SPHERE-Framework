@@ -41,15 +41,24 @@ class CheckList implements IModuleInterface
 
     /**
      * @param null $ListId
+     * @param null $YearPersonId
+     * @param null $LevelPersonId
+     * @param null $SchoolOptionId
      *
-     * @return string|bool
+     * @return bool|string
      */
-    public function downloadCheckList($ListId = null)
+    public function downloadCheckList(
+        $ListId = null,
+        $YearPersonId = null,
+        $LevelPersonId = null,
+        $SchoolOptionId = null
+    )
     {
 
         $tblList = \SPHERE\Application\Reporting\CheckList\CheckList::useService()->getListById($ListId);
         if ($tblList) {
-            $fileLocation = \SPHERE\Application\Reporting\CheckList\CheckList::useService()->createCheckListExcel($tblList);
+            $fileLocation = \SPHERE\Application\Reporting\CheckList\CheckList::useService()
+                ->createCheckListExcel($tblList, $YearPersonId, $LevelPersonId, $SchoolOptionId);
             if ($fileLocation) {
                 return FileSystem::getDownload($fileLocation->getRealPath(),
                     "Check-List ".$tblList->getName()." ".date("Y-m-d H:i:s").".xls")->__toString();

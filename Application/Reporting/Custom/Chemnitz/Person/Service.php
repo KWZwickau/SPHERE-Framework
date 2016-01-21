@@ -831,7 +831,7 @@ class Service
                     $tblPerson->FatherSalutation = $father->getSalutation();
                     $tblPerson->FatherLastName = $father->getLastName();
                     $tblPerson->FatherFirstName = $father->getFirstName();
-                    $tblPerson->Father = $father->getFullName();
+                    $tblPerson->Father = $father->getLastName() . ', ' . $father->getFirstName();
                 } else {
                     $tblPerson->FatherSalutation = $tblPerson->FatherLastName = $tblPerson->FatherFirstName = '';
                     $tblPerson->Father = '';
@@ -840,7 +840,7 @@ class Service
                     $tblPerson->MotherSalutation = $mother->getSalutation();
                     $tblPerson->MotherLastName = $mother->getLastName();
                     $tblPerson->MotherFirstName = $mother->getFirstName();
-                    $tblPerson->Mother = $mother->getFullName();
+                    $tblPerson->Mother = $mother->getLastName() . ', ' . $mother->getFirstName();
                 } else {
                     $tblPerson->MotherSalutation = $tblPerson->MotherLastName = $tblPerson->MotherFirstName = '';
                     $tblPerson->Mother = '';
