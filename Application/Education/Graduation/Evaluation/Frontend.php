@@ -738,6 +738,9 @@ class Frontend extends Extension implements IFrontendInterface
                 , array('DivisionSubjectId' => $tblDivisionSubject->getId()))
         );
 
+
+        $isTestAppointedDateTask = ($tblTest->getTblTestType()->getId()
+            == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')->getId());
         $tblDivision = $tblTest->getServiceTblDivision();
         $tblSubject = $tblTest->getServiceTblSubject();
 
@@ -829,9 +832,7 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
 
                     $tblPerson = $tblSubjectStudent->getServiceTblPerson();
-                    if ($tblTest->getTblTestType()->getId()
-                        == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')->getId()
-                    ) {
+                    if ($isTestAppointedDateTask) {
                         $average = Gradebook::useService()->calcStudentGrade(
                             $tblPerson,
                             $tblDivision,
@@ -855,9 +856,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblDivisionStudentAll) {
                 foreach ($tblDivisionStudentAll as $tblPerson) {
 
-                    if ($tblTest->getTblTestType()->getId()
-                        == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')->getId()
-                    ) {
+                    if ($isTestAppointedDateTask) {
                         $average = Gradebook::useService()->calcStudentGrade(
                             $tblPerson,
                             $tblDivision,
@@ -886,7 +885,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
 
             // Stichtagsnotenauftrag
-            if ($tblTask->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('APPOINTED_DATE_TASK')->getId()) {
+            if ($isTestAppointedDateTask) {
 
                 $gradeType = 'Stichtagsnote';
 
