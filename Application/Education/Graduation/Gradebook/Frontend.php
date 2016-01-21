@@ -561,25 +561,27 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblDivision,
                 $tblSubject
             );
-            if ($tblScoreRuleDivisionSubject){
-                if ($tblScoreRuleDivisionSubject->getTblScoreRule()){
+            if ($tblScoreRuleDivisionSubject) {
+                if ($tblScoreRuleDivisionSubject->getTblScoreRule()) {
                     $tblScoreRule = $tblScoreRuleDivisionSubject->getTblScoreRule();
-                    $scoreRuleText[] = new Bold($tblScoreRule->getName());
-                    $tblScoreRuleConditionListByRule = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
-                    if ($tblScoreRuleConditionListByRule){
-                        $tblScoreRuleConditionListByRule =
-                            $this->getSorter($tblScoreRuleConditionListByRule)->sortObjectList('Priority');
+                    if ($tblScoreRule) {
+                        $scoreRuleText[] = new Bold($tblScoreRule->getName());
+                        $tblScoreRuleConditionListByRule = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
+                        if ($tblScoreRuleConditionListByRule) {
+                            $tblScoreRuleConditionListByRule =
+                                $this->getSorter($tblScoreRuleConditionListByRule)->sortObjectList('Priority');
 
-                        /** @var TblScoreRuleConditionList $tblScoreRuleConditionList */
-                        foreach ($tblScoreRuleConditionListByRule as $tblScoreRuleConditionList){
-                            $scoreRuleText[] = '&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
-                                . $tblScoreRuleConditionList->getTblScoreCondition()->getPriority()
-                                . '&nbsp;&nbsp;&nbsp;' . $tblScoreRuleConditionList->getTblScoreCondition()->getName();
+                            /** @var TblScoreRuleConditionList $tblScoreRuleConditionList */
+                            foreach ($tblScoreRuleConditionListByRule as $tblScoreRuleConditionList) {
+                                $scoreRuleText[] = '&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
+                                    . $tblScoreRuleConditionList->getTblScoreCondition()->getPriority()
+                                    . '&nbsp;&nbsp;&nbsp;' . $tblScoreRuleConditionList->getTblScoreCondition()->getName();
+                            }
+                        } else {
+                            $scoreRuleText[] = new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
+                                new Ban() . ' Keine Berechnungsvariante hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
+                            ));
                         }
-                    } else {
-                        $scoreRuleText[] = new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
-                            new Ban() . ' Keine Berechnungsvariante hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
-                        ));
                     }
                 }
             }
@@ -688,8 +690,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                     );
                     $columnList[] = new LayoutColumn(
-                        new Container($tblPerson->getFirstName() . ' ' . $tblPerson->getLastName()
-                            . ' ' . new Bold('&#216; ' . $totalAverage))
+                        new Container($tblPerson->getLastFirstName() . ' ' . new Bold('&#216; ' . $totalAverage))
                         , 2);
                     foreach ($tblPeriodList as $tblPeriod) {
                         $columnSubList = array();

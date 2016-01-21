@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -37,6 +38,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
@@ -59,6 +61,7 @@ use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Success;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -428,7 +431,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $countStudent = Division::useService()->countDivisionStudentAllByDivision($tblTest->getServiceTblDivision());
                 }
                 $tblTest->Grades = $countGrades == $countStudent ? new Success($countGrades . ' von ' . $countStudent) :
-                    new \SPHERE\Common\Frontend\Text\Repository\Warning($countGrades . ' von ' . $countStudent);
+                    new Warning($countGrades . ' von ' . $countStudent);
 
             });
         } else {
@@ -745,6 +748,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblSubject = $tblTest->getServiceTblSubject();
 
         $tblScoreRule = false;
+        $scoreRuleText = array();
+        $tblScoreType = false;
         if ($tblDivision && $tblSubject) {
             $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
                 $tblDivision,
@@ -752,20 +757,38 @@ class Frontend extends Extension implements IFrontendInterface
             );
             if ($tblScoreRuleDivisionSubject) {
                 if ($tblScoreRuleDivisionSubject->getTblScoreRule()) {
+                    $tblScoreType = $tblScoreRuleDivisionSubject->getTblScoreType();
                     $tblScoreRule = $tblScoreRuleDivisionSubject->getTblScoreRule();
+                    if ($tblScoreRule) {
+                        if ($isTestAppointedDateTask) {
+                            $scoreRuleText[] = new Bold($tblScoreRule->getName());
+                            $tblScoreRuleConditionListByRule = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
+                            if ($tblScoreRuleConditionListByRule) {
+                                $tblScoreRuleConditionListByRule =
+                                    $this->getSorter($tblScoreRuleConditionListByRule)->sortObjectList('Priority');
+
+                                /** @var TblScoreRuleConditionList $tblScoreRuleConditionList */
+                                foreach ($tblScoreRuleConditionListByRule as $tblScoreRuleConditionList) {
+                                    $scoreRuleText[] = '&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
+                                        . $tblScoreRuleConditionList->getTblScoreCondition()->getPriority()
+                                        . '&nbsp;&nbsp;&nbsp;' . $tblScoreRuleConditionList->getTblScoreCondition()->getName();
+                                }
+                            } else {
+                                $scoreRuleText[] = new Bold(new Warning(
+                                    new Ban() . ' Keine Berechnungsvariante hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
+                                ));
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        // ToDo JohK Notenbereich festlegen
-        $gradeMirror = array();
-        $mirror = array();
-        $count = 0;
-        for ($i = 1; $i <= 6; $i++) {
-            $mirror[$i] = 0;
-        }
-
         $gradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
+
+        /*
+         * set post
+         */
         if ($gradeList) {
             $Global = $this->getGlobal();
             /** @var TblGrade $grade */
@@ -778,50 +801,64 @@ class Frontend extends Extension implements IFrontendInterface
                         $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] = $grade->getGrade();
                     }
                     $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Comment'] = $grade->getComment();
-
-                    switch ($grade->getGrade() && (
-                            $grade->getGrade() === '1' ||
-                            $grade->getGrade() === '2' ||
-                            $grade->getGrade() === '3' ||
-                            $grade->getGrade() === '4' ||
-                            $grade->getGrade() === '5' ||
-                            $grade->getGrade() === '6'
-                        )) {
-                        case 1:
-                            $mirror[$grade->getGrade()]++;
-                            $count++;
-                            break;
-                        case 2:
-                            $mirror[$grade->getGrade()]++;
-                            $count++;
-                            break;
-                        case 3:
-                            $mirror[$grade->getGrade()]++;
-                            $count++;
-                            break;
-                        case 4:
-                            $mirror[$grade->getGrade()]++;
-                            $count++;
-                            break;
-                        case 5:
-                            $mirror[$grade->getGrade()]++;
-                            $count++;
-                            break;
-                        case 6:
-                            $mirror[$grade->getGrade()]++;
-                            $count++;
-                            break;
-                    }
                 }
             }
             $Global->savePost();
         }
 
-        for ($i = 1; $i <= 6; $i++) {
-            if (isset($mirror[$i])) {
-                $gradeMirror[] = 'Note ' . new Bold($i) . ': ' . $mirror[$i] .
-                    ($count > 0 ? ' (' . (round(($mirror[$i] / $count) * 100, 0)) . '%)' : '');
+        /*
+         * set grade mirror
+         */
+        if ($tblScoreType) {
+            $gradeMirror = array();
+            $gradeMirror[] = new Bold('Bewertungssystem: ' . $tblScoreType->getName());
+            if ($tblScoreType->getIdentifier() == 'VERRBAL') {
+                $gradeMirror[] = new Bold(new Warning(new Exclamation() . ' Für die verbale Bewertung ist kein Notenspiegel verfügbar.'));
+            } else {
+                $mirror = array();
+                $count = 0;
+
+                if ($tblScoreType->getIdentifier() == 'GRADES') {
+                    $minRange = 1;
+                    $maxRange = 6;
+                    $description = 'Note ';
+                } else {
+                    $minRange = 0;
+                    $maxRange = 15;
+                    $description = 'Punkte ';
+                }
+
+                for ($i = $minRange; $i <= $maxRange; $i++) {
+                    $mirror[$i] = 0;
+                }
+
+                if ($gradeList) {
+                    /** @var TblGrade $grade */
+                    foreach ($gradeList as $grade) {
+                        if (empty($Grade)) {
+
+                            if (is_numeric($grade->getGrade())) {
+                                $gradeValue = floor(floatval($grade->getGrade()));
+                                if ($gradeValue >= $minRange && $gradeValue <= $maxRange){
+                                    $mirror[$grade->getGrade()]++;
+                                    $count++;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                for ($i = $minRange; $i <= $maxRange; $i++) {
+                    if (isset($mirror[$i])) {
+                        $gradeMirror[] = $description . new Bold($i) . ': ' . $mirror[$i] .
+                            ($count > 0 ? ' (' . (round(($mirror[$i] / $count) * 100, 0)) . '%)' : '');
+                    }
+                }
             }
+        } else {
+            $gradeMirror = new Bold(new Warning(
+                new Ban() . ' Kein Bewertungssystem hinterlegt.'
+            ));
         }
 
         $studentList = array();
@@ -832,18 +869,19 @@ class Frontend extends Extension implements IFrontendInterface
                 foreach ($tblSubjectStudentAllByDivisionSubject as $tblSubjectStudent) {
 
                     $tblPerson = $tblSubjectStudent->getServiceTblPerson();
+
                     if ($isTestAppointedDateTask) {
                         $average = Gradebook::useService()->calcStudentGrade(
                             $tblPerson,
                             $tblDivision,
-                            $tblDivisionSubject->getServiceTblSubject(),
+                            $tblSubject,
                             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                             $tblScoreRule ? $tblScoreRule : null
                         );
                     } else {
                         $average = false;
                     }
-                    $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName()
+                    $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName()
                         . ($average ? new Bold('&nbsp;&nbsp;&#216; ' . $average) : '');
                     $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                         $tblPerson);
@@ -860,14 +898,14 @@ class Frontend extends Extension implements IFrontendInterface
                         $average = Gradebook::useService()->calcStudentGrade(
                             $tblPerson,
                             $tblDivision,
-                            $tblDivisionSubject->getServiceTblSubject(),
+                            $tblSubject,
                             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                             $tblScoreRule ? $tblScoreRule : null
                         );
                     } else {
                         $average = false;
                     }
-                    $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName()
+                    $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName()
                         . ($average ? new Bold('&nbsp;&nbsp;&#216; ' . $average) : '');
                     $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                         $tblPerson);
@@ -986,6 +1024,13 @@ class Frontend extends Extension implements IFrontendInterface
                                 $gradeType,
                                 Panel::PANEL_TYPE_INFO), 3
                         ),
+                        ($isTestAppointedDateTask ? new LayoutColumn(new Panel(
+                            'Berechnungsvorschrift',
+                            $tblScoreRule ? $scoreRuleText : new Bold(new Warning(
+                                new Ban() . ' Keine Berechnungsvorschrift hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
+                            )),
+                            Panel::PANEL_TYPE_INFO
+                        ), 12) : null),
                     )),
                     new LayoutRow(array(
                         new LayoutColumn(
@@ -1569,7 +1614,7 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $studentList[$tblDivision->getId()][$tblPerson->getId()]
             ['Subject' . $tblSubject->getId()] =
-                new \SPHERE\Common\Frontend\Text\Repository\Warning('fehlt');
+                new Warning('fehlt');
             return $studentList;
         }
     }
@@ -1614,7 +1659,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
         } else {
             $gradeText = $tblSubject->getAcronym() . ': ' .
-                new \SPHERE\Common\Frontend\Text\Repository\Warning('f');
+                new Warning('f');
         }
 
         if (!isset($studentList[$tblDivision->getId()][$tblPerson->getId()]['Type' . $gradeTypeId])) {
