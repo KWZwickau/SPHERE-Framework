@@ -732,45 +732,100 @@ class Service extends AbstractService
             $averageGroup = array();
             $resultAverage = '';
             $count = 0;
+            $sum = 0;
 
+            // get ScoreCondition
             $tblScoreCondition = false;
             if ($tblScoreRule !== null) {
-                $tblScoreRuleConditionList = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
-                if ($tblScoreRuleConditionList) {
-                    if (count($tblScoreRuleConditionList) > 1) {
+                $tblScoreRuleConditionListByRule = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
+                if ($tblScoreRuleConditionListByRule) {
+                    if (count($tblScoreRuleConditionListByRule) > 1) {
+                        $tblScoreRuleConditionListByRule =
+                            $this->getSorter($tblScoreRuleConditionListByRule)->sortObjectList('Priority');
+                        if ($tblScoreRuleConditionListByRule) {
+                            /** @var TblScoreRuleConditionList $tblScoreRuleConditionList */
+                            foreach ($tblScoreRuleConditionListByRule as $tblScoreRuleConditionList) {
+                                $tblScoreConditionGradeTypeListByCondition =
+                                    Gradebook::useService()->getScoreConditionGradeTypeListByCondition(
+                                        $tblScoreRuleConditionList->getTblScoreCondition()
+                                    );
+                                if ($tblScoreConditionGradeTypeListByCondition) {
+                                    $hasConditions = true;
+                                    foreach ($tblScoreConditionGradeTypeListByCondition as $tblScoreConditionGradeTypeList) {
+                                        $hasGradeType = false;
+                                        foreach ($tblGradeList as $tblGrade) {
+                                            if (is_numeric($tblGrade->getGrade())
+                                                && ($tblGrade->getTblGradeType()->getId()
+                                                    == $tblScoreConditionGradeTypeList->getTblGradeType()->getId())
+                                            ) {
+                                                $hasGradeType = true;
+                                                break;
+                                            }
+                                        }
 
+                                        if (!$hasGradeType) {
+                                            $hasConditions = false;
+                                            break;
+                                        }
+                                    }
 
+                                    if ($hasConditions) {
+                                        $tblScoreCondition = $tblScoreRuleConditionList->getTblScoreCondition();
+                                    }
+
+                                } else {
+                                    // no Conditions
+                                    $tblScoreCondition = $tblScoreRuleConditionList->getTblScoreCondition();
+                                }
+                            }
+                        }
                     } else {
-                        $tblScoreCondition = $tblScoreRuleConditionList[0];
+                        $tblScoreCondition = $tblScoreRuleConditionListByRule[0]->getTblScoreCondition();
                     }
                 }
             }
 
-//            foreach ($tblGradeList as $tblGrade) {
-//                if ($tblScoreRule) {
-//                    if (($tblScoreConditionGroupListByCondition
-//                        = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition))
-//                    ) {
-//                        foreach ($tblScoreConditionGroupListByCondition as $tblScoreGroup) {
-//                            if (($tblScoreGroupGradeTypeListByGroup
-//                                = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup->getTblScoreGroup()))
-//                            ) {
-//                                foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeTypeList) {
-//                                    if ($tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()) {
-//                                        if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
-//                                            $count++;
-//                                            $result[$tblScoreRule->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Value']
-//                                                = floatval($tblGrade->getGrade()) * floatval($tblScoreGroupGradeTypeList->getMultiplier());
-//                                            $result[$tblScoreRule->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Multiplier']
-//                                                = floatval($tblScoreGroupGradeTypeList->getMultiplier());
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
+            foreach ($tblGradeList as $tblGrade) {
+                if ($tblScoreCondition) {
+                    /** @var TblScoreCondition $tblScoreCondition */
+                    if (($tblScoreConditionGroupListByCondition
+                        = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition))
+                    ) {
+                        foreach ($tblScoreConditionGroupListByCondition as $tblScoreGroup) {
+                            if (($tblScoreGroupGradeTypeListByGroup
+                                = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup->getTblScoreGroup()))
+                            ) {
+                                foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeTypeList) {
+                                    if ($tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()) {
+                                        if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                                            $count++;
+                                            $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Value']
+                                                = floatval($tblGrade->getGrade()) * floatval($tblScoreGroupGradeTypeList->getMultiplier());
+                                            $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Multiplier']
+                                                = floatval($tblScoreGroupGradeTypeList->getMultiplier());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // alle Noten gleichwertig
+                    if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                        $count++;
+                        $sum = $sum + floatval($tblGrade->getGrade());
+                    }
+                }
+            }
+
+            if (!$tblScoreCondition) {
+                if ($count > 0) {
+                    $average = $sum / $count;
+                    return round($average, 2);
+                } else {
+                    return false;
+                }
+            }
 
             if (!empty($result)) {
                 foreach ($result as $conditionId => $groups) {
@@ -812,7 +867,8 @@ class Service extends AbstractService
                 }
             }
 
-            return $resultAverage == '' ? false : $resultAverage;
+            return $resultAverage == '' ? false : $resultAverage
+                . ($tblScoreCondition ? '(' . $tblScoreCondition->getPriority() . ')' : '');
         }
 
         return false;
@@ -1126,7 +1182,8 @@ class Service extends AbstractService
     public function getScoreRuleDivisionSubjectByDivisionAndSubject(TblDivision $tblDivision, TblSubject $tblSubject)
     {
 
-        return (new Data($this->getBinding()))->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision, $tblSubject);
+        return (new Data($this->getBinding()))->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision,
+            $tblSubject);
     }
 
     /**
@@ -1142,26 +1199,27 @@ class Service extends AbstractService
          * Skip to Frontend
          */
         $Global = $this->getGlobal();
-        if (!isset( $Global->POST['Button']['Submit'] )) {
+        if (!isset($Global->POST['Button']['Submit'])) {
             return $Stage;
         }
 
-        if (isset($Data)){
-            foreach($Data as $divisionId => $subjectItemList){
+        if (isset($Data)) {
+            foreach ($Data as $divisionId => $subjectItemList) {
                 $tblDivision = Division::useService()->getDivisionById($divisionId);
-                foreach ($subjectItemList as $subjectId => $item){
+                foreach ($subjectItemList as $subjectId => $item) {
                     $tblSubject = Subject::useService()->getSubjectById($subjectId);
-                    if ($tblDivision && $tblSubject){
-                        $tblScoreRuleDivisionSubject = $this->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision, $tblSubject);
+                    if ($tblDivision && $tblSubject) {
+                        $tblScoreRuleDivisionSubject = $this->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision,
+                            $tblSubject);
                         $tblScoreRule = Gradebook::useService()->getScoreRuleById($item['Rule']);
-                        if (!$tblScoreRule){
+                        if (!$tblScoreRule) {
                             $tblScoreRule = null;
                         }
                         $tblScoreType = Gradebook::useService()->getScoreTypeById($item['Type']);
-                        if (!$tblScoreType){
+                        if (!$tblScoreType) {
                             $tblScoreType = null;
                         }
-                        if ($tblScoreRuleDivisionSubject){
+                        if ($tblScoreRuleDivisionSubject) {
                             (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
                                 $tblScoreRuleDivisionSubject, $tblScoreRule, $tblScoreType
                             );

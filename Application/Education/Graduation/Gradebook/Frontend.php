@@ -541,9 +541,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param Stage $Stage
      * @param TblDivisionSubject $tblDivisionSubject
-     * @param $ScoreConditionId
-     * @param $Select
-     * @param string $BasicRoute
+     * @param $BasicRoute
      * @return Stage
      */
     private function contentSelectedGradeBook(
@@ -556,26 +554,40 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblDivision = $tblDivisionSubject->getTblDivision();
         $tblSubject = $tblDivisionSubject->getServiceTblSubject();
+        $tblScoreRule = false;
+        $scoreRuleText = array();
         if ($tblDivision && $tblSubject) {
             $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
                 $tblDivision,
                 $tblSubject
             );
-        } else {
-            $tblScoreRuleDivisionSubject = false;
-        }
+            if ($tblScoreRuleDivisionSubject){
+                if ($tblScoreRuleDivisionSubject->getTblScoreRule()){
+                    $tblScoreRule = $tblScoreRuleDivisionSubject->getTblScoreRule();
+                    $scoreRuleText[] = new Bold($tblScoreRule->getName());
+                    $tblScoreRuleConditionListByRule = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
+                    if ($tblScoreRuleConditionListByRule){
+                        $tblScoreRuleConditionListByRule =
+                            $this->getSorter($tblScoreRuleConditionListByRule)->sortObjectList('Priority');
 
-//        $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
-//        if (!$tblScoreConditionAll) {
-//            $Stage->setContent(new Warning(new Ban() . ' Keine Berechnungsvorschrift hinterlegt. Bitte legen Sie zuerst eine Berechnungsvorschrift an.'));
-//
-//            return $Stage;
-//        }
+                        /** @var TblScoreRuleConditionList $tblScoreRuleConditionList */
+                        foreach ($tblScoreRuleConditionListByRule as $tblScoreRuleConditionList){
+                            $scoreRuleText[] = '&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
+                                . $tblScoreRuleConditionList->getTblScoreCondition()->getPriority()
+                                . '&nbsp;&nbsp;&nbsp;' . $tblScoreRuleConditionList->getTblScoreCondition()->getName();
+                        }
+                    } else {
+                        $scoreRuleText[] = new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
+                            new Ban() . ' Keine Berechnungsvariante hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
+                        ));
+                    }
+                }
+            }
+        }
 
         $grades = array();
         $rowList = array();
 
-        $tblScoreCondition = Gradebook::useService()->getScoreConditionAll()[0];
         $tblYear = $tblDivision->getServiceTblYear();
         $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
@@ -671,7 +683,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblDivision,
                         $tblDivisionSubject->getServiceTblSubject(),
                         $tblTestType,
-                        $tblScoreCondition,
+                        $tblScoreRule ? $tblScoreRule : null,
                         null,
                         $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                     );
@@ -717,7 +729,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblDivision,
                             $tblDivisionSubject->getServiceTblSubject(),
                             $tblTestType,
-                            $tblScoreCondition,
+                            $tblScoreRule ? $tblScoreRule : null,
                             $tblPeriod,
                             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                         );
@@ -744,10 +756,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
                                 Panel::PANEL_TYPE_INFO
                             )
-                        ),  6),
+                        ), 6),
                         new LayoutColumn(new Panel(
                             'Berechnungsvorschrift',
-                            $tblScoreCondition->getName(),
+                            $tblScoreRule ? $scoreRuleText : new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
+                                new Ban() . ' Keine Berechnungsvorschrift hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
+                            )),
                             Panel::PANEL_TYPE_INFO
                         ), 6),
                     )),
@@ -775,7 +789,8 @@ class Frontend extends Extension implements IFrontendInterface
                 Redirect::TIMEOUT_ERROR);
         }
 
-        $this->contentSelectedGradeBook($Stage, $tblDivisionSubject, '/Education/Graduation/Gradebook/Headmaster/Gradebook');
+        $this->contentSelectedGradeBook($Stage, $tblDivisionSubject,
+            '/Education/Graduation/Gradebook/Headmaster/Gradebook');
 
         return $Stage;
     }
