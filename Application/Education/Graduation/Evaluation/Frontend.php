@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
@@ -26,6 +27,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -36,6 +38,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
+use SPHERE\Common\Frontend\Icon\Repository\Dice;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
@@ -44,6 +47,9 @@ use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Quote;
+use SPHERE\Common\Frontend\Icon\Repository\Rate15;
+use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -799,6 +805,12 @@ class Frontend extends Extension implements IFrontendInterface
                         $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Attendance'] = 1;
                     } else {
                         $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] = $grade->getGrade();
+
+                        $trend = $grade->getTrend();
+                        if ($trend !== null) {
+                            $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Trend'] = $trend;
+                        }
+
                     }
                     $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Comment'] = $grade->getComment();
                 }
@@ -812,7 +824,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblScoreType) {
             $gradeMirror = array();
             $gradeMirror[] = new Bold('Bewertungssystem: ' . $tblScoreType->getName());
-            if ($tblScoreType->getIdentifier() == 'VERRBAL') {
+            if ($tblScoreType->getIdentifier() == 'VERBAL') {
                 $gradeMirror[] = new Bold(new Warning(new Exclamation() . ' Für die verbale Bewertung ist kein Notenspiegel verfügbar.'));
             } else {
                 $mirror = array();
@@ -839,7 +851,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                             if (is_numeric($grade->getGrade())) {
                                 $gradeValue = floor(floatval($grade->getGrade()));
-                                if ($gradeValue >= $minRange && $gradeValue <= $maxRange){
+                                if ($gradeValue >= $minRange && $gradeValue <= $maxRange) {
                                     $mirror[$grade->getGrade()]++;
                                     $count++;
                                 }
@@ -886,7 +898,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                         $tblPerson);
 
-                    $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList);
+                    $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList,
+                        $tblScoreType ? $tblScoreType : null
+                    );
                 }
             }
         } else {
@@ -910,7 +924,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                         $tblPerson);
 
-                    $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList);
+                    $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList,
+                        $tblScoreType ? $tblScoreType : null
+                    );
                 }
             }
         }
@@ -1066,38 +1082,84 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
-     * @param           $tblGrade
-     * @param           $IsEdit
-     * @param           $student
-     *
+     * @param $tblGrade
+     * @param $IsEdit
+     * @param $student
+     * @param TblScoreType|null $tblScoreType
      * @return mixed
      */
-    private function contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $student)
-    {
+    private function contentEditTestGradeTableRow(
+        TblPerson $tblPerson,
+        $tblGrade,
+        $IsEdit,
+        $student,
+        TblScoreType $tblScoreType = null
+    ) {
+
+        if ($tblScoreType === null) {
+            $tblScoreType = false;
+        }
+
+        $selectBoxContent = array(
+            TblGrade::VALUE_TREND_NULL => '',
+            TblGrade::VALUE_TREND_PLUS => 'Plus',
+            TblGrade::VALUE_TREND_MINUS => 'Minus'
+        );
 
         if (!$IsEdit && $tblGrade) {
-            $student[$tblPerson->getId()]['Grade']
-                = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]',
-                '', ''))->setDisabled();
+            if ($tblScoreType) {
+                if ($tblScoreType->getIdentifier() == 'VERBAL') {
+                    $student[$tblPerson->getId()]['Grade']
+                        = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
+                        new Quote()))->setDisabled();
+                } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
+                    $student[$tblPerson->getId()]['Grade']
+                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
+                        new Rate15()))->setDisabled();
+                } else {
+                    $student[$tblPerson->getId()]['Grade']
+                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
+                            new Dice()))->setDisabled()
+                        . (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '',
+                            $selectBoxContent, new ResizeVertical()))->setDisabled();
+                }
+            } else {
+                $student[$tblPerson->getId()]['Grade']
+                    = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Dice()))->setDisabled()
+                    . (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '',
+                        $selectBoxContent, new ResizeVertical()))->setDisabled();
+            }
             $student[$tblPerson->getId()]['Comment']
-                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]',
-                '', '', new Comment()))->setDisabled();
+                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))->setDisabled();
             $student[$tblPerson->getId()]['Attendance'] =
-                (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]',
-                    ' ', 1))->setDisabled();;
-            return $student;
+                (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setDisabled();
         } else {
-            $student[$tblPerson->getId()]['Grade']
-                = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]',
-                '', ''));
+            if ($tblScoreType) {
+                if ($tblScoreType->getIdentifier() == 'VERBAL') {
+                    $student[$tblPerson->getId()]['Grade']
+                        = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Quote()));
+                } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
+                    $student[$tblPerson->getId()]['Grade']
+                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Rate15()));
+                } else {
+                    $student[$tblPerson->getId()]['Grade']
+                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Dice()))
+                        . (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '', $selectBoxContent,
+                            new ResizeVertical()));
+                }
+            } else {
+                $student[$tblPerson->getId()]['Grade']
+                    = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Dice()))
+                    . (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '', $selectBoxContent,
+                        new ResizeVertical()));
+            }
             $student[$tblPerson->getId()]['Comment']
-                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]',
-                '', '', new Comment()));
-            $student[$tblPerson->getId()]['Attendance']
-                = new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]',
-                ' ', 1);
-            return $student;
+                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()));
+            $student[$tblPerson->getId()]['Attendance'] =
+                (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]', ' ', 1));
         }
+
+        return $student;
     }
 
     /**

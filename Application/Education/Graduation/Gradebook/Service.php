@@ -267,8 +267,13 @@ class Service extends AbstractService
      *
      * @return IFormInterface|Redirect
      */
-    public function updateGradeToTest(IFormInterface $Stage = null, $TestId = null, $Grade = null, $BasicRoute, $IsEdit)
-    {
+    public function updateGradeToTest(
+        IFormInterface $Stage = null,
+        $TestId = null,
+        $Grade = null,
+        $BasicRoute,
+        $IsEdit
+    ) {
 
         /**
          * Skip to Frontend
@@ -286,6 +291,14 @@ class Service extends AbstractService
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
+
+                // set trend
+                if (isset($value['Trend'])) {
+                    $trend = $value['Trend'];
+                } else {
+                    $trend = 0;
+                }
+
                 if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))) {
                     if (isset($value['Attendance'])) {
                         (new Data($this->getBinding()))->createGrade(
@@ -298,7 +311,8 @@ class Service extends AbstractService
                             $tblTest,
                             $tblTest->getTblTestType(),
                             null,
-                            trim($value['Comment'])
+                            trim($value['Comment']),
+                            $trend
                         );
                     } elseif (trim($value['Grade']) !== '') {
                         (new Data($this->getBinding()))->createGrade(
@@ -311,35 +325,33 @@ class Service extends AbstractService
                             $tblTest,
                             $tblTest->getTblTestType(),
                             trim($value['Grade']),
-                            trim($value['Comment'])
+                            trim($value['Comment']),
+                            $trend
                         );
                     }
                 } elseif ($IsEdit && $tblGrade) {
+
                     if (isset($value['Attendance'])) {
                         (new Data($this->getBinding()))->updateGrade(
                             $tblGrade,
                             null,
-                            trim($value['Comment'])
+                            trim($value['Comment']),
+                            $trend
                         );
                     } else {
                         (new Data($this->getBinding()))->updateGrade(
                             $tblGrade,
                             trim($value['Grade']),
-                            trim($value['Comment'])
+                            trim($value['Comment']),
+                            $trend
                         );
                     }
                 }
             }
         }
 
-//        $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-//            $tblTest->getServiceTblDivision(),
-//            $tblTest->getServiceTblSubject(),
-//            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
-//        );
-//        return new Redirect($BasicRoute . '/Selected', 0,
-//            array('DivisionSubjectId' => $tblDivisionSubject->getId()));
-        return new Redirect($BasicRoute . '/Grade/Edit', Redirect::TIMEOUT_SUCCESS,
+        return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+        . new Redirect($BasicRoute . '/Grade/Edit', Redirect::TIMEOUT_SUCCESS,
             array('Id' => $tblTest->getId()));
     }
 

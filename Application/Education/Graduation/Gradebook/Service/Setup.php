@@ -98,6 +98,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblGrade', 'Comment')) {
             $Table->addColumn('Comment', 'string', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblGrade', 'Trend')) {
+            $Table->addColumn('Trend', 'smallint', array('notnull' => false));
+        }
         if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }

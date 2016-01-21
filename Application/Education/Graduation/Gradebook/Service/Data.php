@@ -124,9 +124,10 @@ class Data extends AbstractData
      * @param TblPeriod|null $tblPeriod
      * @param TblGradeType|null $tblGradeType
      * @param TblTest $tblTest
-     * @param \SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType $tblTestType
-     * @param                                                                                $Grade
+     * @param TblTestType $tblTestType
+     * @param $Grade
      * @param string $Comment
+     * @param $Trend
      *
      * @return TblGrade
      */
@@ -140,7 +141,8 @@ class Data extends AbstractData
         TblTest $tblTest,
         TblTestType $tblTestType,
         $Grade,
-        $Comment
+        $Comment,
+        $Trend = 0
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -156,6 +158,7 @@ class Data extends AbstractData
         $Entity->setServiceTblTestType($tblTestType);
         $Entity->setGrade($Grade);
         $Entity->setComment($Comment);
+        $Entity->setTrend($Trend);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -290,15 +293,17 @@ class Data extends AbstractData
 
     /**
      * @param TblGrade $tblGrade
-     * @param          $Grade
+     * @param $Grade
      * @param string $Comment
+     * @param $Trend
      *
      * @return bool
      */
     public function updateGrade(
         TblGrade $tblGrade,
         $Grade,
-        $Comment = ''
+        $Comment = '',
+        $Trend = 0
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -309,6 +314,7 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Entity->setGrade($Grade);
             $Entity->setComment($Comment);
+            $Entity->setTrend($Trend);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
