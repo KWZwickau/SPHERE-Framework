@@ -72,7 +72,7 @@ class TblBalance extends Element
     /**
      * @return bool|TblDebtor
      */
-    public function getServiceBillingBilling()
+    public function getServiceBillingBanking()
     {
 
         if (null === $this->serviceBilling_Banking) {

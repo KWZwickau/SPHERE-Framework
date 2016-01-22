@@ -470,9 +470,9 @@ class Service extends AbstractService
             Invoice::useService()->destroyTempInvoice($tblBasket);
 
             if ((new Data($this->getBinding()))->checkDebtors($tblBasket, null)) {
-                if (Invoice::useService()->createInvoiceListFromBasket($tblBasket, $Basket['Date'])) {
+                if (Invoice::useService()->createOrderListFromBasket($tblBasket, $Basket['Date'])) {
                     $Stage .= new Success('Die Rechnungen wurden erfolgreich erstellt')
-                        .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', Redirect::TIMEOUT_SUCCESS);
+                        .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
                 } else {
                     $Stage .= new Success('Die Rechnungen konnten nicht erstellt werden')
                         .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
@@ -529,7 +529,7 @@ class Service extends AbstractService
         $tblBasket = Basket::useService()->getBasketById($Id);
 
         if ((new Data($this->getBinding()))->checkDebtors($tblBasket, $Data, $isSave)) {
-            if (Invoice::useService()->createInvoiceListFromBasket($tblBasket, $Date)) {
+            if (Invoice::useService()->createOrderListFromBasket($tblBasket, $Date)) {
                 $Stage .= new Success('Die Rechnungen wurden erfolgreich erstellt')
                     .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', Redirect::TIMEOUT_SUCCESS);
             } else {

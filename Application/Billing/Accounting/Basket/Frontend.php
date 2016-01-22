@@ -790,7 +790,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new \SPHERE\Common\Frontend\Icon\Repository\Warning().' Keine Adresse hinterlegt');
                 }
                 $Temp['Address'] = $tblAddress;
-                $Temp['Option'] =
+                $Temp['Remove'] =
                     (new Standard('Entfernen', '/Billing/Accounting/Basket/Person/Remove',
                         new Minus(), array(
                             'Id' => $tblBasketPerson->getId()
@@ -815,7 +815,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new \SPHERE\Common\Frontend\Icon\Repository\Warning().' Keine Adresse hinterlegt');
                 }
                 $Temp['Address'] = $tblAddress;
-                $Temp['Option'] =
+                $Temp['Add'] =
                     (new Standard('Hinzufügen', '/Billing/Accounting/Basket/Person/Add',
                         new Plus(), array(
                             'Id'       => $tblBasket->getId(),
@@ -827,7 +827,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->setContent(
             new Layout(array(
-                new LayoutGroup(array(
+                new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
                             new Panel('Warenkorb - Nummer', $tblBasket->getId(),
@@ -841,39 +841,40 @@ class Frontend extends Extension implements IFrontendInterface
                             new Panel('Erstellt am', $tblBasket->getCreateDate(),
                                 Panel::PANEL_TYPE_SUCCESS), 3
                         )
-                    )),
-                )),
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                                new TableData($TableContent, null,
-                                    array(
-                                        'Salutation' => 'Anrede',
-                                        'Name'       => 'Name',
-                                        'Address'    => 'Adresse',
-                                        'Option'     => 'Option '
-                                    )
+                    ))
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($TableContent, null,
+                                array(
+                                    'Salutation' => 'Anrede',
+                                    'Name'       => 'Name',
+                                    'Address'    => 'Adresse',
+                                    'Remove'     => 'Entfernen'
                                 )
                             )
                         )
-                    )),
-                ), new Title('zugewiesene Personen')),
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                                new TableData($TableContentPerson, null,
-                                    array(
-                                        'Salutation' => 'Anrede',
-                                        'Name'       => 'Name',
-                                        'Address'    => 'Adresse',
-                                        'Option'     => 'Option '
-                                    )
-                                )
-                            )
-                        )
-                    )),
-                ), new Title('mögliche Personen'))
+                    ), new Title('zugewiesene Personen')
+                )
             ))
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($TableContentPerson, null,
+                                array(
+                                    'Salutation' => 'Anrede',
+                                    'Name'       => 'Name',
+                                    'Address'    => 'Adresse',
+                                    'Add'        => 'Hinzufügen'
+                                )
+                            )
+
+                        )
+                    ), new Title('mögliche Personen')
+                )
+            )
         );
 
         return $Stage;

@@ -8,6 +8,8 @@ use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblOrder;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblOrderItem;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
@@ -30,6 +32,7 @@ use SPHERE\Common\Frontend\Icon\Repository\MoneyEuro;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -65,8 +68,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setTitle('Rechnungen');
         $Stage->setDescription('Übersicht');
         $Stage->setMessage('Zeigt alle vorhandenen Rechnungen an');
-        $Stage->addButton(new Primary('Freigeben', '/Billing/Bookkeeping/Invoice/IsNotConfirmed', new Ok(), null, 'Freigeben von Rechnungen'));
-        $Stage->addButton(new Standard('Bereinigen', '/Billing/Bookkeeping/Invoice/Clean', new Disable(), null, 'Beseitigt alle Rechnungen ohne Artikel'));
+        $Stage->addButton(new Primary('Aufträge', '/Billing/Bookkeeping/Invoice/Order', new Ok(), null, 'Freigeben von Rechnungen'));
 
         $tblInvoiceAll = Invoice::useService()->getInvoiceAll();
 
@@ -105,14 +107,14 @@ class Frontend extends Extension implements IFrontendInterface
                     $Temp['IsVoidString'] = "Storniert";
                 } else {
                     $Temp['IsVoidString'] = "";
-//                    $tblInvoice->Option .= (new Danger( 'Stornieren', '/Billing/Bookkeeping/Invoice/Cancel',
+//                    $tblInvoice->Option .= (new Danger( 'Stornieren', '/Billing/Bookkeeping/Invoice/Destroy',
 //                        new Remove(), array('Id' => $tblInvoice->getId())))->__toString();
                 }
-                if ($tblInvoice->isConfirmed()) {
-                    $Temp['IsConfirmedString'] = "Bestätigt";
-                } else {
-                    $Temp['IsConfirmedString'] = "";
-                }
+//                if ($tblInvoice->isConfirmed()) {
+//                    $Temp['IsConfirmedString'] = "Bestätigt";
+//                } else {
+//                    $Temp['IsConfirmedString'] = "";
+//                }
 
                 array_push($TableContent, $Temp);
             });
@@ -125,18 +127,18 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($TableContent, null,
                                 array(
-                                    'Number'            => 'Nummer',
-                                    'InvoiceDate'       => 'Rechnungsdatum',
-                                    'BasketName'        => 'Warenkorb',
-                                    'Person'            => 'Person',
-                                    'Debtor'            => 'Debitor',
-                                    'DebtorNumber'      => 'Debitoren-Nr',
-                                    'PaymentType'       => 'Zahlungsart',
-                                    'TotalPrice'        => 'Gesamtpreis',
-                                    'IsConfirmedString' => 'Bestätigt',
-                                    'IsPaidString'      => 'Bezahlt',
-                                    'IsVoidString'      => 'Storniert',
-                                    'Option'            => 'Option'
+                                    'Number'       => 'Nummer',
+                                    'InvoiceDate'  => 'Rechnungsdatum',
+                                    'BasketName'   => 'Warenkorb',
+                                    'Person'       => 'Person',
+                                    'Debtor'       => 'Debitor',
+                                    'DebtorNumber' => 'Debitoren-Nr',
+                                    'PaymentType'  => 'Zahlungsart',
+                                    'TotalPrice'   => 'Gesamtpreis',
+//                                    'IsConfirmedString' => 'Bestätigt',
+                                    'IsPaidString' => 'Bezahlt',
+                                    'IsVoidString' => 'Storniert',
+                                    'Option'       => 'Option'
                                 )
                             )
                         )
@@ -152,54 +154,44 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendInvoiceIsNotConfirmedList()
+    public function frontendOrderOrderList()
     {
 
         $Stage = new Stage();
-        $Stage->setTitle('Rechnungen');
-        $Stage->setDescription('Freigeben');
+        $Stage->setTitle('Auftrag');
+        $Stage->setDescription('Übersicht');
         $Stage->setMessage('Zeigt alle noch nicht freigegebenen Rechnungen an');
         $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice', new ChevronLeft()));
 
-        $tblInvoiceAllByIsConfirmedState = Invoice::useService()->getInvoiceAllByIsConfirmedState(false);
-        $tblInvoiceAllByIsVoid = Invoice::useService()->getInvoiceAllByIsVoidState(true);
-
-        if ($tblInvoiceAllByIsConfirmedState && $tblInvoiceAllByIsVoid) {
-            $tblInvoiceAllByIsConfirmedState = array_udiff($tblInvoiceAllByIsConfirmedState, $tblInvoiceAllByIsVoid,
-                function (TblInvoice $invoiceA, TblInvoice $invoiceB) {
-
-                    return $invoiceA->getId() - $invoiceB->getId();
-                });
-        }
+        $tblOrderAll = Invoice::useService()->getOrderAll();
 
         $TableContent = array();
-        if (!empty( $tblInvoiceAllByIsConfirmedState )) {
-            array_walk($tblInvoiceAllByIsConfirmedState, function (TblInvoice &$tblInvoice) use (&$TableContent) {
+        if (!empty( $tblOrderAll )) {
+            array_walk($tblOrderAll, function (TblOrder &$tblOrder) use (&$TableContent) {
 
-                $Temp['Number'] = $tblInvoice->getNumber();
-                $Temp['BasketName'] = $tblInvoice->getBasketName();
-                $Temp['DebtorNumber'] = $tblInvoice->getDebtorNumber();
+                $Temp['BasketName'] = $tblOrder->getBasketName();
+                $Temp['DebtorNumber'] = $tblOrder->getDebtorNumber();
                 $Temp['PaymentType'] = "";
-                $paymentType = $tblInvoice->getServiceBillingBankingPaymentType();
+                $paymentType = $tblOrder->getServiceBillingBankingPaymentType();
                 if ($paymentType) {
                     $Temp['PaymentType'] = $paymentType->getName();
                 }
 
-                if ($tblInvoice->isPaymentDateModified()) {
-                    $Temp['InvoiceDateString'] = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Info().' '.$tblInvoice->getInvoiceDate());
-                    $Temp['PaymentDateString'] = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Info().' '.$tblInvoice->getPaymentDate());
+                if ($tblOrder->isPaymentDateModified()) {
+                    $Temp['InvoiceDateString'] = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Info().' '.$tblOrder->getInvoiceDate());
+                    $Temp['PaymentDateString'] = new \SPHERE\Common\Frontend\Text\Repository\Warning(new Info().' '.$tblOrder->getPaymentDate());
                 } else {
-                    $Temp['InvoiceDateString'] = $tblInvoice->getInvoiceDate();
-                    $Temp['PaymentDateString'] = $tblInvoice->getPaymentDate();
+                    $Temp['InvoiceDateString'] = $tblOrder->getInvoiceDate();
+                    $Temp['PaymentDateString'] = $tblOrder->getPaymentDate();
                 }
 
-                $Temp['Person'] = $tblInvoice->getServiceManagementPerson()->getFullName();
-                $Temp['Debtor'] = $tblInvoice->getDebtorFullName();
-                $Temp['TotalPrice'] = Invoice::useService()->sumPriceItemAllStringByInvoice($tblInvoice);
+                $Temp['Person'] = $tblOrder->getServiceManagementPerson()->getFullName();
+                $Temp['Debtor'] = $tblOrder->getDebtorFullName();
+                $Temp['TotalPrice'] = Invoice::useService()->sumPriceItemAllStringByOrder($tblOrder);
                 $Temp['Option'] =
-                    (new Primary('Bearbeiten und Freigeben', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit',
+                    (new Primary('Bearbeiten und Freigeben', '/Billing/Bookkeeping/Invoice/Order/Edit',
                         new Edit(), array(
-                            'Id' => $tblInvoice->getId()
+                            'Id' => $tblOrder->getId()
                         )))->__toString();
                 array_push($TableContent, $Temp);
             });
@@ -212,10 +204,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($TableContent, null,
                                 array(
-                                    'Number'            => 'Nummer',
+                                    'BasketName'        => 'Warenkorb',
                                     'InvoiceDateString' => 'Rechnungsdatum',
                                     'PaymentDateString' => 'Zahlungsdatum',
-                                    'BasketName'        => 'Warenkorb',
                                     'Person'            => 'Person',
                                     'Debtor'            => 'Debitor',
                                     'DebtorNumber'      => 'Debitoren-Nr',
@@ -225,7 +216,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         )
-                    ), new Title(new EyeOpen().' zu Kontrollieren')
+                    ), new Title(new Listing().' Übersicht')
                 )
             )
         );
@@ -238,143 +229,125 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendInvoiceEdit($Id)
+    public function frontendOrderEdit($Id)
     {
 
         $Stage = new Stage();
         $Stage->setTitle('Rechnung');
-        $Stage->setDescription('Bearbeiten');
+        $Stage->setDescription('Erstellen');
         $Stage->setMessage(
             'Hier können Sie die Rechnung bearbeiten und freigeben. <br>
             <b>Hinweis:</b> Freigegebene Rechnung sind nicht änderbar.'
         );
-        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice/IsNotConfirmed', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice/Order', new ChevronLeft()));
 
-        $tblInvoice = Invoice::useService()->getInvoiceById($Id);
-        $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+        $tblOrder = Invoice::useService()->getOrderById($Id);
+        $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblOrder->getDebtorNumber());
 
-        $CheckItem = true;
 
-        if ($tblInvoice->isConfirmed()) {
-            $Stage->setContent(new Warning('Die Rechnung wurde bereits bestätigt und freigegeben und kann nicht mehr bearbeitet werden')
-                .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR));
-        } else {
-            $tblInvoiceItemAll = Invoice::useService()->getInvoiceItemAllByInvoice($tblInvoice);
-            if (!empty( $tblInvoiceItemAll )) {
-                array_walk($tblInvoiceItemAll, function (TblInvoiceItem &$tblInvoiceItem) use ($tblInvoice) {
+        $tblOrderItemAll = Invoice::useService()->getOrderItemAllByOrder($tblOrder);
+        if (!empty( $tblOrderItemAll )) {
+            array_walk($tblOrderItemAll, function (TblOrderItem &$tblOrderItem) use ($tblOrder) {
 
-                    $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
-                    if ($tblDebtor) {
-                        $tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor);
-                    } else {
-                        $tblAccount = false;
-                    }
+                $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblOrder->getDebtorNumber());
+                if ($tblDebtor) {
+                    $tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor);
+                } else {
+                    $tblAccount = false;
+                }
 
-                    if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
-                        if ($tblAccount) {
-                            $tblCommodity = Commodity::useService()->getCommodityByName($tblInvoiceItem->getCommodityName());
-                            if ($tblCommodity) {
+                if ($tblOrder->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
+                    if ($tblAccount) {
+                        $tblCommodity = Commodity::useService()->getCommodityByName($tblOrderItem->getCommodityName());
+                        if ($tblCommodity) {
 
-                                $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
-                                if ($tblDebtor) {
+                            $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblOrder->getDebtorNumber());
+                            if ($tblDebtor) {
 //                                    if (Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor,
 //                                        $tblCommodity)) {
-                                    if (Banking::useService()->getReferenceByAccountAndCommodity($tblAccount,
-                                        $tblCommodity)
-                                    ) {
-                                        $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Success(
-                                            'Mandatsreferenz'.' '.new Ok()
-                                        );
-                                    } else {
-                                        $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Warning(
-                                            'keine Mandatsreferenz'.' '.new Disable()
-                                        );
-                                    }
+                                if (Banking::useService()->getReferenceByAccountAndCommodity($tblAccount,
+                                    $tblCommodity)
+                                ) {
+                                    $tblOrderItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Success(
+                                        'Mandatsreferenz'.' '.new Ok()
+                                    );
                                 } else {
-                                    $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Message\Repository\Danger(
-                                        'Debitor nicht gefunden'.' '.new Disable()
+                                    $tblOrderItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Warning(
+                                        'keine Mandatsreferenz'.' '.new Disable()
                                     );
                                 }
                             } else {
-                                $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Message\Repository\Danger(
-                                    'Leistung nicht gefunden'.' '.new Disable()
+                                $tblOrderItem->Status = new \SPHERE\Common\Frontend\Message\Repository\Danger(
+                                    'Debitor nicht gefunden'.' '.new Disable()
                                 );
                             }
                         } else {
-                            $tblInvoiceItem->Status = "";
+                            $tblOrderItem->Status = new \SPHERE\Common\Frontend\Message\Repository\Danger(
+                                'Leistung nicht gefunden'.' '.new Disable()
+                            );
                         }
                     } else {
-                        $tblInvoiceItem->Status = "";
-                    }
-
-                    $tblInvoiceItem->TotalPriceString = $tblInvoiceItem->getTotalPriceString();
-                    $tblInvoiceItem->QuantityString = str_replace('.', ',', $tblInvoiceItem->getItemQuantity());
-                    $tblInvoiceItem->PriceString = $tblInvoiceItem->getPriceString();
-                    $tblInvoiceItem->Option =
-                        (new Standard('', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Item/Change',
-                            new Edit(), array(
-                                'Id'     => $tblInvoice->getId(),
-                                'IdItem' => $tblInvoiceItem->getId()
-                            )))->__toString().
-                        (new Danger('Entfernen',
-                            '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Item/Remove',
-                            new Minus(), array(
-                                'Id'        => $tblInvoiceItem->getId(),
-                                'invoiceId' => $tblInvoice->getId()
-                            )))->__toString();
-                });
-            } else {
-                $CheckItem = false;
-            }
-
-            if ($CheckItem) {
-                if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
-
-                    $ReferenceOk = true;
-                    foreach ($tblInvoiceItemAll as $tblInvoiceItem) {
-                        if ($tblInvoiceItem->Status != new \SPHERE\Common\Frontend\Text\Repository\Success('Mandatsreferenz'.' '.new Ok())) {
-                            $ReferenceOk = false;
-                        }
-                    }
-
-                    $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
-                    if ($tblDebtor) {
-                        if (Banking::useService()->getActiveAccountByDebtor($tblDebtor)) {
-                            if ($ReferenceOk) {
-                                $Stage->addButton(new Primary('Geprüft und Freigeben',
-                                    '/Billing/Bookkeeping/Invoice/Confirm',
-                                    new Ok(), array(
-                                        'Id' => $Id
-                                    )
-                                ));
-                            } else {
-                                $Stage->addButton(new Standard('Geprüft und Freigeben',
-                                    '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit',
-                                    new Ok(), array(
-                                        'Id' => $Id
-                                    ), 'Fehlende Mandatsreferenz'
-                                ));
-                            }
-                        }
+                        $tblOrderItem->Status = "";
                     }
                 } else {
-                    $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
-                        new Ok(), array(
-                            'Id' => $Id
-                        )
-                    ));
+                    $tblOrderItem->Status = "";
+                }
+
+                $tblOrderItem->TotalPriceString = $tblOrderItem->getTotalPriceString();
+                $tblOrderItem->QuantityString = str_replace('.', ',', $tblOrderItem->getItemQuantity());
+                $tblOrderItem->PriceString = $tblOrderItem->getPriceString();
+                $tblOrderItem->Option =
+                    (new Standard('', '/Billing/Bookkeeping/Invoice/Order/Item/Change',
+                        new Edit(), array(
+                            'Id'     => $tblOrder->getId(),
+                            'IdItem' => $tblOrderItem->getId()
+                        )))->__toString().
+                    (new Danger('Entfernen',
+                        '/Billing/Bookkeeping/Invoice/Order/Item/Remove',
+                        new Minus(), array(
+                            'Id'        => $tblOrderItem->getId(),
+                            'invoiceId' => $tblOrder->getId()
+                        )))->__toString();
+            });
+
+            if ($tblOrder->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
+
+                $ReferenceOk = true;
+                foreach ($tblOrderItemAll as $tblOrderItem) {
+                    if ($tblOrderItem->Status != new \SPHERE\Common\Frontend\Text\Repository\Success('Mandatsreferenz'.' '.new Ok())) {
+                        $ReferenceOk = false;
+                    }
+                }
+
+                $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblOrder->getDebtorNumber());
+                if ($tblDebtor) {
+                    if (Banking::useService()->getActiveAccountByDebtor($tblDebtor)) {
+                        if ($ReferenceOk) {
+                            $Stage->addButton(new Primary('Geprüft und Freigeben',
+                                '/Billing/Bookkeeping/Invoice/Confirm',
+                                new Ok(), array(
+                                    'Id' => $Id
+                                )
+                            ));
+                        } else {
+                            $Stage->addButton(new Standard('Geprüft und Freigeben',
+                                '/Billing/Bookkeeping/Invoice/Order/Edit',
+                                new Ok(), array(
+                                    'Id' => $Id
+                                ), 'Fehlende Mandatsreferenz'
+                            ));
+                        }
+                    }
                 }
             } else {
-                $Stage->addButton(new Standard('Geprüft und Freigeben',
-                    '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit',
+                $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
                     new Ok(), array(
                         'Id' => $Id
-                    ), 'Fehlende Artikel'
+                    )
                 ));
             }
 
-
-            $Stage->addButton(new Danger('Stornieren', '/Billing/Bookkeeping/Invoice/Cancel',
+            $Stage->addButton(new Danger('Löschen', '/Billing/Bookkeeping/Invoice/Destroy',
                 new Remove(), array(
                     'Id' => $Id
                 )
@@ -384,20 +357,20 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(array(
                     new LayoutGroup(array(
                         new LayoutRow(array(
+//                            new LayoutColumn(
+//                                new Panel('Rechnungsnummer', $tblInvoice->getNumber(), Panel::PANEL_TYPE_PRIMARY), 3
+//                            ),
                             new LayoutColumn(
-                                new Panel('Rechnungsnummer', $tblInvoice->getNumber(), Panel::PANEL_TYPE_PRIMARY), 3
+                                new Panel('Warenkorb', $tblOrder->getBasketName(), Panel::PANEL_TYPE_DEFAULT), 3
                             ),
                             new LayoutColumn(
-                                new Panel('Warenkorb', $tblInvoice->getBasketName(), Panel::PANEL_TYPE_DEFAULT), 3
-                            ),
-                            new LayoutColumn(
-                                new Panel('Rechnungsdatum', $tblInvoice->getInvoiceDate(),
-                                    $tblInvoice->isPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
+                                new Panel('Rechnungsdatum', $tblOrder->getInvoiceDate(),
+                                    $tblOrder->isPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                                 3
                             ),
                             new LayoutColumn(
-                                new Panel('Zahlungsdatum', $tblInvoice->getPaymentDate(),
-                                    $tblInvoice->isPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
+                                new Panel('Zahlungsdatum', $tblOrder->getPaymentDate(),
+                                    $tblOrder->isPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                                 3
                             ),
                         )),
@@ -408,34 +381,34 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         new LayoutRow(array(
                             new LayoutColumn(
-                                new Panel('Debitor', $tblInvoice->getDebtorFullName()), 3
+                                new Panel('Debitor', $tblOrder->getDebtorFullName()), 3
                             ),
                             new LayoutColumn(
-                                new Panel('Debitorennummer', $tblInvoice->getDebtorNumber()), 3
+                                new Panel('Debitorennummer', $tblOrder->getDebtorNumber()), 3
                             ),
                             new LayoutColumn(
-                                new Panel('Person', $tblInvoice->getServiceManagementPerson()->getFullName()), 3
+                                new Panel('Person', $tblOrder->getServiceManagementPerson()->getFullName()), 3
                             )
                         )),
                         new LayoutRow(array(
                             new LayoutColumn(
-                                ( $tblInvoice->getServiceManagementAddress()
+                                ( $tblOrder->getServiceManagementAddress()
                                     ? new Panel(
                                         new MapMarker().' Rechnungsadresse', array(
-                                        $tblInvoice->getServiceManagementAddress()->getStreetName().' '.$tblInvoice->getServiceManagementAddress()->getStreetNumber().'<br/>'.
-                                        $tblInvoice->getServiceManagementAddress()->getTblCity()->getCode().' '.$tblInvoice->getServiceManagementAddress()->getTblCity()->getName()
+                                        $tblOrder->getServiceManagementAddress()->getStreetName().' '.$tblOrder->getServiceManagementAddress()->getStreetNumber().'<br/>'.
+                                        $tblOrder->getServiceManagementAddress()->getTblCity()->getCode().' '.$tblOrder->getServiceManagementAddress()->getTblCity()->getName()
                                     ),
                                         Panel::PANEL_TYPE_DEFAULT,
                                         ( ( $tblDebtor = Banking::useService()->getDebtorByDebtorNumber(
-                                            $tblInvoice->getDebtorNumber()) )
+                                            $tblOrder->getDebtorNumber()) )
                                         && count(Address::useService()->getAddressAllByPerson(
                                             $tblDebtor->getServiceManagementPerson())) > 1
                                             ? new Standard('',
-                                                '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Address/Select',
+                                                '/Billing/Bookkeeping/Invoice/Order/Address/Select',
                                                 new Edit(),
                                                 array(
-                                                    'Id'        => $tblInvoice->getId(),
-                                                    'AddressId' => $tblInvoice->getServiceManagementAddress()->getId()
+                                                    'Id'        => $tblOrder->getId(),
+                                                    'AddressId' => $tblOrder->getServiceManagementAddress()->getId()
                                                 )
                                             )
                                             : null
@@ -449,24 +422,24 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel(
                                     'Zahlungsart',
-                                    $tblInvoice->getServiceBillingBankingPaymentType()->getName(),
+                                    $tblOrder->getServiceBillingBankingPaymentType()->getName(),
                                     Panel::PANEL_TYPE_DEFAULT,
                                     new Standard('',
-                                        '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Payment/Type/Select',
+                                        '/Billing/Bookkeeping/Invoice/Order/Payment/Type/Select',
                                         new Edit(),
                                         array(
-                                            'Id' => $tblInvoice->getId()
+                                            'Id' => $tblOrder->getId()
                                         )
                                     )
                                 ), 3
                             ),
                         )),
-                        ( ( $tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift' ) ?
+                        ( ( $tblOrder->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift' ) ?
                             ( $tblDebtor ) ?
                                 new LayoutRow(
                                     new LayoutColumn(
                                         self::layoutAccount($tblDebtor,
-                                            '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', $tblInvoice->getId())
+                                            '/Billing/Bookkeeping/Invoice/Order/Edit', $tblOrder->getId())
                                     )
                                 ) : null
                             : null
@@ -479,14 +452,14 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(
                                 new Panel('Rechnungsbetrag',
-                                    Invoice::useService()->sumPriceItemAllStringByInvoice($tblInvoice)), 3
+                                    Invoice::useService()->sumPriceItemAllStringByOrder($tblOrder)), 3
                             )
                         ))
                     ), new Title('Kopf')),
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
-                                    new TableData($tblInvoiceItemAll, null,
+                                    new TableData($tblOrderItemAll, null,
                                         array(
                                             'CommodityName'    => 'Leistung',
                                             'ItemName'         => 'Artikel',
@@ -585,10 +558,13 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setDescription('Anzeigen');
         $Stage->addButton(new Primary('Zurück', '/Billing/Bookkeeping/Invoice', new ChevronLeft()));
 
+
         $tblInvoice = Invoice::useService()->getInvoiceById($Id);
 
         if ($tblInvoice->isVoid()) {
             $Stage->setMessage(new \SPHERE\Common\Frontend\Message\Repository\Danger("Diese Rechnung wurde storniert"));
+        } else {
+            $Stage->addButton(new Danger('Stornieren', '/Billing/Bookkeeping/Invoice/Cancel', new Remove(), array('Id' => $Id)));
         }
 
         $tblInvoiceItemAll = Invoice::useService()->getInvoiceItemAllByInvoice($tblInvoice);
@@ -763,26 +739,22 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage();
-        $Stage->setTitle('Rechnung');
-        $Stage->setDescription('Freigeben');
+        $Stage->setTitle('Auftrag');
+        $Stage->setDescription('Bestätigen');
         $Account = false;
+        $tblOrder = Invoice::useService()->getOrderById($Id);
+        if (!$tblOrder) {
+            return new Warning('Auftrag nicht gefunden')
+            .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_ERROR);
+        }
 
-        $tblInvoice = Invoice::useService()->getInvoiceById($Id);
-        if ($tblInvoice->isConfirmed()) {
-            return new Stage('Rechnung').new Warning('Die Rechnung wurde bereits bestätigt und freigegeben und kann nicht mehr bearbeitet werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-        }
-        if ($tblInvoice->isVoid()) {
-            return new Stage('Rechnung').new Warning('Die Rechnung wurde bereits Stoniert und kann nicht mehr bearbeitet werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-        }
-        if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
-            $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+        if ($tblOrder->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
+            $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblOrder->getDebtorNumber());
             if ($tblDebtor) {
                 $Account = Banking::useService()->getActiveAccountByDebtor($tblDebtor)->getId();
             }
         }
-        $Stage->setContent(Invoice::useService()->confirmInvoice($tblInvoice, $Account));
+        $Stage->setContent(Invoice::useService()->createInvoice($tblOrder, $Account));
 
         return $Stage;
     }
@@ -799,18 +771,33 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Rechnung');
         $Stage->setDescription('Stornieren');
-
         $tblInvoice = Invoice::useService()->getInvoiceById($Id);
-        if ($tblInvoice->isConfirmed()) {
-            return new Stage('Rechnung').new Warning('Die Rechnung wurde bereits bestätigt und freigegeben und kann nicht mehr bearbeitet werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-        }
-        if ($tblInvoice->isVoid()) {
-            return new Stage('Rechnung').new Warning('Die Rechnung wurde bereits Stoniert und kann nicht mehr bearbeitet werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-        }
 
         $Stage->setContent(Invoice::useService()->cancelInvoice($tblInvoice));
+
+        return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return Stage
+     */
+    public function frontendOrderDestroy($Id)
+    {
+
+        $Stage = new Stage();
+        $Stage->setTitle('Auftrag');
+        $Stage->setDescription('Entfernen');
+
+        $tblOrder = Invoice::useService()->getOrderById($Id);
+
+        if ($tblOrder) {
+            $Stage->setContent(Invoice::useService()->destroyOrder($tblOrder));
+        } else {
+            $Stage->setContent(new Warning('Der Auftrag wurde nicht gefunden.')
+                .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_ERROR));
+        }
 
         return $Stage;
     }
@@ -826,26 +813,26 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Rechnung');
         $Stage->setDescription('Rechnungsadresse Auswählen');
-        $Stage->addButton(new Primary('Zurück', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', new ChevronLeft(),
+        $Stage->addButton(new Primary('Zurück', '/Billing/Bookkeeping/Invoice/Order/Edit', new ChevronLeft(),
             array('Id' => $Id)
         ));
 
-        $tblInvoice = Invoice::useService()->getInvoiceById($Id);
+        $tblOrder = Invoice::useService()->getOrderById($Id);
         $tblAddressAll = Address::useService()->getAddressAllByPerson(
-            Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber())->getServiceManagementPerson());
+            Banking::useService()->getDebtorByDebtorNumber($tblOrder->getDebtorNumber())->getServiceManagementPerson());
 
-        $layoutGroup = self::layoutAddress($tblAddressAll, $tblInvoice->getServiceManagementAddress(), $tblInvoice);
+        $layoutGroup = self::layoutAddress($tblAddressAll, $tblOrder->getServiceManagementAddress(), $tblOrder);
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
+//                        new LayoutColumn(array(
+//                            new Panel('Rechnungsnummer', $tblOrder->getNumber(), Panel::PANEL_TYPE_SUCCESS)
+//                        ), 3),
                         new LayoutColumn(array(
-                            new Panel('Rechnungsnummer', $tblInvoice->getNumber(), Panel::PANEL_TYPE_SUCCESS)
-                        ), 3),
-                        new LayoutColumn(array(
-                            new Panel('Empfänger', $tblInvoice->getDebtorFullName(), Panel::PANEL_TYPE_SUCCESS)
-                        ), 3)
+                            new Panel('Empfänger', $tblOrder->getDebtorFullName(), Panel::PANEL_TYPE_SUCCESS)
+                        ), 6)
                     ))
                 ))
             ))
@@ -858,11 +845,11 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param            $tblAddressList
      * @param TblAddress $invoiceAddress
-     * @param TblInvoice $tblInvoice
+     * @param TblOrder   $tblOrder
      *
      * @return Layout
      */
-    private static function layoutAddress($tblAddressList, TblAddress $invoiceAddress, TblInvoice $tblInvoice)
+    private static function layoutAddress($tblAddressList, TblAddress $invoiceAddress, TblOrder $tblOrder)
     {
 
         if (!empty( $tblAddressList )) {
@@ -884,10 +871,10 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblAddress->getTblCity()->getCode().' '.$tblAddress->getTblCity()->getCode(),
                         $PanelType,
 
-                        new Standard('Auswählen', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Address/Change',
+                        new Standard('Auswählen', '/Billing/Bookkeeping/Invoice/Order/Address/Change',
                             new Ok(),
                             array(
-                                'Id'        => $tblInvoice->getId(),
+                                'Id'        => $tblOrder->getId(),
                                 'AddressId' => $tblAddress->getId()
                             )
                         )
@@ -918,33 +905,24 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Rechnung');
         $Stage->setDescription('Zahlungsart Auswählen');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', new ChevronLeft(),
+        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice/Order/Edit', new ChevronLeft(),
             array('Id' => $Id)
         ));
-        $tblInvoice = Invoice::useService()->getInvoiceById($Id);
-        if ($tblInvoice->isConfirmed()) {
-            return new Stage('Rechnung').new Warning('Die Rechnung wurde bereits bestätigt und freigegeben und kann nicht mehr bearbeitet werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-        }
-        if ($tblInvoice->isVoid()) {
-            return new Stage('Rechnung').new Warning('Die Rechnung wurde bereits Stoniert und kann nicht mehr bearbeitet werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-        }
 
-        $tblInvoice = Invoice::useService()->getInvoiceById($Id);
+        $tblOrder = Invoice::useService()->getOrderById($Id);
         $tblPaymentTypeList = Banking::useService()->getPaymentTypeAll();
         foreach ($tblPaymentTypeList as &$tblPaymentType) {
             $tblPaymentType = new LayoutColumn(
                 new Panel(
                     'Zahlungsart: '.new PullRight($tblPaymentType->getName()),
                     array(),
-                    ( $tblInvoice->getServiceBillingBankingPaymentType()->getId() === $tblPaymentType->getId() ) ?
+                    ( $tblOrder->getServiceBillingBankingPaymentType()->getId() === $tblPaymentType->getId() ) ?
                         Panel::PANEL_TYPE_SUCCESS :
                         Panel::PANEL_TYPE_DEFAULT,
-                    new Standard('Auswählen', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/PaymentType/Change',
+                    new Standard('Auswählen', '/Billing/Bookkeeping/Invoice/Order/PaymentType/Change',
                         new Ok(),
                         array(
-                            'Id'          => $tblInvoice->getId(),
+                            'Id'          => $tblOrder->getId(),
                             'PaymentType' => $tblPaymentType->getId(),
                         )
                     )
@@ -956,12 +934,12 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(array(
                     new LayoutRow(array(
+//                        new LayoutColumn(array(
+//                            new Panel('Rechnungsnummer', $tblOrder->getNumber(), Panel::PANEL_TYPE_SUCCESS)
+//                        ), 3),
                         new LayoutColumn(array(
-                            new Panel('Rechnungsnummer', $tblInvoice->getNumber(), Panel::PANEL_TYPE_SUCCESS)
-                        ), 3),
-                        new LayoutColumn(array(
-                            new Panel('Empfänger', $tblInvoice->getDebtorFullName(), Panel::PANEL_TYPE_SUCCESS)
-                        ), 3)
+                            new Panel('Empfänger', $tblOrder->getDebtorFullName(), Panel::PANEL_TYPE_SUCCESS)
+                        ), 6)
                     ))
                 )),
                 new LayoutGroup(
@@ -988,9 +966,9 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setTitle('Rechnung');
         $Stage->setDescription('Rechnungsadresse Ändern');
 
-        $tblInvoice = Invoice::useService()->getInvoiceById($Id);
+        $tblOrder = Invoice::useService()->getOrderById($Id);
         $tblAddress = Address::useService()->getAddressById($AddressId);
-        $Stage->setContent(Invoice::useService()->changeInvoiceAddress($tblInvoice, $tblAddress));
+        $Stage->setContent(Invoice::useService()->changeOrderAddress($tblOrder, $tblAddress));
 
         return $Stage;
     }
@@ -1034,45 +1012,35 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
-     * @param $IdItem
-     * @param $InvoiceItem
+     * @param      $Id
+     * @param      $IdItem
+     * @param null $OrderItem
      *
      * @return Stage
      */
-    public function frontendInvoiceItemChange($Id, $IdItem, $InvoiceItem)
+    public function frontendOrderItemChange($Id, $IdItem, $OrderItem = null)
     {
 
         $Stage = new Stage();
         $Stage->setTitle('Rechnung');
         $Stage->setDescription('Artikel Bearbeiten');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', new ChevronLeft(),
+        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice/Order/Edit', new ChevronLeft(),
             array('Id' => $Id)
         ));
-
-        $tblInvoice = Invoice::useService()->getInvoiceById($Id);
-        if ($tblInvoice->isConfirmed()) {
-            return new Stage('Rechnung').new Warning('Die Rechnung wurde bereits bestätigt und freigegeben und kann nicht mehr bearbeitet werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-        }
-        if ($tblInvoice->isVoid()) {
-            return new Stage('Rechnung').new Warning('Die Rechnung wurde bereits Stoniert und kann nicht mehr bearbeitet werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-        }
 
         if (empty( $IdItem )) {
             $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
         } else {
-            $tblInvoiceItem = Invoice::useService()->getInvoiceItemById($IdItem);
-            if (empty( $tblInvoiceItem )) {
+            $tblOrderItem = Invoice::useService()->getOrderItemById($IdItem);
+            if (empty( $tblOrderItem )) {
                 $Stage->setContent(new Warning('Der Artikel konnte nicht abgerufen werden'));
             } else {
 
                 $Global = $this->getGlobal();
-                if (!isset( $Global->POST['InvoiceItem'] )) {
-                    $Global->POST['InvoiceItem']['Price'] = str_replace('.', ',', $tblInvoiceItem->getItemPrice());
-                    $Global->POST['InvoiceItem']['Quantity'] = str_replace('.', ',',
-                        $tblInvoiceItem->getItemQuantity());
+                if (!isset( $Global->POST['OrderItem'] )) {
+                    $Global->POST['OrderItem']['Price'] = str_replace('.', ',', $tblOrderItem->getItemPrice());
+                    $Global->POST['OrderItem']['Quantity'] = str_replace('.', ',',
+                        $tblOrderItem->getItemQuantity());
                     $Global->savePost();
                 }
 
@@ -1080,17 +1048,17 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormGroup(array(
                         new FormRow(array(
                             new FormColumn(
-                                new TextField('InvoiceItem[Price]', 'Preis in €', 'Preis',
+                                new TextField('OrderItem[Price]', 'Preis in €', 'Preis',
                                     new MoneyEuro()
                                 ), 6),
                             new FormColumn(
-                                new TextField('InvoiceItem[Quantity]', 'Menge', 'Menge',
+                                new TextField('OrderItem[Quantity]', 'Menge', 'Menge',
                                     new Quantity()
                                 ), 6)
                         ))
                     ))
                 ));
-                $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Änderungen speichern'));
+                $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()));
                 $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
                 $Stage->setContent(
@@ -1098,15 +1066,15 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Panel('Leistung-Name', $tblInvoiceItem->getCommodityName()
+                                    new Panel('Leistung-Name', $tblOrderItem->getCommodityName()
                                         , Panel::PANEL_TYPE_SUCCESS), 3
                                 ),
                                 new LayoutColumn(
-                                    new Panel('Artikel-Name', $tblInvoiceItem->getItemName()
+                                    new Panel('Artikel-Name', $tblOrderItem->getItemName()
                                         , Panel::PANEL_TYPE_SUCCESS), 3
                                 ),
                                 new LayoutColumn(
-                                    new Panel('Artikel-Beschreibung', $tblInvoiceItem->getItemDescription()
+                                    new Panel('Artikel-Beschreibung', $tblOrderItem->getItemDescription()
                                         , Panel::PANEL_TYPE_SUCCESS), 6
                                 )
                             )),
@@ -1114,8 +1082,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
-                                    Invoice::useService()->changeInvoiceItem(
-                                        $Form, $tblInvoiceItem, $InvoiceItem
+                                    Invoice::useService()->changeOrderItem(
+                                        $Form, $tblOrderItem, $OrderItem
                                     )
                                 ))
                             ))
@@ -1133,50 +1101,16 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendInvoiceItemRemove($Id, $invoiceId)
+    public function frontendOrderItemRemove($Id)
     {
 
         $Stage = new Stage();
         $Stage->setTitle('Rechnung');
         $Stage->setDescription('Artikel Entfernen');
 
-        $tblInvoice = Invoice::useService()->getInvoiceById($invoiceId);
-        if ($tblInvoice->isConfirmed()) {
-            return new Stage('Rechnung').new Warning('Die Rechnung wurde bereits bestätigt und freigegeben und kann nicht mehr bearbeitet werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-        }
-        if ($tblInvoice->isVoid()) {
-            return new Stage('Rechnung').new Warning('Die Rechnung wurde bereits Stoniert und kann nicht mehr bearbeitet werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-        }
+        $tblOrderItem = Invoice::useService()->getOrderItemById($Id);
+        $Stage->setContent(Invoice::useService()->removeOrderItem($tblOrderItem));
 
-        $tblInvoiceItem = Invoice::useService()->getInvoiceItemById($Id);
-        $Stage->setContent(Invoice::useService()->removeInvoiceItem($tblInvoiceItem));
-
-        return $Stage;
-    }
-
-    /**
-     * @return Stage
-     */
-    public function frontendInvoiceClean()
-    {
-
-        $Stage = new Stage('Leere Rechnungen', 'Bereinigen');
-
-        $tblInvoiceList = Invoice::useService()->getInvoiceAllByIsConfirmedState(false);
-        if ($tblInvoiceList) {
-            foreach ($tblInvoiceList as $tblInvoice) {
-
-                if (!$emptyInvoice = Invoice::useService()->getInvoiceItemAllByInvoice($tblInvoice)) {
-                    Invoice::useService()->removeInvoice($tblInvoice);
-                }
-            }
-        }
-        $Stage->setContent(
-            new Success('Rechnungen ohne Artikel wurden entfernt.')
-            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_WAIT)
-        );
         return $Stage;
     }
 }

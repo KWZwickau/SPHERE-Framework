@@ -29,7 +29,7 @@ class Invoice implements IModuleInterface
 //            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Rechnungen' ), new Link\Icon( new Info() ) )
 //        );
 //        Main::getDisplay()->addModuleNavigation(
-//            new Link( new Link\Route( __NAMESPACE__.'/IsNotConfirmed' ), new Link\Name( 'Freigeben' ), new Link\Icon( new Info() ) )
+//            new Link( new Link\Route( __NAMESPACE__.'/Order' ), new Link\Name( 'Freigeben' ), new Link\Icon( new Info() ) )
 //        );
         /**
          * Register Route
@@ -40,18 +40,13 @@ class Invoice implements IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Clean',
-                __NAMESPACE__.'\Frontend::frontendInvoiceClean'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Order',
+                __NAMESPACE__.'\Frontend::frontendOrderOrderList'
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed',
-                __NAMESPACE__.'\Frontend::frontendInvoiceIsNotConfirmedList'
-            )
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Edit',
-                __NAMESPACE__.'\Frontend::frontendInvoiceEdit'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Order/Edit',
+                __NAMESPACE__.'\Frontend::frontendOrderEdit'
             )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
@@ -70,40 +65,44 @@ class Invoice implements IModuleInterface
             )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
+                __NAMESPACE__.'\Frontend::frontendOrderDestroy'
+            )->setParameterDefault('Id', null)
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Pay',
                 __NAMESPACE__.'\Frontend::frontendInvoicePay'
             )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Item/Change',
-                __NAMESPACE__.'\Frontend::frontendInvoiceItemChange'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Order/Item/Change',
+                __NAMESPACE__.'\Frontend::frontendOrderItemChange'
             )->setParameterDefault('Id', null)
                 ->setParameterDefault('IdItem', null)
-                ->setParameterDefault('InvoiceItem', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Item/Remove',
-                __NAMESPACE__.'\Frontend::frontendInvoiceItemRemove'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Order/Item/Remove',
+                __NAMESPACE__.'\Frontend::frontendOrderItemRemove'
             )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Address/Select',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Order/Address/Select',
                 __NAMESPACE__.'\Frontend::frontendInvoiceAddressSelect'
             )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Address/Change',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Order/Address/Change',
                 __NAMESPACE__.'\Frontend::frontendInvoiceAddressChange'
             )->setParameterDefault('Id', null)
                 ->setParameterDefault('AddressId', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Payment/Type/Select',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Order/Payment/Type/Select',
                 __NAMESPACE__.'\Frontend::frontendInvoicePaymentTypeSelect'
             )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(                               // ToDo Change Account! not PaymentType
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/PaymentType/Change',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Order/PaymentType/Change',
                 __NAMESPACE__.'\Frontend::frontendInvoicePaymentTypeChange'
             )->setParameterDefault('Id', null)
                 ->setParameterDefault('PaymentType', null)

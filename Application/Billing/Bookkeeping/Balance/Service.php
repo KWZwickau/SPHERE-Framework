@@ -114,6 +114,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblBalance $tblBalance
+     * @param TblInvoice $tblInvoice
+     *
+     * @return bool
+     */
+    public function copyBalance(TblBalance $tblBalance, TblInvoice $tblInvoice)
+    {
+
+        return (new Data($this->getBinding()))->copyBalance($tblBalance, $tblInvoice);
+    }
+
+    /**
      * @return bool|TblInvoice[]
      */
     public function getInvoiceHasFullPaymentAll()

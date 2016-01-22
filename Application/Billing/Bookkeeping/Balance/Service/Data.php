@@ -261,6 +261,36 @@ class Data extends AbstractData
         return false;
     }
 
+    public function copyBalance(TblBalance $tblBalance, TblInvoice $tblInvoice)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblBalance')->findOneBy(array(
+            TblBalance::ATTR_SERVICE_BILLING_BANKING => $tblBalance->getServiceBillingBanking()->getId(),
+            TblBalance::ATTR_SERVICE_BILLING_INVOICE => $tblInvoice->getId()
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblBalance();
+            $Entity->setServiceBillingBanking($tblBalance->getServiceBillingBanking());
+            $Entity->setServiceBillingInvoice($tblInvoice);
+            $Entity->setExportDate(new \DateTime($tblBalance->getExportDate()));
+            $Entity->setBankName($tblBalance->getBankName());
+            $Entity->setIBAN($tblBalance->getIBAN());
+            $Entity->setBIC($tblBalance->getBIC());
+            $Entity->setOwner($tblBalance->getOwner());
+            $Entity->setCashSign($tblBalance->getCashSign());
+            $Entity->setReference($tblBalance->getReference());
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * @param TblBalance $tblBalance
      *
