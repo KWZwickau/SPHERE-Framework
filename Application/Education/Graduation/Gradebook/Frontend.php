@@ -589,6 +589,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $grades = array();
         $rowList = array();
+        $errorRowList = array();
 
         $tblYear = $tblDivision->getServiceTblYear();
         $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
@@ -689,6 +690,11 @@ class Frontend extends Extension implements IFrontendInterface
                         null,
                         $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                     );
+                    if (is_array($totalAverage)) {
+                        $errorRowList = $totalAverage;
+                        $totalAverage = '';
+                    }
+
                     $columnList[] = new LayoutColumn(
                         new Container($tblPerson->getLastFirstName() . ' ' . new Bold('&#216; ' . $totalAverage))
                         , 2);
@@ -741,6 +747,11 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblPeriod,
                             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                         );
+                        if (is_array($average)) {
+                            $errorRowList = $average;
+                            $average = '';
+                        }
+
                         $columnSubList[] = new LayoutColumn(new Container(new Bold($average)), 1);
 
                         $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
@@ -773,7 +784,8 @@ class Frontend extends Extension implements IFrontendInterface
                             Panel::PANEL_TYPE_INFO
                         ), 6),
                     )),
-                ))
+                )),
+                (!empty($errorRowList) ? new LayoutGroup($errorRowList) : null)
             ))
             . new Layout(new LayoutGroup($rowList))
         );

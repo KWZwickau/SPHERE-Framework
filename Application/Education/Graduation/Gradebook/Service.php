@@ -32,6 +32,8 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -756,7 +758,7 @@ class Service extends AbstractService
      * @param TblScoreRule $tblScoreRule
      * @param TblPeriod|null $tblPeriod
      * @param TblSubjectGroup|null $tblSubjectGroup
-     * @return bool|float
+     * @return bool|float|string|array
      */
     public function calcStudentGrade(
         TblPerson $tblPerson,
@@ -832,18 +834,21 @@ class Service extends AbstractService
                 }
             }
 
+            $error = array();
             foreach ($tblGradeList as $tblGrade) {
                 if ($tblScoreCondition) {
                     /** @var TblScoreCondition $tblScoreCondition */
                     if (($tblScoreConditionGroupListByCondition
                         = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition))
                     ) {
+                        $hasfoundGradeType = false;
                         foreach ($tblScoreConditionGroupListByCondition as $tblScoreGroup) {
                             if (($tblScoreGroupGradeTypeListByGroup
                                 = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup->getTblScoreGroup()))
                             ) {
                                 foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeTypeList) {
                                     if ($tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()) {
+                                        $hasfoundGradeType = true;
                                         if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
                                             $count++;
                                             $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Value']
@@ -851,9 +856,23 @@ class Service extends AbstractService
                                             $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Multiplier']
                                                 = floatval($tblScoreGroupGradeTypeList->getMultiplier());
                                         }
+
+                                        break;
                                     }
                                 }
                             }
+                        }
+
+                        if (!$hasfoundGradeType && $tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                            $error[$tblGrade->getTblGradeType()->getId()] =
+                                new LayoutRow(
+                                    new LayoutColumn(
+                                        new Warning('Der Zensuren-Typ: ' . $tblGrade->getTblGradeType()->getName()
+                                            . ' ist nicht in der Berechnungsvariante: ' . $tblScoreCondition->getName() . ' hinterlegt.',
+                                            new Ban()
+                                        )
+                                    )
+                                );
                         }
                     }
                 } else {
@@ -863,6 +882,9 @@ class Service extends AbstractService
                         $sum = $sum + floatval($tblGrade->getGrade());
                     }
                 }
+            }
+            if (!empty($error)) {
+                return $error;
             }
 
             if (!$tblScoreCondition) {

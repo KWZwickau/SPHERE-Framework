@@ -876,6 +876,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $studentList = array();
+        $errorRowList = array();
 
         if ($tblDivisionSubject->getTblSubjectGroup()) {
             $tblSubjectStudentAllByDivisionSubject = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
@@ -892,6 +893,11 @@ class Frontend extends Extension implements IFrontendInterface
                             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                             $tblScoreRule ? $tblScoreRule : null
                         );
+
+                        if (is_array($average)) {
+                            $errorRowList = $average;
+                            $average = ' ';
+                        }
                     } else {
                         $average = false;
                     }
@@ -918,6 +924,10 @@ class Frontend extends Extension implements IFrontendInterface
                             Evaluation::useService()->getTestTypeByIdentifier('TEST'),
                             $tblScoreRule ? $tblScoreRule : null
                         );
+                        if (is_array($average)) {
+                            $errorRowList = $average;
+                            $average = ' ';
+                        }
                     } else {
                         $average = false;
                     }
@@ -988,7 +998,6 @@ class Frontend extends Extension implements IFrontendInterface
                                             }
                                         }
 
-
                                         $average = Gradebook::useService()->calcStudentGrade(
                                             $tblPerson,
                                             $tblDivision,
@@ -997,6 +1006,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             $tblScoreRule ? $tblScoreRule : null,
                                             $tblPeriod
                                         );
+                                        if (is_array($average)) {
+                                            $errorRowList = $average;
+                                            $average = ' ';
+                                        }
                                         if ($average) {
                                             $studentList[$tblPerson->getId()]['Period' . $tblPeriod->getId()]
                                                 .= '&nbsp;&nbsp;&nbsp;' . new Bold('&#216; ' . $average);
@@ -1069,6 +1082,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     ))
                 )),
+                (!empty($errorRowList) ? new LayoutGroup($errorRowList) : null),
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
