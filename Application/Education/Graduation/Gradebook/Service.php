@@ -27,13 +27,16 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -291,23 +294,29 @@ class Service extends AbstractService
             return $Stage;
         }
 
-        $error = false;
         // check if grade is in grade range
-        if($minRange !== null && $maxRange !== null && !empty($Grade)){
+        if ($minRange !== null && $maxRange !== null && !empty($Grade)) {
+            $error = false;
             foreach ($Grade as $personId => $value) {
                 $gradeValue = trim($value['Grade']);
                 if (!isset($value['Attendance']) && $gradeValue !== '') {
                     if ($gradeValue < $minRange || $gradeValue > $maxRange) {
-                        $Stage->setError('Grade[' . $personId . '][Grade]', 'Bitte geben sie eine Zahl zwischen '
-                            . $minRange . ' und ' . $maxRange . ' ein.');
                         $error = true;
+                        break;
                     }
                 }
             }
-        }
-        Debugger::screenDump($error);
-        if ($error){
-            return $Stage;
+
+            if ($error) {
+                $Stage->prependGridGroup(
+                    new FormGroup(new FormRow(new FormColumn(new Danger(
+                            'Nicht alle eingebenen Zensuren befinden sich im Wertebereich.
+                        Bitte geben sie für die Zensuren eine Zahl zwischen ' . $minRange . ' und ' . $maxRange . ' ein.
+                        Die Daten wurden nicht gespeichert.', new Exclamation())
+                    ))));
+
+                return $Stage;
+            }
         }
 
         $tblTest = Evaluation::useService()->getTestById($TestId);
