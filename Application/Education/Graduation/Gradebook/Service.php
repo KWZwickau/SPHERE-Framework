@@ -33,6 +33,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -264,6 +265,8 @@ class Service extends AbstractService
      * @param                     $Grade
      * @param string $BasicRoute
      * @param bool $IsEdit
+     * @param null|int $minRange
+     * @param null|int $maxRange
      *
      * @return IFormInterface|Redirect
      */
@@ -272,7 +275,9 @@ class Service extends AbstractService
         $TestId = null,
         $Grade = null,
         $BasicRoute,
-        $IsEdit
+        $IsEdit,
+        $minRange = null,
+        $maxRange = null
     ) {
 
         /**
@@ -283,6 +288,25 @@ class Service extends AbstractService
         }
         $Global = $this->getGlobal();
         if (!isset($Global->POST['Button']['Submit'])) {
+            return $Stage;
+        }
+
+        $error = false;
+        // check if grade is in grade range
+        if($minRange !== null && $maxRange !== null && !empty($Grade)){
+            foreach ($Grade as $personId => $value) {
+                $gradeValue = trim($value['Grade']);
+                if (!isset($value['Attendance']) && $gradeValue !== '') {
+                    if ($gradeValue < $minRange || $gradeValue > $maxRange) {
+                        $Stage->setError('Grade[' . $personId . '][Grade]', 'Bitte geben sie eine Zahl zwischen '
+                            . $minRange . ' und ' . $maxRange . ' ein.');
+                        $error = true;
+                    }
+                }
+            }
+        }
+        Debugger::screenDump($error);
+        if ($error){
             return $Stage;
         }
 

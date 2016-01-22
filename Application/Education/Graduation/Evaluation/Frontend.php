@@ -821,6 +821,8 @@ class Frontend extends Extension implements IFrontendInterface
         /*
          * set grade mirror
          */
+        $minRange = null;
+        $maxRange = null;
         if ($tblScoreType) {
             $gradeMirror = array();
             $gradeMirror[] = new Bold('Bewertungssystem: ' . $tblScoreType->getName());
@@ -963,10 +965,19 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tableColumns['Period' . $tblPeriod->getId()] = $tblPeriod->getName();
                                         foreach ($tblGrades as $tblGrade) {
                                             $tblGradeType = $tblGrade->getTblGradeType();
+
+                                            $gradeValue = $tblGrade->getGrade();
+                                            $trend = $tblGrade->getTrend();
+                                            if (TblGrade::VALUE_TREND_PLUS === $trend) {
+                                                $gradeValue .= '+';
+                                            } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
+                                                $gradeValue .= '-';
+                                            }
+
                                             $grade = $tblGrade->getGrade()
                                                 ? ($tblGradeType->isHighlighted()
-                                                    ? new Bold($tblGrade->getGrade() . ' (' . $tblGradeType->getCode() . ')')
-                                                    : $tblGrade->getGrade() . ' (' . $tblGradeType->getCode() . ')')
+                                                    ? new Bold($gradeValue . ' (' . $tblGradeType->getCode() . ')')
+                                                    : $gradeValue . ' (' . $tblGradeType->getCode() . ')')
                                                 : '';
 
                                             if (isset($studentList[$tblPerson->getId()]['Period' . $tblPeriod->getId()])) {
@@ -1071,7 +1082,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         ),
                                     ))
                                     , new Primary('Speichern', new Save()))
-                                , $tblTest->getId(), $Grade, $BasicRoute, $IsEdit
+                                , $tblTest->getId(), $Grade, $BasicRoute, $IsEdit, $minRange, $maxRange
                             )
                         )
                     ))
@@ -1669,9 +1680,16 @@ class Frontend extends Extension implements IFrontendInterface
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
         if ($tblGrade) {
+            $gradeValue = $tblGrade->getGrade();
+            $trend = $tblGrade->getTrend();
+            if (TblGrade::VALUE_TREND_PLUS === $trend) {
+                $gradeValue .= '+';
+            } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
+                $gradeValue .= '-';
+            }
             $studentList[$tblDivision->getId()][$tblPerson->getId()]
             ['Subject' . $tblSubject->getId()] = $tblGrade->getGrade() !== null ?
-                $tblGrade->getGrade() : '';
+                $gradeValue : '';
             return $studentList;
         } else {
             $studentList[$tblDivision->getId()][$tblPerson->getId()]

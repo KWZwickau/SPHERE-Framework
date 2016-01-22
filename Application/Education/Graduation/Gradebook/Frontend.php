@@ -700,10 +700,17 @@ class Frontend extends Extension implements IFrontendInterface
                                 /** @var TblGrade $grade */
                                 if ($gradeList) {
                                     foreach ($gradeList as $grade) {
+                                        $gradeValue = $grade->getGrade();
+                                        $trend = $grade->getTrend();
+                                        if (TblGrade::VALUE_TREND_PLUS === $trend) {
+                                            $gradeValue .= '+';
+                                        } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
+                                            $gradeValue .= '-';
+                                        }
                                         if ($testId === $grade->getServiceTblTest()->getId()) {
                                             $columnSubList[] = new LayoutColumn(
                                                 new Container($grade->getTblGradeType()->isHighlighted()
-                                                    ? new Bold($grade->getGrade()) : $grade->getGrade())
+                                                    ? new Bold($gradeValue) : $gradeValue)
                                                 , 1);
                                             $hasFound = true;
                                             break;
@@ -940,7 +947,16 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $subColumnList = array();
                                                 if ($tblGradeList) {
                                                     foreach ($tblGradeList as $tblGrade) {
-                                                        $subColumnList[] = new LayoutColumn($tblGrade->getGrade() ? $tblGrade->getGrade() : ' ',
+                                                        $gradeValue = $tblGrade->getGrade();
+                                                        if ($gradeValue) {
+                                                            $trend = $tblGrade->getTrend();
+                                                            if (TblGrade::VALUE_TREND_PLUS === $trend) {
+                                                                $gradeValue .= '+';
+                                                            } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
+                                                                $gradeValue .= '-';
+                                                            }
+                                                        }
+                                                        $subColumnList[] = new LayoutColumn($tblGrade->getGrade() ? $gradeValue : ' ',
                                                             1);
                                                     }
                                                 }
@@ -973,7 +989,16 @@ class Frontend extends Extension implements IFrontendInterface
                                                         $subColumnList = array();
                                                         if ($tblGradeList) {
                                                             foreach ($tblGradeList as $tblGrade) {
-                                                                $subColumnList[] = new LayoutColumn($tblGrade->getGrade() ? $tblGrade->getGrade() : ' ',
+                                                                $gradeValue = $tblGrade->getGrade();
+                                                                if ($gradeValue) {
+                                                                    $trend = $tblGrade->getTrend();
+                                                                    if (TblGrade::VALUE_TREND_PLUS === $trend) {
+                                                                        $gradeValue .= '+';
+                                                                    } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
+                                                                        $gradeValue .= '-';
+                                                                    }
+                                                                }
+                                                                $subColumnList[] = new LayoutColumn($tblGrade->getGrade() ? $gradeValue : ' ',
                                                                     1);
                                                             }
                                                         }
