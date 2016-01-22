@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Lesson\Division;
 
 use SPHERE\Application\Education\Lesson\Division\Service\Data;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionCustody;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
@@ -255,6 +256,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson   $tblPerson
+     *
+     * @return bool|TblDivisionCustody
+     */
+    public function getDivisionCustodyByDivisionAndPerson(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionCustodyByDivisionAndPerson($tblDivision, $tblPerson);
+    }
+
+    /**
      * @param TblYear  $tblYear
      * @param TblLevel $tblLevel
      * @param string   $Name
@@ -321,6 +334,18 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->removeTeacherToDivision($tblDivision, $tblPerson);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson   $tblPerson
+     *
+     * @return bool
+     */
+    public function removePersonToDivision(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->removePersonToDivision($tblDivision, $tblPerson);
     }
 
     /**
@@ -397,6 +422,20 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->addDivisionTeacher($tblDivision, $tblPerson, $Description);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson   $tblPerson
+     * @param             $Description
+     *
+     * @return null|TblDivisionCustody
+     */
+    public function addDivisionCustody(TblDivision $tblDivision, TblPerson $tblPerson, $Description)
+    {
+
+        return (new Data($this->getBinding()))->addDivisionCustody($tblDivision, $tblPerson, $Description);
+
     }
 
     /**
@@ -686,7 +725,7 @@ class Service extends AbstractService
         if (isset( $Division['Name'] ) && empty( $Division['Name'] ) &&
             $tblDivision = Division::useService()->getDivisionById($Id)->getTblLevel() === false
         ) {
-            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');    //ToDo Anzeige erscheint nicht!
+            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
             $Error = true;
         }
 //        else {
@@ -906,6 +945,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getTeacherAllByDivision($tblDivision);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getCuscodyAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getCuscodyAllByDivision($tblDivision);
     }
 
     /**

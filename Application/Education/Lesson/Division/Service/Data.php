@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\Lesson\Division\Service;
 
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionCustody;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionSubject;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionTeacher;
@@ -353,6 +354,23 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson   $tblPerson
+     *
+     * @return bool|TblDivisionCustody
+     */
+    public function getDivisionCustodyByDivisionAndPerson(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+
+        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionCustody',
+            array(
+                TblDivisionCustody::ATTR_TBL_DIVISION       => $tblDivision->getId(),
+                TblDivisionCustody::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            ));
+        return ( $Entity ? $Entity : false );
+    }
+
+    /**
      * @param string $Name
      * @param string $Description
      *
@@ -465,6 +483,28 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getCuscodyAllByDivision(TblDivision $tblDivision)
+    {
+
+        $TempList = $this->getConnection()->getEntityManager()->getEntity('TblDivisionCustody')->findBy(array(
+            TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId()
+        ));
+        $EntityList = array();
+
+        if (!empty ( $TempList )) {
+            /** @var TblDivisionCustody $tblDivisionCustody */
+            foreach ($TempList as $tblDivisionCustody) {
+                array_push($EntityList, $tblDivisionCustody->getServiceTblPerson());
+            }
+        }
+        return empty( $EntityList ) ? false : $EntityList;
+    }
+
+    /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
      * @return bool|TblSubjectTeacher[]
@@ -553,6 +593,33 @@ class Data extends AbstractData
             ));
         if (null === $Entity) {
             $Entity = new TblDivisionTeacher();
+            $Entity->setTblDivision($tblDivision);
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson   $tblPerson
+     * @param             $Description
+     *
+     * @return null|object|TblDivisionCustody
+     */
+    public function addDivisionCustody(TblDivision $tblDivision, TblPerson $tblPerson, $Description)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblDivisionCustody')
+            ->findOneBy(array(
+                TblDivisionCustody::ATTR_TBL_DIVISION       => $tblDivision->getId(),
+                TblDivisionCustody::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        if (null === $Entity) {
+            $Entity = new TblDivisionCustody();
             $Entity->setTblDivision($tblDivision);
             $Entity->setServiceTblPerson($tblPerson);
             $Entity->setDescription($Description);
@@ -690,6 +757,29 @@ class Data extends AbstractData
             ->findOneBy(array(
                 TblDivisionTeacher::ATTR_TBL_DIVISION       => $tblDivision->getId(),
                 TblDivisionTeacher::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblPerson   $tblPerson
+     *
+     * @return bool
+     */
+    public function removePersonToDivision(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblDivisionCustody')
+            ->findOneBy(array(
+                TblDivisionCustody::ATTR_TBL_DIVISION       => $tblDivision->getId(),
+                TblDivisionCustody::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null !== $Entity) {
             $Manager->killEntity($Entity);

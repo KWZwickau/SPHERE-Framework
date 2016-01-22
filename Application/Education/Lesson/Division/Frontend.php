@@ -645,6 +645,151 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param      $Id
+     * @param null $PersonId
+     * @param null $Remove
+     * @param null $Description
+     *
+     * @return Stage
+     */
+    public function frontendCustodyAdd($Id, $PersonId = null, $Remove = null, $Description = null)
+    {
+
+        $tblDivision = Division::useService()->getDivisionById($Id);
+        if ($tblDivision) {
+
+            $Title = 'der Klasse '.new Bold($tblDivision->getDisplayName());
+
+            $Stage = new Stage('Elternvertreter', $Title);
+            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
+                array('Id' => $tblDivision->getId())));
+
+            if ($tblDivision && null !== $PersonId && ( $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($PersonId) )) {
+                if ($Remove) {
+                    Division::useService()->removePersonToDivision($tblDivision, $tblPerson);
+                    $Stage->setContent(
+                        new Success('Elternvertreter erfolgreich entfernt')
+                        .new Redirect('/Education/Lesson/Division/Custody/Add', Redirect::TIMEOUT_SUCCESS,
+                            array('Id' => $Id))
+                    );
+                    return $Stage;
+                } else {
+                    Division::useService()->addDivisionCustody($tblDivision, $tblPerson, $Description);
+                    $Stage->setContent(
+                        new Success('Elternvertreter erfolgreich hinzugefügt')
+                        .new Redirect('/Education/Lesson/Division/Custody/Add', Redirect::TIMEOUT_SUCCESS,
+                            array('Id' => $Id))
+                    );
+                    return $Stage;
+                }
+            }
+            $tblGroup = Group::useService()->getGroupByMetaTable('CUSTODY');
+            if ($tblGroup) {
+                $tblDivisionGuardianAll = Group::useService()->getPersonAllByGroup($tblGroup);
+            } else {
+                $tblDivisionGuardianAll = false;
+            }
+            $tblDivisionGuardianActive = Division::useService()->getCuscodyAllByDivision($tblDivision);
+
+            if (is_array($tblDivisionGuardianActive) && is_array($tblDivisionGuardianAll)) {
+                $tblGuardianAvailable = array_udiff($tblDivisionGuardianAll, $tblDivisionGuardianActive,
+                    function (TblPerson $ObjectA, TblPerson $ObjectB) {
+
+                        return $ObjectA->getId() - $ObjectB->getId();
+                    }
+                );
+            } else {
+                $tblGuardianAvailable = $tblDivisionGuardianAll;
+            }
+
+            /** @noinspection PhpUnusedParameterInspection */
+            if (is_array($tblDivisionGuardianActive)) {
+                array_walk($tblDivisionGuardianActive, function (TblPerson &$Entity) use ($Id, $tblDivision) {
+
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $Entity->Option = new PullRight(
+                        new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
+                            '/Education/Lesson/Division/Custody/Add', new Minus(),
+                            array(
+                                'Id'       => $Id,
+                                'PersonId' => $Entity->getId(),
+                                'Remove'   => true
+                            ))
+                    );
+                    $Entity->Description = Division::useService()->getDivisionCustodyByDivisionAndPerson($tblDivision,
+                        $Entity)->getDescription();
+                });
+            }
+
+            /** @noinspection PhpUnusedParameterInspection */
+            if (isset( $tblDivisionGuardianAll ) && !empty( $tblDivisionGuardianAll )) {
+                array_walk($tblDivisionGuardianAll, function (TblPerson &$Entity) use ($Id) {
+
+                    $Entity->Options = (new Form(
+                        new FormGroup(
+                            new FormRow(array(
+                                new FormColumn(
+                                    new TextField('Description', 'z.B.: Stellvertreter', '', new Person()
+                                    )
+                                    , 7),
+                                new FormColumn(
+                                    new Primary('Hinzufügen',
+                                        new Plus())
+                                    , 5)
+                            ))
+                        ), null,
+                        '/Education/Lesson/Division/Custody/Add',
+                        array(
+                            'Id'       => $Id,
+                            'PersonId' => $Entity->getId()
+                        )
+                    ))->__toString();
+                });
+            }
+
+            $Stage->setContent(
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Title('Ausgewählt', 'Elternvertreter'),
+                                ( empty( $tblDivisionGuardianActive )
+                                    ? new Warning('Keine Elternvertreter zugewiesen')
+                                    : new TableData($tblDivisionGuardianActive, null,
+                                        array(
+                                            'FirstName'   => 'Vorname',
+                                            'LastName'    => 'Nachname',
+                                            'Description' => 'Beschreibung',
+                                            'Option'      => ''
+                                        ))
+                                )
+                            ), 6),
+                            new LayoutColumn(array(
+                                new Title('Verfügbar', 'Elternvertreter'),
+                                ( empty( $tblGuardianAvailable )
+                                    ? new Info('Keine weiteren Elternvertreter verfügbar')
+                                    : new TableData($tblGuardianAvailable, null,
+                                        array(
+                                            'FirstName' => 'Vorname',
+                                            'LastName'  => 'Nachname',
+                                            'Options'   => 'Beschreibung'
+                                        ))
+                                )
+                            ), 6)
+                        ))
+                    )
+                )
+            );
+
+        } else {
+            $Stage = new Stage('Elternvertreter', 'hinzufügen');
+            $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
+            $Stage->setContent(new Warning('Klasse nicht gefunden'));
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param      $Id
      * @param null $Subject
      * @param null $Remove
      *
@@ -1331,7 +1476,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Well(
-                                Division::useService()->changeDivision($this->formDivision()
+                                Division::useService()->changeDivision(
+                                    $this->formDivision()
                                     ->appendFormButton(new Primary('Speichern', new Save()))
                                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                     , $Division, $Id))
@@ -1354,12 +1500,12 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(
                 new FormRow(array(
                         new FormColumn(new Panel('Gruppe',
-                            new TextField('Division[Name]', 'zb: Alpha', 'Gruppenname',
-                                new Pencil())
+                            array(new TextField('Division[Name]', 'zb: Alpha', 'Gruppenname',
+                                new Pencil()))
                         ), 6),
                         new FormColumn(new Panel('Sonstiges',
-                            new TextField('Division[Description]', 'zb: für Fortgeschrittene', 'Beschreibung',
-                                new Pencil())
+                            array(new TextField('Division[Description]', 'zb: für Fortgeschrittene', 'Beschreibung',
+                                new Pencil()))
                         ), 6)
                     )
                 )
@@ -1385,6 +1531,8 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->addButton(new Standard('Fächer', '/Education/Lesson/Division/Subject/Add',
                 new Book(), array('Id' => $tblDivision->getId()), 'Auswählen'));
             $Stage->addButton(new Standard('Klassenlehrer', '/Education/Lesson/Division/Teacher/Add',
+                new Person(), array('Id' => $tblDivision->getId()), 'Auswählen'));
+            $Stage->addButton(new Standard('Elternvertreter', '/Education/Lesson/Division/Custody/Add',
                 new Person(), array('Id' => $tblDivision->getId()), 'Auswählen'));
             $Stage->addButton(new Standard('Schüler', '/Education/Lesson/Division/Student/Add',
                 new \SPHERE\Common\Frontend\Icon\Repository\Group(), array('Id' => $tblDivision->getId()), 'Auswählen'));
@@ -1448,6 +1596,19 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPersonList = new Panel('Klassenlehrer', $TeacherList, Panel::PANEL_TYPE_INFO);
             } else {
                 $tblPersonList = new Warning('Kein Klassenlehrer festgelegt');
+            }
+            $tblCostodyList = Division::useService()->getCuscodyAllByDivision($tblDivision);
+            if ($tblCostodyList) {
+                $CostodyList = array();
+                /** @var TblPerson $tblPerson */
+                foreach ($tblCostodyList as &$tblPerson) {
+                    $Description = Division::useService()->getDivisionCustodyByDivisionAndPerson($tblDivision,
+                        $tblPerson)->getDescription();
+                    $CostodyList[] = $tblPerson->getFullName().' '.new Muted($Description);
+                }
+                $tblCostodyList = new Panel('Elternvertreter', $CostodyList, Panel::PANEL_TYPE_INFO);
+            } else {
+                $tblCostodyList = new Warning('Kein Elternvertreter festgelegt');
             }
             $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
 
@@ -1595,7 +1756,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     : new Warning('Keine Schüer der Klasse zugewiesen') )
                             ,
                             ), 6),
-                            new LayoutColumn($tblPersonList, 5)
+                            new LayoutColumn($tblPersonList, 5),
+                            new LayoutColumn($tblCostodyList, 5)
                         )), new Title($TitleClass)
                     )
                 ).
