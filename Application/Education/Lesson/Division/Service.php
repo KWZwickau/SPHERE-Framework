@@ -105,7 +105,7 @@ class Service extends AbstractService
         }
 
         // Group
-        if (isset( $Division['Name'] ) && empty( $Division['Name'] )) {
+        if (isset( $Division['Name'] ) && empty( $Division['Name'] ) && isset( $Level['Check'] )) {
             $Form->setError('Division[Name]', 'Bitte geben Sie eine Klassengruppe an');
             $Error = true;
         }
@@ -683,10 +683,13 @@ class Service extends AbstractService
 
         $Error = false;
 
-//        if (isset( $Division['Name'] ) && empty( $Division['Name'] )) {
-//            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
-//            $Error = true;
-//        } else {
+        if (isset( $Division['Name'] ) && empty( $Division['Name'] ) &&
+            $tblDivision = Division::useService()->getDivisionById($Id)->getTblLevel() === false
+        ) {
+            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');    //ToDo Anzeige erscheint nicht!
+            $Error = true;
+        }
+//        else {
 //            $tblDivisionTest =
 //                Division::useService()->getDivisionByGroupAndLevelAndYear($Division['Name'], $Division['Level'], $Division['Year']);
 //            if ($tblDivisionTest) {
@@ -701,7 +704,7 @@ class Service extends AbstractService
 //                $tblYear = Term::useService()->getYearById($Division['Year']);
 //                $tblLevel = $this->getLevelById($Division['Level']);
                 if ((new Data($this->getBinding()))->updateDivision(
-                    $tblDivision, $Division['Description']
+                    $tblDivision, $Division['Name'], $Division['Description']
                 )
                 ) {
                     return new Success('Die Beschreibung wurde erfolgreich geändert')

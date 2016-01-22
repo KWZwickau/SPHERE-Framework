@@ -844,11 +844,12 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
+     * @param             $Name
      * @param string      $Description
      *
      * @return bool
      */
-    public function updateDivision(TblDivision $tblDivision, $Description = '')
+    public function updateDivision(TblDivision $tblDivision, $Name, $Description = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -857,6 +858,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblDivision', $tblDivision->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
+            $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),

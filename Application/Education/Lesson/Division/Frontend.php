@@ -1284,7 +1284,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (!isset( $Global->POST['Id'] ) && $tblDivision) {
 //            $Global->POST['Division']['Year'] = $tblDivision->getServiceTblYear()->getId();
 //            $Global->POST['Division']['Level'] = $tblDivision->getTblLevel()->getId();
-//            $Global->POST['Division']['Name'] = $tblDivision->getName();
+            $Global->POST['Division']['Name'] = $tblDivision->getName();
             $Global->POST['Division']['Description'] = $tblDivision->getDescription();
             $Global->savePost();
         }
@@ -1352,10 +1352,15 @@ class Frontend extends Extension implements IFrontendInterface
 
         return new Form(
             new FormGroup(
-                new FormRow(
-                    new FormColumn(
-                        new TextField('Division[Description]', 'zb: für Fortgeschrittene', 'Beschreibung',
-                            new Pencil())
+                new FormRow(array(
+                        new FormColumn(new Panel('Gruppe',
+                            new TextField('Division[Name]', 'zb: Alpha', 'Gruppenname',
+                                new Pencil())
+                        ), 6),
+                        new FormColumn(new Panel('Sonstiges',
+                            new TextField('Division[Description]', 'zb: für Fortgeschrittene', 'Beschreibung',
+                                new Pencil())
+                        ), 6)
                     )
                 )
             )
