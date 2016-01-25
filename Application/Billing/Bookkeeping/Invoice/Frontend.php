@@ -50,6 +50,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -96,7 +97,7 @@ class Frontend extends Extension implements IFrontendInterface
                 } else {
                     if (Balance::useService()->getBalanceByInvoice($tblInvoice)
                         && ( Balance::useService()->sumPriceItemByBalance(Balance::useService()->getBalanceByInvoice($tblInvoice))
-                            >= Invoice::useService()->sumPriceItemAllByInvoice($tblInvoice) )
+                            >= Invoice::useService()->sumPriceItemAllByInvoice($tblInvoice) && $tblInvoice->isVoid() === false )
                     ) {
                         $Temp['IsPaidString'] = "Bezahlt";
                     } else {
@@ -556,7 +557,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Rechnung');
         $Stage->setDescription('Anzeigen');
-        $Stage->addButton(new Primary('Zurück', '/Billing/Bookkeeping/Invoice', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice', new ChevronLeft()));
 
 
         $tblInvoice = Invoice::useService()->getInvoiceById($Id);
@@ -564,7 +565,9 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblInvoice->isVoid()) {
             $Stage->setMessage(new \SPHERE\Common\Frontend\Message\Repository\Danger("Diese Rechnung wurde storniert"));
         } else {
-            $Stage->addButton(new Danger('Stornieren', '/Billing/Bookkeeping/Invoice/Cancel', new Remove(), array('Id' => $Id)));
+            $Stage->addButton(new Standard('Artikel Stornieren', '/Billing/Bookkeeping/Invoice/Cancel', new Remove(), array('Id' => $Id)));
+            $Stage->addButton(new Danger('Komplett Stornieren', '/Billing/Bookkeeping/Invoice/Cancel', new Remove(), array('Id'     => $Id,
+                                                                                                                           'Storno' => true)));
         }
 
         $tblInvoiceItemAll = Invoice::useService()->getInvoiceItemAllByInvoice($tblInvoice);
@@ -632,12 +635,12 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         new LayoutColumn(
                             new Panel('Rechnungsdatum', $tblInvoice->getInvoiceDate(),
-                                $tblInvoice->isPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
+                                $tblInvoice->getPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                             3
                         ),
                         new LayoutColumn(
                             new Panel('Zahlungsdatum', $tblInvoice->getPaymentDate(),
-                                $tblInvoice->isPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
+                                $tblInvoice->getPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                             3
                         ),
                     )),
@@ -761,19 +764,65 @@ class Frontend extends Extension implements IFrontendInterface
 
 
     /**
-     * @param $Id
+     * @param      $Id
+     * @param null $Storno
      *
      * @return Stage
      */
-    public function frontendInvoiceCancel($Id)
+    public function frontendInvoiceCancel($Id, $Storno = null)
     {
 
         $Stage = new Stage();
         $Stage->setTitle('Rechnung');
-        $Stage->setDescription('Stornieren');
-        $tblInvoice = Invoice::useService()->getInvoiceById($Id);
+        $Stage->setDescription('Artikel Stornieren');
+        $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice/Show', new ChevronLeft(), array('Id' => $Id)));
+        if ($Storno !== null) {
+            $tblInvoice = Invoice::useService()->getInvoiceById($Id);
+            if ($tblInvoice) {
+                $Stage->setContent(Invoice::useService()->cancelInvoice($tblInvoice));
+            } else {
+                $Stage->setContent(new Warning('Rechnung nicht gefunden').new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR));
+            }
+            return $Stage;
+        } else {
+            Debugger::screenDump($Id);
+            $tblInvoice = Invoice::useService()->getInvoiceById($Id);
+            if ($tblInvoice) {
+                $Stage->addButton(new Danger('Artikel Stornieren', '/Billing/Bookkeeping/Invoice/Cancel', new Remove(), array(
+                    'Id' => $Id, 'Storno' => array()
+                )));
 
-        $Stage->setContent(Invoice::useService()->cancelInvoice($tblInvoice));
+                $TableContent = array();
+                $tblInvoiceItemList = Invoice::useService()->getInvoiceItemAllByInvoice($tblInvoice);
+                array_walk($tblInvoiceItemList, function (TblInvoiceItem $tblInvoiceItem) use (&$TableContent) {
+
+                    $Temp['Name'] = $tblInvoiceItem->getItemName();
+                    $Temp['Commodity'] = $tblInvoiceItem->getCommodityName();
+                    $Temp['Price'] = $tblInvoiceItem->getPriceString();
+                    $Temp['Quantity'] = $tblInvoiceItem->getItemQuantity();
+                    $Temp['Summary'] = $tblInvoiceItem->getTotalPriceString();
+                    array_push($TableContent, $Temp);
+                });
+                $Stage->setContent(
+                    new Layout(
+                        new LayoutGroup(
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    new TableData($TableContent, null, array(
+                                        'Name'      => 'Name',
+                                        'Commodity' => 'Leistung',
+                                        'Price'     => 'Preis',
+                                        'Quantity'  => 'Anzahl',
+                                        'Summary'   => 'Gesamt',
+                                    ))
+                                )
+                            )
+                        )
+                    )
+                );
+            }
+        }
+
 
         return $Stage;
     }

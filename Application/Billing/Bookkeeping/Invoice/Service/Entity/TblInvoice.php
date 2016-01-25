@@ -92,7 +92,7 @@ class TblInvoice extends Element
     /**
      * @return boolean
      */
-    public function isPaymentDateModified()
+    public function getPaymentDateModified()
     {
 
         return $this->IsPaymentDateModified;

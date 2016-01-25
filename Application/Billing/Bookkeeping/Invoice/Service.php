@@ -24,7 +24,6 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -286,6 +285,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblInvoiceItem $tblInvoiceItem
+     * @param TblInvoice     $tblInvoiceCopy
+     *
+     * @return TblInvoiceItem
+     */
+    public function createInvoiceItemCopy(TblInvoiceItem $tblInvoiceItem, TblInvoice $tblInvoiceCopy)
+    {
+
+        return (new Data($this->getBinding()))->createInvoiceItemCopy($tblInvoiceItem, $tblInvoiceCopy);
+    }
+
+    /**
      * @return mixed
      */
     public function getOrderAll()
@@ -307,7 +318,6 @@ class Service extends AbstractService
         if (!empty( $tblOrderItemList )) {
             if ($tblInvoice = (new Data($this->getBinding()))->createInvoice($tblOrder)) {
 
-                Debugger::screenDump($tblInvoice);
                 foreach ($tblOrderItemList as $tblOrderItem) {
                     Invoice::useService()->createInvoiceItem($tblOrderItem, $tblInvoice);
                 }
@@ -421,6 +431,27 @@ class Service extends AbstractService
 
     /**
      * @param TblInvoice $tblInvoice
+     *
+     * @return TblInvoice
+     */
+    public function copyInvoice(TblInvoice $tblInvoice)
+    {
+
+        $tblInvoiceCopy = (new Data($this->getBinding()))->copyInvoice($tblInvoice);
+        $tblBalance = Balance::useService()->getBalanceByInvoice($tblInvoice);
+        if ($tblBalance) {
+            Balance::useService()->copyBalance($tblBalance, $tblInvoiceCopy);
+        }
+        if ($tblInvoiceItemList = Invoice::useService()->getInvoiceItemAllByInvoice($tblInvoice)) {
+            foreach ($tblInvoiceItemList as $tblInvoiceItem) {
+                Invoice::useService()->createInvoiceItemCopy($tblInvoiceItem, $tblInvoiceCopy);
+            }
+        }
+        return $tblInvoiceCopy;
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
      * @param            $Account
      *
      * @return string
@@ -503,17 +534,19 @@ class Service extends AbstractService
         TblInvoice $tblInvoice
     ) {
 
-        if (!$tblInvoice->isConfirmed()) {
-            if ((new Data($this->getBinding()))->cancelInvoice($tblInvoice)) {
-                return new Success('Die Rechnung wurde erfolgreich storniert')
-                .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_SUCCESS);
-            } else {
-                return new Warning('Die Rechnung konnte nicht storniert werden')
-                .new Redirect('/Billing/Bookkeeping/Invoice/Show', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblInvoice->getId()));
-            }
-        } else {
-            //TODO cancel confirmed invoice
+//        if (!$tblInvoice->isConfirmed()) {
+//            if ((new Data($this->getBinding()))->cancelInvoice($tblInvoice)) {
+//                return new Success('Die Rechnung wurde erfolgreich storniert')
+//                .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_SUCCESS);
+//            } else {
+//                return new Warning('Die Rechnung konnte nicht storniert werden')
+//                .new Redirect('/Billing/Bookkeeping/Invoice/Show', Redirect::TIMEOUT_ERROR,
+//                    array('Id' => $tblInvoice->getId()));
+//            }
+//        } else {
+        //TODO cancel confirmed invoice
+
+        if (Invoice::useService()->copyInvoice($tblInvoice)) {
             if ((new Data($this->getBinding()))->cancelInvoice($tblInvoice)) {
                 return new Success('Die Rechnung wurde erfolgreich storniert')
                 .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_SUCCESS);
@@ -521,7 +554,12 @@ class Service extends AbstractService
                 return new Warning('Die Rechnung konnte nicht storniert werden')
                 .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
             }
+        } else {
+            return new Warning('Die Rechnung konnte nicht storniert werden')
+            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
         }
+
+
     }
 
     /**

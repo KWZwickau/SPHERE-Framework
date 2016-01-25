@@ -503,6 +503,34 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblInvoiceItem $tblInvoiceItem
+     * @param TblInvoice     $tblInvoiceCopy
+     *
+     * @return TblInvoiceItem
+     */
+    public function createInvoiceItemCopy(TblInvoiceItem $tblInvoiceItem, TblInvoice $tblInvoiceCopy)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblInvoiceItem();
+        $Entity->setCommodityName($tblInvoiceItem->getCommodityName());
+        $Entity->setCommodityDescription($tblInvoiceItem->getCommodityDescription());
+        $Entity->setItemName($tblInvoiceItem->getItemName());
+        $Entity->setItemPrice($tblInvoiceItem->getItemPrice() * -1);
+        $Entity->setItemQuantity($tblInvoiceItem->getItemQuantity());
+        $Entity->setItemDescription($tblInvoiceItem->getItemDescription());
+        $Entity->setTblInvoice($tblInvoiceCopy);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+            $Entity);
+
+        return $Entity;
+    }
+
+
+    /**
      * @param TblOrder $tblOrder
      *
      * @return TblInvoice
@@ -547,6 +575,44 @@ class Data extends AbstractData
         $Manager->saveEntity($Entity);
 
         $Entity->setNumber((int)$Entity->getNumber() + $Entity->getId());
+        $Manager->saveEntity($Entity);
+
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+            $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     *
+     * @return TblInvoice
+     */
+    public function copyInvoice(TblInvoice $tblInvoice)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblInvoice();
+        $Entity->setBasketName($tblInvoice->getBasketName());
+        $Entity->setDebtorFirstName($tblInvoice->getDebtorFirstName());
+        $Entity->setDebtorLastName($tblInvoice->getDebtorLastName());
+        $Entity->setDebtorNumber($tblInvoice->getDebtorNumber());
+        $Entity->setDebtorSalutation($tblInvoice->getDebtorSalutation());
+        $Entity->setDiscount($tblInvoice->getDiscount());
+        $Entity->setInvoiceDate(new \DateTime($tblInvoice->getInvoiceDate()));
+        $Entity->setNumber($tblInvoice->getNumber());
+        $Entity->setPaid(false);
+        $Entity->setVoid(true);
+        $Entity->setPaymentDate(new \DateTime($tblInvoice->getPaymentDate()));
+        $Entity->setServiceBillingBankingPaymentType($tblInvoice->getServiceBillingBankingPaymentType());
+        $Entity->setServiceManagementPerson($tblInvoice->getServiceManagementPerson());
+        $Entity->setServiceManagementAddress($tblInvoice->getServiceManagementAddress());
+
+        $Entity->setInvoiceDate(new \DateTime($tblInvoice->getInvoiceDate()));
+        $Entity->setPaymentDate(new \DateTime($tblInvoice->getPaymentDate()));
+        $Entity->setPaymentDateModified($tblInvoice->getPaymentDateModified());
+
         $Manager->saveEntity($Entity);
 
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
