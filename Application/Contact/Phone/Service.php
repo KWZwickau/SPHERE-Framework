@@ -167,6 +167,23 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblCompany $tblCompany
+     * @param $Number
+     * @param TblType $tblType
+     * @param $Remark
+     */
+    public function insertPhoneToCompany(
+        TblCompany $tblCompany,
+        $Number,
+        TblType $tblType,
+        $Remark
+    ) {
+
+        $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
+        (new Data($this->getBinding()))->addPhoneToCompany($tblCompany, $tblPhone, $tblType, $Remark);
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param TblCompany     $tblCompany
      * @param string         $Number

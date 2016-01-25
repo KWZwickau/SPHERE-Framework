@@ -11,6 +11,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -21,6 +22,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -80,6 +82,8 @@ class Frontend extends Extension implements IFrontendInterface
                             '/Api/Reporting/Standard/Person/ClassList/Download', new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
+                    $Stage->setMessage(new Danger(new Info().' Achtung dauerhafte Speicherung von Excel-Export
+                    ist datenschutzrechtlich nicht zulässig.'));
                 }
             }
         }
@@ -158,6 +162,8 @@ class Frontend extends Extension implements IFrontendInterface
                             '/Api/Reporting/Standard/Person/ExtendedClassList/Download', new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
+                    $Stage->setMessage(new Danger(new Info().' Achtung dauerhafte Speicherung von Excel-Export
+                    ist datenschutzrechtlich nicht zulässig.'));
                 }
 
                 $studentList = Person::useService()->createExtendedClassList($tblDivision);
@@ -266,6 +272,8 @@ class Frontend extends Extension implements IFrontendInterface
                             '/Api/Reporting/Standard/Person/BirthdayClassList/Download', new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
+                    $Stage->setMessage(new Danger(new Info().' Achtung dauerhafte Speicherung von Excel-Export
+                    ist datenschutzrechtlich nicht zulässig.'));
                 }
 
                 $studentList = Person::useService()->createBirthdayClassList($tblDivision);
@@ -369,6 +377,8 @@ class Frontend extends Extension implements IFrontendInterface
                             '/Api/Reporting/Standard/Person/MedicalInsuranceClassList/Download', new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
+                    $Stage->setMessage(new Danger(new Info().' Achtung dauerhafte Speicherung von Excel-Export
+                    ist datenschutzrechtlich nicht zulässig.'));
                 }
 
                 $studentList = Person::useService()->createMedicalInsuranceClassList($tblDivision);
@@ -474,6 +484,8 @@ class Frontend extends Extension implements IFrontendInterface
                             '/Api/Reporting/Standard/Person/GroupList/Download', new Download(),
                             array('GroupId' => $tblGroup->getId()))
                     );
+                    $Stage->setMessage(new Danger(new Info().' Achtung dauerhafte Speicherung von Excel-Export
+                    ist datenschutzrechtlich nicht zulässig.'));
                 }
 
                 $Count = count($groupList);

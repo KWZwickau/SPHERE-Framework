@@ -31,20 +31,20 @@ class Export implements IApplicationInterface
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
 
-        Main::getDispatcher()->registerWidget('Export',
-            new Thumbnail(
-                FileSystem::getFileLoader('/Common/Style/Resource/datev_logo.png'),
-                'Datev', 'Rechnungen',
-                new Standard('', '/Sphere/Transfer/Export/Datev', new Download(), array(), 'Download')
-            ), 2, 4
+        Main::getDispatcher()->registerWidget('Export', array(__CLASS__, 'widgetDatev'), 2, 4);
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetDatev()
+    {
+
+        new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/datev_logo.png'),
+            'Datev', 'Rechnungen',
+            new Standard('', '/Sphere/Transfer/Export/Datev', new Download(), array(), 'Download')
         );
-//        Main::getDispatcher()->registerWidget('Transfer',
-//            new Thumbnail(
-//                FileSystem::getFileLoader('/Common/Style/Resource/datev_logo.png'),
-//                'Datev', 'Rechnungen',
-//                new Standard('', '/Sphere/Transfer/Export/Datev', new Download(), array(), 'Download')
-//            ), 2, 4
-//        );
     }
 
     /**

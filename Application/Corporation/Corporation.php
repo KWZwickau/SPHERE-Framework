@@ -43,16 +43,6 @@ class Corporation implements IClusterInterface
         ));
 
         Main::getDispatcher()->registerWidget('Firmen', array(__CLASS__, 'widgetCorporationGroupList'), 4, 6);
-//        Main::getDispatcher()->registerWidget('Firmen', array(__CLASS__, 'widgetCorporationCount'));
-    }
-
-    /**
-     * @return Panel
-     */
-    public static function widgetCorporationCount()
-    {
-        $tblCompanyAll = Company::useService()->getCompanyAll();
-        return new Panel('Anzahl an Firmen', 'Insgesamt: ' . count($tblCompanyAll));
     }
 
     /**
