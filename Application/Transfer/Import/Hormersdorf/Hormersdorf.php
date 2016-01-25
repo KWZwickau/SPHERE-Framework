@@ -23,12 +23,6 @@ class Hormersdorf implements IModuleInterface
     {
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Student', __NAMESPACE__.'\Frontend::frontendStudent'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Student/Import', __NAMESPACE__.'\Frontend::frontendStudentImport'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/InterestedPerson', __NAMESPACE__.'\Frontend::frontendInterestedPersonImport'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -37,11 +31,14 @@ class Hormersdorf implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Donor', __NAMESPACE__.'\Frontend::frontendDonorImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Student', __NAMESPACE__.'\Frontend::frontendStudentImport'
+        ));
 
-//        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetStudent'), 2, 2);
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetInterestedPerson'), 2, 2);
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetClubMember'), 2, 2);
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetDonor'), 2, 2);
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetStudent'), 2, 2);
     }
 
     /**
@@ -98,6 +95,19 @@ class Hormersdorf implements IModuleInterface
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
             'Hormersdorf', 'Spender-Daten',
             new Standard('', '/Transfer/Import/Hormersdorf/Donor', new Upload(), array(), 'Upload')
+        );
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetStudent()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
+            'Hormersdorf', 'Schüler-Daten',
+            new Standard('', '/Transfer/Import/Hormersdorf/Student', new Upload(), array(), 'Upload')
         );
     }
 }
