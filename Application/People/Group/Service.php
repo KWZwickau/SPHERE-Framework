@@ -284,4 +284,18 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->existsGroupPerson($tblGroup, $tblPerson);
     }
 
+    /**
+     * @param $Name
+     * @param string $Description
+     * @param string $Remark
+     *
+     * @return TblGroup
+     */
+    public function insertGroup($Name, $Description = '', $Remark = ''){
+
+        return (new Data($this->getBinding()))->createGroup(
+            $Name, $Description, $Remark
+        );
+    }
+
 }

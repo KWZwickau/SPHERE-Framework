@@ -369,4 +369,237 @@ class Service
 
         return new Danger('File nicht gefunden');
     }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     *
+     * @return IFormInterface|Danger|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createClubMembersFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(),
+                    $File->getFilename() . '.' . $File->getClientOriginalExtension());
+
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Anrede' => null,
+                    'Vorname' => null,
+                    'Nachname' => null,
+                    'PLZ' => null,
+                    'Ort' => null,
+                    'Strasse' => null,
+                    'Nummer' => null,
+                    'Tel.-Nr. privat' => null,
+                    'Tel.-Nr. dienstl.' => null,
+                    'E-mail' => null,
+                    'Eintritt' => null,
+                    'Austritt' => null,
+                    'Mitgliedsnummer' => null,
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countClubMember = 0;
+                    $countClubMemberExists = 0;
+
+                    $tblGroupClubMember = Group::useService()->insertGroup('Schulverein');
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        // InterestedPerson
+                        $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
+                        if ($firstName !== '') {
+                            $lastName = trim($Document->getValue($Document->getCell($Location['Nachname'], $RunY)));
+                            $cityCode = str_pad(
+                                trim($Document->getValue($Document->getCell($Location['PLZ'], $RunY))),
+                                5,
+                                "0",
+                                STR_PAD_LEFT
+                            );
+                            $tblPersonExits = Person::useService()->existsPerson(
+                                $firstName,
+                                $lastName,
+                                $cityCode
+                            );
+
+                            $entryDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP(
+                                trim($Document->getValue($Document->getCell($Location['Eintritt'],
+                                    $RunY)))));
+                            $exitDate = date('d.m.Y', \PHPExcel_Shared_Date::ExcelToPHP(
+                                trim($Document->getValue($Document->getCell($Location['Austritt'],
+                                    $RunY)))));
+                            $clubNumber = trim($Document->getValue($Document->getCell($Location['Mitgliedsnummer'],
+                                $RunY)));
+                            $remark = ($entryDate !== '' ? 'Eintritt: ' . $entryDate : '') .
+                                ($exitDate !== '' ? ' Austritt: ' . $exitDate : '') .
+                                ($clubNumber !== '' ? ' Mitgliedsnummer: ' . $clubNumber : '');
+
+                            if ($tblPersonExits) {
+
+                                Group::useService()->addGroupPerson($tblGroupClubMember, $tblPersonExits);
+                                $tblCommon = Common::useService()->getCommonByPerson($tblPersonExits);
+                                if ($tblCommon) {
+                                    Common::useService()->updateCommon($tblCommon, $remark);
+                                }
+                                $countClubMemberExists++;
+                            } else {
+
+                                $salutation = trim($Document->getValue($Document->getCell($Location['Anrede'],
+                                    $RunY)));
+                                if ($salutation === 'Herr'){
+                                    $tblSalutation = Person::useService()->getSalutationById(1);
+                                } elseif ($salutation === 'Frau'){
+                                    $tblSalutation = Person::useService()->getSalutationById(2);
+                                } else {
+                                    $tblSalutation = null;
+                                }
+
+                                $tblPerson = Person::useService()->insertPerson(
+                                    $tblSalutation,
+                                    '',
+                                    $firstName,
+                                    '',
+                                    $lastName,
+                                    array(
+                                        0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                        1 => $tblGroupClubMember
+                                    )
+                                );
+
+                                if ($tblPerson !== false) {
+                                    $countClubMember++;
+
+                                    Common::useService()->insertMeta(
+                                        $tblPerson,
+                                        '',
+                                        '',
+                                        TblCommonBirthDates::VALUE_GENDER_NULL,
+                                        '',
+                                        '',
+                                        TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                        '',
+                                        $remark
+                                    );
+
+                                    // Address
+                                    $cityName = trim($Document->getValue($Document->getCell($Location['Ort'],
+                                        $RunY)));
+                                    $cityDistrict = '';
+                                    $pos = strpos($cityName, " OT ");
+                                    if ($pos !== false) {
+                                        $cityDistrict = trim(substr($cityName, $pos));
+                                        $cityName = trim(substr($cityName, 0, $pos));
+                                    }
+                                    $StreetName = trim($Document->getValue($Document->getCell($Location['Strasse'],
+                                        $RunY)));
+                                    $StreetNumber = trim($Document->getValue($Document->getCell($Location['Nummer'],
+                                        $RunY)));
+                                    Address::useService()->insertAddressToPerson(
+                                        $tblPerson, $StreetName, $StreetNumber, $cityCode, $cityName, $cityDistrict, ''
+                                    );
+
+                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Tel.-Nr. privat'],
+                                        $RunY)));
+                                    if ($phoneNumber != '') {
+                                        $tblType = Phone::useService()->getTypeById(1);
+                                        if (0 === strpos($phoneNumber, '01')) {
+                                            $tblType = Phone::useService()->getTypeById(2);
+                                        }
+                                        Phone::useService()->insertPhoneToPerson(
+                                            $tblPerson,
+                                            $phoneNumber,
+                                            $tblType,
+                                            ''
+                                        );
+                                    }
+
+                                    $phoneNumber = trim($Document->getValue($Document->getCell($Location['Tel.-Nr. dienstl.'],
+                                        $RunY)));
+                                    if ($phoneNumber != '') {
+                                        $tblType = Phone::useService()->getTypeById(3);
+                                        if (0 === strpos($phoneNumber, '01')) {
+                                            $tblType = Phone::useService()->getTypeById(4);
+                                        }
+                                        Phone::useService()->insertPhoneToPerson(
+                                            $tblPerson,
+                                            $phoneNumber,
+                                            $tblType,
+                                            ''
+                                        );
+                                    }
+
+                                    $mailAddress = trim($Document->getValue($Document->getCell($Location['E-mail'],
+                                        $RunY)));
+                                    if ($mailAddress != '') {
+                                        Mail::useService()->insertMailToPerson(
+                                            $tblPerson,
+                                            $mailAddress,
+                                            Mail::useService()->getTypeById(1),
+                                            ''
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    return
+                        new Success('Es wurden ' . $countClubMember . ' Schulverein-Mitglieder erfolgreich angelegt.') .
+                        ($countClubMemberExists > 0 ?
+                            new Warning($countClubMemberExists . ' Schulverein-Mitglieder exisistieren bereits.') : '');
+
+                } else {
+                    Debugger::screenDump($Location);
+
+                    return new Warning(json_encode($Location)) . new Danger(
+                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+
+        return new Danger('File nicht gefunden');
+    }
 }

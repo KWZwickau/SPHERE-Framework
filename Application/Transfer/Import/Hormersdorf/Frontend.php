@@ -40,7 +40,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $View = new Stage();
-        $View->setTitle('ESZC Import');
+        $View->setTitle('Hormersdorf Import');
         $View->setDescription('Interessentendaten');
         $View->setContent(
             new Layout(
@@ -49,6 +49,49 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new Well(
                                 Hormersdorf::useService()->createInterestedPersonsFromFile(new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            new FormColumn(
+                                                new FileUpload('File', 'Datei auswählen', 'Datei auswählen', null,
+                                                    array('showPreview' => false))
+                                            )
+                                        )
+                                    )
+                                    , new Primary('Hochladen')
+                                ), $File
+                                )
+                                ,
+                                new Warning('Erlaubte Dateitypen: Excel (XLS,XLSX)', new Exclamation())
+                            )
+                        ))
+                    )
+                )
+            )
+        );
+
+        return $View;
+    }
+
+    /**
+     * @param null $File
+     *
+     * @return Stage
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function frontendClubMemberImport($File = null)
+    {
+
+        $View = new Stage();
+        $View->setTitle('Hormersdorf Import');
+        $View->setDescription('Schulverein-Daten');
+        $View->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Well(
+                                Hormersdorf::useService()->createClubMembersFromFile(new Form(
                                     new FormGroup(
                                         new FormRow(
                                             new FormColumn(

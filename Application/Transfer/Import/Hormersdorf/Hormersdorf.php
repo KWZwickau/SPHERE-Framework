@@ -31,9 +31,13 @@ class Hormersdorf implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/InterestedPerson', __NAMESPACE__.'\Frontend::frontendInterestedPersonImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/ClubMember', __NAMESPACE__.'\Frontend::frontendClubMemberImport'
+        ));
 
 //        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetStudent'), 2, 2);
         Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetInterestedPerson'), 2, 2);
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetClubMember'), 2, 2);
     }
 
     /**
@@ -64,6 +68,19 @@ class Hormersdorf implements IModuleInterface
             FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
             'Hormersdorf', 'Interessentendaten',
             new Standard('', '/Transfer/Import/Hormersdorf/InterestedPerson', new Upload(), array(), 'Upload')
+        );
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetClubMember()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/logo_kreide2.png'),
+            'Hormersdorf', 'Schulverein-Daten',
+            new Standard('', '/Transfer/Import/Hormersdorf/ClubMember', new Upload(), array(), 'Upload')
         );
     }
 }
