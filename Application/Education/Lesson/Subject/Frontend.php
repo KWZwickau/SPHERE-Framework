@@ -58,22 +58,29 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject', new ChevronLeft()));
 
         $tblSubjectAll = Subject::useService()->getSubjectAll();
-        array_walk($tblSubjectAll, function (TblSubject &$tblSubject) {
+        $TableContent = array();
+        if ($tblSubjectAll) {
+            array_walk($tblSubjectAll, function (TblSubject &$tblSubject) use (&$TableContent) {
 
-            $tblSubject->Option = new Standard('', '/Education/Lesson/Subject/Change/Subject', new Pencil(),
-                    array('Id' => $tblSubject->getId()))
-                .( Subject::useService()->getSubjectActiveState($tblSubject) === false ?
-                    new Standard('', '/Education/Lesson/Subject/Destroy/Subject', new Remove(),
+                $Temp['Acronym'] = $tblSubject->getAcronym();
+                $Temp['Name'] = $tblSubject->getName();
+                $Temp['Description'] = $tblSubject->getDescription();
+                $Temp['Option'] = new Standard('', '/Education/Lesson/Subject/Change/Subject', new Pencil(),
                         array('Id' => $tblSubject->getId()))
-                    : '' );
-        });
+                    .( Subject::useService()->getSubjectActiveState($tblSubject) === false ?
+                        new Standard('', '/Education/Lesson/Subject/Destroy/Subject', new Remove(),
+                            array('Id' => $tblSubject->getId()))
+                        : '' );
+                array_push($TableContent, $Temp);
+            });
+        }
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($tblSubjectAll, null, array(
+                            new TableData($TableContent, null, array(
                                 'Acronym'     => 'Kürzel',
                                 'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
@@ -213,21 +220,27 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject', new ChevronLeft()));
 
         $tblCategoryAll = Subject::useService()->getCategoryAll();
-        array_walk($tblCategoryAll, function (TblCategory &$tblCategory) {
+        $TableContent = array();
+        if ($tblCategoryAll) {
+            array_walk($tblCategoryAll, function (TblCategory &$tblCategory) use (&$TableContent) {
 
-            $tblCategory->Option = new Standard('', '/Education/Lesson/Subject/Change/Category', new Pencil(),
-                    array('Id' => $tblCategory->getId()))
-                .( $tblCategory->isLocked() ? ''
-                    : new Standard('', '/Education/Lesson/Subject/Destroy/Category', new Remove(),
-                        array('Id' => $tblCategory->getId())) );
-        });
+                $Temp['Name'] = $tblCategory->getName();
+                $Temp['Description'] = $tblCategory->getDescription();
+                $Temp['Option'] = new Standard('', '/Education/Lesson/Subject/Change/Category', new Pencil(),
+                        array('Id' => $tblCategory->getId()))
+                    .( $tblCategory->isLocked() ? ''
+                        : new Standard('', '/Education/Lesson/Subject/Destroy/Category', new Remove(),
+                            array('Id' => $tblCategory->getId())) );
+                array_push($TableContent, $Temp);
+            });
+        }
 
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($tblCategoryAll, null, array(
+                            new TableData($TableContent, null, array(
                                 'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
                                 'Option'      => '',

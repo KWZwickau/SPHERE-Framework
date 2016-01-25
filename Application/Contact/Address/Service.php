@@ -257,6 +257,42 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblCompany $tblCompany
+     * @param $StreetName
+     * @param $StreetNumber
+     * @param $CityCode
+     * @param $CityName
+     * @param $CityDistrict
+     * @param $PostOfficeBox
+     *
+     * @return TblToCompany
+     */
+    public function insertAddressToCompany(
+        TblCompany $tblCompany,
+        $StreetName,
+        $StreetNumber,
+        $CityCode,
+        $CityName,
+        $CityDistrict,
+        $PostOfficeBox
+    ) {
+
+        $tblCity = (new Data($this->getBinding()))->createCity($CityCode, $CityName, $CityDistrict);
+        $tblState = null;
+
+        $tblAddress = (new Data($this->getBinding()))->createAddress(
+            $tblState,
+            $tblCity,
+            $StreetName,
+            $StreetNumber,
+            $PostOfficeBox
+        );
+
+        return (new Data($this->getBinding()))->addAddressToCompany($tblCompany, $tblAddress,
+            Address::useService()->getTypeById(1), '');
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param TblToPerson    $tblToPerson
      * @param array          $Street

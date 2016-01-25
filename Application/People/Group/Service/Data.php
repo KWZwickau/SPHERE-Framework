@@ -229,10 +229,12 @@ class Data extends AbstractData
             array(
                 TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
-        array_walk($EntityList, function (TblMember &$V) {
+        if ($EntityList) {
+            array_walk($EntityList, function (TblMember &$V) {
 
-            $V = $V->getTblGroup();
-        });
+                $V = $V->getTblGroup();
+            });
+        }
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -322,4 +324,20 @@ class Data extends AbstractData
             ->getQuery();
         return $Query->getResult(ColumnHydrator::HYDRATION_MODE);
     }
+
+    /**
+     * @param TblGroup $tblGroup
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblMember
+     */
+    public function existsGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', array(
+            TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
+            TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
+    }
+
 }

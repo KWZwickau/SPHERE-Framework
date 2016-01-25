@@ -68,7 +68,7 @@ class Data extends AbstractData
     public function createDivision(TblYear $tblYear, TblLevel $tblLevel = null, $Name, $Description = '')
     {
 
-        $Manager = $this->getConnection()->getEntityManager(false);
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDivision')->findOneBy(array(
             TblDivision::ATTR_YEAR  => $tblYear->getId(),
             TblDivision::ATTR_NAME  => $Name,
