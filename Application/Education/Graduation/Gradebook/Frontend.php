@@ -456,7 +456,7 @@ class Frontend extends Extension implements IFrontendInterface
                         foreach ($value as $subjectGroupId => $subValue) {
                             $item = Division::useService()->getSubjectGroupById($subjectGroupId);
                             $divisionSubjectTable[] = array(
-                                'Year'         => $tblDivision->getServiceTblYear()->getName(),
+                                'Year'         => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() :'',
                                 'Type'         => $tblDivision->getTypeName(),
                                 'Division'     => $tblDivision->getDisplayName(),
                                 'Subject'      => $tblSubject->getName(),
@@ -472,7 +472,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     } else {
                         $divisionSubjectTable[] = array(
-                            'Year'         => $tblDivision->getServiceTblYear()->getName(),
+                            'Year'         => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() :'',
                             'Type'         => $tblDivision->getTypeName(),
                             'Division'     => $tblDivision->getDisplayName(),
                             'Subject'      => $tblSubject->getName(),

@@ -3,6 +3,8 @@ namespace SPHERE\Application\Transfer\Import\Chemnitz;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Group\Group;
@@ -22,6 +24,7 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Repository\Debugger;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use SPHERE\Application\Contact\Address as ContactAddress;
 
 /**
  * Class Service
@@ -33,8 +36,8 @@ class Service
 
     /**
      * @param IFormInterface|null $Form
-     * @param UploadedFile|null   $File
-     * @param null                $DivisionId
+     * @param UploadedFile|null $File
+     * @param null $DivisionId
      *
      * @return IFormInterface|Danger|Redirect|string
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
@@ -65,7 +68,7 @@ class Service
                      * Prepare
                      */
                     $File = $File->move($File->getPath(),
-                        $File->getFilename().'.'.$File->getClientOriginalExtension());
+                        $File->getFilename() . '.' . $File->getClientOriginalExtension());
 
                     /**
                      * Read
@@ -85,23 +88,34 @@ class Service
                      * Header -> Location
                      */
                     $Location = array(
-                        'Vorname V.'   => null,
-                        'Vorname M.'   => null,
-                        'Name'         => null,
-                        'Konfession'   => null,
-                        'Straße'       => null,
-                        'Hausnr.'      => null,
-                        'PLZ Ort'      => null,
-                        'Schüler'      => null,
+                        'Vorname V.' => null,
+                        'Vorname M.' => null,
+                        'Name' => null,
+                        'Konfession' => null,
+                        'Straße' => null,
+                        'Hausnr.' => null,
+                        'PLZ Ort' => null,
+                        'Schüler' => null,
                         'Geburtsdatum' => null,
-                        'Geburtsort'   => null,
+                        'Geburtsort' => null,
 //                        'Import Vater' => null,
 //                        'Import Mutter' => null,
                     );
+
+                    $phoneLocation = false;
+                    $emailLocation = false;
+
                     for ($RunX = 0; $RunX < $X; $RunX++) {
                         $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
                         if (array_key_exists($Value, $Location)) {
                             $Location[$Value] = $RunX;
+                        }
+
+                        if ($Value == 'Telefon') {
+                            $phoneLocation = $RunX;
+                        }
+                        if ($Value == 'E-Mail Adresse') {
+                            $emailLocation = $RunX;
                         }
                     }
 
@@ -285,21 +299,52 @@ class Service
                                             $tblPersonMother, $StreetName, $StreetNumber, $CityCode, $CityName
                                         );
                                     }
+
+                                    // Contact
+                                    if ($phoneLocation) {
+                                        $phoneNumber = trim($Document->getValue($Document->getCell($phoneLocation,
+                                            $RunY)));
+                                        if ($phoneNumber != '') {
+                                            $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(1);
+                                            if (0 === strpos($phoneNumber, '01')) {
+                                                $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(2);
+                                            }
+                                            $this->useContactPhone()->createPhoneToPersonFromImport(
+                                                $tblPerson,
+                                                $phoneNumber,
+                                                $tblType
+                                            );
+                                        }
+                                    }
+                                    if ($emailLocation) {
+                                        $emailAddress = trim($Document->getValue($Document->getCell($emailLocation,
+                                            $RunY)));
+                                        if ($emailAddress != '') {
+                                            $tblType = \SPHERE\Application\Contact\Mail\Mail::useService()->getTypeById(1);
+                                            Mail::useService()->insertMailToPerson(
+                                                $tblPerson,
+                                                $emailAddress,
+                                                $tblType,
+                                                ''
+                                            );
+                                        }
+                                    }
                                 }
                             }
                         }
 
                         return
-                            new Success('Es wurden '.$countStudent.' Schüler erfolgreich angelegt.').
-                            new Success('Es wurden '.$countFather.' Väter erfolgreich angelegt.').
-                            ( $countFatherExists > 0 ?
-                                new Warning($countFatherExists.' Väter exisistieren bereits.') : '' ).
-                            new Success('Es wurden '.$countMother.' Mütter erfolgreich angelegt.').
-                            ( $countMotherExists > 0 ?
-                                new Warning($countMotherExists.' Mütter exisistieren bereits.') : '' );
+                            new Success('Es wurden ' . $countStudent . ' Schüler erfolgreich angelegt.') .
+                            new Success('Es wurden ' . $countFather . ' Väter erfolgreich angelegt.') .
+                            ($countFatherExists > 0 ?
+                                new Warning($countFatherExists . ' Väter exisistieren bereits.') : '') .
+                            new Success('Es wurden ' . $countMother . ' Mütter erfolgreich angelegt.') .
+                            ($countMotherExists > 0 ?
+                                new Warning($countMotherExists . ' Mütter exisistieren bereits.') : '');
                     } else {
                         Debugger::screenDump($Location);
-                        return new Danger(
+                        return new Warning(json_encode($Location))
+                        . new Danger(
                             "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                     }
                 }
@@ -316,7 +361,7 @@ class Service
 
         return new Person(
             new Identifier('People', 'Person', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__.'/../../../People/Person/Service/Entity', 'SPHERE\Application\People\Person\Service\Entity'
+            __DIR__ . '/../../../People/Person/Service/Entity', 'SPHERE\Application\People\Person\Service\Entity'
         );
     }
 
@@ -328,7 +373,7 @@ class Service
 
         return new Common(
             new Identifier('People', 'Meta', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__.'/../../../People/Meta/Common/Service/Entity',
+            __DIR__ . '/../../../People/Meta/Common/Service/Entity',
             'SPHERE\Application\People\Meta\Common\Service\Entity'
         );
     }
@@ -341,7 +386,7 @@ class Service
 
         return new Relationship(
             new Identifier('People', 'Relationship', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__.'/../../../People/Relationship/Service/Entity',
+            __DIR__ . '/../../../People/Relationship/Service/Entity',
             'SPHERE\Application\People\Relationship\Service\Entity'
         );
     }
@@ -354,13 +399,13 @@ class Service
 
         return new Address(
             new Identifier('Contact', 'Address', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__.'/../../../Contact/Address/Service/Entity', 'SPHERE\Application\Contact\Address\Service\Entity'
+            __DIR__ . '/../../../Contact/Address/Service/Entity', 'SPHERE\Application\Contact\Address\Service\Entity'
         );
     }
 
     /**
      * @param IFormInterface|null $Form
-     * @param UploadedFile        $File
+     * @param UploadedFile $File
      *
      * @return IFormInterface|Danger|string
      *
@@ -384,7 +429,7 @@ class Service
                 /**
                  * Prepare
                  */
-                $File = $File->move($File->getPath(), $File->getFilename().'.'.$File->getClientOriginalExtension());
+                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
                 /**
                  * Read
                  */
@@ -398,27 +443,27 @@ class Service
                  * Header -> Location
                  */
                 $Location = array(
-                    'Anrede'          => null,
-                    'Firma'           => null,
-                    'Name'            => null,
-                    'Vorname'         => null,
-                    'Strasse'         => null,
-                    'Ort'             => null,
-                    'Plz'             => null,
+                    'Anrede' => null,
+                    'Firma' => null,
+                    'Name' => null,
+                    'Vorname' => null,
+                    'Strasse' => null,
+                    'Ort' => null,
+                    'Plz' => null,
                     'Telefon_private' => null,
-                    'Telefon_dienst'  => null,
-                    'Fax'             => null,
-                    'Mail'            => null,
-                    'Beruf'           => null,
-                    'Freunde'         => null,
-                    'Post'            => null,
-                    'Gebet'           => null,
-                    'Partner'         => null,
-                    'Verein'          => null,
-                    'Offizielle'      => null,
-                    'Ehemalige'       => null,
-                    'Sonstiges'       => null,
-                    'Sonstiges2'      => null,
+                    'Telefon_dienst' => null,
+                    'Fax' => null,
+                    'Mail' => null,
+                    'Beruf' => null,
+                    'Freunde' => null,
+                    'Post' => null,
+                    'Gebet' => null,
+                    'Partner' => null,
+                    'Verein' => null,
+                    'Offizielle' => null,
+                    'Ehemalige' => null,
+                    'Sonstiges' => null,
+                    'Sonstiges2' => null,
 
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
@@ -530,8 +575,8 @@ class Service
                                     $countUpdatePerson++;
                                 }
 
-                                if (( $Number = trim($Document->getValue($Document->getCell($Location['Telefon_private'],
-                                        $RunY))) ) !== ''
+                                if (($Number = trim($Document->getValue($Document->getCell($Location['Telefon_private'],
+                                        $RunY)))) !== ''
                                 ) {
                                     $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(1);
                                     if (0 === strpos($Number, '01')) {
@@ -545,8 +590,8 @@ class Service
                                     $countPhone++;
                                 }
 
-                                if (( $Number = trim($Document->getValue($Document->getCell($Location['Telefon_dienst'],
-                                        $RunY))) ) !== ''
+                                if (($Number = trim($Document->getValue($Document->getCell($Location['Telefon_dienst'],
+                                        $RunY)))) !== ''
                                 ) {
                                     $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(3);
                                     if (0 === strpos($Number, '01')) {
@@ -645,17 +690,97 @@ class Service
                             } else {
                                 $countOutSortedPersons++;
                             }
+                        } else {
+                            /*
+                             * Company
+                             */
+                            $FirstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
+                            $LastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+
+                            if (strpos($FirstName, 'Frau') !== false || strpos($FirstName, 'Herrn') !== false) {
+                                $tblCompany = Company::useService()->insertCompany($LastName, $FirstName);
+                            } elseif (strpos($LastName, 'Frau') !== false || strpos($LastName, 'Herrn') !== false) {
+                                $tblCompany = Company::useService()->insertCompany($FirstName, $LastName);
+                            } else {
+                                $tblCompany = Company::useService()->insertCompany(trim($FirstName . ' ' . $LastName));
+                            }
+
+                            if ($tblCompany) {
+                                // add Group alle
+                                $tblGroup = \SPHERE\Application\Corporation\Group\Group::useService()->getGroupByMetaTable(
+                                    'COMMON'
+                                );
+                                \SPHERE\Application\Corporation\Group\Group::useService()->addGroupCompany(
+                                    $tblGroup, $tblCompany
+                                );
+
+                                //Address
+                                $Street = trim($Document->getValue($Document->getCell($Location['Strasse'],
+                                    $RunY)));
+                                if (preg_match_all('!\d+!', $Street, $matches)) {
+                                    $pos = strpos($Street, $matches[0][0]);
+                                    if ($pos !== null) {
+                                        $StreetName = trim(substr($Street, 0, $pos));
+                                        $StreetNumber = trim(substr($Street, $pos));
+                                        ContactAddress\Address::useService()->insertAddressToCompany
+                                        (
+                                            $tblCompany, $StreetName, $StreetNumber,
+                                            trim($Document->getValue($Document->getCell($Location['Plz'], $RunY))),
+                                            trim($Document->getValue($Document->getCell($Location['Ort'], $RunY))),
+                                            '',
+                                            ''
+                                        );
+                                    }
+                                }
+
+                                // Phone
+                                if (($Number = trim($Document->getValue($Document->getCell($Location['Telefon_private'],
+                                        $RunY)))) !== ''
+                                ) {
+                                    $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(1);
+                                    if (0 === strpos($Number, '01')) {
+                                        $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(2);
+                                    }
+                                    \SPHERE\Application\Contact\Phone\Phone::useService()->insertPhoneToCompany
+                                    (
+                                        $tblCompany,
+                                        $Number,
+                                        $tblType,
+                                        ''
+                                    );
+                                    $countPhone++;
+                                }
+
+                                if (($Number = trim($Document->getValue($Document->getCell($Location['Telefon_dienst'],
+                                        $RunY)))) !== ''
+                                ) {
+                                    $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(3);
+                                    if (0 === strpos($Number, '01')) {
+                                        $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(4);
+                                    }
+                                    \SPHERE\Application\Contact\Phone\Phone::useService()->insertPhoneToCompany
+                                    (
+                                        $tblCompany,
+                                        $Number,
+                                        $tblType,
+                                        ''
+                                    );
+                                    $countPhone++;
+                                    $countPhone++;
+                                }
+                            }
                         }
                     }
 
                     return
-                        new Warning('Es wurden '.$countOutSortedPersons.' Personen aussortiert (Vorname enthält "u." oder ",").').
-                        new Success('Es wurden '.$countNewPerson.' neue Personen erfolgreich angelegt.').
-                        new Success('Es wurden '.$countUpdatePerson.' Personen erfolgreich geupdated.').
-                        new Success('Es wurden '.$countPhone.' Telefonnummern erfolgreich angelegt.');
+                        new Warning('Es wurden ' . $countOutSortedPersons . ' Personen aussortiert (Vorname enthält "u." oder ",").') .
+                        new Success('Es wurden ' . $countNewPerson . ' neue Personen erfolgreich angelegt.') .
+                        new Success('Es wurden ' . $countUpdatePerson . ' Personen erfolgreich geupdated.') .
+                        new Success('Es wurden ' . $countPhone . ' Telefonnummern erfolgreich angelegt.');
                 } else {
                     Debugger::screenDump($Location);
-                    return new Danger("File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                    return new Warning(json_encode($Location))
+                    . new Danger("File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }
         }
@@ -671,7 +796,7 @@ class Service
 
         return new Phone(
             new Identifier('Contact', 'Phone', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__.'/../../../Contact/Phone/Service/Entity', 'SPHERE\Application\Contact\Phone\Service\Entity'
+            __DIR__ . '/../../../Contact/Phone/Service/Entity', 'SPHERE\Application\Contact\Phone\Service\Entity'
         );
     }
 
@@ -683,14 +808,14 @@ class Service
 
         return new Custody(
             new Identifier('People', 'Meta', null, null, Consumer::useService()->getConsumerBySession()),
-            __DIR__.'/../../../People/Meta/Custody/Service/Entity',
+            __DIR__ . '/../../../People/Meta/Custody/Service/Entity',
             'SPHERE\Application\People\Meta\Custody\Service\Entity'
         );
     }
 
     /**
      * @param IFormInterface|null $Stage
-     * @param null                $Select
+     * @param null $Select
      *
      * @return IFormInterface
      */
@@ -713,7 +838,7 @@ class Service
 
     /**
      * @param IFormInterface|null $Form
-     * @param UploadedFile|null   $File
+     * @param UploadedFile|null $File
      *
      * @return IFormInterface|Danger|string
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
@@ -739,7 +864,7 @@ class Service
                  * Prepare
                  */
                 $File = $File->move($File->getPath(),
-                    $File->getFilename().'.'.$File->getClientOriginalExtension());
+                    $File->getFilename() . '.' . $File->getClientOriginalExtension());
 
                 /**
                  * Read
@@ -759,23 +884,23 @@ class Service
                  * Header -> Location
                  */
                 $Location = array(
-                    'Vorname V.'   => null,
-                    'Vorname M.'   => null,
-                    'Name'         => null,
-                    'Konfession'   => null,
-                    'Straße'       => null,
-                    'Hausnr.'      => null,
-                    'PLZ Ort'      => null,
-                    'Schüler'      => null,
+                    'Vorname V.' => null,
+                    'Vorname M.' => null,
+                    'Name' => null,
+                    'Konfession' => null,
+                    'Straße' => null,
+                    'Hausnr.' => null,
+                    'PLZ Ort' => null,
+                    'Schüler' => null,
                     'Geburtsdatum' => null,
-                    'Geburtsort'   => null,
+                    'Geburtsort' => null,
 //                    'Import Vater' => null,
 //                    'Import Mutter' => null,
-                    'Anm.Datum'    => null,
-                    'Klasse'       => null,
-                    'Schuljahr'    => null,
-                    'Schulart 1'   => null,
-                    'Schulart 2'   => null,
+                    'Anm.Datum' => null,
+                    'Klasse' => null,
+                    'Schuljahr' => null,
+                    'Schulart 1' => null,
+                    'Schulart 2' => null,
                 );
                 for ($RunX = 0; $RunX < $X; $RunX++) {
                     $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
@@ -828,8 +953,8 @@ class Service
                                 );
 
                                 $tblOptionTypeA = null;
-                                if (( $OptionTypeA = trim($Document->getValue($Document->getCell($Location['Schulart 1'],
-                                        $RunY))) ) !== ''
+                                if (($OptionTypeA = trim($Document->getValue($Document->getCell($Location['Schulart 1'],
+                                        $RunY)))) !== ''
                                 ) {
                                     if ($OptionTypeA == 'Oberschule') {
                                         $tblOptionTypeA = Type::useService()->getTypeById(8);
@@ -840,8 +965,8 @@ class Service
                                     }
                                 }
                                 $tblOptionTypeB = null;
-                                if (( $OptionTypeB = trim($Document->getValue($Document->getCell($Location['Schulart 2'],
-                                        $RunY))) ) !== ''
+                                if (($OptionTypeB = trim($Document->getValue($Document->getCell($Location['Schulart 2'],
+                                        $RunY)))) !== ''
                                 ) {
                                     if ($OptionTypeB == 'Oberschule') {
                                         $tblOptionTypeB = Type::useService()->getTypeById(8);
@@ -853,11 +978,11 @@ class Service
                                 }
                                 Prospect::useService()->insertMeta(
                                     $tblPerson,
-                                    ( trim($Document->getValue($Document->getCell($Location['Anm.Datum'],
+                                    (trim($Document->getValue($Document->getCell($Location['Anm.Datum'],
                                         $RunY))) !== '' ?
                                         date('Y-m-d', \PHPExcel_Shared_Date::ExcelToPHP(
                                             trim($Document->getValue($Document->getCell($Location['Anm.Datum'],
-                                                $RunY))))) : '' ),
+                                                $RunY))))) : ''),
                                     '',
                                     '',
                                     trim($Document->getValue($Document->getCell($Location['Schuljahr'], $RunY))),
@@ -1000,20 +1125,212 @@ class Service
                     }
 
                     return
-                        new Success('Es wurden '.$countInterestedPerson.' Intessenten erfolgreich angelegt.').
-                        new Success('Es wurden '.$countFather.' Väter erfolgreich angelegt.').
-                        ( $countFatherExists > 0 ?
-                            new Warning($countFatherExists.' Väter exisistieren bereits.') : '' ).
-                        new Success('Es wurden '.$countMother.' Mütter erfolgreich angelegt.').
-                        ( $countMotherExists > 0 ?
-                            new Warning($countMotherExists.' Mütter exisistieren bereits.') : '' );
+                        new Success('Es wurden ' . $countInterestedPerson . ' Intessenten erfolgreich angelegt.') .
+                        new Success('Es wurden ' . $countFather . ' Väter erfolgreich angelegt.') .
+                        ($countFatherExists > 0 ?
+                            new Warning($countFatherExists . ' Väter exisistieren bereits.') : '') .
+                        new Success('Es wurden ' . $countMother . ' Mütter erfolgreich angelegt.') .
+                        ($countMotherExists > 0 ?
+                            new Warning($countMotherExists . ' Mütter exisistieren bereits.') : '');
                 } else {
                     Debugger::screenDump($Location);
-                    return new Danger(
+                    return new Warning(json_encode($Location)) . new Danger(
                         "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }
         }
+        return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile $File
+     *
+     * @return IFormInterface|Danger|string
+     *
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createStaffsFromFile(IFormInterface $Form = null, UploadedFile $File = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(), $File->getFilename() . '.' . $File->getClientOriginalExtension());
+                /**
+                 * Read
+                 */
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Anrede' => null,
+                    'Name' => null,
+                    'Vorname' => null,
+                    'Straße' => null,
+                    'Ort' => null,
+                    'Plz' => null,
+                    'Telefon 1' => null,
+                    'Telefon 2' => null,
+                    'Geburtsdatum' => null,
+                    'Mail' => null,
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countNewPerson = 0;
+                    $countUpdatePerson = 0;
+                    $countPhone = 0;
+                    $countOutSortedPersons = 0;
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        if (trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY))) !== ''
+                        ) {
+
+                            $FirstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
+                            $LastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                            $ZipCode = trim($Document->getValue($Document->getCell($Location['Plz'], $RunY)));
+                            $salutation = trim($Document->getValue($Document->getCell($Location['Anrede'], $RunY)));
+                            if (strpos($FirstName, 'u.') === false && strpos($FirstName, ',') === false) {
+
+                                $tblPerson = $this->usePeoplePerson()->getPersonExists($FirstName, $LastName, $ZipCode);
+
+                                if (!$tblPerson) {
+
+                                    if ($salutation == 'Frau') {
+                                        $tblSalutation = \SPHERE\Application\People\Person\Person::useService()->getSalutationById(2);
+                                    } else {
+                                        $tblSalutation = \SPHERE\Application\People\Person\Person::useService()->getSalutationById(1);
+                                    }
+
+                                    $tblPerson = $this->usePeoplePerson()->createPersonFromImport(
+                                        $tblSalutation,
+                                        '',
+                                        $FirstName,
+                                        '',
+                                        $LastName
+                                    );
+                                    Group::useService()->addGroupPerson(Group::useService()->getGroupById(1),
+                                        $tblPerson); //Personendaten
+                                    Group::useService()->addGroupPerson(Group::useService()->getGroupByMetaTable('STAFF'),
+                                        $tblPerson); // Mitarbeiter
+                                    $countNewPerson++;
+
+                                    // Common
+                                    $this->usePeopleMetaCommon()->createMetaFromImport(
+                                        $tblPerson,
+                                        date('Y-m-d', \PHPExcel_Shared_Date::ExcelToPHP(
+                                            trim($Document->getValue($Document->getCell($Location['Geburtsdatum'],
+                                                $RunY))))),
+                                        '',
+                                        ''
+                                    );
+
+                                    //Address
+                                    $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                        $RunY)));
+                                    if (preg_match_all('!\d+!', $Street, $matches)) {
+                                        $pos = strpos($Street, $matches[0][0]);
+                                        if ($pos !== null) {
+                                            $StreetName = trim(substr($Street, 0, $pos));
+                                            $StreetNumber = trim(substr($Street, $pos));
+                                            $this->useContactAddress()->createAddressToPersonFromImport(
+                                                $tblPerson, $StreetName, $StreetNumber,
+                                                trim($Document->getValue($Document->getCell($Location['Plz'], $RunY))),
+                                                trim($Document->getValue($Document->getCell($Location['Ort'], $RunY)))
+                                            );
+                                        }
+                                    }
+                                } else {
+                                    $countUpdatePerson++;
+                                }
+
+                                if (($Number = trim($Document->getValue($Document->getCell($Location['Telefon 1'],
+                                        $RunY)))) !== ''
+                                ) {
+                                    $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(1);
+                                    if (0 === strpos($Number, '01')) {
+                                        $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(2);
+                                    }
+                                    $this->useContactPhone()->createPhoneToPersonFromImport(
+                                        $tblPerson,
+                                        $Number,
+                                        $tblType
+                                    );
+                                    $countPhone++;
+                                }
+                                if (($Number = trim($Document->getValue($Document->getCell($Location['Telefon 2'],
+                                        $RunY)))) !== ''
+                                ) {
+                                    $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(3);
+                                    if (0 === strpos($Number, '01')) {
+                                        $tblType = \SPHERE\Application\Contact\Phone\Phone::useService()->getTypeById(4);
+                                    }
+                                    $this->useContactPhone()->createPhoneToPersonFromImport(
+                                        $tblPerson,
+                                        $Number,
+                                        $tblType
+                                    );
+                                    $countPhone++;
+                                }
+
+                                $emailAddress = trim($Document->getValue($Document->getCell($Location['Mail'],
+                                    $RunY)));
+                                if ($emailAddress != '') {
+                                    $tblType = \SPHERE\Application\Contact\Mail\Mail::useService()->getTypeById(1);
+                                    Mail::useService()->insertMailToPerson(
+                                        $tblPerson,
+                                        $emailAddress,
+                                        $tblType,
+                                        ''
+                                    );
+                                }
+
+                            } else {
+                                $countOutSortedPersons++;
+                            }
+                        }
+                    }
+
+                    return
+                        new Warning('Es wurden ' . $countOutSortedPersons . ' Personen aussortiert (Vorname enthält "u." oder ",").') .
+                        new Success('Es wurden ' . $countNewPerson . ' neue Personen erfolgreich angelegt.') .
+                        new Success('Es wurden ' . $countUpdatePerson . ' Personen erfolgreich geupdated.') .
+                        new Success('Es wurden ' . $countPhone . ' Telefonnummern erfolgreich angelegt.');
+                } else {
+                    Debugger::screenDump($Location);
+                    return new Warning(json_encode($Location)) .
+                    new Danger("File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+
         return new Danger('File nicht gefunden');
     }
 }

@@ -652,7 +652,8 @@ class Service
                             new Warning($countExists.' Sorgeberechtigte exisistieren bereits.') : '' );
                 } else {
                     Debugger::screenDump($Location);
-                    return new Danger(
+                    return new Warning(json_encode($Location))
+                    . new Danger(
                         "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }
@@ -836,7 +837,8 @@ class Service
                         new Success('Es wurden '.$countTeacher.' Lehrer erfolgreich angelegt.');
                 } else {
                     Debugger::screenDump($Location);
-                    return new Danger(
+                    return new Warning(json_encode($Location))
+                    . new Danger(
                         "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }
@@ -972,7 +974,8 @@ class Service
                             new Warning($countTeacherNotExists.' Lehrer nicht gefunden.') : '' );
                 } else {
                     Debugger::screenDump($Location);
-                    return new Danger(
+                    return new Warning(json_encode($Location))
+                    . new Danger(
                         "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
                 }
             }

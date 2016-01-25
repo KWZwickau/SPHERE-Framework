@@ -32,28 +32,14 @@ class Chemnitz implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/InterestedPerson', __NAMESPACE__.'\Frontend::frontendInterestedPersonImport'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Staff', __NAMESPACE__.'\Frontend::frontendStaffImport'
+        ));
 
-        Main::getDispatcher()->registerWidget('Import',
-            new Thumbnail(
-                FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),
-                'Chemntiz', 'Schülerdaten',
-                new Standard('', '/Transfer/Import/Chemnitz/Student', new Upload(), array(), 'Upload')
-            ), 2, 2
-        );
-        Main::getDispatcher()->registerWidget('Import',
-            new Thumbnail(
-                FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),
-                'Chemntiz', 'Interessentendaten',
-                new Standard('', '/Transfer/Import/Chemnitz/InterestedPerson', new Upload(), array(), 'Upload')
-            ), 2, 2
-        );
-        Main::getDispatcher()->registerWidget('Import',
-            new Thumbnail(
-                FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),
-                'Chemntiz', 'Personendaten',
-                new Standard('', '/Transfer/Import/Chemnitz/Person', new Upload(), array(), 'Upload')
-            ), 2, 2
-        );
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetChemnitzStaff'), 2, 2);
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetChemnitzStudent'), 2, 2);
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetChemnitzInterestedPerson'), 2, 2);
+        Main::getDispatcher()->registerWidget('Import', array(__CLASS__, 'widgetChemnitzPerson'), 2, 2);
     }
 
     /**
@@ -72,5 +58,57 @@ class Chemnitz implements IModuleInterface
     {
 
         return new Frontend();
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetChemnitzStaff()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),
+            'Chemntiz', 'Mitarbeiterdaten',
+            new Standard('', '/Transfer/Import/Chemnitz/Staff', new Upload(), array(), 'Upload')
+        );
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetChemnitzStudent()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),
+            'Chemntiz', 'Schülerdaten',
+            new Standard('', '/Transfer/Import/Chemnitz/Student', new Upload(), array(), 'Upload')
+        );
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetChemnitzPerson()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),
+            'Chemntiz', 'Personendaten',
+            new Standard('', '/Transfer/Import/Chemnitz/Person', new Upload(), array(), 'Upload')
+        );
+    }
+
+    /**
+     * @return Thumbnail
+     */
+    public static function widgetChemnitzInterestedPerson()
+    {
+
+        return new Thumbnail(
+            FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),
+            'Chemntiz', 'Interessentendaten',
+            new Standard('', '/Transfer/Import/Chemnitz/InterestedPerson', new Upload(), array(), 'Upload')
+        );
     }
 }
