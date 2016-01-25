@@ -489,9 +489,9 @@ class Service
 
                                 $salutation = trim($Document->getValue($Document->getCell($Location['Anrede'],
                                     $RunY)));
-                                if ($salutation === 'Herr'){
+                                if ($salutation === 'Herr') {
                                     $tblSalutation = Person::useService()->getSalutationById(1);
-                                } elseif ($salutation === 'Frau'){
+                                } elseif ($salutation === 'Frau') {
                                     $tblSalutation = Person::useService()->getSalutationById(2);
                                 } else {
                                     $tblSalutation = null;
@@ -590,6 +590,192 @@ class Service
                         new Success('Es wurden ' . $countClubMember . ' Schulverein-Mitglieder erfolgreich angelegt.') .
                         ($countClubMemberExists > 0 ?
                             new Warning($countClubMemberExists . ' Schulverein-Mitglieder exisistieren bereits.') : '');
+
+                } else {
+                    Debugger::screenDump($Location);
+
+                    return new Warning(json_encode($Location)) . new Danger(
+                        "File konnte nicht importiert werden, da nicht alle erforderlichen Spalten gefunden wurden");
+                }
+            }
+        }
+
+        return new Danger('File nicht gefunden');
+    }
+
+    /**
+     * @param IFormInterface|null $Form
+     * @param UploadedFile|null $File
+     *
+     * @return IFormInterface|Danger|string
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createDonorsFromFile(
+        IFormInterface $Form = null,
+        UploadedFile $File = null
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $File) {
+            return $Form;
+        }
+
+        if (null !== $File) {
+            if ($File->getError()) {
+                $Form->setError('File', 'Fehler');
+            } else {
+
+                /**
+                 * Prepare
+                 */
+                $File = $File->move($File->getPath(),
+                    $File->getFilename() . '.' . $File->getClientOriginalExtension());
+
+                /**
+                 * Read
+                 */
+                //$File->getMimeType()
+                /** @var PhpExcel $Document */
+                $Document = Document::getDocument($File->getPathname());
+                if (!$Document instanceof PhpExcel) {
+                    $Form->setError('File', 'Fehler');
+                    return $Form;
+                }
+
+                $X = $Document->getSheetColumnCount();
+                $Y = $Document->getSheetRowCount();
+
+                /**
+                 * Header -> Location
+                 */
+                $Location = array(
+                    'Anrede' => null,
+                    'Name' => null,
+                    'Vorname' => null,
+                    'Straße' => null,
+                    'Ort' => null,
+                    'Nummer des Spenders' => null,
+                    'PLZ' => null,
+                );
+                for ($RunX = 0; $RunX < $X; $RunX++) {
+                    $Value = trim($Document->getValue($Document->getCell($RunX, 0)));
+                    if (array_key_exists($Value, $Location)) {
+                        $Location[$Value] = $RunX;
+                    }
+                }
+
+                /**
+                 * Import
+                 */
+                if (!in_array(null, $Location, true)) {
+                    $countDonor = 0;
+                    $countDonorExists = 0;
+
+                    $tblGroupDonor = Group::useService()->insertGroup('Spender');
+
+                    for ($RunY = 1; $RunY < $Y; $RunY++) {
+                        // InterestedPerson
+                        $firstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
+                        if ($firstName !== '') {
+                            $lastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
+                            $cityCode = str_pad(
+                                trim($Document->getValue($Document->getCell($Location['PLZ'], $RunY))),
+                                5,
+                                "0",
+                                STR_PAD_LEFT
+                            );
+                            $tblPersonExits = Person::useService()->existsPerson(
+                                $firstName,
+                                $lastName,
+                                $cityCode
+                            );
+
+                            $clubNumber = trim($Document->getValue($Document->getCell($Location['Nummer des Spenders'],
+                                $RunY)));
+                            $remark = ($clubNumber !== '' ? 'Spendernummer: ' . $clubNumber : '');
+
+                            if ($tblPersonExits) {
+
+                                Group::useService()->addGroupPerson($tblGroupDonor, $tblPersonExits);
+                                $tblCommon = Common::useService()->getCommonByPerson($tblPersonExits);
+                                if ($tblCommon) {
+                                    Common::useService()->updateCommon($tblCommon, $remark);
+                                }
+                                $countDonorExists++;
+                            } else {
+
+                                $salutation = trim($Document->getValue($Document->getCell($Location['Anrede'],
+                                    $RunY)));
+                                if ($salutation === 'Herr') {
+                                    $tblSalutation = Person::useService()->getSalutationById(1);
+                                } elseif ($salutation === 'Frau') {
+                                    $tblSalutation = Person::useService()->getSalutationById(2);
+                                } else {
+                                    $tblSalutation = null;
+                                }
+
+                                $tblPerson = Person::useService()->insertPerson(
+                                    $tblSalutation,
+                                    '',
+                                    $firstName,
+                                    '',
+                                    $lastName,
+                                    array(
+                                        0 => Group::useService()->getGroupByMetaTable('COMMON'),
+                                        1 => $tblGroupDonor
+                                    )
+                                );
+
+                                if ($tblPerson !== false) {
+                                    $countDonor++;
+
+                                    Common::useService()->insertMeta(
+                                        $tblPerson,
+                                        '',
+                                        '',
+                                        TblCommonBirthDates::VALUE_GENDER_NULL,
+                                        '',
+                                        '',
+                                        TblCommonInformation::VALUE_IS_ASSISTANCE_NULL,
+                                        '',
+                                        $remark
+                                    );
+
+                                    // Address
+                                    $cityName = trim($Document->getValue($Document->getCell($Location['Ort'],
+                                        $RunY)));
+                                    $cityDistrict = '';
+                                    $pos = strpos($cityName, " OT ");
+                                    if ($pos !== false) {
+                                        $cityDistrict = trim(substr($cityName, $pos));
+                                        $cityName = trim(substr($cityName, 0, $pos));
+                                    }
+                                    $Street = trim($Document->getValue($Document->getCell($Location['Straße'],
+                                        $RunY)));
+                                    if (preg_match_all('!\d+!', $Street, $matches)) {
+                                        $pos = strpos($Street, $matches[0][0]);
+                                        if ($pos !== null) {
+                                            $StreetName = trim(substr($Street, 0, $pos));
+                                            $StreetNumber = trim(substr($Street, $pos));
+
+                                            Address::useService()->insertAddressToPerson(
+                                                $tblPerson, $StreetName, $StreetNumber, $cityCode, $cityName,
+                                                $cityDistrict, ''
+                                            );
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+
+                    return
+                        new Success('Es wurden ' . $countDonor . ' Spender erfolgreich angelegt.') .
+                        ($countDonorExists > 0 ?
+                            new Warning($countDonorExists . ' Spender exisistieren bereits.') : '');
 
                 } else {
                     Debugger::screenDump($Location);
