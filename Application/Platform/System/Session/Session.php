@@ -71,16 +71,16 @@ class Session extends Extension implements IModuleInterface
                 $Interval = $tblSession->getEntityUpdate()->getTimestamp() - $tblSession->getEntityCreate()->getTimestamp();
 
                 array_push($Result, array(
-                    '#' => $tblSession->getId(),
-                    'Consumer' => ($tblAccount ?
+                    'Id'         => $tblSession->getId(),
+                    'Consumer'   => ( $tblAccount->getServiceTblConsumer() ?
                         $tblAccount->getServiceTblConsumer()->getAcronym()
                         . '&nbsp;' . new Muted($tblAccount->getServiceTblConsumer()->getName())
                         : '-NA-'
                     ),
-                    'Account' => ($tblAccount ? $tblAccount->getUsername() : '-NA-'),
-                    'TTL' => gmdate("H:i:s", $tblSession->getTimeout() - time()),
+                    'Account'    => ($tblAccount ? $tblAccount->getUsername() : '-NA-'),
+                    'TTL'        => gmdate("H:i:s", $tblSession->getTimeout() - time()),
                     'ActiveTime' => gmdate('H:i:s', $Interval),
-                    'LoginTime' => $tblSession->getEntityCreate(),
+                    'LoginTime'  => $tblSession->getEntityCreate(),
                     'LastAction' => $tblSession->getEntityUpdate(),
                     'Identifier' => strtoupper($tblSession->getSession())
                 ));
