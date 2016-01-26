@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -97,8 +98,9 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblAddress = false;
                     }
 
-                    // Division
+                    // Division && Identification
                     $tblDivision = false;
+                    $identification = '';
                     if ($tblGroup->getMetaTable() == 'STUDENT'){
                         if ($tblYearList) {
                             $tblDivisionStudentList = Division::useService()->getDivisionStudentAllByPerson($tblPerson);
@@ -118,6 +120,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
                             }
                         }
+
+                        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                        if ($tblStudent){
+                            $identification = $tblStudent->getIdentifier();
+                        }
+
                     }
 
                     // Prospect
@@ -160,6 +168,7 @@ class Frontend extends Extension implements IFrontendInterface
                             : ''
                         ),
                         'Division' => ($tblDivision ? $tblDivision->getDisplayName() : ''),
+                        'Identification' => $identification,
                         'Year' => ($year ? $year :''),
                         'Level' => ($level ? $level :''),
                         'SchoolOption' => ($option ? $option : '')
@@ -183,6 +192,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'FullName' => 'Name',
                     'Address' => 'Adresse',
                     'Division' => 'Klasse',
+                    'Identification' => 'Schülernummer',
                     'Option' => '',
                 );
             } elseif ($tblGroup->getMetaTable() == 'PROSPECT') {
