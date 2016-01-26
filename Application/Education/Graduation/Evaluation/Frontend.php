@@ -396,12 +396,17 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblTest->Period = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getName() : '';
                 if ($tblTest->getServiceTblGradeType()) {
                     if ($tblTask) {
-                        $tblTest->GradeType = new Bold('Kopfnote: ' . $tblTest->getServiceTblGradeType()->getName());
+                        $tblTest->GradeType = new Bold('Kopfnote: ' . $tblTest->getServiceTblGradeType()->getName())
+                            . ($tblTask->getServiceTblPeriod()
+                                ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getName()))
+                                : new Small(new Muted(' Gesamtes Schuljahr')));
                     } else {
                         $tblTest->GradeType = $tblTest->getServiceTblGradeType()->getName();
                     }
                 } elseif ($tblTask) {
-                    $tblTest->GradeType = new Bold('Stichtagsnote');
+                    $tblTest->GradeType = new Bold('Stichtagsnote') . ($tblTask->getServiceTblPeriod()
+                            ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getName()))
+                            : new Small(new Muted(' Gesamtes Schuljahr')));
                 } else {
                     $tblTest->GradeType = '';
                 }
@@ -756,6 +761,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblScoreRule = false;
         $scoreRuleText = array();
         $tblScoreType = false;
+        $showPriority = false;
         if ($tblDivision && $tblSubject) {
             $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject(
                 $tblDivision,
@@ -770,6 +776,9 @@ class Frontend extends Extension implements IFrontendInterface
                             $scoreRuleText[] = new Bold($tblScoreRule->getName());
                             $tblScoreRuleConditionListByRule = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
                             if ($tblScoreRuleConditionListByRule) {
+
+                                $showPriority = true;
+
                                 $tblScoreRuleConditionListByRule =
                                     $this->getSorter($tblScoreRuleConditionListByRule)->sortObjectList('Priority');
 
@@ -885,22 +894,22 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $tblPerson = $tblSubjectStudent->getServiceTblPerson();
 
-                    if ($isTestAppointedDateTask) {
-                        $average = Gradebook::useService()->calcStudentGrade(
-                            $tblPerson,
-                            $tblDivision,
-                            $tblSubject,
-                            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-                            $tblScoreRule ? $tblScoreRule : null
-                        );
-
-                        if (is_array($average)) {
-                            $errorRowList = $average;
-                            $average = ' ';
-                        }
-                    } else {
-                        $average = false;
-                    }
+//                    if ($isTestAppointedDateTask) {
+//                        $average = Gradebook::useService()->calcStudentGrade(
+//                            $tblPerson,
+//                            $tblDivision,
+//                            $tblSubject,
+//                            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+//                            $tblScoreRule ? $tblScoreRule : null
+//                        );
+//
+//                        if (is_array($average)) {
+//                            $errorRowList = $average;
+//                            $average = ' ';
+//                        }
+//                    } else {
+                    $average = false;
+//                    }
                     $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName()
                         . ($average ? new Bold('&nbsp;&nbsp;&#216; ' . $average) : '');
                     $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
@@ -916,21 +925,21 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblDivisionStudentAll) {
                 foreach ($tblDivisionStudentAll as $tblPerson) {
 
-                    if ($isTestAppointedDateTask) {
-                        $average = Gradebook::useService()->calcStudentGrade(
-                            $tblPerson,
-                            $tblDivision,
-                            $tblSubject,
-                            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-                            $tblScoreRule ? $tblScoreRule : null
-                        );
-                        if (is_array($average)) {
-                            $errorRowList = $average;
-                            $average = ' ';
-                        }
-                    } else {
-                        $average = false;
-                    }
+//                    if ($isTestAppointedDateTask) {
+//                        $average = Gradebook::useService()->calcStudentGrade(
+//                            $tblPerson,
+//                            $tblDivision,
+//                            $tblSubject,
+//                            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+//                            $tblScoreRule ? $tblScoreRule : null
+//                        );
+//                        if (is_array($average)) {
+//                            $errorRowList = $average;
+//                            $average = ' ';
+//                        }
+//                    } else {
+                    $average = false;
+//                    }
                     $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName()
                         . ($average ? new Bold('&nbsp;&nbsp;&#216; ' . $average) : '');
                     $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
@@ -953,7 +962,9 @@ class Frontend extends Extension implements IFrontendInterface
             // Stichtagsnotenauftrag
             if ($isTestAppointedDateTask) {
 
-                $gradeType = 'Stichtagsnote';
+                $gradeType = 'Stichtagsnote' . ($tblTask->getServiceTblPeriod()
+                        ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getName()))
+                        : new Small(new Muted(' Gesamtes Schuljahr')));
 
                 foreach ($studentList as $personId => $student) {
                     $tblPerson = Person::useService()->getPersonById($personId);
@@ -961,7 +972,11 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblTask->getDate()));
                     if ($tblYearAll) {
                         foreach ($tblYearAll as $tblYear) {
-                            $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                            if ($tblTask->getServiceTblPeriod()) {
+                                $tblPeriodList = array($tblTask->getServiceTblPeriod());
+                            } else {
+                                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                            }
                             if ($tblPeriodList) {
                                 foreach ($tblPeriodList as $tblPeriod) {
                                     $tblGrades = Gradebook::useService()->getGradesByStudent(
@@ -998,32 +1013,73 @@ class Frontend extends Extension implements IFrontendInterface
                                             }
                                         }
 
-                                        $average = Gradebook::useService()->calcStudentGrade(
-                                            $tblPerson,
-                                            $tblDivision,
-                                            $tblDivisionSubject->getServiceTblSubject(),
-                                            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-                                            $tblScoreRule ? $tblScoreRule : null,
-                                            $tblPeriod
-                                        );
-                                        if (is_array($average)) {
-                                            $errorRowList = $average;
-                                            $average = ' ';
-                                        }
-                                        if ($average) {
-                                            $studentList[$tblPerson->getId()]['Period' . $tblPeriod->getId()]
-                                                .= '&nbsp;&nbsp;&nbsp;' . new Bold('&#216; ' . $average);
-                                        }
+//                                        $average = Gradebook::useService()->calcStudentGrade(
+//                                            $tblPerson,
+//                                            $tblDivision,
+//                                            $tblDivisionSubject->getServiceTblSubject(),
+//                                            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+//                                            $tblScoreRule ? $tblScoreRule : null,
+//                                            $tblPeriod
+//                                        );
+//                                        if (is_array($average)) {
+//                                            $errorRowList = $average;
+//                                            $average = ' ';
+//                                        }
+//                                        if ($average) {
+//                                            $studentList[$tblPerson->getId()]['Period' . $tblPeriod->getId()]
+//                                                .= '&nbsp;&nbsp;&nbsp;' . new Bold('&#216; ' . $average);
+//                                        }
                                     }
                                 }
                             }
                         }
 
                     }
+
+                    if ($showPriority) {
+                        $tableColumns['Priority'] = 'Priorität';
+                    }
+                    $tableColumns['Average'] = '&#216;';
+
+                    $average = Gradebook::useService()->calcStudentGrade(
+                        $tblPerson,
+                        $tblDivision,
+                        $tblDivisionSubject->getServiceTblSubject(),
+                        Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+                        $tblScoreRule ? $tblScoreRule : null,
+                        $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : null
+                    );
+                    if (is_array($average)) {
+                        $errorRowList = $average;
+                        $average = ' ';
+                        $priority = '';
+                    } else {
+                        $priority = '';
+                        $posStart = strpos($average, '(');
+                        if ($posStart !== false) {
+                            $posEnd = strpos($average, ')');
+                            if ($posEnd) {
+                                $priority = substr($average, $posStart + 1, $posEnd - $posStart - 1);
+                            }
+                            $average = substr($average, 0, $posStart);
+                        }
+                    }
+
+                    if ($average) {
+                        $studentList[$tblPerson->getId()]['Average']
+                            = new Bold($average);
+                    }
+                    if ($showPriority) {
+                        $studentList[$tblPerson->getId()]['Priority'] = $priority;
+                    }
+
                 }
             } else {
                 // Kopfnote
-                $gradeType = 'Kopfnote: ' . $tblTest->getServiceTblGradeType()->getName();
+                $gradeType = 'Kopfnote: ' . $tblTest->getServiceTblGradeType()->getName()
+                    . ($tblTask->getServiceTblPeriod()
+                        ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getName()))
+                        : new Small(new Muted(' Gesamtes Schuljahr')));;
             }
 
             $tableColumns['Grade'] = 'Zensur';
@@ -1229,7 +1285,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblTaskAll) {
             foreach ($tblTaskAll as $tblTask) {
                 $tblTask->Type = $tblTask->getTblTestType()->getName();
-                $tblTask->Period = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
+                $tblTask->EditPeriod = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
+                $tblTask->Period = $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod()->getName() : 'Gesamtes Schuljahr';
                 $tblTask->Option =
                     (new Standard('',
                         '/Education/Graduation/Evaluation/Headmaster/Task/Edit',
@@ -1265,8 +1322,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     $tblTaskAll, null, array(
                                         'Type' => 'Kategorie',
                                         'Name' => 'Name',
+                                        'Period' => 'Noten-Zeitraum',
                                         'Date' => 'Stichtag',
-                                        'Period' => 'Zeitraum',
+                                        'EditPeriod' => 'Bearbeitungszeitraum',
                                         'Option' => '',
                                     )
                                 )
@@ -1294,6 +1352,19 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $tblTestTypeAllWhereTask = Evaluation::useService()->getTestTypeAllWhereTask();
+        $tblYearAllByNow = Term::useService()->getYearByNow();
+        $periodSelect[-1] = 'Gesamtes Schuljahr';
+        if ($tblYearAllByNow) {
+            foreach ($tblYearAllByNow as $tblYear) {
+                $tblPeriodAllByYear = Term::useService()->getPeriodAllByYear($tblYear);
+                if ($tblPeriodAllByYear) {
+                    foreach ($tblPeriodAllByYear as $tblPeriod) {
+                        $periodSelect[$tblPeriod->getId()] = $tblPeriod->getName() .
+                            ($tblPeriod->getDescription() !== '' ? ' - ' . $tblPeriod->getDescription() : '');
+                    }
+                }
+            }
+        }
 
         return new Form(new FormGroup(array(
             new FormRow(array(
@@ -1306,13 +1377,16 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new FormRow(array(
                 new FormColumn(
-                    new DatePicker('Task[Date]', '', 'Stichtag', new Calendar()), 4
+                    new SelectBox('Task[Period]', 'Noten-Zeitraum', $periodSelect), 3
                 ),
                 new FormColumn(
-                    new DatePicker('Task[FromDate]', '', 'Zeitraum von', new Calendar()), 4
+                    new DatePicker('Task[Date]', '', 'Stichtag', new Calendar()), 3
                 ),
                 new FormColumn(
-                    new DatePicker('Task[ToDate]', '', 'Zeitraum bis', new Calendar()), 4
+                    new DatePicker('Task[FromDate]', '', 'Bearbeitungszeitraum von', new Calendar()), 3
+                ),
+                new FormColumn(
+                    new DatePicker('Task[ToDate]', '', 'Bearbeitungszeitraum bis', new Calendar()), 3
                 ),
             ))
         )));
@@ -1342,6 +1416,13 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->POST['Task']['Date'] = $tblTask->getDate();
                 $Global->POST['Task']['FromDate'] = $tblTask->getFromDate();
                 $Global->POST['Task']['ToDate'] = $tblTask->getToDate();
+                $period = $tblTask->getServiceTblPeriod();
+                if ($period) {
+                    $period = $period->getId();
+                } else {
+                    $period = -1;
+                }
+                $Global->POST['Task']['Period'] = $period;
                 $Global->savePost();
             }
 
@@ -1693,22 +1774,70 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName();
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
+
+        $tblTask = $tblTest->getTblTask();
+        $tblScoreRuleDivisionSubject = Gradebook::useService()->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision,
+            $tblSubject);
+        if ($tblScoreRuleDivisionSubject) {
+            $tblScoreRule = $tblScoreRuleDivisionSubject->getTblScoreRule();
+        } else {
+            $tblScoreRule = false;
+        }
+        $average = Gradebook::useService()->calcStudentGrade(
+            $tblPerson,
+            $tblDivision,
+            $tblSubject,
+            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
+            $tblScoreRule ? $tblScoreRule : null,
+            $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : null
+        );
+        if (is_array($average)) {
+//            $errorRowList = $average;
+            $average = ' ';
+        } else {
+            $posStart = strpos($average, '(');
+            if ($posStart !== false) {
+                $average = substr($average, 0, $posStart);
+            }
+        }
+
         if ($tblGrade) {
             $gradeValue = $tblGrade->getGrade();
             $trend = $tblGrade->getTrend();
+
+            $isGradeInRange = true;
+            if ($average !== ' ' && $average && $gradeValue !== null) {
+                if (is_numeric($gradeValue)) {
+                    $gradeFloat = floatval($gradeValue);
+                    if (($gradeFloat - 0.5) <= $average && ($gradeFloat + 0.5) >= $average) {
+                        $isGradeInRange = true;
+                    } else {
+                        $isGradeInRange = false;
+                    }
+                }
+            }
+
             if (TblGrade::VALUE_TREND_PLUS === $trend) {
                 $gradeValue .= '+';
             } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
                 $gradeValue .= '-';
             }
+
+            if ($isGradeInRange){
+                $gradeValue = new Success($gradeValue);
+            } else {
+                $gradeValue = new \SPHERE\Common\Frontend\Text\Repository\Danger($gradeValue);
+            }
+
             $studentList[$tblDivision->getId()][$tblPerson->getId()]
-            ['Subject' . $tblSubject->getId()] = $tblGrade->getGrade() !== null ?
-                $gradeValue : '';
+            ['Subject' . $tblSubject->getId()] = ($tblGrade->getGrade() !== null ?
+                    $gradeValue : '') . (($average !== ' ' && $average) ? new Muted('&nbsp;&nbsp; &#216;' . $average) : '');
             return $studentList;
         } else {
             $studentList[$tblDivision->getId()][$tblPerson->getId()]
             ['Subject' . $tblSubject->getId()] =
-                new Warning('fehlt');
+                new Warning('fehlt')
+                . (($average !== ' ' && $average) ? new Muted('&nbsp;&nbsp; &#216;' . $average) : '');
             return $studentList;
         }
     }
@@ -1818,7 +1947,8 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblTask $tblTask */
             foreach ($taskList as $tblTask) {
                 $tblTask->Type = $tblTask->getTblTestType()->getName();
-                $tblTask->Period = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
+                $tblTask->EditPeriod = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
+                $tblTask->Period = $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod()->getName() : 'Gesamtes Schuljahr';
                 $tblTask->Option =
                     (new Standard('',
                         '/Education/Graduation/Evaluation/DivisionTeacher/Task/Grades',
@@ -1838,8 +1968,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     $taskList, null, array(
                                         'Type' => 'Kategorie',
                                         'Name' => 'Name',
+                                        'Period' => 'Noten-Zeitraum',
                                         'Date' => 'Stichtag',
-                                        'Period' => 'Zeitraum',
+                                        'EditPeriod' => 'Bearbeitungszeitraum',
                                         'Option' => '',
                                     )
                                 )
