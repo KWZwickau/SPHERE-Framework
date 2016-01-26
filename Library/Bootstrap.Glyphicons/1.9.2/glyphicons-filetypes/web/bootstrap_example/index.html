@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
+<link rel="icon" href="../../favicon.ico">
+
+<title>Bootstrap Example</title>
+
+<!-- Fonts -->
+<link href="css/glyphicons-filetypes.css" rel="stylesheet">
+<link href="css/glyphicons-bootstrap.css" rel="stylesheet">
+
+<!-- Bootstrap core CSS -->
+<link href="css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+<br />
+<br />
+<h2>Bootstrap example</h2>
+<br />
+
+<div class="alert alert-danger" role="alert">
+<span class="sr-only">IMPORTANT:</span> Please, if you want to use icons from PRO version in Bootstrap, be sure you don't violate the license. Icons (except Halflings) are not provided for free and <a href="https://glyphicons.com/license/">GLYPHICONS license</a> is not compatible with most of the open-source licenses.
+</div>
+
+<p><strong>TIP:</strong> do you want to have all icons pixel perfect (or let's say almost)? Try to set their basic size to <strong>24px</strong> (<strong>12px</strong> for Halflings) or <strong>their multiples</strong>. As you can see on this page, when icons are smaller or in atypic size, they are blurred. If you're not sure which files exactly copy and where, just explore this HTML, its header and files in this folder. Remember, this is just an example, have a fun!</p>
+<br />
+
+<!-- BUTTONS -->
+<div class="bs-example">
+<h4>Default settings</h4>
+<p>Please, do not use Filetype icons in such small sizes, they are designed to have at least 24px or more!</p>
+<div class="btn-toolbar" role="toolbar">
+<div class="btn-group">
+<button type="button" class="btn btn-default" aria-label="Font"><span class="filetypes filetypes-txt" aria-hidden="true"></span></button>
+<button type="button" class="btn btn-default" aria-label="Italic"><span class="filetypes filetypes-pdf" aria-hidden="true"></span></button>
+<button type="button" class="btn btn-default" aria-label="Bold"><span class="filetypes filetypes-svg" aria-hidden="true"></span></button>
+<button type="button" class="btn btn-default" aria-label="Underline"><span class="filetypes filetypes-jar" aria-hidden="true"></span></button>
+<button type="button" class="btn btn-default" aria-label="Strike"><span class="filetypes filetypes-vb" aria-hidden="true"></span></button>
+<button type="button" class="btn btn-default" aria-label="Height"><span class="filetypes filetypes-jsp" aria-hidden="true"></span></button>
+<button type="button" class="btn btn-default" aria-label="Width"><span class="filetypes filetypes-zip" aria-hidden="true"></span></button>
+<button type="button" class="btn btn-default" aria-label="Resize"><span class="filetypes filetypes-otf" aria-hidden="true"></span></button>
+<button type="button" class="btn btn-default" aria-label="Left Indent"><span class="filetypes filetypes-wps" aria-hidden="true"></span></button>
+<button type="button" class="btn btn-default" aria-label="Right Indent"><span class="filetypes filetypes-page" aria-hidden="true"></span></button>
+<button type="button" class="btn btn-default" aria-label="Left Align"><span class="filetypes filetypes-csv" aria-hidden="true"></span></button>
+<button type="button" class="btn btn-default" aria-label="Center Align"><span class="filetypes filetypes-dat" aria-hidden="true"></span></button>
+<button type="button" class="btn btn-default" aria-label="Right Align"><span class="filetypes filetypes-tar" aria-hidden="true"></span></button>
+<button type="button" class="btn btn-default" aria-label="Justify"><span class="filetypes filetypes-asx" aria-hidden="true"></span></button>
+<button type="button" class="btn btn-default" aria-label="List"><span class="filetypes filetypes-sql" aria-hidden="true"></span></button>
+</div>
+</div>
+<br />
+<br />
+<h4>24px basic size - see the difference?</h4>
+<div class="btn-toolbar" role="toolbar">
+<div class="btn-group">
+<button type="button" class="btn btn-default" aria-label="Font"><span class="filetypes filetypes-txt" aria-hidden="true" style="font-size:24px"></span></button>
+<button type="button" class="btn btn-default" aria-label="Italic"><span class="filetypes filetypes-pdf" aria-hidden="true" style="font-size:24px"></span></button>
+<button type="button" class="btn btn-default" aria-label="Bold"><span class="filetypes filetypes-svg" aria-hidden="true" style="font-size:24px"></span></button>
+<button type="button" class="btn btn-default" aria-label="Underline"><span class="filetypes filetypes-jar" aria-hidden="true" style="font-size:24px"></span></button>
+<button type="button" class="btn btn-default" aria-label="Strike"><span class="filetypes filetypes-vb" aria-hidden="true" style="font-size:24px"></span></button>
+<button type="button" class="btn btn-default" aria-label="Height"><span class="filetypes filetypes-jsp" aria-hidden="true" style="font-size:24px"></span></button>
+<button type="button" class="btn btn-default" aria-label="Width"><span class="filetypes filetypes-zip" aria-hidden="true" style="font-size:24px"></span></button>
+<button type="button" class="btn btn-default" aria-label="Resize"><span class="filetypes filetypes-otf" aria-hidden="true" style="font-size:24px"></span></button>
+<button type="button" class="btn btn-default" aria-label="Left Indent"><span class="filetypes filetypes-wps" aria-hidden="true" style="font-size:24px"></span></button>
+<button type="button" class="btn btn-default" aria-label="Right Indent"><span class="filetypes filetypes-page" aria-hidden="true" style="font-size:24px"></span></button>
+<button type="button" class="btn btn-default" aria-label="Left Align"><span class="filetypes filetypes-csv" aria-hidden="true" style="font-size:24px"></span></button>
+<button type="button" class="btn btn-default" aria-label="Center Align"><span class="filetypes filetypes-dat" aria-hidden="true" style="font-size:24px"></span></button>
+<button type="button" class="btn btn-default" aria-label="Right Align"><span class="filetypes filetypes-tar" aria-hidden="true" style="font-size:24px"></span></button>
+<button type="button" class="btn btn-default" aria-label="Justify"><span class="filetypes filetypes-asx" aria-hidden="true" style="font-size:24px"></span></button>
+<button type="button" class="btn btn-default" aria-label="List"><span class="filetypes filetypes-sql" aria-hidden="true" style="font-size:24px"></span></button>
+</div>
+</div>
+<br />
+<br />
+
+<!-- BTN -->
+<a class="btn btn-lg btn-success" href="#" style="margin-right:15px"><span class="filetypes filetypes-txt light x2 pull-left"></span> TXT!<br>TXT!</a>
+<br />
+<br />
+<br />
+
+</div>
+</body>
+</html>
+

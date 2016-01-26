@@ -12,7 +12,7 @@ class MapMarker implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'glyphicons glyphicons-google-maps';
+    private $Value = 'glyphicons glyphicons-map-marker';
 
     /**
      * @return string
