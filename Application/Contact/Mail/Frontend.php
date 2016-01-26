@@ -21,6 +21,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Envelope;
 use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -38,6 +39,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -321,7 +323,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblMailAll !== false) {
             array_walk($tblMailAll, function (TblToPerson &$tblToPerson) {
 
-                $Panel = array($tblToPerson->getTblMail()->getAddress());
+                $Panel = array($tblToPerson->getTblMail()->getAddress()
+                    . ' ' .new Mailto('', $tblToPerson->getTblMail()->getAddress(), new Envelope()));
                 if ($tblToPerson->getRemark()) {
                     array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
                 }
@@ -585,7 +588,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblMailAll !== false) {
             array_walk($tblMailAll, function (TblToCompany &$tblToCompany) {
 
-                $Panel = array($tblToCompany->getTblMail()->getAddress());
+                $Panel = array($tblToCompany->getTblMail()->getAddress() . ' '
+                    . new Mailto('', $tblToCompany->getTblMail()->getAddress(), new Envelope()));
                 if ($tblToCompany->getRemark()) {
                     array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
                 }

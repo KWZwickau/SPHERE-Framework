@@ -40,6 +40,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\PhoneLink;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -325,7 +326,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblPhoneAll !== false) {
             array_walk($tblPhoneAll, function (TblToPerson &$tblToPerson) {
 
-                $Panel = array($tblToPerson->getTblPhone()->getNumber());
+                $Panel = array( new PhoneLink('', $tblToPerson->getTblPhone()->getNumber(), new PhoneIcon() )
+                    . $tblToPerson->getTblPhone()->getNumber() . ' ' );
                 if ($tblToPerson->getRemark()) {
                     array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
                 }
@@ -628,7 +630,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblPhoneAll !== false) {
             array_walk($tblPhoneAll, function (TblToCompany &$tblToCompany) {
 
-                $Panel = array($tblToCompany->getTblPhone()->getNumber());
+                $Panel = array( new PhoneLink('', $tblToCompany->getTblPhone()->getNumber(), new PhoneIcon() )
+                    . $tblToCompany->getTblPhone()->getNumber() . ' ' );
                 if ($tblToCompany->getRemark()) {
                     array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
                 }
