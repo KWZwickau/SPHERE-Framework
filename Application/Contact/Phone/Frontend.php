@@ -326,8 +326,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblPhoneAll !== false) {
             array_walk($tblPhoneAll, function (TblToPerson &$tblToPerson) {
 
-                $Panel = array( new PhoneLink('', $tblToPerson->getTblPhone()->getNumber(), new PhoneIcon() )
-                    . $tblToPerson->getTblPhone()->getNumber() . ' ' );
+                $Panel = array(new PhoneLink($tblToPerson->getTblPhone()->getNumber(),
+                    $tblToPerson->getTblPhone()->getNumber(), new PhoneIcon() ));
                 if ($tblToPerson->getRemark()) {
                     array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
                 }
@@ -373,7 +373,8 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblRelationshipPhoneAll) {
                             foreach ($tblRelationshipPhoneAll as $tblPhone) {
 
-                                $Panel = array($tblPhone->getTblPhone()->getNumber());
+                                $Panel = array(new PhoneLink($tblPhone->getTblPhone()->getNumber(),
+                                    $tblPhone->getTblPhone()->getNumber(), new PhoneIcon() ));
                                 if ($tblPhone->getRemark()) {
                                     array_push($Panel, new Muted(new Small($tblPhone->getRemark())));
                                 }
@@ -416,7 +417,8 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblRelationshipPhoneAll) {
                             foreach ($tblRelationshipPhoneAll as $tblPhone) {
 
-                                $Panel = array($tblPhone->getTblPhone()->getNumber());
+                                $Panel = array(new PhoneLink($tblPhone->getTblPhone()->getNumber(),
+                                    $tblPhone->getTblPhone()->getNumber(), new PhoneIcon() ));
                                 if ($tblPhone->getRemark()) {
                                     array_push($Panel, new Muted(new Small($tblPhone->getRemark())));
                                 }
@@ -630,8 +632,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblPhoneAll !== false) {
             array_walk($tblPhoneAll, function (TblToCompany &$tblToCompany) {
 
-                $Panel = array( new PhoneLink('', $tblToCompany->getTblPhone()->getNumber(), new PhoneIcon() )
-                    . $tblToCompany->getTblPhone()->getNumber() . ' ' );
+                $Panel = array(new PhoneLink($tblToCompany->getTblPhone()->getNumber(),
+                    $tblToCompany->getTblPhone()->getNumber(), new PhoneIcon() ));
                 if ($tblToCompany->getRemark()) {
                     array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
                 }

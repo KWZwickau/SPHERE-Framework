@@ -323,8 +323,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblMailAll !== false) {
             array_walk($tblMailAll, function (TblToPerson &$tblToPerson) {
 
-                $Panel = array($tblToPerson->getTblMail()->getAddress()
-                    . ' ' .new Mailto('', $tblToPerson->getTblMail()->getAddress(), new Envelope()));
+                $Panel = array(new Mailto($tblToPerson->getTblMail()->getAddress()
+                    , $tblToPerson->getTblMail()->getAddress(), new Envelope()));
                 if ($tblToPerson->getRemark()) {
                     array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
                 }
@@ -357,7 +357,8 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblRelationshipMailAll) {
                             foreach ($tblRelationshipMailAll as $tblMail) {
 
-                                $Panel = array($tblMail->getTblMail()->getAddress());
+                                $Panel = array(new Mailto($tblMail->getTblMail()->getAddress()
+                                    , $tblMail->getTblMail()->getAddress(), new Envelope()));
                                 if ($tblMail->getRemark()) {
                                     array_push($Panel, new Muted(new Small($tblMail->getRemark())));
                                 }
@@ -387,7 +388,8 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblRelationshipMailAll) {
                             foreach ($tblRelationshipMailAll as $tblMail) {
 
-                                $Panel = array($tblMail->getTblMail()->getAddress());
+                                $Panel = array(new Mailto($tblMail->getTblMail()->getAddress()
+                                    , $tblMail->getTblMail()->getAddress(), new Envelope()));
                                 if ($tblMail->getRemark()) {
                                     array_push($Panel, new Muted(new Small($tblMail->getRemark())));
                                 }
@@ -588,8 +590,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblMailAll !== false) {
             array_walk($tblMailAll, function (TblToCompany &$tblToCompany) {
 
-                $Panel = array($tblToCompany->getTblMail()->getAddress() . ' '
-                    . new Mailto('', $tblToCompany->getTblMail()->getAddress(), new Envelope()));
+                $Panel = array(new Mailto($tblToCompany->getTblMail()->getAddress()
+                    , $tblToCompany->getTblMail()->getAddress(), new Envelope()));
                 if ($tblToCompany->getRemark()) {
                     array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
                 }
