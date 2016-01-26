@@ -22,11 +22,14 @@
 
 # Restrict Server PHP-File Access
 
-    <FilesMatch "(\..*)$">
+    <FilesMatch "\..*$">
         Order Deny,Allow
         Deny from All
     </FilesMatch>
-    <FilesMatch "^(index\.php|piwik\.php|robots\.txt|.*\.html|.*\.(css|js|map|woff|woff2|ico|svg|png|jpg|ttf|gif))$">
+    <FilesMatch "\.(css|js|map|woff|woff2|ico|svg|png|jpg|ttf|gif)$">
+        Allow from All
+    </FilesMatch>
+    <FilesMatch "^(index\.php|piwik\.php|robots\.txt)$">
         Allow from All
     </FilesMatch>
 

@@ -4,15 +4,15 @@ namespace SPHERE\Common\Frontend\Icon\Repository;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 
 /**
- * Class Ban
+ * Class Picture
  *
  * @package SPHERE\Common\Frontend\Icon\Repository
  */
-class Ban implements IIconInterface
+class Picture implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'glyphicons glyphicons-ban-circle';
+    private $Value = 'glyphicons glyphicons-picture';
 
     /**
      * @return string
