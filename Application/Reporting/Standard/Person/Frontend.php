@@ -11,7 +11,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
-use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -82,8 +82,9 @@ class Frontend extends Extension implements IFrontendInterface
                             '/Api/Reporting/Standard/Person/ClassList/Download', new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
-                    $Stage->setMessage(new Danger(new Info().' Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!'));
+                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
+
                 }
             }
         }
@@ -162,8 +163,8 @@ class Frontend extends Extension implements IFrontendInterface
                             '/Api/Reporting/Standard/Person/ExtendedClassList/Download', new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
-                    $Stage->setMessage(new Danger(new Info().' Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!'));
+                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
                 }
 
                 $studentList = Person::useService()->createExtendedClassList($tblDivision);
@@ -272,8 +273,8 @@ class Frontend extends Extension implements IFrontendInterface
                             '/Api/Reporting/Standard/Person/BirthdayClassList/Download', new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
-                    $Stage->setMessage(new Danger(new Info().' Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!'));
+                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
                 }
 
                 $studentList = Person::useService()->createBirthdayClassList($tblDivision);
@@ -377,8 +378,8 @@ class Frontend extends Extension implements IFrontendInterface
                             '/Api/Reporting/Standard/Person/MedicalInsuranceClassList/Download', new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
-                    $Stage->setMessage(new Danger(new Info().' Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!'));
+                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
                 }
 
                 $studentList = Person::useService()->createMedicalInsuranceClassList($tblDivision);
@@ -484,8 +485,8 @@ class Frontend extends Extension implements IFrontendInterface
                             '/Api/Reporting/Standard/Person/GroupList/Download', new Download(),
                             array('GroupId' => $tblGroup->getId()))
                     );
-                    $Stage->setMessage(new Danger(new Info().' Die dauerhafte Speicherung des Excel-Exports
-                    ist datenschutzrechtlich nicht zulässig!'));
+                    $Stage->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
                 }
 
                 $Count = count($groupList);
