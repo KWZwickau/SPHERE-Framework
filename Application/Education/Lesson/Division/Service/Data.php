@@ -484,10 +484,39 @@ class Data extends AbstractData
 
     /**
      * @param TblDivision $tblDivision
+     * @param TblDivision $tblDivisionCopy
+     *
+     * @return bool|TblDivisionTeacher
+     */
+    public function copyTeacherAllByDivision(TblDivision $tblDivision, TblDivision $tblDivisionCopy)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblDivisionTeacher')->findBy(array(
+            TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()
+        ));
+
+        if (!empty ( $EntityList )) {
+            /** @var TblDivisionTeacher $singleEntity */
+            foreach ($EntityList as $singleEntity) {
+                $Entity = new TblDivisionTeacher();
+                $Entity->setTblDivision($tblDivisionCopy);
+                $Entity->setServiceTblPerson($singleEntity->getServiceTblPerson());
+                $Entity->setDescription($singleEntity->getDescription());
+                $Manager->saveEntity($Entity);
+                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+            }
+        }
+
+        return empty( $EntityList ) ? false : $EntityList;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
      *
      * @return bool|TblPerson[]
      */
-    public function getCuscodyAllByDivision(TblDivision $tblDivision)
+    public function getCustodyAllByDivision(TblDivision $tblDivision)
     {
 
         $TempList = $this->getConnection()->getEntityManager()->getEntity('TblDivisionCustody')->findBy(array(
@@ -501,6 +530,35 @@ class Data extends AbstractData
                 array_push($EntityList, $tblDivisionCustody->getServiceTblPerson());
             }
         }
+        return empty( $EntityList ) ? false : $EntityList;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblDivision $tblDivisionCopy
+     *
+     * @return bool|TblDivisionCustody[]
+     */
+    public function copyCustodyAllByDivision(TblDivision $tblDivision, TblDivision $tblDivisionCopy)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblDivisionCustody')->findBy(array(
+            TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId()
+        ));
+
+        if (!empty ( $EntityList )) {
+            /** @var TblDivisionCustody $singleEntity */
+            foreach ($EntityList as $singleEntity) {
+                $Entity = new TblDivisionCustody();
+                $Entity->setTblDivision($tblDivisionCopy);
+                $Entity->setServiceTblPerson($singleEntity->getServiceTblPerson());
+                $Entity->setDescription($singleEntity->getDescription());
+                $Manager->saveEntity($Entity);
+                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+            }
+        }
+
         return empty( $EntityList ) ? false : $EntityList;
     }
 
@@ -605,11 +663,11 @@ class Data extends AbstractData
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
-     * @param             $Description
+     * @param null        $Description
      *
      * @return null|object|TblDivisionCustody
      */
-    public function addDivisionCustody(TblDivision $tblDivision, TblPerson $tblPerson, $Description)
+    public function addDivisionCustody(TblDivision $tblDivision, TblPerson $tblPerson, $Description = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -675,7 +733,7 @@ class Data extends AbstractData
      *
      * @return null|object|TblSubjectStudent
      */
-    public function addSubjectStudent(TblPerson $tblPerson, TblDivisionSubject $tblDivisionSubject)
+    public function addSubjectStudent(TblDivisionSubject $tblDivisionSubject, TblPerson $tblPerson)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -1113,6 +1171,20 @@ class Data extends AbstractData
 
         $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher',
             array(TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()));
+
+        return $result ? $result : 0;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return int
+     */
+    public function countDivisionCustodyAllByDivision(TblDivision $tblDivision)
+    {
+
+        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionCustody',
+            array(TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId()));
 
         return $result ? $result : 0;
     }
