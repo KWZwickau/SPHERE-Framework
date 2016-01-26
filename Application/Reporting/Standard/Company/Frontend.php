@@ -70,8 +70,8 @@ class Frontend extends Extension implements IFrontendInterface
                             '/Api/Reporting/Standard/Company/GroupList/Download', new Download(),
                             array('GroupId' => $tblGroup->getId()))
                     );
-                    $Stage->setMessage(new Danger(new Info().' Achtung dauerhafte Speicherung von Excel-Export
-                    ist datenschutzrechtlich nicht zulässig.'));
+                    $Stage->setMessage(new Danger(new Info().' Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!'));
                 }
             }
         }
