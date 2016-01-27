@@ -22,7 +22,6 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Phone as PhoneIcon;
 use SPHERE\Common\Frontend\Icon\Repository\PhoneFax;
@@ -136,7 +135,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 6),
                     new FormColumn(
                         new Panel('Sonstiges',
-                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
+                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit())
                             , Panel::PANEL_TYPE_INFO
                         ), 6),
                 )),
@@ -350,7 +349,7 @@ class Frontend extends Extension implements IFrontendInterface
                             : Panel::PANEL_TYPE_SUCCESS
                         ),
                         new Standard(
-                            '', '/People/Person/Phone/Edit', new Pencil(),
+                            '', '/People/Person/Phone/Edit', new Edit(),
                             array('Id' => $tblToPerson->getId()),
                             'Bearbeiten'
                         )
@@ -397,7 +396,8 @@ class Frontend extends Extension implements IFrontendInterface
                                             : Panel::PANEL_TYPE_DEFAULT
                                         ),
                                         $tblRelationship->getServiceTblPersonFrom()->getFullName()
-                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                        . ' (' . $tblRelationship->getTblType()->getName()
+                                        . Relationship::useService()->getIcon($tblRelationship->getTblType(), true) .  ')'
                                     )
                                     , 3);
 
@@ -441,7 +441,8 @@ class Frontend extends Extension implements IFrontendInterface
                                             : Panel::PANEL_TYPE_DEFAULT
                                         ),
                                         $tblRelationship->getServiceTblPersonTo()->getFullName()
-                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                        . ' (' . $tblRelationship->getTblType()->getName()
+                                        . Relationship::useService()->getIcon($tblRelationship->getTblType(), false) .  ')'
                                     )
                                     , 3);
 
@@ -656,7 +657,7 @@ class Frontend extends Extension implements IFrontendInterface
                             : Panel::PANEL_TYPE_SUCCESS
                         ),
                         new Standard(
-                            '', '/Corporation/Company/Phone/Edit', new Pencil(),
+                            '', '/Corporation/Company/Phone/Edit', new Edit(),
                             array('Id' => $tblToCompany->getId()),
                             'Bearbeiten'
                         )

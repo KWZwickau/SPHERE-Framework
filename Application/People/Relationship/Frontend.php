@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Link;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -439,14 +440,16 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblToPerson = new LayoutColumn(
                     new Panel(
-                        new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName(), $Panel,
+                        new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName()
+                        . Relationship::useService()->getIcon($tblToPerson->getTblType(),
+                            !($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId())), $Panel,
                         ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
                             ? Panel::PANEL_TYPE_SUCCESS
                             : Panel::PANEL_TYPE_DEFAULT
                         ),
                         ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
                             ? new Standard(
-                                '', '/People/Person/Relationship/Edit', new Pencil(),
+                                '', '/People/Person/Relationship/Edit', new Edit(),
                                 array('Id' => $tblToPerson->getId()),
                                 'Bearbeiten'
                             )
@@ -533,7 +536,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         ($tblEntity instanceof TblPerson
                             ? new Standard(
-                                '', '/Corporation/Company/Relationship/Edit', new Pencil(),
+                                '', '/Corporation/Company/Relationship/Edit', new Edit(),
                                 array('Id' => $tblToCompany->getId()),
                                 'Bearbeiten'
                             )

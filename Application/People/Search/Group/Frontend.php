@@ -10,7 +10,7 @@ use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Common\Frontend\Icon\Repository\Pencil;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
@@ -158,7 +158,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ? $tblAddress
                             : new Warning('Keine Adresse hinterlegt')
                         ),
-                        'Option' => new Standard('', '/People/Person', new Pencil(), array(
+                        'Option' => new Standard('', '/People/Person', new Edit(), array(
                             'Id' => $tblPerson->getId(),
                             'Group' => $tblGroup->getId()
                         ), 'Bearbeiten'),
