@@ -12,7 +12,7 @@ class Enable implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-ok-circle';
+    private $Value = 'glyphicons glyphicons-ok-circle';
 
     /**
      * @return string

@@ -12,7 +12,7 @@ class Ban implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'glyphicons glyphicons-ban';
+    private $Value = 'glyphicons glyphicons-ban-circle';
 
     /**
      * @return string

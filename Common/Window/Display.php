@@ -341,6 +341,18 @@ class Display extends Extension implements ITemplateInterface
             )
         );
 
+        switch (strtolower($this->getRequest()->getHost())) {
+            case 'www.kreda.schule':
+                $BrandTitle = '<a class="navbar-brand" href="/">KREDA <span class="text-info">Professional</span></a>';
+                break;
+            case 'demo.kreda.schule':
+                $BrandTitle = '<a class="navbar-brand" href="/">KREDA <span class="text-danger">DEMO</span></a>';
+                break;
+            default:
+                $BrandTitle = '<a class="navbar-brand" href="/">KREDA <span class="text-warning">'.$this->getRequest()->getHost().'</span></a>';
+        }
+        $this->Template->setVariable('BrandSwitch', $BrandTitle);
+
         return $this->Template->getContent();
     }
 

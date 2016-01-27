@@ -12,7 +12,7 @@ class Disable implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-remove-circle';
+    private $Value = 'glyphicons glyphicons-remove-circle';
 
     /**
      * @return string
