@@ -67,7 +67,6 @@ use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -123,7 +122,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Route(__NAMESPACE__), new PersonGroup())
         );
 
-        $YearAll = Term::useService()->getYearAllSinceYears(2);
+        $YearAll = Term::useService()->getYearAllSinceYears(1);
         if (!empty( $YearAll )) {
             foreach ($YearAll as $key => $row) {
                 $name[$key] = strtoupper($row->getName());
@@ -267,7 +266,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->POST['Level']['Check'] = true;
             } else {
                 if ($future && $tblLevel->getName() === '') {
-                    Debugger::screenDump($tblLevel->getName());
                     $Global->POST['Level']['Check'] = true;
                 }
             }
@@ -501,7 +499,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         array(
                                             'Name'    => 'Schüler',
                                             'Address' => 'Adresse',
-                                            'Option'  => ''
+                                            'Option'  => ' '    // ToDo Unterschiedliche Spaltennamen benötigt!
                                         ))
                                 )
                             ), 6)
@@ -921,7 +919,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             'Acronym'     => 'Kürzel',
                                             'Name'        => 'Fach',
                                             'Description' => 'Beschreibung',
-                                            'Option'      => ''
+                                            'Option'      => ' '    // ToDo Unterschiedliche Spaltennamen benötigt!
                                         ))
                                 )
                             ), 6)
@@ -1745,7 +1743,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ->addItem('Enthaltene Schüler', $StudentPanel, false);
                     } else {
                         $tblDivisionSubject->Group = new Panel('Gruppen', '', Panel::PANEL_TYPE_INFO,
-                            new Standard('Gruppe', '/Education/Lesson/Division/SubjectGroup/Add', new Pencil(),
+                            new Standard('Gruppe', '/Education/Lesson/Division/SubjectGroup/Add', new Plus(),
                                 array(
                                     'Id'                => $tblDivision->getId(),
                                     'DivisionSubjectId' => $tblDivisionSubject->getId()
@@ -1916,15 +1914,30 @@ class Frontend extends Extension implements IFrontendInterface
             if (!$Confirm) {
 
                 $tblDivision = Division::useService()->getDivisionById($Id);
+                $tblLevel = $tblDivision->getTblLevel();
                 $tblYear = $tblDivision->getServiceTblYear();
-
+                $StudentInt = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
+                $TeacherInt = Division::useService()->countDivisionTeacherAllByDivision($tblDivision);
+                $CustodyInt = Division::useService()->countDivisionCustodyAllByDivision($tblDivision);
+                if ($StudentInt > 0) {
+                    $StudentInt = new Danger($StudentInt);
+                }
+                if ($TeacherInt > 0) {
+                    $TeacherInt = new Danger($TeacherInt);
+                }
+                if ($CustodyInt > 0) {
+                    $CustodyInt = new Danger($CustodyInt);
+                }
 
                 $Content[] = 'Jahr: '.new Bold($tblYear->getName());
-                $Content[] = 'Klasse: '.new Bold($tblDivision->getDisplayName());
+                $Content[] = 'Typ: '.new Bold($tblLevel->getServiceTblType()->getName());
+                $Content[] = 'Stufe: '.new Bold($tblLevel->getName());
+                $Content[] = 'Gruppe: '.new Bold($tblDivision->getName());
+                $Content[] = 'Klassenbezeichnung: '.new Bold($tblDivision->getDisplayName());
                 $Content[] = 'Beschreibung: '.new Bold($tblDivision->getDescription());
-                $Content2[] = 'Schüler: '.new Bold(Division::useService()->countDivisionStudentAllByDivision($tblDivision));
-                $Content2[] = 'Klassenlehrer: '.new Bold(Division::useService()->countDivisionTeacherAllByDivision($tblDivision));
-                $Content2[] = 'Elternvertreter: '.new Bold(Division::useService()->countDivisionCustodyAllByDivision($tblDivision));
+                $Content2[] = 'Schüler: '.new Bold($StudentInt);
+                $Content2[] = 'Klassenlehrer: '.new Bold($TeacherInt);
+                $Content2[] = 'Elternvertreter: '.new Bold($CustodyInt);
                 $Content2[] = 'Fächer: '.new Bold(Division::useService()->countDivisionSubjectAllByDivision($tblDivision));
 
                 $Stage->setContent(
@@ -1933,16 +1946,11 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(array(
                                 new LayoutColumn(
                                     new Panel(new Question().' Diese Klasse wirklich löschen?',
-                                        $Content
-                                        ,
-                                        Panel::PANEL_TYPE_DANGER,
+                                        $Content, Panel::PANEL_TYPE_DANGER,
                                         new Standard(
                                             'Ja', '/Education/Lesson/Division/Destroy/Division', new Ok(),
-                                            array('Id' => $Id, 'Confirm' => true)
-                                        )
-                                        .new Standard(
-                                            'Nein', '/Education/Lesson/Division', new Disable()
-                                        )
+                                            array('Id' => $Id, 'Confirm' => true))
+                                        .new Standard('Nein', '/Education/Lesson/Division', new Disable())
                                     )
                                     , 6),
                                 new LayoutColumn(
@@ -1974,7 +1982,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ( Division::useService()->destroyDivision($tblDivision)
                                 ? new Success('Die Klasse wurde gelöscht')
                                 .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_SUCCESS)
-                                : new \SPHERE\Common\Frontend\Message\Repository\Danger('Die Klasse konnte nicht gelöscht werden')
+                                : new \SPHERE\Common\Frontend\Message\Repository\Danger('Die Klasse konnte nicht gelöscht werden, da Personen zugeordnet sind')
                                 .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR)
                             )
                         )))
@@ -2006,7 +2014,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Content[] = 'Typ: '.new Bold($tblLevel->getServiceTblType()->getName());
         $Content[] = 'Stufe: '.new Bold($tblLevel->getName());
-        $Content[] = 'Klasse: '.new Bold($tblDivision->getDisplayName());
+        $Content[] = 'Klassenbezeichnung: '.new Bold($tblDivision->getDisplayName());
         $Content1[] = 'Jahr: '.new Bold($tblYear->getName());
         $Content1[] = 'Gruppe: '.new Bold($tblDivision->getName());
         $Content1[] = 'Beschreibung: '.new Bold($tblDivision->getDescription());
@@ -2037,21 +2045,31 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Kopierende Klassenstufe:',
-                                $Content, Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Kopierende Klassengruppe:',
-                                $Content1, Panel::PANEL_TYPE_INFO)
-                            , 4),
+                            new Well(
+                                new Layout(
+                                    new LayoutGroup(
+                                        new LayoutRow(array(
+                                                new LayoutColumn(
+                                                    new Panel('Kopierende Klassenstufe:',
+                                                        $Content, Panel::PANEL_TYPE_INFO)
+                                                    , 6),
+                                                new LayoutColumn(
+                                                    new Panel('Kopierende Klassengruppe:',
+                                                        $Content1, Panel::PANEL_TYPE_INFO)
+                                                    , 6),
+                                            )
+                                        )
+                                    )
+                                )
+                            ), 8),
                         new LayoutColumn(
                             new Panel('Anzahl Personen und Fächer:',
                                 $Content2, Panel::PANEL_TYPE_SUCCESS)
                             , 4),
                     ))
                 )
-            ).
-            new Layout(
+            )
+            .new Layout(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(new Well(
@@ -2062,7 +2080,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 , $tblDivision, $Level, $Division
                             )
                         ))
-                    ), new Title(' Kopie erstellen')
+                    ), new Title(new MoreItems().' Kopie erstellen')
                 )
             )
         );
