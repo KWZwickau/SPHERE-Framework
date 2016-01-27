@@ -4,6 +4,8 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
+use SPHERE\Common\Frontend\Icon\Repository\Family;
+use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -26,7 +28,7 @@ class Gradebook implements IModuleInterface
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\Score'), new Link\Name('Berechnungsvorschrift'),
-                new Link\Icon(new Book()))
+                new Link\Icon(new Pencil()))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\Gradebook'), new Link\Name('Notenbuch'),
@@ -38,7 +40,7 @@ class Gradebook implements IModuleInterface
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\Student\Gradebook'), new Link\Name('Notenübersicht'),
-                new Link\Icon(new Book()))
+                new Link\Icon(new Family()))
         );
 
         Main::getDispatcher()->registerRoute(
