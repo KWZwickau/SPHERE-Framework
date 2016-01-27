@@ -12,7 +12,7 @@ class Ok implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'glyphicons glyphicons-circle-ok';
+    private $Value = 'glyphicons glyphicons-ok-circle';
 
     /**
      * @return string
