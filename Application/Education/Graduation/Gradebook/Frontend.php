@@ -83,6 +83,9 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Zensuren-Typ', 'Übersicht');
+        $Stage->setMessage('Hier werden die Zensuren-Typen verwaltet. Bei den Zensuren-Typen wird zwischen den beiden
+            Kategorien: Kopfnote (z.B. Betragen, Mitarbeit, Fleiß usw.) und Leistungsüberprüfung
+            (z.B. Klassenarbeit, Leistungskontrolle usw.) unterschieden.');
 
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
         if (!$tblTestType || !($tblGradeTypeAllTest = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType))) {
@@ -258,6 +261,9 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Notenbuch', 'Auswahl');
+        $Stage->setMessage(
+            'Auswahl der Notenbücher, wo der angemeldete Lehrer als Fachlehrer oder Klassenlehrer hinterlegt ist.'
+        );
 
         $tblPerson = false;
         $tblAccount = Account::useService()->getAccountBySession();
@@ -414,6 +420,9 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Notenbuch (Leitung)', 'Auswahl');
+        $Stage->setMessage(
+            'Auswahl aller Notenbücher.'
+        );
 
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
@@ -825,6 +834,12 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Notenübersicht', 'Schüler/Eltern');
+        $Stage->setMessage(
+            'Anzeige der Zensuren für die Schüler und Eltern. <br>
+            Der angemeldete Schüler sieht nur seine eigenen Zensuren. <br>
+            Der angemeldete Sorgeberechtigte sieht nur die Zensuren seiner Schützlinge. <br>'
+        );
+
         $tblYearAll = Term::useService()->getYearAll();
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
         $rowList = array();
@@ -1046,6 +1061,12 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $Stage = new Stage('Berechnungsvorschrift', 'Übersicht');
+        $Stage->setMessage(
+            'Hier werden die Berechnungsvorschriften, für die automatische Durchschnittsberechnung der Zensuren, verwaltet. <br>
+            Die Berechnungsvorschrift bildet die 1. Ebene und setzt sich aus einer oder mehrerer Berechnungsvarianten
+            zusammen.'
+        );
+
         $this->setScoreStageMenuButtons($Stage);
 
         $tblScoreRuleAll = Gradebook::useService()->getScoreRuleAll();
@@ -1133,6 +1154,18 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $Stage = new Stage('Berechnungsvariante', 'Übersicht');
+        $Stage->setMessage(
+            'Hier werden die Berechnungsvarianten verwaltet. <br>
+            Die Berechnungsvariante bildet die 2. Ebene der Berechnungsvorschriften und setzt sich aus einer Priorität
+            , Zensuren-Gruppen und Bedingungen (Zensuren-Typen) zusammen. <br>
+            Die Priorität gibt an, in welcher Reihenfolge die Berechnungsvarianten
+            (falls eine Berechnungsvorschrift mehrere Berechnungsvarianten enthält) berücksichtigt werden.
+            Dabei hat die Berechnungsvariante mit der niedrigsten Zahl die höchste Priorität. <br>
+            Die Bedingungen (Zensuren-Typen) geben an, ob für die Durchschnittsberechnung die Berechnungsvariante gewählt wird.
+            Ist keine Bedingung hinterlegt, wird diese Berechnungsvariante immer gewählt. Hingegen wenn eine oder mehrere
+            Bedingung(en) hinterlegt sind, wird diese Berechnungsvariante nur gewählt, wenn alle Zensuren-Typen bei den Zensuren
+            des Schülers vorhanden sind.'
+        );
         $this->setScoreStageMenuButtons($Stage);
 
         $tblScoreConditionAll = Gradebook::useService()->getScoreConditionAll();
@@ -1189,7 +1222,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'ScoreGroups' => 'Zensuren-Gruppen',
                                 'GradeTypes' => 'Zensuren-Typen (Bedingungen)',
                                 'Priority' => 'Priorität',
-                                'Round' => 'Runden',
+//                                'Round' => 'Runden',
                                 'Option' => '',
                             ))
                         ))
@@ -1217,11 +1250,11 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new TextField('ScoreCondition[Name]', 'Klassenarbeit 60% : Rest 40%', 'Name'), 8
+                    new TextField('ScoreCondition[Name]', 'Klassenarbeit 60% : Rest 40%', 'Name'), 10
                 ),
-                new FormColumn(
-                    new TextField('ScoreCondition[Round]', '', 'Rundung'), 2
-                ),
+//                new FormColumn(
+//                    new TextField('ScoreCondition[Round]', '', 'Rundung'), 2
+//                ),
                 new FormColumn(
                     new NumberField('ScoreCondition[Priority]', '1', 'Priorität'), 2
                 )
@@ -1239,6 +1272,12 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $Stage = new Stage('Zensuren-Gruppe', 'Übersicht');
+        $Stage->setMessage(
+            'Hier werden die Zensuren-Gruppen verwaltet. <br>
+            Die Zensuren-Gruppe bildet die 3. Ebene der Berechnungsvorschriften und setzt sich aus einem Faktor
+            und Zensuren-Typen zusammen. <br>
+            Der Faktor gibt an, wie die Zensuren-Gruppe als ganzes zu anderen Zensuren-Gruppen gewichtet wird. <br>'
+        );
         $this->setScoreStageMenuButtons($Stage);
 
         $tblScoreGroupAll = Gradebook::useService()->getScoreGroupAll();
@@ -1276,7 +1315,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Name' => 'Name',
                                 'GradeTypes' => 'Zensuren-Typen',
                                 'Multiplier' => 'Faktor',
-                                'Round' => 'Runden',
+//                                'Round' => 'Runden',
                                 'Option' => '',
                             ))
                         ))
@@ -1304,11 +1343,11 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new TextField('ScoreGroup[Name]', 'Rest', 'Name'), 8
+                    new TextField('ScoreGroup[Name]', 'Rest', 'Name'), 10
                 ),
-                new FormColumn(
-                    new TextField('ScoreGroup[Round]', '', 'Rundung'), 2
-                ),
+//                new FormColumn(
+//                    new TextField('ScoreGroup[Round]', '', 'Rundung'), 2
+//                ),
                 new FormColumn(
                     new TextField('ScoreGroup[Multiplier]', 'z.B. 40 für 40%', 'Faktor'), 2
                 )
@@ -1813,6 +1852,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     private function setScoreStageMenuButtons(Stage $Stage)
     {
+
         $Stage->addButton(
             new Standard('Berechnungsvorschriften', '/Education/Graduation/Gradebook/Score', new ListingTable(), null,
                 'Erstellen/Berarbeiten')
@@ -2146,6 +2186,13 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Fach-Klassen', 'Berechnungsvorschrift und Bewertungssystem einer Fach-Klasse zuordnen');
+        $Stage->setMessage(
+            'Hier können den Fach-Klassen eine Berechnungsvorschrift und ein Bewertungssystem zugeordnet werden. <br>
+            Ist keine Berechnungsvorschrift bei einer Fach-Klasse zugeordnet, werden für diese Fach-Klasse alle Zensuren
+            bei der Durchschnittsberechnung gleichgewichtet. <br>
+            Das Bewertungssystem bestimmt, welche Zensuren (Noten, Punkte oder verbale Bewertung) bei der Fach-Klasse
+            eingegeben werden können und die Anzeige des Notenspiegels.'
+        );
         $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Gradebook/Score', new ChevronLeft()));
 
         $tblScoreTypeAll = Gradebook::useService()->getScoreTypeAll();

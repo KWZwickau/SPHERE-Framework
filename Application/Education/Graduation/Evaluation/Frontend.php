@@ -87,6 +87,10 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Leistungsüberprüfung', 'Auswahl');
+        $Stage->setMessage(
+            'Verwaltung der Leistungsüberprüfungen (inklusive Kopfnoten und Stichtagsnoten),
+            wo der angemeldete Lehrer als Fachlehrer oder Klassenlehrer hinterlegt ist.'
+        );
 
         $tblPerson = false;
         $tblAccount = Account::useService()->getAccountBySession();
@@ -241,6 +245,9 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Auswahl');
+        $Stage->setMessage(
+            'Verwaltung aller Leistungsüberprüfungen (inklusive Kopfnoten und Stichtagsnoten).'
+        );
 
         $divisionSubjectTable = array();
         $divisionSubjectList = array();
@@ -1279,6 +1286,9 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Notenaufträge', 'Übersicht');
+        $Stage->setMessage(
+            'Verwaltung aller Kopfnoten- und Stichtagsnotenaufträge (inklusive der Anzeige der vergebener Zensuren).'
+        );
 
         $tblTaskAll = Evaluation::useService()->getTaskAll();
 
@@ -1903,6 +1913,10 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Notenaufträge', 'Übersicht');
+        $Stage->setMessage(
+            'Anzeige der Kopfnoten- und Stichtagsnotenaufträge (inklusive vergebener Zensuren),
+            wo der angemeldete Lehrer als Klassenlehrer hinterlegt ist.'
+        );
 
         $taskList = array();
 

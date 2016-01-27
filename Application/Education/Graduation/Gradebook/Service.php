@@ -528,7 +528,7 @@ class Service extends AbstractService
         if (!$Error) {
             (new Data($this->getBinding()))->createScoreCondition(
                 $ScoreCondition['Name'],
-                $ScoreCondition['Round'],
+                isset($ScoreCondition['Round']) ? $ScoreCondition['Round'] : '',
                 $priority
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvariante ist erfasst worden')
@@ -567,7 +567,7 @@ class Service extends AbstractService
         if (!$Error) {
             (new Data($this->getBinding()))->createScoreGroup(
                 $ScoreGroup['Name'],
-                $ScoreGroup['Round'],
+                isset($ScoreGroup['Round']) ? $ScoreGroup['Round'] : '',
                 $ScoreGroup['Multiplier']
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zensuren-Gruppe ist erfasst worden')
@@ -1084,7 +1084,7 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->updateScoreCondition(
                 $tblScoreCondition,
                 $ScoreCondition['Name'],
-                $ScoreCondition['Round'],
+                isset($ScoreCondition['Round']) ? $ScoreCondition['Round'] : '',
                 $ScoreCondition['Priority']
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvariante ist erfolgreich gespeichert worden')
@@ -1126,7 +1126,7 @@ class Service extends AbstractService
             (new Data($this->getBinding()))->updateScoreGroup(
                 $tblScoreGroup,
                 $ScoreGroup['Name'],
-                $ScoreGroup['Round'],
+                isset($ScoreGroup['Round']) ? $ScoreGroup['Round'] : '',
                 $ScoreGroup['Multiplier']
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zensuren-Gruppe ist erfolgreich gespeichert worden')
