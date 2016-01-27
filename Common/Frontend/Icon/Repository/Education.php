@@ -12,7 +12,7 @@ class Education implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-education';
+    private $Value = 'glyphicons glyphicons-education';
 
     /**
      * @return string

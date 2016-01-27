@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -83,6 +84,29 @@ class Frontend extends Extension implements IFrontendInterface
         $D2->setName('B');
         $D2->setId(2);
         $Check = array($D1, $D2);
+
+        $IconList = array();
+        if (false !== ( $Path = realpath(__DIR__.'/../../../../Common/Frontend/Icon/Repository') )) {
+            $Iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($Path, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST
+            );
+            /** @var \SplFileInfo $FileInfo */
+            foreach ($Iterator as $FileInfo) {
+                $Namespace = '\SPHERE\Common\Frontend\Icon\Repository';
+                $Class = $FileInfo->getBasename('.php');
+                $Loader = $Namespace.'\\'.$Class;
+
+                $IconList[$Class] = new PullLeft(
+                    '<div style="margin: 5px; border: 1px solid silver; width: 100px;">'
+                    .'<div style="font-size: large; border-bottom: 1px dotted silver;" class="text-center">'.new $Loader().'</div>'
+                    .'<div class="text-center">'.$Class.'</div>'
+                    .'</div>'
+                );
+            }
+            ksort($IconList);
+        }
+
 
         $Stage->setContent(
             (new Form(
@@ -238,7 +262,12 @@ class Frontend extends Extension implements IFrontendInterface
                             , 4),
                     )),
 
-                ), new Title('Layout Development'))
+                ), new Title('Layout Development')),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(implode($IconList)),
+                    )),
+                ), new Title('Icons'))
             ))
         );
 
