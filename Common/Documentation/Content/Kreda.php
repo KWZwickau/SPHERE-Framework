@@ -88,7 +88,7 @@ class Kreda
                         new LayoutRow(array(
                             new LayoutColumn(
                                 new Thumbnail(
-                                    FileSystem::getFileLoader('/Common/Style/Resource/Example/exampleGradeTypeNew.JPG'),
+                                    FileSystem::getFileLoader('/Common/Style/Resource/Example/exampleGradeTypeNew.jpg'),
                                     ''
                                 )
                             )
@@ -98,7 +98,6 @@ class Kreda
             );
 
             $Page->addHeadline('Wie bearbeite Ich einen vorhandenen Zensuren-Typ?', 'Bearbeiten', true);
-
 
         }
     }
