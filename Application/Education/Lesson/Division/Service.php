@@ -60,6 +60,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getLevelAll();
     }
+
     /**
      * @return bool|TblDivision[]
      */
@@ -68,6 +69,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionAll();
     }
+
     /**
      * @param IFormInterface $Form
      * @param                $Level
@@ -148,6 +150,7 @@ class Service extends AbstractService
 
         return $Form;
     }
+
     /**
      * @param TblYear       $tblYear
      * @param string        $Name
@@ -160,6 +163,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->checkDivisionExists($tblYear, $Name, $tblLevel);
     }
+
     /**
      * @param IFormInterface $Form
      * @param null|string    $Year
@@ -188,6 +192,7 @@ class Service extends AbstractService
 
         return $Form;
     }
+
     /**
      * @param TblType $tblType
      * @param string  $Name
@@ -199,6 +204,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->checkLevelExists($tblType, $Name);
     }
+
     /**
      * @param TblType $tblType
      * @param string  $Name
@@ -211,6 +217,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->createLevel($tblType, $Name, $Description);
     }
+
     /**
      * @param      $Name
      * @param null $Level
@@ -229,6 +236,7 @@ class Service extends AbstractService
         $tblYear = Term::useService()->getYearById($Year);
         return (new Data($this->getBinding()))->getDivisionByGroupAndLevelAndYear($Name, $tblLevel, $tblYear);
     }
+
     /**
      * @param int $Id
      *
@@ -239,6 +247,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getLevelById($Id);
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -250,6 +259,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionTeacherByDivisionAndTeacher($tblDivision, $tblPerson);
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -261,6 +271,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionCustodyByDivisionAndPerson($tblDivision, $tblPerson);
     }
+
     /**
      * @param TblYear  $tblYear
      * @param TblLevel $tblLevel
@@ -274,6 +285,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->createDivision($tblYear, $tblLevel, $Name, $Description);
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -292,6 +304,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->removeStudentToDivision($tblDivision, $tblPerson);
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -303,6 +316,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->addDivisionTeacher($tblDivision, $tblPerson);
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -314,6 +328,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->addDivisionStudent($tblDivision, $tblPerson);
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -325,6 +340,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->removeTeacherToDivision($tblDivision, $tblPerson);
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -336,6 +352,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->removePersonToDivision($tblDivision, $tblPerson);
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblSubject  $tblSubject
@@ -359,6 +376,7 @@ class Service extends AbstractService
         }
         return (new Data($this->getBinding()))->removeSubjectToDivision($tblDivision, $tblSubject);
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -369,6 +387,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionSubjectByDivision($tblDivision);
     }
+
     /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
@@ -379,6 +398,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->removeDivisionSubject($tblDivisionSubject);
     }
+
     /**
      * @param TblSubjectGroup    $tblSubjectGroup
      * @param TblDivisionSubject $tblDivisionSubject
@@ -395,6 +415,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->removeSubjectGroup($tblSubjectGroup);
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -407,6 +428,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->addDivisionTeacher($tblDivision, $tblPerson, $Description);
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -420,6 +442,7 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->addDivisionCustody($tblDivision, $tblPerson, $Description);
 
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblSubject  $tblSubject
@@ -431,6 +454,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->addDivisionSubject($tblDivision, $tblSubject);
     }
+
     /**
      * @param IFormInterface $Form
      * @param TblDivision    $tblDivision
@@ -481,6 +505,7 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param IFormInterface $Form
      * @param int            $DivisionSubject
@@ -542,6 +567,7 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param int $Id
      *
@@ -552,6 +578,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionById($Id);
     }
+
     /**
      * @param int $Id
      *
@@ -562,6 +589,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionSubjectById($Id);
     }
+
     /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
@@ -572,6 +600,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getSubjectStudentByDivisionSubject($tblDivisionSubject);
     }
+
     /**
      * @param TblSubjectStudent $tblSubjectStudent
      *
@@ -582,6 +611,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->removeSubjectStudent($tblSubjectStudent);
     }
+
     /**
      * @param IFormInterface $Form
      * @param array          $SubjectTeacher
@@ -642,6 +672,7 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
@@ -652,6 +683,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
     }
+
     /**
      * @param TblSubjectTeacher $tblSubjectTeacher
      *
@@ -662,6 +694,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->removeSubjectTeacher($tblSubjectTeacher);
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblPerson   $tblPerson
@@ -673,6 +706,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->addDivisionStudent($tblDivision, $tblPerson);
     }
+
     /**
      * @param IFormInterface $Form
      * @param null|array     $Division
@@ -729,6 +763,7 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param $Id
      *
@@ -739,6 +774,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getSubjectStudentById($Id);
     }
+
     /**
      * @param $Id
      *
@@ -749,6 +785,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getSubjectTeacherById($Id);
     }
+
     /**
      * @param TblPerson $tblPerson
      *
@@ -759,6 +796,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getSubjectStudentByPerson($tblPerson);
     }
+
     /**
      * @param IFormInterface $Form
      * @param                $Group
@@ -826,6 +864,7 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param $Id
      *
@@ -836,6 +875,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getSubjectGroupById($Id);
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -917,6 +957,7 @@ class Service extends AbstractService
 //        return new Danger('Die Klassengruppe konnte nicht gelöscht werden, da Personen zugeordnet sind')
 //        .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -927,6 +968,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getStudentAllByDivision($tblDivision);
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -937,6 +979,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getTeacherAllByDivision($tblDivision);
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -947,6 +990,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getCustodyAllByDivision($tblDivision);
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -957,6 +1001,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getSubjectAllByDivision($tblDivision);
     }
+
     /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
@@ -967,6 +1012,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getTeacherAllByDivisionSubject($tblDivisionSubject);
     }
+
     /**
      * @param TblLevel $tblLevel
      *
@@ -995,6 +1041,7 @@ class Service extends AbstractService
         return new Danger('Die Klassenstufe enthält Klassengruppen!')
         .new Redirect('/Education/Lesson/Division/Create/LevelDivision', Redirect::TIMEOUT_ERROR);
     }
+
     /**
      * @param TblLevel $tblLevel
      *
@@ -1005,6 +1052,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionByLevel($tblLevel);
     }
+
     /**
      * @param TblYear $tblYear
      *
@@ -1015,6 +1063,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionByYear($tblYear);
     }
+
     /**
      * @param TblPerson $tblPerson
      *
@@ -1025,6 +1074,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionStudentAllByPerson($tblPerson);
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -1035,6 +1085,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->countDivisionStudentAllByDivision($tblDivision);
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -1045,6 +1096,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->countDivisionTeacherAllByDivision($tblDivision);
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -1055,6 +1107,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->countDivisionCustodyAllByDivision($tblDivision);
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -1067,6 +1120,7 @@ class Service extends AbstractService
         $Sub = (new Data($this->getBinding()))->countDivisionSubjectGroupByDivision($tblDivision);
         return ( $Sum - $Sub );
     }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -1105,6 +1159,7 @@ class Service extends AbstractService
         }
         return $SubjectUsedCount;
     }
+
     /**
      * @param TblSubject  $tblSubject
      * @param TblDivision $tblDivision
@@ -1116,6 +1171,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionSubjectBySubjectAndDivision($tblSubject, $tblDivision);
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblSubject  $tblSubject
@@ -1130,6 +1186,7 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject($tblDivision,
             $tblSubject);
     }
+
     /**
      * @param TblPerson $tblPerson
      *
@@ -1140,6 +1197,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getSubjectTeacherAllByTeacher($tblPerson);
     }
+
     /**
      * @param TblDivision          $tblDivision
      * @param TblSubject           $tblSubject
@@ -1156,6 +1214,7 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup($tblDivision,
             $tblSubject, $tblSubjectGroup);
     }
+
     /**
      * @param TblPerson $tblPerson
      *
@@ -1166,6 +1225,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionTeacherAllByTeacher($tblPerson);
     }
+
     /**
      * @param TblDivisionSubject $tblDivisionSubject
      * @param TblPerson          $tblPerson
@@ -1180,6 +1240,7 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getSubjectStudentByDivisionSubjectAndPerson($tblDivisionSubject,
             $tblPerson);
     }
+
     /**
      * @param TblDivisionSubject $tblDivisionSubject
      *
@@ -1191,6 +1252,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->countSubjectStudentByDivisionSubject($tblDivisionSubject);
     }
+
     /**
      * @param IFormInterface $Form
      * @param                $tblDivision
@@ -1296,6 +1358,7 @@ class Service extends AbstractService
 
         return $Form;
     }
+
     /**
      * Take all Division from YearByNow
      *
@@ -1343,6 +1406,7 @@ class Service extends AbstractService
         }
         return ( isset( $Result ) ) ? $Result : false;
     }
+
     /**
      * @param TblType $serviceTblType
      *
@@ -1353,6 +1417,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getLevelByServiceTblType($serviceTblType);
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblDivision $tblDivisionCopy
@@ -1392,6 +1457,7 @@ class Service extends AbstractService
         }
         return $done;
     }
+
     /**
      * @param TblDivision $tblDivision
      * @param TblDivision $tblDivisionCopy
