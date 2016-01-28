@@ -537,9 +537,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Panel(
                                         new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
                                         Panel::PANEL_TYPE_DEFAULT,
-                                        $tblRelationship->getServiceTblPersonFrom()->getFullName()
-                                        . ' (' . $tblRelationship->getTblType()->getName()
-                                        . Relationship::useService()->getIcon($tblRelationship->getTblType(), true) .  ')'
+                                        new Standard(
+                                            '', '/People/Person', new PersonIcon(),
+                                            array('Id' => $tblRelationship->getServiceTblPersonFrom()->getId()),
+                                            'Zur Person'
+                                        )
+                                        . '&nbsp;' . $tblRelationship->getServiceTblPersonFrom()->getFullName()
                                     )
                                     , 3);
 
@@ -567,9 +570,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Panel(
                                         new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
                                         Panel::PANEL_TYPE_DEFAULT,
-                                        $tblRelationship->getServiceTblPersonTo()->getFullName()
-                                        . ' (' . $tblRelationship->getTblType()->getName()
-                                        . Relationship::useService()->getIcon($tblRelationship->getTblType(), false) .  ')'
+                                        new Standard(
+                                            '', '/People/Person', new PersonIcon(),
+                                            array('Id' => $tblRelationship->getServiceTblPersonTo()->getId()),
+                                            'Zur Person'
+                                        )
+                                        . '&nbsp;' . $tblRelationship->getServiceTblPersonTo()->getFullName()
                                     )
                                     , 3);
 
