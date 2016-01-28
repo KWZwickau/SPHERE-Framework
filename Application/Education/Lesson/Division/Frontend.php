@@ -168,6 +168,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Temp['Description'] = $tblDivision->getDescription();
                 $Temp['StudentList'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 $Temp['TeacherList'] = Division::useService()->countDivisionTeacherAllByDivision($tblDivision);
+                $Custody = Division::useService()->countDivisionCustodyAllByDivision($tblDivision);
                 $SubjectCount = Division::useService()->countDivisionSubjectAllByDivision($tblDivision);
 
                 if ($SubjectUsedCount > 1) {
@@ -179,14 +180,16 @@ class Frontend extends Extension implements IFrontendInterface
                 } else {
                     $Temp['SubjectList'] = $SubjectCount;
                 }
+                $sum = $Temp['StudentList'] + $Temp['TeacherList'] + $Custody;
+//                $sum = 0; //Löschen einblenden
                 $Temp['Option'] = new Standard('&nbsp;Klassenansicht', '/Education/Lesson/Division/Show',
                         new EyeOpen(), array('Id' => $tblDivision->getId()), 'Klasse einsehen')
-                    .new Standard('', '/Education/Lesson/Division/Change/Division', new Pencil(),
+                    .new Standard('', '/Education/Lesson/Division/Change', new Pencil(),
                         array('Id' => $tblDivision->getId()), 'Beschreibung bearbeiten')
-                    .new Standard('', '/Education/Lesson/Division/Copy/Division', new MoreItems(),
+                    .new Standard('', '/Education/Lesson/Division/Copy', new MoreItems(),
                         array('Id' => $tblDivision->getId()), 'Klasse kopieren')
-                    .new \SPHERE\Common\Frontend\Link\Repository\Danger('', '/Education/Lesson/Division/Destroy/Division', new Remove(),
-                        array('Id' => $tblDivision->getId()), 'Klasse entfernen');
+                    .( ( $sum === 0 ) ? new \SPHERE\Common\Frontend\Link\Repository\Danger('', '/Education/Lesson/Division/Destroy', new Remove(),
+                        array('Id' => $tblDivision->getId()), 'Klasse entfernen') : null );
 
                 array_push($TableContent, $Temp);
             });
@@ -265,14 +268,13 @@ class Frontend extends Extension implements IFrontendInterface
             if (!$tblLevel) {
                 $Global->POST['Level']['Check'] = true;
             } else {
-                if ($future && $tblLevel->getName() === '') {
+                if ($future && !$tblLevel->getIsNamed()) {
                     $Global->POST['Level']['Check'] = true;
                 }
             }
 
             $Global->savePost();
         }
-
 
         $tblSchoolTypeAll = Type::useService()->getTypeAll();
 
@@ -331,76 +333,145 @@ class Frontend extends Extension implements IFrontendInterface
             $Title = 'der Klasse '.new Bold($tblDivision->getDisplayName());
 
             $Stage = new Stage('Schüler', $Title);
-            if ($tblDivision->getTblLevel()) {
-                $Stage->setMessage('Liste aller Schüler die im Schuljahr '.$tblDivision->getServiceTblYear()->getName()
-                    .' noch keiner Klasse zugeordnet sind.');
-            } else {
-                $Stage->setMessage('Liste aller Schüler im Schuljahr '.$tblDivision->getServiceTblYear()->getName().'.');
-            }
-
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
                 array('Id' => $tblDivision->getId())));
 
-            if ($tblDivision && null !== $StudentId && ( $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($StudentId) )) {
-                if ($Remove) {
-                    Division::useService()->removeStudentToDivision($tblDivision, $tblPerson);
-                    $Stage->setContent(
-                        new Success('Schüler erfolgreich entfernt')
-                        .new Redirect('/Education/Lesson/Division/Student/Add', Redirect::TIMEOUT_SUCCESS,
-                            array('Id' => $Id))
-                    );
-                    return $Stage;
+            if (!$tblDivision->getTblLevel()) {
+                if ($tblDivision->getTblLevel()) {
+                    $Stage->setMessage('Liste aller Schüler die im Schuljahr '.$tblDivision->getServiceTblYear()->getName()
+                        .' noch keiner Klasse zugeordnet sind.');
                 } else {
-                    Division::useService()->addStudentToDivision($tblDivision, $tblPerson);
-                    $Stage->setContent(
-                        new Success('Schüler erfolgreich hinzugefügt')
-                        .new Redirect('/Education/Lesson/Division/Student/Add', Redirect::TIMEOUT_SUCCESS,
-                            array('Id' => $Id))
-                    );
-                    return $Stage;
+                    $Stage->setMessage('Liste aller Schüler im Schuljahr '.$tblDivision->getServiceTblYear()->getName().'.');
                 }
-            }
-            $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
-            $tblDivisionStudentAll = false;
-            if ($tblGroup) {
 
-                $tblStudentList = Group::useService()->getPersonAllByGroup($tblGroup);  // Alle Schüler
+                if ($tblDivision && null !== $StudentId && ( $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($StudentId) )) {
+                    if ($Remove) {
+                        Division::useService()->removeStudentToDivision($tblDivision, $tblPerson);
+                        $Stage->setContent(
+                            new Success('Schüler erfolgreich entfernt')
+                            .new Redirect('/Education/Lesson/Division/Student/Add', Redirect::TIMEOUT_SUCCESS,
+                                array('Id' => $Id))
+                        );
+                        return $Stage;
+                    } else {
+                        Division::useService()->addStudentToDivision($tblDivision, $tblPerson);
+                        $Stage->setContent(
+                            new Success('Schüler erfolgreich hinzugefügt')
+                            .new Redirect('/Education/Lesson/Division/Student/Add', Redirect::TIMEOUT_SUCCESS,
+                                array('Id' => $Id))
+                        );
+                        return $Stage;
+                    }
+                }
+                $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+                $tblDivisionStudentAll = false;
+                if ($tblGroup) {
 
-                if ($tblDivision->getTblLevel()->getName() !== '') {
-                    $tblDivisionList = Division::useService()->getDivisionByYear($tblDivision->getServiceTblYear());
-                    if ($tblStudentList) {
+                    $tblStudentList = Group::useService()->getPersonAllByGroup($tblGroup);  // Alle Schüler
+                    if ($tblDivision->getTblLevel()) {
+                        $tblDivisionList = Division::useService()->getDivisionByYear($tblDivision->getServiceTblYear());
+                        if ($tblStudentList) {
+                            if ($tblDivisionList) {
+                                foreach ($tblDivisionList as $tblSingleDivision) {
+                                    $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblSingleDivision);
+                                    if ($tblDivision->getTblLevel() && $tblDivisionStudentList) {
+                                        $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
+                                            function (TblPerson $invoiceA, TblPerson $invoiceB) {
 
-                        if ($tblDivisionList) {
-                            foreach ($tblDivisionList as $tblSingleDivision) {
-                                $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblSingleDivision);
-                                if ($tblSingleDivision->getTblLevel()->getName() !== '' && $tblDivisionStudentList) {
-                                    $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
-                                        function (TblPerson $invoiceA, TblPerson $invoiceB) {
-
-                                            return $invoiceA->getId() - $invoiceB->getId();
-                                        });
+                                                return $invoiceA->getId() - $invoiceB->getId();
+                                            });
+                                    }
+                                }
+                                if (is_array($tblStudentList)) {
+                                    $tblDivisionStudentAll = $tblStudentList;
                                 }
                             }
-                            if (is_array($tblStudentList)) {
-                                $tblDivisionStudentAll = $tblStudentList;
-                            }
+                        }
+                    } else {
+                        $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+                        if ($tblDivisionStudentList) {
+                            $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
+                                function (TblPerson $invoiceA, TblPerson $invoiceB) {
+
+                                    return $invoiceA->getId() - $invoiceB->getId();
+                                });
+                        }
+                        if (is_array($tblStudentList)) {
+                            $tblDivisionStudentAll = $tblStudentList;
                         }
                     }
-                } else {
-                    $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
-                    if ($tblDivisionStudentList) {
-                        $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
-                            function (TblPerson $invoiceA, TblPerson $invoiceB) {
 
-                                return $invoiceA->getId() - $invoiceB->getId();
-                            });
-                    }
-                    if (is_array($tblStudentList)) {
-                        $tblDivisionStudentAll = $tblStudentList;
-                    }
+                }
+            } else {
+                if ($tblDivision->getTblLevel()->getIsNamed()) {
+                    $Stage->setMessage('Liste aller Schüler die im Schuljahr '.$tblDivision->getServiceTblYear()->getName()
+                        .' noch keiner Klasse zugeordnet sind.');
+                } else {
+                    $Stage->setMessage('Liste aller Schüler im Schuljahr '.$tblDivision->getServiceTblYear()->getName().'.');
                 }
 
+                if ($tblDivision && null !== $StudentId && ( $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($StudentId) )) {
+                    if ($Remove) {
+                        Division::useService()->removeStudentToDivision($tblDivision, $tblPerson);
+                        $Stage->setContent(
+                            new Success('Schüler erfolgreich entfernt')
+                            .new Redirect('/Education/Lesson/Division/Student/Add', Redirect::TIMEOUT_SUCCESS,
+                                array('Id' => $Id))
+                        );
+                        return $Stage;
+                    } else {
+                        Division::useService()->addStudentToDivision($tblDivision, $tblPerson);
+                        $Stage->setContent(
+                            new Success('Schüler erfolgreich hinzugefügt')
+                            .new Redirect('/Education/Lesson/Division/Student/Add', Redirect::TIMEOUT_SUCCESS,
+                                array('Id' => $Id))
+                        );
+                        return $Stage;
+                    }
+                }
+                $tblGroup = Group::useService()->getGroupByMetaTable('STUDENT');
+                $tblDivisionStudentAll = false;
+                if ($tblGroup) {
+
+                    $tblStudentList = Group::useService()->getPersonAllByGroup($tblGroup);  // Alle Schüler
+                    $IsNamed = $tblDivision->getTblLevel()->getIsNamed();
+                    if ($IsNamed) {
+                        $tblDivisionList = Division::useService()->getDivisionByYear($tblDivision->getServiceTblYear());
+                        if ($tblStudentList) {
+
+                            if ($tblDivisionList) {
+                                foreach ($tblDivisionList as $tblSingleDivision) {
+                                    $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblSingleDivision);
+                                    if ($IsNamed && $tblDivisionStudentList) {
+                                        $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
+                                            function (TblPerson $invoiceA, TblPerson $invoiceB) {
+
+                                                return $invoiceA->getId() - $invoiceB->getId();
+                                            });
+                                    }
+                                }
+                                if (is_array($tblStudentList)) {
+                                    $tblDivisionStudentAll = $tblStudentList;
+                                }
+                            }
+                        }
+                    } else {
+                        $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
+                        if ($tblDivisionStudentList) {
+                            $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
+                                function (TblPerson $invoiceA, TblPerson $invoiceB) {
+
+                                    return $invoiceA->getId() - $invoiceB->getId();
+                                });
+                        }
+                        if (is_array($tblStudentList)) {
+                            $tblDivisionStudentAll = $tblStudentList;
+                        }
+                    }
+
+                }
             }
+
             $tblDivisionStudentActive = Division::useService()->getStudentAllByDivision($tblDivision);
 
             if (is_array($tblDivisionStudentActive) && is_array($tblDivisionStudentAll)) {
@@ -892,8 +963,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $Stage->setContent(
-//                new Info($tblPrivilege->getName())
-//                .
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(array(
@@ -913,7 +982,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(array(
                                 new Title('Verfügbar', 'Fach'),
                                 ( empty( $tblSubjectAvailable )
-                                    ? new \SPHERE\Common\Frontend\Message\Repository\Info('Keine weiteren Fächer verfügbar')
+                                    ? new Info('Keine weiteren Fächer verfügbar')
                                     : new TableData($tblSubjectAvailable, null,
                                         array(
                                             'Acronym'     => 'Kürzel',
@@ -1068,15 +1137,6 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $tblStudentList = new Warning('Es sind noch keine Schüler für die Klasse hinterlegt');
         }
-//        $tblGroupList = Division::useService()->getSubjectGroupAll();
-//        $tblGroupList[] = new TblSubjectGroup('');
-//
-//        $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
-//        if ($tblDivisionSubjectList) {
-//            foreach ($tblDivisionSubjectList as &$tblDivisionSubject) {
-//                $tblDivisionSubject->Name = $tblDivisionSubject->getServiceTblSubject()->getName().' - '.$tblDivisionSubject->getServiceTblSubject()->getAcronym();
-//            }
-//        }
 
         return new Form(
             new FormGroup(array(
@@ -1446,8 +1506,6 @@ class Frontend extends Extension implements IFrontendInterface
         $tblDivision = Division::useService()->getDivisionById($Id);
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Id'] ) && $tblDivision) {
-//            $Global->POST['Division']['Year'] = $tblDivision->getServiceTblYear()->getId();
-//            $Global->POST['Division']['Level'] = $tblDivision->getTblLevel()->getId();
             $Global->POST['Division']['Name'] = $tblDivision->getName();
             $Global->POST['Division']['Description'] = $tblDivision->getDescription();
             $Global->savePost();
@@ -1587,19 +1645,6 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $tblDivisionStudent->Address = new \SPHERE\Common\Frontend\Text\Repository\Warning('Keine Adresse hinterlegt');
                     }
-
-//                    $tblSubjectStudentList = Division::useService()->getSubjectStudentByPerson($tblDivisionStudent);
-//                    if ($tblSubjectStudentList) {
-//                        $GroupList = array();
-//                        /** @var TblSubjectStudent $tblSubjectStudent */
-//                        foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-//                            $GroupList[] = $tblSubjectStudent->getTblDivisionSubject()->getServiceTblSubject()->getName();
-//                        }
-//                        asort($GroupList);
-//                        $tblDivisionStudent->Group = implode(', ', $GroupList);
-//                    } else {
-//                        $tblDivisionStudent->Group = 'keine Zuordnung';
-//                    }
                 }
             } else {
                 $tblDivisionStudentList = array();
@@ -1880,25 +1925,6 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-//    /**
-//     * @param int $Id
-//     *
-//     * @return Stage|string
-//     */
-//    public function frontendDivisionDestroy($Id)
-//    {
-//
-//        $Stage = new Stage('Klassengruppe', 'entfernen');
-//        $tblDivision = Division::useService()->getDivisionById($Id);
-//        if ($tblDivision) {
-//            $Stage->setContent(Division::useService()->destroyDivision($tblDivision));
-//        } else {
-//            return $Stage.new Warning('Klassengruppe nicht gefunden!')
-//            .new Redirect('/Education/Lesson/Division/Create/LevelDivision');
-//        }
-//        return $Stage;
-//    }
-
     /**
      * @param int        $Id
      * @param bool|false $Confirm
@@ -1948,7 +1974,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Panel(new Question().' Diese Klasse wirklich löschen?',
                                         $Content, Panel::PANEL_TYPE_DANGER,
                                         new Standard(
-                                            'Ja', '/Education/Lesson/Division/Destroy/Division', new Ok(),
+                                            'Ja', '/Education/Lesson/Division/Destroy', new Ok(),
                                             array('Id' => $Id, 'Confirm' => true))
                                         .new Standard('Nein', '/Education/Lesson/Division', new Disable())
                                     )
@@ -1965,16 +1991,6 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 );
             } else {
-
-                // Remove Group-Member
-//                $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
-//                if ($tblPersonAll) {
-//                    array_walk($tblPersonAll, function (TblPerson $tblPerson) use ($tblGroup) {
-//
-//                        Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
-//                    });
-//                }
-
                 // Destroy Division
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
@@ -1982,7 +1998,8 @@ class Frontend extends Extension implements IFrontendInterface
                             ( Division::useService()->destroyDivision($tblDivision)
                                 ? new Success('Die Klasse wurde gelöscht')
                                 .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_SUCCESS)
-                                : new \SPHERE\Common\Frontend\Message\Repository\Danger('Die Klasse konnte nicht gelöscht werden, da Personen zugeordnet sind')
+                                : new \SPHERE\Common\Frontend\Message\Repository\Danger('Die Klasse konnte nicht gelöscht werden,
+                                da Personen und/oder Tests zugeordnet sind')
                                 .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR)
                             )
                         )))
@@ -2010,6 +2027,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division', new ChevronLeft()));
         $tblDivision = Division::useService()->getDivisionById($Id);
         $tblLevel = $tblDivision->getTblLevel();
+        if (!$tblLevel) {
+            return $Stage->setContent(new Warning('zugehörige Schulart / Klassenstufe fehlt'))
+            .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
+        }
         $tblYear = $tblDivision->getServiceTblYear();
 
         $Content[] = 'Typ: '.new Bold($tblLevel->getServiceTblType()->getName());
@@ -2023,21 +2044,45 @@ class Frontend extends Extension implements IFrontendInterface
         $Content2[] = 'Elternvertreter: '.new Bold(Division::useService()->countDivisionCustodyAllByDivision($tblDivision));
         $Content2[] = 'Fächer: '.new Bold(Division::useService()->countDivisionSubjectAllByDivision($tblDivision));
 
-        if ($tblLevel) {
-            if ($tblLevel->getName()) {
-                if ($Zahl = intval($tblLevel->getName())) {
-                    $Summary = $Zahl + 1;
-//                    if($Summary > 10)
-//                    {
-//                        $tblLevel->setName( strval($Summary) );
-//                    } else {
-//                        $tblLevel->setName( '0'.strval($Summary) );
-//                    }
-                    $tblLevel->setName(strval($Summary));
-                }
+        if (is_numeric($tblLevel->getName())) {
+            $length = strlen($tblLevel->getName());
+            if ($Zahl = (int)( $tblLevel->getName() )) {
+                $Summary = $Zahl + 1;
+                $Summary = str_pad($Summary, $length, 0, STR_PAD_LEFT);
+                $tblLevel->setName($Summary);
             }
         } else {
-            $tblLevel = null;
+            $str = $tblLevel->getName();
+            $letterList = preg_split('//', $str, -1, PREG_SPLIT_NO_EMPTY);
+            $Number = array();
+            if (!empty( $letterList )) {
+                foreach ($letterList as $key => $letter) {
+                    if (is_numeric($letter)) {
+                        $Replace[] = true;
+                        $Number[] = $letter;
+                    } else {
+                        $Replace[] = false;
+                    }
+                }
+                $Number = implode('', $Number);
+
+                $length = strlen($Number);
+                if ($Zahl = (int)( $Number )) {
+                    $Number = $Zahl + 1;
+                    $Number = str_pad($Number, $length, 0, STR_PAD_LEFT);
+                }
+                if ($letterList && !empty( $Replace )) {
+                    $i = 0;
+                    foreach ($letterList as $Key => &$singleLetter) {
+                        if ($Replace[$Key]) {
+                            $singleLetter = $Number[$i];
+                            $i++;
+                        }
+                    }
+                    $str = implode('', $letterList);
+                    $tblLevel->setName($str);
+                }
+            }
         }
 
         $Stage->setContent(

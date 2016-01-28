@@ -23,9 +23,6 @@ class Division implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Klassen')
                 , new Link\Icon(new Blackboard())
             ));
-//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-//            __NAMESPACE__, __CLASS__.'::frontendDashboard'
-//        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendCreateLevelDivision'
         ));
@@ -42,7 +39,7 @@ class Division implements IModuleInterface
             __NAMESPACE__.'/Subject/Add', __NAMESPACE__.'\Frontend::frontendSubjectAdd'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Copy/Division', __NAMESPACE__.'\Frontend::frontendCopyDivision'
+            __NAMESPACE__.'/Copy', __NAMESPACE__.'\Frontend::frontendCopyDivision'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/SubjectStudent/Add', __NAMESPACE__.'\Frontend::frontendSubjectStudentAdd'
@@ -60,7 +57,7 @@ class Division implements IModuleInterface
             __NAMESPACE__.'/SubjectGroup/Remove', __NAMESPACE__.'\Frontend::frontendSubjectGroupRemove'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Change/Division', __NAMESPACE__.'\Frontend::frontendDivisionChange'
+            __NAMESPACE__.'/Change', __NAMESPACE__.'\Frontend::frontendDivisionChange'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Show', __NAMESPACE__.'\Frontend::frontendDivisionShow'
@@ -69,7 +66,7 @@ class Division implements IModuleInterface
             __NAMESPACE__.'/SubjectTeacher/Show', __NAMESPACE__.'\Frontend::frontendSubjectTeacherShow'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Destroy/Division', __NAMESPACE__.'\Frontend::frontendDivisionDestroy'
+            __NAMESPACE__.'/Destroy', __NAMESPACE__.'\Frontend::frontendDivisionDestroy'
         ));
     }
 
@@ -81,119 +78,6 @@ class Division implements IModuleInterface
 
         return new Frontend();
     }
-
-//    /**
-//     * @return Stage
-//     */
-//    public function frontendDashboard()
-//    {
-//
-//        $Stage = new Stage('Dashboard', 'Klassen');
-//
-//        $Stage->addButton(new Standard('Schulklasse', __NAMESPACE__.'\Create\LevelDivision', null, null, 'erstellen / bearbeiten'));
-//
-//        $tblDivisionList = $this->useService()->getDivisionAll();
-//        if ($tblDivisionList) {
-//            foreach ($tblDivisionList as $tblDivision) {
-//                $tblDivision->Year = $tblDivision->getServiceTblYear()->getName();
-//                $tblPeriodAll = $tblDivision->getServiceTblYear()->getTblPeriodAll();
-//                $Period = array();
-//                if ($tblPeriodAll) {
-//                    foreach ($tblPeriodAll as $tblPeriod) {
-//                        $Period[] = $tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
-//                    }
-//                    $tblDivision->Period = implode('<br/>', $Period);
-//                } else {
-//                    $tblDivision->Period = 'fehlt';
-//                }
-//                if ($tblDivision->getTblLevel()) {
-//                    $tblDivision->Group = $tblDivision->getTblLevel()->getName().$tblDivision->getName();
-//                    $tblDivision->LevelType = $tblDivision->getTblLevel()->getServiceTblType()->getName();
-//                } else {
-//                    $tblDivision->Group = $tblDivision->getName();
-//                    $tblDivision->LevelType = '';
-//                }
-//
-//
-//                $StudentList = Division::useService()->getStudentAllByDivision($tblDivision);
-//                $TeacherList = Division::useService()->getTeacherAllByDivision($tblDivision);
-//                $SubjectList = Division::useService()->getSubjectAllByDivision($tblDivision);
-//                $DivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
-//                $SubjectUsedCount = 0;
-//                if (!$StudentList) {
-//                    $StudentList = null;
-//                }
-//                if (!$TeacherList) {
-//                    $TeacherList = null;
-//                }
-//                if (!$SubjectList) {
-//                    $SubjectList = null;
-//                }
-//                if (!$DivisionSubjectList) {
-//                } else {
-//                    foreach ($DivisionSubjectList as $DivisionSubject) {
-//
-//                        if (!$DivisionSubject->getTblSubjectGroup()) {
-//                            $tblDivisionSubjectActiveList = Division::useService()->getDivisionSubjectBySubjectAndDivision($DivisionSubject->getServiceTblSubject(), $tblDivision);
-//                            $TeacherGroup = array();
-//                            if ($tblDivisionSubjectActiveList) {
-//                                /**@var TblDivisionSubject $tblDivisionSubjectActive */
-//                                foreach ($tblDivisionSubjectActiveList as $tblDivisionSubjectActive) {
-//                                    $TempList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubjectActive);
-//                                    if ($TempList) {
-//                                        foreach ($TempList as $Temp)
-//                                            array_push($TeacherGroup, $Temp->getServiceTblPerson()->getFullName());
-//                                    }
-//                                }
-//                                if (empty( $TeacherGroup )) {
-//                                    $SubjectUsedCount = $SubjectUsedCount + 1;
-//                                }
-//                            }
-//                        }
-//
-//
-////                        $TeacherListUsed = Division::useService()->getSubjectTeacherByDivisionSubject($DivisionSubject);
-////                        if (!$DivisionSubject->getTblSubjectGroup()) {
-////                            if (!$TeacherListUsed) {
-////                                $SubjectUsedCount = $SubjectUsedCount + 1;
-////                            }
-////                        }
-//                    }
-//                }
-//                $tblDivision->StudentList = count($StudentList);
-//                $tblDivision->TeacherList = count($TeacherList);
-//                if ($SubjectUsedCount !== 0) {
-//                    $tblDivision->SubjectList = count($SubjectList).new Danger(' ('.$SubjectUsedCount.')');
-//                } else {
-//                    $tblDivision->SubjectList = count($SubjectList);
-//                }
-//                $tblDivision->Button = new Standard('&nbsp;Klassenansicht', '/Education/Lesson/Division/Show',
-//                    new EyeOpen(), array('Id' => $tblDivision->getId()), 'Klassenansicht');
-//
-//            }
-//        }
-//
-//        $Stage->setContent(
-//            new Layout(
-//                new LayoutGroup(
-//                    new LayoutRow(
-//                        new LayoutColumn(
-//                            new TableData($tblDivisionList, null, array('Year'        => 'Schuljahr',
-//                                                                        'Period'      => 'Zeitraum',
-//                                                                        'LevelType'   => 'Schultyp',
-//                                                                        'Group'       => 'Schulklasse',
-//                                                                        'StudentList' => 'Schüler',
-//                                                                        'TeacherList' => 'Klassenlehrer',
-//                                                                        'SubjectList' => 'Fächer',
-//                                                                        'Button'      => 'Option',
-//                            ))
-//                        )
-//                    )
-//                )
-//            )
-//        );
-//        return $Stage;
-//    }
 
     /**
      * @return Service
