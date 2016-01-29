@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Reporting;
 
 use SPHERE\Application\IClusterInterface;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Reporting\CheckList\CheckList;
 use SPHERE\Application\Reporting\Custom\Custom;
 use SPHERE\Application\Reporting\Standard\Standard;
@@ -22,12 +21,7 @@ class Reporting implements IClusterInterface
     {
 
         Standard::registerApplication();
-
-        $consumerAcronym = Consumer::useService()->getConsumerBySession()->getAcronym();
-        if ($consumerAcronym === 'ESZC' || $consumerAcronym === 'DEMO') {
-            Custom::registerApplication();
-        }
-
+        Custom::registerApplication();
         CheckList::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
