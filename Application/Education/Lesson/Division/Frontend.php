@@ -168,7 +168,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Temp['Description'] = $tblDivision->getDescription();
                 $Temp['StudentList'] = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 $Temp['TeacherList'] = Division::useService()->countDivisionTeacherAllByDivision($tblDivision);
-                $Custody = Division::useService()->countDivisionCustodyAllByDivision($tblDivision);
+//                $Custody = Division::useService()->countDivisionCustodyAllByDivision($tblDivision);
                 $SubjectCount = Division::useService()->countDivisionSubjectAllByDivision($tblDivision);
 
                 if ($SubjectUsedCount > 1) {
@@ -180,16 +180,16 @@ class Frontend extends Extension implements IFrontendInterface
                 } else {
                     $Temp['SubjectList'] = $SubjectCount;
                 }
-                $sum = $Temp['StudentList'] + $Temp['TeacherList'] + $Custody;
+//                $sum = $Temp['StudentList'] + $Temp['TeacherList'] + $Custody;
 //                $sum = 0; //Löschen einblenden
                 $Temp['Option'] = new Standard('&nbsp;Klassenansicht', '/Education/Lesson/Division/Show',
                         new EyeOpen(), array('Id' => $tblDivision->getId()), 'Klasse einsehen')
                     .new Standard('', '/Education/Lesson/Division/Change', new Pencil(),
                         array('Id' => $tblDivision->getId()), 'Beschreibung bearbeiten')
                     .new Standard('', '/Education/Lesson/Division/Copy', new MoreItems(),
-                        array('Id' => $tblDivision->getId()), 'Klasse kopieren')
-                    .( ( $sum === 0 ) ? new \SPHERE\Common\Frontend\Link\Repository\Danger('', '/Education/Lesson/Division/Destroy', new Remove(),
-                        array('Id' => $tblDivision->getId()), 'Klasse entfernen') : null );
+                        array('Id' => $tblDivision->getId()), 'Klasse kopieren');
+//                    .( ( $sum === 0 ) ? new \SPHERE\Common\Frontend\Link\Repository\Danger('', '/Education/Lesson/Division/Destroy', new Remove(),
+//                        array('Id' => $tblDivision->getId()), 'Klasse entfernen') : null );
 
                 array_push($TableContent, $Temp);
             });
