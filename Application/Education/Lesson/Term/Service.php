@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Lesson\Term;
 use SPHERE\Application\Education\Lesson\Term\Service\Data;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYearPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -556,6 +557,44 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPeriodExistWithYear($tblPeriod);
+    }
+
+    /**
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return TblYear
+     */
+    public function insertYear($Name, $Description = '')
+    {
+
+        return (new Data($this->getBinding()))->createYear($Name, $Description);
+    }
+
+    /**
+     * @param string $Name
+     * @param string $From
+     * @param string $To
+     * @param string $Description
+     *
+     * @return TblPeriod
+     */
+    public function insertPeriod($Name, $From, $To, $Description = '')
+    {
+
+        return (new Data($this->getBinding()))->createPeriod($Name, $From, $To, $Description);
+    }
+
+    /**
+     * @param TblYear   $tblYear
+     * @param TblPeriod $tblPeriod
+     *
+     * @return TblYearPeriod
+     */
+    public function insertYearPeriod(TblYear $tblYear, TblPeriod $tblPeriod)
+    {
+
+        return (new Data($this->getBinding()))->addYearPeriod($tblYear, $tblPeriod);
     }
 
 }

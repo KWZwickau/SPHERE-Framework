@@ -204,4 +204,18 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getCommonBirthDatesAll();
     }
+
+    /**
+     * @param TblCommon $tblCommon
+     * @param $Remark
+     *
+     * @return TblCommon
+     */
+    public function updateCommon(TblCommon $tblCommon, $Remark){
+
+        return (new Data($this->getBinding()))->updateCommon(
+            $tblCommon,
+            $Remark
+        );
+    }
 }
