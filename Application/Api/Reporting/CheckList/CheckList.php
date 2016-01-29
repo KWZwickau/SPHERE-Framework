@@ -43,7 +43,8 @@ class CheckList implements IModuleInterface
      * @param null $ListId
      * @param null $YearPersonId
      * @param null $LevelPersonId
-     * @param null $SchoolOptionId
+     * @param null $SchoolOption1Id
+     * @param null $SchoolOption2Id
      *
      * @return bool|string
      */
@@ -51,14 +52,15 @@ class CheckList implements IModuleInterface
         $ListId = null,
         $YearPersonId = null,
         $LevelPersonId = null,
-        $SchoolOptionId = null
+        $SchoolOption1Id = null,
+        $SchoolOption2Id = null
     )
     {
 
         $tblList = \SPHERE\Application\Reporting\CheckList\CheckList::useService()->getListById($ListId);
         if ($tblList) {
             $fileLocation = \SPHERE\Application\Reporting\CheckList\CheckList::useService()
-                ->createCheckListExcel($tblList, $YearPersonId, $LevelPersonId, $SchoolOptionId);
+                ->createCheckListExcel($tblList, $YearPersonId, $LevelPersonId, $SchoolOption1Id, $SchoolOption2Id);
             if ($fileLocation) {
                 return FileSystem::getDownload($fileLocation->getRealPath(),
                     "Check-List ".$tblList->getName()." ".date("Y-m-d H:i:s").".xls")->__toString();
