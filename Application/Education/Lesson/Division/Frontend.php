@@ -2095,11 +2095,11 @@ class Frontend extends Extension implements IFrontendInterface
                                     new LayoutGroup(
                                         new LayoutRow(array(
                                                 new LayoutColumn(
-                                                    new Panel('Kopierende Klassenstufe:',
+                                                    new Panel('Zu kopierende Klassenstufe:',
                                                         $Content, Panel::PANEL_TYPE_INFO)
                                                     , 6),
                                                 new LayoutColumn(
-                                                    new Panel('Kopierende Klassengruppe:',
+                                                    new Panel('Zu kopierende Klassengruppe:',
                                                         $Content1, Panel::PANEL_TYPE_INFO)
                                                     , 6),
                                             )
