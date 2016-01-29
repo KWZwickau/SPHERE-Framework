@@ -19,6 +19,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Link;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -30,6 +31,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -126,6 +128,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->POST['To'] = $tblToPerson->getServiceTblPersonTo()->getId();
                 $Global->savePost();
             }
+
+            $currentPerson = $tblToPerson->getServiceTblPersonTo();
+        } else {
+            $currentPerson = false;
         }
 
         $tblGroup = Relationship::useService()->getGroupByIdentifier('PERSON');
@@ -133,21 +139,53 @@ class Frontend extends Extension implements IFrontendInterface
         $tblPersonAll = Person::useService()->getPersonAll();
 
         if ($tblPersonAll) {
-            array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
+            array_walk($tblPersonAll, function (TblPerson &$tblPerson) use ($currentPerson) {
 
-                $tblPerson = array(
-                    'Person' => new RadioBox('To', $tblPerson->getFullName(), $tblPerson->getId()),
-                    'ToPerson' => new Standard('', '/People/Person/Relationship/Create',
-                        new PersonIcon(), array('Id' => $tblPerson->getId()),
-                        'zu'
-                        . ' ' . $tblPerson->getFullName()
-                        . ' wechseln'
-                    )
-                );
+                if ($currentPerson && $currentPerson->getId() == $tblPerson->getId()) {
+                    $tblPerson = array(
+                        'Person' => new \SPHERE\Common\Frontend\Text\Repository\Warning($tblPerson->getFullName()) . ' (Aktuell hinterlegt)'
+                    );
+                } else {
+                    $tblPerson = array(
+                        'Person' => new RadioBox('To', $tblPerson->getFullName(), $tblPerson->getId())
+                            . new PullRight(new Standard('', '/People/Person',
+                                new PersonIcon(),
+                                array('Id' => $tblPerson->getId()),
+                                'zu ' . $tblPerson->getFullName() . ' wechseln'))
+                    );
+                }
             });
             $tblPersonAll = array_filter($tblPersonAll);
         } else {
             $tblPersonAll = array();
+        }
+
+        // Person Panel
+        if ($currentPerson) {
+            $PanelPerson = new Panel('zur folgenden Person ' . new PersonIcon(),
+                array(
+                    new \SPHERE\Common\Frontend\Text\Repository\Danger('AKTUELL hinterlegte Person, '),
+                    new RadioBox('To', $currentPerson->getFullName(), $currentPerson->getId())
+                    . new PullRight(new Standard('', '/People/Person',
+                        new PersonIcon(),
+                        array('Id' => $currentPerson->getId()),
+                        'zu ' . $currentPerson->getFullName() . ' wechseln')),
+                    new \SPHERE\Common\Frontend\Text\Repository\Danger('ODER eine andere Person wählen: '),
+                    new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+                ), Panel::PANEL_TYPE_INFO,
+                new Standard('Neue Person anlegen', '/People/Person', new PersonIcon()
+                    , array(), 'Die aktuell gewählte Person verlassen'
+                )
+            );
+        } else {
+            $PanelPerson = new Panel('zur folgenden Person ' . new PersonIcon(),
+                array(
+                    new TableData($tblPersonAll, null, array('Person' => 'Person wählen')),
+                ), Panel::PANEL_TYPE_INFO,
+                new Standard('Neue Person anlegen', '/People/Person', new PersonIcon()
+                    , array(), 'Die aktuell gewählte Person verlassen'
+                )
+            );
         }
 
         return new Form(
@@ -169,13 +207,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                     ), 6),
                     new FormColumn(array(
-                        new Panel('zu folgender Person', array(
-                            new TableData($tblPersonAll, null,
-                                array('Person' => 'Person wählen', 'ToPerson' => 'Person wechseln')),
-                        ), Panel::PANEL_TYPE_INFO,
-                            new Standard('Neue Person anlegen', '/People/Person', new PersonIcon()
-                                , array(), 'Die aktuell gewählte Person verlassen'
-                            )),
+                        $PanelPerson
                     ), 6),
                 )),
             ))
@@ -252,6 +284,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->POST['To'] = $tblToCompany->getServiceTblCompany()->getId();
                 $Global->savePost();
             }
+            $currentCompany = $tblToCompany->getServiceTblCompany();
+        } else {
+            $currentCompany = false;
         }
 
         $tblGroup = Relationship::useService()->getGroupByIdentifier('COMPANY');
@@ -259,19 +294,55 @@ class Frontend extends Extension implements IFrontendInterface
         $tblCompanyAll = Company::useService()->getCompanyAll();
 
         if ($tblCompanyAll) {
-            array_walk($tblCompanyAll, function (TblCompany &$tblCompany) {
+            array_walk($tblCompanyAll, function (TblCompany &$tblCompany) use ($currentCompany) {
 
-                $tblCompany = array(
-                    'Company' => new RadioBox('To', $tblCompany->getName() . (
-                        $tblCompany->getDescription()
-                            ? ' - ' . $tblCompany->getDescription()
-                            : ''),
-                        $tblCompany->getId())
-                );
+                if ($currentCompany && $currentCompany->getId() == $tblCompany->getId()) {
+                    $tblCompany = array(
+                        'Company' => new \SPHERE\Common\Frontend\Text\Repository\Warning($tblCompany->getName()) . ' (Aktuell hinterlegt)'
+                    );
+                } else {
+                    $tblCompany = array(
+                        'Company' => new RadioBox('To', $tblCompany->getName() . ' ' . new Muted($tblCompany->getDescription()),
+                                $tblCompany->getId())
+                            . new PullRight(new Standard('', '/Corporation/Company',
+                                new PersonIcon(),
+                                array('Id' => $tblCompany->getId()),
+                                'zu ' . $tblCompany->getName() . ' wechseln'))
+                    );
+                }
             });
             $tblCompanyAll = array_filter($tblCompanyAll);
         } else {
             $tblCompanyAll = array();
+        }
+
+        // Company Panel
+        if ($currentCompany) {
+            $PanelCompany = new Panel('zu folgender Firma ' . new Building(),
+                array(
+                    new \SPHERE\Common\Frontend\Text\Repository\Danger('AKTUELL hinterlegte Firma, '),
+                    new RadioBox('To', $currentCompany->getName() . ' ' . new Muted($currentCompany->getDescription()),
+                        $currentCompany->getId())
+                    . new PullRight(new Standard('', '/Corporation/Company',
+                        new PersonIcon(),
+                        array('Id' => $currentCompany->getId()),
+                        'zu ' . $currentCompany->getName() . ' wechseln')),
+                    new \SPHERE\Common\Frontend\Text\Repository\Danger('ODER eine andere Firma wählen: '),
+                    new TableData($tblCompanyAll, null, array('Company' => 'Firma wählen')),
+                ), Panel::PANEL_TYPE_INFO,
+                new Standard('Neue Firma anlegen', '/Corporation/Company', new Building()
+                    , array(), 'Die aktuell gewählte Person verlassen'
+                )
+            );
+        } else {
+            $PanelCompany = new Panel('zu folgender Firma ' . new Building(),
+                array(
+                    new TableData($tblCompanyAll, null, array('Company' => 'Firma wählen')),
+                ), Panel::PANEL_TYPE_INFO,
+                new Standard('Neue Firma anlegen', '/Corporation/Company', new Building()
+                    , array(), 'Die aktuell gewählte Person verlassen'
+                )
+            );
         }
 
         return new Form(
@@ -294,13 +365,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                     ), 6),
                     new FormColumn(array(
-                        new Panel('zu folgender Firma', array(
-                            new TableData($tblCompanyAll, null,
-                                array('Company' => 'Firma wählen')),
-                        ), Panel::PANEL_TYPE_INFO,
-                            new Standard('Neue Firma anlegen', '/Corporation/Company', new Building()
-                                , array(), 'Die aktuell gewählte Person verlassen'
-                            )),
+                        $PanelCompany
                     ), 6),
                 )),
             ))
@@ -439,14 +504,16 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblToPerson = new LayoutColumn(
                     new Panel(
-                        new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName(), $Panel,
+                        new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName()
+                        . Relationship::useService()->getIcon($tblToPerson->getTblType(),
+                            !($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId())), $Panel,
                         ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
                             ? Panel::PANEL_TYPE_SUCCESS
                             : Panel::PANEL_TYPE_DEFAULT
                         ),
                         ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
                             ? new Standard(
-                                '', '/People/Person/Relationship/Edit', new Pencil(),
+                                '', '/People/Person/Relationship/Edit', new Edit(),
                                 array('Id' => $tblToPerson->getId()),
                                 'Bearbeiten'
                             )
@@ -533,7 +600,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         ($tblEntity instanceof TblPerson
                             ? new Standard(
-                                '', '/Corporation/Company/Relationship/Edit', new Pencil(),
+                                '', '/Corporation/Company/Relationship/Edit', new Edit(),
                                 array('Id' => $tblToCompany->getId()),
                                 'Bearbeiten'
                             )
@@ -699,7 +766,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde gelöscht')
                                 : new Danger(new Ban() . ' Die Beziehung konnte nicht gelöscht werden')
                             ),
-                            new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()))
+                            new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
+                                array('Id' => $tblPerson->getId()))
                         )))
                     )))
                 );
