@@ -820,11 +820,27 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($grade->getGrade() === null) {
                         $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Attendance'] = 1;
                     } else {
-                        $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] = $grade->getGrade();
+                        if ($IsEdit) {
+                            $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] = $grade->getGrade();
 
-                        $trend = $grade->getTrend();
-                        if ($trend !== null) {
-                            $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Trend'] = $trend;
+                            $trend = $grade->getTrend();
+                            if ($trend !== null) {
+                                $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Trend'] = $trend;
+                            }
+                        } else {
+                            $trend = $grade->getTrend();
+                            if ($trend !== null) {
+                                if ($trend == TblGrade::VALUE_TREND_PLUS){
+                                    $trend = '+';
+                                } elseif ($trend == TblGrade::VALUE_TREND_MINUS){
+                                    $trend = '-';
+                                } else {
+                                    $trend = '';
+                                }
+                            } else {
+                                $trend = '';
+                            }
+                            $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] = $grade->getGrade() . $trend;
                         }
 
                     }
@@ -1195,28 +1211,30 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         if (!$IsEdit && $tblGrade) {
-            if ($tblScoreType) {
-                if ($tblScoreType->getIdentifier() == 'VERBAL') {
-                    $student[$tblPerson->getId()]['Grade']
-                        = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
-                        new Quote()))->setDisabled();
-                } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
-                    $student[$tblPerson->getId()]['Grade']
-                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
-                        new Rate15()))->setDisabled();
-                } else {
-                    $student[$tblPerson->getId()]['Grade']
-                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
-                            new Dice()))->setDisabled()
-                        . (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '',
-                            $selectBoxContent, new ResizeVertical()))->setDisabled();
-                }
-            } else {
-                $student[$tblPerson->getId()]['Grade']
-                    = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Dice()))->setDisabled()
-                    . (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '',
-                        $selectBoxContent, new ResizeVertical()))->setDisabled();
-            }
+//            if ($tblScoreType) {
+//                if ($tblScoreType->getIdentifier() == 'VERBAL') {
+//                    $student[$tblPerson->getId()]['Grade']
+//                        = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
+//                        new Quote()))->setDisabled();
+//                } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
+//                    $student[$tblPerson->getId()]['Grade']
+//                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
+//                        new Rate15()))->setDisabled();
+//                } else {
+//                    $student[$tblPerson->getId()]['Grade']
+//                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
+//                            new Dice()))->setDisabled()
+//                        . (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '',
+//                            $selectBoxContent, new ResizeVertical()))->setDisabled();
+//                }
+//            } else {
+//                $student[$tblPerson->getId()]['Grade']
+//                    = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Dice()))->setDisabled()
+//                    . (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '',
+//                        $selectBoxContent, new ResizeVertical()))->setDisabled();
+//            }
+            $student[$tblPerson->getId()]['Grade']
+                = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setDisabled();
             $student[$tblPerson->getId()]['Comment']
                 = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))->setDisabled();
             $student[$tblPerson->getId()]['Attendance'] =
