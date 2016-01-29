@@ -18,6 +18,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
@@ -31,6 +32,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -165,7 +167,7 @@ class Frontend extends Extension implements IFrontendInterface
             $PanelPerson = new Panel('zur folgenden Person ' . new PersonIcon(),
                 array(
                     new \SPHERE\Common\Frontend\Text\Repository\Danger('AKTUELL hinterlegte Person, '),
-                    new RadioBox('To', $currentPerson->getFullName(), $currentPerson->getId())
+                    new PullLeft(new RadioBox('To', $currentPerson->getFullName(), $currentPerson->getId()))
                     . new PullRight(new Standard('', '/People/Person',
                         new PersonIcon(),
                         array('Id' => $currentPerson->getId()),
@@ -305,7 +307,7 @@ class Frontend extends Extension implements IFrontendInterface
                         'Company' => new RadioBox('To', $tblCompany->getName() . ' ' . new Muted($tblCompany->getDescription()),
                                 $tblCompany->getId())
                             . new PullRight(new Standard('', '/Corporation/Company',
-                                new PersonIcon(),
+                                new Building(),
                                 array('Id' => $tblCompany->getId()),
                                 'zu ' . $tblCompany->getName() . ' wechseln'))
                     );
@@ -321,10 +323,10 @@ class Frontend extends Extension implements IFrontendInterface
             $PanelCompany = new Panel('zu folgender Firma ' . new Building(),
                 array(
                     new \SPHERE\Common\Frontend\Text\Repository\Danger('AKTUELL hinterlegte Firma, '),
-                    new RadioBox('To', $currentCompany->getName() . ' ' . new Muted($currentCompany->getDescription()),
-                        $currentCompany->getId())
+                    new PullLeft(new RadioBox('To', $currentCompany->getName() . ' ' . new Muted($currentCompany->getDescription()),
+                        $currentCompany->getId()))
                     . new PullRight(new Standard('', '/Corporation/Company',
-                        new PersonIcon(),
+                        new Building(),
                         array('Id' => $currentCompany->getId()),
                         'zu ' . $currentCompany->getName() . ' wechseln')),
                     new \SPHERE\Common\Frontend\Text\Repository\Danger('ODER eine andere Firma wählen: '),
@@ -493,9 +495,10 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblRelationshipAll, function (TblToPerson &$tblToPerson) use ($tblPerson) {
 
                 $Panel = array(
+                    $tblPerson->getLastFirstName() . ' ' .
                     ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
-                        ? $tblToPerson->getServiceTblPersonTo()->getFullName()
-                        : $tblToPerson->getServiceTblPersonFrom()->getFullName()
+                        ? new ChevronRight() . ' ' . $tblToPerson->getServiceTblPersonTo()->getLastFirstName()
+                        : new ChevronLeft() . ' ' . $tblToPerson->getServiceTblPersonFrom()->getLastFirstName()
                     )
                 );
                 if ($tblToPerson->getRemark()) {
@@ -504,9 +507,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblToPerson = new LayoutColumn(
                     new Panel(
-                        new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName()
-                        . Relationship::useService()->getIcon($tblToPerson->getTblType(),
-                            !($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId())), $Panel,
+                        new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName(),
+                        $Panel,
                         ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
                             ? Panel::PANEL_TYPE_SUCCESS
                             : Panel::PANEL_TYPE_DEFAULT

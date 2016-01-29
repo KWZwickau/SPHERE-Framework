@@ -17,9 +17,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
-use SPHERE\Common\Frontend\Icon\Repository\Child;
-use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
-use SPHERE\Common\Frontend\Icon\Repository\Stethoscope;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -433,29 +430,4 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getSiblingRankAll();
     }
 
-    /**
-     * @param TblType $tblType
-     * @param bool|true $isFrom
-     * @return string
-     */
-    public function getIcon(TblType $tblType, $isFrom = true)
-    {
-        if ($tblType->getName() == 'Sorgeberechtigt' || $tblType->getName() == 'Vormund' || $tblType->getName() == 'Bevollmächtigt') {
-            if ($isFrom) {
-                return ' ' . new PersonParent();
-            } else {
-                return ' ' . new Child();
-            }
-        } elseif ($tblType->getName() == 'Arzt') {
-            if ($isFrom) {
-                return ' ' . new Stethoscope();
-            } else {
-                return ' ' . new \SPHERE\Common\Frontend\Icon\Repository\Person();
-            }
-        } elseif ($tblType->getName() == 'Geschwisterkind') {
-            return ' ' . new Child();
-        }
-
-        return '';
-    }
 }
