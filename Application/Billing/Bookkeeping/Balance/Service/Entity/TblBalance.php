@@ -19,13 +19,13 @@ use SPHERE\System\Database\Fitting\Element;
 class TblBalance extends Element
 {
 
-    const ATTR_SERVICE_BILLING_BANKING = 'serviceBilling_Banking';
+    const ATTR_SERVICE_BILLING_DEBTOR = 'serviceBilling_Debtor';
     const ATTR_SERVICE_BILLING_INVOICE = 'serviceBilling_Invoice';
 
     /**
      * @Column(type="bigint")
      */
-    protected $serviceBilling_Banking;
+    protected $serviceBilling_Debtor;
     /**
      * @Column(type="bigint")
      */
@@ -61,24 +61,24 @@ class TblBalance extends Element
 
 
     /**
-     * @param TblDebtor $serviceBilling_Banking
+     * @param TblDebtor $serviceBilling_Debtor
      */
-    public function setServiceBillingBanking(TblDebtor $serviceBilling_Banking = null)
+    public function setServiceBillingDebtor(TblDebtor $serviceBilling_Debtor = null)
     {
 
-        $this->serviceBilling_Banking = ( null === $serviceBilling_Banking ? null : $serviceBilling_Banking->getId() );
+        $this->serviceBilling_Debtor = ( null === $serviceBilling_Debtor ? null : $serviceBilling_Debtor->getId() );
     }
 
     /**
      * @return bool|TblDebtor
      */
-    public function getServiceBillingBanking()
+    public function getServiceBillingDebtor()
     {
 
-        if (null === $this->serviceBilling_Banking) {
+        if (null === $this->serviceBilling_Debtor) {
             return false;
         } else {
-            return Banking::useService()->getDebtorById($this->serviceBilling_Banking);
+            return Banking::useService()->getDebtorById($this->serviceBilling_Debtor);
         }
     }
 

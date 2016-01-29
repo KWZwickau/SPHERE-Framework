@@ -531,7 +531,7 @@ class Service extends AbstractService
         if ((new Data($this->getBinding()))->checkDebtors($tblBasket, $Data, $isSave)) {
             if (Invoice::useService()->createOrderListFromBasket($tblBasket, $Date)) {
                 $Stage .= new Success('Die Rechnungen wurden erfolgreich erstellt')
-                    .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', Redirect::TIMEOUT_SUCCESS);
+                    .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
             } else {
                 $Stage .= new Success('Die Rechnungen konnten nicht erstellt werden')
                     .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);

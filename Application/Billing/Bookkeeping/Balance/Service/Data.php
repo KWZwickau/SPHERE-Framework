@@ -181,7 +181,7 @@ class Data extends AbstractData
 
         /** @var TblBalance[] $balanceAllByDebtor */
         $balanceAllByDebtor = $this->getConnection()->getEntityManager()->getEntity('TblBalance')->findBy(
-            array(TblBalance::ATTR_SERVICE_BILLING_BANKING => $tblDebtor->getId())
+            array(TblBalance::ATTR_SERVICE_BILLING_DEBTOR => $tblDebtor->getId())
         );
         foreach ($balanceAllByDebtor as $balance) {
             $Entity = $this->getConnection()->getEntityManager()->getEntity('TblPayment')->findOneBy(
@@ -222,13 +222,13 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblBalance')->findOneBy(array(
-            TblBalance::ATTR_SERVICE_BILLING_BANKING => $serviceBilling_Banking->getId(),
+            TblBalance::ATTR_SERVICE_BILLING_DEBTOR  => $serviceBilling_Banking->getId(),
             TblBalance::ATTR_SERVICE_BILLING_INVOICE => $serviceBilling_Invoice->getId()
         ));
 
         if (null === $Entity) {
             $Entity = new TblBalance();
-            $Entity->setServiceBillingBanking($serviceBilling_Banking);
+            $Entity->setServiceBillingDebtor($serviceBilling_Banking);
             $Entity->setServiceBillingInvoice($serviceBilling_Invoice);
             if ($ExportDate !== null) {
                 $Entity->setExportDate($ExportDate);
@@ -266,13 +266,13 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblBalance')->findOneBy(array(
-            TblBalance::ATTR_SERVICE_BILLING_BANKING => $tblBalance->getServiceBillingBanking()->getId(),
+            TblBalance::ATTR_SERVICE_BILLING_DEBTOR  => $tblBalance->getServiceBillingDebtor()->getId(),
             TblBalance::ATTR_SERVICE_BILLING_INVOICE => $tblInvoice->getId()
         ));
 
         if (null === $Entity) {
             $Entity = new TblBalance();
-            $Entity->setServiceBillingBanking($tblBalance->getServiceBillingBanking());
+            $Entity->setServiceBillingDebtor($tblBalance->getServiceBillingDebtor());
             $Entity->setServiceBillingInvoice($tblInvoice);
             $Entity->setExportDate(new \DateTime($tblBalance->getExportDate()));
             $Entity->setBankName($tblBalance->getBankName());
