@@ -14,6 +14,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
@@ -27,7 +28,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Link\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
@@ -150,6 +150,7 @@ class Frontend
                 }
             });
         }
+
         $Stage->setContent(
             ( $tblLevelAll
                 ? new TableData($tblLevelAll, new Title('Bestehende Zugriffslevel'), array(
@@ -209,11 +210,12 @@ class Frontend
                 }
             });
         }
+
         $Stage->setContent(
             ( $tblPrivilegeAll
                 ? new TableData($tblPrivilegeAll, new Title('Bestehende Privilegien'), array(
                     'Name'   => 'Name',
-                    'Option' => 'Optionen'
+                    'Option' => ''
                 ))
                 : new Warning('Keine Privilegien vorhanden')
             )
@@ -224,7 +226,7 @@ class Frontend
                                 new TextField('Name', 'Name', 'Name')
                             )
                         ), new \SPHERE\Common\Frontend\Form\Repository\Title('Privileg anlegen'))
-                    , new Primary('Hinzufügen')
+                    , new Primary('Speichern', new Save())
                 ), $Name
             )
         );
@@ -390,7 +392,7 @@ class Frontend
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new Success('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', new Plus(),
+                new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', new Plus(),
                     array(
                         'Id'       => $Id,
                         'tblLevel' => $Entity->getId()
@@ -403,7 +405,7 @@ class Frontend
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new Danger('Entfernen', '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', new Minus(), array(
+                new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', new Minus(), array(
                     'Id'       => $Id,
                     'tblLevel' => $Entity->getId(),
                     'Remove'   => true
@@ -422,7 +424,7 @@ class Frontend
                             ( empty( $tblAccessList )
                                 ? new Warning('Keine Zugriffslevel vergeben')
                                 : new TableData($tblAccessList, null,
-                                    array('Name' => 'Name', 'Option' => 'Optionen'))
+                                    array('Name' => 'Name', 'Option' => ''))
                             )
                         ), 6),
                         new LayoutColumn(array(
@@ -430,7 +432,7 @@ class Frontend
                             ( empty( $tblAccessListAvailable )
                                 ? new Info('Keine weiteren Zugriffslevel verfügbar')
                                 : new TableData($tblAccessListAvailable, null,
-                                    array('Name' => 'Name', 'Option' => 'Optionen'))
+                                    array('Name' => 'Name ', 'Option' => ' '))
                             )
                         ), 6)
                     ))
@@ -489,7 +491,7 @@ class Frontend
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new Success('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', new Plus(),
+                new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', new Plus(),
                     array(
                         'Id'           => $Id,
                         'tblPrivilege' => $Entity->getId()
@@ -502,7 +504,7 @@ class Frontend
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new Danger('Entfernen', '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', new Minus(),
+                new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', new Minus(),
                     array(
                         'Id'           => $Id,
                         'tblPrivilege' => $Entity->getId(),
@@ -522,7 +524,7 @@ class Frontend
                             ( empty( $tblAccessList )
                                 ? new Warning('Keine Privilegien vergeben')
                                 : new TableData($tblAccessList, null,
-                                    array('Name' => 'Name', 'Option' => 'Optionen'))
+                                    array('Name' => 'Name', 'Option' => ''))
                             )
                         ), 6),
                         new LayoutColumn(array(
@@ -530,7 +532,7 @@ class Frontend
                             ( empty( $tblAccessListAvailable )
                                 ? new Info('Keine weiteren Privilegien verfügbar')
                                 : new TableData($tblAccessListAvailable, null,
-                                    array('Name' => 'Name', 'Option' => 'Optionen'))
+                                    array('Name' => 'Name ', 'Option' => ' '))
                             )
                         ), 6)
                     ))
@@ -589,7 +591,7 @@ class Frontend
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new Success('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', new Plus(),
+                new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', new Plus(),
                     array(
                         'Id'       => $Id,
                         'tblRight' => $Entity->getId()
@@ -602,7 +604,7 @@ class Frontend
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new Danger('Entfernen', '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', new Minus(),
+                new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', new Minus(),
                     array(
                         'Id'       => $Id,
                         'tblRight' => $Entity->getId(),
@@ -622,7 +624,7 @@ class Frontend
                             ( empty( $tblAccessList )
                                 ? new Warning('Keine Rechte vergeben')
                                 : new TableData($tblAccessList, null,
-                                    array('Route' => 'Route', 'Option' => 'Optionen'))
+                                    array('Route' => 'Route', 'Option' => ''))
                             )
                         ), 6),
                         new LayoutColumn(array(
@@ -630,7 +632,7 @@ class Frontend
                             ( empty( $tblAccessListAvailable )
                                 ? new Info('Keine weiteren Rechte verfügbar')
                                 : new TableData($tblAccessListAvailable, null,
-                                    array('Route' => 'Route', 'Option' => 'Optionen'))
+                                    array('Route' => 'Route ', 'Option' => ' '))
                             )
                         ), 6)
                     ))
