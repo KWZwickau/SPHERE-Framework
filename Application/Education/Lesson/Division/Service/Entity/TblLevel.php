@@ -81,7 +81,10 @@ class TblLevel extends Element
     public function getIsNamed()
     {
 
-        return $this->IsNamed;
+        if ($this->IsNamed) {
+            return true;
+        }
+        return false;
     }
 
     /**
