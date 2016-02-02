@@ -529,4 +529,17 @@ class Data extends AbstractData
         return false;
     }
 
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblDivision[]
+     */
+    public function getTestAllByDivision(TblDivision $tblDivision)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest', array(
+            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+        ));
+    }
 }

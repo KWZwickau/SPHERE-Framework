@@ -466,4 +466,15 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getTestAllByTask($tblTask, $tblDivision);
     }
 
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblDivision[]
+     */
+    public function getTestAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getTestAllByDivision($tblDivision);
+    }
+
 }

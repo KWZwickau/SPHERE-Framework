@@ -100,6 +100,48 @@ class Service extends AbstractService
 
         return ( empty( $EntityList ) ? false : $EntityList );
     }
+    /**
+     * @param int $Year
+     *
+     * @return bool|TblYear[]
+     */
+    public function getYearAllFutureYears($Year)
+    {
+
+        $Now = (new \DateTime('now'))->add(new \DateInterval('P'.$Year.'Y'));
+
+        $EntityList = array();
+        $tblYearAll = Term::useService()->getYearAll();
+        if ($tblYearAll) {
+            foreach ($tblYearAll as $tblYear) {
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                if ($tblPeriodList) {
+                    $To = '';
+                    $tblPeriodTemp = new TblPeriod();
+                    foreach ($tblPeriodList as $tblPeriod) {
+                        if (new \DateTime($tblPeriod->getToDate()) > new \DateTime($To) || $To == '') {
+                            $To = $tblPeriod->getToDate();
+                        }
+                        if ($tblPeriod) {
+                            $tblPeriodTemp = $tblPeriod;
+                        }
+                    }
+                    if (new \DateTime($To) >= new \DateTime($Now->format('d.m.Y'))) {
+                        $tblYearTempList = Term::useService()->getYearByPeriod($tblPeriodTemp);
+                        if ($tblYearTempList) {
+                            foreach ($tblYearTempList as $tblYearTemp) {
+                                /** @var TblYear $tblYearTemp */
+                                $EntityList[$tblYearTemp->getId()] = $tblYearTemp;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $EntityList = array_filter($EntityList);
+
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
 
     /**
      * @return bool|TblPeriod[]

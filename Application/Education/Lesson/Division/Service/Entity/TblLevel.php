@@ -31,6 +31,10 @@ class TblLevel extends Element
      */
     protected $Description;
     /**
+     * @Column(type="boolean")
+     */
+    protected $IsNamed;
+    /**
      * @Column(type="bigint")
      */
     protected $serviceTblType;
@@ -69,6 +73,27 @@ class TblLevel extends Element
     {
 
         $this->Description = $Description;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getIsNamed()
+    {
+
+        if ($this->IsNamed) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param boolean $IsNamed
+     */
+    public function setIsNamed($IsNamed)
+    {
+
+        $this->IsNamed = $IsNamed;
     }
 
     /**
