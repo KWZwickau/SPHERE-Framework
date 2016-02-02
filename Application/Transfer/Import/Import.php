@@ -23,12 +23,12 @@ class Import implements IApplicationInterface
 
         FuxSchool::registerModule();
 
-        if (Consumer::useService()->getConsumerBySession()->getAcronym() == 'ESZC') {
+        $consumerAcronym = Consumer::useService()->getConsumerBySession()->getAcronym();
+        if ($consumerAcronym == 'ESZC') {
             Chemnitz::registerModule();
-        } elseif (Consumer::useService()->getConsumerBySession()->getAcronym() == 'FEGH') {
+        } elseif ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH') {
             Hormersdorf::registerModule();
         }
-
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
