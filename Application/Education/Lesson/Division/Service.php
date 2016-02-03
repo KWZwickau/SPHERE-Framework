@@ -125,7 +125,7 @@ class Service extends AbstractService
                 }
             } else {
                 if ($tblType = Type::useService()->getTypeById($Level['Type'])) {
-                    $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, '');
+                    $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, '', '', $Level['Check']);
                 }
             }
         } else {
@@ -750,10 +750,10 @@ class Service extends AbstractService
                     $tblDivision, $Division['Name'], $Division['Description']
                 )
                 ) {
-                    return new Success('Die Beschreibung wurde erfolgreich geändert')
+                    return new Success('Die Klasse wurde erfolgreich geändert')
                     .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_SUCCESS);
                 } else {
-                    return new Danger('Die Beschreibung konnte nicht geändert werden')
+                    return new Danger('Die Klasse konnte nicht geändert werden')
                     .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
                 }
             } else {
@@ -1304,6 +1304,10 @@ class Service extends AbstractService
                     $tblType = Type::useService()->getTypeById($Level['Type']);
                     $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, $Level['Name']);
                 }
+            } else {
+                if ($tblType = Type::useService()->getTypeById($Level['Type'])) {
+                    $tblLevel = (new Data($this->getBinding()))->createLevel($tblType, '', '', $Level['Check']);
+                }
             }
         } else {
             return $Form;
@@ -1352,7 +1356,7 @@ class Service extends AbstractService
                 (new Data($this->getBinding()))->copyCustodyAllByDivision($tblDivision, $tblDivisionCopy);
 
                 return new Success('Die Klassengruppe wurde erfolgreich hinzugefügt')
-                .new Redirect('/Education/Lesson/Division/', 600/*Redirect::TIMEOUT_SUCCESS*/);
+                .new Redirect('/Education/Lesson/Division/', Redirect::TIMEOUT_SUCCESS);
             }
         }
 
@@ -1374,7 +1378,7 @@ class Service extends AbstractService
 
         if ($tblLevelList) {
             foreach ($tblLevelList as $tblLevel) {
-                if ($tblLevel->getIsNamed()) {
+                if (!$tblLevel->getIsChecked()) {
                     $tblDivisionList = Division::useService()->getDivisionByLevel($tblLevel);
                     if ($tblDivisionList) {
                         foreach ($tblDivisionList as $tblDivision) {
