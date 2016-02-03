@@ -44,6 +44,10 @@ class TblGrade extends Element
     const ATTR_SERVICE_TBL_PERIOD = 'serviceTblPeriod';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
 
+    const VALUE_TREND_NULL = 0;
+    const VALUE_TREND_PLUS = 1;
+    const VALUE_TREND_MINUS = 2;
+
     /**
      * @Column(type="string")
      */
@@ -53,6 +57,11 @@ class TblGrade extends Element
      * @Column(type="string")
      */
     protected $Comment;
+
+    /**
+     * @Column(type="smallint")
+     */
+    protected $Trend;
 
     /**
      * @Column(type="bigint")
@@ -304,5 +313,21 @@ class TblGrade extends Element
     {
 
         $this->serviceTblDivision = ( null === $tblDivision ? null : $tblDivision->getId() );
+    }
+
+    /**
+     * @return int
+     */
+    public function getTrend()
+    {
+        return $this->Trend;
+    }
+
+    /**
+     * @param int $Trend
+     */
+    public function setTrend($Trend)
+    {
+        $this->Trend = $Trend;
     }
 }

@@ -26,7 +26,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Map;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -156,7 +155,7 @@ class Frontend extends Extension implements IFrontendInterface
                         , 4),
                     new FormColumn(
                         new Panel('Sonstiges', array(
-                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
+                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit())
                         ), Panel::PANEL_TYPE_INFO)
                         , 4),
                 )),
@@ -507,7 +506,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new MapMarker() . ' ' . $tblToPerson->getTblType()->getName(), $Panel,
                         Panel::PANEL_TYPE_SUCCESS,
                         new Standard(
-                            '', '/People/Person/Address/Edit', new Pencil(),
+                            '', '/People/Person/Address/Edit', new Edit(),
                             array('Id' => $tblToPerson->getId()),
                             'Bearbeiten'
                         )
@@ -538,8 +537,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Panel(
                                         new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
                                         Panel::PANEL_TYPE_DEFAULT,
-                                        $tblRelationship->getServiceTblPersonFrom()->getFullName()
-                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                        new Standard(
+                                            '', '/People/Person', new PersonIcon(),
+                                            array('Id' => $tblRelationship->getServiceTblPersonFrom()->getId()),
+                                            'Zur Person'
+                                        )
+                                        . '&nbsp;' . $tblRelationship->getServiceTblPersonFrom()->getFullName()
                                     )
                                     , 3);
 
@@ -567,8 +570,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Panel(
                                         new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
                                         Panel::PANEL_TYPE_DEFAULT,
-                                        $tblRelationship->getServiceTblPersonTo()->getFullName()
-                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                        new Standard(
+                                            '', '/People/Person', new PersonIcon(),
+                                            array('Id' => $tblRelationship->getServiceTblPersonTo()->getId()),
+                                            'Zur Person'
+                                        )
+                                        . '&nbsp;' . $tblRelationship->getServiceTblPersonTo()->getFullName()
                                     )
                                     , 3);
 
@@ -633,7 +640,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new MapMarker() . ' ' . $tblToCompany->getTblType()->getName(), $Panel,
                         Panel::PANEL_TYPE_SUCCESS,
                         new Standard(
-                            '', '/Corporation/Company/Address/Edit', new Pencil(),
+                            '', '/Corporation/Company/Address/Edit', new Edit(),
                             array('Id' => $tblToCompany->getId()),
                             'Bearbeiten'
                         )

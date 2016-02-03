@@ -918,7 +918,8 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $HasData
      * @param null $YearPersonId
      * @param null $LevelPersonId
-     * @param null $SchoolOptionId
+     * @param null $SchoolOption1Id
+     * @param null $SchoolOption2Id
      *
      * @return Stage
      */
@@ -929,7 +930,8 @@ class Frontend extends Extension implements IFrontendInterface
         $HasData = null,
         $YearPersonId = null,
         $LevelPersonId = null,
-        $SchoolOptionId = null
+        $SchoolOption1Id = null,
+        $SchoolOption2Id = null
     ) {
 
         $Stage = new Stage('Check-Listen', 'Bearbeiten');
@@ -946,7 +948,8 @@ class Frontend extends Extension implements IFrontendInterface
         $hasFilter = false;
         $filterYear = false;
         $filterLevel = false;
-        $filterSchoolOption = false;
+        $filterSchoolOption1 = false;
+        $filterSchoolOption2 = false;
 
         // filter
         if ($YearPersonId !== null) {
@@ -983,15 +986,26 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
         }
-        if ($SchoolOptionId !== null) {
+        if ($SchoolOption1Id !== null) {
             $Global = $this->getGlobal();
-            $Global->POST['Filter']['SchoolOption'] = $SchoolOptionId;
+            $Global->POST['Filter']['SchoolOption1'] = $SchoolOption1Id;
             $Global->savePost();
 
-            $schoolOption = Type::useService()->getTypeById($SchoolOptionId);
+            $schoolOption = Type::useService()->getTypeById($SchoolOption1Id);
             if ($schoolOption) {
                 $hasFilter = true;
-                $filterSchoolOption = $schoolOption;
+                $filterSchoolOption1 = $schoolOption;
+            }
+        }
+        if ($SchoolOption2Id !== null) {
+            $Global = $this->getGlobal();
+            $Global->POST['Filter']['SchoolOption2'] = $SchoolOption2Id;
+            $Global->savePost();
+
+            $schoolOption = Type::useService()->getTypeById($SchoolOption2Id);
+            if ($schoolOption) {
+                $hasFilter = true;
+                $filterSchoolOption2 = $schoolOption;
             }
         }
 
@@ -1040,7 +1054,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 $objectList = CheckList::useService()->filterObjectList($objectList, $filterYear, $filterLevel,
-                    $filterSchoolOption);
+                    $filterSchoolOption1, $filterSchoolOption2);
             }
 
             if (!empty($objectList)) {
@@ -1197,7 +1211,8 @@ class Frontend extends Extension implements IFrontendInterface
                         'ListId' => $tblList->getId(),
                         'YearPersonId' => $YearPersonId,
                         'LevelPersonId' => $LevelPersonId,
-                        'SchoolOptionId' => $SchoolOptionId
+                        'SchoolOption1Id' => $SchoolOption1Id,
+                        'SchoolOption2Id' => $SchoolOption2Id
                     ))
             );
         }
@@ -1207,6 +1222,16 @@ class Frontend extends Extension implements IFrontendInterface
                 new Filter()));
         } else {
             $form = $this->formCheckListFilter(array())->appendFormButton(new Primary('Filtern', new Filter()));
+        }
+
+        if ($filterSchoolOption1 &&  $filterSchoolOption2){
+            $filterSchoolOptionText = $filterSchoolOption1->getName() . ', ' . $filterSchoolOption2->getName();
+        } elseif ($filterSchoolOption1){
+            $filterSchoolOptionText = $filterSchoolOption1->getName();
+        } elseif ($filterSchoolOption2){
+            $filterSchoolOptionText = $filterSchoolOption2->getName();
+        } else {
+            $filterSchoolOptionText = '';
         }
 
         $Stage->setContent(
@@ -1234,7 +1259,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Panel(new Filter() . ' Filter',
                                     ($filterYear ? new Bold('Schuljahr: ') . $filterYear : '') . '&nbsp;&nbsp;' .
                                     ($filterLevel ? new Bold(' Klassenstufe: ') . $filterLevel : '') . '&nbsp;&nbsp;' .
-                                    ($filterSchoolOption ? new Bold(' Schulart: ') . $filterSchoolOption->getName() : ''),
+                                    ($filterSchoolOption1 || $filterSchoolOption2 ? new Bold(' Schulart: ') .
+                                        $filterSchoolOptionText : ''),
                                     Panel::PANEL_TYPE_INFO),
                                 $hasFilter ? 6 : 12
                             ) : null)
@@ -1260,7 +1286,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 , $Id, $Data, $HasData, ($hasFilter ? $objectList : null),
                                 $YearPersonId,
                                 $LevelPersonId,
-                                $SchoolOptionId
+                                $SchoolOption1Id
                             )
                         ))
                     ))
@@ -1321,13 +1347,16 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new SelectBox('Filter[Year]', 'Schuljahr', $yearAll), 4
+                        new SelectBox('Filter[Year]', 'Schuljahr', $yearAll), 3
                     ),
                     new FormColumn(
-                        new SelectBox('Filter[Level]', 'Klassenstufe', $levelAll), 4
+                        new SelectBox('Filter[Level]', 'Klassenstufe', $levelAll), 3
                     ),
                     new FormColumn(
-                        new SelectBox('Filter[SchoolOption]', 'Schulart', $schoolOptionAll), 4
+                        new SelectBox('Filter[SchoolOption1]', 'Schulart', $schoolOptionAll), 3
+                    ),
+                    new FormColumn(
+                        new SelectBox('Filter[SchoolOption2]', 'Schulart', $schoolOptionAll), 3
                     ),
                 ))
             ))

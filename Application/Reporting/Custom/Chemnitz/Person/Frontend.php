@@ -9,6 +9,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -18,6 +19,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -79,6 +81,8 @@ class Frontend extends Extension implements IFrontendInterface
                             '/Api/Reporting/Custom/Chemnitz/Common/ClassList/Download', new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
+                    $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
                 }
             }
         }
@@ -141,6 +145,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new Primary('Herunterladen',
                     '/Api/Reporting/Custom/Chemnitz/Common/StaffList/Download', new Download())
             );
+            $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
         }
 
         $View->setContent(
@@ -203,6 +209,8 @@ class Frontend extends Extension implements IFrontendInterface
                             '/Api/Reporting/Custom/Chemnitz/Common/MedicList/Download', new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
+                    $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
                 }
             }
         }
@@ -281,6 +289,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
+                    $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
                 }
             }
         }
@@ -337,6 +347,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new Primary('Herunterladen',
                     '/Api/Reporting/Custom/Chemnitz/Common/ClubMemberList/Download', new Download())
             );
+            $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
         }
 
         $View->setContent(
@@ -377,6 +389,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new Primary('Herunterladen',
                     '/Api/Reporting/Custom/Chemnitz/Common/InterestedPersonList/Download', new Download())
             );
+            $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
         }
 
         $View->setContent(
@@ -430,6 +444,8 @@ class Frontend extends Extension implements IFrontendInterface
             new Primary('Herunterladen',
                 '/Api/Reporting/Custom/Chemnitz/Common/SchoolFeeList/Download', new Download())
         );
+        $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
 
         $studentList = Person::useService()->createSchoolFeeList();
 
@@ -499,6 +515,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new Download(),
                             array('DivisionId' => $tblDivision->getId()))
                     );
+                    $View->setMessage(new Danger('Die dauerhafte Speicherung des Excel-Exports
+                    ist datenschutzrechtlich nicht zulässig!', new Exclamation()));
                 }
             }
         }

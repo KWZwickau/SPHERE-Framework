@@ -4,6 +4,8 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Book;
+use SPHERE\Common\Frontend\Icon\Repository\Family;
+use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -26,7 +28,7 @@ class Gradebook implements IModuleInterface
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\Score'), new Link\Name('Berechnungsvorschrift'),
-                new Link\Icon(new Book()))
+                new Link\Icon(new Pencil()))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\Gradebook'), new Link\Name('Notenbuch'),
@@ -38,7 +40,7 @@ class Gradebook implements IModuleInterface
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\Student\Gradebook'), new Link\Name('Notenübersicht'),
-                new Link\Icon(new Book()))
+                new Link\Icon(new Family()))
         );
 
         Main::getDispatcher()->registerRoute(
@@ -83,19 +85,47 @@ class Gradebook implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendScore')
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Edit',
+                __NAMESPACE__.'\Frontend::frontendEditScore')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition',
+                __NAMESPACE__.'\Frontend::frontendScoreCondition')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\Edit',
+                __NAMESPACE__.'\Frontend::frontendEditScoreCondition')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\Select',
+                __NAMESPACE__.'\Frontend::frontendScoreRuleConditionSelect')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\Add',
+                __NAMESPACE__.'\Frontend::frontendScoreRuleConditionAdd')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\Remove',
+                __NAMESPACE__.'\Frontend::frontendScoreRuleConditionRemove')
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Group',
                 __NAMESPACE__.'\Frontend::frontendScoreGroup')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Group\Select',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Group\Edit',
+                __NAMESPACE__.'\Frontend::frontendEditScoreGroup')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\Group\Select',
                 __NAMESPACE__.'\Frontend::frontendScoreGroupSelect')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Group\Add',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\Group\Add',
                 __NAMESPACE__.'\Frontend::frontendScoreGroupAdd')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Group\Remove',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\Group\Remove',
                 __NAMESPACE__.'\Frontend::frontendScoreGroupRemove')
         );
         Main::getDispatcher()->registerRoute(
@@ -109,6 +139,22 @@ class Gradebook implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Group\GradeType\Remove',
                 __NAMESPACE__.'\Frontend::frontendScoreGroupGradeTypeRemove')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\GradeType\Select',
+                __NAMESPACE__.'\Frontend::frontendScoreConditionGradeTypeSelect')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\GradeType\Add',
+                __NAMESPACE__.'\Frontend::frontendScoreConditionGradeTypeAdd')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Condition\GradeType\Remove',
+                __NAMESPACE__.'\Frontend::frontendScoreConditionGradeTypeRemove')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Score\Division',
+                __NAMESPACE__.'\Frontend::frontendScoreDivision')
         );
     }
 

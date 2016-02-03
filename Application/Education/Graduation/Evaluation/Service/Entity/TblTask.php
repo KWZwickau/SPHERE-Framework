@@ -13,6 +13,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -24,6 +26,7 @@ class TblTask extends Element
 {
 
     const ATTR_TBL_TEST_TYPE = 'tblTestType';
+    const ATTR_SERVICE_TBL_PERIOD = 'serviceTblPeriod';
 
     /**
      * @Column(type="string")
@@ -49,6 +52,11 @@ class TblTask extends Element
      * @Column(type="bigint")
      */
     protected $tblTestType;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPeriod;
 
     /**
      * @return string
@@ -170,4 +178,27 @@ class TblTask extends Element
 
         $this->tblTestType = ( null === $tblTestType ? null : $tblTestType->getId() );
     }
+
+    /**
+     * @return bool|TblPeriod
+     */
+    public function getServiceTblPeriod()
+    {
+
+        if (null === $this->serviceTblPeriod) {
+            return false;
+        } else {
+            return Term::useService()->getPeriodById($this->serviceTblPeriod);
+        }
+    }
+
+    /**
+     * @param TblPeriod|null $tblPeriod
+     */
+    public function setServiceTblPeriod(TblPeriod $tblPeriod = null)
+    {
+
+        $this->serviceTblPeriod = ( null === $tblPeriod ? null : $tblPeriod->getId() );
+    }
+
 }

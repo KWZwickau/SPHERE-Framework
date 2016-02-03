@@ -21,9 +21,9 @@ use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Envelope;
 use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -38,6 +38,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Mailto;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -133,7 +134,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ), 6),
                     new FormColumn(
                         new Panel('Sonstiges',
-                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
+                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Edit())
                             , Panel::PANEL_TYPE_INFO
                         ), 6),
                 )),
@@ -321,7 +322,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblMailAll !== false) {
             array_walk($tblMailAll, function (TblToPerson &$tblToPerson) {
 
-                $Panel = array($tblToPerson->getTblMail()->getAddress());
+                $Panel = array(new Mailto($tblToPerson->getTblMail()->getAddress()
+                    , $tblToPerson->getTblMail()->getAddress(), new Envelope()));
                 if ($tblToPerson->getRemark()) {
                     array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
                 }
@@ -331,7 +333,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new MailIcon() . ' ' . $tblToPerson->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_SUCCESS,
 
                         new Standard(
-                            '', '/People/Person/Mail/Edit', new Pencil(),
+                            '', '/People/Person/Mail/Edit', new Edit(),
                             array('Id' => $tblToPerson->getId()),
                             'Bearbeiten'
                         )
@@ -354,7 +356,8 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblRelationshipMailAll) {
                             foreach ($tblRelationshipMailAll as $tblMail) {
 
-                                $Panel = array($tblMail->getTblMail()->getAddress());
+                                $Panel = array(new Mailto($tblMail->getTblMail()->getAddress()
+                                    , $tblMail->getTblMail()->getAddress(), new Envelope()));
                                 if ($tblMail->getRemark()) {
                                     array_push($Panel, new Muted(new Small($tblMail->getRemark())));
                                 }
@@ -363,9 +366,13 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Panel(
                                         new MailIcon() . ' ' . $tblMail->getTblType()->getName(), $Panel,
                                         Panel::PANEL_TYPE_DEFAULT,
-                                        $tblRelationship->getServiceTblPersonFrom()->getFullName()
-                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
-                                    )
+                                        new Standard(
+                                            '', '/People/Person', new PersonIcon(),
+                                            array('Id' => $tblRelationship->getServiceTblPersonFrom()->getId()),
+                                            'Zur Person'
+                                        )
+                                        . '&nbsp;' . $tblRelationship->getServiceTblPersonFrom()->getFullName()
+                                )
                                     , 3);
 
                                 if ($tblMailAll !== false) {
@@ -384,7 +391,8 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblRelationshipMailAll) {
                             foreach ($tblRelationshipMailAll as $tblMail) {
 
-                                $Panel = array($tblMail->getTblMail()->getAddress());
+                                $Panel = array(new Mailto($tblMail->getTblMail()->getAddress()
+                                    , $tblMail->getTblMail()->getAddress(), new Envelope()));
                                 if ($tblMail->getRemark()) {
                                     array_push($Panel, new Muted(new Small($tblMail->getRemark())));
                                 }
@@ -393,8 +401,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Panel(
                                         new MailIcon() . ' ' . $tblMail->getTblType()->getName(), $Panel,
                                         Panel::PANEL_TYPE_DEFAULT,
-                                        $tblRelationship->getServiceTblPersonTo()->getFullName()
-                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                        new Standard(
+                                            '', '/People/Person', new PersonIcon(),
+                                            array('Id' => $tblRelationship->getServiceTblPersonTo()->getId()),
+                                            'Zur Person'
+                                        )
+                                        . '&nbsp;' . $tblRelationship->getServiceTblPersonTo()->getFullName()
                                     )
                                     , 3);
 
@@ -585,7 +597,8 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblMailAll !== false) {
             array_walk($tblMailAll, function (TblToCompany &$tblToCompany) {
 
-                $Panel = array($tblToCompany->getTblMail()->getAddress());
+                $Panel = array(new Mailto($tblToCompany->getTblMail()->getAddress()
+                    , $tblToCompany->getTblMail()->getAddress(), new Envelope()));
                 if ($tblToCompany->getRemark()) {
                     array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
                 }
@@ -596,7 +609,7 @@ class Frontend extends Extension implements IFrontendInterface
                         Panel::PANEL_TYPE_SUCCESS,
 
                         new Standard(
-                            '', '/Corporation/Company/Mail/Edit', new Pencil(),
+                            '', '/Corporation/Company/Mail/Edit', new Edit(),
                             array('Id' => $tblToCompany->getId()),
                             'Bearbeiten'
                         )

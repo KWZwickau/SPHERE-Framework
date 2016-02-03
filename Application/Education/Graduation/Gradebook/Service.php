@@ -15,15 +15,25 @@ use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGro
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreGroupGradeTypeList;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRule;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleDivisionSubject;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Setup;
+use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -208,28 +218,28 @@ class Service extends AbstractService
     {
 
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
-        if( !$tblTestType || !($tblGradeTypeAllTest = $this->getGradeTypeAllByTestType($tblTestType)) ) {
+        if (!$tblTestType || !($tblGradeTypeAllTest = $this->getGradeTypeAllByTestType($tblTestType))) {
             $tblGradeTypeAllTest = array();
         }
 
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
-        if( !$tblTestType || !($tblGradeTypeAllBehavior = $this->getGradeTypeAllByTestType($tblTestType)) ) {
+        if (!$tblTestType || !($tblGradeTypeAllBehavior = $this->getGradeTypeAllByTestType($tblTestType))) {
             $tblGradeTypeAllBehavior = array();
         }
 
-        $tblGradeTypeAll = array_merge( $tblGradeTypeAllTest, $tblGradeTypeAllBehavior );
+        $tblGradeTypeAll = array_merge($tblGradeTypeAllTest, $tblGradeTypeAllBehavior);
 
-        return ( empty( $tblGradeTypeAll ) ? false : $tblGradeTypeAll );
+        return (empty($tblGradeTypeAll) ? false : $tblGradeTypeAll);
     }
 
     /**
      * @param TblTestType $tblTestType
      * @return bool|TblGradeType[]
      */
-    public function getGradeTypeAllByTestType( TblTestType $tblTestType )
+    public function getGradeTypeAllByTestType(TblTestType $tblTestType)
     {
 
-        return (new Data($this->getBinding()))->getGradeTypeAllByTestType( $tblTestType );
+        return (new Data($this->getBinding()))->getGradeTypeAllByTestType($tblTestType);
     }
 
     /**
@@ -260,11 +270,20 @@ class Service extends AbstractService
      * @param                     $Grade
      * @param string $BasicRoute
      * @param bool $IsEdit
+     * @param null|int $minRange
+     * @param null|int $maxRange
      *
      * @return IFormInterface|Redirect
      */
-    public function updateGradeToTest(IFormInterface $Stage = null, $TestId = null, $Grade = null, $BasicRoute, $IsEdit)
-    {
+    public function updateGradeToTest(
+        IFormInterface $Stage = null,
+        $TestId = null,
+        $Grade = null,
+        $BasicRoute,
+        $IsEdit,
+        $minRange = null,
+        $maxRange = null
+    ) {
 
         /**
          * Skip to Frontend
@@ -277,11 +296,44 @@ class Service extends AbstractService
             return $Stage;
         }
 
+        // check if grade is in grade range
+        if ($minRange !== null && $maxRange !== null && !empty($Grade)) {
+            $error = false;
+            foreach ($Grade as $personId => $value) {
+                $gradeValue = trim($value['Grade']);
+                if (!isset($value['Attendance']) && $gradeValue !== '') {
+                    if ($gradeValue < $minRange || $gradeValue > $maxRange) {
+                        $error = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($error) {
+                $Stage->prependGridGroup(
+                    new FormGroup(new FormRow(new FormColumn(new Danger(
+                            'Nicht alle eingebenen Zensuren befinden sich im Wertebereich.
+                        Bitte geben sie für die Zensuren eine Zahl zwischen ' . $minRange . ' und ' . $maxRange . ' ein.
+                        Die Daten wurden nicht gespeichert.', new Exclamation())
+                    ))));
+
+                return $Stage;
+            }
+        }
+
         $tblTest = Evaluation::useService()->getTestById($TestId);
 
         if (!empty($Grade)) {
             foreach ($Grade as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
+
+                // set trend
+                if (isset($value['Trend'])) {
+                    $trend = $value['Trend'];
+                } else {
+                    $trend = 0;
+                }
+
                 if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))) {
                     if (isset($value['Attendance'])) {
                         (new Data($this->getBinding()))->createGrade(
@@ -294,7 +346,8 @@ class Service extends AbstractService
                             $tblTest,
                             $tblTest->getTblTestType(),
                             null,
-                            trim($value['Comment'])
+                            trim($value['Comment']),
+                            $trend
                         );
                     } elseif (trim($value['Grade']) !== '') {
                         (new Data($this->getBinding()))->createGrade(
@@ -307,35 +360,33 @@ class Service extends AbstractService
                             $tblTest,
                             $tblTest->getTblTestType(),
                             trim($value['Grade']),
-                            trim($value['Comment'])
+                            trim($value['Comment']),
+                            $trend
                         );
                     }
                 } elseif ($IsEdit && $tblGrade) {
+
                     if (isset($value['Attendance'])) {
                         (new Data($this->getBinding()))->updateGrade(
                             $tblGrade,
                             null,
-                            trim($value['Comment'])
+                            trim($value['Comment']),
+                            $trend
                         );
                     } else {
                         (new Data($this->getBinding()))->updateGrade(
                             $tblGrade,
                             trim($value['Grade']),
-                            trim($value['Comment'])
+                            trim($value['Comment']),
+                            $trend
                         );
                     }
                 }
             }
         }
 
-//        $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
-//            $tblTest->getServiceTblDivision(),
-//            $tblTest->getServiceTblSubject(),
-//            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
-//        );
-//        return new Redirect($BasicRoute . '/Selected', 0,
-//            array('DivisionSubjectId' => $tblDivisionSubject->getId()));
-        return new Redirect($BasicRoute . '/Grade/Edit', Redirect::TIMEOUT_SUCCESS,
+        return new Success('Erfolgreich gespeichert.', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+        . new Redirect($BasicRoute . '/Grade/Edit', Redirect::TIMEOUT_SUCCESS,
             array('Id' => $tblTest->getId()));
     }
 
@@ -391,6 +442,15 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getScoreRuleById($Id);
+    }
+
+    /**
+     * @return bool|TblScoreRule[]
+     */
+    public function getScoreRuleAll()
+    {
+
+        return (new Data($this->getBinding()))->getScoreRuleAll();
     }
 
     /**
@@ -468,11 +528,11 @@ class Service extends AbstractService
         if (!$Error) {
             (new Data($this->getBinding()))->createScoreCondition(
                 $ScoreCondition['Name'],
-                $ScoreCondition['Round'],
+                isset($ScoreCondition['Round']) ? $ScoreCondition['Round'] : '',
                 $priority
             );
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfasst worden')
-            . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_SUCCESS);
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvariante ist erfasst worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score/Condition', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;
@@ -507,7 +567,7 @@ class Service extends AbstractService
         if (!$Error) {
             (new Data($this->getBinding()))->createScoreGroup(
                 $ScoreGroup['Name'],
-                $ScoreGroup['Round'],
+                isset($ScoreGroup['Round']) ? $ScoreGroup['Round'] : '',
                 $ScoreGroup['Multiplier']
             );
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zensuren-Gruppe ist erfasst worden')
@@ -575,11 +635,11 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->addScoreConditionGroupList($tblScoreCondition, $tblScoreGroup)) {
             return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich hinzugefügt.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', Redirect::TIMEOUT_SUCCESS,
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Group/Select', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblScoreCondition->getId()));
         } else {
             return new Danger('Konnte nicht hinzugefügt werden.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', Redirect::TIMEOUT_ERROR,
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Group/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblScoreCondition->getId()));
         }
     }
@@ -595,13 +655,98 @@ class Service extends AbstractService
 
         $tblScoreCondition = $tblScoreConditionGroupList->getTblScoreCondition();
         if ((new Data($this->getBinding()))->removeScoreConditionGroupList($tblScoreConditionGroupList)) {
-            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success(). ' Erfolgreich entfernt.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', Redirect::TIMEOUT_SUCCESS,
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich entfernt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Group/Select', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblScoreCondition->getId()));
         } else {
             return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
-            new Redirect('/Education/Graduation/Gradebook/Score/Group/Select', Redirect::TIMEOUT_ERROR,
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Group/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return TblScoreConditionGradeTypeList
+     */
+    public function addScoreConditionGradeTypeList(
+        TblGradeType $tblGradeType,
+        TblScoreCondition $tblScoreCondition
+    ) {
+
+        if ((new Data($this->getBinding()))->addScoreConditionGradeTypeList($tblGradeType, $tblScoreCondition)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich hinzugefügt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
+                array('Id' => $tblScoreCondition->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht hinzugefügt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreConditionGradeTypeList $tblScoreConditionGradeTypeList
+     *
+     * @return string
+     */
+    public function removeScoreConditionGradeTypeList(
+        TblScoreConditionGradeTypeList $tblScoreConditionGradeTypeList
+    ) {
+
+        $tblScoreCondition = $tblScoreConditionGradeTypeList->getTblScoreCondition();
+        if ((new Data($this->getBinding()))->removeScoreConditionGradeTypeList($tblScoreConditionGradeTypeList)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich entfernt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_SUCCESS,
+                array('Id' => $tblScoreCondition->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/GradeType/Select', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblScoreCondition->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return TblScoreRuleConditionList
+     */
+    public function addScoreRuleConditionList(
+        TblScoreRule $tblScoreRule,
+        TblScoreCondition $tblScoreCondition
+    ) {
+
+        if ((new Data($this->getBinding()))->addScoreRuleConditionList($tblScoreRule, $tblScoreCondition)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich hinzugefügt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Select', Redirect::TIMEOUT_SUCCESS,
+                array('Id' => $tblScoreRule->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht hinzugefügt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Select', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblScoreRule->getId()));
+        }
+    }
+
+    /**
+     * @param TblScoreRuleConditionList $tblScoreRuleConditionList
+     * @return string
+     */
+    public function removeScoreRuleConditionList(
+        TblScoreRuleConditionList $tblScoreRuleConditionList
+    ) {
+
+        $tblScoreRule = $tblScoreRuleConditionList->getTblScoreRule();
+        if ((new Data($this->getBinding()))->removeScoreRuleConditionList($tblScoreRuleConditionList)) {
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Erfolgreich entfernt.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Select', Redirect::TIMEOUT_SUCCESS,
+                array('Id' => $tblScoreRule->getId()));
+        } else {
+            return new Danger(new Ban() . ' Konnte nicht entfernt werden.') .
+            new Redirect('/Education/Graduation/Gradebook/Score/Condition/Select', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblScoreRule->getId()));
         }
     }
 
@@ -609,19 +754,18 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param TblDivision $tblDivision
      * @param TblSubject $tblSubject
-     * @param \SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType $tblTestType
-     * @param TblScoreCondition $tblScoreCondition
+     * @param TblTestType $tblTestType
+     * @param TblScoreRule $tblScoreRule
      * @param TblPeriod|null $tblPeriod
      * @param TblSubjectGroup|null $tblSubjectGroup
-     *
-     * @return bool|float
+     * @return bool|float|string|array
      */
     public function calcStudentGrade(
         TblPerson $tblPerson,
         TblDivision $tblDivision,
         TblSubject $tblSubject,
         TblTestType $tblTestType,
-        TblScoreCondition $tblScoreCondition,
+        TblScoreRule $tblScoreRule = null,
         TblPeriod $tblPeriod = null,
         TblSubjectGroup $tblSubjectGroup = null
     ) {
@@ -635,17 +779,76 @@ class Service extends AbstractService
             $averageGroup = array();
             $resultAverage = '';
             $count = 0;
+            $sum = 0;
+
+            // get ScoreCondition
+            $tblScoreCondition = false;
+            if ($tblScoreRule !== null) {
+                $tblScoreRuleConditionListByRule = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
+                if ($tblScoreRuleConditionListByRule) {
+                    if (count($tblScoreRuleConditionListByRule) > 1) {
+                        $tblScoreRuleConditionListByRule =
+                            $this->getSorter($tblScoreRuleConditionListByRule)->sortObjectList('Priority');
+                        if ($tblScoreRuleConditionListByRule) {
+                            /** @var TblScoreRuleConditionList $tblScoreRuleConditionList */
+                            foreach ($tblScoreRuleConditionListByRule as $tblScoreRuleConditionList) {
+                                $tblScoreConditionGradeTypeListByCondition =
+                                    Gradebook::useService()->getScoreConditionGradeTypeListByCondition(
+                                        $tblScoreRuleConditionList->getTblScoreCondition()
+                                    );
+                                if ($tblScoreConditionGradeTypeListByCondition) {
+                                    $hasConditions = true;
+                                    foreach ($tblScoreConditionGradeTypeListByCondition as $tblScoreConditionGradeTypeList) {
+                                        $hasGradeType = false;
+                                        foreach ($tblGradeList as $tblGrade) {
+                                            if (is_numeric($tblGrade->getGrade())
+                                                && ($tblGrade->getTblGradeType()->getId()
+                                                    == $tblScoreConditionGradeTypeList->getTblGradeType()->getId())
+                                            ) {
+                                                $hasGradeType = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (!$hasGradeType) {
+                                            $hasConditions = false;
+                                            break;
+                                        }
+                                    }
+
+                                    if ($hasConditions) {
+                                        $tblScoreCondition = $tblScoreRuleConditionList->getTblScoreCondition();
+                                        break;
+                                    }
+
+                                } else {
+                                    // no Conditions
+                                    $tblScoreCondition = $tblScoreRuleConditionList->getTblScoreCondition();
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        $tblScoreCondition = $tblScoreRuleConditionListByRule[0]->getTblScoreCondition();
+                    }
+                }
+            }
+
+            $error = array();
             foreach ($tblGradeList as $tblGrade) {
                 if ($tblScoreCondition) {
+                    /** @var TblScoreCondition $tblScoreCondition */
                     if (($tblScoreConditionGroupListByCondition
                         = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition))
                     ) {
+                        $hasfoundGradeType = false;
                         foreach ($tblScoreConditionGroupListByCondition as $tblScoreGroup) {
                             if (($tblScoreGroupGradeTypeListByGroup
                                 = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup->getTblScoreGroup()))
                             ) {
                                 foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeTypeList) {
                                     if ($tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()) {
+                                        $hasfoundGradeType = true;
                                         if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
                                             $count++;
                                             $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Value']
@@ -653,11 +856,43 @@ class Service extends AbstractService
                                             $result[$tblScoreCondition->getId()][$tblScoreGroup->getTblScoreGroup()->getId()][$count]['Multiplier']
                                                 = floatval($tblScoreGroupGradeTypeList->getMultiplier());
                                         }
+
+                                        break;
                                     }
                                 }
                             }
                         }
+
+                        if (!$hasfoundGradeType && $tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                            $error[$tblGrade->getTblGradeType()->getId()] =
+                                new LayoutRow(
+                                    new LayoutColumn(
+                                        new Warning('Der Zensuren-Typ: ' . $tblGrade->getTblGradeType()->getName()
+                                            . ' ist nicht in der Berechnungsvariante: ' . $tblScoreCondition->getName() . ' hinterlegt.',
+                                            new Ban()
+                                        )
+                                    )
+                                );
+                        }
                     }
+                } else {
+                    // alle Noten gleichwertig
+                    if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
+                        $count++;
+                        $sum = $sum + floatval($tblGrade->getGrade());
+                    }
+                }
+            }
+            if (!empty($error)) {
+                return $error;
+            }
+
+            if (!$tblScoreCondition) {
+                if ($count > 0) {
+                    $average = $sum / $count;
+                    return round($average, 2);
+                } else {
+                    return false;
                 }
             }
 
@@ -701,7 +936,8 @@ class Service extends AbstractService
                 }
             }
 
-            return $resultAverage == '' ? false : $resultAverage;
+            return $resultAverage == '' ? false : $resultAverage
+                . ($tblScoreCondition ? '(' . $tblScoreCondition->getPriority() . ')' : '');
         }
 
         return false;
@@ -753,6 +989,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblScoreCondition $tblScoreCondition
+     *
+     * @return bool|TblScoreConditionGradeTypeList[]
+     */
+    public function getScoreConditionGradeTypeListByCondition(TblScoreCondition $tblScoreCondition)
+    {
+
+        return (new Data($this->getBinding()))->getScoreConditionGradeTypeListByCondition($tblScoreCondition);
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return bool|TblScoreRuleConditionList[]
+     */
+    public function getScoreRuleConditionListByRule(TblScoreRule $tblScoreRule)
+    {
+
+        return (new Data($this->getBinding()))->getScoreRuleConditionListByRule($tblScoreRule);
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblScoreGroup
@@ -792,5 +1050,258 @@ class Service extends AbstractService
         return new Redirect($Redirect, Redirect::TIMEOUT_SUCCESS, array(
             'YearId' => $Select['Year'],
         ));
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Id
+     * @param $ScoreCondition
+     * @return IFormInterface|string
+     */
+    public function updateScoreCondition(IFormInterface $Stage = null, $Id, $ScoreCondition)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ScoreCondition || null === $Id) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($ScoreCondition['Name']) && empty($ScoreCondition['Name'])) {
+            $Stage->setError('ScoreCondition[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        $tblScoreCondition = $this->getScoreConditionById($Id);
+        if (!$tblScoreCondition) {
+            return new Danger(new Ban() . ' Berechnungsvariante nicht gefunden')
+            . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_ERROR);
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->updateScoreCondition(
+                $tblScoreCondition,
+                $ScoreCondition['Name'],
+                isset($ScoreCondition['Round']) ? $ScoreCondition['Round'] : '',
+                $ScoreCondition['Priority']
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvariante ist erfolgreich gespeichert worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score/Condition', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Id
+     * @param $ScoreGroup
+     * @return IFormInterface|string
+     */
+    public function updateScoreGroup(IFormInterface $Stage = null, $Id, $ScoreGroup)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ScoreGroup || null === $Id) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($ScoreGroup['Name']) && empty($ScoreGroup['Name'])) {
+            $Stage->setError('ScoreGroup[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        $tblScoreGroup = $this->getScoreGroupById($Id);
+        if (!$tblScoreGroup) {
+            return new Danger(new Ban() . ' Zensuren-Gruppe nicht gefunden')
+            . new Redirect('/Education/Graduation/Gradebook/Score/Group', Redirect::TIMEOUT_ERROR);
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->updateScoreGroup(
+                $tblScoreGroup,
+                $ScoreGroup['Name'],
+                isset($ScoreGroup['Round']) ? $ScoreGroup['Round'] : '',
+                $ScoreGroup['Multiplier']
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Zensuren-Gruppe ist erfolgreich gespeichert worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score/Group', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param                     $ScoreRule
+     *
+     * @return IFormInterface|string
+     */
+    public function createScoreRule(IFormInterface $Stage = null, $ScoreRule = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ScoreRule) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($ScoreRule['Name']) && empty($ScoreRule['Name'])) {
+            $Stage->setError('ScoreRule[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->createScoreRule(
+                $ScoreRule['Name'],
+                $ScoreRule['Description']
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfasst worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Id
+     * @param $ScoreRule
+     * @return IFormInterface|string
+     */
+    public function updateScoreRule(IFormInterface $Stage = null, $Id, $ScoreRule)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $ScoreRule || null === $Id) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($ScoreRule['Name']) && empty($ScoreRule['Name'])) {
+            $Stage->setError('ScoreRule[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        $tblScoreRule = $this->getScoreRuleById($Id);
+        if (!$tblScoreRule) {
+            return new Danger(new Ban() . ' Berechnungsvorschrift nicht gefunden')
+            . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_ERROR);
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->updateScoreRule(
+                $tblScoreRule,
+                $ScoreRule['Name'],
+                $ScoreRule['Description']
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Berechnungsvorschrift ist erfolgreich gespeichert worden')
+            . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblScoreType
+     */
+    public function getScoreTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getScoreTypeById($Id);
+    }
+
+    /**
+     * @param $Identifier
+     *
+     * @return bool|TblScoreType
+     */
+    public function getScoreTypeByIdentifier($Identifier)
+    {
+
+        return (new Data($this->getBinding()))->getScoreTypeByIdentifier($Identifier);
+    }
+
+    /**
+     * @return bool|TblScoreType[]
+     */
+    public function getScoreTypeAll()
+    {
+
+        return (new Data($this->getBinding()))->getScoreTypeAll();
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     *
+     * @return bool|TblScoreRuleDivisionSubject
+     */
+    public function getScoreRuleDivisionSubjectByDivisionAndSubject(TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+
+        return (new Data($this->getBinding()))->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision,
+            $tblSubject);
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Data
+     *
+     * @return IFormInterface
+     */
+    public function updateScoreRuleDivisionSubject(IFormInterface $Stage = null, $Data)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Button']['Submit'])) {
+            return $Stage;
+        }
+
+        if (isset($Data)) {
+            foreach ($Data as $divisionId => $subjectItemList) {
+                $tblDivision = Division::useService()->getDivisionById($divisionId);
+                foreach ($subjectItemList as $subjectId => $item) {
+                    $tblSubject = Subject::useService()->getSubjectById($subjectId);
+                    if ($tblDivision && $tblSubject) {
+                        $tblScoreRuleDivisionSubject = $this->getScoreRuleDivisionSubjectByDivisionAndSubject($tblDivision,
+                            $tblSubject);
+                        $tblScoreRule = Gradebook::useService()->getScoreRuleById($item['Rule']);
+                        if (!$tblScoreRule) {
+                            $tblScoreRule = null;
+                        }
+                        $tblScoreType = Gradebook::useService()->getScoreTypeById($item['Type']);
+                        if (!$tblScoreType) {
+                            $tblScoreType = null;
+                        }
+                        if ($tblScoreRuleDivisionSubject) {
+                            (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
+                                $tblScoreRuleDivisionSubject, $tblScoreRule, $tblScoreType
+                            );
+                        } else {
+                            (new Data($this->getBinding()))->createScoreRuleDivisionSubject(
+                                $tblDivision, $tblSubject, $tblScoreRule, $tblScoreType
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        return $Stage;
     }
 }

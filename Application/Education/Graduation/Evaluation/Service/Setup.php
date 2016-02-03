@@ -130,6 +130,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblTask', 'ToDate')) {
             $Table->addColumn('ToDate', 'datetime', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblTask', 'serviceTblPeriod')) {
+            $Table->addColumn('serviceTblPeriod', 'bigint', array('notnull' => false));
+        }
 
         $this->getConnection()->addForeignKey($Table, $tblTestType, true);
 

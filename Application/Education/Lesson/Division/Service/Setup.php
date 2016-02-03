@@ -27,6 +27,7 @@ class Setup extends AbstractSetup
         $tblDivisionSubject = $this->setTableDivisionSubject($Schema, $tblDivision);
         $this->setTableDivisionStudent($Schema, $tblDivision);
         $this->setTableDivisionTeacher($Schema, $tblDivision);
+        $this->setTableDivisionCustody($Schema, $tblDivision);
         $this->setTableSubjectGroup($Schema);
         $this->setTableSubjectStudent($Schema, $tblDivisionSubject);
         $this->setTableSubjectTeacher($Schema, $tblDivisionSubject);
@@ -52,6 +53,9 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblLevel', 'Description')) {
             $Table->addColumn('Description', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblLevel', 'IsNamed')) {
+            $Table->addColumn('IsNamed', 'boolean');
         }
         if (!$this->getConnection()->hasColumn('tblLevel', 'serviceTblType')) {
             $Table->addColumn('serviceTblType', 'bigint', array('notnull' => false));
@@ -133,6 +137,26 @@ class Setup extends AbstractSetup
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
         if (!$this->getConnection()->hasColumn('tblDivisionTeacher', 'Description')) {
+            $Table->addColumn('Description', 'string');
+        }
+        $this->getConnection()->addForeignKey($Table, $tblDivision);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblDivision
+     *
+     * @return Table
+     */
+    private function setTableDivisionCustody(Schema &$Schema, Table $tblDivision)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblDivisionCustody');
+        if (!$this->getConnection()->hasColumn('tblDivisionCustody', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblDivisionCustody', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
         $this->getConnection()->addForeignKey($Table, $tblDivision);
