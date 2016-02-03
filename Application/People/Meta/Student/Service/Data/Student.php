@@ -16,13 +16,14 @@ abstract class Student extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
-     * @param           $Identifier
-     * @param null      $tblStudentMedicalRecord
-     * @param null      $tblStudentTransport
-     * @param null      $tblStudentBilling
-     * @param null      $tblStudentLocker
-     * @param null      $tblStudentBaptism
-     * @param null      $tblStudentIntegration
+     * @param $Identifier
+     * @param null $tblStudentMedicalRecord
+     * @param null $tblStudentTransport
+     * @param null $tblStudentBilling
+     * @param null $tblStudentLocker
+     * @param null $tblStudentBaptism
+     * @param null $tblStudentIntegration
+     * @param null $tblStudentRelease
      *
      * @return TblStudent
      */
@@ -34,7 +35,8 @@ abstract class Student extends AbstractData
         $tblStudentBilling = null,
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
-        $tblStudentIntegration = null
+        $tblStudentIntegration = null,
+        $tblStudentRelease = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -50,6 +52,7 @@ abstract class Student extends AbstractData
             $Entity->setTblStudentLocker($tblStudentLocker);
             $Entity->setTblStudentBaptism($tblStudentBaptism);
             $Entity->setTblStudentIntegration($tblStudentIntegration);
+            $Entity->setTblStudentRelease($tblStudentRelease);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -58,13 +61,14 @@ abstract class Student extends AbstractData
 
     /**
      * @param TblStudent $tblStudent
-     * @param            $Identifier
-     * @param null       $tblStudentMedicalRecord
-     * @param null       $tblStudentTransport
-     * @param null       $tblStudentBilling
-     * @param null       $tblStudentLocker
-     * @param null       $tblStudentBaptism
-     * @param null       $tblStudentIntegration
+     * @param $Identifier
+     * @param null $tblStudentMedicalRecord
+     * @param null $tblStudentTransport
+     * @param null $tblStudentBilling
+     * @param null $tblStudentLocker
+     * @param null $tblStudentBaptism
+     * @param null $tblStudentIntegration
+     * @param null $tblStudentRelease
      *
      * @return bool
      */
@@ -76,7 +80,8 @@ abstract class Student extends AbstractData
         $tblStudentBilling = null,
         $tblStudentLocker = null,
         $tblStudentBaptism = null,
-        $tblStudentIntegration = null
+        $tblStudentIntegration = null,
+        $tblStudentRelease = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -92,6 +97,7 @@ abstract class Student extends AbstractData
             $Entity->setTblStudentLocker($tblStudentLocker);
             $Entity->setTblStudentBaptism($tblStudentBaptism);
             $Entity->setTblStudentIntegration($tblStudentIntegration);
+            $Entity->setTblStudentRelease($tblStudentRelease);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);

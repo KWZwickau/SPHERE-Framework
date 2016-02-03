@@ -31,10 +31,11 @@ class Setup extends AbstractSetup
         $tblStudentLocker = $this->setTableStudentLocker($Schema);
         $tblStudentBaptism = $this->setTableStudentBaptism($Schema);
         $tblStudentIntegration = $this->setTableStudentIntegration($Schema);
+        $tblStudentRelease = $this->setTableStudentRelease($Schema);
 
         $tblStudent = $this->setTableStudent(
             $Schema, $tblStudentMedicalRecord, $tblStudentTransport,
-            $tblStudentBilling, $tblStudentLocker, $tblStudentBaptism, $tblStudentIntegration
+            $tblStudentBilling, $tblStudentLocker, $tblStudentBaptism, $tblStudentIntegration, $tblStudentRelease
         );
 
         $tblStudentTransferType = $this->setTableStudentTransferType($Schema);
@@ -206,13 +207,14 @@ class Setup extends AbstractSetup
 
     /**
      * @param Schema $Schema
-     * @param Table  $tblStudentMedicalRecord
-     * @param Table  $tblStudentTransport
-     * @param Table  $tblStudentBilling
-     * @param Table  $tblStudentLocker
-     * @param Table  $tblStudentBaptism
-     * @param Table  $tblStudentIntegration
+     * @param Table $tblStudentMedicalRecord
+     * @param Table $tblStudentTransport
+     * @param Table $tblStudentBilling
+     * @param Table $tblStudentLocker
+     * @param Table $tblStudentBaptism
+     * @param Table $tblStudentIntegration
      *
+     * @param Table $tblStudentRelease
      * @return Table
      */
     private function setTableStudent(
@@ -222,7 +224,8 @@ class Setup extends AbstractSetup
         Table $tblStudentBilling,
         Table $tblStudentLocker,
         Table $tblStudentBaptism,
-        Table $tblStudentIntegration
+        Table $tblStudentIntegration,
+        Table $tblStudentRelease
     ) {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblStudent');
@@ -238,6 +241,7 @@ class Setup extends AbstractSetup
         $this->getConnection()->addForeignKey($Table, $tblStudentLocker, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentBaptism, true);
         $this->getConnection()->addForeignKey($Table, $tblStudentIntegration, true);
+        $this->getConnection()->addForeignKey($Table, $tblStudentRelease, true);
         return $Table;
     }
 
@@ -482,6 +486,22 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblStudentFocus');
         $this->getConnection()->addForeignKey($Table, $tblStudent);
         $this->getConnection()->addForeignKey($Table, $tblStudentFocusType);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableStudentRelease(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblStudentRelease');
+        if (!$this->getConnection()->hasColumn('tblStudentRelease', 'SportRelease')) {
+            $Table->addColumn('SportRelease', 'smallint', array('notnull' => 0));
+        }
+
         return $Table;
     }
 
