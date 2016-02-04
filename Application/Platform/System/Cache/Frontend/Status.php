@@ -25,7 +25,10 @@ class Status extends Extension implements ITemplateInterface
     public function __construct(CacheStatus $Cache)
     {
 
-        if ($Cache->getHitCount() != -1 || $Cache->getMissCount() != -1) {
+        if (
+            ( $Cache->getHitCount() != -1 || $Cache->getMissCount() != -1 )
+            && ( $Cache->getHitCount() + $Cache->getMissCount() > 0 )
+        ) {
             $HitCount = 100 / ( $Cache->getHitCount() + $Cache->getMissCount() ) * $Cache->getHitCount();
             $MissCount = 100 / ( $Cache->getHitCount() + $Cache->getMissCount() ) * $Cache->getMissCount();
             $Quality = new Header('Hits: '.number_format($HitCount, 2, ',', '.').'%')
