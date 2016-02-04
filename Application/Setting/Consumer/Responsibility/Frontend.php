@@ -140,18 +140,27 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
         );
         $tblCompanyAll = Company::useService()->getCompanyAll();
-        array_walk($tblCompanyAll, function (TblCompany &$tblCompany) {
+        $TableContent = array();
+        if ($tblCompanyAll) {
+            array_walk($tblCompanyAll, function (TblCompany $tblCompany) use (&$TableContent) {
 
-            $tblCompany = new PullClear(new RadioBox('Responsibility',
-                $tblCompany->getName().' '.new SuccessText($tblCompany->getDescription()),
-                $tblCompany->getId()));
-        });
+                $temp = new PullClear(new RadioBox('Responsibility',
+                    $tblCompany->getName().' '.new SuccessText($tblCompany->getDescription()),
+                    $tblCompany->getId()));
+                array_push($TableContent, $temp);
+            });
+        }
+
 
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
-                        new Panel($PanelSelectCompanyTitle, $tblCompanyAll, Panel::PANEL_TYPE_INFO, null, 15),
+                        !empty( $TableContent ) ?
+                            new Panel($PanelSelectCompanyTitle, $TableContent, Panel::PANEL_TYPE_INFO, null, 15)
+                            : new Panel($PanelSelectCompanyTitle,
+                            new Warning('Es ist keine Firma vorhanden die ausgewählt werden kann')
+                            , Panel::PANEL_TYPE_INFO)
                     ), 12),
                 )),
             ))
