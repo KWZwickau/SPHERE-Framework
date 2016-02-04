@@ -5,8 +5,14 @@ namespace SPHERE\Application\Billing\Bookkeeping\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPayment;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
@@ -55,34 +61,49 @@ class Frontend extends Extension implements IFrontendInterface
                     return $invoiceA->getId() - $invoiceB->getId();
                 });
         }
+        $TableContent = array();
         if (!empty( $invoiceAllByIsConfirmedState )) {
-            /** @var TblInvoice $invoiceByIsConfirmedState */
-            foreach ($invoiceAllByIsConfirmedState as $invoiceByIsConfirmedState) {
-                $tblBalance = Balance::useService()->getBalanceByInvoice($invoiceByIsConfirmedState);
-                $AdditionInvoice = Invoice::useService()->sumPriceItemAllStringByInvoice($invoiceByIsConfirmedState);
-                $AdditionPayment = Balance::useService()->sumPriceItemStringByBalance($tblBalance);
+//            /** @var TblInvoice $invoiceByIsConfirmedState */
+            array_walk($invoiceAllByIsConfirmedState, function (TblInvoice $tblInvoice) use (&$TableContent) {
 
-                $invoiceByIsConfirmedState->FullName = $invoiceByIsConfirmedState->getDebtorFullName();
-                $invoiceByIsConfirmedState->PaidPayment = $AdditionPayment;
-                $invoiceByIsConfirmedState->PaidInvoice = $AdditionInvoice;
-                $invoiceByIsConfirmedState->Option = new Primary('Bezahlt', '/Billing/Bookkeeping/Invoice/Pay',
+                $tblBalance = Balance::useService()->getBalanceByInvoice($tblInvoice);
+                $AdditionInvoice = Invoice::useService()->sumPriceItemAllStringByInvoice($tblInvoice);
+                $AdditionPayment = Balance::useService()->sumPriceItemStringByBalance($tblBalance);
+                $Temp['Number'] = $tblInvoice->getNumber();
+                $Temp['InvoiceDate'] = $tblInvoice->getInvoiceDate();
+                $Temp['PaymentDate'] = $tblInvoice->getPaymentDate();
+                $Temp['DebtorNumber'] = $tblInvoice->getDebtorNumber();
+
+                $Temp['FullName'] = $tblInvoice->getDebtorFullName();
+                $Temp['PaidPayment'] = $AdditionPayment;
+                $Temp['PaidInvoice'] = $AdditionInvoice;
+                $Temp['Option'] = new Primary('Bezahlt', '/Billing/Bookkeeping/Invoice/Pay',
                     new Ok(), array(
-                        'Id' => $invoiceByIsConfirmedState->getId()
+                        'Id' => $tblInvoice->getId()
                     ));
-            }
+                array_push($TableContent, $Temp);
+            });
         }
 
         $Stage->setContent(
-            new TableData($invoiceAllByIsConfirmedState, null,
-                array(
-                    'Number'       => 'Nummer',
-                    'InvoiceDate'  => 'Rechnungsdatum',
-                    'PaymentDate'  => 'Zahlungsdatum',
-                    'FullName'     => 'Debitor',
-                    'DebtorNumber' => 'Debitorennummer',
-                    'PaidPayment'  => 'Bezahlt',
-                    'PaidInvoice'  => 'Gesamt',
-                    'Option'       => 'Option'
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($TableContent, null,
+                                array(
+                                    'Number'       => 'Nummer',
+                                    'InvoiceDate'  => 'Rechnungsdatum',
+                                    'PaymentDate'  => 'Zahlungsdatum',
+                                    'FullName'     => 'Debitor',
+                                    'DebtorNumber' => 'Debitorennummer',
+                                    'PaidPayment'  => 'Bezahlt',
+                                    'PaidInvoice'  => 'Gesamt',
+                                    'Option'       => 'Option'
+                                )
+                            )
+                        )
+                    ), new Title(new Listing().' Übersicht')
                 )
             )
         );

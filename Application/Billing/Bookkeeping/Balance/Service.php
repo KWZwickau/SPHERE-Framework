@@ -87,6 +87,7 @@ class Service extends AbstractService
      * @param            $BIC
      * @param            $Owner
      * @param            $CashSign
+     * @param            $Reference
      *
      * @return bool
      */
@@ -98,7 +99,8 @@ class Service extends AbstractService
         $IBAN = null,
         $BIC = null,
         $Owner = null,
-        $CashSign = null
+        $CashSign = null,
+        $Reference = null
     ) {
 
         return (new Data($this->getBinding()))->createBalance($serviceBilling_Banking, $serviceBilling_Invoice,
@@ -107,7 +109,20 @@ class Service extends AbstractService
             $IBAN,
             $BIC,
             $Owner,
-            $CashSign);
+            $CashSign,
+            $Reference);
+    }
+
+    /**
+     * @param TblBalance $tblBalance
+     * @param TblInvoice $tblInvoice
+     *
+     * @return bool
+     */
+    public function copyBalance(TblBalance $tblBalance, TblInvoice $tblInvoice)
+    {
+
+        return (new Data($this->getBinding()))->copyBalance($tblBalance, $tblInvoice);
     }
 
     /**

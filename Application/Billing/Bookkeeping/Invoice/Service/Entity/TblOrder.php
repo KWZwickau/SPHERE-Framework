@@ -7,7 +7,6 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblPaymentType;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\People\Person\Person;
@@ -16,34 +15,19 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblInvoice")
+ * @Table(name="tblOrder")
  * @Cache(usage="READ_ONLY")
  */
-class TblInvoice extends Element
+class TblOrder extends Element
 {
 
-    const ATTR_IS_PAID = 'IsPaid';
-    const ATTR_IS_VOID = 'IsVoid';
     const ATTR_DEBTOR_NUMBER = 'DebtorNumber';
-    const ATTR_NUMBER = 'Number';
     const ATTR_SERVICE_BILLING_BANKING_PAYMENT_TYPE = 'serviceBilling_Banking_Payment_Type';
 
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsPaid;
-    /**
-     * @Column(type="string")
-     */
-    protected $Number;
     /**
      * @Column(type="string")
      */
     protected $BasketName;
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsVoid;
     /**
      * @Column(type="date")
      */
@@ -92,7 +76,7 @@ class TblInvoice extends Element
     /**
      * @return boolean
      */
-    public function getPaymentDateModified()
+    public function isPaymentDateModified()
     {
 
         return $this->IsPaymentDateModified;
@@ -105,51 +89,6 @@ class TblInvoice extends Element
     {
 
         $this->IsPaymentDateModified = $IsPaymentDateModified;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isConfirmed()
-    {
-
-        return ( Balance::useService()->getBalanceByInvoice($this) === false ? false : true );
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isPaid()
-    {
-
-        return $this->IsPaid;
-    }
-
-    /**
-     * @param boolean $IsPaid
-     */
-    public function setPaid($IsPaid)
-    {
-
-        $this->IsPaid = $IsPaid;
-    }
-
-    /**
-     * @return string
-     */
-    public function getNumber()
-    {
-
-        return $this->Number;
-    }
-
-    /**
-     * @param string $Number
-     */
-    public function setNumber($Number)
-    {
-
-        $this->Number = $Number;
     }
 
     /**
@@ -168,24 +107,6 @@ class TblInvoice extends Element
     {
 
         $this->BasketName = $BasketName;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isVoid()
-    {
-
-        return $this->IsVoid;
-    }
-
-    /**
-     * @param boolean $IsVoid
-     */
-    public function setVoid($IsVoid)
-    {
-
-        $this->IsVoid = $IsVoid;
     }
 
     /**

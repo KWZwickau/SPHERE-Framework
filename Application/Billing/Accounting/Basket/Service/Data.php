@@ -20,6 +20,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Data
@@ -201,6 +202,9 @@ class Data extends AbstractData
             foreach ($Data as $Key => $Value) {
                 $tblBasketCommodity = $this->getBasketCommodityById($Key);
                 $tblBasketCommodityDebtor = $this->getBasketCommodityDebtorById($Value);
+
+                Debugger::screenDump($Value);
+                Debugger::screenDump($tblBasketCommodity);
                 $tblTempInvoice = Invoice::useService()->createTempInvoice(
                     $tblBasket, $tblBasketCommodity->getServiceManagementPerson(),
                     $tblBasketCommodityDebtor->getServiceBillingDebtor());
