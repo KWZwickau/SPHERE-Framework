@@ -33,7 +33,7 @@ class TblLevel extends Element
     /**
      * @Column(type="boolean")
      */
-    protected $IsNamed;
+    protected $IsChecked;
     /**
      * @Column(type="bigint")
      */
@@ -78,22 +78,22 @@ class TblLevel extends Element
     /**
      * @return boolean
      */
-    public function getIsNamed()
+    public function getIsChecked()
     {
 
-        if ($this->IsNamed) {
+        if ($this->IsChecked) {
             return true;
         }
         return false;
     }
 
     /**
-     * @param boolean $IsNamed
+     * @param boolean $IsChecked
      */
-    public function setIsNamed($IsNamed)
+    public function setIsChecked($IsChecked)
     {
 
-        $this->IsNamed = $IsNamed;
+        $this->IsChecked = $IsChecked;
     }
 
     /**

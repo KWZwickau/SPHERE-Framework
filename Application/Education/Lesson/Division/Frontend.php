@@ -268,7 +268,7 @@ class Frontend extends Extension implements IFrontendInterface
             if (!$tblLevel) {
                 $Global->POST['Level']['Check'] = true;
             } else {
-                if ($future && !$tblLevel->getIsNamed()) {
+                if ($future && $tblLevel->getIsChecked()) {
                     $Global->POST['Level']['Check'] = true;
                 }
             }
@@ -403,7 +403,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 }
             } else {
-                if ($tblDivision->getTblLevel()->getIsNamed()) {
+                if ($tblDivision->getTblLevel()->getIsChecked()) {
                     $Stage->setMessage('Liste aller Schüler die im Schuljahr '.$tblDivision->getServiceTblYear()->getName()
                         .' noch keiner Klasse zugeordnet sind.');
                 } else {
@@ -434,20 +434,22 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblGroup) {
 
                     $tblStudentList = Group::useService()->getPersonAllByGroup($tblGroup);  // Alle Schüler
-                    $IsNamed = $tblDivision->getTblLevel()->getIsNamed();
-                    if ($IsNamed) {
+                    $IsChecked = $tblDivision->getTblLevel()->getIsChecked();
+                    if (!$IsChecked) {
                         $tblDivisionList = Division::useService()->getDivisionByYear($tblDivision->getServiceTblYear());
                         if ($tblStudentList) {
 
                             if ($tblDivisionList) {
                                 foreach ($tblDivisionList as $tblSingleDivision) {
-                                    $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblSingleDivision);
-                                    if ($IsNamed && $tblDivisionStudentList) {
-                                        $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
-                                            function (TblPerson $invoiceA, TblPerson $invoiceB) {
+                                    if ($tblSingleLevel = $tblSingleDivision->getTblLevel()) {
+                                        $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblSingleDivision);
+                                        if (!$tblSingleLevel->getIsChecked() && $tblDivisionStudentList) {
+                                            $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
+                                                function (TblPerson $invoiceA, TblPerson $invoiceB) {
 
-                                                return $invoiceA->getId() - $invoiceB->getId();
-                                            });
+                                                    return $invoiceA->getId() - $invoiceB->getId();
+                                                });
+                                        }
                                     }
                                 }
                                 if (is_array($tblStudentList)) {

@@ -35,10 +35,11 @@ class Data extends AbstractData
      * @param TblType $tblType
      * @param         $Name
      * @param string  $Description
+     * @param bool    $Checked
      *
      * @return null|object|TblLevel
      */
-    public function createLevel(TblType $tblType, $Name, $Description = '')
+    public function createLevel(TblType $tblType, $Name, $Description = '', $Checked = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager(false);
@@ -51,11 +52,7 @@ class Data extends AbstractData
             $Entity->setServiceTblType($tblType);
             $Entity->setName($Name);
             $Entity->setDescription($Description);
-            if ($Name == '') {
-                $Entity->setIsNamed(false);
-            } else {
-                $Entity->setIsNamed(true);
-            }
+            $Entity->setIsChecked($Checked);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
