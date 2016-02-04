@@ -53,6 +53,10 @@ class TblStudent extends Element
      * @Column(type="bigint")
      */
     protected $tblStudentIntegration;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentRelease;
 
     /**
      * @return bool|TblStudentMedicalRecord
@@ -224,5 +228,27 @@ class TblStudent extends Element
     {
 
         $this->Identifier = $Identifier;
+    }
+
+    /**
+     * @return bool|TblStudentRelease
+     */
+    public function getTblStudentRelease()
+    {
+
+        if (null === $this->tblStudentRelease) {
+            return false;
+        } else {
+            return Student::useService()->getStudentReleaseById($this->tblStudentRelease);
+        }
+    }
+
+    /**
+     * @param null|TblStudentRelease $tblStudentRelease
+     */
+    public function setTblStudentRelease(TblStudentRelease $tblStudentRelease = null)
+    {
+
+        $this->tblStudentRelease = ( null === $tblStudentRelease ? null : $tblStudentRelease->getId() );
     }
 }

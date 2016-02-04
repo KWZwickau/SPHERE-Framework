@@ -10,6 +10,7 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentRelease;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransport;
 use SPHERE\Application\People\Meta\Student\Service\Service\Integration;
 use SPHERE\Application\People\Meta\Student\Service\Setup;
@@ -246,6 +247,13 @@ class Service extends Integration
                 );
             }
 
+            $tblStudentRelease = $tblStudent->getTblStudentRelease();
+            if ($tblStudentRelease) {
+                (new Data($this->getBinding()))->updateStudentRelease($tblStudentRelease, $Meta['Release']);
+            } else {
+                $tblStudentRelease = (new Data($this->getBinding()))->createStudentRelease($Meta['Release']);
+            }
+
             (new Data($this->getBinding()))->updateStudent(
                 $tblStudent,
                 $Meta['Student']['Identifier'],
@@ -254,7 +262,8 @@ class Service extends Integration
                 $tblStudentBilling,
                 $tblStudentLocker,
                 $tblStudentBaptism,
-                $tblStudentIntegration
+                $tblStudentIntegration,
+                $tblStudentRelease
             );
 
         } else {
@@ -300,6 +309,8 @@ class Service extends Integration
                 $SiblingRank ? $SiblingRank : null
             );
 
+            $tblStudentRelease = (new Data($this->getBinding()))->createStudentRelease($Meta['Release']);
+
             $tblStudent = (new Data($this->getBinding()))->createStudent(
                 $tblPerson,
                 $Meta['Student']['Identifier'],
@@ -308,7 +319,8 @@ class Service extends Integration
                 $tblStudentBilling,
                 $tblStudentLocker,
                 $tblStudentBaptism,
-                $tblStudentIntegration
+                $tblStudentIntegration,
+                $tblStudentRelease
             );
         }
 
@@ -601,5 +613,16 @@ class Service extends Integration
     ) {
 
         return (new Data($this->getBinding()))->getStudentTransportById($Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblStudentRelease
+     */
+    public function getStudentReleaseById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getStudentReleaseById($Id);
     }
 }
