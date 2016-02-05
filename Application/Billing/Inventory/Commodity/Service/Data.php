@@ -208,7 +208,9 @@ class Data extends AbstractData
         TblCommodityType $tblCommodityType
     ) {
 
-        $Manager = $this->getConnection()->getEntityManager();
+        echo $Name.' - '.$Description.' - '.$tblCommodityType->getName();
+
+        $Manager = $this->getConnection()->getEntityManager(false);
 
         $Entity = new TblCommodity();
         $Entity->setName($Name);

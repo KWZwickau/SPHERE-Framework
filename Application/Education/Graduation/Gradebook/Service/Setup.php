@@ -38,10 +38,12 @@ class Setup extends AbstractSetup
         $tblScoreRule = $this->setTableScoreRule($Schema);
         $tblScoreCondition = $this->setTableScoreCondition($Schema);
         $tblScoreGroup = $this->setTableScoreGroup($Schema);
+        $tblScoreType = $this->setTableScoreType($Schema);
         $this->setTableScoreRuleConditionList($Schema, $tblScoreRule, $tblScoreCondition);
         $this->setTableScoreConditionGradeTypeList($Schema, $tblGradeType, $tblScoreCondition);
         $this->setTableScoreConditionGroupList($Schema, $tblScoreCondition, $tblScoreGroup);
         $this->setTableScoreGroupGradeTypeList($Schema, $tblGradeType, $tblScoreGroup);
+        $this->setTableScoreRuleDivisionSubject($Schema, $tblScoreRule, $tblScoreType);
 
         /**
          * Migration & Protocol
@@ -95,6 +97,9 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblGrade', 'Comment')) {
             $Table->addColumn('Comment', 'string', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblGrade', 'Trend')) {
+            $Table->addColumn('Trend', 'smallint', array('notnull' => false));
         }
         if (!$this->getConnection()->hasColumn('tblGrade', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
@@ -260,4 +265,42 @@ class Setup extends AbstractSetup
 
         return $Table;
     }
+
+    private function setTableScoreRuleDivisionSubject(Schema &$Schema, Table $tblScoreRule, Table $tblScoreType)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreRuleDivisionSubject');
+
+        if (!$this->getConnection()->hasColumn('tblScoreRuleDivisionSubject', 'serviceTblDivision')) {
+            $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreRuleDivisionSubject', 'serviceTblSubject')) {
+            $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
+        }
+
+        $this->getConnection()->addForeignKey($Table, $tblScoreRule, true);
+        $this->getConnection()->addForeignKey($Table, $tblScoreType, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableScoreType(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreType');
+        if (!$this->getConnection()->hasColumn('tblScoreType', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblScoreType', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+
+        return $Table;
+    }
+
 }

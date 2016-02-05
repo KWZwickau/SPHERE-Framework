@@ -18,13 +18,14 @@ use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
  *
  * @package SPHERE\Application\System\Gatekeeper\Authentication
  */
-class Frontend implements IFrontendInterface
+class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
@@ -105,9 +106,24 @@ class Frontend implements IFrontendInterface
     {
 
         $View = new Stage('Anmeldung', 'System');
-        $View->addButton(
-            new External('Zur Live-Umgebung wechseln', 'http://www.kreda.schule/', null, array(), false)
-        );
+
+        switch (strtolower($this->getRequest()->getHost())) {
+            case 'www.kreda.schule':
+                $View->addButton(
+                    new External('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', null, array(), false)
+                );
+                break;
+            case 'demo.kreda.schule':
+                $View->addButton(
+                    new External('Zur Live-Umgebung wechseln', 'http://www.kreda.schule/', null, array(), false)
+                );
+                break;
+            default:
+                $View->addButton(
+                    new External('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', null, array(), false)
+                );
+        }
+
         $View->setMessage('Bitte geben Sie Ihre Benutzerdaten ein');
         $View->setContent(Account::useService()->createSessionCredentialToken(
             new Form(
@@ -173,9 +189,24 @@ class Frontend implements IFrontendInterface
     {
 
         $View = new Stage('Anmeldung', 'Personal');
-        $View->addButton(
-            new External('Zur Live-Umgebung wechseln', 'http://www.kreda.schule/', null, array(), false)
-        );
+
+        switch (strtolower($this->getRequest()->getHost())) {
+            case 'www.kreda.schule':
+                $View->addButton(
+                    new External('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', null, array(), false)
+                );
+                break;
+            case 'demo.kreda.schule':
+                $View->addButton(
+                    new External('Zur Live-Umgebung wechseln', 'http://www.kreda.schule/', null, array(), false)
+                );
+                break;
+            default:
+                $View->addButton(
+                    new External('Zur Demo-Umgebung wechseln', 'http://demo.kreda.schule/', null, array(), false)
+                );
+        }
+
         $View->setMessage('Bitte geben Sie Ihre Benutzerdaten ein');
         $View->setContent(Account::useService()->createSessionCredentialToken(
             new Form(

@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Person;
 
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Data;
@@ -259,5 +260,30 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->fetchPersonAllByIdList($IdArray);
+    }
+
+    /**
+     * @param $FirstName
+     * @param $LastName
+     * @param $ZipCode
+     * @return bool|TblPerson
+     */
+    public function  existsPerson($FirstName, $LastName, $ZipCode)
+    {
+
+        $exists = false;
+
+        if (( $persons = (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName) )
+        ) {
+            foreach ($persons as $person) {
+                if (( $addresses = Address::useService()->getAddressAllByPerson($person) )) {
+                    if ($addresses[0]->getTblAddress()->getTblCity()->getCode() == $ZipCode) {
+                        $exists = $person;
+                    }
+                }
+            }
+        }
+
+        return $exists;
     }
 }

@@ -12,6 +12,7 @@ use SPHERE\Application\Billing\Accounting\Basket\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityItem;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -210,7 +211,8 @@ class Service extends AbstractService
                 $Basket['Name']
             );
             return new Success('Der Warenkorb wurde erfolgreich erstellt')
-            .new Redirect('/Billing/Accounting/Basket/Commodity/Select', 1, array('Id' => $tblBasket->getId()));
+            .new Redirect('/Billing/Accounting/Basket/Commodity/Select', Redirect::TIMEOUT_SUCCESS
+                , array('Id' => $tblBasket->getId()));
         }
 
         return $Stage;
@@ -248,7 +250,7 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Billing/Accounting/Basket', 1);
+                    .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_SUCCESS);
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden');
             };
@@ -267,10 +269,10 @@ class Service extends AbstractService
         $tblBasket = (new Data($this->getBinding()))->destroyBasket($tblBasket);
         if ($tblBasket) {
             return new Success('Der Warenkorb wurde erfolgreich gelöscht')
-            .new Redirect('/Billing/Accounting/Basket', 1);
+            .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_SUCCESS);
         } else {
             return new Warning('Der Warenkorb konnte nicht gelöscht werden')
-            .new Redirect('/Billing/Accounting/Basket', 1);
+            .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
     }
 
@@ -285,10 +287,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->addBasketItemsByCommodity($tblBasket, $tblCommodity)) {
             return new Success('Die Leistung '.$tblCommodity->getName().' wurde erfolgreich hinzugefügt')
-            .new Redirect('/Billing/Accounting/Basket/Commodity/Select', 0, array('Id' => $tblBasket->getId()));
+            .new Redirect('/Billing/Accounting/Basket/Commodity/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
         } else {
             return new Warning('Die Leistung '.$tblCommodity->getName().' konnte nicht hinzugefügt werden')
-            .new Redirect('/Billing/Accounting/Basket/Commodity/Select', 2, array('Id' => $tblBasket->getId()));
+            .new Redirect('/Billing/Accounting/Basket/Commodity/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
         }
     }
 
@@ -303,10 +305,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->removeBasketItemsByCommodity($tblBasket, $tblCommodity)) {
             return new Success('Die Leistung '.$tblCommodity->getName().' wurde erfolgreich entfernt')
-            .new Redirect('/Billing/Accounting/Basket/Commodity/Select', 0, array('Id' => $tblBasket->getId()));
+            .new Redirect('/Billing/Accounting/Basket/Commodity/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
         } else {
             return new Warning('Die Leistung '.$tblCommodity->getName().' konnte nicht entfernt werden')
-            .new Redirect('/Billing/Accounting/Basket/Commodity/Select', 2, array('Id' => $tblBasket->getId()));
+            .new Redirect('/Billing/Accounting/Basket/Commodity/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
         }
     }
 
@@ -320,10 +322,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->removeBasketItem($tblBasketItem)) {
             return new Success('Der Artikel '.$tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getName().' wurde erfolgreich entfernt')
-            .new Redirect('/Billing/Accounting/Basket/Item', 0, array('Id' => $tblBasketItem->getTblBasket()->getId()));
+            .new Redirect('/Billing/Accounting/Basket/Item', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasketItem->getTblBasket()->getId()));
         } else {
             return new Warning('Der Artikel '.$tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getName().' konnte nicht entfernt werden')
-            .new Redirect('/Billing/Accounting/Basket/Item', 2, array('Id' => $tblBasketItem->getTblBasket()->getId()));
+            .new Redirect('/Billing/Accounting/Basket/Item', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasketItem->getTblBasket()->getId()));
         }
     }
 
@@ -364,11 +366,11 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Billing/Accounting/Basket/Item', 1,
+                    .new Redirect('/Billing/Accounting/Basket/Item', Redirect::TIMEOUT_SUCCESS,
                         array('Id' => $tblBasketItem->getTblBasket()->getId()));
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Accounting/Basket/Item', 2,
+                    .new Redirect('/Billing/Accounting/Basket/Item', Redirect::TIMEOUT_ERROR,
                         array('Id' => $tblBasketItem->getTblBasket()->getId()));
             };
         }
@@ -386,10 +388,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->addBasketPerson($tblBasket, $tblPerson)) {
             return new Success('Die Person '.$tblPerson->getFullName().' wurde erfolgreich hinzugefügt')
-            .new Redirect('/Billing/Accounting/Basket/Person/Select', 0, array('Id' => $tblBasket->getId()));
+            .new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
         } else {
             return new Warning('Die Person '.$tblPerson->getFullName().' konnte nicht hinzugefügt werden')
-            .new Redirect('/Billing/Accounting/Basket/Person/Select', 2, array('Id' => $tblBasket->getId()));
+            .new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
         }
     }
 
@@ -403,11 +405,11 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->removeBasketPerson($tblBasketPerson)) {
             return new Success('Die Person '.$tblBasketPerson->getServiceManagementPerson()->getFullName().' wurde erfolgreich entfernt')
-            .new Redirect('/Billing/Accounting/Basket/Person/Select', 0,
+            .new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblBasketPerson->getTblBasket()->getId()));
         } else {
             return new Warning('Die Person '.$tblBasketPerson->getServiceManagementPerson()->getFullName().' konnte nicht entfernt werden')
-            .new Redirect('/Billing/Accounting/Basket/Person/Select', 2,
+            .new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblBasketPerson->getTblBasket()->getId()));
         }
     }
@@ -452,7 +454,7 @@ class Service extends AbstractService
                 $tblPerson = $tblBasketPerson->getServiceManagementPerson();
                 if (!(new Data($this->getBinding()))->checkDebtorExistsByPerson($tblPerson)) {
                     $Stage .= new Danger("Für die Person ".$tblBasketPerson->getServiceManagementPerson()->getFullName()
-                        ." gibt es noch keinen relevanten Debitoren. Bitte legen Sie diese zunächst einen an");
+                        ." gibt es noch keinen relevanten Debitoren. Bitte legen Sie diesen zunächst an");
                     $ErrorMissing = true;
                 }
             }
@@ -468,16 +470,16 @@ class Service extends AbstractService
             Invoice::useService()->destroyTempInvoice($tblBasket);
 
             if ((new Data($this->getBinding()))->checkDebtors($tblBasket, null)) {
-                if (Invoice::useService()->createInvoiceListFromBasket($tblBasket, $Basket['Date'])) {
+                if (Invoice::useService()->createOrderListFromBasket($tblBasket, $Basket['Date'])) {
                     $Stage .= new Success('Die Rechnungen wurden erfolgreich erstellt')
-                        .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', 2);
+                        .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
                 } else {
                     $Stage .= new Success('Die Rechnungen konnten nicht erstellt werden')
-                        .new Redirect('/Billing/Accounting/Basket', 2);
+                        .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
                 }
             } else {
                 $Stage .= new Warning('Es konnten nicht alle Debitoren eindeutig zugeordnet werden')
-                    .new Redirect('/Billing/Accounting/Basket/Debtor/Select', 2, array(
+                    .new Redirect('/Billing/Accounting/Basket/Debtor/Select', Redirect::TIMEOUT_ERROR, array(
                         'Id'   => $tblBasket->getId(),
                         'Date' => $Basket['Date'],
                     ));
@@ -527,12 +529,12 @@ class Service extends AbstractService
         $tblBasket = Basket::useService()->getBasketById($Id);
 
         if ((new Data($this->getBinding()))->checkDebtors($tblBasket, $Data, $isSave)) {
-            if (Invoice::useService()->createInvoiceListFromBasket($tblBasket, $Date)) {
+            if (Invoice::useService()->createOrderListFromBasket($tblBasket, $Date)) {
                 $Stage .= new Success('Die Rechnungen wurden erfolgreich erstellt')
-                    .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', 2);
+                    .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
             } else {
                 $Stage .= new Success('Die Rechnungen konnten nicht erstellt werden')
-                    .new Redirect('/Billing/Accounting/Basket', 2);
+                    .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
             }
         }
 
@@ -548,5 +550,64 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getBasketById($Id);
+    }
+
+    /**
+     * @param TblBasketItem $tblBasketItem
+     * @param TblPerson     $tblPerson
+     * @param               $tblPersonByBasketList
+     * @param               $Result
+     *
+     * @return float
+     */
+    public function getPricePerPerson(TblBasketItem $tblBasketItem, TblPerson $tblPerson, $tblPersonByBasketList, $Result)
+    {
+
+        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+        $tblCommodityItem = $tblBasketItem->getServiceBillingCommodityItem();
+        if ($tblCommodityItem) {
+            $tblCommodity = $tblCommodityItem->getTblCommodity();
+            $tblItem = $tblCommodityItem->getTblItem();
+            if ($tblCommodity && $tblItem) {
+                if ($tblCommodity->getTblCommodityType()->getName() === 'Sammelleistung') {
+                    $PersonCount = count($tblPersonByBasketList);
+                    if ($tblItemRank = $tblItem->getServiceStudentChildRank()) {
+                        if ($tblStudent) {
+                            if ($tblStudentBilling = $tblStudent->getTblStudentBilling()) {
+                                if ($SiblingRank = $tblStudentBilling->getServiceTblSiblingRank()) {
+                                    if (
+                                        $tblItemRank->getId() === $SiblingRank->getId()
+                                    ) {
+                                        $Result = ( ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) / $PersonCount ) + $Result;
+                                    }
+                                } elseif ($SiblingRank === false && $tblItemRank->getName() === '1. Geschwisterkind') {
+                                    $Result = ( ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) / $PersonCount ) + $Result;
+                                }
+                            }
+                        }
+                    } else {
+                        $Result = ( ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) / $PersonCount ) + $Result;
+                    }
+                } else {
+                    if ($tblItemRank = $tblItem->getServiceStudentChildRank()) {
+                        if ($tblStudent) {
+                            if ($tblStudentBilling = $tblStudent->getTblStudentBilling()) {
+                                if ($SiblingRank = $tblStudentBilling->getServiceTblSiblingRank()) {
+                                    if ($tblItemRank->getId() === $SiblingRank->getId()
+                                    ) {
+                                        $Result = ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) + $Result;
+                                    }
+                                } elseif ($SiblingRank === false && $tblItemRank->getName() === '1. Geschwisterkind') {
+                                    $Result = ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) + $Result;
+                                }
+                            }
+                        }
+                    } else {
+                        $Result = ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) + $Result;
+                    }
+                }
+            }
+        }
+        return $Result;
     }
 }

@@ -181,7 +181,7 @@ class Data extends AbstractData
 
         /** @var TblBalance[] $balanceAllByDebtor */
         $balanceAllByDebtor = $this->getConnection()->getEntityManager()->getEntity('TblBalance')->findBy(
-            array(TblBalance::ATTR_SERVICE_BILLING_BANKING => $tblDebtor->getId())
+            array(TblBalance::ATTR_SERVICE_BILLING_DEBTOR => $tblDebtor->getId())
         );
         foreach ($balanceAllByDebtor as $balance) {
             $Entity = $this->getConnection()->getEntityManager()->getEntity('TblPayment')->findOneBy(
@@ -204,6 +204,7 @@ class Data extends AbstractData
      * @param null       $BIC
      * @param null       $Owner
      * @param null       $CashSign
+     * @param null       $Reference
      *
      * @return bool
      */
@@ -215,18 +216,19 @@ class Data extends AbstractData
         $IBAN = null,
         $BIC = null,
         $Owner = null,
-        $CashSign = null
+        $CashSign = null,
+        $Reference = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblBalance')->findOneBy(array(
-            TblBalance::ATTR_SERVICE_BILLING_BANKING => $serviceBilling_Banking->getId(),
+            TblBalance::ATTR_SERVICE_BILLING_DEBTOR  => $serviceBilling_Banking->getId(),
             TblBalance::ATTR_SERVICE_BILLING_INVOICE => $serviceBilling_Invoice->getId()
         ));
 
         if (null === $Entity) {
             $Entity = new TblBalance();
-            $Entity->setServiceBillingBanking($serviceBilling_Banking);
+            $Entity->setServiceBillingDebtor($serviceBilling_Banking);
             $Entity->setServiceBillingInvoice($serviceBilling_Invoice);
             if ($ExportDate !== null) {
                 $Entity->setExportDate($ExportDate);
@@ -246,6 +248,39 @@ class Data extends AbstractData
             if ($CashSign !== null) {
                 $Entity->setCashSign($CashSign);
             }
+            if ($Reference !== null) {
+                $Entity->setReference($Reference);
+            }
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public function copyBalance(TblBalance $tblBalance, TblInvoice $tblInvoice)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblBalance')->findOneBy(array(
+            TblBalance::ATTR_SERVICE_BILLING_DEBTOR  => $tblBalance->getServiceBillingDebtor()->getId(),
+            TblBalance::ATTR_SERVICE_BILLING_INVOICE => $tblInvoice->getId()
+        ));
+
+        if (null === $Entity) {
+            $Entity = new TblBalance();
+            $Entity->setServiceBillingDebtor($tblBalance->getServiceBillingDebtor());
+            $Entity->setServiceBillingInvoice($tblInvoice);
+            $Entity->setExportDate(new \DateTime($tblBalance->getExportDate()));
+            $Entity->setBankName($tblBalance->getBankName());
+            $Entity->setIBAN($tblBalance->getIBAN());
+            $Entity->setBIC($tblBalance->getBIC());
+            $Entity->setOwner($tblBalance->getOwner());
+            $Entity->setCashSign($tblBalance->getCashSign());
+            $Entity->setReference($tblBalance->getReference());
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);

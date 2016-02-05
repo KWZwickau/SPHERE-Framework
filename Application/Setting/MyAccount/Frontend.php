@@ -11,6 +11,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Setting\Consumer\Responsibility\Responsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\Consumer\School\School;
@@ -103,18 +104,22 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $tblConsumerAll = Consumer::useService()->getConsumerAll();
+        $Result = array();
         if ($tblConsumerAll) {
-            foreach ($tblConsumerAll as $tblConsumer) {
-                $tblConsumer->Option = new Standard('', '/Setting/MyAccount/Consumer/Change', new Select(),
-                    array('Id' => $tblConsumer->getId()), 'Auswählen');
-            }
+            array_walk($tblConsumerAll, function (TblConsumer $tblConsumer) use (&$Result) {
+
+                array_push($Result, array_merge($tblConsumer->__toArray(), array(
+                    'Option' => new Standard('', '/Setting/MyAccount/Consumer/Change', new Select(),
+                        array('Id' => $tblConsumer->getId()), 'Auswählen')
+                )));
+            });
         }
 
         $Stage = new Stage('Mandant', 'Auswählen');
         $Stage->addButton(new Standard('Zurück', '/Setting/MyAccount', new ChevronLeft()));
         $Stage->setContent(
             new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                new TableData($tblConsumerAll, null, array('Acronym' => 'Kürzel', 'Name' => 'Name', 'Option' => ''))
+                new TableData($Result, null, array('Acronym' => 'Kürzel', 'Name' => 'Name', 'Option' => ''))
             )), new Title(new Select().' Auswahl'))));
 
         return $Stage;
@@ -151,10 +156,15 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
         if ($tblPersonAll) {
-            array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
+            if ($tblPersonAll[0] != false) {
+                array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
 
-                $tblPerson = $tblPerson->getFullName();
-            });
+                    $tblPerson = $tblPerson->getFullName();
+                });
+            } else {
+                $tblPersonAll = false;
+            }
+
         }
 
         $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
@@ -205,6 +215,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $tblConsumer = Consumer::useService()->getConsumerBySession();
+
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
@@ -249,7 +261,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new Title('Kontaktdaten', 'Informationen'),
                             new Panel(
-                                $tblAccount->getServiceTblConsumer()->getName().' ['.$tblAccount->getServiceTblConsumer()->getAcronym().']',
+                                $tblConsumer->getName().' ['.$tblConsumer->getAcronym().']',
                                 array(
                                     new Container(implode($this->listingSchool()))
                                     .new Container(implode($this->listingResponsibility()))

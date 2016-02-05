@@ -118,7 +118,7 @@ class Service extends AbstractService
                 $Item['ChildRank']
             );
             return new Success('Der Artikel wurde erfolgreich angelegt')
-            .new Redirect('/Billing/Inventory/Item', 1);
+            .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS);
         }
         return $Stage;
     }
@@ -137,10 +137,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->destroyItem($tblItem)) {
             return new Success('Der Artikel wurde erfolgreich gelöscht')
-            .new Redirect('/Billing/Inventory/Item', 1);
+            .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS);
         } else {
             return new Danger('Der Artikel konnte nicht gelöscht werden. Überprüfen Sie ob er noch in einer Leistung verwendet wird.')
-            .new Redirect('/Billing/Inventory/Item', 3);
+            .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR);
         }
     }
 
@@ -188,9 +188,10 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Billing/Inventory/Item', 1);
+                    .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS);
             } else {
-                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden');
+                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
+                    .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR);
             };
         }
         return $Stage;
@@ -206,11 +207,11 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->removeItemAccount($tblItemAccount)) {
             return new Success('Das FIBU-Konto '.$tblItemAccount->getServiceBillingAccount()->getDescription().' wurde erfolgreich entfernt')
-            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', 0,
+            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblItemAccount->getTblItem()->getId()));
         } else {
             return new Warning('Das FIBU-Konto '.$tblItemAccount->getServiceBillingAccount()->getDescription().' konnte nicht entfernt werden')
-            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', 3,
+            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblItemAccount->getTblItem()->getId()));
         }
     }
@@ -226,10 +227,21 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->addItemAccount($tblItem, $tblAccount)) {
             return new Success('Das FIBU-Konto '.$tblAccount->getDescription().' wurde erfolgreich hinzugefügt')
-            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', 0, array('Id' => $tblItem->getId()));
+            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblItem->getId()));
         } else {
             return new Warning('Das FIBU-Konto '.$tblAccount->getDescription().' konnte nicht entfernt werden')
-            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', 2, array('Id' => $tblItem->getId()));
+            .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblItem->getId()));
         }
+    }
+
+    /**
+     * @param int $Price
+     *
+     * @return string
+     */
+    public function formatPrice($Price)
+    {
+
+        return (new Data($this->getBinding()))->formatPrice($Price);
     }
 }

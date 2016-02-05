@@ -587,10 +587,10 @@ class Service extends AbstractService
      * @param TblList $tblList
      * @param null $YearPersonId
      * @param null $LevelPersonId
-     * @param null $SchoolOptionId
+     * @param null $SchoolOption1Id
+     * @param null $SchoolOption2Id
      *
      * @return bool|\SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
-     *
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
@@ -598,9 +598,9 @@ class Service extends AbstractService
         TblList $tblList,
         $YearPersonId = null,
         $LevelPersonId = null,
-        $SchoolOptionId = null
-    )
-    {
+        $SchoolOption1Id = null,
+        $SchoolOption2Id = null
+    ) {
 
         if ($tblList) {
 
@@ -615,7 +615,8 @@ class Service extends AbstractService
             $hasFilter = false;
             $filterYear = false;
             $filterLevel = false;
-            $filterSchoolOption = false;
+            $filterSchoolOption1 = false;
+            $filterSchoolOption2 = false;
 
             // filter
             if ($YearPersonId !== null) {
@@ -644,11 +645,18 @@ class Service extends AbstractService
                     }
                 }
             }
-            if ($SchoolOptionId !== null) {
-                $schoolOption = Type::useService()->getTypeById($SchoolOptionId);
+            if ($SchoolOption1Id !== null) {
+                $schoolOption = Type::useService()->getTypeById($SchoolOption1Id);
                 if ($schoolOption) {
                     $hasFilter = true;
-                    $filterSchoolOption = $schoolOption;
+                    $filterSchoolOption1 = $schoolOption;
+                }
+            }
+            if ($SchoolOption2Id !== null) {
+                $schoolOption = Type::useService()->getTypeById($SchoolOption2Id);
+                if ($schoolOption) {
+                    $hasFilter = true;
+                    $filterSchoolOption2 = $schoolOption;
                 }
             }
 
@@ -660,7 +668,7 @@ class Service extends AbstractService
                 $objectList = CheckList::useService()->getObjectList($tblListObjectListByList, $objectList);
                 if ($hasFilter){
                     $objectList = CheckList::useService()->filterObjectList($objectList, $filterYear, $filterLevel,
-                        $filterSchoolOption);
+                        $filterSchoolOption1, $filterSchoolOption2);
                 }
 
                 if (!empty($objectList)) {
@@ -825,7 +833,8 @@ class Service extends AbstractService
             'Id' => $ListId,
             'YearPersonId' => $Filter['Year'],
             'LevelPersonId' => $Filter['Level'],
-            'SchoolOptionId' => $Filter['SchoolOption']
+            'SchoolOption1Id' => $Filter['SchoolOption1'],
+            'SchoolOption2Id' => $Filter['SchoolOption2']
         ));
     }
 
@@ -887,13 +896,17 @@ class Service extends AbstractService
      * @param $objectList
      * @param string $filterYear
      * @param string $filterLevel
-     * @param bool|TblType $filterSchoolOption
+     * @param bool|TblType $filterSchoolOption1
+     * @param bool|TblType $filterSchoolOption2
+     *
      * @return array
      */
-    public function filterObjectList($objectList, $filterYear, $filterLevel, $filterSchoolOption)
+    public function filterObjectList($objectList, $filterYear, $filterLevel, $filterSchoolOption1, $filterSchoolOption2)
     {
 
         $resultList = array();
+
+        $filterSchoolOption = $filterSchoolOption1 || $filterSchoolOption2;
 
         if (!empty($objectList)) {
             $tblObjectType = CheckList::useService()->getObjectTypeByIdentifier('PERSON');
@@ -922,22 +935,44 @@ class Service extends AbstractService
                                                 $hasLevel = true;
                                             }
                                         }
-                                        if ($filterSchoolOption) {
+                                        if ($filterSchoolOption1 || $filterSchoolOption2) {
+
                                             $schoolOptionA = $tblProspectReservation->getServiceTblTypeOptionA();
                                             $schoolOptionB = $tblProspectReservation->getServiceTblTypeOptionB();
-                                            if ($schoolOptionA && $schoolOptionB) {
-                                                if (($schoolOptionA->getId() == $filterSchoolOption->getId())
-                                                    || ($schoolOptionB->getId() == $filterSchoolOption->getId())
-                                                ) {
-                                                    $hasSchoolOption = true;
+
+                                            if ($filterSchoolOption1 && $filterSchoolOption2) {
+                                                if ($schoolOptionA && $schoolOptionB) {
+                                                    if (($schoolOptionA->getId() == $filterSchoolOption1->getId()
+                                                            && $schoolOptionB->getId() == $filterSchoolOption2->getId())
+                                                        || ($schoolOptionA->getId() == $filterSchoolOption2->getId()
+                                                            && $schoolOptionB->getId() == $filterSchoolOption1->getId())
+                                                    ) {
+                                                        $hasSchoolOption = true;
+                                                    }
                                                 }
-                                            } elseif ($schoolOptionA) {
-                                                if ($schoolOptionA->getId() == $filterSchoolOption->getId()) {
-                                                    $hasSchoolOption = true;
+                                            } elseif ($filterSchoolOption1) {
+                                                if ($schoolOptionA && $schoolOptionB) {
+                                                    $hasSchoolOption = false;
+                                                } elseif ($schoolOptionA) {
+                                                    if ($schoolOptionA->getId() == $filterSchoolOption1->getId()) {
+                                                        $hasSchoolOption = true;
+                                                    }
+                                                } elseif ($schoolOptionB) {
+                                                    if ($schoolOptionB->getId() == $filterSchoolOption1->getId()) {
+                                                        $hasSchoolOption = true;
+                                                    }
                                                 }
-                                            } elseif ($schoolOptionB) {
-                                                if ($schoolOptionB->getId() == $filterSchoolOption->getId()) {
-                                                    $hasSchoolOption = true;
+                                            } elseif ($filterSchoolOption2) {
+                                                if ($schoolOptionA && $schoolOptionB) {
+                                                    $hasSchoolOption = false;
+                                                } elseif ($schoolOptionA) {
+                                                    if ($schoolOptionA->getId() == $filterSchoolOption2->getId()) {
+                                                        $hasSchoolOption = true;
+                                                    }
+                                                } elseif ($schoolOptionB) {
+                                                    if ($schoolOptionB->getId() == $filterSchoolOption2->getId()) {
+                                                        $hasSchoolOption = true;
+                                                    }
                                                 }
                                             }
                                         }

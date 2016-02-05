@@ -31,6 +31,10 @@ class TblLevel extends Element
      */
     protected $Description;
     /**
+     * @Column(type="boolean")
+     */
+    protected $IsChecked;
+    /**
      * @Column(type="bigint")
      */
     protected $serviceTblType;
@@ -69,6 +73,27 @@ class TblLevel extends Element
     {
 
         $this->Description = $Description;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getIsChecked()
+    {
+
+        if ($this->IsChecked) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param boolean $IsChecked
+     */
+    public function setIsChecked($IsChecked)
+    {
+
+        $this->IsChecked = $IsChecked;
     }
 
     /**

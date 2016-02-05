@@ -7,9 +7,12 @@ use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Accounting\Basket\Basket;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketItem;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceAccount;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblOrder;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblOrderItem;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblTempInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblTempInvoiceCommodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
@@ -49,6 +52,18 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Id
+     *
+     * @return bool|TblOrder
+     */
+    public function getOrderById($Id)
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblOrder', $Id);
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblTempInvoice
@@ -67,6 +82,16 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblInvoice')->findAll();
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @return bool|TblOrder[]
+     */
+    public function getOrderAll()
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblOrder')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -109,6 +134,18 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Id
+     *
+     * @return bool|TblOrderItem
+     */
+    public function getOrderItemById($Id)
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblOrderItem', $Id);
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
      * @param $Number
      *
      * @return TblInvoice|bool
@@ -134,6 +171,18 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblOrder $tblOrder
+     *
+     * @return string
+     */
+    public function sumPriceItemAllStringByOrder(TblOrder $tblOrder)
+    {
+
+        $result = sprintf("%01.2f", $this->sumPriceItemAllByOrder($tblOrder));
+        return str_replace('.', ',', $result)." €";
+    }
+
+    /**
      * @param TblInvoice $tblInvoice
      *
      * @return float
@@ -152,6 +201,24 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $tblOrder
+     *
+     * @return float
+     */
+    public function sumPriceItemAllByOrder($tblOrder)
+    {
+
+        $sum = 0.00;
+        $tblOrderItemList = $this->getInvoiceItemAllByOrder($tblOrder);
+        /** @var TblOrderItem $tblOrderItem */
+        foreach ($tblOrderItemList as $tblOrderItem) {
+            $sum += $tblOrderItem->getItemPrice() * $tblOrderItem->getItemQuantity();
+        }
+
+        return $sum;
+    }
+
+    /**
      * @param TblInvoice $tblInvoice
      *
      * @return TblInvoiceItem[]|bool
@@ -161,6 +228,32 @@ class Data extends AbstractData
 
         $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblInvoiceItem')
             ->findBy(array(TblInvoiceItem::ATTR_TBL_INVOICE => $tblInvoice->getId()));
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @param TblOrder $tblOrder
+     *
+     * @return bool|TblOrderItem[]
+     */
+    public function getOrderItemAllByOrder(TblOrder $tblOrder)
+    {
+
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblOrderItem')
+            ->findBy(array(TblOrderItem::ATTR_TBL_ORDER => $tblOrder->getId()));
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @param TblOrder $tblOrder
+     *
+     * @return array|bool
+     */
+    public function getInvoiceItemAllByOrder(TblOrder $tblOrder)
+    {
+
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblOrderItem')
+            ->findBy(array(TblOrderItem::ATTR_TBL_ORDER => $tblOrder->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -185,7 +278,7 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function createInvoiceListFromBasket(
+    public function createOrderListFromBasket(
         TblBasket $tblBasket,
         $Date
     ) {
@@ -197,10 +290,10 @@ class Data extends AbstractData
             $tblDebtor = $tblTempInvoice->getServiceBillingDebtor();
             $tblPersonDebtor = $tblDebtor->getServiceManagementPerson();
             $tblPerson = $tblTempInvoice->getServiceManagementPerson();
-            $Entity = new TblInvoice();
-            $Entity->setPaid(false);
-            $Entity->setVoid(false);
-            $Entity->setNumber("40000000");
+            $Entity = new TblOrder();
+//            $Entity->setPaid(false);
+//            $Entity->setVoid(false);
+//            $Entity->setNumber("40000000");
             $Entity->setBasketName($tblBasket->getName());
             $PaymentType = $tblDebtor->getPaymentType();
             $Entity->setServiceBillingBankingPaymentType($PaymentType);
@@ -233,19 +326,32 @@ class Data extends AbstractData
             $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
             $Entity->setServiceManagementPerson($tblPerson);
             if (( $tblToPerson = Address::useService()->getAddressAllByPerson($tblPersonDebtor) )) {
-                // TODO address type invoice
                 $tblAddress = array();
                 /**@var TblToPerson $singleAddress */
                 foreach ($tblToPerson as $singleAddress) {
-                    $tblAddress[] = $singleAddress->getTblAddress();
+                    if ($singleAddress->getTblType()->getName() === 'Rechnungsadresse') {
+                        $tblAddress[] = $singleAddress->getTblAddress();
+                    }
+                }
+                if (empty( $tblAddress )) {
+                    foreach ($tblToPerson as $singleAddress) {
+                        if ($singleAddress->getTblType()->getName() === 'Hauptadresse') {
+                            $tblAddress[] = $singleAddress->getTblAddress();
+                        }
+                    }
+                }
+                if (empty( $tblAddress )) {
+                    foreach ($tblToPerson as $singleAddress) {
+                        $tblAddress[] = $singleAddress->getTblAddress();
+                    }
                 }
                 $Entity->setServiceManagementAddress($tblAddress[0]);
             }
 
             $Manager->saveEntity($Entity);
 
-            $Entity->setNumber((int)$Entity->getNumber() + $Entity->getId());
-            $Manager->saveEntity($Entity);
+//            $Entity->setNumber((int)$Entity->getNumber() + $Entity->getId());
+//            $Manager->saveEntity($Entity);
 
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -262,7 +368,7 @@ class Data extends AbstractData
                 foreach ($tblBasketItemAllByBasketAndCommodity as $tblBasketItem) {
                     $tblItem = $tblBasketItem->getServiceBillingCommodityItem()->getTblItem();
                     if (!( $tblItem->getServiceStudentType() ) && !( $tblItem->getServiceStudentChildRank() )) {
-                        $this->createInvoiceItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem, $Entity);
+                        $this->createOrderItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem, $Entity);
                     } else {
                         if ($tblItem->getServiceStudentType() && !( $tblItem->getServiceStudentChildRank() )) {
 
@@ -275,7 +381,7 @@ class Data extends AbstractData
                                     if ($Type) {
                                         if ($Type->getServiceTblType()) {
                                             if ($tblItem->getServiceStudentType()->getId() == $Type->getServiceTblType()->getId()) {
-                                                $this->createInvoiceItem($tblCommodity, $tblItem, $tblBasket,
+                                                $this->createOrderItem($tblCommodity, $tblItem, $tblBasket,
                                                     $tblBasketItem,
                                                     $Entity);
                                             }
@@ -285,19 +391,24 @@ class Data extends AbstractData
                             }
 
                         } else {
-                            if (!( $tblItem->getServiceStudentType() ) && $tblItem->getServiceStudentChildRank()) {
-                                if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
-                                    if (( $SiblingRank = $tblStudent->getTblStudentBilling()->getServiceTblSiblingRank() )
-                                        && $tblItem->getServiceStudentType()->getId() == $SiblingRank->getId()
-                                    ) {
-                                        $this->createInvoiceItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem,
-                                            $Entity);
+                            if (!( $tblItem->getServiceStudentType() ) && $tblChildRank = $tblItem->getServiceStudentChildRank()) {
+                                if (( $tblStudent = Student::useService()->getStudentByPerson($tblPerson) )) {
+                                    $SiblingRank = $tblStudent->getTblStudentBilling()->getServiceTblSiblingRank();
+                                    if (!$SiblingRank) {
+                                        if ($tblChildRank->getName() === '1. Geschwisterkind') {
+                                            $this->createOrderItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem,
+                                                $Entity);
+                                        }
+                                    } else {
+                                        if ($tblChildRank->getId() === $SiblingRank->getId()) {
+                                            $this->createOrderItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem,
+                                                $Entity);
+                                        }
                                     }
                                 }
-
                             } else {
                                 if ($tblItem->getServiceStudentType() && $tblItem->getServiceStudentChildRank()) {
-                                    if (($tblStudent = Student::useService()->getStudentByPerson($tblPerson))) {
+                                    if (( $tblStudent = Student::useService()->getStudentByPerson($tblPerson) )) {
                                         $studentType = 0;
                                         $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
                                         if ($tblTransferType) {
@@ -313,7 +424,7 @@ class Data extends AbstractData
                                             && $tblItem->getServiceStudentType()->getId() == $studentType
                                             && $tblItem->getServiceStudentChildRank()->getId() == $SiblingRank->getId()
                                         ) {
-                                            $this->createInvoiceItem($tblCommodity, $tblItem, $tblBasket,
+                                            $this->createOrderItem($tblCommodity, $tblItem, $tblBasket,
                                                 $tblBasketItem, $Entity);
                                         }
                                     }
@@ -321,6 +432,15 @@ class Data extends AbstractData
                             }
                         }
                     }
+                }
+            }
+        }
+        $tblInvoiceList = Invoice::useService()->getInvoiceAllByIsConfirmedState(false);
+        if ($tblInvoiceList) {
+            foreach ($tblInvoiceList as $tblInvoice) {
+
+                if (!$emptyInvoice = Invoice::useService()->getInvoiceItemAllByInvoice($tblInvoice)) {
+                    Invoice::useService()->removeInvoice($tblInvoice);
                 }
             }
         }
@@ -354,21 +474,169 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblOrderItem $tblOrderItem
+     * @param TblInvoice   $tblInvoice
+     *
+     * @return TblInvoiceItem
+     */
+    public function createInvoiceItem(
+        TblOrderItem $tblOrderItem,
+        TblInvoice $tblInvoice
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblInvoiceItem();
+        $Entity->setCommodityName($tblOrderItem->getCommodityName());
+        $Entity->setCommodityDescription($tblOrderItem->getCommodityDescription());
+        $Entity->setItemName($tblOrderItem->getItemName());
+        $Entity->setItemPrice($tblOrderItem->getItemPrice());
+        $Entity->setItemQuantity($tblOrderItem->getItemQuantity());
+        $Entity->setItemDescription($tblOrderItem->getItemDescription());
+        $Entity->setTblInvoice($tblInvoice);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+            $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblInvoiceItem $tblInvoiceItem
+     * @param TblInvoice     $tblInvoiceCopy
+     *
+     * @return TblInvoiceItem
+     */
+    public function createInvoiceItemCopy(TblInvoiceItem $tblInvoiceItem, TblInvoice $tblInvoiceCopy)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblInvoiceItem();
+        $Entity->setCommodityName($tblInvoiceItem->getCommodityName());
+        $Entity->setCommodityDescription($tblInvoiceItem->getCommodityDescription());
+        $Entity->setItemName($tblInvoiceItem->getItemName());
+        $Entity->setItemPrice($tblInvoiceItem->getItemPrice() * -1);
+        $Entity->setItemQuantity($tblInvoiceItem->getItemQuantity());
+        $Entity->setItemDescription($tblInvoiceItem->getItemDescription());
+        $Entity->setTblInvoice($tblInvoiceCopy);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+            $Entity);
+
+        return $Entity;
+    }
+
+
+    /**
+     * @param TblOrder $tblOrder
+     *
+     * @return TblInvoice
+     */
+    public function createInvoice(TblOrder $tblOrder)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblInvoice();
+        $Entity->setBasketName($tblOrder->getBasketName());
+        $Entity->setDebtorFirstName($tblOrder->getDebtorFirstName());
+        $Entity->setDebtorLastName($tblOrder->getDebtorLastName());
+        $Entity->setDebtorNumber($tblOrder->getDebtorNumber());
+        $Entity->setDebtorSalutation($tblOrder->getDebtorSalutation());
+        $Entity->setDiscount($tblOrder->getDiscount());
+        $Entity->setInvoiceDate(new \DateTime($tblOrder->getInvoiceDate()));
+        $Entity->setNumber("40000000");
+        $Entity->setPaid(false);
+        $Entity->setVoid(false);
+        $Entity->setPaymentDate(new \DateTime($tblOrder->getPaymentDate()));
+        $Entity->setServiceBillingBankingPaymentType($tblOrder->getServiceBillingBankingPaymentType());
+        $Entity->setServiceManagementPerson($tblOrder->getServiceManagementPerson());
+        $Entity->setServiceManagementAddress($tblOrder->getServiceManagementAddress());
+
+        $leadTimeByDebtor = false;//Banking::useService()->getLeadTimeByDebtor($tblDebtor); //ToDO Leadtime from School?
+        if ($leadTimeByDebtor === false) {
+            $leadTimeByDebtor = 5;      //ToDO LeadFirstTime 5 Day's
+        }
+        $invoiceDate = (new \DateTime($tblOrder->getPaymentDate()))->sub(new \DateInterval('P'.$leadTimeByDebtor.'D'));
+        $now = new \DateTime();
+        if (( $invoiceDate->format('y.m.d') ) >= ( $now->format('y.m.d') )) {
+            $Entity->setInvoiceDate($invoiceDate);
+            $Entity->setPaymentDate(new \DateTime($tblOrder->getPaymentDate()));
+            $Entity->setPaymentDateModified(false);
+        } else {
+            $Entity->setInvoiceDate(new \DateTime('now'));
+            $Entity->setPaymentDate($now->add(new \DateInterval('P'.$leadTimeByDebtor.'D')));
+            $Entity->setPaymentDateModified(true);
+        }
+
+        $Manager->saveEntity($Entity);
+
+        $Entity->setNumber((int)$Entity->getNumber() + $Entity->getId());
+        $Manager->saveEntity($Entity);
+
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+            $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     *
+     * @return TblInvoice
+     */
+    public function copyInvoice(TblInvoice $tblInvoice)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblInvoice();
+        $Entity->setBasketName($tblInvoice->getBasketName());
+        $Entity->setDebtorFirstName($tblInvoice->getDebtorFirstName());
+        $Entity->setDebtorLastName($tblInvoice->getDebtorLastName());
+        $Entity->setDebtorNumber($tblInvoice->getDebtorNumber());
+        $Entity->setDebtorSalutation($tblInvoice->getDebtorSalutation());
+        $Entity->setDiscount($tblInvoice->getDiscount());
+        $Entity->setInvoiceDate(new \DateTime($tblInvoice->getInvoiceDate()));
+        $Entity->setNumber($tblInvoice->getNumber());
+        $Entity->setPaid(false);
+        $Entity->setVoid(true);
+        $Entity->setPaymentDate(new \DateTime($tblInvoice->getPaymentDate()));
+        $Entity->setServiceBillingBankingPaymentType($tblInvoice->getServiceBillingBankingPaymentType());
+        $Entity->setServiceManagementPerson($tblInvoice->getServiceManagementPerson());
+        $Entity->setServiceManagementAddress($tblInvoice->getServiceManagementAddress());
+
+        $Entity->setInvoiceDate(new \DateTime($tblInvoice->getInvoiceDate()));
+        $Entity->setPaymentDate(new \DateTime($tblInvoice->getPaymentDate()));
+        $Entity->setPaymentDateModified($tblInvoice->getPaymentDateModified());
+
+        $Manager->saveEntity($Entity);
+
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+            $Entity);
+
+        return $Entity;
+    }
+
+    /**
      * @param TblCommodity  $tblCommodity
      * @param TblItem       $tblItem
      * @param TblBasket     $tblBasket
      * @param TblBasketItem $tblBasketItem
-     * @param TblInvoice    $tblInvoice
+     * @param TblOrder      $tblOrder
      */
-    private function createInvoiceItem(
+    private function createOrderItem(
         TblCommodity $tblCommodity,
         TblItem $tblItem,
         TblBasket $tblBasket,
         TblBasketItem $tblBasketItem,
-        TblInvoice $tblInvoice
+        TblOrder $tblOrder
     ) {
 
-        $Entity = new TblInvoiceItem();
+        $Entity = new TblOrderItem();
         $Entity->setCommodityName($tblCommodity->getName());
         $Entity->setCommodityDescription($tblCommodity->getDescription());
         $Entity->setItemName($tblItem->getName());
@@ -379,7 +647,7 @@ class Data extends AbstractData
             $Entity->setItemPrice($tblBasketItem->getPrice() / Basket::useService()->countPersonByBasket($tblBasket));
         }
         $Entity->setItemQuantity($tblBasketItem->getQuantity());
-        $Entity->setTblInvoice($tblInvoice);
+        $Entity->setTblOrder($tblOrder);
 
         $this->getConnection()->getEntityManager()->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -449,22 +717,22 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblInvoiceItem $tblInvoiceItem
-     * @param                $Price
-     * @param                $Quantity
+     * @param TblOrderItem $tblOrderItem
+     * @param              $Price
+     * @param              $Quantity
      *
      * @return bool
      */
-    public function updateInvoiceItem(
-        TblInvoiceItem $tblInvoiceItem,
+    public function updateOrderItem(
+        TblOrderItem $tblOrderItem,
         $Price,
         $Quantity
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        /** @var TblInvoiceItem $Entity */
-        $Entity = $Manager->getEntityById('TblInvoiceItem', $tblInvoiceItem->getId());
+        /** @var TblOrderItem $Entity */
+        $Entity = $Manager->getEntityById('TblOrderItem', $tblOrderItem->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setItemPrice(str_replace(',', '.', $Price));
@@ -480,20 +748,63 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblInvoiceItem $tblInvoiceItem
+     * @param TblOrderItem $tblOrderItem
      *
      * @return bool
      */
-    public function destroyInvoiceItem(
-        TblInvoiceItem $tblInvoiceItem
+    public function destroyOrderItem(
+        TblOrderItem $tblOrderItem
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        $Entity = $Manager->getEntity('TblInvoiceItem')->findOneBy(
+        $Entity = $Manager->getEntity('TblOrderItem')->findOneBy(
             array(
-                'Id' => $tblInvoiceItem->getId()
+                'Id' => $tblOrderItem->getId()
             ));
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblInvoice $tblInvoice
+     *
+     * @return bool
+     */
+    public function destroyInvoice(TblInvoice $tblInvoice)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblInvoice')->findOneBy(
+            array(
+                'Id' => $tblInvoice->getId()
+            ));
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblOrder $tblOrder
+     *
+     * @return bool
+     */
+    public function destroyOrder(TblOrder $tblOrder)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntityById('TblOrder', $tblOrder->getId());
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
@@ -568,20 +879,20 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblInvoice $tblInvoice
+     * @param TblOrder   $tblOrder
      * @param TblAddress $tblAddress
      *
      * @return bool
      */
-    public function updateInvoiceAddress(
-        TblInvoice $tblInvoice,
+    public function updateOrderAddress(
+        TblOrder $tblOrder,
         TblAddress $tblAddress
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        /** @var TblInvoice $Entity */
-        $Entity = $Manager->getEntityById('TblInvoice', $tblInvoice->getId());
+        /** @var TblOrder $Entity */
+        $Entity = $Manager->getEntityById('TblOrder', $tblOrder->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
             $Entity->setServiceManagementAddress($tblAddress);

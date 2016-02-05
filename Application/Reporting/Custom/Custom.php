@@ -2,7 +2,9 @@
 namespace SPHERE\Application\Reporting\Custom;
 
 use SPHERE\Application\IApplicationInterface;
-use SPHERE\Application\Reporting\Custom\Chemnitz\Person\Person;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Reporting\Custom\Chemnitz\Person\Person as ChemnitzPerson;
+use SPHERE\Application\Reporting\Custom\Hormersdorf\Person\Person as HormersdorfPerson;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -18,7 +20,13 @@ class Custom implements IApplicationInterface
     public static function registerApplication()
     {
 
-        Person::registerModule();
+        $consumerAcronym = Consumer::useService()->getConsumerBySession()->getAcronym();
+        if ($consumerAcronym === 'ESZC' || $consumerAcronym === 'DEMO') {
+            ChemnitzPerson::registerModule();
+        }
+        if ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH') {
+            HormersdorfPerson::registerModule();
+        }
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Individual'))

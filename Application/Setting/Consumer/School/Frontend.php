@@ -295,27 +295,22 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Schule', 'Hinzufügen');
         $Stage->addButton(new Standard('Zurück', '/Setting/Consumer/School', new ChevronLeft()));
-        $tblCompanyAll = Company::useService()->getCompanyAll();
-        if (!empty( $tblCompanyAll )) {
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(new Well(
-                                School::useService()->createSchool(
-                                    $this->formSchoolCompanyCreate()
-                                        ->appendFormButton(new Primary('Speichern', new Save()))
-                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
-                                    $Type, $School
-                                )
-                            ))
-                        ), new Title(new PlusSign().' Hinzufügen')
-                    )
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            School::useService()->createSchool(
+                                $this->formSchoolCompanyCreate()
+                                    ->appendFormButton(new Primary('Speichern', new Save()))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
+                                $Type, $School
+                            )
+                        ))
+                    ), new Title(new PlusSign().' Hinzufügen')
                 )
-            );
-        } else {
-            $Stage->setContent(new Warning('Es gibt noch keine Firmen die als Schule eingetragen werden kann.'));
-        }
+            )
+        );
 
         return $Stage;
     }
@@ -335,12 +330,17 @@ class Frontend extends Extension implements IFrontendInterface
         );
         $tblTypeAll = Type::useService()->getTypeAll();
         $tblCompanyAll = Company::useService()->getCompanyAll();
-        array_walk($tblCompanyAll, function (TblCompany &$tblCompany) {
+        $TableContent = array();
+        if ($tblCompanyAll) {
+            array_walk($tblCompanyAll, function (TblCompany $tblCompany) use (&$TableContent) {
 
-            $tblCompany = new PullClear(new RadioBox('School',
-                $tblCompany->getName().' '.new SuccessText($tblCompany->getDescription()),
-                $tblCompany->getId()));
-        });
+                $temp = new PullClear(new RadioBox('School',
+                    $tblCompany->getName().' '.new SuccessText($tblCompany->getDescription()),
+                    $tblCompany->getId()));
+                array_push($TableContent, $temp);
+            });
+        }
+
 
         return new Form(
             new FormGroup(array(
@@ -355,7 +355,12 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                     ), 4),
                     new FormColumn(array(
-                        new Panel($PanelSelectCompanyTitle, $tblCompanyAll, Panel::PANEL_TYPE_INFO, null, 15),
+                        !empty( $TableContent ) ?
+                            new Panel($PanelSelectCompanyTitle, $TableContent, Panel::PANEL_TYPE_INFO, null, 15)
+                            : new Panel($PanelSelectCompanyTitle,
+                            new Warning('Es ist keine Firma vorhanden die als Schule ausgewählt werden kann')
+                            , Panel::PANEL_TYPE_INFO)
+                    ,
                     ), 8),
                 )),
             ))

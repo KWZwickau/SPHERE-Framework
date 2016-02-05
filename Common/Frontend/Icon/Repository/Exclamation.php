@@ -12,7 +12,7 @@ class Exclamation implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'glyphicons glyphicons-circle-exclamation-mark';
+    private $Value = 'glyphicons glyphicons-exclamation-sign';
 
     /**
      * @return string

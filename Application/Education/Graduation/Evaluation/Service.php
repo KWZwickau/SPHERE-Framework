@@ -281,9 +281,9 @@ class Service extends AbstractService
 
         if (!$Error) {
             $tblTestType = $this->getTestTypeById($Task['Type']);
+            $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
             (new Data($this->getBinding()))->createTask(
-                $tblTestType, $Task['Name'], $Task['Date'], $Task['FromDate'],
-                $Task['ToDate']
+                $tblTestType, $Task['Name'], $Task['Date'], $Task['FromDate'], $Task['ToDate'], $tblPeriod ? $tblPeriod : null
             );
             $Stage .= new Success('Notenauftrag erfolgreich angelegt', new \SPHERE\Common\Frontend\Icon\Repository\Success())
                 . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_SUCCESS);
@@ -321,13 +321,15 @@ class Service extends AbstractService
         }
 
         $tblTask = $this->getTaskById($Id);
+        $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
         (new Data($this->getBinding()))->updateTask(
             $tblTask,
             $this->getTestTypeById($Task['Type']),
             $Task['Name'],
             $Task['Date'],
             $Task['FromDate'],
-            $Task['ToDate']
+            $Task['ToDate'],
+            $tblPeriod ? $tblPeriod : null
         );
 
         $Stage .= new Success('Notenauftrag erfolgreich geändert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
@@ -462,6 +464,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getTestAllByTask($tblTask, $tblDivision);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblDivision[]
+     */
+    public function getTestAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getTestAllByDivision($tblDivision);
     }
 
 }

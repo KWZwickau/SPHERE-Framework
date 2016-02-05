@@ -53,10 +53,10 @@ class Style extends Extension
                 $this->setSource('/Common/Style/Bootstrap.css');
         }
 
-        $this->setSource('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_halflings/web/html_css/css/glyphicons-halflings.css');
-        $this->setSource('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons/web/html_css/css/glyphicons.css');
-        $this->setSource('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_filetypes/web/html_css/css/glyphicons-filetypes.css');
-        $this->setSource('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_social/web/html_css/css/glyphicons-social.css');
+        $this->setSource('/Library/Bootstrap.Glyphicons/1.9.2/glyphicons/web/html_css/css/glyphicons.css');
+        $this->setSource('/Library/Bootstrap.Glyphicons/1.9.2/glyphicons-halflings/web/html_css/css/glyphicons-halflings.css');
+        $this->setSource('/Library/Bootstrap.Glyphicons/1.9.2/glyphicons-filetypes/web/html_css/css/glyphicons-filetypes.css');
+        $this->setSource('/Library/Bootstrap.Glyphicons/1.9.2/glyphicons-social/web/html_css/css/glyphicons-social.css');
         $this->setSource('/Library/Foundation.Icons/3.0/foundation-icons.css');
 
         $this->setSource('/Library/jQuery.Selecter/3.2.4/jquery.fs.selecter.min.css', false, true);

@@ -85,6 +85,19 @@ class Data extends AbstractData
     }
 
     /**
+     * @param int $Value
+     *
+     * @return string
+     */
+    public function formatPrice($Value)
+    {
+
+        $Value = round($Value, 2);
+        $Value = sprintf("%01.2f", $Value);
+        return str_replace('.', ',', $Value)." €";
+    }
+
+    /**
      * @param $Name
      * @param $Description
      * @param $Price
@@ -126,12 +139,12 @@ class Data extends AbstractData
 
     /**
      * @param TblItem $tblItem
-     * @param $Name
-     * @param $Description
-     * @param $Price
-     * @param $CostUnit
-     * @param $Course
-     * @param $ChildRank
+     * @param         $Name
+     * @param         $Description
+     * @param         $Price
+     * @param         $CostUnit
+     * @param         $Course
+     * @param         $ChildRank
      *
      * @return bool
      */                         //ToDO $Course, $ChildRank

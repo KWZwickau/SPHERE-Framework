@@ -5,6 +5,7 @@ use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Transfer\Import\Chemnitz\Chemnitz;
 use SPHERE\Application\Transfer\Import\FuxMedia\FuxSchool;
+use SPHERE\Application\Transfer\Import\Hormersdorf\Hormersdorf;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -22,8 +23,11 @@ class Import implements IApplicationInterface
 
         FuxSchool::registerModule();
 
-        if (Consumer::useService()->getConsumerBySession()->getAcronym() == 'ESZC') {
+        $consumerAcronym = Consumer::useService()->getConsumerBySession()->getAcronym();
+        if ($consumerAcronym == 'ESZC') {
             Chemnitz::registerModule();
+        } elseif ($consumerAcronym === 'FEGH' || $consumerAcronym === 'FESH') {
+            Hormersdorf::registerModule();
         }
 
         Main::getDisplay()->addApplicationNavigation(

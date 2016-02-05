@@ -438,10 +438,11 @@ class Data extends AbstractData
 
     /**
      * @param TblTestType $tblTestType
-     * @param             $Name
+     * @param $Name
      * @param null $Date
      * @param null $FromDate
      * @param null $ToDate
+     * @param TblPeriod|null $tblPeriod
      *
      * @return TblTask
      */
@@ -450,7 +451,8 @@ class Data extends AbstractData
         $Name,
         $Date = null,
         $FromDate = null,
-        $ToDate = null
+        $ToDate = null,
+        TblPeriod $tblPeriod = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -461,6 +463,7 @@ class Data extends AbstractData
         $Entity->setDate($Date ? new \DateTime($Date) : null);
         $Entity->setFromDate($FromDate ? new \DateTime($FromDate) : null);
         $Entity->setToDate($ToDate ? new \DateTime($ToDate) : null);
+        $Entity->setServiceTblPeriod($tblPeriod);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -490,6 +493,8 @@ class Data extends AbstractData
      * @param null $Date
      * @param null $FromDate
      * @param null $ToDate
+     * @param TblPeriod $tblPeriod
+     *
      * @return bool
      */
     public function updateTask(
@@ -498,7 +503,8 @@ class Data extends AbstractData
         $Name,
         $Date = null,
         $FromDate = null,
-        $ToDate = null
+        $ToDate = null,
+        TblPeriod $tblPeriod = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -512,6 +518,7 @@ class Data extends AbstractData
             $Entity->setDate($Date ? new \DateTime($Date) : null);
             $Entity->setFromDate($FromDate ? new \DateTime($FromDate) : null);
             $Entity->setToDate($ToDate ? new \DateTime($ToDate) : null);
+            $Entity->setServiceTblPeriod($tblPeriod);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -522,4 +529,17 @@ class Data extends AbstractData
         return false;
     }
 
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return false|TblDivision[]
+     */
+    public function getTestAllByDivision(TblDivision $tblDivision)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest', array(
+            TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
+        ));
+    }
 }

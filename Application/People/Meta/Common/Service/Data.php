@@ -256,6 +256,7 @@ class Data extends AbstractData
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
+
         return false;
     }
 }

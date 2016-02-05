@@ -222,7 +222,7 @@ class Service extends AbstractService
     public function getLeadTimeByDebtor(TblDebtor $tblDebtor)   //ToDO get first/followLeadTime from School
     {
 
-        if (($tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor))) {
+        if (( $tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor) )) {
             if (Invoice::useService()->checkInvoiceFromDebtorIsPaidByDebtor($tblDebtor) ||
                 Balance::useService()->checkPaymentFromDebtorExistsByDebtor($tblDebtor)
             ) {
@@ -282,14 +282,14 @@ class Service extends AbstractService
 
             if ((new Data($this->getBinding()))->removeBanking($tblDebtor)) {
                 return new Success('Der Debitor wurde erfolgreich gelöscht')
-                .new Redirect('/Billing/Accounting/Banking', 1);
+                .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Der Debitor konnte nicht gelöscht werden')
-                .new Redirect('/Billing/Accounting/Banking', 3);
+                .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
             }
         }
         return new Danger('Es bestehen noch offene Rechnungen mit diesem Debitor')
-        .new Redirect('/Billing/Accounting/Banking', 3);
+        .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
     }
 
     /**
@@ -335,11 +335,11 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->removeCommodityToDebtor($tblDebtorCommodity)) {
             return new Success('Die Leistung '.$tblDebtorCommodity->getServiceBillingCommodity()->getName().' wurde erfolgreich entfernt')
-            .new Redirect('/Billing/Accounting/Banking/Commodity/Select', 0,
+            .new Redirect('/Billing/Accounting/Banking/Commodity/Select', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblDebtorCommodity->getTblDebtor()->getId()));
         } else {
             return new Warning('Die Leistung '.$tblDebtorCommodity->getServiceBillingCommodity()->getName().' konnte nicht entfernt werden')
-            .new Redirect('/Billing/Accounting/Banking/Commodity/Select', 3,
+            .new Redirect('/Billing/Accounting/Banking/Commodity/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblDebtorCommodity->getTblDebtor()->getId()));
         }
     }
@@ -355,10 +355,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->addCommodityToDebtor($tblDebtor, $tblCommodity)) {
             return new Success('Die Leistung '.$tblCommodity->getName().' wurde erfolgreich hinzugefügt')
-            .new Redirect('/Billing/Accounting/Banking/Commodity/Select', 0, array('Id' => $tblDebtor->getId()));
+            .new Redirect('/Billing/Accounting/Banking/Commodity/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblDebtor->getId()));
         } else {
             return new Warning('Die Leistung '.$tblCommodity->getName().' konnte nicht hinzugefügt werden')
-            .new Redirect('/Billing/Accounting/Banking/Commodity/Select', 3, array('Id' => $tblDebtor->getId()));
+            .new Redirect('/Billing/Accounting/Banking/Commodity/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblDebtor->getId()));
         }
     }
 
@@ -376,14 +376,14 @@ class Service extends AbstractService
         }
         if ((new Data($this->getBinding()))->deactivateReference($tblReference)) {
             return new Success('Die Deaktivierung ist erfasst worden')
-            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 1,
+            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', Redirect::TIMEOUT_SUCCESS,
                 array(
                     'DebtorId'  => $tblReference->getServiceTblDebtor()->getId(),
                     'AccountId' => $AccountId
                 ));
         } else {
             return new Danger('Die Referenz konnte nicht deaktiviert werden')
-            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 3,
+            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', Redirect::TIMEOUT_ERROR,
                 array(
                     'DebtorId'  => $tblReference->getServiceTblDebtor()->getId(),
                     'AccountId' => $AccountId
@@ -412,10 +412,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->activateAccount($tblAccount)) {
             return new Success('Das Konto wurde als aktives Konto gesetzt')
-            .new Redirect($Path, 1, array('Id' => $IdBack));
+            .new Redirect($Path, Redirect::TIMEOUT_SUCCESS, array('Id' => $IdBack));
         } else {
             return new Warning('Das Konto konte nicht als aktives Konto gesetzt werden')
-            .new Redirect($Path, 10, array('Id' => $IdBack));
+            .new Redirect($Path, Redirect::TIMEOUT_ERROR, array('Id' => $IdBack));
         }
     }
 
@@ -472,10 +472,10 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen sind erfasst')
-                    .new Redirect('/Billing/Accounting/Banking/Debtor/View', 2, array('Id' => $tblDebtor->getId()));
+                    .new Redirect('/Billing/Accounting/Banking/Debtor/View', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblDebtor->getId()));
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Accounting/Banking', 3);
+                    .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
             }
             return $Stage;
         }
@@ -496,10 +496,10 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->changePaymentType($tblDebtor, $tblPaymentType)) {
             return new Success('Die Zahlungsart wurde geändert')
-            .new Redirect('/Billing/Accounting/Banking/Debtor/View', 1, array('Id' => $tblDebtor->getId()));
+            .new Redirect('/Billing/Accounting/Banking/Debtor/View', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblDebtor->getId()));
         } else {
             return new Warning('Die Zahlungsart konnte nicht geändert werden')
-            .new Redirect('/Billing/Accounting/Banking/Debtor/View', 10, array('Id' => $tblDebtor->getId()));
+            .new Redirect('/Billing/Accounting/Banking/Debtor/View', Redirect::TIMEOUT_ERROR, array('Id' => $tblDebtor->getId()));
         }
     }
 
@@ -570,10 +570,10 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen sind erfasst')
-                    .new Redirect('/Billing/Accounting/Banking/Debtor/View', 2, array('Id' => $tblDebtor->getId()));
+                    .new Redirect('/Billing/Accounting/Banking/Debtor/View', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblDebtor->getId()));
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Accounting/Banking', 3);
+                    .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
             }
             return $Stage;
         }
@@ -618,13 +618,13 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen sind erfasst')
-                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 1, array(
+                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', Redirect::TIMEOUT_SUCCESS, array(
                         'DebtorId'  => $DebtorId,
                         'AccountId' => $AccountId
                     ));
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 10, array(
+                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', Redirect::TIMEOUT_ERROR, array(
                         'Id'        => $DebtorId,
                         'AccountId' => $AccountId
                     ));
@@ -676,7 +676,7 @@ class Service extends AbstractService
                 $tblAccount);
 
             return new Success('Die Referenz ist erfasst worden')
-            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 0, array(
+            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', Redirect::TIMEOUT_SUCCESS, array(
                 'DebtorId'  => $tblDebtor->getId(),
                 'AccountId' => $tblAccount->getId()
             ));
@@ -743,7 +743,7 @@ class Service extends AbstractService
 //                    Commodity::useService()->getCommodityById($Debtor['Commodity']));
 //            }
             return new Success('Der Debitor ist erfasst worden')
-            .new Redirect('/Billing/Accounting/Banking', 2);
+            .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_SUCCESS);
         }
         return $Stage;
     }
@@ -801,10 +801,10 @@ class Service extends AbstractService
                 $tblDebtor)
             ) {
                 return new Success('Der Debitor ist erfasst worden')
-                .new Redirect('/Billing/Accounting/Banking/Debtor/View', 1, array('Id' => $tblDebtor->getId()));
+                .new Redirect('/Billing/Accounting/Banking/Debtor/View', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblDebtor->getId()));
             } else {
                 return new Warning('Der Debitor konnte nicht erfasst werden')
-                .new Redirect('/Billing/Accounting/Banking/Debtor/View', 10, array('Id' => $tblDebtor->getId()));
+                .new Redirect('/Billing/Accounting/Banking/Debtor/View', Redirect::TIMEOUT_ERROR, array('Id' => $tblDebtor->getId()));
             }
 
         }

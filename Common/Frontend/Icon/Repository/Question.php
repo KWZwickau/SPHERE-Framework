@@ -12,7 +12,7 @@ class Question implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'glyphicons glyphicons-circle-question-mark';
+    private $Value = 'glyphicons glyphicons-question-sign';
 
     /**
      * @return string

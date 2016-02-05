@@ -9,6 +9,7 @@
 namespace SPHERE\Application\Education\Graduation\Evaluation;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Common\Frontend\Icon\Repository\ClipBoard;
 use SPHERE\Common\Frontend\Icon\Repository\Document;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -37,12 +38,12 @@ class Evaluation implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\DivisionTeacher\Task'),
                 new Link\Name('Notenaufträge (Klassenlehrer)'),
-                new Link\Icon(new Document()))
+                new Link\Icon(new ClipBoard()))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\Headmaster\Task'),
                 new Link\Name('Notenaufträge'),
-                new Link\Icon(new Document()))
+                new Link\Icon(new ClipBoard()))
         );
 
         Main::getDispatcher()->registerRoute(

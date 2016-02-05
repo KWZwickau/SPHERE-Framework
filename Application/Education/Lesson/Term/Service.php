@@ -4,6 +4,7 @@ namespace SPHERE\Application\Education\Lesson\Term;
 use SPHERE\Application\Education\Lesson\Term\Service\Data;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
+use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYearPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -66,6 +67,48 @@ class Service extends AbstractService
     {
 
         $Now = (new \DateTime('now'))->sub(new \DateInterval('P'.$Year.'Y'));
+
+        $EntityList = array();
+        $tblYearAll = Term::useService()->getYearAll();
+        if ($tblYearAll) {
+            foreach ($tblYearAll as $tblYear) {
+                $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
+                if ($tblPeriodList) {
+                    $To = '';
+                    $tblPeriodTemp = new TblPeriod();
+                    foreach ($tblPeriodList as $tblPeriod) {
+                        if (new \DateTime($tblPeriod->getToDate()) > new \DateTime($To) || $To == '') {
+                            $To = $tblPeriod->getToDate();
+                        }
+                        if ($tblPeriod) {
+                            $tblPeriodTemp = $tblPeriod;
+                        }
+                    }
+                    if (new \DateTime($To) >= new \DateTime($Now->format('d.m.Y'))) {
+                        $tblYearTempList = Term::useService()->getYearByPeriod($tblPeriodTemp);
+                        if ($tblYearTempList) {
+                            foreach ($tblYearTempList as $tblYearTemp) {
+                                /** @var TblYear $tblYearTemp */
+                                $EntityList[$tblYearTemp->getId()] = $tblYearTemp;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $EntityList = array_filter($EntityList);
+
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
+    /**
+     * @param int $Year
+     *
+     * @return bool|TblYear[]
+     */
+    public function getYearAllFutureYears($Year)
+    {
+
+        $Now = (new \DateTime('now'))->add(new \DateInterval('P'.$Year.'Y'));
 
         $EntityList = array();
         $tblYearAll = Term::useService()->getYearAll();
@@ -556,6 +599,44 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPeriodExistWithYear($tblPeriod);
+    }
+
+    /**
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return TblYear
+     */
+    public function insertYear($Name, $Description = '')
+    {
+
+        return (new Data($this->getBinding()))->createYear($Name, $Description);
+    }
+
+    /**
+     * @param string $Name
+     * @param string $From
+     * @param string $To
+     * @param string $Description
+     *
+     * @return TblPeriod
+     */
+    public function insertPeriod($Name, $From, $To, $Description = '')
+    {
+
+        return (new Data($this->getBinding()))->createPeriod($Name, $From, $To, $Description);
+    }
+
+    /**
+     * @param TblYear   $tblYear
+     * @param TblPeriod $tblPeriod
+     *
+     * @return TblYearPeriod
+     */
+    public function insertYearPeriod(TblYear $tblYear, TblPeriod $tblPeriod)
+    {
+
+        return (new Data($this->getBinding()))->addYearPeriod($tblYear, $tblPeriod);
     }
 
 }

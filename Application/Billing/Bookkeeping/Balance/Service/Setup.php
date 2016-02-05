@@ -47,8 +47,8 @@ class Setup extends AbstractSetup
 
         $Table = $this->getConnection()->createTable($Schema, 'tblBalance');
 
-        if (!$this->getConnection()->hasColumn('tblBalance', 'serviceBilling_Banking')) {
-            $Table->addColumn('serviceBilling_Banking', 'bigint');
+        if (!$this->getConnection()->hasColumn('tblBalance', 'serviceBilling_Debtor')) {
+            $Table->addColumn('serviceBilling_Debtor', 'bigint');
         }
         if (!$this->getConnection()->hasColumn('tblBalance', 'serviceBilling_Invoice')) {
             $Table->addColumn('serviceBilling_Invoice', 'bigint');
@@ -70,6 +70,9 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblBalance', 'CashSign')) {
             $Table->addColumn('CashSign', 'string', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblBalance', 'Reference')) {
+            $Table->addColumn('Reference', 'string', array('notnull' => false));
         }
 
         return $Table;
