@@ -21,14 +21,24 @@ use SPHERE\Application\Platform\System;
 use SPHERE\Application\Reporting\Reporting;
 use SPHERE\Application\Setting\Setting;
 use SPHERE\Application\Transfer\Transfer;
+use SPHERE\Common\Frontend\Icon\Repository\HazardSign;
+use SPHERE\Common\Frontend\Icon\Repository\Hospital;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Shield;
+use SPHERE\Common\Frontend\Icon\Repository\Success;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Window\Display;
 use SPHERE\Common\Window\Error;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Redirect;
+use SPHERE\Common\Window\Stage;
 use SPHERE\System\Authenticator\Authenticator;
 use SPHERE\System\Authenticator\Type\Get;
 use SPHERE\System\Authenticator\Type\Post;
@@ -287,22 +297,37 @@ class Main extends Extension
         $Protocol = (new System\Database\Database())->frontendSetup(false, true);
 
         $Display = new Display();
-        $Display->setContent(
-            new Layout(new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(array(
-                        ( $Exception
-                            ? new Error('Automatische Reparatur', $Exception->getMessage())
-                            : ''
-                        ),
-                        (new Frontend\Message\Repository\Success('Es wird eine automatische Reparatur durchgeführt. Sollte der Fehler damit nicht behoben werden, senden Sie bitte einen Fehlerbericht.')),
-                        (new Redirect(self::getRequest()->getPathInfo(), 10))
+        $Stage = new Stage(new Danger(new Hospital()).' Automatische Reparatur', 'Datenintegrität');
+        $Stage->setMessage('Diese automatische Fehlerbehebung wird immer dann ausgeführt wenn die Integrität der gespeicherten Daten gefährdet sein könnte');
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(array(
+                            new Panel('Was ist das?', array(
+                                (new Frontend\Message\Repository\Info(new Shield().' Es wird eine automatische Reparatur der Datenbank und eine Überprüfung der Daten durchgeführt')),
+                                (new Frontend\Message\Repository\Success(new Success().' Sollte die gleiche Fehlermeldung nach einem erneuten Seitenaufruf nicht wieder auftauchen ist das Problem behoben worden')),
+                                (new Frontend\Message\Repository\Danger(new HazardSign().' Sollte der Fehler damit nicht behoben werden, senden Sie bitte den angezeigten Fehlerbericht')),
+                                (new Frontend\Message\Repository\Warning(new Info().' Bitte senden Sie den Bericht nur, wenn der '.new Bold('gleiche').' Fehler mehrfach auftritt. Sollte '.new Bold('kein').' Bericht verfügbar sein, wenden Sie sich bitte direkt an den Support.')),
+                            ), Panel::PANEL_TYPE_PRIMARY,
+                                new PullRight(strip_tags((new Redirect(self::getRequest()->getPathInfo(), 110)),
+                                    '<div><a><script><span>'))
+                            ),
+                            ( $Exception
+                                ? new Panel('', array(
+                                    new Error('Datenintegritätsprüfung', $Exception->getMessage()),
+                                    $Protocol
+                                ))
+                                : ''
+                            )
+                        ))
                     )
-                    , 6),
-                new LayoutColumn(
-                    $Protocol
-                    , 6)
-            ))))
+                )
+            )
         );
+
+        $Display->setContent($Stage);
+
         echo $Display->getContent(true);
         exit( 0 );
     }
