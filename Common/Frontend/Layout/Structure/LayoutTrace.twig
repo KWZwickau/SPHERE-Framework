@@ -1,11 +1,21 @@
 {% if(TraceList is not empty) %}
-<ol class="breadcrumb">
-    {% for Index, Step in TraceList %}
-        {% if(Index == TraceList|length) %}
-            <li class="active">{{ Step }}</li>
+    <ol class="breadcrumb">
+
+        {% set Link = '' %}
+        {% set Count = 0 %}
+
+        {% for Index, Step in TraceList %}
+
+            {% set Count = Count + 1 %}
+            {% set Link = Link ~ '/' ~ Index %}
+
+            {% if(Count == TraceList|length) %}
+                <li><a href="{{ Link }}">{{ Step }}</a></li>
             {% else %}
-                <li>{{ Step }}</li>
+                <li class="active">{{ Step }}</li>
             {% endif %}
+
         {% endfor %}
-</ol>
+
+    </ol>
 {% endif %}
