@@ -35,6 +35,7 @@ use Doctrine\ORM\ORMInvalidArgumentException;
  */
 class DefaultCache implements Cache
 {
+
     /**
      * @var \Doctrine\ORM\EntityManagerInterface
      */
@@ -145,6 +146,7 @@ class DefaultCache implements Cache
      */
     private function toIdentifierArray(ClassMetadata $metadata, $identifier)
     {
+
         if (is_object($identifier) && $this->em->getMetadataFactory()->hasMetadataFor(ClassUtils::getClass($identifier))) {
             $identifier = $this->uow->getSingleIdentifierValue($identifier);
 
@@ -193,6 +195,7 @@ class DefaultCache implements Cache
      */
     public function evictEntityRegions()
     {
+
         $metadatas = $this->em->getMetadataFactory()->getAllMetadata();
 
         foreach ($metadatas as $metadata) {
@@ -277,6 +280,7 @@ class DefaultCache implements Cache
      */
     public function evictCollectionRegions()
     {
+
         $metadatas = $this->em->getMetadataFactory()->getAllMetadata();
 
         foreach ($metadatas as $metadata) {
@@ -312,6 +316,7 @@ class DefaultCache implements Cache
      */
     public function evictQueryRegion($regionName = null)
     {
+
         if ($regionName === null && $this->defaultQueryCache !== null) {
             $this->defaultQueryCache->clear();
 
@@ -328,6 +333,7 @@ class DefaultCache implements Cache
      */
     public function evictQueryRegions()
     {
+
         $this->getQueryCache()->clear();
 
         foreach ($this->queryCaches as $queryCache) {
@@ -340,6 +346,7 @@ class DefaultCache implements Cache
      */
     public function getQueryCache($regionName = null)
     {
+
         if ($regionName === null) {
             return $this->defaultQueryCache ?:
                 $this->defaultQueryCache = $this->cacheFactory->buildQueryCache($this->em);

@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class ConditionalExpression extends Node
 {
+
     /**
      * @var array
      */
@@ -40,6 +41,7 @@ class ConditionalExpression extends Node
      */
     public function __construct(array $conditionalTerms)
     {
+
         $this->conditionalTerms = $conditionalTerms;
     }
 
@@ -48,6 +50,7 @@ class ConditionalExpression extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkConditionalExpression($this);
     }
 }

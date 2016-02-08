@@ -18,6 +18,7 @@
  */
 
 namespace Doctrine\ORM\Persisters\Entity;
+
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\ResultSetMapping;
 
@@ -34,6 +35,7 @@ use Doctrine\ORM\Query\ResultSetMapping;
  */
 class CachedPersisterContext
 {
+
     /**
      * Metadata object that describes the mapping of the mapped entity class.
      *

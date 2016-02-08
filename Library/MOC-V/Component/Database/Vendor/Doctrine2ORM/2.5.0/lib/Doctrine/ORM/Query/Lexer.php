@@ -25,10 +25,11 @@ namespace Doctrine\ORM\Query;
  * @author Guilherme Blanco <guilhermeblanco@hotmail.com>
  * @author Janne Vanhala <jpvanhal@cc.hut.fi>
  * @author Roman Borschel <roman@code-factory.org>
- * @since 2.0
+ * @since  2.0
  */
 class Lexer extends \Doctrine\Common\Lexer
 {
+
     // All tokens that are not valid identifiers must be < 100
     const T_NONE = 1;
     const T_INTEGER = 2;
@@ -117,6 +118,7 @@ class Lexer extends \Doctrine\Common\Lexer
      */
     public function __construct($input)
     {
+
         $this->setInput($input);
     }
 
@@ -125,6 +127,7 @@ class Lexer extends \Doctrine\Common\Lexer
      */
     protected function getCatchablePatterns()
     {
+
         return array(
             '[a-z_\\\][a-z0-9_\:\\\]*[a-z0-9_]{1}',
             '(?:[0-9]+(?:[\.][0-9]+)*)(?:e[+-]?[0-9]+)?',
@@ -138,6 +141,7 @@ class Lexer extends \Doctrine\Common\Lexer
      */
     protected function getNonCatchablePatterns()
     {
+
         return array('\s+', '(.)');
     }
 
@@ -146,6 +150,7 @@ class Lexer extends \Doctrine\Common\Lexer
      */
     protected function getType(&$value)
     {
+
         $type = self::T_NONE;
 
         switch (true) {

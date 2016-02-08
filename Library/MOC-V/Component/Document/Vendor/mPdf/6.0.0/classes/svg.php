@@ -3785,7 +3785,7 @@ $md = $sy * cos($t);
                             $svg_class->textoutput .= $p_cmd;
                         }
 
-                    $tmp = count($svg_class->svg_style) - 1;
+                        $tmp = count($svg_class->svg_style) - 1;
                         $current_style = $svg_class->svg_style[$tmp];
                         if ($current_style['transformations']) {
                             // If in the middle of <text> element, add to textoutput, else WriteString
@@ -3796,8 +3796,8 @@ $md = $sy * cos($t);
                                 $svg_class->svgWriteString(" Q\n");
                             }
                         }
-                    array_pop($svg_class->svg_style);
-                    array_pop($svg_class->txt_style);
+                        array_pop($svg_class->svg_style);
+                        array_pop($svg_class->txt_style);
                         if ($svg_class->intext) {
                             $svg_class->textXorigin += $svg_class->textlength;
                             $svg_class->textlength = 0;

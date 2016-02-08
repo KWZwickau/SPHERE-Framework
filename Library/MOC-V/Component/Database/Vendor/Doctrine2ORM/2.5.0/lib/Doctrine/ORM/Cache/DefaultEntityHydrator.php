@@ -34,6 +34,7 @@ use Doctrine\ORM\Utility\IdentifierFlattener;
  */
 class DefaultEntityHydrator implements EntityHydrator
 {
+
     /**
      * @var array
      */
@@ -69,6 +70,7 @@ class DefaultEntityHydrator implements EntityHydrator
      */
     public function buildCacheEntry(ClassMetadata $metadata, EntityCacheKey $key, $entity)
     {
+
         $data = $this->uow->getOriginalEntityData($entity);
         $data = array_merge($data, $key->identifier); // why update has no identifier values ?
 

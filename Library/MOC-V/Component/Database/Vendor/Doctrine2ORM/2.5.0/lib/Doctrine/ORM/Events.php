@@ -25,10 +25,11 @@ namespace Doctrine\ORM;
  * This class cannot be instantiated.
  *
  * @author Roman Borschel <roman@code-factory.org>
- * @since 2.0
+ * @since  2.0
  */
 final class Events
 {
+
     /**
      * The preRemove event occurs for a given entity before the respective
      * EntityManager remove operation for that entity is executed.

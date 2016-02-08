@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class InputParameter extends Node
 {
+
     /**
      * @var bool
      */
@@ -47,6 +48,7 @@ class InputParameter extends Node
      */
     public function __construct($value)
     {
+
         if (strlen($value) == 1) {
             throw \Doctrine\ORM\Query\QueryException::invalidParameterFormat($value);
         }
@@ -61,6 +63,7 @@ class InputParameter extends Node
      */
     public function dispatch($walker)
     {
+
         return $walker->walkInputParameter($this);
     }
 }

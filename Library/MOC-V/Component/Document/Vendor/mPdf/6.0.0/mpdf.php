@@ -3596,26 +3596,26 @@ class mPDF
             $this->fonts[$fontkey] = array(
                 'i'                => $i,
                 'type'             => $type,
-                'name'             => $name,
-                'desc'             => $desc,
-                'panose'           => $panose,
-                'unitsPerEm'       => $unitsPerEm,
-                'up'               => $up,
-                'ut'               => $ut,
-                'strs'             => $strs,
-                'strp'             => $strp,
-                'cw'               => $cw,
-                'ttffile'          => $ttffile,
-                'fontkey'          => $fontkey,
+                'name'          => $name,
+                'desc'          => $desc,
+                'panose'        => $panose,
+                'unitsPerEm'    => $unitsPerEm,
+                'up'            => $up,
+                'ut'            => $ut,
+                'strs'          => $strs,
+                'strp'          => $strp,
+                'cw'            => $cw,
+                'ttffile'       => $ttffile,
+                'fontkey'       => $fontkey,
                 'subsets'       => array(0 => range(0, 127)),
                 'subsetfontids' => array($i),
-                'used'             => false,
-                'sip'              => $sip,
-                'sipext'           => $sipext,
-                'smp'              => $smp,
-                'TTCfontID'        => $TTCfontID,
-                'useOTL'           => ( isset( $this->fontdata[$family]['useOTL'] ) ? $this->fontdata[$family]['useOTL'] : false ),
-                'useKashida'       => ( isset( $this->fontdata[$family]['useKashida'] ) ? $this->fontdata[$family]['useKashida'] : false ),
+                'used'          => false,
+                'sip'           => $sip,
+                'sipext'        => $sipext,
+                'smp'           => $smp,
+                'TTCfontID'     => $TTCfontID,
+                'useOTL'        => ( isset( $this->fontdata[$family]['useOTL'] ) ? $this->fontdata[$family]['useOTL'] : false ),
+                'useKashida'    => ( isset( $this->fontdata[$family]['useKashida'] ) ? $this->fontdata[$family]['useKashida'] : false ),
                 'GSUBScriptLang'   => $GSUBScriptLang,
                 'GSUBFeatures'     => $GSUBFeatures,
                 'GSUBLookups'      => $GSUBLookups,
@@ -14090,7 +14090,7 @@ class mPDF
                     // bgcolor only - to stay consistent with original html2fpdf
                     case 'BACKGROUND':
                     case 'BACKGROUND-COLOR':
-                    $cor = $this->ConvertColor($v);
+                        $cor = $this->ConvertColor($v);
                         if ($cor) {
                             if ($tag == 'BODY') {
                                 $this->bodyBackgroundColor = $cor;
@@ -14188,7 +14188,7 @@ class mPDF
                     switch (strtoupper($v)) {
                         case 'ITALIC':
                         case 'OBLIQUE':
-                        $this->SetStyle('I', true);
+                            $this->SetStyle('I', true);
                             break;
                         case 'NORMAL':
                             $this->SetStyle('I', false);
@@ -14501,7 +14501,7 @@ class mPDF
 
                 case 'TEXT-OUTLINE-WIDTH':
                 case 'OUTLINE-WIDTH':
-                switch (strtoupper($v)) {
+                    switch (strtoupper($v)) {
                         case 'THIN':
                             $v = '0.03em';
                             break;
@@ -14512,7 +14512,7 @@ class mPDF
                             $v = '0.07em';
                             break;
                     }
-                $w = $this->ConvertSize($v, $this->FontSize, $this->FontSize);
+                    $w = $this->ConvertSize($v, $this->FontSize, $this->FontSize);
                     if ($w) {
                         $this->textparam['outline-WIDTH'] = $w;
                         $this->textparam['outline-s'] = true;
@@ -14523,7 +14523,7 @@ class mPDF
 
                 case 'TEXT-OUTLINE-COLOR':
                 case 'OUTLINE-COLOR':
-                if (strtoupper($v) == 'INVERT') {
+                    if (strtoupper($v) == 'INVERT') {
                         if ($this->colorarray) {
                             $cor = $this->colorarray;
                             $this->textparam['outline-COLOR'] = $this->_invertColor($cor);
@@ -14531,7 +14531,7 @@ class mPDF
                             $this->textparam['outline-COLOR'] = $this->ConvertColor(255);
                         }
                     } else {
-                    $cor = $this->ConvertColor($v);
+                        $cor = $this->ConvertColor($v);
                         if ($cor) {
                             $this->textparam['outline-COLOR'] = $cor;
                         }
@@ -18402,7 +18402,7 @@ class mPDF
                             'R'          => false,
                             'nowrap'     => false,
                             'bgcolor'    => false,
-                            'padding' => array('L' => false, 'R' => false, 'T' => false, 'B' => false),
+                            'padding'    => array('L' => false, 'R' => false, 'T' => false, 'B' => false),
                             'gradient'   => false,
                             's'          => 0,
                             'maxs'       => 0,
@@ -28531,24 +28531,24 @@ class mPDF
                             case 'upper-alpha':
                             case 'upper-latin':
                             case 'A':
-                            $blt = $this->dec2alpha($this->listcounter[$this->listlvl],
-                                    true).$this->list_number_suffix;
+                                $blt = $this->dec2alpha($this->listcounter[$this->listlvl],
+                                        true).$this->list_number_suffix;
                                 break;
                             case 'lower-alpha':
                             case 'lower-latin':
                             case 'a':
-                            $blt = $this->dec2alpha($this->listcounter[$this->listlvl],
-                                    false).$this->list_number_suffix;
+                                $blt = $this->dec2alpha($this->listcounter[$this->listlvl],
+                                        false).$this->list_number_suffix;
                                 break;
                             case 'upper-roman':
                             case 'I':
-                            $blt = $this->dec2roman($this->listcounter[$this->listlvl],
-                                    true).$this->list_number_suffix;
+                                $blt = $this->dec2roman($this->listcounter[$this->listlvl],
+                                        true).$this->list_number_suffix;
                                 break;
                             case 'lower-roman':
                             case 'i':
-                            $blt = $this->dec2roman($this->listcounter[$this->listlvl],
-                                    false).$this->list_number_suffix;
+                                $blt = $this->dec2roman($this->listcounter[$this->listlvl],
+                                        false).$this->list_number_suffix;
                                 break;
                             case 'decimal':
                             case '1':
@@ -30084,7 +30084,7 @@ class mPDF
                     case 'BUTTON': // Draw a button
                     case 'SUBMIT':
                     case 'RESET':
-                    $type = strtoupper($attr['TYPE']);
+                        $type = strtoupper($attr['TYPE']);
                         if ($type == 'IMAGE') {
                             $type = 'BUTTON';
                         } // src path not found
@@ -30096,7 +30096,7 @@ class mPDF
                         }
 
                         $texto = " ".$objattr['value']." ";
-                    $width = $this->GetStringWidth($texto) + ( $this->mpdfform->form_element_spacing['button']['outer']['h'] * 2 ) + ( $this->mpdfform->form_element_spacing['button']['inner']['h'] * 2 );
+                        $width = $this->GetStringWidth($texto) + ( $this->mpdfform->form_element_spacing['button']['outer']['h'] * 2 ) + ( $this->mpdfform->form_element_spacing['button']['inner']['h'] * 2 );
                         $height = $this->FontSize + ( $this->mpdfform->form_element_spacing['button']['outer']['v'] * 2 ) + ( $this->mpdfform->form_element_spacing['button']['inner']['v'] * 2 );
                         if ($this->useActiveForms) {
                             if (isset( $attr['ONCLICK'] )) {
@@ -30111,7 +30111,7 @@ class mPDF
                         if ($type == '') {
                             $type = 'TEXT';
                         }
-                    if (strtoupper($attr['TYPE']) == 'PASSWORD') {
+                        if (strtoupper($attr['TYPE']) == 'PASSWORD') {
                             $type = 'PASSWORD';
                         }
                         if (isset( $attr['VALUE'] )) {
@@ -30129,11 +30129,11 @@ class mPDF
                         } else {
                             $width = ( 20 * $spacesize ) + $xw;
                         }    // Default width in chars
-                    if (isset( $attr['SIZE'] ) and ctype_digit($attr['SIZE'])) {
+                        if (isset( $attr['SIZE'] ) and ctype_digit($attr['SIZE'])) {
                             $width = ( $attr['SIZE'] * $spacesize ) + $xw;
                         }
                         $height = $this->FontSize + $xh;
-                    if (isset( $attr['MAXLENGTH'] ) and ctype_digit($attr['MAXLENGTH'])) {
+                        if (isset( $attr['MAXLENGTH'] ) and ctype_digit($attr['MAXLENGTH'])) {
                             $objattr['maxlength'] = $attr['MAXLENGTH'];
                         }
                         if ($this->useActiveForms) {
@@ -31910,8 +31910,8 @@ class mPDF
 
             if (isset( $properties['HEIGHT'] ) && !strpos($properties['HEIGHT'], '%')) {
                 $c['h'] = $this->ConvertSize($properties['HEIGHT'], $this->blk[$this->blklvl]['inner_width'],
-                    $this->FontSize, false);
-                } else {
+                        $this->FontSize, false);
+            } else {
                 if (isset( $attr['HEIGHT'] ) && !strpos($attr['HEIGHT'], '%')) {
                     $c['h'] = $this->ConvertSize($attr['HEIGHT'], $this->blk[$this->blklvl]['inner_width'],
                         $this->FontSize, false);
@@ -39060,7 +39060,7 @@ class mPDF
             case PDF_TYPE_TOKEN :
                 // A numeric value or a token.
                 // Simply output them
-            $this->_out($value[1]." ", false);
+                $this->_out($value[1]." ", false);
                 break;
 
             case PDF_TYPE_ARRAY :
@@ -41033,7 +41033,7 @@ class mPDF
         switch ($currblk['list_style_type']) {
             case 'decimal':
             case '1':
-            $blt_width = $this->GetStringWidth(str_repeat('5', strlen($maxnum)).$this->list_number_suffix);
+                $blt_width = $this->GetStringWidth(str_repeat('5', strlen($maxnum)).$this->list_number_suffix);
                 break;
             case 'none':
                 $blt_width = 0;
@@ -41041,7 +41041,7 @@ class mPDF
             case 'upper-alpha':
             case 'upper-latin':
             case 'A':
-            $maxnumA = $this->dec2alpha($maxnum, true);
+                $maxnumA = $this->dec2alpha($maxnum, true);
                 if ($maxnum < 13) {
                     $blt_width = $this->GetStringWidth('D'.$this->list_number_suffix);
                 } else {
@@ -41052,7 +41052,7 @@ class mPDF
             case 'lower-alpha':
             case 'lower-latin':
             case 'a':
-            $maxnuma = $this->dec2alpha($maxnum, false);
+                $maxnuma = $this->dec2alpha($maxnum, false);
                 if ($maxnum < 13) {
                     $blt_width = $this->GetStringWidth('b'.$this->list_number_suffix);
                 } else {
@@ -41107,8 +41107,8 @@ class mPDF
                         }
                     }
                 }
-            $maxlnum = $this->dec2roman($bbit, true);
-            $blt_width = $this->GetStringWidth($maxlnum.$this->list_number_suffix);
+                $maxlnum = $this->dec2roman($bbit, true);
+                $blt_width = $this->GetStringWidth($maxlnum.$this->list_number_suffix);
                 break;
             case 'lower-roman':
             case 'i':
@@ -41157,15 +41157,15 @@ class mPDF
                         }
                     }
                 }
-            $maxlnum = $this->dec2roman($bbit, false);
-            $blt_width = $this->GetStringWidth($maxlnum.$this->list_number_suffix);
+                $maxlnum = $this->dec2roman($bbit, false);
+                $blt_width = $this->GetStringWidth($maxlnum.$this->list_number_suffix);
                 break;
 
             case 'disc':
             case 'circle':
             case 'square':
-            $size = $this->ConvertSize($this->list_symbol_size, $this->FontSize);
-            $offset = $this->ConvertSize($this->list_marker_offset, $this->FontSize);
+                $size = $this->ConvertSize($this->list_symbol_size, $this->FontSize);
+                $offset = $this->ConvertSize($this->list_marker_offset, $this->FontSize);
                 $blt_width = $size + $offset;
                 break;
 
@@ -41175,8 +41175,8 @@ class mPDF
                 break;
             case 'persian':
             case 'urdu':
-            $blt_width = $this->GetStringWidth(str_repeat($this->dec2other(3, 0x06F0),
-                    strlen($maxnum)).$this->list_number_suffix);
+                $blt_width = $this->GetStringWidth(str_repeat($this->dec2other(3, 0x06F0),
+                        strlen($maxnum)).$this->list_number_suffix);
                 break;
             case 'bengali':
                 $blt_width = $this->GetStringWidth(str_repeat($this->dec2other(3, 0x09E6),
@@ -42619,13 +42619,13 @@ class mPDF
             case 'D':
             default:
                 //Download file
-            if (isset( $_SERVER['HTTP_USER_AGENT'] ) and strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE')) {
-                Header('Content-Type: application/force-download');
+                if (isset( $_SERVER['HTTP_USER_AGENT'] ) and strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE')) {
+                    Header('Content-Type: application/force-download');
                 } else {
-                Header('Content-Type: application/octet-stream');
+                    Header('Content-Type: application/octet-stream');
                 }
-            Header('Content-Length: '.strlen($pdf));
-            Header('Content-disposition: attachment; filename='.$file_out);
+                Header('Content-Length: '.strlen($pdf));
+                Header('Content-disposition: attachment; filename='.$file_out);
                 echo $pdf;
                 break;
         }

@@ -1962,10 +1962,10 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
                 case T_COMMENT:
                 case T_DOC_COMMENT:
                     $docblock = $tokenStream->getTokenValue();
-                if (preg_match('~^'.preg_quote(self::DOCBLOCK_TEMPLATE_START, '~').'~', $docblock)) {
-                    array_unshift($this->docblockTemplates, new ReflectionAnnotation($this, $docblock));
+                    if (preg_match('~^'.preg_quote(self::DOCBLOCK_TEMPLATE_START, '~').'~', $docblock)) {
+                        array_unshift($this->docblockTemplates, new ReflectionAnnotation($this, $docblock));
                     } elseif (self::DOCBLOCK_TEMPLATE_END === $docblock) {
-                    array_shift($this->docblockTemplates);
+                        array_shift($this->docblockTemplates);
                     }
                     $tokenStream->next();
                     break;
@@ -1977,7 +1977,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
                 case T_STATIC:
                 case T_VAR:
                 case T_VARIABLE:
-                static $searching = array(T_VARIABLE => true, T_FUNCTION => true);
+                    static $searching = array(T_VARIABLE => true, T_FUNCTION => true);
 
                     if (T_VAR !== $tokenStream->getType()) {
                         $position = $tokenStream->key();
@@ -1996,7 +1996,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
                 case T_FINAL:
                 case T_ABSTRACT:
                 case T_FUNCTION:
-                $method = new ReflectionMethod($tokenStream, $this->getBroker(), $this);
+                    $method = new ReflectionMethod($tokenStream, $this->getBroker(), $this);
                     $this->methods[$method->getName()] = $method;
                     $tokenStream->next();
                     break;

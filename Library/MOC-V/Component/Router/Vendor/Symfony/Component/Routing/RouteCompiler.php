@@ -175,9 +175,9 @@ class RouteCompiler implements RouteCompilerInterface
 
         return array(
             'staticPrefix' => 'text' === $tokens[0][0] ? $tokens[0][1] : '',
-            'regex'     => self::REGEX_DELIMITER.'^'.$regexp.'$'.self::REGEX_DELIMITER.'s',
-            'tokens'    => array_reverse($tokens),
-            'variables' => $variables,
+            'regex'        => self::REGEX_DELIMITER.'^'.$regexp.'$'.self::REGEX_DELIMITER.'s',
+            'tokens'       => array_reverse($tokens),
+            'variables'    => $variables,
         );
     }
 

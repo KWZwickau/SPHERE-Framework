@@ -22,7 +22,7 @@ namespace Doctrine\ORM\Query\AST;
 /**
  * CollectionMemberExpression ::= EntityExpression ["NOT"] "MEMBER" ["OF"] CollectionValuedPathExpression
  *
- * 
+ *
  * @link    www.doctrine-project.org
  * @since   2.0
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -31,6 +31,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class CollectionMemberExpression extends Node
 {
+
     public $entityExpression;
 
     /**
@@ -49,6 +50,7 @@ class CollectionMemberExpression extends Node
      */
     public function __construct($entityExpr, $collValuedPathExpr)
     {
+
         $this->entityExpression = $entityExpr;
         $this->collectionValuedPathExpression = $collValuedPathExpr;
     }
@@ -58,6 +60,7 @@ class CollectionMemberExpression extends Node
      */
     public function dispatch($walker)
     {
+
         return $walker->walkCollectionMemberExpression($this);
     }
 }

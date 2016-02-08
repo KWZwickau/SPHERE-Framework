@@ -31,6 +31,7 @@ use Doctrine\ORM\Query\ResultSetMapping;
  */
 interface QueryCache
 {
+
     /**
      * @return boolean
      */

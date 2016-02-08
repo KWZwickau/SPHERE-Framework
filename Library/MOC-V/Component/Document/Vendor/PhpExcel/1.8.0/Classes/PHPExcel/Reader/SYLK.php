@@ -153,11 +153,11 @@ class PHPExcel_Reader_SYLK extends PHPExcel_Reader_Abstract implements PHPExcel_
                     switch ($rowDatum{0}) {
                         case 'C' :
                         case 'X' :
-                        $columnIndex = substr($rowDatum, 1) - 1;
+                            $columnIndex = substr($rowDatum, 1) - 1;
                             break;
                         case 'R' :
                         case 'Y' :
-                        $rowIndex = substr($rowDatum, 1);
+                            $rowIndex = substr($rowDatum, 1);
                             break;
                     }
 
@@ -277,7 +277,7 @@ class PHPExcel_Reader_SYLK extends PHPExcel_Reader_Abstract implements PHPExcel_
                             break;
                         case 'E' :
                         case 'F' :
-                        $formatArray['font']['name'] = substr($rowDatum, 1);
+                            $formatArray['font']['name'] = substr($rowDatum, 1);
                             break;
                         case 'L' :
                             $formatArray['font']['size'] = substr($rowDatum, 1);
@@ -318,11 +318,11 @@ class PHPExcel_Reader_SYLK extends PHPExcel_Reader_Abstract implements PHPExcel_
                     switch ($rowDatum{0}) {
                         case 'C' :
                         case 'X' :
-                        $column = substr($rowDatum, 1);
+                            $column = substr($rowDatum, 1);
                             break;
                         case 'R' :
                         case 'Y' :
-                        $row = substr($rowDatum, 1);
+                            $row = substr($rowDatum, 1);
                             break;
                         case 'K' :
                             $cellData = substr($rowDatum, 1);
@@ -393,11 +393,11 @@ class PHPExcel_Reader_SYLK extends PHPExcel_Reader_Abstract implements PHPExcel_
                     switch ($rowDatum{0}) {
                         case 'C' :
                         case 'X' :
-                        $column = substr($rowDatum, 1);
+                            $column = substr($rowDatum, 1);
                             break;
                         case 'R' :
                         case 'Y' :
-                        $row = substr($rowDatum, 1);
+                            $row = substr($rowDatum, 1);
                             break;
                         case 'P' :
                             $formatStyle = $rowDatum;
@@ -460,11 +460,11 @@ class PHPExcel_Reader_SYLK extends PHPExcel_Reader_Abstract implements PHPExcel_
                     switch ($rowDatum{0}) {
                         case 'C' :
                         case 'X' :
-                        $column = substr($rowDatum, 1);
+                            $column = substr($rowDatum, 1);
                             break;
                         case 'R' :
                         case 'Y' :
-                        $row = substr($rowDatum, 1);
+                            $row = substr($rowDatum, 1);
                             break;
                     }
                 }

@@ -25,6 +25,7 @@ namespace Doctrine\ORM\Mapping;
  */
 final class ChangeTrackingPolicy implements Annotation
 {
+
     /**
      * The change tracking policy.
      *

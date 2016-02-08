@@ -79,12 +79,12 @@ function smarty_function_html_checkboxes($params, $template)
 
             case 'values':
             case 'output':
-            $$_key = array_values((array)$_val);
+                $$_key = array_values((array)$_val);
                 break;
 
             case 'checked':
             case 'selected':
-            if (is_array($_val)) {
+                if (is_array($_val)) {
                     $selected = array();
                     foreach ($_val as $_sel) {
                         if (is_object($_sel)) {
@@ -100,15 +100,15 @@ function smarty_function_html_checkboxes($params, $template)
                         }
                         $selected[$_sel] = true;
                     }
-            } elseif (is_object($_val)) {
-                if (method_exists($_val, "__toString")) {
-                    $selected = smarty_function_escape_special_chars((string)$_val->__toString());
+                } elseif (is_object($_val)) {
+                    if (method_exists($_val, "__toString")) {
+                        $selected = smarty_function_escape_special_chars((string)$_val->__toString());
                     } else {
-                    trigger_error("html_checkboxes: selected attribute is an object of class '".get_class($_val)."' without __toString() method",
-                        E_USER_NOTICE);
+                        trigger_error("html_checkboxes: selected attribute is an object of class '".get_class($_val)."' without __toString() method",
+                            E_USER_NOTICE);
                     }
                 } else {
-                $selected = smarty_function_escape_special_chars((string)$_val);
+                    $selected = smarty_function_escape_special_chars((string)$_val);
                 }
                 break;
 

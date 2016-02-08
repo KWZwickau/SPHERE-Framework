@@ -592,7 +592,7 @@ class PHPExcel_Writer_Excel2007_Worksheet extends PHPExcel_Writer_Excel2007_Writ
                     case 'inlinestr':    // Inline string
                     case 's':            // String
                     case 'b':            // Boolean
-                    $objWriter->writeAttribute('t', $mappedType);
+                        $objWriter->writeAttribute('t', $mappedType);
                         break;
                     case 'f':            // Formula
                         $calculatedValue = ( $this->getParentWriter()->getPreCalculateFormulas() ) ?

@@ -32,6 +32,7 @@ use Doctrine\ORM\UnitOfWork;
  */
 class DebugUnitOfWorkListener
 {
+
     /**
      * @var string
      */
@@ -52,6 +53,7 @@ class DebugUnitOfWorkListener
      */
     public function __construct($file = 'php://output', $context = '')
     {
+
         $this->file = $file;
         $this->context = $context;
     }
@@ -63,6 +65,7 @@ class DebugUnitOfWorkListener
      */
     public function onFlush(OnFlushEventArgs $args)
     {
+
         $this->dumpIdentityMap($args->getEntityManager());
     }
 
@@ -75,6 +78,7 @@ class DebugUnitOfWorkListener
      */
     public function dumpIdentityMap(EntityManagerInterface $em)
     {
+
         $uow = $em->getUnitOfWork();
         $identityMap = $uow->getIdentityMap();
 
@@ -140,6 +144,7 @@ class DebugUnitOfWorkListener
      */
     private function getIdString($entity, UnitOfWork $uow)
     {
+
         if ($uow->isInIdentityMap($entity)) {
             $ids = $uow->getEntityIdentifier($entity);
             $idstring = "";
@@ -173,6 +178,7 @@ class DebugUnitOfWorkListener
      */
     private function getType($var)
     {
+
         if (is_object($var)) {
             $refl = new \ReflectionObject($var);
 

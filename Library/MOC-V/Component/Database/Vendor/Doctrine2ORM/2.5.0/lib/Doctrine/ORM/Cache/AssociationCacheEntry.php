@@ -28,6 +28,7 @@ namespace Doctrine\ORM\Cache;
  */
 class AssociationCacheEntry implements CacheEntry
 {
+
     /**
      * READ-ONLY: Public only for performance reasons, it should be considered immutable.
      *
@@ -62,6 +63,7 @@ class AssociationCacheEntry implements CacheEntry
      */
     public static function __set_state(array $values)
     {
+
         return new self($values['class'], $values['identifier']);
     }
 }

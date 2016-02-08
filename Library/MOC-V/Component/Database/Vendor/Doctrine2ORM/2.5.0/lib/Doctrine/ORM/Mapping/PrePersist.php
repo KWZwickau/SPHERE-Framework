@@ -25,4 +25,5 @@ namespace Doctrine\ORM\Mapping;
  */
 final class PrePersist implements Annotation
 {
+
 }

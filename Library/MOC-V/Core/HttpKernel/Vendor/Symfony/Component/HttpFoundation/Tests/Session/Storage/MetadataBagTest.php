@@ -108,8 +108,8 @@ class MetadataBagTest extends \PHPUnit_Framework_TestCase
 
         $created = $timeStamp - 15;
         $sessionMetadata = array(
-            MetadataBag::CREATED => $created,
-            MetadataBag::UPDATED => $created,
+            MetadataBag::CREATED  => $created,
+            MetadataBag::UPDATED  => $created,
             MetadataBag::LIFETIME => 1000
         );
         $bag->initialize($sessionMetadata);
@@ -125,8 +125,8 @@ class MetadataBagTest extends \PHPUnit_Framework_TestCase
 
         $created = $timeStamp - 45;
         $sessionMetadata = array(
-            MetadataBag::CREATED => $created,
-            MetadataBag::UPDATED => $created,
+            MetadataBag::CREATED  => $created,
+            MetadataBag::UPDATED  => $created,
             MetadataBag::LIFETIME => 1000
         );
         $bag->initialize($sessionMetadata);

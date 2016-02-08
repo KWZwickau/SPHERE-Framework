@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class Subselect extends Node
 {
+
     /**
      * @var SimpleSelectClause
      */
@@ -66,6 +67,7 @@ class Subselect extends Node
      */
     public function __construct($simpleSelectClause, $subselectFromClause)
     {
+
         $this->simpleSelectClause = $simpleSelectClause;
         $this->subselectFromClause = $subselectFromClause;
     }
@@ -75,6 +77,7 @@ class Subselect extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkSubselect($this);
     }
 }

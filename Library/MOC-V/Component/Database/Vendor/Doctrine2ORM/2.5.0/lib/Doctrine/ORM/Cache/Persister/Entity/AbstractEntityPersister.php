@@ -37,7 +37,7 @@ use Doctrine\ORM\Persisters\Entity\EntityPersister;
 
 /**
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
- * @since 2.5
+ * @since  2.5
  */
 abstract class AbstractEntityPersister implements CachedEntityPersister
 {
@@ -144,6 +144,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function addInsert($entity)
     {
+
         $this->persister->addInsert($entity);
     }
 
@@ -152,6 +153,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function getInserts()
     {
+
         return $this->persister->getInserts();
     }
 
@@ -166,6 +168,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
         $offset = null,
         array $orderBy = null
     ) {
+
         return $this->persister->getSelectSQL($criteria, $assoc, $lockMode, $limit, $offset, $orderBy);
     }
 
@@ -174,6 +177,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function getCountSQL($criteria = array())
     {
+
         return $this->persister->getCountSQL($criteria);
     }
 
@@ -182,6 +186,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function getInsertSQL()
     {
+
         return $this->persister->getInsertSQL();
     }
 
@@ -190,6 +195,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function getSelectConditionStatementSQL($field, $value, $assoc = null, $comparison = null)
     {
+
         return $this->persister->getSelectConditionStatementSQL($field, $value, $assoc, $comparison);
     }
 
@@ -198,6 +204,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function exists($entity, Criteria $extraConditions = null)
     {
+
         if (null === $extraConditions) {
             $key = new EntityCacheKey($this->class->rootEntityName, $this->class->getIdentifierValues($entity));
 
@@ -214,6 +221,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function getCacheRegion()
     {
+
         return $this->region;
     }
 
@@ -222,6 +230,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function getEntityHydrator()
     {
+
         return $this->hydrator;
     }
 
@@ -261,6 +270,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function expandParameters($criteria)
     {
+
         return $this->persister->expandParameters($criteria);
     }
 
@@ -269,6 +279,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function expandCriteriaParameters(Criteria $criteria)
     {
+
         return $this->persister->expandCriteriaParameters($criteria);
     }
 
@@ -277,6 +288,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function getClassMetadata()
     {
+
         return $this->persister->getClassMetadata();
     }
 
@@ -285,6 +297,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function getManyToManyCollection(array $assoc, $sourceEntity, $offset = null, $limit = null)
     {
+
         return $this->persister->getManyToManyCollection($assoc, $sourceEntity, $offset, $limit);
     }
 
@@ -293,6 +306,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function getOneToManyCollection(array $assoc, $sourceEntity, $offset = null, $limit = null)
     {
+
         return $this->persister->getOneToManyCollection($assoc, $sourceEntity, $offset, $limit);
     }
 
@@ -301,6 +315,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function getOwningTable($fieldName)
     {
+
         return $this->persister->getOwningTable($fieldName);
     }
 
@@ -309,6 +324,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function executeInserts()
     {
+
         $this->queuedCache['insert'] = $this->persister->getInserts();
 
         return $this->persister->executeInserts();
@@ -372,9 +388,9 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
     /**
      * Generates a string of currently query
      *
-     * @param array  $query
-     * @param string $criteria
-     * @param array  $orderBy
+     * @param array   $query
+     * @param string  $criteria
+     * @param array   $orderBy
      * @param integer $limit
      * @param integer $offset
      * @param integer $timestamp
@@ -402,6 +418,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function getResultSetMapping()
     {
+
         return $this->persister->getResultSetMapping();
     }
 
@@ -503,6 +520,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     private function storeJoinedAssociations($entity)
     {
+
         if ($this->joinedAssociations === null) {
             $associations = array();
 
@@ -540,6 +558,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function count($criteria = array())
     {
+
         return $this->persister->count($criteria);
     }
 
@@ -586,6 +605,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function loadManyToManyCollection(array $assoc, $sourceEntity, PersistentCollection $coll)
     {
+
         $persister = $this->uow->getCollectionPersister($assoc);
         $hasCache = ( $persister instanceof CachedPersister );
         $key = null;
@@ -622,6 +642,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function loadOneToManyCollection(array $assoc, $sourceEntity, PersistentCollection $coll)
     {
+
         $persister = $this->uow->getCollectionPersister($assoc);
         $hasCache = ( $persister instanceof CachedPersister );
 
@@ -657,6 +678,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function loadOneToOneEntity(array $assoc, $sourceEntity, array $identifier = array())
     {
+
         return $this->persister->loadOneToOneEntity($assoc, $sourceEntity, $identifier);
     }
 
@@ -665,6 +687,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function lock(array $criteria, $lockMode)
     {
+
         $this->persister->lock($criteria, $lockMode);
     }
 
@@ -673,6 +696,7 @@ abstract class AbstractEntityPersister implements CachedEntityPersister
      */
     public function refresh(array $id, $entity, $lockMode = null)
     {
+
         $this->persister->refresh($id, $entity, $lockMode);
     }
 

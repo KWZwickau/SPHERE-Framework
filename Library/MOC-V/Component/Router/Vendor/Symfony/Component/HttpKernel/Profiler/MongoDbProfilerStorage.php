@@ -256,7 +256,7 @@ class MongoDbProfilerStorage implements ProfilerStorageInterface
         $record = array(
             '_id'    => $profile->getToken(),
             'parent' => $profile->getParentToken(),
-            'data' => base64_encode(serialize($profile->getCollectors())),
+            'data'   => base64_encode(serialize($profile->getCollectors())),
             'ip'     => $profile->getIp(),
             'method' => $profile->getMethod(),
             'url'    => $profile->getUrl(),

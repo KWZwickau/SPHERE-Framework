@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Mapping;
  */
 final class FieldResult implements Annotation
 {
+
     /**
      * Name of the column in the SELECT clause.
      *

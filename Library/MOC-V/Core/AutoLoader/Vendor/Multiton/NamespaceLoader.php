@@ -26,8 +26,8 @@ class NamespaceLoader
     private $Hash = '';
 
     /**
-     * @param string $Namespace
-     * @param string $Path
+     * @param string      $Namespace
+     * @param string      $Path
      * @param string|null $Prefix
      */
     public function __construct($Namespace, $Path, $Prefix = null)
@@ -39,8 +39,8 @@ class NamespaceLoader
             $this->Prefix = $Prefix;
         }
         $this->Hash = $this->getLoaderHash();
-        if ( self::$Cacheable === null ) {
-            if( function_exists('apc_fetch') ) {
+        if (self::$Cacheable === null) {
+            if (function_exists('apc_fetch')) {
                 self::$Cacheable = true;
             } else {
                 self::$Cacheable = false;
@@ -77,8 +77,8 @@ class NamespaceLoader
             return true;
         }
 
-        if ( self::$Cacheable ) {
-            $Hash = md5($this->Namespace . $this->Path . $this->Separator . $this->Extension . $this->Prefix);
+        if (self::$Cacheable) {
+            $Hash = md5($this->Namespace.$this->Path.$this->Separator.$this->Extension.$this->Prefix);
             // @codeCoverageIgnoreStart
             if (false === ( $Result = apc_fetch($Hash.'#'.$ClassName) )) {
                 $Result = $this->checkCanLoadClass($ClassName);

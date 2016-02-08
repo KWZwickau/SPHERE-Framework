@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class JoinAssociationPathExpression extends Node
 {
+
     /**
      * @var string
      */
@@ -46,6 +47,7 @@ class JoinAssociationPathExpression extends Node
      */
     public function __construct($identificationVariable, $associationField)
     {
+
         $this->identificationVariable = $identificationVariable;
         $this->associationField = $associationField;
     }
@@ -55,6 +57,7 @@ class JoinAssociationPathExpression extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkPathExpression($this);
     }
 }

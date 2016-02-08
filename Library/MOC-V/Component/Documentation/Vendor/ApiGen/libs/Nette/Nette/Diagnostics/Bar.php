@@ -60,7 +60,7 @@ class Bar extends Nette\Object
         foreach ($this->panels as $id => $panel) {
             try {
                 $panels[] = array(
-                    'id' => preg_replace('#[^a-z0-9]+#i', '-', $id),
+                    'id'    => preg_replace('#[^a-z0-9]+#i', '-', $id),
                     'tab'   => $tab = (string)$panel->getTab(),
                     'panel' => $tab ? (string)$panel->getPanel() : null,
                 );

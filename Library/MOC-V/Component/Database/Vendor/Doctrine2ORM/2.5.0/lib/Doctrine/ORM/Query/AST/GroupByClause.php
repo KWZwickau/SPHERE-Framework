@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class GroupByClause extends Node
 {
+
     /**
      * @var array
      */
@@ -40,6 +41,7 @@ class GroupByClause extends Node
      */
     public function __construct(array $groupByItems)
     {
+
         $this->groupByItems = $groupByItems;
     }
 
@@ -48,6 +50,7 @@ class GroupByClause extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkGroupByClause($this);
     }
 }

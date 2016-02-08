@@ -148,8 +148,8 @@ class trendClass
                     }
                 }
                 //	Determine which of our trend lines is the best fit, and then we return the instance of that trend class
-            arsort($bestFitValue);
-            $bestFitType = key($bestFitValue);
+                arsort($bestFitValue);
+                $bestFitType = key($bestFitValue);
                 return $bestFit[$bestFitType];
                 break;
             default    :

@@ -673,7 +673,7 @@ class CPDF_Adapter implements Canvas
                     print '!!!bmp or gif!!!';
                 }
                 // @todo use cache for BMP and GIF
-            $img = $this->_convert_gif_bmp_to_png($img, $type);
+                $img = $this->_convert_gif_bmp_to_png($img, $type);
 
             case IMAGETYPE_PNG:
                 if ($debug_png) {

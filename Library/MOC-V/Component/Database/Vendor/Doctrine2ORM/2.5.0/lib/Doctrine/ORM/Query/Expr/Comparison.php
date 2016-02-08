@@ -73,6 +73,7 @@ class Comparison
      */
     public function getLeftExpr()
     {
+
         return $this->leftExpr;
     }
 
@@ -81,6 +82,7 @@ class Comparison
      */
     public function getOperator()
     {
+
         return $this->operator;
     }
 
@@ -89,6 +91,7 @@ class Comparison
      */
     public function getRightExpr()
     {
+
         return $this->rightExpr;
     }
 

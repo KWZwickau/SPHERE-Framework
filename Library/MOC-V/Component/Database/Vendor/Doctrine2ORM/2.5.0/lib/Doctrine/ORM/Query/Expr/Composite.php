@@ -30,11 +30,13 @@ namespace Doctrine\ORM\Query\Expr;
  */
 class Composite extends Base
 {
+
     /**
      * @return string
      */
     public function __toString()
     {
+
         if ($this->count() === 1) {
             return (string)$this->parts[0];
         }

@@ -23,7 +23,7 @@ class PhpExcel extends File
 
     /**
      * @param string|int $Column Name or Index
-     * @param null|int $Row Index
+     * @param null|int   $Row    Index
      *
      * @return Cell
      */
@@ -41,7 +41,7 @@ class PhpExcel extends File
     }
 
     /**
-     * @param Cell $Cell
+     * @param Cell  $Cell
      * @param mixed $Value
      *
      * @return $this

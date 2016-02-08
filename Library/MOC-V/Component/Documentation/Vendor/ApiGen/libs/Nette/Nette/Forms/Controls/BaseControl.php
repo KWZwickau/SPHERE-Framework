@@ -435,7 +435,7 @@ abstract class BaseControl extends Nette\ComponentModel\Component implements ICo
             } elseif ($rule->type === Rule::CONDITION) {
                 $item = array(
                     'op'      => ( $rule->isNegative ? '~' : '' ).$op,
-                    'rules' => self::exportRules($rule->subRules),
+                    'rules'   => self::exportRules($rule->subRules),
                     'control' => $rule->control->getHtmlName()
                 );
                 if ($rule->subRules->getToggles()) {

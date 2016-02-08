@@ -30,10 +30,11 @@ use Doctrine\ORM\Persisters\Entity\EntityPersister;
  * Specific read-write entity persister
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
- * @since 2.5
+ * @since  2.5
  */
 class ReadWriteCachedEntityPersister extends AbstractEntityPersister
 {
+
     /**
      * @param \Doctrine\ORM\Persisters\Entity\EntityPersister $persister The entity persister to cache.
      * @param \Doctrine\ORM\Cache\ConcurrentRegion            $region    The entity cache region.
@@ -46,6 +47,7 @@ class ReadWriteCachedEntityPersister extends AbstractEntityPersister
         EntityManagerInterface $em,
         ClassMetadata $class
     ) {
+
         parent::__construct($persister, $region, $em, $class);
     }
 
@@ -54,6 +56,7 @@ class ReadWriteCachedEntityPersister extends AbstractEntityPersister
      */
     public function afterTransactionComplete()
     {
+
         $isChanged = true;
 
         if (isset( $this->queuedCache['update'] )) {

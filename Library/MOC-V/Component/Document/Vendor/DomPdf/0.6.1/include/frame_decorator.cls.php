@@ -785,11 +785,11 @@ abstract class Frame_Decorator extends Frame
 
             case "lower-latin":
             case "lower-alpha":
-            return chr(( $value % 26 ) + ord('a') - 1);
+                return chr(( $value % 26 ) + ord('a') - 1);
 
             case "upper-latin":
             case "upper-alpha":
-            return chr(( $value % 26 ) + ord('A') - 1);
+                return chr(( $value % 26 ) + ord('A') - 1);
 
             case "lower-greek":
                 return unichr($value + 944);

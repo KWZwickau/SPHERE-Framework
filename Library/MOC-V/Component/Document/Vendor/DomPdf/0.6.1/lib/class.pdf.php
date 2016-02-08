@@ -1325,7 +1325,7 @@ class Cpdf
                         case 'StdVW':
                         case 'StartCharMetrics':
                         case 'FontHeightOffset': // OAR - Added so we can offset the height calculation of a Windows font.  Otherwise it's too big.
-                        $data[$key] = trim(substr($row, $pos));
+                            $data[$key] = trim(substr($row, $pos));
                             break;
 
                         case 'FontBBox':
@@ -1573,7 +1573,7 @@ EOT;
                         case 'Widths':
                         case 'FontDescriptor':
                         case 'SubType':
-                        $this->addMessage('o_font '.$k." : ".$v);
+                            $this->addMessage('o_font '.$k." : ".$v);
                             $o['info'][$k] = $v;
                             break;
                     }
@@ -1793,7 +1793,7 @@ EOT;
                         case 'MissingWidth':
                         case 'FontDescriptor':
                         case 'SubType':
-                        $this->addMessage("o_fontDescendentCID $k : $v");
+                            $this->addMessage("o_fontDescendentCID $k : $v");
                             $o['info'][$k] = $v;
                             break;
                     }
@@ -1918,7 +1918,7 @@ EOT;
                         case 'StemH':
                         case 'XHeight':
                         case 'CharSet':
-                        if (mb_strlen($value, '8bit')) {
+                            if (mb_strlen($value, '8bit')) {
                                 $res .= "/$label $value\n";
                             }
 

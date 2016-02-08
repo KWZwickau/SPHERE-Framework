@@ -1139,13 +1139,13 @@ class HTML5_TreeBuilder
                         $this->reconstructActiveFormattingElements();
 
                         /* Append the token's character to the current node. */
-                    $this->insertText($token['data']);
+                        $this->insertText($token['data']);
 
                         /* If the token is not one of U+0009 CHARACTER TABULATION,
                  * U+000A LINE FEED (LF), U+000C FORM FEED (FF),  or U+0020
                  * SPACE, then set the frameset-ok flag to "not ok". */
                         // i.e., if any of the characters is not whitespace
-                    if (strlen($token['data']) !== strspn($token['data'], HTML5_Tokenizer::WHITESPACE)) {
+                        if (strlen($token['data']) !== strspn($token['data'], HTML5_Tokenizer::WHITESPACE)) {
                             $this->flag_frameset_ok = false;
                         }
                         break;
@@ -1190,7 +1190,7 @@ class HTML5_TreeBuilder
                             case 'title':
                                 /* Process the token as if the insertion mode had been "in
                     head". */
-                            $this->processWithRulesFor($token, self::IN_HEAD);
+                                $this->processWithRulesFor($token, self::IN_HEAD);
                                 break;
 
                             /* A start tag token with the tag name "body" */
@@ -1272,15 +1272,15 @@ class HTML5_TreeBuilder
                                 /* If the stack of open elements has a p element in scope,
                     then act as if an end tag with the tag name p had been
                     seen. */
-                            if ($this->elementInScope('p')) {
-                                $this->emitToken(array(
+                                if ($this->elementInScope('p')) {
+                                    $this->emitToken(array(
                                         'name' => 'p',
                                         'type' => HTML5_Tokenizer::ENDTAG
-                                ));
+                                    ));
                                 }
 
                                 /* Insert an HTML element for the token. */
-                            $this->insertElement($token);
+                                $this->insertElement($token);
                                 break;
 
                             /* A start tag whose tag name is one of: "h1", "h2", "h3", "h4",
@@ -1293,39 +1293,39 @@ class HTML5_TreeBuilder
                             case 'h6':
                                 /* If the stack of open elements has a p  element in scope,
                     then act as if an end tag with the tag name p had been seen. */
-                            if ($this->elementInScope('p')) {
-                                $this->emitToken(array(
+                                if ($this->elementInScope('p')) {
+                                    $this->emitToken(array(
                                         'name' => 'p',
                                         'type' => HTML5_Tokenizer::ENDTAG
-                                ));
+                                    ));
                                 }
 
                                 /* If the current node is an element whose tag name is one
                      * of "h1", "h2", "h3", "h4", "h5", or "h6", then this is a
                      * parse error; pop the current node off the stack of open
                      * elements. */
-                            $peek = array_pop($this->stack);
-                            if (in_array($peek->tagName, array("h1", "h2", "h3", "h4", "h5", "h6"))) {
+                                $peek = array_pop($this->stack);
+                                if (in_array($peek->tagName, array("h1", "h2", "h3", "h4", "h5", "h6"))) {
                                     // parse error
                                 } else {
                                     $this->stack[] = $peek;
                                 }
 
                                 /* Insert an HTML element for the token. */
-                            $this->insertElement($token);
+                                $this->insertElement($token);
                                 break;
 
                             case 'pre':
                             case 'listing':
                                 /* If the stack of open elements has a p  element in scope,
                     then act as if an end tag with the tag name p had been seen. */
-                            if ($this->elementInScope('p')) {
-                                $this->emitToken(array(
+                                if ($this->elementInScope('p')) {
+                                    $this->emitToken(array(
                                         'name' => 'p',
                                         'type' => HTML5_Tokenizer::ENDTAG
-                                ));
+                                    ));
                                 }
-                            $this->insertElement($token);
+                                $this->insertElement($token);
                                 /* If the next token is a U+000A LINE FEED (LF) character
                      * token, then ignore that token and move on to the next
                      * one. (Newlines at the start of pre blocks are ignored as
@@ -1370,7 +1370,7 @@ class HTML5_TreeBuilder
                                 /* 1. Set the frameset-ok flag to "not ok". */
                                 $this->flag_frameset_ok = false;
 
-                            $stack_length = count($this->stack) - 1;
+                                $stack_length = count($this->stack) - 1;
                                 for ($n = $stack_length; 0 <= $n; $n--) {
                                     /* 2. Initialise node to be the current node (the
                         bottommost node of the stack). */
@@ -1415,16 +1415,16 @@ class HTML5_TreeBuilder
                                 /* If the stack of open elements has a p  element in scope,
                     then act as if an end tag with the tag name p had been
                     seen. */
-                            if ($this->elementInScope('p')) {
-                                $this->emitToken(array(
+                                if ($this->elementInScope('p')) {
+                                    $this->emitToken(array(
                                         'name' => 'p',
                                         'type' => HTML5_Tokenizer::ENDTAG
-                                ));
+                                    ));
                                 }
 
                                 /* Finally, insert an HTML element with the same tag
                     name as the    token's. */
-                            $this->insertElement($token);
+                                $this->insertElement($token);
                                 break;
 
                             /* A start tag token whose tag name is "plaintext" */
@@ -1513,7 +1513,7 @@ class HTML5_TreeBuilder
                                 $this->reconstructActiveFormattingElements();
 
                                 /* Insert an HTML element for the token. */
-                            $el = $this->insertElement($token);
+                                $el = $this->insertElement($token);
 
                                 /* Add that element to the list of active formatting
                     elements. */
@@ -1579,7 +1579,7 @@ class HTML5_TreeBuilder
                                 $this->reconstructActiveFormattingElements();
 
                                 /* Insert an HTML element for the token. */
-                            $this->insertElement($token);
+                                $this->insertElement($token);
 
                                 /* Insert a marker at the end of the list of active
                     formatting elements. */
@@ -1630,10 +1630,10 @@ class HTML5_TreeBuilder
                                 $this->reconstructActiveFormattingElements();
 
                                 /* Insert an HTML element for the token. */
-                            $this->insertElement($token);
+                                $this->insertElement($token);
 
                                 /* Immediately pop the current node off the stack of open elements. */
-                            array_pop($this->stack);
+                                array_pop($this->stack);
 
                                 // YYY: Acknowledge the token's self-closing flag, if it is set.
 
@@ -1643,10 +1643,10 @@ class HTML5_TreeBuilder
                             case 'param':
                             case 'source':
                                 /* Insert an HTML element for the token. */
-                            $this->insertElement($token);
+                                $this->insertElement($token);
 
                                 /* Immediately pop the current node off the stack of open elements. */
-                            array_pop($this->stack);
+                                array_pop($this->stack);
 
                                 // YYY: Acknowledge the token's self-closing flag, if it is set.
                                 break;
@@ -1826,7 +1826,7 @@ class HTML5_TreeBuilder
                             case 'noembed':
                             case 'noscript':
                                 // XSCRIPT: should check scripting flag
-                            $this->insertCDATAElement($token);
+                                $this->insertCDATAElement($token);
                                 break;
 
                             /* A start tag whose tag name is "select" */
@@ -1857,14 +1857,14 @@ class HTML5_TreeBuilder
 
                             case 'option':
                             case 'optgroup':
-                            if ($this->elementInScope('option')) {
-                                $this->emitToken(array(
+                                if ($this->elementInScope('option')) {
+                                    $this->emitToken(array(
                                         'name' => 'option',
                                         'type' => HTML5_Tokenizer::ENDTAG,
-                                ));
+                                    ));
                                 }
                                 $this->reconstructActiveFormattingElements();
-                            $this->insertElement($token);
+                                $this->insertElement($token);
                                 break;
 
                             case 'rp':
@@ -1874,7 +1874,7 @@ class HTML5_TreeBuilder
                      * a parse error; pop all the nodes from the current node up to the node
                      * immediately before the bottommost ruby element on the stack of open elements.
                      */
-                            if ($this->elementInScope('ruby')) {
+                                if ($this->elementInScope('ruby')) {
                                     $this->generateImpliedEndTags();
                                 }
                                 $peek = false;
@@ -1885,7 +1885,7 @@ class HTML5_TreeBuilder
                                     $peek = array_pop($this->stack);
                                 } while ($peek->tagName !== 'ruby');
                                 $this->stack[] = $peek; // we popped one too many
-                            $this->insertElement($token);
+                                $this->insertElement($token);
                                 break;
 
                             // spec diversion
@@ -2011,7 +2011,7 @@ class HTML5_TreeBuilder
                                 /* If the stack of open elements has an element in scope
                     with the same tag name as that of the token, then generate
                     implied end tags. */
-                            if ($this->elementInScope($token['name'])) {
+                                if ($this->elementInScope($token['name'])) {
                                     $this->generateImpliedEndTags();
 
                                     /* Now, if the current node is not an element with
@@ -2113,8 +2113,8 @@ class HTML5_TreeBuilder
                             case 'dd':
                             case 'ds':
                             case 'dt':
-                            if ($this->elementInScope($token['name'])) {
-                                $this->generateImpliedEndTags(array($token['name']));
+                                if ($this->elementInScope($token['name'])) {
+                                    $this->generateImpliedEndTags(array($token['name']));
 
                                     /* If the current node is not an element with the same
                         tag name as the token, then this is a parse error. */
@@ -2140,12 +2140,12 @@ class HTML5_TreeBuilder
                             case 'h4':
                             case 'h5':
                             case 'h6':
-                            $elements = array('h1', 'h2', 'h3', 'h4', 'h5', 'h6');
+                                $elements = array('h1', 'h2', 'h3', 'h4', 'h5', 'h6');
 
                                 /* If the stack of open elements has in scope an element whose
                     tag name is one of "h1", "h2", "h3", "h4", "h5", or "h6", then
                     generate implied end tags. */
-                            if ($this->elementInScope($elements)) {
+                                if ($this->elementInScope($elements)) {
                                     $this->generateImpliedEndTags();
 
                                     /* Now, if the current node is not an element with the same
@@ -2416,7 +2416,7 @@ class HTML5_TreeBuilder
                                 /* If the stack of open elements has an element in scope whose
                     tag name matches the tag name of the token, then generate implied
                     tags. */
-                            if ($this->elementInScope($token['name'])) {
+                                if ($this->elementInScope($token['name'])) {
                                     $this->generateImpliedEndTags();
 
                                     /* Now, if the current node is not an element with the same
@@ -2432,11 +2432,11 @@ class HTML5_TreeBuilder
 
                                     /* Clear the list of active formatting elements up to the
                          * last marker. */
-                                $keys = array_keys($this->a_formatting, self::MARKER, true);
-                                $marker = end($keys);
+                                    $keys = array_keys($this->a_formatting, self::MARKER, true);
+                                    $marker = end($keys);
 
-                                for ($n = count($this->a_formatting) - 1; $n > $marker; $n--) {
-                                    array_pop($this->a_formatting);
+                                    for ($n = count($this->a_formatting) - 1; $n > $marker; $n--) {
+                                        array_pop($this->a_formatting);
                                     }
                                 } else {
                                     // parse error

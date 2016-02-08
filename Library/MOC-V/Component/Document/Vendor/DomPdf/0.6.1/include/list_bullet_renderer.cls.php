@@ -156,14 +156,14 @@ class List_Bullet_Renderer extends Abstract_Renderer
 
                     $node = $frame->get_node();
 
-                if (!$node->hasAttribute("dompdf-counter")) {
+                    if (!$node->hasAttribute("dompdf-counter")) {
                         return;
                     }
 
-                $index = $node->getAttribute("dompdf-counter");
-                $text = $this->make_counter($index, $bullet_style, $pad);
+                    $index = $node->getAttribute("dompdf-counter");
+                    $text = $this->make_counter($index, $bullet_style, $pad);
 
-                if (trim($text) == "") {
+                    if (trim($text) == "") {
                         return;
                     }
 
@@ -171,17 +171,17 @@ class List_Bullet_Renderer extends Abstract_Renderer
                     $font_family = $style->font_family;
 
                     $line = $li->get_containing_line();
-                list( $x, $y ) = array($frame->get_position("x"), $line->y);
+                    list( $x, $y ) = array($frame->get_position("x"), $line->y);
 
-                $x -= Font_Metrics::get_text_width($text, $font_family, $font_size, $spacing);
+                    $x -= Font_Metrics::get_text_width($text, $font_family, $font_size, $spacing);
 
                     // Take line-height into account
                     $line_height = $style->line_height;
                     $y += ( $line_height - $font_size ) / 4; // FIXME I thought it should be 2, but 4 gives better results
 
-                $this->_canvas->text($x, $y, $text,
+                    $this->_canvas->text($x, $y, $text,
                         $font_family, $font_size,
-                    $style->color, $spacing);
+                        $style->color, $spacing);
 
                 case "none":
                     break;
@@ -221,7 +221,7 @@ class List_Bullet_Renderer extends Abstract_Renderer
             case "lower-alpha":
             case "lower-latin":
             case "a":
-            $text = chr(( $n % 26 ) + ord('a') - 1);
+                $text = chr(( $n % 26 ) + ord('a') - 1);
                 break;
 
             case "upper-roman":
@@ -229,7 +229,7 @@ class List_Bullet_Renderer extends Abstract_Renderer
                 $uppercase = true;
             case "lower-roman":
             case "i":
-            $text = dec2roman($n);
+                $text = dec2roman($n);
                 break;
 
             case "lower-greek":

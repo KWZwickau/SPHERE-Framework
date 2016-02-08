@@ -810,8 +810,8 @@ class PHPExcel_Worksheet_AutoFilter
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_TODAY :
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_YESTERDAY :
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_TOMORROW :
-            $maxVal = (int)PHPExcel_Shared_Date::PHPtoExcel(strtotime('+1 day', $baseDate));
-            $val = (int)PHPExcel_Shared_Date::PHPToExcel($baseDate);
+                $maxVal = (int)PHPExcel_Shared_Date::PHPtoExcel(strtotime('+1 day', $baseDate));
+                $val = (int)PHPExcel_Shared_Date::PHPToExcel($baseDate);
                 break;
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_YEARTODATE :
                 $maxVal = (int)PHPExcel_Shared_Date::PHPtoExcel(strtotime('+1 day', $baseDate));
@@ -820,35 +820,35 @@ class PHPExcel_Worksheet_AutoFilter
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_THISYEAR :
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_LASTYEAR :
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_NEXTYEAR :
-            $maxVal = (int)PHPExcel_Shared_Date::PHPToExcel(gmmktime(0, 0, 0, 31, 12, date('Y', $baseDate)));
+                $maxVal = (int)PHPExcel_Shared_Date::PHPToExcel(gmmktime(0, 0, 0, 31, 12, date('Y', $baseDate)));
                 ++$maxVal;
-            $val = (int)PHPExcel_Shared_Date::PHPToExcel(gmmktime(0, 0, 0, 1, 1, date('Y', $baseDate)));
+                $val = (int)PHPExcel_Shared_Date::PHPToExcel(gmmktime(0, 0, 0, 1, 1, date('Y', $baseDate)));
                 break;
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_THISQUARTER :
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_LASTQUARTER :
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_NEXTQUARTER :
-            $thisMonth = date('m', $baseDate);
-            $thisQuarter = floor(--$thisMonth / 3);
-            $maxVal = (int)PHPExcel_Shared_Date::PHPtoExcel(gmmktime(0, 0, 0, date('t', $baseDate),
-                ( 1 + $thisQuarter ) * 3, date('Y', $baseDate)));
+                $thisMonth = date('m', $baseDate);
+                $thisQuarter = floor(--$thisMonth / 3);
+                $maxVal = (int)PHPExcel_Shared_Date::PHPtoExcel(gmmktime(0, 0, 0, date('t', $baseDate),
+                    ( 1 + $thisQuarter ) * 3, date('Y', $baseDate)));
                 ++$maxVal;
-            $val = (int)PHPExcel_Shared_Date::PHPToExcel(gmmktime(0, 0, 0, 1, 1 + $thisQuarter * 3,
-                date('Y', $baseDate)));
+                $val = (int)PHPExcel_Shared_Date::PHPToExcel(gmmktime(0, 0, 0, 1, 1 + $thisQuarter * 3,
+                    date('Y', $baseDate)));
                 break;
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_THISMONTH :
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_LASTMONTH :
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_NEXTMONTH :
-            $maxVal = (int)PHPExcel_Shared_Date::PHPtoExcel(gmmktime(0, 0, 0, date('t', $baseDate),
-                date('m', $baseDate), date('Y', $baseDate)));
+                $maxVal = (int)PHPExcel_Shared_Date::PHPtoExcel(gmmktime(0, 0, 0, date('t', $baseDate),
+                    date('m', $baseDate), date('Y', $baseDate)));
                 ++$maxVal;
-            $val = (int)PHPExcel_Shared_Date::PHPToExcel(gmmktime(0, 0, 0, 1, date('m', $baseDate),
-                date('Y', $baseDate)));
+                $val = (int)PHPExcel_Shared_Date::PHPToExcel(gmmktime(0, 0, 0, 1, date('m', $baseDate),
+                    date('Y', $baseDate)));
                 break;
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_THISWEEK :
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_LASTWEEK :
             case PHPExcel_Worksheet_AutoFilter_Column_Rule::AUTOFILTER_RULETYPE_DYNAMIC_NEXTWEEK :
-            $dayOfWeek = date('w', $baseDate);
-            $val = (int)PHPExcel_Shared_Date::PHPToExcel($baseDate) - $dayOfWeek;
+                $dayOfWeek = date('w', $baseDate);
+                $val = (int)PHPExcel_Shared_Date::PHPToExcel($baseDate) - $dayOfWeek;
                 $maxVal = $val + 7;
                 break;
         }

@@ -24,7 +24,7 @@ use Doctrine\ORM\Query\Lexer;
 /**
  * "SUBSTRING" "(" StringPrimary "," SimpleArithmeticExpression "," SimpleArithmeticExpression ")"
  *
- * 
+ *
  * @link    www.doctrine-project.org
  * @since   2.0
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -34,6 +34,7 @@ use Doctrine\ORM\Query\Lexer;
  */
 class SubstringFunction extends FunctionNode
 {
+
     public $stringPrimary;
 
     /**
@@ -51,6 +52,7 @@ class SubstringFunction extends FunctionNode
      */
     public function getSql(\Doctrine\ORM\Query\SqlWalker $sqlWalker)
     {
+
         $optionalSecondSimpleArithmeticExpression = null;
         if ($this->secondSimpleArithmeticExpression !== null) {
             $optionalSecondSimpleArithmeticExpression = $sqlWalker->walkSimpleArithmeticExpression($this->secondSimpleArithmeticExpression);
@@ -68,6 +70,7 @@ class SubstringFunction extends FunctionNode
      */
     public function parse(\Doctrine\ORM\Query\Parser $parser)
     {
+
         $parser->match(Lexer::T_IDENTIFIER);
         $parser->match(Lexer::T_OPEN_PARENTHESIS);
 

@@ -30,11 +30,13 @@ namespace Doctrine\ORM;
  */
 class TransactionRequiredException extends ORMException
 {
+
     /**
      * @return TransactionRequiredException
      */
     static public function transactionRequired()
     {
+
         return new self('An open transaction is required for this operation.');
     }
 }

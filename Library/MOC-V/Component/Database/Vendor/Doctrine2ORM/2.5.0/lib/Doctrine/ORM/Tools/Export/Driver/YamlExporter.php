@@ -31,6 +31,7 @@ use Symfony\Component\Yaml\Yaml;
  */
 class YamlExporter extends AbstractExporter
 {
+
     /**
      * @var string
      */
@@ -41,6 +42,7 @@ class YamlExporter extends AbstractExporter
      */
     public function exportClassMetadata(ClassMetadataInfo $metadata)
     {
+
         $array = array();
 
         if ($metadata->isMappedSuperclass) {
@@ -151,7 +153,7 @@ class YamlExporter extends AbstractExporter
 
             $associationMappingArray = array(
                 'targetEntity' => $associationMapping['targetEntity'],
-                'cascade' => $cascade,
+                'cascade'      => $cascade,
             );
 
             if (isset( $associationMapping['fetch'] )) {
@@ -193,7 +195,7 @@ class YamlExporter extends AbstractExporter
                     'mappedBy'      => $associationMapping['mappedBy'],
                     'inversedBy'    => $associationMapping['inversedBy'],
                     'orphanRemoval' => $associationMapping['orphanRemoval'],
-                    'orderBy' => isset( $associationMapping['orderBy'] ) ? $associationMapping['orderBy'] : null
+                    'orderBy'       => isset( $associationMapping['orderBy'] ) ? $associationMapping['orderBy'] : null
                 );
 
                 $associationMappingArray = array_merge($associationMappingArray, $oneToManyMappingArray);
@@ -202,8 +204,8 @@ class YamlExporter extends AbstractExporter
                 $manyToManyMappingArray = array(
                     'mappedBy'   => $associationMapping['mappedBy'],
                     'inversedBy' => $associationMapping['inversedBy'],
-                    'joinTable' => isset( $associationMapping['joinTable'] ) ? $associationMapping['joinTable'] : null,
-                    'orderBy'   => isset( $associationMapping['orderBy'] ) ? $associationMapping['orderBy'] : null
+                    'joinTable'  => isset( $associationMapping['joinTable'] ) ? $associationMapping['joinTable'] : null,
+                    'orderBy'    => isset( $associationMapping['orderBy'] ) ? $associationMapping['orderBy'] : null
                 );
 
                 $associationMappingArray = array_merge($associationMappingArray, $manyToManyMappingArray);
@@ -230,6 +232,7 @@ class YamlExporter extends AbstractExporter
      */
     protected function yamlDump($array, $inline = 2)
     {
+
         return Yaml::dump($array, $inline);
     }
 }

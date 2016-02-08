@@ -135,44 +135,44 @@ $this->fontdata = array(
     ),
     /* Miscellaneous language font(s) */
 
-    "abyssinicasil"        => array(        /* Ethiopic */
+    "abyssinicasil"    => array(        /* Ethiopic */
         'R' => "Abyssinica_SIL.ttf",
     ),
-    "aboriginalsans"       => array(        /* Cherokee and Canadian */
+    "aboriginalsans"   => array(        /* Cherokee and Canadian */
         'R' => "AboriginalSansREGULAR.ttf",
     ),
-    "sundaneseunicode"     => array(    /* Sundanese */
+    "sundaneseunicode" => array(    /* Sundanese */
         'R' => "SundaneseUnicode-1.0.5.ttf",
     ),
-    "aegean"               => array(
+    "aegean"           => array(
         'R' => "Aegean.otf",
     ),
-    "aegyptus"             => array(
+    "aegyptus"         => array(
         'R' => "Aegyptus.otf",
     ),
-    "akkadian"             => array(        /* Cuneiform */
+    "akkadian"         => array(        /* Cuneiform */
         'R' => "Akkadian.otf",
     ),
-    "quivira"              => array(
+    "quivira"          => array(
         'R' => "Quivira.otf",
     ),
-    "eeyekunicode"         => array(    /* Meetei Mayek */
+    "eeyekunicode"     => array(    /* Meetei Mayek */
         'R' => "Eeyek.ttf",
     ),
-    "lannaalif"            => array(        /* Tai Tham */
+    "lannaalif"        => array(        /* Tai Tham */
         'R' => "lannaalif-v1-03.ttf",
     ),
-    "daibannasilbook"      => array(    /* New Tai Lue */
+    "daibannasilbook"  => array(    /* New Tai Lue */
         'R' => "DBSILBR.ttf",
     ),
-    "garuda"               => array(    /* Thai */
+    "garuda"           => array(    /* Thai */
         'R'  => "Garuda.ttf",
         'B'  => "Garuda-Bold.ttf",
         'I'  => "Garuda-Oblique.ttf",
         'BI' => "Garuda-BoldOblique.ttf",
     ),
     /* SMP */
-    "mph2bdamase"          => array(
+    "mph2bdamase"      => array(
         'R' => "damase_v.2.ttf",
     ),
     /* Indic */
@@ -180,14 +180,14 @@ $this->fontdata = array(
     /* Arabic fonts */
 
     /* CJK fonts */
-    "unbatang"             => array(    /* Korean */
+    "unbatang"         => array(    /* Korean */
         'R' => "UnBatang_0613.ttf",
     ),
-    "sun-exta"             => array(
+    "sun-exta"         => array(
         'R'       => "Sun-ExtA.ttf",
         'sip-ext' => 'sun-extb',        /* SIP=Plane2 Unicode (extension B) */
     ),
-    "sun-extb"             => array(
+    "sun-extb"         => array(
         'R' => "Sun-ExtB.ttf",
     ),
 

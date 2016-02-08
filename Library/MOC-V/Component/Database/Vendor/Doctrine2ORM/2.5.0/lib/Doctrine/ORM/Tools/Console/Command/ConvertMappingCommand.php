@@ -42,11 +42,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class ConvertMappingCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
+
         $this
             ->setName('orm:convert-mapping')
             ->setAliases(array('orm:convert:mapping'))
@@ -114,6 +116,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         $em = $this->getHelper('em')->getEntityManager();
 
         if ($input->getOption('from-database') === true) {
@@ -194,6 +197,7 @@ EOT
      */
     protected function getExporter($toType, $destPath)
     {
+
         $cme = new ClassMetadataExporter();
 
         return $cme->getExporter($toType, $destPath);

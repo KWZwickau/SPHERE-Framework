@@ -31,6 +31,7 @@ use Doctrine\ORM\NoResultException;
  */
 class SingleScalarHydrator extends AbstractHydrator
 {
+
     /**
      * {@inheritdoc}
      */

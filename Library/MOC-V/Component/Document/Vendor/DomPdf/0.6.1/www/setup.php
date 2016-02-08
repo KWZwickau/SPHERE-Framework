@@ -17,35 +17,35 @@ $server_configs = array(
     "PHP Version"           => array(
         "required" => "5.0",
         "value"    => phpversion(),
-        "result" => version_compare(phpversion(), "5.0"),
+        "result"   => version_compare(phpversion(), "5.0"),
     ),
     "DOMDocument extension" => array(
         "required" => true,
-        "value"  => phpversion("DOM"),
-        "result" => class_exists("DOMDocument"),
+        "value"    => phpversion("DOM"),
+        "result"   => class_exists("DOMDocument"),
     ),
     "PCRE"                  => array(
         "required" => true,
-        "value"  => phpversion("pcre"),
-        "result" => function_exists("preg_match") && @preg_match("/./u", "a"),
+        "value"    => phpversion("pcre"),
+        "result"   => function_exists("preg_match") && @preg_match("/./u", "a"),
         "failure"  => "PCRE is required with Unicode support (the \"u\" modifier)",
     ),
     "Zlib"                  => array(
         "required" => true,
-        "value"  => phpversion("zlib"),
-        "result" => function_exists("gzcompress"),
+        "value"    => phpversion("zlib"),
+        "result"   => function_exists("gzcompress"),
         "fallback" => "Recommended to compress PDF documents",
     ),
     "MBString extension"    => array(
         "required" => true,
-        "value"  => phpversion("mbstring"),
-        "result" => function_exists("mb_send_mail"), // Should never be reimplemented in dompdf
+        "value"    => phpversion("mbstring"),
+        "result"   => function_exists("mb_send_mail"), // Should never be reimplemented in dompdf
         "fallback" => "Recommended, will use fallback functions",
     ),
     "GD"                    => array(
         "required" => true,
-        "value"  => phpversion("gd"),
-        "result" => function_exists("imagecreate"),
+        "value"    => phpversion("gd"),
+        "result"   => function_exists("imagecreate"),
         "fallback" => "Required if you have images in your documents",
     ),
     "opcache"               => array(
@@ -57,7 +57,7 @@ $server_configs = array(
     "GMagick or IMagick"    => array(
         "required" => "Better with transparent PNG images",
         "value"    => null,
-        "result" => extension_loaded("gmagick") || extension_loaded("imagick"),
+        "result"   => extension_loaded("gmagick") || extension_loaded("imagick"),
         "fallback" => "Recommended for better performances",
     ),
 );

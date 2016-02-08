@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class ExistsExpression extends Node
 {
+
     /**
      * @var bool
      */
@@ -45,6 +46,7 @@ class ExistsExpression extends Node
      */
     public function __construct($subselect)
     {
+
         $this->subselect = $subselect;
     }
 
@@ -53,6 +55,7 @@ class ExistsExpression extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkExistsExpression($this);
     }
 }

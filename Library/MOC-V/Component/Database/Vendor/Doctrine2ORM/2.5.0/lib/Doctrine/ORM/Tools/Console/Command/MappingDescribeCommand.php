@@ -36,11 +36,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 final class MappingDescribeCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
+
         $this
             ->setName('orm:mapping:describe')
             ->addArgument('entityName', InputArgument::REQUIRED, 'Full or partial name of entity')
@@ -62,6 +64,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         /* @var $entityManager \Doctrine\ORM\EntityManagerInterface */
         $entityManager = $this->getHelper('em')->getEntityManager();
 
@@ -73,12 +76,13 @@ EOT
     /**
      * Display all the mapping information for a single Entity.
      *
-     * @param string $entityName Full or partial entity class name
+     * @param string                 $entityName Full or partial entity class name
      * @param EntityManagerInterface $entityManager
      * @param OutputInterface        $output
      */
     private function displayEntity($entityName, EntityManagerInterface $entityManager, OutputInterface $output)
     {
+
         $table = new Table($output);
 
         $table->setHeaders(array('Field', 'Value'));
@@ -116,6 +120,7 @@ EOT
                     $this->formatField('Versioned?', $metadata->isVersioned),
                     $this->formatField('Version field', $metadata->versionField),
                     $this->formatField('Read only?', $metadata->isReadOnly),
+
                     $this->formatEntityListeners($metadata->entityListeners),
                 ),
                 array($this->formatField('Association mappings:', '')),
@@ -132,13 +137,14 @@ EOT
      * Return the class metadata for the given entity
      * name
      *
-     * @param string $entityName Full or partial entity name
+     * @param string                 $entityName Full or partial entity name
      * @param EntityManagerInterface $entityManager
      *
      * @return \Doctrine\ORM\Mapping\ClassMetadata
      */
     private function getClassMetadata($entityName, EntityManagerInterface $entityManager)
     {
+
         try {
             return $entityManager->getClassMetadata($entityName);
         } catch (MappingException $e) {
@@ -178,6 +184,7 @@ EOT
      */
     private function getMappedEntities(EntityManagerInterface $entityManager)
     {
+
         $entityClassNames = $entityManager
             ->getConfiguration()
             ->getMetadataDriverImpl()
@@ -203,6 +210,7 @@ EOT
      */
     private function formatField($label, $value)
     {
+
         if (null === $value) {
             $value = '<comment>None</comment>';
         }
@@ -219,6 +227,7 @@ EOT
      */
     private function formatValue($value)
     {
+
         if ('' === $value) {
             return '';
         }
@@ -263,10 +272,12 @@ EOT
      */
     private function formatEntityListeners(array $entityListeners)
     {
+
         return $this->formatField(
             'Entity listeners',
             array_map(
                 function ($entityListener) {
+
                     return get_class($entityListener);
                 },
                 $entityListeners
@@ -283,6 +294,7 @@ EOT
      */
     private function formatMappings(array $propertyMappings)
     {
+
         $output = array();
 
         foreach ($propertyMappings as $propertyName => $mapping) {

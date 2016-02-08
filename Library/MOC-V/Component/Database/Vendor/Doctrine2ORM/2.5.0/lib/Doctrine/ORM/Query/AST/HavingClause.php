@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class HavingClause extends Node
 {
+
     /**
      * @var ConditionalExpression
      */
@@ -40,6 +41,7 @@ class HavingClause extends Node
      */
     public function __construct($conditionalExpression)
     {
+
         $this->conditionalExpression = $conditionalExpression;
     }
 
@@ -48,6 +50,7 @@ class HavingClause extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkHavingClause($this);
     }
 }

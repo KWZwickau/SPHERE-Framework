@@ -1274,8 +1274,8 @@ class HttpCacheTest extends HttpCacheTestCase
                 'body'    => '<esi:include src="/hey" />',
                 'headers' => array(
                     'Surrogate-Control' => 'content="ESI/1.0"',
-                    'ETag'          => 'hey',
-                    'Last-Modified' => $time->format(DATE_RFC2822),
+                    'ETag'              => 'hey',
+                    'Last-Modified'     => $time->format(DATE_RFC2822),
                 ),
             ),
             array(

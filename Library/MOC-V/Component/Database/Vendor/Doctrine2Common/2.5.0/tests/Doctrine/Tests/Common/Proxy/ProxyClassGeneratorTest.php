@@ -121,14 +121,6 @@ class ProxyClassGeneratorTest extends PHPUnit_Framework_TestCase
         return $metadata;
     }
 
-    private function generateAndRequire($proxyGenerator, $metadata)
-    {
-
-        $proxyGenerator->generateProxyClass($metadata, $proxyGenerator->getProxyFileName($metadata->getName()));
-
-        require_once $proxyGenerator->getProxyFileName($metadata->getName());
-    }
-
     /**
      * Check that the proxy doesn't serialize static properties (in __sleep() method)
      *
@@ -259,6 +251,14 @@ class ProxyClassGeneratorTest extends PHPUnit_Framework_TestCase
         }
 
         $this->generateAndRequire($this->proxyGenerator, $this->metadata);
+    }
+
+    private function generateAndRequire($proxyGenerator, $metadata)
+    {
+
+        $proxyGenerator->generateProxyClass($metadata, $proxyGenerator->getProxyFileName($metadata->getName()));
+
+        require_once $proxyGenerator->getProxyFileName($metadata->getName());
     }
 }
 

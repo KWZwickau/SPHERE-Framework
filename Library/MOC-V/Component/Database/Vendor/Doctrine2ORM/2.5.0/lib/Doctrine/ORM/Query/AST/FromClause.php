@@ -22,7 +22,7 @@ namespace Doctrine\ORM\Query\AST;
 /**
  * FromClause ::= "FROM" IdentificationVariableDeclaration {"," IdentificationVariableDeclaration}
  *
- * 
+ *
  * @link    www.doctrine-project.org
  * @since   2.0
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -31,6 +31,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class FromClause extends Node
 {
+
     /**
      * @var array
      */
@@ -41,6 +42,7 @@ class FromClause extends Node
      */
     public function __construct(array $identificationVariableDeclarations)
     {
+
         $this->identificationVariableDeclarations = $identificationVariableDeclarations;
     }
 
@@ -49,6 +51,7 @@ class FromClause extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkFromClause($this);
     }
 }

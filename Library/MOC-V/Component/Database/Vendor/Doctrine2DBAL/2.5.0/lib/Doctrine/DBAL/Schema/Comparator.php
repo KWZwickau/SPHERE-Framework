@@ -454,7 +454,7 @@ class Comparator
     }
 
     /**
-     * @param \Doctrine\DBAL\Schema\Schema $schema
+     * @param \Doctrine\DBAL\Schema\Schema   $schema
      * @param \Doctrine\DBAL\Schema\Sequence $sequence
      *
      * @return boolean

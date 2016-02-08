@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class SelectStatement extends Node
 {
+
     /**
      * @var SelectClause
      */
@@ -66,6 +67,7 @@ class SelectStatement extends Node
      */
     public function __construct($selectClause, $fromClause)
     {
+
         $this->selectClause = $selectClause;
         $this->fromClause = $fromClause;
     }
@@ -75,6 +77,7 @@ class SelectStatement extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkSelectStatement($this);
     }
 }

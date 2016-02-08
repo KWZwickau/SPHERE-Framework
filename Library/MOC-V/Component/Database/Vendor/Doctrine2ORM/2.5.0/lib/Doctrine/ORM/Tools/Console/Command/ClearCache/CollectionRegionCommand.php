@@ -35,11 +35,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class CollectionRegionCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
+
         $this
             ->setName('orm:clear-cache:region:collection')
             ->setDescription('Clear a second-level cache collection region.')

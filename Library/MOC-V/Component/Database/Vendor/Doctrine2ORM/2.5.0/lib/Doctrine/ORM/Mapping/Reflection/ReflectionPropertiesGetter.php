@@ -29,10 +29,11 @@ use ReflectionProperty;
  *
  * @private This API is for internal use only
  *
- * @author Marco Pivetta <ocramius@gmail.com>
+ * @author  Marco Pivetta <ocramius@gmail.com>
  */
 final class ReflectionPropertiesGetter
 {
+
     /**
      * @var ReflectionProperty[][] indexed by class name and property internal name
      */
@@ -48,6 +49,7 @@ final class ReflectionPropertiesGetter
      */
     public function __construct(ReflectionService $reflectionService)
     {
+
         $this->reflectionService = $reflectionService;
     }
 
@@ -106,6 +108,7 @@ final class ReflectionPropertiesGetter
      */
     private function getClassProperties(ReflectionClass $reflectionClass)
     {
+
         $properties = $reflectionClass->getProperties();
 
         return array_filter(
@@ -138,6 +141,7 @@ final class ReflectionPropertiesGetter
      */
     private function getAccessibleProperty(ReflectionProperty $property)
     {
+
         return $this->reflectionService->getAccessibleProperty(
             $property->getDeclaringClass()->getName(),
             $property->getName()
@@ -151,6 +155,7 @@ final class ReflectionPropertiesGetter
      */
     private function getLogicalName(ReflectionProperty $property)
     {
+
         $propertyName = $property->getName();
 
         if ($property->isPublic()) {

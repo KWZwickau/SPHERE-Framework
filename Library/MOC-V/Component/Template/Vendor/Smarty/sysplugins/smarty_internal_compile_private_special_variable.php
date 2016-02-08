@@ -59,7 +59,7 @@ class Smarty_Internal_Compile_Private_Special_Variable extends Smarty_Internal_C
                     $compiler->trigger_template_error("(secure mode) super globals not permitted");
                     break;
                 }
-            $compiled_ref = '$_'.strtoupper($variable);
+                $compiled_ref = '$_'.strtoupper($variable);
                 break;
 
             case 'template':

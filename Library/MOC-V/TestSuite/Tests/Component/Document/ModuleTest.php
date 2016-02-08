@@ -30,6 +30,7 @@ class ModuleTest extends AbstractTestCase
                     $FileInfo->getBasename() != 'README.md'
                     && $FileInfo->getBasename() != 'BridgeTest.tpl'
                     && $FileInfo->getBasename() != 'BridgeTest.twig'
+                    && $FileInfo->getBasename() != 'BridgeTest.xml'
                 ) {
                     if ($FileInfo->isFile()) {
                         unlink($FileInfo->getPathname());
@@ -91,6 +92,13 @@ class ModuleTest extends AbstractTestCase
         $this->assertInstanceOf('MOC\V\Component\Document\Component\IBridgeInterface', $Document);
     }
 
+    public function testStaticXmlDocument()
+    {
+
+        $Document = Document::getXmlDocument(__FILE__);
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\IBridgeInterface', $Document);
+    }
+
     public function testStaticDocument()
     {
 
@@ -116,6 +124,11 @@ class ModuleTest extends AbstractTestCase
         }
         try {
             Document::getDocument('Missing.csv');
+        } catch (\Exception $E) {
+
+        }
+        try {
+            Document::getDocument('Missing.xml');
         } catch (\Exception $E) {
 
         }
