@@ -60,11 +60,11 @@ class Kreda
              * GradeType
              */
             $Page = $Chapter->createPage('Zensuren-Typen', '', $Search, true);
-            $Page->addParagraph((new LayoutTrace(array(
+            $Page->addParagraph(new LayoutTrace(array(
                 'Education'           => 'Bildung',
                 'Graduation'          => 'Zensuren',
                 'Gradebook/GradeType' => 'Zensuren-Typ'
-            ))));
+            )));
             $Page->addParagraph(
                 'Die Zensuren-Typen bestimmen die Arten/Typen von Zensuren in Kreda. Sie werden in die Kategorien '
                 .new Italic('Kopfnote').' und '.new Italic('Leistungsüberprüfung').' unterteilt. Die Kateogie
@@ -74,11 +74,11 @@ class Kreda
             );
 
             $Page->addHeadline('Wie erstelle ich einen neuen Zensuren-Typ?', 'Anlegen', true);
-            $Page->addParagraph((new LayoutTrace(array(
+            $Page->addParagraph(new LayoutTrace(array(
                 'Education'           => 'Bildung',
                 'Graduation'          => 'Zensuren',
                 'Gradebook/GradeType' => 'Zensuren-Typ'
-            ))));
+            )));
             $Page->addParagraph(
                 'Auf der Seite befindet sich im oberen Bereich eine Übersicht über die aktuell vorhandenen Zensuren-Typen.
                  Im unteren Bereich der Seite kann ein neuer Zensuren-Typ hinzugefügt werden. Dazu wählen Sie bitte eine
@@ -92,11 +92,11 @@ class Kreda
                 )
             );
             $Page->addHeadline('Wie bearbeite ich einen vorhandenen Zensuren-Typ?', 'Bearbeiten', true);
-            $Page->addParagraph((new LayoutTrace(array(
+            $Page->addParagraph(new LayoutTrace(array(
                 'Education'           => 'Bildung',
                 'Graduation'          => 'Zensuren',
                 'Gradebook/GradeType' => 'Zensuren-Typ'
-            ))));
+            )));
             $Page->addParagraph(
                 'Auf der Seite befindet sich im oberen Bereich eine Übersicht über die aktuell vorhandenen Zensuren-Typen.
                  Um einen Zensuren-Typ zu bearbeiten klicken Sie bitte rechts auf den '.new Edit()
@@ -122,11 +122,11 @@ class Kreda
             );
 
             $Page->addHeadline('Wie wähle ich ein Notenbuch aus?', 'Auswählen', true);
-            $Page->addParagraph((new LayoutTrace(array(
+            $Page->addParagraph(new LayoutTrace(array(
                 'Education'           => 'Bildung',
                 'Graduation'          => 'Zensuren',
                 'Gradebook/Gradebook' => 'Notenbuch'
-            ))));
+            )));
             $Page->addParagraph(
                 'Auf der Auswahl-Seite befindet sich eine Übersicht über die Fach-Klassen(-Gruppen).
                  Um ein Notenbuch zu öffnen klicken Sie bitte rechts auf den '.new Select()
@@ -134,11 +134,11 @@ class Kreda
             );
 
             $Page->addHeadline('Welche Informationen werden im Notenbuch angezeigt?', 'Anzeigen', true);
-            $Page->addParagraph((new LayoutTrace(array(
+            $Page->addParagraph(new LayoutTrace(array(
                 'Education'           => 'Bildung',
                 'Graduation'          => 'Zensuren',
                 'Gradebook/Gradebook' => 'Notenbuch'
-            ))));
+            )));
             $Page->addParagraph(
                 'Links oben wird die ausgewählte Fach-Klasse (und falls vorhanden die Gruppe) angezeigt. Wenn eine Berechnungsvorschrift bei der Fach-Klasse hinterlegt ist, wird diese rechts oben angezeigt.'
             );
@@ -176,11 +176,11 @@ class Kreda
             );
 
             $Page->addHeadline('Wie erstelle Ich eine neue Leistungsüberprüfung?', 'Anlegen', true);
-            $Page->addParagraph((new LayoutTrace(array(
+            $Page->addParagraph(new LayoutTrace(array(
                 'Education'       => 'Bildung',
                 'Graduation'      => 'Zensuren',
                 'Evaluation/Test' => 'Leistungsüberprüfung'
-            ))));
+            )));
             $Page->addParagraph(
                 'Auf der Auswahl-Seite befindet sich eine Übersicht über die Fach-Klassen(-Gruppen).
                  Um eine neue Leistungsüberprüfung zu erstellen klicken Sie bitte rechts auf den '.new Select()
@@ -201,11 +201,11 @@ class Kreda
             );
 
             $Page->addHeadline('Wie bearbeite Ich eine vorhandene Leistungsüberprüfung?', 'Bearbeiten', true);
-            $Page->addParagraph((new LayoutTrace(array(
+            $Page->addParagraph(new LayoutTrace(array(
                 'Education'       => 'Bildung',
                 'Graduation'      => 'Zensuren',
                 'Evaluation/Test' => 'Leistungsüberprüfung'
-            ))));
+            )));
             $Page->addParagraph(
                 'Auf der Auswahl-Seite befindet sich eine Übersicht über die Fach-Klassen(-Gruppen).
                  Um eine vorhandene Leistungsüberprüfung zu bearbeiten klicken Sie bitte rechts auf den '.new Select()
@@ -227,11 +227,11 @@ class Kreda
 
             $Page->addHeadline('Wie vergebe Ich Zensuren zu einer vorhandenen Leistungsüberprüfung?', 'Eintragen',
                 true);
-            $Page->addParagraph((new LayoutTrace(array(
+            $Page->addParagraph(new LayoutTrace(array(
                 'Education'       => 'Bildung',
                 'Graduation'      => 'Zensuren',
                 'Evaluation/Test' => 'Leistungsüberprüfung'
-            ))));
+            )));
             $Page->addParagraph(
                 'Auf der Auswahl-Seite befindet sich eine Übersicht über die Fach-Klassen(-Gruppen).
                  Um Zensuren zu einer vorhandenen Leistungsüberprüfung zu vergeben klicken Sie bitte rechts auf den '.new Select()
@@ -318,11 +318,11 @@ class Kreda
 
             $Page->addHeadline('Wie vergebe Ich Zensuren zu einem Kopfnotenauftrag?', 'Eintragen',
                 true);
-            $Page->addParagraph((new LayoutTrace(array(
+            $Page->addParagraph(new LayoutTrace(array(
                 'Education'       => 'Bildung',
                 'Graduation'      => 'Zensuren',
                 'Evaluation/Test' => 'Leistungsüberprüfung'
-            ))));
+            )));
             $Page->addParagraph(
                 'Falls die Schulleitung einen Kopfnotenauftrag erteilt hat, werden für jeden Zensuren-Typ der Kateogrie
                   Kopfnote jeweils ein Eintrag in der Übersicht der Leistungsüberprüfungen angezeigt. Ansonsten werden die
@@ -332,11 +332,11 @@ class Kreda
 
             $Page->addHeadline('Wie vergebe Ich Zensuren zu einem Stichtagsnotenauftrag?', 'Eintragen',
                 true);
-            $Page->addParagraph((new LayoutTrace(array(
+            $Page->addParagraph(new LayoutTrace(array(
                 'Education'       => 'Bildung',
                 'Graduation'      => 'Zensuren',
                 'Evaluation/Test' => 'Leistungsüberprüfung'
-            ))));
+            )));
             $Page->addParagraph(
                 'Falls die Schulleitung einen Stichtagsnotenauftrag erteilt hat, wird dieser ebenfalls in der Übersicht
                   der Leistungsüberprüfungen angezeigt. Die Zensuren Vergabe bei Stichtagsnotenaufträgen funktioniert
