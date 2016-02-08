@@ -147,7 +147,7 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
     /**
      * Add argument to event.
      *
-     * @param string $key Argument name.
+     * @param string $key   Argument name.
      * @param mixed  $value Value.
      *
      * @return GenericEvent

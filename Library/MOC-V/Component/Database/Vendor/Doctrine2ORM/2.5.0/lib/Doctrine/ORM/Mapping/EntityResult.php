@@ -33,6 +33,7 @@ namespace Doctrine\ORM\Mapping;
  */
 final class EntityResult implements Annotation
 {
+
     /**
      * The class of the result.
      *

@@ -215,11 +215,11 @@ class ParameterBagTest extends \PHPUnit_Framework_TestCase
 
         $bag = new ParameterBag(array(
             'digits' => '0123ab',
-            'email' => 'example@example.com',
-            'url' => 'http://example.com/foo',
-            'dec' => '256',
-            'hex' => '0x100',
-            'array' => array('bang'),
+            'email'  => 'example@example.com',
+            'url'    => 'http://example.com/foo',
+            'dec'    => '256',
+            'hex'    => '0x100',
+            'array'  => array('bang'),
         ));
 
         $this->assertEmpty($bag->filter('nokey'), '->filter() should return empty by default if no key is found');

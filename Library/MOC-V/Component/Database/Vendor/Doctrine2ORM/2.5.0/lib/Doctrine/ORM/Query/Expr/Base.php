@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\Expr;
  */
 abstract class Base
 {
+
     /**
      * @var string
      */
@@ -60,6 +61,7 @@ abstract class Base
      */
     public function __construct($args = array())
     {
+
         $this->addMultiple($args);
     }
 
@@ -109,6 +111,7 @@ abstract class Base
      */
     public function count()
     {
+
         return count($this->parts);
     }
 
@@ -117,6 +120,7 @@ abstract class Base
      */
     public function __toString()
     {
+
         if ($this->count() == 1) {
             return (string)$this->parts[0];
         }

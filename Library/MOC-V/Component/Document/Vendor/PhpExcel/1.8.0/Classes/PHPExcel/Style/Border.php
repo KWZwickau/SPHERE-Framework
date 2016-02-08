@@ -288,7 +288,7 @@ class PHPExcel_Style_Border extends PHPExcel_Style_Supervisor implements PHPExce
             case '_inside':
             case '_outline':
             case '_vertical':
-            throw new PHPExcel_Exception('Cannot get shared component for a pseudo-border.');
+                throw new PHPExcel_Exception('Cannot get shared component for a pseudo-border.');
                 break;
             case '_bottom':
                 return $this->_parent->getSharedComponent()->getBottom();

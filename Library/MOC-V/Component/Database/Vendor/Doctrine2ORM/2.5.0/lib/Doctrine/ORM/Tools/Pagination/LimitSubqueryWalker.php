@@ -38,6 +38,7 @@ use Doctrine\ORM\Query\TreeWalkerAdapter;
  */
 class LimitSubqueryWalker extends TreeWalkerAdapter
 {
+
     /**
      * ID type hint.
      */
@@ -62,6 +63,7 @@ class LimitSubqueryWalker extends TreeWalkerAdapter
      */
     public function walkSelectStatement(SelectStatement $AST)
     {
+
         $queryComponents = $this->_getQueryComponents();
         // Get the root entity and alias from the AST fromClause
         $from = $AST->fromClause->identificationVariableDeclarations;
@@ -124,6 +126,7 @@ class LimitSubqueryWalker extends TreeWalkerAdapter
      */
     private function validate(SelectStatement $AST)
     {
+
         // Prevent LimitSubqueryWalker from being used with queries that include
         // a limit, a fetched to-many join, and an order by condition that
         // references a column from the fetch joined table.
@@ -164,6 +167,7 @@ class LimitSubqueryWalker extends TreeWalkerAdapter
      */
     private function createSelectExpressionItem(PathExpression $pathExpression)
     {
+
         if ($pathExpression->type === PathExpression::TYPE_SINGLE_VALUED_ASSOCIATION) {
             $identity = new IdentityFunction('identity');
 

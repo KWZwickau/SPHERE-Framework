@@ -34,7 +34,7 @@ class Twig_Node_Expression_Array extends Twig_Node_Expression
 
         foreach (array_chunk($this->nodes, 2) as $pair) {
             $pairs[] = array(
-                'key' => $pair[0],
+                'key'   => $pair[0],
                 'value' => $pair[1],
             );
         }

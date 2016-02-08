@@ -49,7 +49,7 @@ class UniversalFileLoader extends Bridge implements IBridgeInterface
         $SERVER = GlobalsKernel::getGlobals()->getSERVER();
         $SplFileInfo = (new \SplFileInfo($this->Instance->getLocation()));
         if (!$SplFileInfo->getRealPath()) {
-            $SplFileInfo = (new \SplFileInfo($SERVER['DOCUMENT_ROOT'] . $this->Instance->getLocation()));
+            $SplFileInfo = (new \SplFileInfo($SERVER['DOCUMENT_ROOT'].$this->Instance->getLocation()));
         }
         return $SplFileInfo->getRealPath() ? $SplFileInfo->getRealPath() : '';
     }

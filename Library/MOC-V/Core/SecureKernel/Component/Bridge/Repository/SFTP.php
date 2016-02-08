@@ -140,6 +140,7 @@ class SFTP extends Connection
 
     /**
      * @param $File
+     *
      * @return SFTP
      * @throws ComponentException
      */

@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\Expr;
  */
 class OrderBy
 {
+
     /**
      * @var string
      */
@@ -61,6 +62,7 @@ class OrderBy
      */
     public function __construct($sort = null, $order = null)
     {
+
         if ($sort) {
             $this->add($sort, $order);
         }
@@ -84,6 +86,7 @@ class OrderBy
      */
     public function count()
     {
+
         return count($this->parts);
     }
 
@@ -92,6 +95,7 @@ class OrderBy
      */
     public function getParts()
     {
+
         return $this->parts;
     }
 

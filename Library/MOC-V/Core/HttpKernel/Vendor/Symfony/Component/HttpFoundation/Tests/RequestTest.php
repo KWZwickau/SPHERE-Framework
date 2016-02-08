@@ -760,7 +760,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
 
         $request = Request::create('http://example.com', 'GET', array(), array(), array(), array(
             'HTTP_X_FORWARDED_PROTO' => 'https',
-            'HTTP_X_FORWARDED_PORT' => '443'
+            'HTTP_X_FORWARDED_PORT'  => '443'
         ));
         $port = $request->getPort();
 
@@ -1069,9 +1069,9 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     {
 
         return array(
-            'Resource then fetch' => array(true, false),
+            'Resource then fetch'    => array(true, false),
             'Resource then resource' => array(true, true),
-            'Fetch then resource' => array(false, true),
+            'Fetch then resource'    => array(false, true),
         );
     }
 
@@ -1717,7 +1717,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
                 array(),
                 array(
                     'IIS_WasUrlRewritten' => '1',
-                    'UNENCODED_URL' => '/foo/bar'
+                    'UNENCODED_URL'       => '/foo/bar'
                 ),
                 '/foo/bar'
             ),
@@ -1736,7 +1736,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
                 ),
                 array(
                     'IIS_WasUrlRewritten' => '1',
-                    'UNENCODED_URL' => '/foo/bar'
+                    'UNENCODED_URL'       => '/foo/bar'
                 ),
                 '/foo/bar'
             ),
@@ -1747,7 +1747,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
                 array(
                     'HTTP_X_ORIGINAL_URL' => '/foo/bar',
                     'IIS_WasUrlRewritten' => '1',
-                    'UNENCODED_URL' => '/foo/bar'
+                    'UNENCODED_URL'       => '/foo/bar'
                 ),
                 '/foo/bar'
             ),
@@ -1762,7 +1762,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
                 array(),
                 array(
                     'ORIG_PATH_INFO' => '/foo/bar',
-                    'QUERY_STRING' => 'foo=bar',
+                    'QUERY_STRING'   => 'foo=bar',
                 ),
                 '/foo/bar?foo=bar'
             )

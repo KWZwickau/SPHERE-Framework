@@ -27,7 +27,7 @@ class SymfonyFinder extends Bridge implements IBridgeInterface
     public function __construct(FileParameter $FileOption)
     {
 
-        AutoLoader::getNamespaceAutoLoader('Symfony\Component', __DIR__ . '/../../../Vendor/');
+        AutoLoader::getNamespaceAutoLoader('Symfony\Component', __DIR__.'/../../../Vendor/');
 
         $this->FileOption = $FileOption;
 
@@ -68,7 +68,7 @@ class SymfonyFinder extends Bridge implements IBridgeInterface
             }
 
             if (count($Result) > 1) {
-                throw new \Exception(count($Result) . ' matches.');
+                throw new \Exception(count($Result).' matches.');
             } elseif (count($Result) == 1) {
                 return current($Result);
             } else {

@@ -25,6 +25,7 @@ use PDO;
 
 class SimpleObjectHydrator extends AbstractHydrator
 {
+
     /**
      * @var ClassMetadata
      */
@@ -35,6 +36,7 @@ class SimpleObjectHydrator extends AbstractHydrator
      */
     protected function prepare()
     {
+
         if (count($this->_rsm->aliasMap) !== 1) {
             throw new \RuntimeException("Cannot use SimpleObjectHydrator with a ResultSetMapping that contains more than one object result.");
         }
@@ -51,6 +53,7 @@ class SimpleObjectHydrator extends AbstractHydrator
      */
     protected function cleanup()
     {
+
         parent::cleanup();
 
         $this->_uow->triggerEagerLoads();
@@ -62,6 +65,7 @@ class SimpleObjectHydrator extends AbstractHydrator
      */
     protected function hydrateAllData()
     {
+
         $result = array();
 
         while ($row = $this->_stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -78,6 +82,7 @@ class SimpleObjectHydrator extends AbstractHydrator
      */
     protected function hydrateRowData(array $sqlResult, array &$result)
     {
+
         $entityName = $this->class->name;
         $data = array();
 

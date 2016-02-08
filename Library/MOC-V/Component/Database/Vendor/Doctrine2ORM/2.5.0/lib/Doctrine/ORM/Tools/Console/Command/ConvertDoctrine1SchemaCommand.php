@@ -41,6 +41,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class ConvertDoctrine1SchemaCommand extends Command
 {
+
     /**
      * @var EntityGenerator|null
      */
@@ -56,6 +57,7 @@ class ConvertDoctrine1SchemaCommand extends Command
      */
     protected function configure()
     {
+
         $this
             ->setName('orm:convert-d1-schema')
             ->setAliases(array('orm:convert:d1-schema'))
@@ -96,6 +98,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         // Process source directories
         $fromPaths = array_merge(array($input->getArgument('from-path')), $input->getOption('from'));
 
@@ -127,6 +130,7 @@ EOT
         $extend,
         OutputInterface $output
     ) {
+
         foreach ($fromPaths as &$dirName) {
             $dirName = realpath($dirName);
 
@@ -197,6 +201,7 @@ EOT
      */
     public function getMetadataExporter()
     {
+
         if ($this->metadataExporter == null) {
             $this->metadataExporter = new ClassMetadataExporter();
         }
@@ -211,6 +216,7 @@ EOT
      */
     public function setMetadataExporter(ClassMetadataExporter $metadataExporter)
     {
+
         $this->metadataExporter = $metadataExporter;
     }
 
@@ -219,6 +225,7 @@ EOT
      */
     public function getEntityGenerator()
     {
+
         if ($this->entityGenerator == null) {
             $this->entityGenerator = new EntityGenerator();
         }
@@ -233,6 +240,7 @@ EOT
      */
     public function setEntityGenerator(EntityGenerator $entityGenerator)
     {
+
         $this->entityGenerator = $entityGenerator;
     }
 }

@@ -70,7 +70,7 @@ class PDFBarcode
             case 'ISBN':
             case 'ISSN':
             case 'EAN13': { // EAN 13
-            $arrcode = $this->barcode_eanupc($code, 13);
+                $arrcode = $this->barcode_eanupc($code, 13);
                 $arrcode['lightmL'] = 11;    // LEFT light margin =  x X-dim (http://www.gs1uk.org)
                 $arrcode['lightmR'] = 7;    // RIGHT light margin =  x X-dim (http://www.gs1uk.org)
                 $arrcode['nom-X'] = 0.33;    // Nominal value for X-dim in mm (http://www.gs1uk.org)
@@ -237,11 +237,11 @@ class PDFBarcode
             }
             case 'MSI':        // MSI (Variation of Plessey code)
             case 'MSI+': {    // MSI + CHECKSUM (modulo 11)
-            if (strtoupper($type) == 'MSI') {
-                $arrcode = $this->barcode_msi($code, false);
+                if (strtoupper($type) == 'MSI') {
+                    $arrcode = $this->barcode_msi($code, false);
                 }
-            if (strtoupper($type) == 'MSI+') {
-                $arrcode = $this->barcode_msi($code, true);
+                if (strtoupper($type) == 'MSI+') {
+                    $arrcode = $this->barcode_msi($code, true);
                 }
                 if ($arrcode == false) {
                     break;
@@ -278,23 +278,23 @@ class PDFBarcode
             case 'EAN128A':    // EAN 128 A
             case 'EAN128B':    // EAN 128 B
             case 'EAN128C': {    // EAN 128 C
-            if (strtoupper($type) == 'C128A') {
-                $arrcode = $this->barcode_c128($code, 'A');
+                if (strtoupper($type) == 'C128A') {
+                    $arrcode = $this->barcode_c128($code, 'A');
                 }
-            if (strtoupper($type) == 'C128B') {
-                $arrcode = $this->barcode_c128($code, 'B');
+                if (strtoupper($type) == 'C128B') {
+                    $arrcode = $this->barcode_c128($code, 'B');
                 }
-            if (strtoupper($type) == 'C128C') {
-                $arrcode = $this->barcode_c128($code, 'C');
+                if (strtoupper($type) == 'C128C') {
+                    $arrcode = $this->barcode_c128($code, 'C');
                 }
-            if (strtoupper($type) == 'EAN128A') {
-                $arrcode = $this->barcode_c128($code, 'A', true);
+                if (strtoupper($type) == 'EAN128A') {
+                    $arrcode = $this->barcode_c128($code, 'A', true);
                 }
-            if (strtoupper($type) == 'EAN128B') {
-                $arrcode = $this->barcode_c128($code, 'B', true);
+                if (strtoupper($type) == 'EAN128B') {
+                    $arrcode = $this->barcode_c128($code, 'B', true);
                 }
-            if (strtoupper($type) == 'EAN128C') {
-                $arrcode = $this->barcode_c128($code, 'C', true);
+                if (strtoupper($type) == 'EAN128C') {
+                    $arrcode = $this->barcode_c128($code, 'C', true);
                 }
                 if ($arrcode == false) {
                     break;
@@ -315,19 +315,19 @@ class PDFBarcode
                 } else {
                     $this->print_ratio = 2.5;
                 }    // spec: Pr= 1:2 - 1:3 (>2.2 if X<0.50)
-            $code = str_replace(chr(194).chr(160), ' ', $code);    // mPDF 5.3.95  (for utf-8 encoded)
-            $code = str_replace(chr(160), ' ', $code);    // mPDF 5.3.95	(for win-1252)
-            if (strtoupper($type) == 'C39') {
-                $arrcode = $this->barcode_code39($code, false, false);
+                $code = str_replace(chr(194).chr(160), ' ', $code);    // mPDF 5.3.95  (for utf-8 encoded)
+                $code = str_replace(chr(160), ' ', $code);    // mPDF 5.3.95	(for win-1252)
+                if (strtoupper($type) == 'C39') {
+                    $arrcode = $this->barcode_code39($code, false, false);
                 }
-            if (strtoupper($type) == 'C39+') {
-                $arrcode = $this->barcode_code39($code, false, true);
+                if (strtoupper($type) == 'C39+') {
+                    $arrcode = $this->barcode_code39($code, false, true);
                 }
-            if (strtoupper($type) == 'C39E') {
-                $arrcode = $this->barcode_code39($code, true, false);
+                if (strtoupper($type) == 'C39E') {
+                    $arrcode = $this->barcode_code39($code, true, false);
                 }
-            if (strtoupper($type) == 'C39E+') {
-                $arrcode = $this->barcode_code39($code, true, true);
+                if (strtoupper($type) == 'C39E+') {
+                    $arrcode = $this->barcode_code39($code, true, true);
                 }
                 if ($arrcode == false) {
                     break;
@@ -346,11 +346,11 @@ class PDFBarcode
                 } else {
                     $this->print_ratio = 3;
                 }        // spec: Pr=1:3/1:4.5
-            if (strtoupper($type) == 'S25') {
-                $arrcode = $this->barcode_s25($code, false);
+                if (strtoupper($type) == 'S25') {
+                    $arrcode = $this->barcode_s25($code, false);
                 }
-            if (strtoupper($type) == 'S25+') {
-                $arrcode = $this->barcode_s25($code, true);
+                if (strtoupper($type) == 'S25+') {
+                    $arrcode = $this->barcode_s25($code, true);
                 }
                 if ($arrcode == false) {
                     break;
@@ -369,11 +369,11 @@ class PDFBarcode
                 } else {
                     $this->print_ratio = 2.5;
                 }    // spec: Pr= 1:2 - 1:3 (>2.2 if X<0.50)
-            if (strtoupper($type) == 'I25') {
-                $arrcode = $this->barcode_i25($code, false);
+                if (strtoupper($type) == 'I25') {
+                    $arrcode = $this->barcode_i25($code, false);
                 }
-            if (strtoupper($type) == 'I25+') {
-                $arrcode = $this->barcode_i25($code, true);
+                if (strtoupper($type) == 'I25+') {
+                    $arrcode = $this->barcode_i25($code, true);
                 }
                 if ($arrcode == false) {
                     break;
@@ -392,11 +392,11 @@ class PDFBarcode
                 } else {
                     $this->print_ratio = 2.5;
                 }    // spec: Pr= 1:2 - 1:3 (>2.2 if X<0.50)
-            if (strtoupper($type) == 'I25B') {
-                $arrcode = $this->barcode_i25($code, false);
+                if (strtoupper($type) == 'I25B') {
+                    $arrcode = $this->barcode_i25($code, false);
                 }
-            if (strtoupper($type) == 'I25B+') {
-                $arrcode = $this->barcode_i25($code, true);
+                if (strtoupper($type) == 'I25B+') {
+                    $arrcode = $this->barcode_i25($code, true);
                 }
                 if ($arrcode == false) {
                     break;

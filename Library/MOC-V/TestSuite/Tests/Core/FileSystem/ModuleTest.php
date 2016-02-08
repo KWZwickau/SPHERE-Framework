@@ -5,6 +5,11 @@ use MOC\V\Core\FileSystem\FileSystem;
 use MOC\V\Core\FileSystem\Vendor\Vendor;
 use MOC\V\TestSuite\AbstractTestCase;
 
+/**
+ * Class ModuleTest
+ *
+ * @package MOC\V\TestSuite\Tests\Core\FileSystem
+ */
 class ModuleTest extends AbstractTestCase
 {
 

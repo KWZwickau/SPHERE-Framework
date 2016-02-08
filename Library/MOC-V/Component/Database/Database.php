@@ -40,7 +40,7 @@ class Database implements IVendorInterface
      * @param string $Host
      * @param null   $Port
      *
-     * @param int $Timeout
+     * @param int    $Timeout
      *
      * @return IBridgeInterface
      */
@@ -58,7 +58,7 @@ class Database implements IVendorInterface
      * @param string $Host
      * @param null   $Port
      *
-     * @param int $Timeout
+     * @param int    $Timeout
      *
      * @return IBridgeInterface
      */
@@ -70,8 +70,7 @@ class Database implements IVendorInterface
         $Host,
         $Port = null,
         $Timeout = 5
-    )
-    {
+    ) {
 
         $Doctrine = new Database(
             new Vendor(

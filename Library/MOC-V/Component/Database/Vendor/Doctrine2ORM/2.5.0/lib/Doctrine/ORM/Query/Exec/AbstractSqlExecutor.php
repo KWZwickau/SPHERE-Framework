@@ -29,10 +29,11 @@ use Doctrine\DBAL\Connection;
  * @license     http://www.opensource.org/licenses/mit-license.php MIT
  * @link        http://www.doctrine-project.org
  * @since       2.0
- * @todo Rename: AbstractSQLExecutor
+ * @todo        Rename: AbstractSQLExecutor
  */
 abstract class AbstractSqlExecutor
 {
+
     /**
      * @var array
      */
@@ -50,6 +51,7 @@ abstract class AbstractSqlExecutor
      */
     public function getSqlStatements()
     {
+
         return $this->_sqlStatements;
     }
 
@@ -60,6 +62,7 @@ abstract class AbstractSqlExecutor
      */
     public function setQueryCacheProfile(QueryCacheProfile $qcp)
     {
+
         $this->queryCacheProfile = $qcp;
     }
 

@@ -501,7 +501,7 @@ class Pop3 extends Base
             'topic'      => $topic,
             'mailbox'    => 'INBOX',
             'date'       => $date,
-            'subject' => str_replace('’', '\'', $headers1->subject),
+            'subject'    => str_replace('’', '\'', $headers1->subject),
             'from'       => $sender,
             'flags'      => $flags,
             'to'         => $recipientsTo,

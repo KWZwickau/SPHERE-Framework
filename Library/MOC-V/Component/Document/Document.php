@@ -4,6 +4,7 @@ namespace MOC\V\Component\Document;
 use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
 use MOC\V\Component\Document\Component\Bridge\Repository\MPdf;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use MOC\V\Component\Document\Component\Bridge\Repository\UniversalXml;
 use MOC\V\Component\Document\Component\IBridgeInterface;
 use MOC\V\Component\Document\Component\IVendorInterface;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
@@ -40,14 +41,17 @@ class Document implements IVendorInterface
     {
 
         $FileInfo = new \SplFileInfo($Location);
-        switch ($FileInfo->getExtension()) {
+        switch (strtolower($FileInfo->getExtension())) {
             case 'pdf': {
                 return self::getPdfDocument($Location);
             }
             case 'csv':
             case 'xls':
             case 'xlsx': {
-            return self::getExcelDocument($Location);
+                return self::getExcelDocument($Location);
+            }
+            case 'xml': {
+                return self::getXmlDocument($Location);
             }
             default:
                 throw new DocumentTypeException();
@@ -106,6 +110,27 @@ class Document implements IVendorInterface
         }
 
         return $Bridge;
+    }
+
+    /**
+     * @param string $Location
+     *
+     * @return IBridgeInterface
+     */
+    public static function getXmlDocument($Location)
+    {
+
+        $Document = new Document(
+            new Vendor(
+                new UniversalXml()
+            )
+        );
+
+        if (file_exists(new FileParameter($Location))) {
+            $Document->getBridgeInterface()->loadFile(new FileParameter($Location));
+        }
+
+        return $Document->getBridgeInterface();
     }
 
     /**

@@ -30,6 +30,7 @@ use Doctrine\ORM\Query\TreeWalkerAdapter;
  */
 class CountWalker extends TreeWalkerAdapter
 {
+
     /**
      * Distinct mode hint name.
      */
@@ -46,6 +47,7 @@ class CountWalker extends TreeWalkerAdapter
      */
     public function walkSelectStatement(SelectStatement $AST)
     {
+
         if ($AST->havingClause) {
             throw new \RuntimeException('Cannot count query that uses a HAVING clause. Use the output walkers for pagination');
         }

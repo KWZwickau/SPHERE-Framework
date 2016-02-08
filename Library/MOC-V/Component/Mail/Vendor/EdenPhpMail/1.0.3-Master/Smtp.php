@@ -514,7 +514,7 @@ class Smtp extends Base
             'Date'    => $timestamp,
             'Subject' => $subject,
             'From'    => '<'.$this->username.'>',
-            'To' => implode(', ', $to)
+            'To'      => implode(', ', $to)
         );
 
         if (!empty( $cc )) {

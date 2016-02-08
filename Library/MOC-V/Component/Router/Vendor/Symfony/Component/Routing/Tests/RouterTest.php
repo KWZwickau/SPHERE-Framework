@@ -25,8 +25,8 @@ class RouterTest extends \PHPUnit_Framework_TestCase
     {
 
         $this->router->setOptions(array(
-            'cache_dir' => './cache',
-            'debug'     => true,
+            'cache_dir'     => './cache',
+            'debug'         => true,
             'resource_type' => 'ResourceType'
         ));
 
@@ -43,9 +43,9 @@ class RouterTest extends \PHPUnit_Framework_TestCase
     {
 
         $this->router->setOptions(array(
-            'cache_dir'  => './cache',
-            'option_foo' => true,
-            'option_bar' => 'baz',
+            'cache_dir'     => './cache',
+            'option_foo'    => true,
+            'option_bar'    => 'baz',
             'resource_type' => 'ResourceType'
         ));
     }

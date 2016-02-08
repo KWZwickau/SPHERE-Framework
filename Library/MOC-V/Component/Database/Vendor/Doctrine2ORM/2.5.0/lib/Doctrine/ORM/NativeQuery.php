@@ -23,10 +23,11 @@ namespace Doctrine\ORM;
  * Represents a native SQL query.
  *
  * @author Roman Borschel <roman@code-factory.org>
- * @since 2.0
+ * @since  2.0
  */
 final class NativeQuery extends AbstractQuery
 {
+
     /**
      * @var string
      */
@@ -41,6 +42,7 @@ final class NativeQuery extends AbstractQuery
      */
     public function getSQL()
     {
+
         return $this->_sql;
     }
 
@@ -53,6 +55,7 @@ final class NativeQuery extends AbstractQuery
      */
     public function setSQL($sql)
     {
+
         $this->_sql = $sql;
 
         return $this;
@@ -63,6 +66,7 @@ final class NativeQuery extends AbstractQuery
      */
     protected function _doExecute()
     {
+
         $parameters = array();
         $types = array();
 

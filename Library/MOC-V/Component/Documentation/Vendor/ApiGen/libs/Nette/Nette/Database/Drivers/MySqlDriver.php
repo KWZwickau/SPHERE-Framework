@@ -135,9 +135,9 @@ class MySqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
             $columns[] = array(
                 'name'          => $row['Field'],
                 'table'         => $table,
-                'nativetype' => strtoupper($type[0]),
+                'nativetype'    => strtoupper($type[0]),
                 'size'          => isset( $type[1] ) ? (int)$type[1] : null,
-                'unsigned'   => (bool)strstr($row['Type'], 'unsigned'),
+                'unsigned'      => (bool)strstr($row['Type'], 'unsigned'),
                 'nullable'      => $row['Null'] === 'YES',
                 'default'       => $row['Default'],
                 'autoincrement' => $row['Extra'] === 'auto_increment',

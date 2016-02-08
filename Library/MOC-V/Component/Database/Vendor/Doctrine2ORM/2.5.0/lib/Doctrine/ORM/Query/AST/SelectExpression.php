@@ -31,6 +31,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class SelectExpression extends Node
 {
+
     /**
      * @var mixed
      */
@@ -53,6 +54,7 @@ class SelectExpression extends Node
      */
     public function __construct($expression, $fieldIdentificationVariable, $hiddenAliasResultVariable = false)
     {
+
         $this->expression = $expression;
         $this->fieldIdentificationVariable = $fieldIdentificationVariable;
         $this->hiddenAliasResultVariable = $hiddenAliasResultVariable;
@@ -63,6 +65,7 @@ class SelectExpression extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkSelectExpression($this);
     }
 }

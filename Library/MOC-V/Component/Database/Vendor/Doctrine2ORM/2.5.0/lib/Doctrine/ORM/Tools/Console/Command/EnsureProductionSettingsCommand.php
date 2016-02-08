@@ -37,11 +37,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class EnsureProductionSettingsCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
+
         $this
             ->setName('orm:ensure-production-settings')
             ->setDescription('Verify that Doctrine is properly configured for a production environment.')
@@ -62,6 +64,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         $em = $this->getHelper('em')->getEntityManager();
 
         try {

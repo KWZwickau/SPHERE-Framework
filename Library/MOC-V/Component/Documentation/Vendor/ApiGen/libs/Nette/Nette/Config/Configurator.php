@@ -57,8 +57,8 @@ class Configurator extends Nette\Object
             debug_backtrace(false);
         $debugMode = static::detectDebugMode();
         return array(
-            'appDir' => isset( $trace[1]['file'] ) ? dirname($trace[1]['file']) : null,
-            'wwwDir' => isset( $_SERVER['SCRIPT_FILENAME'] ) ? dirname($_SERVER['SCRIPT_FILENAME']) : null,
+            'appDir'         => isset( $trace[1]['file'] ) ? dirname($trace[1]['file']) : null,
+            'wwwDir'         => isset( $_SERVER['SCRIPT_FILENAME'] ) ? dirname($_SERVER['SCRIPT_FILENAME']) : null,
             'debugMode'      => $debugMode,
             'productionMode' => !$debugMode,
             'environment'    => $debugMode ? self::DEVELOPMENT : self::PRODUCTION,

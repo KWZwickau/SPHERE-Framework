@@ -33,6 +33,7 @@ namespace Doctrine\ORM;
  */
 class Version
 {
+
     /**
      * Current Doctrine Version
      */
@@ -48,6 +49,7 @@ class Version
      */
     public static function compare($version)
     {
+
         $currentVersion = str_replace(' ', '', strtolower(self::VERSION));
         $version = str_replace(' ', '', $version);
 

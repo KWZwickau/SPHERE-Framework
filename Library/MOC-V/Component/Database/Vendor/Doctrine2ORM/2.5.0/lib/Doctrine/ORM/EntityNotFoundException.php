@@ -23,10 +23,11 @@ namespace Doctrine\ORM;
  * Exception thrown when a Proxy fails to retrieve an Entity result.
  *
  * @author robo
- * @since 2.0
+ * @since  2.0
  */
 class EntityNotFoundException extends ORMException
 {
+
     /**
      * Static constructor.
      *
@@ -37,6 +38,7 @@ class EntityNotFoundException extends ORMException
      */
     public static function fromClassNameAndIdentifier($className, array $id)
     {
+
         $ids = array();
 
         foreach ($id as $key => $value) {

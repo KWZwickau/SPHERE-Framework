@@ -31,6 +31,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class SimpleSelectExpression extends Node
 {
+
     /**
      * @var Node
      */
@@ -46,6 +47,7 @@ class SimpleSelectExpression extends Node
      */
     public function __construct($expression)
     {
+
         $this->expression = $expression;
     }
 
@@ -54,6 +56,7 @@ class SimpleSelectExpression extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkSimpleSelectExpression($this);
     }
 }

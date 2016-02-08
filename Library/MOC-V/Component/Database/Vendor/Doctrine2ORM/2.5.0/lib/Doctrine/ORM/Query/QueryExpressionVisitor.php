@@ -29,15 +29,16 @@ use Doctrine\Common\Collections\Expr\Value;
  * Converts Collection expressions to Query expressions.
  *
  * @author Kirill chEbba Chebunin <iam@chebba.org>
- * @since 2.4
+ * @since  2.4
  */
 class QueryExpressionVisitor extends ExpressionVisitor
 {
+
     /**
      * @var array
      */
     private static $operatorMap = array(
-        Comparison::GT => Expr\Comparison::GT,
+        Comparison::GT  => Expr\Comparison::GT,
         Comparison::GTE => Expr\Comparison::GTE,
         Comparison::LT  => Expr\Comparison::LT,
         Comparison::LTE => Expr\Comparison::LTE
@@ -65,6 +66,7 @@ class QueryExpressionVisitor extends ExpressionVisitor
      */
     public function __construct($queryAliases)
     {
+
         $this->queryAliases = $queryAliases;
         $this->expr = new Expr();
     }
@@ -77,6 +79,7 @@ class QueryExpressionVisitor extends ExpressionVisitor
      */
     public function getParameters()
     {
+
         return new ArrayCollection($this->parameters);
     }
 
@@ -87,6 +90,7 @@ class QueryExpressionVisitor extends ExpressionVisitor
      */
     public function clearParameters()
     {
+
         $this->parameters = array();
     }
 
@@ -95,6 +99,7 @@ class QueryExpressionVisitor extends ExpressionVisitor
      */
     public function walkCompositeExpression(CompositeExpression $expr)
     {
+
         $expressionList = array();
 
         foreach ($expr->getExpressionList() as $child) {
@@ -193,6 +198,7 @@ class QueryExpressionVisitor extends ExpressionVisitor
      */
     public function walkValue(Value $value)
     {
+
         return $value->getValue();
     }
 

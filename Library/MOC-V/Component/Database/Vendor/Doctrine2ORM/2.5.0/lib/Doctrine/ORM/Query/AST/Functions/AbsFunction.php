@@ -34,6 +34,7 @@ use Doctrine\ORM\Query\Lexer;
  */
 class AbsFunction extends FunctionNode
 {
+
     /**
      * @var \Doctrine\ORM\Query\AST\SimpleArithmeticExpression
      */
@@ -55,6 +56,7 @@ class AbsFunction extends FunctionNode
      */
     public function parse(\Doctrine\ORM\Query\Parser $parser)
     {
+
         $parser->match(Lexer::T_IDENTIFIER);
         $parser->match(Lexer::T_OPEN_PARENTHESIS);
 

@@ -31,6 +31,7 @@ namespace Doctrine\ORM\Mapping;
  */
 class UnderscoreNamingStrategy implements NamingStrategy
 {
+
     /**
      * @var integer
      */
@@ -43,6 +44,7 @@ class UnderscoreNamingStrategy implements NamingStrategy
      */
     public function __construct($case = CASE_LOWER)
     {
+
         $this->case = $case;
     }
 
@@ -51,6 +53,7 @@ class UnderscoreNamingStrategy implements NamingStrategy
      */
     public function getCase()
     {
+
         return $this->case;
     }
 
@@ -64,6 +67,7 @@ class UnderscoreNamingStrategy implements NamingStrategy
      */
     public function setCase($case)
     {
+
         $this->case = $case;
     }
 
@@ -72,6 +76,7 @@ class UnderscoreNamingStrategy implements NamingStrategy
      */
     public function propertyToColumnName($propertyName, $className = null)
     {
+
         return $this->underscore($propertyName);
     }
 
@@ -82,6 +87,7 @@ class UnderscoreNamingStrategy implements NamingStrategy
      */
     private function underscore($string)
     {
+
         $string = preg_replace('/(?<=[a-z])([A-Z])/', '_$1', $string);
 
         if ($this->case === CASE_UPPER) {
@@ -100,6 +106,7 @@ class UnderscoreNamingStrategy implements NamingStrategy
         $className = null,
         $embeddedClassName = null
     ) {
+
         return $this->underscore($propertyName).'_'.$embeddedColumnName;
     }
 
@@ -135,6 +142,7 @@ class UnderscoreNamingStrategy implements NamingStrategy
      */
     public function classToTableName($className)
     {
+
         if (strpos($className, '\\') !== false) {
             $className = substr($className, strrpos($className, '\\') + 1);
         }

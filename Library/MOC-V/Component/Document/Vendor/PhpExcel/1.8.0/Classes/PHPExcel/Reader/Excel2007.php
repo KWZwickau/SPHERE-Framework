@@ -505,9 +505,9 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 
                             $style = (object)array(
                                 "numFmt"      => $numFmt,
-                                "font"   => $xmlStyles->fonts->font[intval($xf["fontId"])],
-                                "fill"   => $xmlStyles->fills->fill[intval($xf["fillId"])],
-                                "border" => $xmlStyles->borders->border[intval($xf["borderId"])],
+                                "font"        => $xmlStyles->fonts->font[intval($xf["fontId"])],
+                                "fill"        => $xmlStyles->fills->fill[intval($xf["fillId"])],
+                                "border"      => $xmlStyles->borders->border[intval($xf["borderId"])],
                                 "alignment"   => $xf->alignment,
                                 "protection"  => $xf->protection,
                                 "quotePrefix" => $quotePrefix,
@@ -535,9 +535,9 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 
                             $cellStyle = (object)array(
                                 "numFmt"      => $numFmt,
-                                "font"   => $xmlStyles->fonts->font[intval($xf["fontId"])],
-                                "fill"   => $xmlStyles->fills->fill[intval($xf["fillId"])],
-                                "border" => $xmlStyles->borders->border[intval($xf["borderId"])],
+                                "font"        => $xmlStyles->fonts->font[intval($xf["fontId"])],
+                                "fill"        => $xmlStyles->fills->fill[intval($xf["fillId"])],
+                                "border"      => $xmlStyles->borders->border[intval($xf["borderId"])],
                                 "alignment"   => $xf->alignment,
                                 "protection"  => $xf->protection,
                                 "quotePrefix" => $quotePrefix,

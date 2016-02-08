@@ -860,15 +860,15 @@ class ResponseTest extends ResponseTestCase
 
         $setters = array(
             'setProtocolVersion' => '1.0',
-            'setCharset'      => 'UTF-8',
-            'setPublic'       => null,
-            'setPrivate'      => null,
-            'setDate'         => new \DateTime(),
-            'expire'          => null,
-            'setMaxAge'       => 1,
-            'setSharedMaxAge' => 1,
-            'setTtl'          => 1,
-            'setClientTtl'    => 1,
+            'setCharset'         => 'UTF-8',
+            'setPublic'          => null,
+            'setPrivate'         => null,
+            'setDate'            => new \DateTime(),
+            'expire'             => null,
+            'setMaxAge'          => 1,
+            'setSharedMaxAge'    => 1,
+            'setTtl'             => 1,
+            'setClientTtl'       => 1,
         );
 
         foreach ($setters as $setter => $arg) {
@@ -892,7 +892,7 @@ class ResponseTest extends ResponseTestCase
         return array(
             'obj'   => array(new \stdClass()),
             'array' => array(array()),
-            'bool' => array(true, '1'),
+            'bool'  => array(true, '1'),
         );
     }
 

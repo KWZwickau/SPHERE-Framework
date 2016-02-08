@@ -55,7 +55,7 @@ class LocaleListener implements EventSubscriberInterface
 
         return array(
             // must be registered after the Router to have access to the _locale
-            KernelEvents::REQUEST => array(array('onKernelRequest', 16)),
+            KernelEvents::REQUEST        => array(array('onKernelRequest', 16)),
             KernelEvents::FINISH_REQUEST => array(array('onKernelFinishRequest', 0)),
         );
     }

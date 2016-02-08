@@ -418,7 +418,7 @@ abstract class ReflectionFunctionBase extends ReflectionElement implements IRefl
                         case '(':
                         case T_CURLY_OPEN:
                         case T_DOLLAR_OPEN_CURLY_BRACES:
-                        $tokenStream->findMatchingBracket()->skipWhitespaces(true);
+                            $tokenStream->findMatchingBracket()->skipWhitespaces(true);
                             break;
                         default:
                             $tokenStream->skipWhitespaces();

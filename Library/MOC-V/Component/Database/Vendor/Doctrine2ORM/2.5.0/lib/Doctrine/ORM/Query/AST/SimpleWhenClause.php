@@ -23,7 +23,7 @@ namespace Doctrine\ORM\Query\AST;
  * SimpleWhenClause ::= "WHEN" ScalarExpression "THEN" ScalarExpression
  *
  * @since   2.2
- * 
+ *
  * @link    www.doctrine-project.org
  * @author  Benjamin Eberlei <kontakt@beberlei.de>
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -32,6 +32,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class SimpleWhenClause extends Node
 {
+
     /**
      * @var mixed
      */
@@ -48,6 +49,7 @@ class SimpleWhenClause extends Node
      */
     public function __construct($caseScalarExpression, $thenScalarExpression)
     {
+
         $this->caseScalarExpression = $caseScalarExpression;
         $this->thenScalarExpression = $thenScalarExpression;
     }
@@ -57,6 +59,7 @@ class SimpleWhenClause extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkWhenClauseExpression($this);
     }
 }

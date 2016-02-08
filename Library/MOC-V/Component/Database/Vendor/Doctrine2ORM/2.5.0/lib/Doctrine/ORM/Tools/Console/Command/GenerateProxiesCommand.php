@@ -38,11 +38,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class GenerateProxiesCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
+
         $this
             ->setName('orm:generate-proxies')
             ->setAliases(array('orm:generate:proxies'))
@@ -68,6 +70,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         $em = $this->getHelper('em')->getEntityManager();
 
         $metadatas = $em->getMetadataFactory()->getAllMetadata();

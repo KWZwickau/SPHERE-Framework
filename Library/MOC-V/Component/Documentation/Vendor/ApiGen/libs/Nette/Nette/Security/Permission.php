@@ -570,52 +570,6 @@ class Permission extends Nette\Object implements IAuthorizator
     }
 
     /**
-     * Returns the rules associated with a Resource and a Role, or NULL if no such rules exist.
-     * If the $create parameter is TRUE, then a rule set is first created and then returned to the caller.
-     *
-     * @param  string|Permission::ALL
-     * @param  string|Permission::ALL
-     * @param  bool
-     *
-     * @return array|NULL
-     */
-    private function & getRules($resource, $role, $create = false)
-    {
-
-        $null = null;
-        if ($resource === self::ALL) {
-            $visitor = &$this->rules['allResources'];
-        } else {
-            if (!isset( $this->rules['byResource'][$resource] )) {
-                if (!$create) {
-                    return $null;
-                }
-                $this->rules['byResource'][$resource] = array();
-            }
-            $visitor = &$this->rules['byResource'][$resource];
-        }
-
-        if ($role === self::ALL) {
-            if (!isset( $visitor['allRoles'] )) {
-                if (!$create) {
-                    return $null;
-                }
-                $visitor['allRoles']['byPrivilege'] = array();
-            }
-            return $visitor['allRoles'];
-        }
-
-        if (!isset( $visitor['byRole'][$role] )) {
-            if (!$create) {
-                return $null;
-            }
-            $visitor['byRole'][$role]['byPrivilege'] = array();
-        }
-
-        return $visitor['byRole'][$role];
-    }
-
-    /**
      * Denies one or more Roles access to [certain $privileges upon] the specified Resource(s).
      * If $assertion is provided, then it must return TRUE in order for rule to apply.
      *
@@ -649,10 +603,6 @@ class Permission extends Nette\Object implements IAuthorizator
         return $this;
     }
 
-
-
-    /********************* querying the ACL ****************d*g**/
-
     /**
      * Removes "deny" restrictions from the list in the context of the given Roles, Resources, and privileges.
      *
@@ -668,6 +618,10 @@ class Permission extends Nette\Object implements IAuthorizator
         $this->setRule(false, self::DENY, $roles, $resources, $privileges);
         return $this;
     }
+
+
+
+    /********************* querying the ACL ****************d*g**/
 
     /**
      * Returns TRUE if and only if the Role has access to [certain $privileges upon] the Resource.
@@ -755,7 +709,7 @@ class Permission extends Nette\Object implements IAuthorizator
 
         $dfs = array(
             'visited' => array(),
-            'stack' => array($role),
+            'stack'   => array($role),
         );
 
         while (null !== ( $role = array_pop($dfs['stack']) )) {
@@ -789,10 +743,6 @@ class Permission extends Nette\Object implements IAuthorizator
         }
         return null;
     }
-
-
-
-    /********************* internals ****************d*g**/
 
     /**
      * Returns the rule type associated with the specified Resource, Role, and privilege.
@@ -837,6 +787,10 @@ class Permission extends Nette\Object implements IAuthorizator
         }
     }
 
+
+
+    /********************* internals ****************d*g**/
+
     /**
      * Returns real currently queried Role. Use by assertion.
      *
@@ -857,6 +811,52 @@ class Permission extends Nette\Object implements IAuthorizator
     {
 
         return $this->queriedResource;
+    }
+
+    /**
+     * Returns the rules associated with a Resource and a Role, or NULL if no such rules exist.
+     * If the $create parameter is TRUE, then a rule set is first created and then returned to the caller.
+     *
+     * @param  string|Permission::ALL
+     * @param  string|Permission::ALL
+     * @param  bool
+     *
+     * @return array|NULL
+     */
+    private function & getRules($resource, $role, $create = false)
+    {
+
+        $null = null;
+        if ($resource === self::ALL) {
+            $visitor = &$this->rules['allResources'];
+        } else {
+            if (!isset( $this->rules['byResource'][$resource] )) {
+                if (!$create) {
+                    return $null;
+                }
+                $this->rules['byResource'][$resource] = array();
+            }
+            $visitor = &$this->rules['byResource'][$resource];
+        }
+
+        if ($role === self::ALL) {
+            if (!isset( $visitor['allRoles'] )) {
+                if (!$create) {
+                    return $null;
+                }
+                $visitor['allRoles']['byPrivilege'] = array();
+            }
+            return $visitor['allRoles'];
+        }
+
+        if (!isset( $visitor['byRole'][$role] )) {
+            if (!$create) {
+                return $null;
+            }
+            $visitor['byRole'][$role]['byPrivilege'] = array();
+        }
+
+        return $visitor['byRole'][$role];
     }
 
 }

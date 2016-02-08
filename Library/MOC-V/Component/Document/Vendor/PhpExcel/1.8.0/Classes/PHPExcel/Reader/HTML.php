@@ -271,7 +271,7 @@ class PHPExcel_Reader_HTML extends PHPExcel_Reader_Abstract implements PHPExcel_
                         if ($cellContent > '') {
                             $cellContent .= ' ';
                         }
-                    $this->_processDomElement($child, $sheet, $row, $column, $cellContent);
+                        $this->_processDomElement($child, $sheet, $row, $column, $cellContent);
                         if ($cellContent > '') {
                             $cellContent .= ' ';
                         }
@@ -385,7 +385,7 @@ class PHPExcel_Reader_HTML extends PHPExcel_Reader_Abstract implements PHPExcel_
                         break;
                     case 'thead' :
                     case 'tbody' :
-                    $this->_processDomElement($child, $sheet, $row, $column, $cellContent);
+                        $this->_processDomElement($child, $sheet, $row, $column, $cellContent);
                         break;
                     case 'tr' :
                         ++$row;
@@ -398,9 +398,9 @@ class PHPExcel_Reader_HTML extends PHPExcel_Reader_Abstract implements PHPExcel_
                     case 'th' :
                     case 'td' :
 //						echo 'START OF TABLE ' , $this->_tableLevel , ' CELL<br />';
-                    $this->_processDomElement($child, $sheet, $row, $column, $cellContent);
+                        $this->_processDomElement($child, $sheet, $row, $column, $cellContent);
 //						echo 'END OF TABLE ' , $this->_tableLevel , ' CELL<br />';
-                    $this->_flushCell($sheet, $column, $row, $cellContent);
+                        $this->_flushCell($sheet, $column, $row, $cellContent);
                         ++$column;
                         break;
                     case 'body' :

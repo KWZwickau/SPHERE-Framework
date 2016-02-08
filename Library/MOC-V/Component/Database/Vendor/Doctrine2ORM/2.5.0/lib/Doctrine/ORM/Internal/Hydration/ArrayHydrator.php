@@ -32,6 +32,7 @@ use PDO;
  */
 class ArrayHydrator extends AbstractHydrator
 {
+
     /**
      * @var array
      */
@@ -67,6 +68,7 @@ class ArrayHydrator extends AbstractHydrator
      */
     protected function prepare()
     {
+
         $this->_isSimpleQuery = count($this->_rsm->aliasMap) <= 1;
 
         foreach ($this->_rsm->aliasMap as $dqlAlias => $className) {
@@ -81,6 +83,7 @@ class ArrayHydrator extends AbstractHydrator
      */
     protected function hydrateAllData()
     {
+
         $result = array();
 
         while ($data = $this->_stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -95,6 +98,7 @@ class ArrayHydrator extends AbstractHydrator
      */
     protected function hydrateRowData(array $row, array &$result)
     {
+
         // 1) Initialize
         $id = $this->_idTemplate; // initialize the id-memory
         $nonemptyComponents = array();
@@ -121,12 +125,14 @@ class ArrayHydrator extends AbstractHydrator
                     $first = reset($this->_resultPointers);
                     // TODO: Exception if $key === null ?
                     $baseElement =& $this->_resultPointers[$parent][key($first)];
-                } else if (isset( $this->_resultPointers[$parent] )) {
-                    $baseElement =& $this->_resultPointers[$parent];
                 } else {
-                    unset( $this->_resultPointers[$dqlAlias] ); // Ticket #1228
+                    if (isset( $this->_resultPointers[$parent] )) {
+                        $baseElement =& $this->_resultPointers[$parent];
+                    } else {
+                        unset( $this->_resultPointers[$dqlAlias] ); // Ticket #1228
 
-                    continue;
+                        continue;
+                    }
                 }
 
                 $relationAlias = $this->_rsm->relationMap[$dqlAlias];
@@ -168,8 +174,10 @@ class ArrayHydrator extends AbstractHydrator
                         ( !isset( $baseElement[$relationAlias] ) )
                     ) {
                         $baseElement[$relationAlias] = null;
-                    } else if (!isset( $baseElement[$relationAlias] )) {
-                        $baseElement[$relationAlias] = $data;
+                    } else {
+                        if (!isset( $baseElement[$relationAlias] )) {
+                            $baseElement[$relationAlias] = $data;
+                        }
                     }
                 }
 
@@ -277,6 +285,7 @@ class ArrayHydrator extends AbstractHydrator
      */
     private function updateResultPointer(array &$coll, $index, $dqlAlias, $oneToOne)
     {
+
         if ($coll === null) {
             unset( $this->_resultPointers[$dqlAlias] ); // Ticket #1228
 

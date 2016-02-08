@@ -34,6 +34,7 @@ use Doctrine\ORM\Query\Lexer;
  */
 class LocateFunction extends FunctionNode
 {
+
     public $firstStringPrimary;
     public $secondStringPrimary;
 
@@ -63,6 +64,7 @@ class LocateFunction extends FunctionNode
      */
     public function parse(\Doctrine\ORM\Query\Parser $parser)
     {
+
         $parser->match(Lexer::T_IDENTIFIER);
         $parser->match(Lexer::T_OPEN_PARENTHESIS);
 

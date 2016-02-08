@@ -31,6 +31,7 @@ use Doctrine\ORM\Query\ResultSetMapping;
  */
 abstract class EntityManagerDecorator extends ObjectManagerDecorator implements EntityManagerInterface
 {
+
     /**
      * @var EntityManagerInterface
      */
@@ -41,6 +42,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function __construct(EntityManagerInterface $wrapped)
     {
+
         $this->wrapped = $wrapped;
     }
 
@@ -49,6 +51,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function getConnection()
     {
+
         return $this->wrapped->getConnection();
     }
 
@@ -57,6 +60,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function getExpressionBuilder()
     {
+
         return $this->wrapped->getExpressionBuilder();
     }
 
@@ -65,6 +69,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function beginTransaction()
     {
+
         return $this->wrapped->beginTransaction();
     }
 
@@ -73,6 +78,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function transactional($func)
     {
+
         return $this->wrapped->transactional($func);
     }
 
@@ -81,6 +87,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function commit()
     {
+
         return $this->wrapped->commit();
     }
 
@@ -89,6 +96,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function rollback()
     {
+
         return $this->wrapped->rollback();
     }
 
@@ -97,6 +105,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function createQuery($dql = '')
     {
+
         return $this->wrapped->createQuery($dql);
     }
 
@@ -105,6 +114,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function createNamedQuery($name)
     {
+
         return $this->wrapped->createNamedQuery($name);
     }
 
@@ -113,6 +123,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function createNativeQuery($sql, ResultSetMapping $rsm)
     {
+
         return $this->wrapped->createNativeQuery($sql, $rsm);
     }
 
@@ -121,6 +132,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function createNamedNativeQuery($name)
     {
+
         return $this->wrapped->createNamedNativeQuery($name);
     }
 
@@ -129,6 +141,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function createQueryBuilder()
     {
+
         return $this->wrapped->createQueryBuilder();
     }
 
@@ -137,6 +150,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function getReference($entityName, $id)
     {
+
         return $this->wrapped->getReference($entityName, $id);
     }
 
@@ -145,6 +159,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function getPartialReference($entityName, $identifier)
     {
+
         return $this->wrapped->getPartialReference($entityName, $identifier);
     }
 
@@ -153,6 +168,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function close()
     {
+
         return $this->wrapped->close();
     }
 
@@ -161,6 +177,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function copy($entity, $deep = false)
     {
+
         return $this->wrapped->copy($entity, $deep);
     }
 
@@ -169,6 +186,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function lock($entity, $lockMode, $lockVersion = null)
     {
+
         return $this->wrapped->lock($entity, $lockMode, $lockVersion);
     }
 
@@ -177,6 +195,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function find($entityName, $id, $lockMode = null, $lockVersion = null)
     {
+
         return $this->wrapped->find($entityName, $id, $lockMode, $lockVersion);
     }
 
@@ -185,6 +204,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function flush($entity = null)
     {
+
         return $this->wrapped->flush($entity);
     }
 
@@ -193,6 +213,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function getEventManager()
     {
+
         return $this->wrapped->getEventManager();
     }
 
@@ -201,6 +222,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function getConfiguration()
     {
+
         return $this->wrapped->getConfiguration();
     }
 
@@ -209,6 +231,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function isOpen()
     {
+
         return $this->wrapped->isOpen();
     }
 
@@ -217,6 +240,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function getUnitOfWork()
     {
+
         return $this->wrapped->getUnitOfWork();
     }
 
@@ -225,6 +249,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function getHydrator($hydrationMode)
     {
+
         return $this->wrapped->getHydrator($hydrationMode);
     }
 
@@ -233,6 +258,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function newHydrator($hydrationMode)
     {
+
         return $this->wrapped->newHydrator($hydrationMode);
     }
 
@@ -241,6 +267,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function getProxyFactory()
     {
+
         return $this->wrapped->getProxyFactory();
     }
 
@@ -249,6 +276,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function getFilters()
     {
+
         return $this->wrapped->getFilters();
     }
 
@@ -257,6 +285,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function isFiltersStateClean()
     {
+
         return $this->wrapped->isFiltersStateClean();
     }
 
@@ -265,6 +294,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function hasFilters()
     {
+
         return $this->wrapped->hasFilters();
     }
 
@@ -273,6 +303,7 @@ abstract class EntityManagerDecorator extends ObjectManagerDecorator implements 
      */
     public function getCache()
     {
+
         return $this->wrapped->getCache();
     }
 }

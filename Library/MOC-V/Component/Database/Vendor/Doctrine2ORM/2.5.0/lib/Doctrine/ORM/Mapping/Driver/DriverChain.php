@@ -28,4 +28,5 @@ use Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain;
  */
 class DriverChain extends MappingDriverChain
 {
+
 }

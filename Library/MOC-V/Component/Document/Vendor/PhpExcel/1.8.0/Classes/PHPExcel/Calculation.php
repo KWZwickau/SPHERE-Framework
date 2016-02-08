@@ -1421,7 +1421,7 @@ class PHPExcel_Calculation
             'functionCall'      => 'PHPExcel_Calculation_LookupRef::OFFSET',
             'argumentCount'     => '3,5',
             'passCellReference' => true,
-            'passByReference' => array(true)
+            'passByReference'   => array(true)
         ),
         'OR'                 => array(
             'category'      => PHPExcel_Calculation_Function::CATEGORY_LOGICAL,
@@ -2855,7 +2855,7 @@ class PHPExcel_Calculation
                     case '<='    :            //	Less than or Equal to
                     case '='    :            //	Equality
                     case '<>'    :            //	Inequality
-                    $this->_executeBinaryComparisonOperation($cellID, $operand1, $operand2, $token, $stack);
+                        $this->_executeBinaryComparisonOperation($cellID, $operand1, $operand2, $token, $stack);
                         break;
                     //	Binary Operators
                     case ':'    :            //	Range

@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\Expr;
  */
 class Select extends Base
 {
+
     /**
      * @var string
      */
@@ -52,6 +53,7 @@ class Select extends Base
      */
     public function getParts()
     {
+
         return $this->parts;
     }
 }

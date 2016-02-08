@@ -3,7 +3,7 @@ languages:
 exclude_paths:
 - "TestSuite/*"
 - "Documentation/*"
-- "Component/Vendor/SimplePhpCaptcha/*"
+- "Component/Captcha/Vendor/SimplePhpCaptcha/*"
 - "Component/Database/Vendor/Doctrine2Annotations/*"
 - "Component/Database/Vendor/Doctrine2Cache/*"
 - "Component/Database/Vendor/Doctrine2Collections/*"

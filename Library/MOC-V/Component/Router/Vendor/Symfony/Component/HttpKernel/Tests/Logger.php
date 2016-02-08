@@ -29,13 +29,13 @@ class Logger implements LoggerInterface
 
         $this->logs = array(
             'emergency' => array(),
-            'alert'    => array(),
-            'critical' => array(),
-            'error'    => array(),
-            'warning'  => array(),
-            'notice'   => array(),
-            'info'     => array(),
-            'debug'    => array(),
+            'alert'     => array(),
+            'critical'  => array(),
+            'error'     => array(),
+            'warning'   => array(),
+            'notice'    => array(),
+            'info'      => array(),
+            'debug'     => array(),
         );
     }
 

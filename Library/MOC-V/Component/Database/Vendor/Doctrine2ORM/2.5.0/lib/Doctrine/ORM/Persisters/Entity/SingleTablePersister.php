@@ -30,16 +30,18 @@ use Doctrine\ORM\Utility\PersisterHelper;
  * @author Roman Borschel <roman@code-factory.org>
  * @author Benjamin Eberlei <kontakt@beberlei.de>
  * @author Alexander <iam.asm89@gmail.com>
- * @since 2.0
- * @link  http://martinfowler.com/eaaCatalog/singleTableInheritance.html
+ * @since  2.0
+ * @link   http://martinfowler.com/eaaCatalog/singleTableInheritance.html
  */
 class SingleTablePersister extends AbstractEntityInheritancePersister
 {
+
     /**
      * {@inheritdoc}
      */
     protected function getDiscriminatorColumnTableName()
     {
+
         return $this->class->getTableName();
     }
 
@@ -48,6 +50,7 @@ class SingleTablePersister extends AbstractEntityInheritancePersister
      */
     protected function getSelectColumnsSQL()
     {
+
         if ($this->currentPersisterContext->selectColumnListSql !== null) {
             return $this->currentPersisterContext->selectColumnListSql;
         }
@@ -117,6 +120,7 @@ class SingleTablePersister extends AbstractEntityInheritancePersister
      */
     protected function getSQLTableAlias($className, $assocName = '')
     {
+
         return parent::getSQLTableAlias($this->class->rootEntityName, $assocName);
     }
 
@@ -125,6 +129,7 @@ class SingleTablePersister extends AbstractEntityInheritancePersister
      */
     protected function getInsertColumnList()
     {
+
         $columns = parent::getInsertColumnList();
 
         // Add discriminator column to the INSERT SQL
@@ -138,6 +143,7 @@ class SingleTablePersister extends AbstractEntityInheritancePersister
      */
     protected function getSelectConditionSQL(array $criteria, $assoc = null)
     {
+
         $conditionSql = parent::getSelectConditionSQL($criteria, $assoc);
 
         if ($conditionSql) {
@@ -152,6 +158,7 @@ class SingleTablePersister extends AbstractEntityInheritancePersister
      */
     protected function getSelectConditionDiscriminatorValueSQL()
     {
+
         $values = array();
 
         if ($this->class->discriminatorValue !== null) { // discriminators can be 0
@@ -176,6 +183,7 @@ class SingleTablePersister extends AbstractEntityInheritancePersister
      */
     protected function getSelectConditionCriteriaSQL(Criteria $criteria)
     {
+
         $conditionSql = parent::getSelectConditionCriteriaSQL($criteria);
 
         if ($conditionSql) {
@@ -190,6 +198,7 @@ class SingleTablePersister extends AbstractEntityInheritancePersister
      */
     protected function generateFilterConditionSQL(ClassMetadata $targetEntity, $targetTableAlias)
     {
+
         // Ensure that the filters are applied to the root entity of the inheritance tree
         $targetEntity = $this->em->getClassMetadata($targetEntity->rootEntityName);
         // we don't care about the $targetTableAlias, in a STI there is only one table.

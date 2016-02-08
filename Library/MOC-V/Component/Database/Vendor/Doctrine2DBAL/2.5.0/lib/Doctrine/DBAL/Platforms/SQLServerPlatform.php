@@ -420,178 +420,6 @@ class SQLServerPlatform extends AbstractPlatform
     }
 
     /**
-     * Returns the SQL snippet for declaring a default constraint.
-     *
-     * @param string $table  Name of the table to return the default constraint declaration for.
-     * @param array  $column Column definition.
-     *
-     * @return string
-     *
-     * @throws \InvalidArgumentException
-     */
-    public function getDefaultConstraintDeclarationSQL($table, array $column)
-    {
-
-        if (!isset( $column['default'] )) {
-            throw new \InvalidArgumentException("Incomplete column definition. 'default' required.");
-        }
-
-        $columnName = new Identifier($column['name']);
-
-        return
-            ' CONSTRAINT '.
-            $this->generateDefaultConstraintName($table, $column['name']).
-            $this->getDefaultValueDeclarationSQL($column).
-            ' FOR '.$columnName->getQuotedName($this);
-    }
-
-    /**
-     * Returns a unique default constraint name for a table and column.
-     *
-     * @param string $table  Name of the table to generate the unique default constraint name for.
-     * @param string $column Name of the column in the table to generate the unique default constraint name for.
-     *
-     * @return string
-     */
-    private function generateDefaultConstraintName($table, $column)
-    {
-
-        return 'DF_'.$this->generateIdentifierName($table).'_'.$this->generateIdentifierName($column);
-    }
-
-    /**
-     * Returns a hash value for a given identifier.
-     *
-     * @param string $identifier Identifier to generate a hash value for.
-     *
-     * @return string
-     */
-    private function generateIdentifierName($identifier)
-    {
-
-        // Always generate name for unquoted identifiers to ensure consistency.
-        $identifier = new Identifier($identifier);
-
-        return strtoupper(dechex(crc32($identifier->getName())));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getDefaultValueDeclarationSQL($field)
-    {
-
-        if (!isset( $field['default'] )) {
-            return empty( $field['notnull'] ) ? ' NULL' : '';
-        }
-
-        if (!isset( $field['type'] )) {
-            return " DEFAULT '".$field['default']."'";
-        }
-
-        if (in_array((string)$field['type'], array('Integer', 'BigInt', 'SmallInt'))) {
-            return " DEFAULT ".$field['default'];
-        }
-
-        if (in_array((string)$field['type'],
-                array('DateTime', 'DateTimeTz')) && $field['default'] == $this->getCurrentTimestampSQL()
-        ) {
-            return " DEFAULT ".$this->getCurrentTimestampSQL();
-        }
-
-        if ((string)$field['type'] == 'Boolean') {
-            return " DEFAULT '".$this->convertBooleans($field['default'])."'";
-        }
-
-        return " DEFAULT '".$field['default']."'";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function convertBooleans($item)
-    {
-
-        if (is_array($item)) {
-            foreach ($item as $key => $value) {
-                if (is_bool($value) || is_numeric($item)) {
-                    $item[$key] = ( $value ) ? 1 : 0;
-                }
-            }
-        } elseif (is_bool($item) || is_numeric($item)) {
-            $item = ( $item ) ? 1 : 0;
-        }
-
-        return $item;
-    }
-
-    /**
-     * Returns the SQL statement for creating a column comment.
-     *
-     * SQL Server does not support native column comments,
-     * therefore the extended properties functionality is used
-     * as a workaround to store them.
-     * The property name used to store column comments is "MS_Description"
-     * which provides compatibility with SQL Server Management Studio,
-     * as column comments are stored in the same property there when
-     * specifying a column's "Description" attribute.
-     *
-     * @param string $tableName  The quoted table name to which the column belongs.
-     * @param string $columnName The quoted column name to create the comment for.
-     * @param string $comment    The column's comment.
-     *
-     * @return string
-     */
-    protected function getCreateColumnCommentSQL($tableName, $columnName, $comment)
-    {
-
-        return $this->getAddExtendedPropertySQL(
-            'MS_Description',
-            $comment,
-            'SCHEMA',
-            'dbo',
-            'TABLE',
-            $tableName,
-            'COLUMN',
-            $columnName
-        );
-    }
-
-    /**
-     * Returns the SQL statement for adding an extended property to a database object.
-     *
-     * @param string      $name       The name of the property to add.
-     * @param string|null $value      The value of the property to add.
-     * @param string|null $level0Type The type of the object at level 0 the property belongs to.
-     * @param string|null $level0Name The name of the object at level 0 the property belongs to.
-     * @param string|null $level1Type The type of the object at level 1 the property belongs to.
-     * @param string|null $level1Name The name of the object at level 1 the property belongs to.
-     * @param string|null $level2Type The type of the object at level 2 the property belongs to.
-     * @param string|null $level2Name The name of the object at level 2 the property belongs to.
-     *
-     * @return string
-     *
-     * @link http://msdn.microsoft.com/en-us/library/ms180047%28v=sql.90%29.aspx
-     */
-    public function getAddExtendedPropertySQL(
-        $name,
-        $value = null,
-        $level0Type = null,
-        $level0Name = null,
-        $level1Type = null,
-        $level1Name = null,
-        $level2Type = null,
-        $level2Name = null
-    ) {
-
-        return "EXEC sp_addextendedproperty ".
-        "N".$this->quoteStringLiteral($name).", N".$this->quoteStringLiteral($value).", ".
-        "N".$this->quoteStringLiteral($level0Type).", ".$level0Name.', '.
-        "N".$this->quoteStringLiteral($level1Type).", ".$level1Name.', '.
-        "N".$this->quoteStringLiteral($level2Type).", ".$level2Name;
-    }
-
-    /**
      * Returns the SQL statement for altering a column comment.
      *
      * SQL Server does not support native column comments,
@@ -1412,6 +1240,178 @@ class SQLServerPlatform extends AbstractPlatform
         }
 
         return array_merge($sql, $commentsSql, $defaultConstraintsSql);
+    }
+
+    /**
+     * Returns the SQL snippet for declaring a default constraint.
+     *
+     * @param string $table  Name of the table to return the default constraint declaration for.
+     * @param array  $column Column definition.
+     *
+     * @return string
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function getDefaultConstraintDeclarationSQL($table, array $column)
+    {
+
+        if (!isset( $column['default'] )) {
+            throw new \InvalidArgumentException("Incomplete column definition. 'default' required.");
+        }
+
+        $columnName = new Identifier($column['name']);
+
+        return
+            ' CONSTRAINT '.
+            $this->generateDefaultConstraintName($table, $column['name']).
+            $this->getDefaultValueDeclarationSQL($column).
+            ' FOR '.$columnName->getQuotedName($this);
+    }
+
+    /**
+     * Returns a unique default constraint name for a table and column.
+     *
+     * @param string $table  Name of the table to generate the unique default constraint name for.
+     * @param string $column Name of the column in the table to generate the unique default constraint name for.
+     *
+     * @return string
+     */
+    private function generateDefaultConstraintName($table, $column)
+    {
+
+        return 'DF_'.$this->generateIdentifierName($table).'_'.$this->generateIdentifierName($column);
+    }
+
+    /**
+     * Returns a hash value for a given identifier.
+     *
+     * @param string $identifier Identifier to generate a hash value for.
+     *
+     * @return string
+     */
+    private function generateIdentifierName($identifier)
+    {
+
+        // Always generate name for unquoted identifiers to ensure consistency.
+        $identifier = new Identifier($identifier);
+
+        return strtoupper(dechex(crc32($identifier->getName())));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getDefaultValueDeclarationSQL($field)
+    {
+
+        if (!isset( $field['default'] )) {
+            return empty( $field['notnull'] ) ? ' NULL' : '';
+        }
+
+        if (!isset( $field['type'] )) {
+            return " DEFAULT '".$field['default']."'";
+        }
+
+        if (in_array((string)$field['type'], array('Integer', 'BigInt', 'SmallInt'))) {
+            return " DEFAULT ".$field['default'];
+        }
+
+        if (in_array((string)$field['type'],
+                array('DateTime', 'DateTimeTz')) && $field['default'] == $this->getCurrentTimestampSQL()
+        ) {
+            return " DEFAULT ".$this->getCurrentTimestampSQL();
+        }
+
+        if ((string)$field['type'] == 'Boolean') {
+            return " DEFAULT '".$this->convertBooleans($field['default'])."'";
+        }
+
+        return " DEFAULT '".$field['default']."'";
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function convertBooleans($item)
+    {
+
+        if (is_array($item)) {
+            foreach ($item as $key => $value) {
+                if (is_bool($value) || is_numeric($item)) {
+                    $item[$key] = ( $value ) ? 1 : 0;
+                }
+            }
+        } elseif (is_bool($item) || is_numeric($item)) {
+            $item = ( $item ) ? 1 : 0;
+        }
+
+        return $item;
+    }
+
+    /**
+     * Returns the SQL statement for creating a column comment.
+     *
+     * SQL Server does not support native column comments,
+     * therefore the extended properties functionality is used
+     * as a workaround to store them.
+     * The property name used to store column comments is "MS_Description"
+     * which provides compatibility with SQL Server Management Studio,
+     * as column comments are stored in the same property there when
+     * specifying a column's "Description" attribute.
+     *
+     * @param string $tableName  The quoted table name to which the column belongs.
+     * @param string $columnName The quoted column name to create the comment for.
+     * @param string $comment    The column's comment.
+     *
+     * @return string
+     */
+    protected function getCreateColumnCommentSQL($tableName, $columnName, $comment)
+    {
+
+        return $this->getAddExtendedPropertySQL(
+            'MS_Description',
+            $comment,
+            'SCHEMA',
+            'dbo',
+            'TABLE',
+            $tableName,
+            'COLUMN',
+            $columnName
+        );
+    }
+
+    /**
+     * Returns the SQL statement for adding an extended property to a database object.
+     *
+     * @param string      $name       The name of the property to add.
+     * @param string|null $value      The value of the property to add.
+     * @param string|null $level0Type The type of the object at level 0 the property belongs to.
+     * @param string|null $level0Name The name of the object at level 0 the property belongs to.
+     * @param string|null $level1Type The type of the object at level 1 the property belongs to.
+     * @param string|null $level1Name The name of the object at level 1 the property belongs to.
+     * @param string|null $level2Type The type of the object at level 2 the property belongs to.
+     * @param string|null $level2Name The name of the object at level 2 the property belongs to.
+     *
+     * @return string
+     *
+     * @link http://msdn.microsoft.com/en-us/library/ms180047%28v=sql.90%29.aspx
+     */
+    public function getAddExtendedPropertySQL(
+        $name,
+        $value = null,
+        $level0Type = null,
+        $level0Name = null,
+        $level1Type = null,
+        $level1Name = null,
+        $level2Type = null,
+        $level2Name = null
+    ) {
+
+        return "EXEC sp_addextendedproperty ".
+        "N".$this->quoteStringLiteral($name).", N".$this->quoteStringLiteral($value).", ".
+        "N".$this->quoteStringLiteral($level0Type).", ".$level0Name.', '.
+        "N".$this->quoteStringLiteral($level1Type).", ".$level1Name.', '.
+        "N".$this->quoteStringLiteral($level2Type).", ".$level2Name;
     }
 
     /**

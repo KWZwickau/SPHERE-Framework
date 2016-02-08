@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\Expr;
  */
 class Func
 {
+
     /**
      * @var string
      */
@@ -58,6 +59,7 @@ class Func
      */
     public function getName()
     {
+
         return $this->name;
     }
 
@@ -66,6 +68,7 @@ class Func
      */
     public function getArguments()
     {
+
         return $this->arguments;
     }
 

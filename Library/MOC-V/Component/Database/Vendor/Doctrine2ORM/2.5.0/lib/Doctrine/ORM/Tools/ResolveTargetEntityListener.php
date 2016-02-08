@@ -32,10 +32,11 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  * targets.
  *
  * @author Benjamin Eberlei <kontakt@beberlei.de>
- * @since 2.2
+ * @since  2.2
  */
 class ResolveTargetEntityListener implements EventSubscriber
 {
+
     /**
      * @var array[] indexed by original entity name
      */
@@ -46,6 +47,7 @@ class ResolveTargetEntityListener implements EventSubscriber
      */
     public function getSubscribedEvents()
     {
+
         return array(
             Events::loadClassMetadata,
             Events::onClassMetadataNotFound
@@ -77,6 +79,7 @@ class ResolveTargetEntityListener implements EventSubscriber
      */
     public function onClassMetadataNotFound(OnClassMetadataNotFoundEventArgs $args)
     {
+
         if (array_key_exists($args->getClassName(), $this->resolveTargetEntities)) {
             $args->setFoundMetadata(
                 $args
@@ -97,6 +100,7 @@ class ResolveTargetEntityListener implements EventSubscriber
      */
     public function loadClassMetadata(LoadClassMetadataEventArgs $args)
     {
+
         /* @var $cm \Doctrine\ORM\Mapping\ClassMetadata */
         $cm = $args->getClassMetadata();
 
@@ -121,6 +125,7 @@ class ResolveTargetEntityListener implements EventSubscriber
      */
     private function remapAssociation($classMetadata, $mapping)
     {
+
         $newMapping = $this->resolveTargetEntities[$mapping['targetEntity']];
         $newMapping = array_replace_recursive($mapping, $newMapping);
         $newMapping['fieldName'] = $mapping['fieldName'];

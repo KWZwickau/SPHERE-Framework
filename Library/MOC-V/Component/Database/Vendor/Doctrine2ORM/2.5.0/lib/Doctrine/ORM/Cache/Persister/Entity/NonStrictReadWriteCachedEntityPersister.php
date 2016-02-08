@@ -30,11 +30,13 @@ use Doctrine\ORM\Cache\EntityCacheKey;
  */
 class NonStrictReadWriteCachedEntityPersister extends AbstractEntityPersister
 {
+
     /**
      * {@inheritdoc}
      */
     public function afterTransactionComplete()
     {
+
         $isChanged = false;
 
         if (isset( $this->queuedCache['insert'] )) {
@@ -85,6 +87,7 @@ class NonStrictReadWriteCachedEntityPersister extends AbstractEntityPersister
      */
     public function afterTransactionRolledBack()
     {
+
         $this->queuedCache = array();
     }
 
@@ -93,6 +96,7 @@ class NonStrictReadWriteCachedEntityPersister extends AbstractEntityPersister
      */
     public function delete($entity)
     {
+
         $key = new EntityCacheKey($this->class->rootEntityName, $this->uow->getEntityIdentifier($entity));
 
         if ($this->persister->delete($entity)) {
@@ -107,6 +111,7 @@ class NonStrictReadWriteCachedEntityPersister extends AbstractEntityPersister
      */
     public function update($entity)
     {
+
         $this->persister->update($entity);
 
         $this->queuedCache['update'][] = $entity;

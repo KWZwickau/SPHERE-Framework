@@ -30,11 +30,13 @@ namespace Doctrine\ORM\Mapping;
  */
 class DefaultNamingStrategy implements NamingStrategy
 {
+
     /**
      * {@inheritdoc}
      */
     public function propertyToColumnName($propertyName, $className = null)
     {
+
         return $propertyName;
     }
 
@@ -47,6 +49,7 @@ class DefaultNamingStrategy implements NamingStrategy
         $className = null,
         $embeddedClassName = null
     ) {
+
         return $propertyName.'_'.$embeddedColumnName;
     }
 
@@ -64,6 +67,7 @@ class DefaultNamingStrategy implements NamingStrategy
      */
     public function referenceColumnName()
     {
+
         return 'id';
     }
 
@@ -82,6 +86,7 @@ class DefaultNamingStrategy implements NamingStrategy
      */
     public function classToTableName($className)
     {
+
         if (strpos($className, '\\') !== false) {
             return substr($className, strrpos($className, '\\') + 1);
         }

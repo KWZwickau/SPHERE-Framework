@@ -31,6 +31,7 @@ use Doctrine\ORM\Tools\EntityGenerator;
  */
 class AnnotationExporter extends AbstractExporter
 {
+
     /**
      * @var string
      */
@@ -66,6 +67,7 @@ class AnnotationExporter extends AbstractExporter
      */
     public function setEntityGenerator(EntityGenerator $entityGenerator)
     {
+
         $this->_entityGenerator = $entityGenerator;
     }
 

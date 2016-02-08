@@ -39,7 +39,7 @@ class Cached_PDF_Decorator extends CPDF_Adapter implements Canvas
     /**
      * Must be called after constructor
      *
-     * @param int $cache_id
+     * @param int          $cache_id
      * @param CPDF_Adapter $pdf
      */
     function init($cache_id, CPDF_Adapter $pdf)

@@ -36,6 +36,7 @@ use Symfony\Component\Yaml\Yaml;
  */
 class ConvertDoctrine1Schema
 {
+
     /**
      * @var array
      */
@@ -46,9 +47,9 @@ class ConvertDoctrine1Schema
      */
     private $legacyTypeMap = array(
         // TODO: This list may need to be updated
-        'clob' => 'text',
+        'clob'      => 'text',
         'timestamp' => 'datetime',
-        'enum' => 'string'
+        'enum'      => 'string'
     );
 
     /**
@@ -73,6 +74,7 @@ class ConvertDoctrine1Schema
      */
     public function getMetadata()
     {
+
         $schema = array();
         foreach ($this->from as $path) {
             if (is_dir($path)) {
@@ -101,6 +103,7 @@ class ConvertDoctrine1Schema
      */
     private function convertToClassMetadataInfo($className, $mappingInformation)
     {
+
         $metadata = new ClassMetadataInfo($className);
 
         $this->convertTableName($className, $mappingInformation, $metadata);
@@ -142,6 +145,7 @@ class ConvertDoctrine1Schema
      */
     private function convertColumns($className, array $model, ClassMetadataInfo $metadata)
     {
+
         $id = false;
 
         if (isset( $model['columns'] ) && $model['columns']) {
@@ -156,10 +160,10 @@ class ConvertDoctrine1Schema
 
         if (!$id) {
             $fieldMapping = array(
-                'fieldName' => 'id',
+                'fieldName'  => 'id',
                 'columnName' => 'id',
-                'type'      => 'integer',
-                'id'        => true
+                'type'       => 'integer',
+                'id'         => true
             );
             $metadata->mapField($fieldMapping);
             $metadata->setIdGeneratorType(ClassMetadataInfo::GENERATOR_TYPE_AUTO);
@@ -178,6 +182,7 @@ class ConvertDoctrine1Schema
      */
     private function convertColumn($className, $name, $column, ClassMetadataInfo $metadata)
     {
+
         if (is_string($column)) {
             $string = $column;
             $column = array();
@@ -321,9 +326,9 @@ class ConvertDoctrine1Schema
                 $foreignType = isset( $relation['foreignType'] ) ? $relation['foreignType'] : 'many';
                 $joinColumns = array(
                     array(
-                        'name'     => $relation['local'],
+                        'name'                 => $relation['local'],
                         'referencedColumnName' => $relation['foreign'],
-                        'onDelete' => isset( $relation['onDelete'] ) ? $relation['onDelete'] : null,
+                        'onDelete'             => isset( $relation['onDelete'] ) ? $relation['onDelete'] : null,
                     )
                 );
             }

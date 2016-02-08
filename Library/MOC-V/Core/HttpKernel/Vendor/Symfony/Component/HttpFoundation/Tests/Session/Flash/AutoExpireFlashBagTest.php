@@ -47,7 +47,7 @@ class AutoExpireFlashBagTest extends \PHPUnit_Framework_TestCase
         $array = array(
             'new' => array(
                 'notice' => array('Something else'),
-                'error' => array('a'),
+                'error'  => array('a'),
             )
         );
         $bag->initialize($array);
@@ -106,20 +106,20 @@ class AutoExpireFlashBagTest extends \PHPUnit_Framework_TestCase
         $array = array(
             'new' => array(
                 'notice' => 'Foo',
-                'error' => 'Bar',
+                'error'  => 'Bar',
             ),
         );
 
         $this->bag->initialize($array);
         $this->assertEquals(array(
             'notice' => 'Foo',
-            'error' => 'Bar',
+            'error'  => 'Bar',
         ), $this->bag->peekAll()
         );
 
         $this->assertEquals(array(
             'notice' => 'Foo',
-            'error' => 'Bar',
+            'error'  => 'Bar',
         ), $this->bag->peekAll()
         );
     }

@@ -4,6 +4,7 @@ namespace MOC\V\TestSuite\Tests\Component\Document;
 use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
 use MOC\V\Component\Document\Component\Bridge\Repository\MPdf;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use MOC\V\Component\Document\Component\Bridge\Repository\UniversalXml;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperSizeParameter;
@@ -35,6 +36,7 @@ class BridgeTest extends AbstractTestCase
                     $FileInfo->getBasename() != 'README.md'
                     && $FileInfo->getBasename() != 'BridgeTest.tpl'
                     && $FileInfo->getBasename() != 'BridgeTest.twig'
+                    && $FileInfo->getBasename() != 'BridgeTest.xml'
                 ) {
                     if ($FileInfo->isFile()) {
                         unlink($FileInfo->getPathname());
@@ -247,5 +249,18 @@ class BridgeTest extends AbstractTestCase
 //        $this->assertInstanceOf( 'MOC\V\Component\Document\Component\IBridgeInterface',
 //            $Bridge->saveFile( new FileParameter( __DIR__.'/Content/BridgeTest-Tpl-As.pdf' ) )
 //        );
+    }
+
+    public function testUniversalXmlDocument()
+    {
+
+        $Bridge = new UniversalXml();
+
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\IBridgeInterface',
+            $Bridge->loadFile(new FileParameter(__DIR__.'/Content/BridgeTest.xml'))
+        );
+        $this->assertInstanceOf('MOC\V\Component\Document\Vendor\UniversalXml\Source\Node',
+            $Bridge->getContent()
+        );
     }
 }

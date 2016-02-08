@@ -39,7 +39,7 @@ class PHPExcel_Writer_Excel2007_StringTable extends PHPExcel_Writer_Excel2007_Wr
     /**
      * Create worksheet stringtable
      *
-     * @param    PHPExcel_Worksheet $pSheet Worksheet
+     * @param    PHPExcel_Worksheet $pSheet         Worksheet
      * @param    string[]           $pExistingTable Existing table to eventually merge with
      *
      * @return    string[]                String table for worksheet

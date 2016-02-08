@@ -34,6 +34,7 @@ use Doctrine\DBAL\Types\Type;
  */
 class ParameterTypeInferer
 {
+
     /**
      * Infers type of a given value, returning a compatible constant:
      * - Type (\Doctrine\DBAL\Types\Type::*)
@@ -45,6 +46,7 @@ class ParameterTypeInferer
      */
     public static function inferType($value)
     {
+
         if (is_integer($value)) {
             return Type::INTEGER;
         }

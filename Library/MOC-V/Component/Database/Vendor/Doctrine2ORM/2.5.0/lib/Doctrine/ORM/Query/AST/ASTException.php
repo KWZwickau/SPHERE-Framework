@@ -26,6 +26,7 @@ use Doctrine\ORM\Query\QueryException;
  */
 class ASTException extends QueryException
 {
+
     /**
      * @param Node $node
      *

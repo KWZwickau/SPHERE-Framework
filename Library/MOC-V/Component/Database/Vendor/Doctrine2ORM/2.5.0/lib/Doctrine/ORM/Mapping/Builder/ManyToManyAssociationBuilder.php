@@ -29,6 +29,7 @@ namespace Doctrine\ORM\Mapping\Builder;
  */
 class ManyToManyAssociationBuilder extends OneToManyAssociationBuilder
 {
+
     /**
      * @var string|null
      */
@@ -46,6 +47,7 @@ class ManyToManyAssociationBuilder extends OneToManyAssociationBuilder
      */
     public function setJoinTable($name)
     {
+
         $this->joinTableName = $name;
         return $this;
     }
@@ -70,13 +72,14 @@ class ManyToManyAssociationBuilder extends OneToManyAssociationBuilder
         $onDelete = null,
         $columnDef = null
     ) {
+
         $this->inverseJoinColumns[] = array(
-            'name'             => $columnName,
+            'name'                 => $columnName,
             'referencedColumnName' => $referencedColumnName,
-            'nullable'         => $nullable,
-            'unique'           => $unique,
-            'onDelete'         => $onDelete,
-            'columnDefinition' => $columnDef,
+            'nullable'             => $nullable,
+            'unique'               => $unique,
+            'onDelete'             => $onDelete,
+            'columnDefinition'     => $columnDef,
         );
         return $this;
     }
@@ -86,6 +89,7 @@ class ManyToManyAssociationBuilder extends OneToManyAssociationBuilder
      */
     public function build()
     {
+
         $mapping = $this->mapping;
         $mapping['joinTable'] = array();
         if ($this->joinColumns) {

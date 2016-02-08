@@ -165,9 +165,9 @@ class ApacheMatcherDumper extends MatcherDumper
     /**
      * Dumps a single route
      *
-     * @param  string $name    Route name
-     * @param  Route  $route   The route
-     * @param  array  $options Options
+     * @param  string $name            Route name
+     * @param  Route  $route           The route
+     * @param  array  $options         Options
      * @param  bool   $hostRegexUnique Unique identifier for the host regex
      *
      * @return string The compiled route
