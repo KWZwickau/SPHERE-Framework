@@ -1,10 +1,10 @@
 <?php
-namespace SPHERE\Application\Reporting\Gateway\Converter;
+namespace SPHERE\Application\Transfer\Gateway\Converter;
 
 /**
  * Class FieldPointer
  *
- * @package SPHERE\Application\Reporting\Gateway\Converter
+ * @package SPHERE\Application\Transfer\Gateway\Converter
  */
 class FieldPointer
 {

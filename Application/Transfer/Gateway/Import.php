@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Reporting\Gateway;
+namespace SPHERE\Application\Transfer\Gateway;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\UniversalXml;
 use MOC\V\Component\Document\Document;
@@ -8,7 +8,7 @@ use MOC\V\Component\Document\Vendor\UniversalXml\Source\Node;
 /**
  * Class Import
  *
- * @package SPHERE\Application\Reporting\Gateway
+ * @package SPHERE\Application\Transfer\Gateway
  */
 class Import
 {

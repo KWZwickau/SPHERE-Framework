@@ -1,13 +1,13 @@
 <?php
-namespace SPHERE\Application\Reporting\Gateway\Item;
+namespace SPHERE\Application\Transfer\Gateway\Item;
 
-use SPHERE\Application\Reporting\Gateway\Converter\Output;
+use SPHERE\Application\Transfer\Gateway\Converter\Output;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class AbstractItem
  *
- * @package SPHERE\Application\Reporting\Gateway\Item
+ * @package SPHERE\Application\Transfer\Gateway\Item
  */
 abstract class AbstractItem
 {

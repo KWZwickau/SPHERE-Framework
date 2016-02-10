@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Reporting\Gateway\Converter;
+namespace SPHERE\Application\Transfer\Gateway\Converter;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
@@ -8,7 +8,7 @@ use MOC\V\Component\Document\Exception\DocumentTypeException;
 /**
  * Class AbstractConverter
  *
- * @package SPHERE\Application\Reporting\Gateway\Converter
+ * @package SPHERE\Application\Transfer\Gateway\Converter
  */
 abstract class AbstractConverter
 {

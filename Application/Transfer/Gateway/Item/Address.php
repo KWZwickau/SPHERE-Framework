@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Reporting\Gateway\Item;
+namespace SPHERE\Application\Transfer\Gateway\Item;
 
 class Address extends AbstractItem
 {

@@ -1,13 +1,13 @@
 <?php
-namespace SPHERE\Application\Reporting\Gateway\Fragment;
+namespace SPHERE\Application\Transfer\Gateway\Fragment;
 
-use SPHERE\Application\Reporting\Gateway\Converter\Output;
-use SPHERE\Application\Reporting\Gateway\Item\AbstractItem;
+use SPHERE\Application\Transfer\Gateway\Converter\Output;
+use SPHERE\Application\Transfer\Gateway\Item\AbstractItem;
 
 /**
  * Class AbstractFragment
  *
- * @package SPHERE\Application\Reporting\Gateway\Fragment
+ * @package SPHERE\Application\Transfer\Gateway\Fragment
  */
 abstract class AbstractFragment
 {

@@ -1,12 +1,12 @@
 <?php
-namespace SPHERE\Application\Reporting\Gateway\Converter;
+namespace SPHERE\Application\Transfer\Gateway\Converter;
 
-use SPHERE\Application\Reporting\Gateway\Fragment\AbstractFragment;
+use SPHERE\Application\Transfer\Gateway\Fragment\AbstractFragment;
 
 /**
  * Class Output
  *
- * @package SPHERE\Application\Reporting\Gateway\Converter
+ * @package SPHERE\Application\Transfer\Gateway\Converter
  */
 class Output
 {

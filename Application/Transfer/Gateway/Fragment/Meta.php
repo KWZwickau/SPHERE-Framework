@@ -1,10 +1,10 @@
 <?php
-namespace SPHERE\Application\Reporting\Gateway\Fragment;
+namespace SPHERE\Application\Transfer\Gateway\Fragment;
 
 /**
  * Class Meta
  *
- * @package SPHERE\Application\Reporting\Gateway\Fragment
+ * @package SPHERE\Application\Transfer\Gateway\Fragment
  */
 class Meta extends AbstractFragment
 {
