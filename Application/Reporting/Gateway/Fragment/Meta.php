@@ -2,11 +2,16 @@
 namespace SPHERE\Application\Reporting\Gateway\Fragment;
 
 /**
- * Class Person
+ * Class Meta
  *
  * @package SPHERE\Application\Reporting\Gateway\Fragment
  */
-class Person
+class Meta extends AbstractFragment
 {
 
+    public function __construct()
+    {
+
+        $this->setXmlName('meta');
+    }
 }

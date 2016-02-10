@@ -4,7 +4,7 @@
 
 # Restrict Server PHP-File Access
 
-	<FilesMatch "(\.php|\.html)$">
-		Order Deny,Allow
-		Allow from All
-	</FilesMatch>
+#	<FilesMatch "(\.php|\.html)$">
+#		Order Deny,Allow
+#		Allow from All
+#	</FilesMatch>

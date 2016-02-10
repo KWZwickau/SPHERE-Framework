@@ -23,7 +23,7 @@ class Api
     function __construct($XmlContent)
     {
 
-        $this->XmlContent = $XmlContent;
+        $this->XmlContent = (string)$XmlContent;
     }
 
     /**
