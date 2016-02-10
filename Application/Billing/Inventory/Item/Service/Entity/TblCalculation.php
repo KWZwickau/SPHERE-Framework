@@ -5,7 +5,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -14,20 +13,15 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblItemCondition")
+ * @Table(name="tblItemCalculation")
  * @Cache(usage="READ_ONLY")
  */
-class TblItemCondition extends Element
+class TblCalculation extends Element
 {
 
-    const ATTR_TBL_ITEM = 'tblItem';
     const SERVICE_SCHOOL_TYPE = 'serviceSchoolTblType';
     const SERVICE_SIBLING_RANK = 'serviceStudentSiblingRank';
 
-    /**
-     * @Column(type="bigint")
-     */
-    protected $tblItem;
     /**
      * @Column(type="decimal", precision=14, scale=4)
      */
@@ -40,28 +34,6 @@ class TblItemCondition extends Element
      * @Column(type="bigint")
      */
     protected $serviceStudentSiblingRank;
-
-    /**
-     * @return bool|TblItem
-     */
-    public function getTblItem()
-    {
-
-        if (null === $this->tblItem) {
-            return false;
-        } else {
-            return Item::useService()->getItemById($this->tblItem);
-        }
-    }
-
-    /**
-     * @param TblItem $tblItem
-     */
-    public function setTblItem(TblItem $tblItem)
-    {
-
-        $this->tblItem = $tblItem->getId();
-    }
 
     /**
      * @return (type="decimal", precision=14, scale=4)

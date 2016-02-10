@@ -6,7 +6,6 @@ use SPHERE\Application\Billing\Accounting\Basket\Basket;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Data;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityItem;
-use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityType;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Setup;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -81,15 +80,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->sumPriceItemAllByCommodity($tblCommodity);
-    }
-
-    /**
-     * @return bool|TblCommodityType[]
-     */
-    public function getCommodityTypeAll()
-    {
-
-        return (new Data($this->getBinding()))->getCommodityTypeAll();
     }
 
     /**
@@ -180,24 +170,12 @@ class Service extends AbstractService
         if (!$Error) {
             (new Data($this->getBinding()))->createCommodity(
                 $Commodity['Name'],
-                $Commodity['Description'],
-                $this->getCommodityTypeById($Commodity['Type'])
+                $Commodity['Description']
             );
             return new Success('Die Leistung wurde erfolgreich angelegt')
             .new Redirect('/Billing/Inventory/Commodity', Redirect::TIMEOUT_SUCCESS);
         }
         return $Stage;
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblCommodityType
-     */
-    public function getCommodityTypeById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getCommodityTypeById($Id);
     }
 
     /**
@@ -237,8 +215,7 @@ class Service extends AbstractService
             if ((new Data($this->getBinding()))->updateCommodity(
                 $tblCommodity,
                 $Commodity['Name'],
-                $Commodity['Description'],
-                $this->getCommodityTypeById($Commodity['Type'])
+                $Commodity['Description']
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')

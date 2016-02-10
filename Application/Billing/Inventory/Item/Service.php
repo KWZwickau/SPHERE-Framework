@@ -4,9 +4,9 @@ namespace SPHERE\Application\Billing\Inventory\Item;
 
 use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Billing\Inventory\Item\Service\Data;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
-use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCondition;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemType;
 use SPHERE\Application\Billing\Inventory\Item\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -15,6 +15,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -62,15 +63,21 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getItemTypeById($Id);
     }
 
+    public function getItemTypeAll()
+    {
+
+        return (new Data($this->getBinding()))->getItemTypeAll();
+    }
+
     /**
      * @param $Id
      *
-     * @return bool|TblItemCondition
+     * @return bool|TblCalculation
      */
-    public function getItemConditionById($Id)
+    public function getCalculationById($Id)
     {
 
-        return (new Data($this->getBinding()))->getItemConditionById($Id);
+        return (new Data($this->getBinding()))->getCalculationById($Id);
     }
 
     /**
@@ -96,12 +103,12 @@ class Service extends AbstractService
     /**
      * @param TblItem $tblItem
      *
-     * @return bool|TblItemCondition
+     * @return bool|TblCalculation
      */
-    public function getItemConditionAllByItem(TblItem $tblItem)
+    public function getCalculationAllByItem(TblItem $tblItem)
     {
 
-        return (new Data($this->getBinding()))->getItemConditionAllByItem($tblItem);
+        return (new Data($this->getBinding()))->getCalculationAllByItem($tblItem);
     }
 
     /**
@@ -252,15 +259,15 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Stage
      * @param TblItem             $tblItem
-     * @param TblItemCondition    $tblItemCondition
+     * @param TblCalculation      $tblCalculation
      * @param array               $Condition
      *
      * @return IFormInterface|string
      */
-    public function changeItemCondition(
+    public function changeCalculation(
         IFormInterface &$Stage = null,
         TblItem $tblItem,
-        TblItemCondition $tblItemCondition,
+        TblCalculation $tblCalculation,
         $Condition
     ) {
 
@@ -280,8 +287,8 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            if ((new Data($this->getBinding()))->updateItemCondition(
-                $tblItemCondition,
+            if ((new Data($this->getBinding()))->updateCalculation(
+                $tblCalculation,
                 $Condition['Value']
             )
             ) {
@@ -300,39 +307,41 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Stage
      * @param TblItem             $tblItem
-     * @param array               $Condition
+     * @param array               $Calculation
      *
      * @return IFormInterface|string
      */
-    public function createItemCondition(IFormInterface &$Stage = null, TblItem $tblItem, $Condition)
+    public function createCalculation(IFormInterface &$Stage = null, TblItem $tblItem, $Calculation)
     {
 
         /**
          * Skip to Frontend
          */
-        if (null === $Condition
+        if (null === $Calculation
         ) {
             return $Stage;
         }
         $Error = false;
 
-        if (isset( $Condition['Value'] ) && empty( $Condition['Value'] )) {
-            $Stage->setError('Condition[Value]', 'Bitte geben Sie einen Artikel-Preis an');
+        if (isset( $Calculation['Value'] ) && empty( $Calculation['Value'] )) {
+            $Stage->setError('Calculation[Value]', 'Bitte geben Sie einen Artikel-Preis an');
             $Error = true;
         }
 
-        if ($this->existsItemCondition($tblItem, $Condition['SchoolType'], $Condition['SiblingRank'])) {
-            $Stage->setError('Condition[SchoolType]', 'Bedingungskombination vorhanden!');
-            $Stage->setError('Condition[SiblingRank]', 'Bedingungskombination vorhanden!');
+        if ($this->existsCalculation($tblItem, $Calculation['SchoolType'], $Calculation['SiblingRank'])) {
+            $Stage->setError('Calculation[SchoolType]', 'Bedingungskombination vorhanden!');
+            $Stage->setError('Calculation[SiblingRank]', 'Bedingungskombination vorhanden!');
             $Error = true;
         }
+
+        Debugger::screenDump($Calculation);
 
         if (!$Error) {
-            if ((new Data($this->getBinding()))->createItemCondition(
+            if ((new Data($this->getBinding()))->createCalculation(
                 $tblItem,
-                $Condition['Value'],
-                $Condition['SchoolType'],
-                $Condition['SiblingRank']
+                $Calculation['Value'],
+                $Calculation['SchoolType'],
+                $Calculation['SiblingRank']
             )
             ) {
                 $Stage .= new Success('Gespeichert, die Daten werden neu geladen...')
@@ -353,12 +362,12 @@ class Service extends AbstractService
      * @param         $SchoolType
      * @param         $SiblingRank
      *
-     * @return bool|TblItemCondition
+     * @return bool|TblCalculation
      */
-    public function existsItemCondition(TblItem $tblItem, $SchoolType, $SiblingRank)
+    public function existsCalculation(TblItem $tblItem, $SchoolType, $SiblingRank)
     {
 
-        return (new Data($this->getBinding()))->existsItemCondition($tblItem, $SchoolType, $SiblingRank);
+        return (new Data($this->getBinding()))->existsCalculation($tblItem, $SchoolType, $SiblingRank);
     }
 
     /**

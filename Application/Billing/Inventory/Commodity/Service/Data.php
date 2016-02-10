@@ -5,7 +5,6 @@ namespace SPHERE\Application\Billing\Inventory\Commodity\Service;
 use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityItem;
-use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityType;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -22,31 +21,6 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        /**
-         * CommodityType
-         */
-        $this->createCommodityType('Einzelleistung');
-        $this->createCommodityType('Sammelleistung');
-    }
-
-    /**
-     * @param $Name
-     *
-     * @return TblCommodityType
-     */
-    public function createCommodityType($Name)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblCommodityType')->findOneBy(array('Name' => $Name,));
-        if (null === $Entity) {
-            $Entity = new TblCommodityType();
-            $Entity->setName($Name);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-                $Entity);
-        }
-        return $Entity;
     }
 
     /**
@@ -82,28 +56,6 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblCommodity')->findAll();
-        return ( null === $Entity ? false : $Entity );
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblCommodityType
-     */
-    public function getCommodityTypeById($Id)
-    {
-
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblCommodityType', $Id);
-        return ( null === $Entity ? false : $Entity );
-    }
-
-    /**
-     * @return bool|TblCommodityType[]
-     */
-    public function getCommodityTypeAll()
-    {
-
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblCommodityType')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -198,24 +150,19 @@ class Data extends AbstractData
     /**
      * @param                  $Name
      * @param                  $Description
-     * @param TblCommodityType $tblCommodityType
      *
      * @return TblCommodity
      */
     public function createCommodity(
         $Name,
-        $Description,
-        TblCommodityType $tblCommodityType
+        $Description
     ) {
-
-        echo $Name.' - '.$Description.' - '.$tblCommodityType->getName();
 
         $Manager = $this->getConnection()->getEntityManager(false);
 
         $Entity = new TblCommodity();
         $Entity->setName($Name);
         $Entity->setDescription($Description);
-        $Entity->setTblCommodityType($tblCommodityType);
 
         $Manager->saveEntity($Entity);
 
@@ -229,15 +176,13 @@ class Data extends AbstractData
      * @param TblCommodity            $tblCommodity
      * @param                         $Name
      * @param                         $Description
-     * @param Entity\TblCommodityType $tblCommodityType
      *
      * @return bool
      */
     public function updateCommodity(
         TblCommodity $tblCommodity,
         $Name,
-        $Description,
-        TblCommodityType $tblCommodityType
+        $Description
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -248,7 +193,6 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Entity->setName($Name);
             $Entity->setDescription($Description);
-            $Entity->setTblCommodityType($tblCommodityType);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),

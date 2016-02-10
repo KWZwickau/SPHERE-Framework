@@ -27,7 +27,8 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblItemType = $this->setTableItemType($Schema);
         $tblItem = $this->setTableItem($Schema, $tblItemType);
-        $this->setTableItemCondition($Schema, $tblItem);
+        $tblCalculation = $this->setTableCalculation($Schema);
+        $this->setTableItemCalculation($Schema, $tblItem, $tblCalculation);
         $this->setTableItemAccount($Schema, $tblItem);
 
         /**
@@ -76,20 +77,29 @@ class Setup extends AbstractSetup
         return $Table;
     }
 
-    private function setTableItemCondition(Schema &$Schema, Table $tblItem)
+    private function setTableCalculation(Schema &$Schema)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblItemCondition');
-        if (!$this->getConnection()->hasColumn('tblItemCondition', 'Value')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblCalculation');
+        if (!$this->getConnection()->hasColumn('tblCalculation', 'Value')) {
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
-        if (!$this->getConnection()->hasColumn('tblItemCondition', 'serviceStudentSiblingRank')) {
+        if (!$this->getConnection()->hasColumn('tblCalculation', 'serviceStudentSiblingRank')) {
             $Table->addColumn('serviceStudentSiblingRank', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblItemCondition', 'serviceSchoolTblType')) {
+        if (!$this->getConnection()->hasColumn('tblCalculation', 'serviceSchoolTblType')) {
             $Table->addColumn('serviceSchoolTblType', 'bigint', array('notnull' => false));
         }
+
+        return $Table;
+    }
+
+    private function setTableItemCalculation(Schema &$Schema, Table $tblItem, Table $tblCalculation)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblItemCalculation');
         $this->getConnection()->addForeignKey($Table, $tblItem);
+        $this->getConnection()->addForeignKey($Table, $tblCalculation);
     }
 
     /**

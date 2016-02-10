@@ -4,9 +4,10 @@ namespace SPHERE\Application\Billing\Inventory\Item\Service;
 
 use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
-use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCondition;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -58,15 +59,24 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Id
-     *
-     * @return bool|TblItemCondition
+     * @return bool|TblItemType[]
      */
-    public function getItemConditionById($Id)
+    public function getItemTypeAll()
     {
 
-//        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblItemCondition', $Id);
-        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCondition', $Id);
+        return $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblItemType');
+
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblItemCalculation
+     */
+    public function getCalculationById($Id)
+    {
+
+        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblCalculation', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -92,8 +102,8 @@ class Data extends AbstractData
     {
 
 //        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblItem')->findAll();
-        $Entity = $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblItem');
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblItem');
+
     }
 
     /**
@@ -128,16 +138,23 @@ class Data extends AbstractData
     /**
      * @param TblItem $tblItem
      *
-     * @return bool|TblItemCondition
+     * @return bool|TblCalculation
      */
-    public function getItemConditionAllByItem(TblItem $tblItem)
+    public function getCalculationAllByItem(TblItem $tblItem)
     {
 
-//        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblItemCondition')
-//            ->findBy(array(TblItemCondition::ATTR_TBL_ITEM => $tblItem->getId()));
-        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCondition',
-            array(TblItemCondition::ATTR_TBL_ITEM => $tblItem->getId()));
-        return ( null === $EntityList ? false : $EntityList );
+        $TempList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCalculation',
+            array(TblItemCalculation::ATTR_TBL_ITEM => $tblItem->getId()));
+
+        $EntityList = array();
+        if ($TempList) {
+            /** @var TblItemCalculation $Temp */
+            foreach ($TempList as $Temp) {
+                $EntityList[] = $Temp->getTblCalculation();
+            }
+        }
+
+        return ( empty( $EntityList ) ? false : $EntityList );
     }
 
     /**
@@ -145,9 +162,9 @@ class Data extends AbstractData
      * @param         $SchoolType
      * @param         $SiblingRank
      *
-     * @return bool|TblItemCondition
+     * @return bool|TblCalculation
      */
-    public function existsItemCondition(TblItem $tblItem, $SchoolType, $SiblingRank)
+    public function existsCalculation(TblItem $tblItem, $SchoolType, $SiblingRank)
     {
 
         if ($SchoolType === '0') {
@@ -158,9 +175,7 @@ class Data extends AbstractData
         }
 
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblItemCondition')
-            ->findOneBy(array(TblItemCondition::ATTR_TBL_ITEM        => $tblItem->getId(),
-                              TblItemCondition::SERVICE_SCHOOL_TYPE  => $SchoolType,
-                              TblItemCondition::SERVICE_SIBLING_RANK => $SiblingRank));
+            ->findOneBy(array(TblItemCalculation::ATTR_TBL_ITEM => $tblItem->getId()));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -250,50 +265,34 @@ class Data extends AbstractData
      * @param null    $Course
      * @param null    $ChildRank
      *
-     * @return TblItemCondition
+     * @return TblCalculation
      */
-    public function createItemCondition(TblItem $tblItem, $Value, $Course, $ChildRank)
+    public function createCalculation(TblItem $tblItem, $Value, $Course, $ChildRank)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        if ($Course === '0') {
-            $Course = null;
+        $Entity = new TblCalculation();
+        $Entity->setValue(str_replace(',', '.', $Value));
+        if (Type::useService()->getTypeById($Course)) {
+            $Entity->setServiceSchoolType(Type::useService()->getTypeById($Course));
         }
-        if ($ChildRank === '0') {
-            $ChildRank = null;
+        if (Relationship::useService()->getSiblingRankById($ChildRank)) {
+            $Entity->setServiceStudentSiblingRank(Relationship::useService()->getSiblingRankById($ChildRank));
         }
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+            $Entity);
 
-        $Entity = $Manager->getEntity('TblItemCondition')->findOneBy(array(
-            TblItemCondition::ATTR_TBL_ITEM        => $tblItem->getId(),
-            TblItemCondition::SERVICE_SCHOOL_TYPE  => $Course,
-            TblItemCondition::SERVICE_SIBLING_RANK => $ChildRank,
-        ));
+        // Verknüpfung speichern
+        $EntityKey = new TblItemCalculation();
+        $EntityKey->setTblItem($tblItem);
+        $EntityKey->setTblCalculation($Entity);
+        $Manager->saveEntity($EntityKey);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+            $EntityKey);
 
-        if ($Course === null) {
-            $Course = '0';
-        }
-        if ($ChildRank === null) {
-            $ChildRank = '0';
-        }
-
-
-        if (null === $Entity) {
-            $Entity = new TblItemCondition();
-            $Entity->setTblItem($tblItem);
-            $Entity->setValue(str_replace(',', '.', $Value));
-            if (Type::useService()->getTypeById($Course)) {
-                $Entity->setServiceSchoolType(Type::useService()->getTypeById($Course));
-            }
-            if (Relationship::useService()->getSiblingRankById($ChildRank)) {
-                $Entity->setServiceStudentSiblingRank(Relationship::useService()->getSiblingRankById($ChildRank));
-            }
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
-                $Entity);
-            return $Entity;
-        }
-        return false;
+        return $Entity;
     }
 
     /**
@@ -328,18 +327,18 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblItemCondition $tblItemCondition
+     * @param TblCalculation   $tblCalculation
      * @param                  $Value
      *
      * @return bool
      */
-    public function updateItemCondition(TblItemCondition $tblItemCondition, $Value)
+    public function updateCalculation(TblCalculation $tblCalculation, $Value)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        /** @var TblItemCondition $Entity */
-        $Entity = $Manager->getEntityById('TblItemCondition', $tblItemCondition->getId());
+        /** @var TblCalculation $Entity */
+        $Entity = $Manager->getEntityById('TblCalculation', $tblCalculation->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setValue($Value);

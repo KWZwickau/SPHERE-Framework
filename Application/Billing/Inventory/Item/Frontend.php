@@ -2,9 +2,8 @@
 
 namespace SPHERE\Application\Billing\Inventory\Item;
 
-use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblCalculation;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
-use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCondition;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
@@ -123,7 +122,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array(
                                 new TextField('Item[Name]', 'Name', 'Name', new Conversation()),
                                 new SelectBox('Item[ItemType]', 'Leistungsart', array(
-                                    'Name' => Commodity::useService()->getCommodityTypeAll()))
+                                    'Name' => Item::useService()->getItemTypeAll()))
                             ), Panel::PANEL_TYPE_INFO)
                         , 6),
                     new FormColumn(
@@ -303,40 +302,40 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param      $Id
-     * @param null $Condition
+     * @param null $Calculation
      *
      * @return Stage
      */
-    public function frontendItemCondition($Id, $Condition = null)
+    public function frontendItemCalculation($Id, $Calculation = null)
     {
 
         $Stage = new Stage('Preise', 'mit Bedingungen');
         $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item', new ChevronLeft()));
         $tblItem = Item::useService()->getItemById($Id);
         if ($tblItem) {
-            $tblConditionList = Item::useService()->getItemConditionAllByItem($tblItem);
+            $tblCalculationList = Item::useService()->getCalculationAllByItem($tblItem);
             $TableContent = array();
-            if (is_array($tblConditionList)) {
-                array_walk($tblConditionList, function (TblItemCondition $tblItemCondition) use (&$TableContent, $tblItem) {
+            if (is_array($tblCalculationList)) {
+                array_walk($tblCalculationList, function (TblCalculation $tblCalculation) use (&$TableContent, $tblItem) {
 
-                    $Item['Price'] = $tblItemCondition->getPriceString();
+                    $Item['Price'] = $tblCalculation->getPriceString();
                     $Item['Cours'] = '';
                     $Item['SiblingRank'] = '';
-                    $Item['Option'] = new Standard('', '/Billing/Inventory/Item/Condition/Change', new Pencil(),
-                        array('Id'          => $tblItem->getId(),
-                              'ConditionId' => $tblItemCondition->getId()));
+                    $Item['Option'] = new Standard('', '/Billing/Inventory/Item/Calculation/Change', new Pencil(),
+                        array('Id'            => $tblItem->getId(),
+                              'CalculationId' => $tblCalculation->getId()));
 
-                    if ($tblItemCondition->getServiceSchoolType()) {
-                        $Item['Cours'] = $tblItemCondition->getServiceSchoolType()->getName();
+                    if ($tblCalculation->getServiceSchoolType()) {
+                        $Item['Cours'] = $tblCalculation->getServiceSchoolType()->getName();
                     }
-                    if ($tblItemCondition->getServiceStudentChildRank()) {
-                        $Item['SiblingRank'] = $tblItemCondition->getServiceStudentChildRank()->getName();
+                    if ($tblCalculation->getServiceStudentChildRank()) {
+                        $Item['SiblingRank'] = $tblCalculation->getServiceStudentChildRank()->getName();
                     }
                     array_push($TableContent, $Item);
                 });
             }
 
-            $Form = $this->formItemCondition()
+            $Form = $this->formItemCalculation()
                 ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
@@ -359,8 +358,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(
                             new LayoutColumn(
                                 new Well(
-                                    Item::useService()->createItemCondition(
-                                        $Form, $tblItem, $Condition)
+                                    Item::useService()->createCalculation(
+                                        $Form, $tblItem, $Calculation)
                                 )
                             )
                         ), new Title(new PlusSign().' Hinzufügen')
@@ -403,7 +402,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Form
      */
-    public function formItemCondition()
+    public function formItemCalculation()
     {
 
         $tblSchoolType = Type::useService()->getTypeAll();
@@ -415,58 +414,35 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Preis', array(new TextField('Condition[Value]', '', '')), Panel::PANEL_TYPE_INFO)
+                        new Panel('Preis', array(new TextField('Calculation[Value]', '', '')), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
-                        new Panel('Schulart', array(new SelectBox('Condition[SchoolType]', '',
+                        new Panel('Schulart', array(new SelectBox('Calculation[SchoolType]', '',
                             array('Name' => $tblSchoolType))), Panel::PANEL_TYPE_INFO)
                         , 4),
                     new FormColumn(
-                        new Panel('Geschwisterkind', array(new SelectBox('Condition[SiblingRank]', '',
+                        new Panel('Geschwisterkind', array(new SelectBox('Calculation[SiblingRank]', '',
                             array('Name' => $tblSiblingRank))), Panel::PANEL_TYPE_INFO)
                         , 4)
                 ))
             )
         );
-//                    new FormColumn(
-//                        new Panel(
-//                            'Bedingungen',
-//                            array(
-//                                new Form(
-//                                    new FormGroup(
-//                                        new FormRow(array(
-//                                            new FormColumn(
-//                                                new Panel('', array(new SelectBox('Condition[SchoolType]', 'Schulart',
-//                                                    array('Name' => $tblSchoolType))))
-//                                                , 6),
-//                                            new FormColumn(
-//                                                new Panel('', array(new SelectBox('Condition[SiblingRank]', 'Geschwisterkind',
-//                                                    array('Name' => $tblSiblingRank))))
-//                                                , 6)
-//                                        ))
-//                                    )
-//                                )
-//                            ), Panel::PANEL_TYPE_INFO)
-//                        , 8)
-//                ))
-//            )
-//        );
     }
 
     /**
      * @param      $Id
-     * @param      $ConditionId
-     * @param null $Condition
+     * @param      $CalculationId
+     * @param null $Calculation
      *
      * @return Stage
      */
-    public function frontendItemConditionChange($Id, $ConditionId, $Condition = null)
+    public function frontendItemCalculationChange($Id, $CalculationId, $Calculation = null)
     {
 
         $Stage = new Stage('Bedinung', 'Bearbeiten');
         $tblItem = Item::useService()->getItemById($Id);
-        $tblItemCondition = Item::useService()->getItemConditionById($ConditionId);
-        if (!$tblItem && !$tblItemCondition) {
+        $tblCalculation = Item::useService()->getCalculationById($CalculationId);
+        if (!$tblItem && !$tblCalculation) {
             $Stage->addButton(new Standard('Zurück', '/Billing/Invoice/Item', new ChevronLeft()));
             $Stage->setContent(
                 new Warning('Artikel oder Bedingung nicht gefunden')
@@ -474,29 +450,29 @@ class Frontend extends Extension implements IFrontendInterface
             );
         } else {
             $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Condition'] )) {
-                $Global->POST['Condition']['Value'] = $tblItemCondition->getValue();
-                if ($tblItemCondition->getServiceSchoolType()) {
-                    $Global->POST['Condition']['SchoolType'] = $tblItemCondition->getServiceSchoolType()->getId();
+            if (!isset( $Global->POST['Calculation'] )) {
+                $Global->POST['Calculation']['Value'] = $tblCalculation->getValue();
+                if ($tblCalculation->getServiceSchoolType()) {
+                    $Global->POST['Calculation']['SchoolType'] = $tblCalculation->getServiceSchoolType()->getId();
                 }
-                if ($tblItemCondition->getServiceStudentChildRank()) {
-                    $Global->POST['Condition']['SiblingRank'] = $tblItemCondition->getServiceStudentChildRank()->getId();
+                if ($tblCalculation->getServiceStudentChildRank()) {
+                    $Global->POST['Calculation']['SiblingRank'] = $tblCalculation->getServiceStudentChildRank()->getId();
                 }
                 $Global->savePost();
             }
             $schoolType = 'Nicht ausgewählt';
             $siblingRank = 'Nicht ausgewählt';
-            if ($tblItemCondition->getServiceSchoolType()) {
-                $schoolType = $tblItemCondition->getServiceSchoolType()->getName();
+            if ($tblCalculation->getServiceSchoolType()) {
+                $schoolType = $tblCalculation->getServiceSchoolType()->getName();
             }
-            if ($tblItemCondition->getServiceStudentChildRank()) {
-                $siblingRank = $tblItemCondition->getServiceStudentChildRank()->getName();
+            if ($tblCalculation->getServiceStudentChildRank()) {
+                $siblingRank = $tblCalculation->getServiceStudentChildRank()->getName();
             }
             $Form = new Form(
                 new FormGroup(
                     new FormRow(
                         new FormColumn(
-                            new Panel('Preis', array(new TextField('Condition[Value]', '', '')), Panel::PANEL_TYPE_INFO)
+                            new Panel('Preis', array(new TextField('Calculation[Value]', '', '')), Panel::PANEL_TYPE_INFO)
                         )
                     )
                 )
@@ -504,7 +480,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Form->appendFormButton(new Primary('Speichern', new Save()));
             $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-            $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item/Condition', new ChevronLeft(),
+            $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item/Calculation', new ChevronLeft(),
                 array('Id' => $tblItem->getId())));
             $Stage->setContent(
                 $this->layoutArtikel($tblItem)
@@ -512,7 +488,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(
-                                new Panel('Preis', $tblItemCondition->getPriceString(), Panel::PANEL_TYPE_INFO)
+                                new Panel('Preis', $tblCalculation->getPriceString(), Panel::PANEL_TYPE_INFO)
                                 , 4),
                             new LayoutColumn(
                                 new Panel('Bedingungen',
@@ -536,8 +512,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(new Well(
-                                    Item::useService()->changeItemCondition(
-                                        $Form, $tblItem, $tblItemCondition, $Condition))
+                                    Item::useService()->changeCalculation(
+                                        $Form, $tblItem, $tblCalculation, $Calculation))
                                 , 6)
                         ), new Title(new Pencil().' Bearbeiten')
                     )

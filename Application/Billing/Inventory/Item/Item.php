@@ -42,12 +42,12 @@ class Item implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendItemChange'
             ));
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Condition',
-                __NAMESPACE__.'\Frontend::frontendItemCondition'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Calculation',
+                __NAMESPACE__.'\Frontend::frontendItemCalculation'
             ));
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Condition/Change',
-                __NAMESPACE__.'\Frontend::frontendItemConditionChange'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Calculation/Change',
+                __NAMESPACE__.'\Frontend::frontendItemCalculationChange'
             ));
     }
 

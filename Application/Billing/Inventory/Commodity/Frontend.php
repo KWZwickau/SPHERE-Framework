@@ -10,7 +10,6 @@ use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
-use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -69,29 +68,28 @@ class Frontend extends Extension implements IFrontendInterface
         $tblCommodityAll = Commodity::useService()->getCommodityAll();
 
         $TableContent = array();
-//        if (!empty( $tblCommodityAll )) {
-//            array_walk($tblCommodityAll, function (TblCommodity $tblCommodity) use (&$TableContent) {
-//
-//                $Temp['Name'] = $tblCommodity->getName();
-//                $Temp['Description'] = $tblCommodity->getDescription();
-//                $Temp['Type'] = $tblCommodity->getTblCommodityType()->getName();
-//                $Temp['ItemCount'] = Commodity::useService()->countItemAllByCommodity($tblCommodity);
-//                $Temp['SumPriceItem'] = Commodity::useService()->sumPriceItemAllByCommodity($tblCommodity);
-//                $Temp['Option'] = (new Standard('Bearbeiten', '/Billing/Inventory/Commodity/Change',
-//                        new Pencil(), array(
-//                            'Id' => $tblCommodity->getId()
-//                        )))->__toString().
-//                    (new Standard('Artikel auswählen', '/Billing/Inventory/Commodity/Item/Select',
-//                        new Listing(), array(
+        if (!empty( $tblCommodityAll )) {
+            array_walk($tblCommodityAll, function (TblCommodity $tblCommodity) use (&$TableContent) {
+
+                $Item['Name'] = $tblCommodity->getName();
+                $Item['Description'] = $tblCommodity->getDescription();
+                $Item['ItemCount'] = Commodity::useService()->countItemAllByCommodity($tblCommodity);
+                $Item['SumPriceItem'] = Commodity::useService()->sumPriceItemAllByCommodity($tblCommodity);
+                $Item['Option'] = (new Standard('Bearbeiten', '/Billing/Inventory/Commodity/Change',
+                        new Pencil(), array(
+                            'Id' => $tblCommodity->getId()
+                        )))->__toString().
+                    (new Standard('Artikel auswählen', '/Billing/Inventory/Commodity/Item/Select',
+                        new Listing(), array(
+                            'Id' => $tblCommodity->getId()
+                        )))->__toString();
+//                    .(new Standard('Löschen', '/Billing/Inventory/Commodity/Destroy',
+//                        new Remove(), array(
 //                            'Id' => $tblCommodity->getId()
 //                        )))->__toString();
-////                    .(new Standard('Löschen', '/Billing/Inventory/Commodity/Destroy',
-////                        new Remove(), array(
-////                            'Id' => $tblCommodity->getId()
-////                        )))->__toString();
-//                array_push($TableContent, $Temp);
-//            });
-//        }
+                array_push($TableContent, $Item);
+            });
+        }
         $Form = $this->formCommodity()
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -105,7 +103,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 array(
                                     'Name'         => 'Name',
                                     'Description'  => 'Beschreibung',
-                                    'Type'         => 'Leistungsart',
                                     'ItemCount'    => 'Artikelanzahl',
                                     'SumPriceItem' => 'Gesamtpreis',
                                     'Option'       => ''
@@ -170,9 +167,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Leistung', array(new TextField('Commodity[Name]', 'Name', 'Name', new Conversation()),
-                                new SelectBox('Commodity[Type]', 'Leistungsart', array(
-                                    'Name' => Commodity::useService()->getCommodityTypeAll())))
+                        new Panel('Leistung', array(new TextField('Commodity[Name]', 'Name', 'Name', new Conversation()))
                             , Panel::PANEL_TYPE_INFO)
                         , 6),
                     new FormColumn(
@@ -238,30 +233,23 @@ class Frontend extends Extension implements IFrontendInterface
                 if (!isset( $Global->POST['Commodity'] )) {
                     $Global->POST['Commodity']['Name'] = $tblCommodity->getName();
                     $Global->POST['Commodity']['Description'] = $tblCommodity->getDescription();
-                    $Global->POST['Commodity']['Type'] = $tblCommodity->getTblCommodityType()->getId();
                     $Global->savePost();
                 }
 
                 $PanelValue = array();
                 $PanelValue[0] = $tblCommodity->getName();
-                $PanelValue[1] = $tblCommodity->getTblCommodityType()->getName();
-                $PanelValue[2] = $tblCommodity->getDescription();
+                $PanelValue[1] = $tblCommodity->getDescription();
                 $PanelContent = new Layout(
-                    new LayoutGroup(array(
+                    new LayoutGroup(
                         new LayoutRow(array(
                             new LayoutColumn(
                                 new Panel('Name', $PanelValue[0], Panel::PANEL_TYPE_INFO)
                                 , 6),
                             new LayoutColumn(
-                                new Panel('Leistungsart', $PanelValue[1], Panel::PANEL_TYPE_INFO)
-                                , 6),
-                        )),
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new Panel('Beschreibung', $PanelValue[2], Panel::PANEL_TYPE_INFO)
-                            )
-                        )
-                    ))
+                                new Panel('Beschreibung', $PanelValue[1], Panel::PANEL_TYPE_INFO)
+                            , 6),
+                        ))
+                    )
                 );
 
                 $Form = $this->formCommodity()
@@ -466,13 +454,17 @@ class Frontend extends Extension implements IFrontendInterface
                     array_walk($tblCommodityItem, function (TblCommodityItem $tblCommodityItem) {
 
                         $tblItem = $tblCommodityItem->getTblItem();
+                        $tblItemConditionList = Item::useService()->getCalculationAllByItem($tblItem);
+                        $tblCommodityItem->PriceString = '';
 
                         $tblCommodityItem->Name = $tblItem->getName();
                         $tblCommodityItem->Description = $tblItem->getDescription();
-                        $tblCommodityItem->PriceString = $tblItem->getPriceString();
+                        if(!empty($tblItemConditionList))
+                        {
+                            $tblCommodityItem->PriceString = $tblItemConditionList[0]->getPriceString();
+                        }
                         $tblCommodityItem->TotalPriceString = $tblCommodityItem->getTotalPriceString();
                         $tblCommodityItem->QuantityString = str_replace('.', ',', $tblCommodityItem->getQuantity());
-                        $tblCommodityItem->CostUnit = $tblItem->getCostUnit();
                         $tblCommodityItem->Option =
                             (new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Billing/Inventory/Commodity/Item/Remove',
                                 new Minus(), array(
@@ -484,7 +476,12 @@ class Frontend extends Extension implements IFrontendInterface
                 if (!empty( $tblItemAll )) {
                     /** @var TblItem $tblItem */
                     foreach ($tblItemAll as $tblItem) {
-                        $tblItem->PriceString = $tblItem->getPriceString();
+                        $tblItemConditionList = Item::useService()->getCalculationAllByItem($tblItem);
+                        $tblCommodityItem->PriceString = '';
+                        if(!empty($tblItemConditionList))
+                        {
+                            $tblCommodityItem->PriceString = $tblItemConditionList[0]->getPriceString();
+                        }
                         $tblItem->Option =
                             (new Form(
                                 new FormGroup(
@@ -527,7 +524,6 @@ class Frontend extends Extension implements IFrontendInterface
                                             array(
                                                 'Name'             => 'Name',
                                                 'Description'      => 'Beschreibung',
-                                                'CostUnit'         => 'Kostenstelle',
                                                 'PriceString'      => 'Preis',
                                                 'QuantityString'   => 'Menge',
                                                 'TotalPriceString' => 'Gesamtpreis',
