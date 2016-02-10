@@ -6,7 +6,10 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Inventory\Item\Item;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -17,36 +20,26 @@ use SPHERE\System\Database\Fitting\Element;
 class TblItemCondition extends Element
 {
 
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceManagement_Student;
+    const ATTR_TBL_ITEM = 'tblItem';
+    const SERVICE_SCHOOL_TYPE = 'serviceSchoolTblType';
+    const SERVICE_SIBLING_RANK = 'serviceStudentSiblingRank';
+
     /**
      * @Column(type="bigint")
      */
     protected $tblItem;
-
     /**
-     * @return bool|TblStudent
+     * @Column(type="decimal", precision=14, scale=4)
      */
-    public function getServiceManagementStudent()
-    {
-
-        if (null === $this->serviceManagement_Student) {
-            return false;
-        } else {
-            return Management::serviceStudent()->entityStudentByNumber($this->serviceManagement_Student); //todo
-        }
-    }
-
+    protected $Value;
     /**
-     * @param TblStudent $tblStudent
+     * @Column(type="bigint")
      */
-    public function setServiceManagementStudent(TblStudent $tblStudent = null)
-    {
-
-        $this->serviceManagement_Student = ( null === $tblStudent ? null : $tblStudent->getIdentifier() );
-    }
+    protected $serviceSchoolTblType;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceStudentSiblingRank;
 
     /**
      * @return bool|TblItem
@@ -62,11 +55,83 @@ class TblItemCondition extends Element
     }
 
     /**
-     * @param null|TblItem $tblItem
+     * @param TblItem $tblItem
      */
-    public function setTblItem(TblItem $tblItem = null)
+    public function setTblItem(TblItem $tblItem)
     {
 
-        $this->tblItem = ( null === $tblItem ? null : $tblItem->getId() );
+        $this->tblItem = $tblItem->getId();
+    }
+
+    /**
+     * @return (type="decimal", precision=14, scale=4)
+     */
+    public function getValue()
+    {
+
+        return $this->Value;
+    }
+
+    /**
+     * @param (type="decimal", precision=14, scale=4) $Value
+     */
+    public function setValue($Value)
+    {
+
+        $this->Value = $Value;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPriceString()
+    {
+
+        $result = sprintf("%01.4f", $this->Value);
+        return str_replace('.', ',', $result)." €";
+    }
+
+    /**
+     * @return bool|TblType
+     */
+    public function getServiceSchoolType()
+    {
+
+        if (null === $this->serviceSchoolTblType) {
+            return false;
+        } else {
+            return Type::useService()->getTypeById($this->serviceSchoolTblType);
+        }
+    }
+
+    /**
+     * @param TblType|null $tblType
+     */
+    public function setServiceSchoolType(TblType $tblType = null)
+    {
+
+        $this->serviceSchoolTblType = ( null === $tblType ? null : $tblType->getId() );
+    }
+
+    /**
+     * @return bool|TblSiblingRank
+     */
+    public function getServiceStudentChildRank()
+    {
+
+        if (null === $this->serviceStudentSiblingRank) {
+            return false;
+        } else {
+            return Relationship::useService()->getSiblingRankById($this->serviceStudentSiblingRank);
+        }
+    }
+
+    /**
+     * @param null|TblSiblingRank $tblSiblingRank
+     */
+    public function setServiceStudentSiblingRank(TblSiblingRank $tblSiblingRank = null)
+    {
+
+        $this->serviceStudentSiblingRank = ( null === $tblSiblingRank ? null : $tblSiblingRank->getId() );
     }
 }

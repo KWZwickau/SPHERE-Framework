@@ -25,7 +25,9 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $tblItem = $this->setTableItem($Schema);
+        $tblItemType = $this->setTableItemType($Schema);
+        $tblItem = $this->setTableItem($Schema, $tblItemType);
+        $this->setTableItemCondition($Schema, $tblItem);
         $this->setTableItemAccount($Schema, $tblItem);
 
         /**
@@ -41,7 +43,24 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableItem(Schema &$Schema)
+    private function setTableItemType(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblItemType');
+        if (!$this->getConnection()->hasColumn('tblItemType', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblItemType
+     *
+     * @return Table
+     */
+    private function setTableItem(Schema &$Schema, Table $tblItemType)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblItem');
@@ -51,20 +70,26 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblItem', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblItem', 'Price')) {
-            $Table->addColumn('Price', 'decimal', array('precision' => 14, 'scale' => 4));
-        }
-        if (!$this->getConnection()->hasColumn('tblItem', 'CostUnit')) {
-            $Table->addColumn('CostUnit', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblItem', 'serviceStudentSiblingRank')) {
-            $Table->addColumn('serviceStudentSiblingRank', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblItem', 'serviceSchoolTblType')) {
-            $Table->addColumn('serviceSchoolTblType', 'bigint', array('notnull' => false));
-        }
+
+        $this->getConnection()->addForeignKey($Table, $tblItemType);
 
         return $Table;
+    }
+
+    private function setTableItemCondition(Schema &$Schema, Table $tblItem)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblItemCondition');
+        if (!$this->getConnection()->hasColumn('tblItemCondition', 'Value')) {
+            $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
+        }
+        if (!$this->getConnection()->hasColumn('tblItemCondition', 'serviceStudentSiblingRank')) {
+            $Table->addColumn('serviceStudentSiblingRank', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblItemCondition', 'serviceSchoolTblType')) {
+            $Table->addColumn('serviceSchoolTblType', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->addForeignKey($Table, $tblItem);
     }
 
     /**

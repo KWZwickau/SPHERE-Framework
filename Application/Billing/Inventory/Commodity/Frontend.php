@@ -58,7 +58,6 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Leistungen');
         $Stage->setDescription('Übersicht');
-        // ToDo
 //        $Stage->setMessage('Zeigt die verfügbaren Leistungen an. <br />
 //                            Leistungen sind Zusammenfassungen aller Artikel,
 //                            die unter einem Punkt für den Debitor abgerechnet werden. <br />
@@ -70,29 +69,29 @@ class Frontend extends Extension implements IFrontendInterface
         $tblCommodityAll = Commodity::useService()->getCommodityAll();
 
         $TableContent = array();
-        if (!empty( $tblCommodityAll )) {
-            array_walk($tblCommodityAll, function (TblCommodity $tblCommodity) use (&$TableContent) {
-
-                $Temp['Name'] = $tblCommodity->getName();
-                $Temp['Description'] = $tblCommodity->getDescription();
-                $Temp['Type'] = $tblCommodity->getTblCommodityType()->getName();
-                $Temp['ItemCount'] = Commodity::useService()->countItemAllByCommodity($tblCommodity);
-                $Temp['SumPriceItem'] = Commodity::useService()->sumPriceItemAllByCommodity($tblCommodity);
-                $Temp['Option'] = (new Standard('Bearbeiten', '/Billing/Inventory/Commodity/Change',
-                        new Pencil(), array(
-                            'Id' => $tblCommodity->getId()
-                        )))->__toString().
-                    (new Standard('Artikel auswählen', '/Billing/Inventory/Commodity/Item/Select',
-                        new Listing(), array(
-                            'Id' => $tblCommodity->getId()
-                        )))->__toString();
-//                    .(new Standard('Löschen', '/Billing/Inventory/Commodity/Destroy',     //ToDo bad result for continue
-//                        new Remove(), array(
+//        if (!empty( $tblCommodityAll )) {
+//            array_walk($tblCommodityAll, function (TblCommodity $tblCommodity) use (&$TableContent) {
+//
+//                $Temp['Name'] = $tblCommodity->getName();
+//                $Temp['Description'] = $tblCommodity->getDescription();
+//                $Temp['Type'] = $tblCommodity->getTblCommodityType()->getName();
+//                $Temp['ItemCount'] = Commodity::useService()->countItemAllByCommodity($tblCommodity);
+//                $Temp['SumPriceItem'] = Commodity::useService()->sumPriceItemAllByCommodity($tblCommodity);
+//                $Temp['Option'] = (new Standard('Bearbeiten', '/Billing/Inventory/Commodity/Change',
+//                        new Pencil(), array(
+//                            'Id' => $tblCommodity->getId()
+//                        )))->__toString().
+//                    (new Standard('Artikel auswählen', '/Billing/Inventory/Commodity/Item/Select',
+//                        new Listing(), array(
 //                            'Id' => $tblCommodity->getId()
 //                        )))->__toString();
-                array_push($TableContent, $Temp);
-            });
-        }
+////                    .(new Standard('Löschen', '/Billing/Inventory/Commodity/Destroy',
+////                        new Remove(), array(
+////                            'Id' => $tblCommodity->getId()
+////                        )))->__toString();
+//                array_push($TableContent, $Temp);
+//            });
+//        }
         $Form = $this->formCommodity()
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');

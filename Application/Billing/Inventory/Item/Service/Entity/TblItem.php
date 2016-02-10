@@ -5,10 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
-use SPHERE\Application\Education\School\Type\Type;
-use SPHERE\Application\People\Relationship\Relationship;
-use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
+use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -19,8 +16,6 @@ use SPHERE\System\Database\Fitting\Element;
 class TblItem extends Element
 {
 
-    const ATTR_SERVICE_SCHOOL_TYPE = 'serviceSchoolTblType';
-    const ATTR_SERVICE_STUDENT_SIBLING_RANK = 'serviceStudentSiblingRank';
     const ATTR_NAME = 'Name';
 
     /**
@@ -28,25 +23,14 @@ class TblItem extends Element
      */
     protected $Description;
     /**
-     * @Column(type="decimal", precision=14, scale=4)
-     */
-    protected $Price;
-    /**
      * @Column(type="string")
      */
     protected $Name;
     /**
-     * @Column(type="string")
-     */
-    protected $CostUnit;
-    /**
      * @Column(type="bigint")
      */
-    protected $serviceSchoolTblType;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceStudentSiblingRank;
+    protected $tblItemType;
+
 
     /**
      * @return string
@@ -64,34 +48,6 @@ class TblItem extends Element
     {
 
         $this->Description = $Description;
-    }
-
-    /**
-     * @return (type="decimal", precision=14, scale=4)
-     */
-    public function getPrice()
-    {
-
-        return $this->Price;
-    }
-
-    /**
-     * @param (type="decimal", precision=14, scale=4) $Price
-     */
-    public function setPrice($Price)
-    {
-
-        $this->Price = $Price;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPriceString()
-    {
-
-        $result = sprintf("%01.4f", $this->Price);
-        return str_replace('.', ',', $result)." €";
     }
 
     /**
@@ -113,64 +69,24 @@ class TblItem extends Element
     }
 
     /**
-     * @return string
+     * @return bool|TblItem
      */
-    public function getCostUnit()
+    public function getTblItemType()
     {
 
-        return $this->CostUnit;
-    }
-
-    /**
-     * @param string $CostUnit
-     */
-    public function setCostUnit($CostUnit)
-    {
-
-        $this->CostUnit = $CostUnit;
-    }
-
-    /**
-     * @return bool|TblType
-     */
-    public function getServiceStudentType()
-    {
-
-        if (null === $this->serviceSchoolTblType) {
+        if (null === $this->tblItemType) {
             return false;
         } else {
-            return Type::useService()->getTypeById($this->serviceSchoolTblType);
+            return Item::useService()->getItemTypeById($this->tblItemType);
         }
     }
 
     /**
-     * @param null|TblType $tblType
+     * @param TblItemType $tblItemType
      */
-    public function setServiceStudentType(TblType $tblType = null)
+    public function setTblItemType(TblItemType $tblItemType)
     {
 
-        $this->serviceSchoolTblType = ( null === $tblType ? null : $tblType->getId() );
-    }
-
-    /**
-     * @return bool|TblSiblingRank
-     */
-    public function getServiceStudentChildRank()
-    {
-
-        if (null === $this->serviceStudentSiblingRank) {
-            return false;
-        } else {
-            return Relationship::useService()->getSiblingRankById($this->serviceStudentSiblingRank);
-        }
-    }
-
-    /**
-     * @param null|TblSiblingRank $tblSiblingRank
-     */
-    public function setServiceStudentSiblingRank(TblSiblingRank $tblSiblingRank = null)
-    {
-
-        $this->serviceStudentSiblingRank = ( null === $tblSiblingRank ? null : $tblSiblingRank->getId() );
+        $this->tblItemType = ( null === $tblItemType ? null : $tblItemType->getId() );
     }
 }

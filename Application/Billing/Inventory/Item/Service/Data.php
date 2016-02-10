@@ -6,6 +6,8 @@ use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCondition;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -22,6 +24,11 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        /**
+         * ItemType
+         */
+        $this->createItemType('Einzelleistung');
+        $this->createItemType('Sammelleistung');
     }
 
     /**
@@ -32,7 +39,34 @@ class Data extends AbstractData
     public function getItemById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblItem', $Id);
+//        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblItem', $Id);
+        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItem', $Id);
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblItemType
+     */
+    public function getItemTypeById($Id)
+    {
+
+//        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblItemType', $Id);
+        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemType', $Id);
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblItemCondition
+     */
+    public function getItemConditionById($Id)
+    {
+
+//        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblItemCondition', $Id);
+        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCondition', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -44,8 +78,10 @@ class Data extends AbstractData
     public function getItemByName($Name)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblItem')
-            ->findOneBy(array(TblItem::ATTR_NAME => $Name));
+//        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblItem')
+//            ->findOneBy(array(TblItem::ATTR_NAME => $Name));
+        $Entity = $this->getCachedEntityBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItem',
+            array(TblItem::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -55,7 +91,8 @@ class Data extends AbstractData
     public function getItemAll()
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblItem')->findAll();
+//        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblItem')->findAll();
+        $Entity = $this->getCachedEntityList(__Method__, $this->getConnection()->getEntityManager(), 'TblItem');
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -67,22 +104,79 @@ class Data extends AbstractData
     public function getItemAccountById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblItemAccount', $Id);
+//        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblItemAccount', $Id);
+        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblItemAccount', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
     /**
      * @param TblItem $tblItem
      *
-     * @return TblItemAccount[]|bool
+     * @return bool|TblItemAccount[]
      */
     public function getItemAccountAllByItem(TblItem $tblItem)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblItemAccount')
-            ->findBy(array(TblItemAccount::ATTR_TBL_ITEM => $tblItem->getId()));
+//        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblItemAccount')
+//            ->findBy(array(TblItemAccount::ATTR_TBL_ITEM => $tblItem->getId()));
+        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemAccount',
+            array(TblItemAccount::ATTR_TBL_ITEM => $tblItem->getId()));
+
         return ( null === $EntityList ? false : $EntityList );
     }
+
+    /**
+     * @param TblItem $tblItem
+     *
+     * @return bool|TblItemCondition
+     */
+    public function getItemConditionAllByItem(TblItem $tblItem)
+    {
+
+//        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblItemCondition')
+//            ->findBy(array(TblItemCondition::ATTR_TBL_ITEM => $tblItem->getId()));
+        $EntityList = $this->getCachedEntityListBy(__Method__, $this->getConnection()->getEntityManager(), 'TblItemCondition',
+            array(TblItemCondition::ATTR_TBL_ITEM => $tblItem->getId()));
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @param TblItem $tblItem
+     * @param         $SchoolType
+     * @param         $SiblingRank
+     *
+     * @return bool|TblItemCondition
+     */
+    public function existsItemCondition(TblItem $tblItem, $SchoolType, $SiblingRank)
+    {
+
+        if ($SchoolType === '0') {
+            $SchoolType = null;
+        }
+        if ($SiblingRank === '0') {
+            $SiblingRank = null;
+        }
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblItemCondition')
+            ->findOneBy(array(TblItemCondition::ATTR_TBL_ITEM        => $tblItem->getId(),
+                              TblItemCondition::SERVICE_SCHOOL_TYPE  => $SchoolType,
+                              TblItemCondition::SERVICE_SIBLING_RANK => $SiblingRank));
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return bool|TblItem
+     */
+    public function existsItem($Name)
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblItem')
+            ->findOneBy(array(TblItem::ATTR_NAME => $Name));
+        return ( null === $Entity ? false : $Entity );
+    }
+
 
     /**
      * @param int $Value
@@ -98,37 +192,50 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Name
-     * @param $Description
-     * @param $Price
-     * @param $CostUnit
-     * @param $Course
-     * @param $ChildRank
+     * @param string      $Name
+     * @param TblItemType $tblItemType
+     * @param string      $Description
      *
      * @return TblItem
      */
     public function createItem(
+        TblItemType $tblItemType,
         $Name,
-        $Description,
-        $Price,
-        $CostUnit,
-        $Course,
-        $ChildRank
+        $Description = ''
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        $Entity = new TblItem();
+        $Entity = $Manager->getEntity('TblItem')->findOneBy(array(
+            TblItem::ATTR_NAME => $Name,
+        ));
+
+        if ($Entity === null) {
+            $Entity = new TblItem();
+            $Entity->setName($Name);
+            $Entity->setTblItemType($tblItemType);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return TblItemType
+     */
+    public function createItemType($Name)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblItemType();
         $Entity->setName($Name);
-        $Entity->setDescription($Description);
-        $Entity->setPrice(str_replace(',', '.', $Price));
-        $Entity->setCostUnit($CostUnit);
-        if (Type::useService()->getTypeById($Course)) {
-            $Entity->setServiceStudentType(Type::useService()->getTypeById($Course));
-        }
-        if (Relationship::useService()->getSiblingRankById($ChildRank)) {
-            $Entity->setServiceStudentSiblingRank(Relationship::useService()->getSiblingRankById($ChildRank));
-        }
         $Manager->saveEntity($Entity);
 
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -139,23 +246,67 @@ class Data extends AbstractData
 
     /**
      * @param TblItem $tblItem
-     * @param         $Name
-     * @param         $Description
-     * @param         $Price
-     * @param         $CostUnit
-     * @param         $Course
-     * @param         $ChildRank
+     * @param         $Value
+     * @param null    $Course
+     * @param null    $ChildRank
+     *
+     * @return TblItemCondition
+     */
+    public function createItemCondition(TblItem $tblItem, $Value, $Course, $ChildRank)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        if ($Course === '0') {
+            $Course = null;
+        }
+        if ($ChildRank === '0') {
+            $ChildRank = null;
+        }
+
+        $Entity = $Manager->getEntity('TblItemCondition')->findOneBy(array(
+            TblItemCondition::ATTR_TBL_ITEM        => $tblItem->getId(),
+            TblItemCondition::SERVICE_SCHOOL_TYPE  => $Course,
+            TblItemCondition::SERVICE_SIBLING_RANK => $ChildRank,
+        ));
+
+        if ($Course === null) {
+            $Course = '0';
+        }
+        if ($ChildRank === null) {
+            $ChildRank = '0';
+        }
+
+
+        if (null === $Entity) {
+            $Entity = new TblItemCondition();
+            $Entity->setTblItem($tblItem);
+            $Entity->setValue(str_replace(',', '.', $Value));
+            if (Type::useService()->getTypeById($Course)) {
+                $Entity->setServiceSchoolType(Type::useService()->getTypeById($Course));
+            }
+            if (Relationship::useService()->getSiblingRankById($ChildRank)) {
+                $Entity->setServiceStudentSiblingRank(Relationship::useService()->getSiblingRankById($ChildRank));
+            }
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            return $Entity;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblItem     $tblItem
+     * @param             $Name
+     * @param             $Description
      *
      * @return bool
-     */                         //ToDO $Course, $ChildRank
+     */
     public function updateItem(
         TblItem $tblItem,
         $Name,
-        $Description,
-        $Price,
-        $CostUnit,
-        $Course,
-        $ChildRank
+        $Description
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -166,19 +317,32 @@ class Data extends AbstractData
         if (null !== $Entity) {
             $Entity->setName($Name);
             $Entity->setDescription($Description);
-            $Entity->setPrice(str_replace(',', '.', $Price));
-            $Entity->setCostUnit($CostUnit);
-            if (Type::useService()->getTypeById($Course)) {
-                $Entity->setServiceStudentType(Type::useService()->getTypeById($Course));
-            } else {
-                $Entity->setServiceStudentType(null);
-            }
-            if (Relationship::useService()->getSiblingRankById($ChildRank)) {
-                $Entity->setServiceStudentSiblingRank(Relationship::useService()->getSiblingRankById($ChildRank));
-            } else {
-                $Entity->setServiceStudentSiblingRank(null);
-            }
 
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblItemCondition $tblItemCondition
+     * @param                  $Value
+     *
+     * @return bool
+     */
+    public function updateItemCondition(TblItemCondition $tblItemCondition, $Value)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblItemCondition $Entity */
+        $Entity = $Manager->getEntityById('TblItemCondition', $tblItemCondition->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setValue($Value);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,

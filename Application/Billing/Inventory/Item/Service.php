@@ -6,6 +6,8 @@ use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Billing\Inventory\Item\Service\Data;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemCondition;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemType;
 use SPHERE\Application\Billing\Inventory\Item\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -50,6 +52,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Id
+     *
+     * @return bool|TblItemType
+     */
+    public function getItemTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getItemTypeById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblItemCondition
+     */
+    public function getItemConditionById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getItemConditionById($Id);
+    }
+
+    /**
      * @return bool|TblItem[]
      */
     public function getItemAll()
@@ -70,6 +94,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblItem $tblItem
+     *
+     * @return bool|TblItemCondition
+     */
+    public function getItemConditionAllByItem(TblItem $tblItem)
+    {
+
+        return (new Data($this->getBinding()))->getItemConditionAllByItem($tblItem);
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblItemAccount
@@ -82,7 +117,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Stage
-     * @param                $Item
+     * @param array          $Item
      *
      * @return IFormInterface|string
      */
@@ -100,25 +135,32 @@ class Service extends AbstractService
         $Error = false;
 
         if (isset( $Item['Name'] ) && empty( $Item['Name'] )) {
-            $Stage->setError('Item[Name]', 'Bitte geben Sie einen Namen an');
+            $Stage->setError('Item[Name]', 'Bitte geben Sie einen Artikel-Namen an');
             $Error = true;
         }
-        if (isset( $Item['Price'] ) && empty( $Item['Price'] )) {
-            $Stage->setError('Item[Price]', 'Bitte geben Sie einen Preis an');
+        if (isset( $Item['ItemType'] ) && empty( $Item['ItemType'] )) {
+            $Stage->setError('Item[ItemType]', 'Art des Artikels wird benötigt');
+            $Error = true;
+        }
+        if ($this->existsItem($Item['Name'])) {
+            $Stage->setError('Item[Name]', 'Bitte geben Sie einen nicht vergebenen Artikel-Namen an');
             $Error = true;
         }
 
         if (!$Error) {
-            (new Data($this->getBinding()))->createItem(
-                $Item['Name'],
-                $Item['Description'],
-                $Item['Price'],
-                $Item['CostUnit'],
-                $Item['Course'],
-                $Item['ChildRank']
-            );
-            return new Success('Der Artikel wurde erfolgreich angelegt')
-            .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS);
+            $tblItemType = Item::useService()->getItemTypeById($Item['ItemType']);
+            if ($tblItemType) {
+                (new Data($this->getBinding()))->createItem(
+                    $tblItemType,
+                    $Item['Name'],
+                    $Item['Description']
+                );
+                return new Success('Der Artikel wurde erfolgreich angelegt')
+                .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS);
+            }
+            return new Danger('Der Artikel konnte nicht angelegt werden')
+            .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR);
+
         }
         return $Stage;
     }
@@ -151,11 +193,8 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
-    public function changeItem(
-        IFormInterface &$Stage = null,
-        TblItem $tblItem,
-        $Item
-    ) {
+    public function changeItem(IFormInterface &$Stage = null, TblItem $tblItem, $Item)
+    {
 
         /**
          * Skip to Frontend
@@ -168,33 +207,169 @@ class Service extends AbstractService
         $Error = false;
 
         if (isset( $Item['Name'] ) && empty( $Item['Name'] )) {
-            $Stage->setError('Item[Name]', 'Bitte geben Sie einen Namen an');
+            $Stage->setError('Item[Name]', 'Bitte geben Sie einen Artikel-Namen an');
             $Error = true;
         }
-        if (isset( $Item['Price'] ) && empty( $Item['Price'] )) {
-            $Stage->setError('Item[Price]', 'Bitte geben Sie einen Preis an');
+//        if (isset( $Item['ItemType'] ) && empty( $Item['ItemType'] )) {
+//            $Stage->setError('Item[ItemType]', 'Art des Artikels wird benötigt');
+//            $Error = true;
+//        }
+        if ($this->existsItem($Item['Name'])) {
+            $Ref = $this->existsItem($Item['Name']);
+            if ($Ref) {
+                if ($Ref->getId() === $tblItem->getId()) {
+
+                } else {
+                    $Stage->setError('Item[Name]', 'Bitte geben Sie einen nicht vergebenen Artikel-Namen an');
+                    $Error = true;
+                }
+            }
+        }
+
+        if (!$Error) {
+            $tblItemType = Item::useService()->getItemTypeById($Item['ItemType']);
+            if ($tblItemType) {
+                if ((new Data($this->getBinding()))->updateItem(
+                    $tblItem,
+                    $Item['Name'],
+                    $Item['Description']
+                )
+                ) {
+                    $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
+                        .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS);
+                } else {
+                    $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
+                        .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR);
+                };
+            } else {
+                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
+                    .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR);
+            }
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblItem             $tblItem
+     * @param TblItemCondition    $tblItemCondition
+     * @param array               $Condition
+     *
+     * @return IFormInterface|string
+     */
+    public function changeItemCondition(
+        IFormInterface &$Stage = null,
+        TblItem $tblItem,
+        TblItemCondition $tblItemCondition,
+        $Condition
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Condition
+        ) {
+            return $Stage;
+        }
+
+        $Error = false;
+
+        if (isset( $Condition['Price'] ) && empty( $Condition['Price'] )) {
+            $Stage->setError('Condition[Price]', 'Bitte geben Sie einen Artikel-Preis an');
             $Error = true;
         }
 
         if (!$Error) {
-            if ((new Data($this->getBinding()))->updateItem(
-                $tblItem,
-                $Item['Name'],
-                $Item['Description'],
-                $Item['Price'],
-                $Item['CostUnit'],
-                $Item['Course'],
-                $Item['ChildRank']
+            if ((new Data($this->getBinding()))->updateItemCondition(
+                $tblItemCondition,
+                $Condition['Value']
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS);
+                    .new Redirect('/Billing/Inventory/Item/Condition', Redirect::TIMEOUT_SUCCESS,
+                        array('Id' => $tblItem->getId()));
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR);
+                    .new Redirect('/Billing/Inventory/Item/Condition', Redirect::TIMEOUT_ERROR,
+                        array('Id' => $tblItem->getId()));
             };
         }
         return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblItem             $tblItem
+     * @param array               $Condition
+     *
+     * @return IFormInterface|string
+     */
+    public function createItemCondition(IFormInterface &$Stage = null, TblItem $tblItem, $Condition)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Condition
+        ) {
+            return $Stage;
+        }
+        $Error = false;
+
+        if (isset( $Condition['Value'] ) && empty( $Condition['Value'] )) {
+            $Stage->setError('Condition[Value]', 'Bitte geben Sie einen Artikel-Preis an');
+            $Error = true;
+        }
+
+        if ($this->existsItemCondition($tblItem, $Condition['SchoolType'], $Condition['SiblingRank'])) {
+            $Stage->setError('Condition[SchoolType]', 'Bedingungskombination vorhanden!');
+            $Stage->setError('Condition[SiblingRank]', 'Bedingungskombination vorhanden!');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            if ((new Data($this->getBinding()))->createItemCondition(
+                $tblItem,
+                $Condition['Value'],
+                $Condition['SchoolType'],
+                $Condition['SiblingRank']
+            )
+            ) {
+                $Stage .= new Success('Gespeichert, die Daten werden neu geladen...')
+                    .new Redirect('/Billing/Inventory/Item/Condition', Redirect::TIMEOUT_SUCCESS,
+                        array('Id' => $tblItem->getId()));
+            } else {
+                $Stage .= new Danger('Es konnten nicht gespeichert werden.
+                                        Möglicherweise gibt es die Bedingungskombination schon')
+                    .new Redirect('/Billing/Inventory/Item/Condition', Redirect::TIMEOUT_ERROR,
+                        array('Id' => $tblItem->getId()));
+            };
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param TblItem $tblItem
+     * @param         $SchoolType
+     * @param         $SiblingRank
+     *
+     * @return bool|TblItemCondition
+     */
+    public function existsItemCondition(TblItem $tblItem, $SchoolType, $SiblingRank)
+    {
+
+        return (new Data($this->getBinding()))->existsItemCondition($tblItem, $SchoolType, $SiblingRank);
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return bool|TblItem
+     */
+    public function existsItem($Name)
+    {
+
+        return (new Data($this->getBinding()))->existsItem($Name);
     }
 
     /**
