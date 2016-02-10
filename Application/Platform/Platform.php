@@ -3,9 +3,13 @@ namespace SPHERE\Application\Platform;
 
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\Platform\Assistance\Assistance;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Gatekeeper;
 use SPHERE\Application\Platform\System\System;
 use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
+use SPHERE\Common\Frontend\Layout\Repository\Label;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -20,6 +24,23 @@ class Platform implements IClusterInterface
 
     public static function registerCluster()
     {
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        $tblIdentification = Account::useService()->getIdentificationByName('System');
+        if ($tblAccount && $tblIdentification) {
+            if ($tblAccount->getServiceTblIdentification()->getId() == $tblIdentification->getId()) {
+                Main::getDisplay()->addServiceNavigation(
+                    new Link(
+                        new Link\Route('/Setting/MyAccount/Consumer'),
+                        new Link\Name(
+                            new Bold( new Label(
+                                'Mandant '.$tblAccount->getServiceTblConsumer()->getAcronym()
+                            , Label::LABEL_TYPE_DANGER) )
+                        )
+                    )
+                );
+            }
+        }
 
         /**
          * Register Application
