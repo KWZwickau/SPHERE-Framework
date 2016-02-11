@@ -2,16 +2,16 @@
 namespace SPHERE\Application\Transfer\Gateway\Fragment;
 
 /**
- * Class Meta
+ * Class Contact
  *
  * @package SPHERE\Application\Transfer\Gateway\Fragment
  */
-class Meta extends AbstractFragment
+class Contact extends AbstractFragment
 {
 
     public function __construct()
     {
 
-        $this->setXmlName('meta');
+
     }
 }

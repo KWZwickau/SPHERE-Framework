@@ -12,14 +12,14 @@ use SPHERE\Application\Transfer\Gateway\Item\AbstractItem;
 abstract class AbstractFragment
 {
 
-    /** @var string $XmlName */
-    protected $XmlName = '';
+    /** @var string $XmlClass */
+    private $XmlClass = '';
 
     /** @var AbstractItem[] $ItemList */
-    protected $ItemList = array();
+    private $ItemList = array();
 
     /** @var AbstractFragment[] $FragmentList */
-    protected $FragmentList = array();
+    private $FragmentList = array();
 
     /**
      * @param AbstractItem $Item
@@ -46,12 +46,12 @@ abstract class AbstractFragment
     }
 
     /**
-     * @param string $XmlName
+     * @param string $XmlClass
      */
-    public function setXmlName($XmlName)
+    public function setXmlClass($XmlClass)
     {
 
-        $this->XmlName = $XmlName;
+        $this->XmlClass = $XmlClass;
     }
 
     /**
@@ -59,9 +59,15 @@ abstract class AbstractFragment
      */
     public function getXmlNode()
     {
+        if( empty( $this->XmlClass ) ) {
+            $this->setXmlClass(
+                get_called_class()
+//                (new \ReflectionClass($this))->getShortName()
+            );
+        }
 
-        $Root = Output::getDocument()->createElement('fragment');
-        $Root->setAttribute('name', $this->XmlName);
+        $Root = Output::getDocument()->createElement('Fragment');
+        $Root->setAttribute('Class', $this->XmlClass);
         /** @var AbstractItem $Item */
         foreach ((array)$this->ItemList as $Item) {
             $Root->appendChild($Item->getXmlNode());

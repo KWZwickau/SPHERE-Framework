@@ -1,25 +1,21 @@
 <?php
 namespace SPHERE\Application\Transfer\Gateway\Item;
 
-use SPHERE\System\Database\Fitting\Element;
-
 class Person extends AbstractItem
 {
 
-    const FIELD_SALUTATION = 'Person_Salutation';
-    const FIELD_FIRST_NAME = 'Person_FirstName';
-    const FIELD_LAST_NAME = 'Person_LastName';
+    const FIELD_SALUTATION = 'tblSalutation';
+    const FIELD_FIRST_NAME = 'FirstName';
+    const FIELD_LAST_NAME = 'LastName';
 
-    /**
-     * Person constructor.
-     *
-     * @param Element[] $EntityList
-     * @param string    $Name
-     */
-    public function __construct($EntityList, $Name = 'TblPerson')
+    public function __construct($EntityList)
     {
 
-        $this->EntityList = $EntityList;
-        $this->setXmlType($Name);
+        $this->setEssential( self::FIELD_FIRST_NAME );
+        $this->setEssential( self::FIELD_LAST_NAME );
+
+        parent::__construct($EntityList);
     }
+
+
 }

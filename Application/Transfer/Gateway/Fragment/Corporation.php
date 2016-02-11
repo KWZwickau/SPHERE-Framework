@@ -2,11 +2,11 @@
 namespace SPHERE\Application\Transfer\Gateway\Fragment;
 
 /**
- * Class People
+ * Class Corporation
  *
  * @package SPHERE\Application\Transfer\Gateway\Fragment
  */
-class People extends AbstractFragment
+class Corporation extends AbstractFragment
 {
 
     public function __construct()

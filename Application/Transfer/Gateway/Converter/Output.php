@@ -11,6 +11,8 @@ use SPHERE\Application\Transfer\Gateway\Fragment\AbstractFragment;
 class Output
 {
 
+    /** @var \DOMElement $Root */
+    private static $Root = null;
     /** @var \DOMDocument $Document */
     private static $Document = null;
     /** @var AbstractFragment[] $FragmentList */
@@ -18,11 +20,18 @@ class Output
 
     /**
      * Output constructor.
+     *
+     * @param string $Version Current running KREDA-Version (e.g. 1.0.0)
      */
-    public function __construct()
+    public function __construct( $Version = '0.0.0' )
     {
 
         self::$Document = new \DOMDocument('1.0', 'utf-8');
+        self::$Document->formatOutput = true;
+        self::$Root = self::$Document->createElement('Import');
+        self::$Root->setAttribute( 'Version', $Version );
+        self::$Document->appendChild( self::$Root );
+
     }
 
     /**
@@ -40,11 +49,9 @@ class Output
     public function getXml()
     {
 
-        $Root = self::$Document->createElement('import');
-        self::$Document->appendChild( $Root );
         /** @var AbstractFragment $Fragment */
         foreach( (array)$this->FragmentList as $Fragment ) {
-            $Root->appendChild( $Fragment->getXmlNode() );
+            self::$Root->appendChild( $Fragment->getXmlNode() );
         }
         return self::getDocument()->saveXML();
     }

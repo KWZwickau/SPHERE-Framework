@@ -4,14 +4,18 @@ namespace SPHERE\Application\Transfer\Gateway\Converter;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Exception\DocumentTypeException;
+use SPHERE\Application\Transfer\Gateway\Structure\AbstractStructure;
 
 /**
  * Class AbstractConverter
  *
  * @package SPHERE\Application\Transfer\Gateway\Converter
  */
-abstract class AbstractConverter
+abstract class AbstractConverter extends Sanitizer
 {
+
+    /** @var AbstractStructure $Structure */
+    private $Structure = null;
 
     /** @var PhpExcel $Document */
     private $Document = null;
@@ -81,15 +85,19 @@ abstract class AbstractConverter
                             // Chain Sanitizer
                             $SanitizedValue = $Value;
                             // Always-Default
-                            foreach ((array)$this->SanitizeChain['#'] as $Sanitizer) {
-                                $SanitizedValue = $Sanitizer($SanitizedValue);
+                            if( isset( $this->SanitizeChain['#'] ) ) {
+                                foreach ((array)$this->SanitizeChain['#'] as $Sanitizer) {
+                                    $SanitizedValue = $Sanitizer($SanitizedValue);
+                                }
                             }
                         } else {
                             // Chain Sanitizer
                             $SanitizedValue = $Value;
                             // Always-Default
-                            foreach ((array)$this->SanitizeChain['#'] as $Sanitizer) {
-                                $SanitizedValue = $Sanitizer($SanitizedValue);
+                            if( isset( $this->SanitizeChain['#'] ) ) {
+                                foreach ((array)$this->SanitizeChain['#'] as $Sanitizer) {
+                                    $SanitizedValue = $Sanitizer($SanitizedValue);
+                                }
                             }
                             // Field-Bound
                             if( isset( $this->SanitizeChain[$Field] ) ) {
@@ -119,6 +127,15 @@ abstract class AbstractConverter
     abstract public function runConvert($Row);
 
     /**
+     * @return AbstractStructure
+     */
+    public function getStructure()
+    {
+
+        return $this->Structure;
+    }
+
+    /**
      * @param string $File
      *
      * @return self
@@ -134,38 +151,31 @@ abstract class AbstractConverter
     }
 
     /**
-     * @param $Value
-     *
-     * @return string
-     */
-    protected function sanitizeFullTrim($Value)
-    {
-
-        return trim($Value);
-    }
-
-    /**
-     * @param $Value
-     *
-     * @return string
-     */
-    protected function sanitizeAddressCityCode($Value)
-    {
-
-        return str_pad($Value, 5, '0', STR_PAD_LEFT);
-    }
-
-    /**
-     * @param array $Callback
+     * @param array  $Callback
      * @param string $Chain
      *
      * @return self
+     * @throws \Exception
      */
     final protected function addSanitizer( $Callback, $Chain = '#' )
     {
         if (is_callable($Callback)) {
             $this->SanitizeChain[$Chain][] = $Callback;
+        } else {
+            throw new \Exception( 'Sanitizer not available: '.end($Callback) );
         }
+        return $this;
+    }
+
+    /**
+     * @param AbstractStructure $Structure
+     *
+     * @return $this
+     */
+    final protected function setStructure(AbstractStructure $Structure)
+    {
+
+        $this->Structure = $Structure;
         return $this;
     }
 }

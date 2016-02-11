@@ -13,13 +13,15 @@ abstract class AbstractItem
 {
 
     /** @var \DOMElement[] $PayloadList */
-    protected $PayloadList = array();
-    /**
-     * @var Element[]
-     */
-    protected $EntityList;
-    /** @var string $XmlType */
-    private $XmlType = null;
+    private $PayloadList = array();
+    /** @var Element[] $EntityList */
+    private $EntityList;
+    /** @var array $EssentialList */
+    private $EssentialList = array();
+    /** @var string $XmlClass */
+    private $XmlClass = null;
+    /** @var int $XmlIdentifierCount */
+    private static $XmlIdentifierCount = 0;
     /** @var int $XmlIdentifier */
     private $XmlIdentifier = 0;
     /** @var int $XmlReference */
@@ -28,21 +30,25 @@ abstract class AbstractItem
     private $XmlTarget = 0;
 
     /**
-     * @param string $XmlType
+     * Item constructor.
+     *
+     * @param Element|Element[] $EntityList
      */
-    public function setXmlType($XmlType)
+    protected function __construct($EntityList)
     {
 
-        $this->XmlType = $XmlType;
+        self::$XmlIdentifierCount++;
+        $this->XmlIdentifier = self::$XmlIdentifierCount;
+        $this->setEntity( $EntityList );
     }
 
     /**
-     * @param int $XmlIdentifier
+     * @param string $XmlClass
      */
-    public function setXmlIdentifier($XmlIdentifier)
+    public function setXmlClass($XmlClass)
     {
 
-        $this->XmlIdentifier = $XmlIdentifier;
+        $this->XmlClass = $XmlClass;
     }
 
     /**
@@ -51,11 +57,18 @@ abstract class AbstractItem
     public function getXmlNode()
     {
 
-        $Root = Output::getDocument()->createElement('item');
-        $Root->setAttribute('type', $this->XmlType);
-        $Root->setAttribute('identifier', $this->XmlIdentifier);
-        $Root->setAttribute('reference', $this->XmlReference);
-        $Root->setAttribute('target', $this->XmlTarget);
+        if( empty( $this->XmlClass ) ) {
+            $this->setXmlClass(
+                get_called_class()
+//                (new \ReflectionClass(current($this->EntityList)))->getShortName()
+            );
+        }
+
+        $Root = Output::getDocument()->createElement('Item');
+        $Root->setAttribute('Class', $this->XmlClass);
+        $Root->setAttribute('Identifier', $this->XmlIdentifier);
+        $Root->setAttribute('Reference', $this->XmlReference);
+        $Root->setAttribute('Target', $this->XmlTarget);
 
         foreach ((array)$this->PayloadList as $Item) {
             $Root->appendChild($Item);
@@ -65,27 +78,40 @@ abstract class AbstractItem
     }
 
     /**
-     * @param int $XmlReference
+     * @param int $Value
      */
-    public function setXmlReference($XmlReference)
+    public function setXmlReference($Value)
     {
 
-        $this->XmlReference = $XmlReference;
+        $this->XmlReference = $Value;
     }
 
     /**
-     * @param int $XmlTarget
+     * @param int $Value
      */
-    public function setXmlTarget($XmlTarget)
+    public function setXmlTarget($Value)
     {
 
-        $this->XmlTarget = $XmlTarget;
+        $this->XmlTarget = $Value;
+    }
+
+    /**
+     * @param Element[] $List
+     */
+    public function setEntity($List)
+    {
+
+        if( !is_array( $List ) ) {
+            $List = array( $List );
+        }
+        $this->EntityList = $List;
     }
 
     /**
      * @param array $Data
      *
      * @return $this
+     * @throws \Exception
      */
     public function setPayload($Data)
     {
@@ -99,9 +125,29 @@ abstract class AbstractItem
                 if (isset( $Data[$Name] )) {
                     $Payload = Output::getDocument()->createElement($Name, $Data[$Name]);
                     array_push($this->PayloadList, $Payload);
+                } else {
+                    if( in_array( $Name, $this->EssentialList ) ) {
+                        throw new \Exception( 'Missing essential: '.$Name );
+                    }
                 }
             }
         }
         return $this;
+    }
+
+    public function setEssential($Property)
+    {
+
+        array_push( $this->EssentialList, $Property );
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getXmlIdentifier()
+    {
+
+        return $this->XmlIdentifier;
     }
 }

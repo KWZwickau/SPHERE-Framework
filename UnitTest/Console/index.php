@@ -2,11 +2,8 @@
 namespace SPHERE\UnitTest\Console;
 
 use MOC\V\Core\AutoLoader\AutoLoader;
-use SPHERE\Application\Transfer\Gateway\Converter\Output;
-use SPHERE\Application\Transfer\Gateway\Fragment\People;
-use SPHERE\Application\Transfer\Gateway\Item\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\Transfer\Gateway\Fragment\Meta;
+use SPHERE\Application\Transfer\Gateway\Operation\FESH;
+use SPHERE\Application\Transfer\Gateway\Structure\MasterDataManagement;
 
 /**
  * Setup: Php
@@ -19,30 +16,18 @@ session_start();
 session_write_close();
 set_time_limit(240);
 ob_implicit_flush();
-ini_set('display_errors',1 );
+ini_set('display_errors', 1);
 
 /**
  * Setup: Loader
  */
-require_once(__DIR__ . '/../../Library/MOC-V/Core/AutoLoader/AutoLoader.php');
-AutoLoader::getNamespaceAutoLoader('MOC\V', __DIR__ . '/../../Library/MOC-V');
-AutoLoader::getNamespaceAutoLoader('SPHERE', __DIR__ . '/../../', 'SPHERE');
-AutoLoader::getNamespaceAutoLoader('Markdownify', __DIR__ . '/../../Library/Markdownify/2.1.6/src');
+require_once( __DIR__.'/../../Library/MOC-V/Core/AutoLoader/AutoLoader.php' );
+AutoLoader::getNamespaceAutoLoader('MOC\V', __DIR__.'/../../Library/MOC-V');
+AutoLoader::getNamespaceAutoLoader('SPHERE', __DIR__.'/../../', 'SPHERE');
+AutoLoader::getNamespaceAutoLoader('Markdownify', __DIR__.'/../../Library/Markdownify/2.1.6/src');
 
-$O = new Output();
-$P = new People();
+$I = new FESH(
+    __DIR__.'/../bearbeitet interessenten.xlsx', new MasterDataManagement()
+);
 
-$P1 = new Person( array(
-    new TblPerson()
-), 'TblPerson');
-$P1->setPayload( array( 'FirstName' => 'Test' ) );
-
-$P->addItem( $P1 );
-
-$M = new Meta();
-
-$P->addFragment( $M );
-
-$O->addFragment( $P );
-
-highlight_string( $O->getXml() );
+var_dump( $I->getStructure()->getXml());
