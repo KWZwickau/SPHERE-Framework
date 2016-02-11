@@ -93,7 +93,10 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblListAll) {
             foreach ($tblListAll as &$tblList) {
                 $tblList->Option =
-                    (new Standard('(' . CheckList::useService()->countListElementListByList($tblList) . ')',
+                    (new Standard('',
+                        '/Reporting/CheckList/Edit', new Edit(),
+                        array('Id' => $tblList->getId()), 'Liste bearbeiten'))
+                    . (new Standard('(' . CheckList::useService()->countListElementListByList($tblList) . ')',
                         '/Reporting/CheckList/Element/Select', new Equalizer(),
                         array('Id' => $tblList->getId()), 'Elemente (CheckBox, Datum ...) auswählen'))
                     . (new Standard('(' . CheckList::useService()->countListObjectListByList($tblList) . ')',
@@ -132,6 +135,70 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param null $List
+     * @return Stage|string
+     */
+    public function frontendListEdit($Id = null, $List = null)
+    {
+
+        $Stage = new Stage('Check-List', 'Bearbeiten');
+        $Stage->addButton(
+            new Standard('Zur&uuml;ck', '/Reporting/CheckList', new ChevronLeft())
+        );
+
+        if ($Id == null)
+        {
+            return $Stage . new Danger(new Ban() . ' Daten nicht abrufbar.')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
+
+        $tblList = CheckList::useService()->getListById($Id);
+        if ($tblList) {
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                $Global->POST['List']['Name'] = $tblList->getName();
+                $Global->POST['List']['Description'] = $tblList->getDescription();
+
+                $Global->savePost();
+            }
+
+            $Form = $this->formList()
+                ->appendFormButton(new Primary('Speichern', new Save()))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel(
+                                    'Check-List',
+                                    $tblList->getName() .
+                                    ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                        . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
+                                    Panel::PANEL_TYPE_INFO
+                                )
+                            ),
+                        ))
+                    )),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(
+                                new Well(CheckList::useService()->updateList($Form, $Id, $List))
+                            ),
+                        ))
+                    ), new Title(new Edit() . ' Bearbeiten'))
+                ))
+            );
+
+            return $Stage;
+        } else {
+            return $Stage . new Danger(new Ban() . ' Liste nicht gefunden.')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
     }
 
     /**
