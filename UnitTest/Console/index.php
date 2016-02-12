@@ -30,4 +30,14 @@ $I = new FESH(
     __DIR__.'/../bearbeitet interessenten.xlsx', new MasterDataManagement()
 );
 
-var_dump( $I->getStructure()->getXml());
+$Xml = $I->getStructure()->getXml();
+
+var_dump( $Xml );
+
+$dom = new \DOMDocument;
+$dom->preserveWhiteSpace = false;
+$dom->loadXML($Xml, LIBXML_PARSEHUGE);
+var_dump( $dom->getElementsByTagName('Import') );
+var_dump( $dom->getElementsByTagName('Fragment') );
+
+

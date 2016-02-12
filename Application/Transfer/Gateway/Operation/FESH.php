@@ -3,12 +3,15 @@ namespace SPHERE\Application\Transfer\Gateway\Operation;
 
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\Contact\Address\Service\Entity\TblCity;
+use SPHERE\Application\Contact\Mail\Service\Entity\TblMail;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblPhone;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Transfer\Gateway\Converter\AbstractConverter;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldPointer;
 use SPHERE\Application\Transfer\Gateway\Converter\FieldSanitizer;
 use SPHERE\Application\Transfer\Gateway\Item\Contact\Address;
+use SPHERE\Application\Transfer\Gateway\Item\Contact\Mail;
 use SPHERE\Application\Transfer\Gateway\Item\Contact\Phone;
 use SPHERE\Application\Transfer\Gateway\Item\Person;
 use SPHERE\Application\Transfer\Gateway\Structure\AbstractStructure;
@@ -43,6 +46,8 @@ class FESH extends AbstractConverter
         $this->setPointer(new FieldPointer('G', Address::FIELD_STREET_NAME));
         $this->setPointer(new FieldPointer('H', Address::FIELD_STREET_NUMBER));
         $this->setPointer(new FieldPointer('I', Phone::FIELD_NUMBER));
+        $this->setPointer(new FieldPointer('J', Mail::FIELD_ADDRESS))
+            ->setSanitizer(new FieldSanitizer('J', Mail::FIELD_ADDRESS, array($this, 'sanitizeMailAddress')));
 
         $this->setPointer(new FieldPointer('K', Person::FIELD_FIRST_NAME))
             ->setSanitizer(new FieldSanitizer('K', Person::FIELD_FIRST_NAME, array($this, 'sanitizeCustodyFirstName')));
@@ -67,6 +72,10 @@ class FESH extends AbstractConverter
         $Person->setPayload(array_merge($Row['B'], $Row['C']));
         $this->getStructure()->addPerson( $Person );
 
+        $Group = new Person\Group(new TblGroup(''));
+        $Group->setPayload( array( 'Name' => 'Interessent', 'MetaTable' => 'Interessent') );
+        $this->getStructure()->addPersonGroup( $Person, $Group );
+
         $Address = new Address(array(new TblAddress(),new TblCity()));
         $Address->setPayload(array_merge($Row['E'], $Row['F'], $Row['G'], $Row['H']));
         $this->getStructure()->addPersonAddress( $Person, $Address);
@@ -75,6 +84,12 @@ class FESH extends AbstractConverter
             $Phone = new Phone(array(new TblPhone()));
             $Phone->setPayload(array_merge($Row['I']));
             $this->getStructure()->addPersonPhone($Person, $Phone);
+        }
+
+        if( !empty($Row['J'][Mail::FIELD_ADDRESS]) ) {
+            $Mail = new Mail(array(new TblMail()));
+            $Mail->setPayload(array_merge($Row['J']));
+            $this->getStructure()->addPersonMail($Person, $Mail);
         }
 
         $Person = new Person(new TblPerson());
@@ -91,6 +106,12 @@ class FESH extends AbstractConverter
             $this->getStructure()->addPersonPhone($Person, $Phone);
         }
 
+        if( !empty($Row['J'][Mail::FIELD_ADDRESS]) ) {
+            $Mail = new Mail(array(new TblMail()));
+            $Mail->setPayload(array_merge($Row['J']));
+            $this->getStructure()->addPersonMail($Person, $Mail);
+        }
+
         $Person = new Person(new TblPerson());
         $Person->setPayload(array_merge($Row['L']));
         $this->getStructure()->addPerson( $Person );
@@ -103,6 +124,12 @@ class FESH extends AbstractConverter
             $Phone = new Phone(array(new TblPhone()));
             $Phone->setPayload(array_merge($Row['I']));
             $this->getStructure()->addPersonPhone($Person, $Phone);
+        }
+
+        if( !empty($Row['J'][Mail::FIELD_ADDRESS]) ) {
+            $Mail = new Mail(array(new TblMail()));
+            $Mail->setPayload(array_merge($Row['J']));
+            $this->getStructure()->addPersonMail($Person, $Mail);
         }
     }
 }

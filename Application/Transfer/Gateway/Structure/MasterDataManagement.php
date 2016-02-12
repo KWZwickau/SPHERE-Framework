@@ -4,10 +4,10 @@ namespace SPHERE\Application\Transfer\Gateway\Structure;
 use SPHERE\Application\Transfer\Gateway\Converter\Output;
 use SPHERE\Application\Transfer\Gateway\Fragment\Contact;
 use SPHERE\Application\Transfer\Gateway\Fragment\Corporation;
-use SPHERE\Application\Transfer\Gateway\Fragment\People\Meta;
 use SPHERE\Application\Transfer\Gateway\Fragment\People;
 use SPHERE\Application\Transfer\Gateway\Item\Contact\Address;
 use SPHERE\Application\Transfer\Gateway\Item\Company;
+use SPHERE\Application\Transfer\Gateway\Item\Contact\Mail;
 use SPHERE\Application\Transfer\Gateway\Item\Contact\Phone;
 use SPHERE\Application\Transfer\Gateway\Item\Person;
 use SPHERE\Common\Roadmap\Roadmap;
@@ -31,7 +31,10 @@ class MasterDataManagement extends AbstractStructure
         $this->People = new People();
         $this->Output->addFragment($this->People);
 
-        $this->Meta = new Meta();
+        $this->PeopleGroup = new People\Group();
+        $this->People->addFragment($this->PeopleGroup);
+
+        $this->Meta = new People\Meta();
         $this->People->addFragment($this->Meta);
 
         $this->PeopleContact = new Contact();
@@ -83,6 +86,19 @@ class MasterDataManagement extends AbstractStructure
 
     /**
      * @param Person  $Person
+     * @param Person\Group $Group
+     *
+     * @return $this
+     */
+    public function addPersonGroup(Person $Person, Person\Group $Group)
+    {
+        $Group->setXmlReference( $Person->getXmlIdentifier() );
+        $this->PeopleGroup->addItem( $Group );
+        return $this;
+    }
+
+    /**
+     * @param Person  $Person
      * @param Phone $Phone
      *
      * @return $this
@@ -91,6 +107,19 @@ class MasterDataManagement extends AbstractStructure
     {
         $Phone->setXmlReference( $Person->getXmlIdentifier() );
         $this->PeopleContact->addItem( $Phone );
+        return $this;
+    }
+
+    /**
+     * @param Person  $Person
+     * @param Mail $Mail
+     *
+     * @return $this
+     */
+    public function addPersonMail(Person $Person, Mail $Mail)
+    {
+        $Mail->setXmlReference( $Person->getXmlIdentifier() );
+        $this->PeopleContact->addItem( $Mail );
         return $this;
     }
 

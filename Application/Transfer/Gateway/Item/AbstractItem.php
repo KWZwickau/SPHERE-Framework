@@ -53,6 +53,7 @@ abstract class AbstractItem
 
     /**
      * @return \DOMElement
+     * @throws \Exception
      */
     public function getXmlNode()
     {
@@ -69,6 +70,10 @@ abstract class AbstractItem
         $Root->setAttribute('Identifier', $this->XmlIdentifier);
         $Root->setAttribute('Reference', $this->XmlReference);
         $Root->setAttribute('Target', $this->XmlTarget);
+
+        if( empty( $this->PayloadList ) ) {
+            throw new \Exception( 'Payload missing: '.$this->XmlClass );
+        }
 
         foreach ((array)$this->PayloadList as $Item) {
             $Root->appendChild($Item);

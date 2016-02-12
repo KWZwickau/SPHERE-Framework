@@ -74,6 +74,33 @@ class Sanitizer
     /**
      * @param $Value
      *
+     * @return bool|string
+     * @throws \Exception
+     */
+    protected function sanitizeMailAddress($Value)
+    {
+
+//        if (empty( $Value )) {
+//            throw new \Exception('Email: Adresse darf nicht leer sein');
+//        }
+
+        if( !empty( $Value ) ) {
+            $Value = filter_var($Value, FILTER_SANITIZE_EMAIL);
+            $Value = filter_var($Value, FILTER_VALIDATE_EMAIL);
+
+            if (empty( $Value )) {
+                throw new \Exception('Email: Adresse muss ein gültiges Format haben');
+            }
+
+            return $Value;
+        }
+
+        return '';
+    }
+
+    /**
+     * @param $Value
+     *
      * @return array|mixed
      * @throws \Exception
      */
