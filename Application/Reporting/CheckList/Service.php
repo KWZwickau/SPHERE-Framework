@@ -1021,4 +1021,15 @@ class Service extends AbstractService
         return $resultList;
     }
 
+    /**
+     * @param TblList $tblList
+     *
+     * @return bool
+     */
+    public function destroyList(TblList $tblList)
+    {
+
+        return (new Data($this->getBinding()))->destroyList($tblList);
+    }
+
 }

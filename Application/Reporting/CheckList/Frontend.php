@@ -36,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Download;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
@@ -43,8 +44,11 @@ use SPHERE\Common\Frontend\Icon\Repository\Filter;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -93,7 +97,10 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblListAll) {
             foreach ($tblListAll as &$tblList) {
                 $tblList->Option =
-                    (new Standard('(' . CheckList::useService()->countListElementListByList($tblList) . ')',
+                    (new Standard('',
+                        '/Reporting/CheckList/Destroy', new Remove(),
+                        array('Id' => $tblList->getId()), 'Liste löschen'))
+                    . (new Standard('(' . CheckList::useService()->countListElementListByList($tblList) . ')',
                         '/Reporting/CheckList/Element/Select', new Equalizer(),
                         array('Id' => $tblList->getId()), 'Elemente (CheckBox, Datum ...) auswählen'))
                     . (new Standard('(' . CheckList::useService()->countListObjectListByList($tblList) . ')',
@@ -150,6 +157,78 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             ))
         )));
+    }
+
+    /**
+     * @param $Id
+     * @param bool|false $Confirm
+     * @return Stage
+     */
+    public function frontendDestroyList($Id, $Confirm = false)
+    {
+
+        $Stage = new Stage('Check-List', 'Löschen');
+        if ($Id) {
+            $Stage->addButton(
+                new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft())
+            );
+            $tblList = CheckList::useService()->getListById($Id);
+            if (!$tblList){
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            new Danger(new Ban() . ' Die Liste konnte nicht gefunden werden.'),
+                            new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR)
+                        )))
+                    )))
+                );
+            } else {
+                if (!$Confirm) {
+                    $Stage->setContent(
+                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                            new Panel('Check-Liste', new Bold($tblList->getName()) .
+                                ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                    . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
+                                Panel::PANEL_TYPE_INFO),
+                            new Panel(new Question() . ' Diese Liste wirklich löschen?', array(
+                                $tblList->getName() . ' ' . $tblList->getDescription()
+                            ),
+                                Panel::PANEL_TYPE_DANGER,
+                                new Standard(
+                                    'Ja', '/Reporting/CheckList/Destroy', new Ok(),
+                                    array('Id' => $Id, 'Confirm' => true)
+                                )
+                                . new Standard(
+                                    'Nein', '/Reporting/CheckList', new Disable()
+                                )
+                            )
+                        )))))
+                    );
+                } else {
+                    $Stage->setContent(
+                        new Layout(new LayoutGroup(array(
+                            new LayoutRow(new LayoutColumn(array(
+                                (CheckList::useService()->destroyList($tblList)
+                                    ? new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Liste wurde gelöscht')
+                                    : new Danger(new Ban() . ' Die Liste konnte nicht gelöscht werden')
+                                ),
+                                new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_SUCCESS)
+                            )))
+                        )))
+                    );
+                }
+            }
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Danger(new Ban() . ' Daten nicht abrufbar.'),
+                        new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR)
+                    )))
+                )))
+            );
+        }
+        return $Stage;
     }
 
     /**
