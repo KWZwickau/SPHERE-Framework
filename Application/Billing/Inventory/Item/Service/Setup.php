@@ -77,6 +77,11 @@ class Setup extends AbstractSetup
         return $Table;
     }
 
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
     private function setTableCalculation(Schema &$Schema)
     {
 
@@ -94,6 +99,11 @@ class Setup extends AbstractSetup
         return $Table;
     }
 
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblItem
+     * @param Table  $tblCalculation
+     */
     private function setTableItemCalculation(Schema &$Schema, Table $tblItem, Table $tblCalculation)
     {
 

@@ -8,6 +8,7 @@ use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketItem;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketPerson;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
+use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
@@ -287,8 +288,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblItemAll = Basket::useService()->getBasketItemAllByBasket($tblBasket);
                 if ($tblItemAll) {
                     foreach ($tblItemAll as $tblItem) {
-                        $Item[] = $tblItem->getServiceBillingCommodityItem()->getTblItem()->getName().'<br/>
-                            Preis: '.$tblItem->getServiceBillingCommodityItem()->getTblItem()->getPriceString();
+                        $Item[] = $tblItem->getServiceBillingCommodityItem()->getTblItem()->getName();
+//                            .'<br/>
+//                            Preis: '.$tblItem->getServiceBillingCommodityItem()->getTblItem()->getPriceString();
                     }
                 }
                 $Stage->setContent(
@@ -368,7 +370,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasket = Basket::useService()->getBasketById($Id);
         $tblCommodityAll = Commodity::useService()->getCommodityAll();
         $tblCommodityAllByBasket = Basket::useService()->getCommodityAllByBasket($tblBasket);
-
+        $TableBasketContent = array();
         if (!empty( $tblCommodityAllByBasket )) {
             $tblCommodityAll = array_udiff($tblCommodityAll, $tblCommodityAllByBasket,
                 function (TblCommodity $ObjectA, TblCommodity $ObjectB) {
@@ -377,47 +379,48 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             );
 
-            /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblCommodityAllByBasket,
-                function (TblCommodity &$tblCommodity, $Index, TblBasket $tblBasket) {
 
-                    $tblCommodity->Type = $tblCommodity->getTblCommodityType()->getName();
-                    $tblCommodity->ItemCount = Commodity::useService()->countItemAllByCommodity($tblCommodity);
-                    $tblCommodity->SumPriceItem = Commodity::useService()->sumPriceItemAllByCommodity($tblCommodity);
-                    $tblCommodity->Option =
+            array_walk($tblCommodityAllByBasket, function (TblCommodity $tblCommodity) use (&$TableBasketContent, $tblBasket) {
+
+                $Item['Name'] = $tblCommodity->getName();
+                $Item['Description'] = $tblCommodity->getDescription();
+                $Item['ItemCount'] = Commodity::useService()->countItemAllByCommodity($tblCommodity);
+                $Item['Option'] =
                         (new Standard('Entfernen', '/Billing/Accounting/Basket/Commodity/Remove',
                             new Minus(), array(
                                 'Id'          => $tblBasket->getId(),
                                 'CommodityId' => $tblCommodity->getId()
                             )))->__toString();
-                }, $tblBasket);
+                array_push($TableBasketContent, $Item);
+            });
         }
 
-        $Options = true;
+//        $Options = true;
+        $TableCommodityContent = array();
         if (!empty( $tblCommodityAll )) {
-            if (empty( $tblCommodityAllByBasket )) {
+//            if (empty( $tblCommodityAllByBasket )) {
                 /** @noinspection PhpUnusedParameterInspection */
-                array_walk($tblCommodityAll, function (TblCommodity $tblCommodity, $Index, TblBasket $tblBasket) {
+            array_walk($tblCommodityAll, function (TblCommodity $tblCommodity) use (&$TableCommodityContent, $tblBasket) {
 
-                    $tblCommodity->Type = $tblCommodity->getTblCommodityType()->getName();
-                    $tblCommodity->ItemCount = Commodity::useService()->countItemAllByCommodity($tblCommodity);
-                    $tblCommodity->SumPriceItem = Commodity::useService()->sumPriceItemAllByCommodity($tblCommodity);
-                    $tblCommodity->Option =
+                $Item['Name'] = $tblCommodity->getName();
+                $Item['Description'] = $tblCommodity->getDescription();
+                $Item['ItemCount'] = Commodity::useService()->countItemAllByCommodity($tblCommodity);
+                $Item['Option'] =
                         (new Standard('Hinzufügen', '/Billing/Accounting/Basket/Commodity/Add',
                             new Plus(), array(
                                 'Id'          => $tblBasket->getId(),
                                 'CommodityId' => $tblCommodity->getId()
                             )))->__toString();
-                }, $tblBasket);
-            } else {
-                array_walk($tblCommodityAll, function (TblCommodity $tblCommodity) {
-
-                    $tblCommodity->Type = $tblCommodity->getTblCommodityType()->getName();
-                    $tblCommodity->ItemCount = Commodity::useService()->countItemAllByCommodity($tblCommodity);
-                    $tblCommodity->SumPriceItem = Commodity::useService()->sumPriceItemAllByCommodity($tblCommodity);
-                }, $tblBasket);
-                $Options = false;
-            }
+                array_push($TableCommodityContent, $Item);
+            });
+//            } else {
+//                array_walk($tblCommodityAll, function (TblCommodity $tblCommodity) use (&$TableCommodityContent) {
+//                    $Item['Name'] = $tblCommodity->getName();
+//                    $Item['Description'] = $tblCommodity->getDescription();
+//                    $Item['ItemCount'] = Commodity::useService()->countItemAllByCommodity($tblCommodity);
+//                });
+//                $Options = false;
+//            }
         }
 
         $Stage->setContent(
@@ -441,55 +444,49 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                                new TableData($tblCommodityAllByBasket, null,
+                                new TableData($TableBasketContent, null,
                                     array(
-                                        'Name'         => 'Name',
-                                        'Description'  => 'Beschreibung',
-                                        'Type'         => 'Leistungsart',
-                                        'ItemCount'    => 'Artikelanzahl',
-                                        'SumPriceItem' => 'Gesamtpreis',
-                                        'Option'       => 'Option'
+                                        'Name'        => 'Name',
+                                        'Description' => 'Beschreibung',
+                                        'ItemCount'   => 'Artikelanzahl',
+                                        'Option'      => ''
                                     )
                                 )
                             )
                         )
                     )),
                 ), new Title('zugewiesene Leistungen')),
-                ( $Options ) ?
+//                ( $Options ) ?
                     new LayoutGroup(array(
                         new LayoutRow(array(
                             new LayoutColumn(array(
-                                    new TableData($tblCommodityAll, null,
+                                    new TableData($TableCommodityContent, null,
                                         array(
-                                            'Name'         => 'Name',
-                                            'Description'  => 'Beschreibung',
-                                            'Type'         => 'Leistungsart',
-                                            'ItemCount'    => 'Artikelanzahl',
-                                            'SumPriceItem' => 'Gesamtpreis',
-                                            'Option'       => 'Option'
+                                            'Name'        => 'Name',
+                                            'Description' => 'Beschreibung',
+                                            'ItemCount'   => 'Artikelanzahl',
+                                            'Option'      => ' '
                                         )
                                     )
                                 )
                             )
                         )),
                     ), new Title('mögliche Leistungen'))
-                    :
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(array(
-                                    new TableData($tblCommodityAll, null,
-                                        array(
-                                            'Name'         => 'Name',
-                                            'Description'  => 'Beschreibung',
-                                            'Type'         => 'Leistungsart',
-                                            'ItemCount'    => 'Artikelanzahl',
-                                            'SumPriceItem' => 'Gesamtpreis',
-                                        )
-                                    )
-                                )
-                            )
-                        )),
-                    ), new Title('mögliche Leistungen'))
+//                    :
+//                    new LayoutGroup(array(
+//                        new LayoutRow(array(
+//                            new LayoutColumn(array(
+//                                    new TableData($TableCommodityContent, null,
+//                                        array(
+//                                            'Name'         => 'Name',
+//                                            'Description'  => 'Beschreibung',
+//                                            'ItemCount'    => 'Artikelanzahl',
+//                                        )
+//                                    )
+//                                )
+//                            )
+//                        )),
+//                    ), new Title('mögliche Leistungen'))
             ))
         );
 
@@ -560,26 +557,66 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasket = Basket::useService()->getBasketById($Id);
         $tblBasketItemAll = Basket::useService()->getBasketItemAllByBasket($tblBasket);
 
+        $TableContent = array();
         if (!empty( $tblBasketItemAll )) {
-            array_walk($tblBasketItemAll, function (TblBasketItem &$tblBasketItem) {
+
+            array_walk($tblBasketItemAll, function (TblBasketItem $tblBasketItem) use (&$TableContent) {
+
+//                $tblItem = $tblBasketItem->getServiceBillingCommodityItem()->getTblItem();
+//                $tblCalculationList = Item::useService()->getCalculationAllByItem($tblItem);
+//                if(is_array($tblCalculationList))
+//                {
+//                    array_walk($tblCalculationList, function (TblCalculation $tblCalculation) use (&$TableContent, $tblBasketItem){
+//                        $tblCommodity = $tblBasketItem->getServiceBillingCommodityItem()->getTblCommodity();
+//                        $tblItem = $tblBasketItem->getServiceBillingCommodityItem()->getTblItem();
+//                        $Item['CommodityName'] = $tblCommodity->getName();
+//                        $Item['ItemName'] = $tblItem->getName();
+//                        $Item['TotalPriceString'] = $tblBasketItem->getTotalPriceString();
+//                        $Item['QuantityString'] = str_replace('.', ',', $tblBasketItem->getQuantity());
+//                        $Item['PriceString'] = $tblBasketItem->getPriceString();
+//                        $Item['Type'] = '';
+//                        $Item['Rank'] = '';
+//                        if($tblCalculation->getServiceSchoolType())
+//                        {
+//                            $Item['Type'] = $tblCalculation->getServiceSchoolType()->getName();
+//                        }
+//                        if($tblCalculation->getServiceStudentChildRank())
+//                        {
+//                            $Item['Rank'] = $tblCalculation->getServiceStudentChildRank()->getName();
+//                        }
+//                        $Item['Option'] =
+//                            (new Standard('Bearbeiten', '/Billing/Accounting/Basket/Item/Change',
+//                                new Edit(), array(
+//                                    'Id' => $tblBasketItem->getId()
+//                                )))->__toString().
+//                            (new Danger('Entfernen',
+//                                '/Billing/Accounting/Basket/Item/Remove',
+//                                new Minus(), array(
+//                                    'Id' => $tblBasketItem->getId()
+//                                )))->__toString();
+//                        array_push($TableContent, $Item);
+//                    });
+//                }
 
                 $tblCommodity = $tblBasketItem->getServiceBillingCommodityItem()->getTblCommodity();
                 $tblItem = $tblBasketItem->getServiceBillingCommodityItem()->getTblItem();
-                $tblBasketItem->CommodityName = $tblCommodity->getName();
-                $tblBasketItem->ItemName = $tblItem->getName();
-                $tblBasketItem->TotalPriceString = $tblBasketItem->getTotalPriceString();
-                $tblBasketItem->QuantityString = str_replace('.', ',', $tblBasketItem->getQuantity());
-                $tblBasketItem->PriceString = $tblBasketItem->getPriceString();
-                $tblBasketItem->Type = '';
-                $tblBasketItem->Rank = '';
-                if ($tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getServiceStudentType()) {
-                    $tblBasketItem->Type = $tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getServiceStudentType()->getName();
-                }
-                if ($tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getServiceStudentChildRank()) {
-                    $tblBasketItem->Rank = $tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getServiceStudentChildRank()->getName();
-                }
+                $Item['CommodityName'] = $tblCommodity->getName();
+                $Item['ItemName'] = $tblItem->getName();
+                $Item['TotalPriceString'] = $tblBasketItem->getTotalPriceString();
+                $Item['QuantityString'] = str_replace('.', ',', $tblBasketItem->getQuantity());
+                $Item['PriceString'] = $tblBasketItem->getPriceString();
+                $Item['StandardPrice'] = Item::useService()->getCalculationStandardValueAllByItem($tblItem)->getValue();
+                $Item['CountCalculation'] = Item::useService()->countCalculationByItem($tblItem) - 1;
+//                $Item['Type'] = '';
+//                $Item['Rank'] = '';
+//                if ($tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getServiceStudentType()) {
+//                    $tblBasketItem->Type = $tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getServiceStudentType()->getName();
+//                }
+//                if ($tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getServiceStudentChildRank()) {
+//                    $tblBasketItem->Rank = $tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getServiceStudentChildRank()->getName();
+//                }
 
-                $tblBasketItem->Option =
+                $Item['Option'] =
                     (new Standard('Bearbeiten', '/Billing/Accounting/Basket/Item/Change',
                         new Edit(), array(
                             'Id' => $tblBasketItem->getId()
@@ -589,6 +626,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Minus(), array(
                             'Id' => $tblBasketItem->getId()
                         )))->__toString();
+                array_push($TableContent, $Item);
             });
         }
 
@@ -613,15 +651,17 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                                new TableData($tblBasketItemAll, null,
+                                new TableData($TableContent, null,
                                     array(
                                         'CommodityName'    => 'Leistung',
                                         'ItemName'         => 'Artikel',
                                         'PriceString'      => 'Preis',
                                         'QuantityString'   => 'Menge',
                                         'TotalPriceString' => 'Gesamtpreis',
-                                        'Type'             => 'Typ',
-                                        'Rank'             => 'Geschwister',
+                                        'StandardPrice'    => 'Standard-Preis',
+                                        'CountCalculation' => 'Anzahl Bedinungen',
+//                                        'Type'             => 'Typ',
+//                                        'Rank'             => 'Geschwister',
                                         'Option'           => 'Option'
                                     )
                                 )
@@ -930,6 +970,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Warenkorb');
         $Stage->setDescription('Zusammenfassung');
+
         $Stage->setMessage('Schließen Sie den Warenkorb zur Fakturierung ab');
         $Stage->addButton(new Primary('Zurück', '/Billing/Accounting/Basket/Person/Select',
             new ChevronLeft(), array(
@@ -966,25 +1007,6 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
                 $Result = 0.00;
-                foreach ($tblBasketItemList as $tblBasketItem) {
-                    if (isset( $SchoolType ) && $SchoolType === false) {
-                        $Result = Basket::useService()->getPricePerPerson($tblBasketItem, $tblPerson, $tblPersonByBasketList, $Result);
-                    } elseif (isset( $SchoolType ) && $SchoolType) {
-                        if ($tblCommodityItem = $tblBasketItem->getServiceBillingCommodityItem()) {
-                            if ($tblItem = $tblCommodityItem->getTblItem()) {
-                                if ($tblItemType = $tblItem->getServiceStudentType()) {
-                                    if ($tblItem->getServiceStudentType()->getId() === $SchoolType->getId()) {
-                                        $Result = Basket::useService()->getPricePerPerson($tblBasketItem, $tblPerson, $tblPersonByBasketList, $Result);
-                                    }
-                                } else {
-                                    $Result = Basket::useService()->getPricePerPerson($tblBasketItem, $tblPerson, $tblPersonByBasketList, $Result);
-                                }
-                            }
-                        }
-                    } else {
-                        $Result = Basket::useService()->getPricePerPerson($tblBasketItem, $tblPerson, $tblPersonByBasketList, $Result);
-                    }
-                }
                 $Temp['Price'] = str_replace('.', ',', $Result)." €";
 
                 array_push($PersonTable, $Temp);
@@ -1001,12 +1023,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $Temp['ItemName'] = $tblItem->getName();
                 $Temp['Type'] = '';
                 $Temp['Rank'] = '';
-                if ($tblItem->getServiceStudentType()) {
-                    $Temp['Type'] = $tblItem->getServiceStudentType()->getName();
-                }
-                if ($tblItem->getServiceStudentChildRank()) {
-                    $Temp['Rank'] = $tblItem->getServiceStudentChildRank()->getName();
-                }
+//                if ($tblItem->getServiceStudentType()) {
+//                    $Temp['Type'] = $tblItem->getServiceStudentType()->getName();
+//                }
+//                if ($tblItem->getServiceStudentChildRank()) {
+//                    $Temp['Rank'] = $tblItem->getServiceStudentChildRank()->getName();
+//                }
 
                 $Temp['TotalPriceString'] = $tblBasketItem->getTotalPriceString();
                 $Temp['QuantityString'] = str_replace('.', ',', $tblBasketItem->getQuantity());

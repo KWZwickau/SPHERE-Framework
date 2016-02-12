@@ -57,10 +57,10 @@ class TblItemCalculation extends Element
     public function getTblCalculation()
     {
 
-        if (null === $this->tblItem) {
+        if (null === $this->tblCalculation) {
             return false;
         } else {
-            return Item::useService()->getCalculationById($this->tblItem);
+            return Item::useService()->getCalculationById($this->tblCalculation);
         }
     }
 

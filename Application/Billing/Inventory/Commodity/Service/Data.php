@@ -114,25 +114,25 @@ class Data extends AbstractData
         ));
     }
 
-    /**
-     * @param TblCommodity $tblCommodity
-     *
-     * @return string
-     */
-    public function sumPriceItemAllByCommodity(TblCommodity $tblCommodity)
-    {
-
-        $sum = 0.00;
-        $tblCommodityItemByCommodity = $this->getCommodityItemAllByCommodity($tblCommodity);
-        /** @var TblCommodityItem $tblCommodityItem */
-        foreach ($tblCommodityItemByCommodity as $tblCommodityItem) {
-            $sum += $tblCommodityItem->getTblItem()->getPrice() * $tblCommodityItem->getQuantity();
-        }
-
-        $sum = round($sum, 2);
-        $sum = sprintf("%01.2f", $sum);
-        return str_replace('.', ',', $sum)." €";
-    }
+//    /**
+//     * @param TblCommodity $tblCommodity
+//     *
+//     * @return string
+//     */
+//    public function sumPriceItemAllByCommodity(TblCommodity $tblCommodity)
+//    {
+//
+//        $sum = 0.00;
+//        $tblCommodityItemByCommodity = $this->getCommodityItemAllByCommodity($tblCommodity);
+//        /** @var TblCommodityItem $tblCommodityItem */
+//        foreach ($tblCommodityItemByCommodity as $tblCommodityItem) {
+//            $sum += $tblCommodityItem->getTblItem()->getPrice() * $tblCommodityItem->getQuantity();
+//        }
+//
+//        $sum = round($sum, 2);
+//        $sum = sprintf("%01.2f", $sum);
+//        return str_replace('.', ',', $sum)." €";
+//    }
 
     /**
      * @param Entity\TblCommodity $tblCommodity
@@ -225,14 +225,12 @@ class Data extends AbstractData
     /**
      * @param Entity\TblCommodity $tblCommodity
      * @param TblItem             $tblItem
-     * @param                     $Quantity
      *
      * @return bool
      */
     public function addItemToCommodity(
         TblCommodity $tblCommodity,
-        TblItem $tblItem,
-        $Quantity
+        TblItem $tblItem
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -244,7 +242,6 @@ class Data extends AbstractData
             $Entity = new TblCommodityItem();
             $Entity->setTblCommodity($tblCommodity);
             $Entity->setTblItem($tblItem);
-            $Entity->setQuantity(str_replace(',', '.', $Quantity));
 
             $Manager->saveEntity($Entity);
 

@@ -29,9 +29,10 @@ class Setup extends AbstractSetup
         $tblBasket = $this->setTableBasket($Schema);
         $this->setTableBasketPerson($Schema, $tblBasket);
         $this->setTableBasketItem($Schema, $tblBasket);
+        $this->setTblBasketVerification($Schema, $tblBasket);
 
-        $tblBasketCommodity = $this->setTableBasketCommodity($Schema, $tblBasket);
-        $this->setTableBasketCommodityDebtor($Schema, $tblBasketCommodity);
+//        $tblBasketCommodity = $this->setTableBasketCommodity($Schema, $tblBasket);
+//        $this->setTableBasketCommodityDebtor($Schema, $tblBasketCommodity);
         /**
          * Migration & Protocol
          */
@@ -106,22 +107,22 @@ class Setup extends AbstractSetup
         return $Table;
     }
 
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblBasket
-     *
-     * @return Table
-     */
-    private function setTableBasketCommodity(Schema &$Schema, Table $tblBasket)
+    private function setTblBasketVerification(Schema &$Schema, Table $tblBasket)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblBasketCommodity');
+        $Table = $this->getConnection()->createTable($Schema, 'tblBasketVerification');
 
-        if (!$this->getConnection()->hasColumn('tblBasketCommodity', 'serviceManagement_Person')) {
+        if (!$this->getConnection()->hasColumn('tblBasketVerification', 'Value')) {
+            $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
+        }
+        if (!$this->getConnection()->hasColumn('tblBasketVerification', 'Quantity')) {
+            $Table->addColumn('Quantity', 'integer');
+        }
+        if (!$this->getConnection()->hasColumn('tblBasketVerification', 'serviceManagement_Person')) {
             $Table->addColumn('serviceManagement_Person', 'bigint');
         }
-        if (!$this->getConnection()->hasColumn('tblBasketCommodity', 'serviceBilling_Commodity')) {
-            $Table->addColumn('serviceBilling_Commodity', 'bigint');
+        if (!$this->getConnection()->hasColumn('tblBasketVerification', 'serviceInventory_Item')) {
+            $Table->addColumn('serviceInventory_Item', 'bigint');
         }
 
         $this->getConnection()->addForeignKey($Table, $tblBasket);
@@ -129,23 +130,46 @@ class Setup extends AbstractSetup
         return $Table;
     }
 
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblBasketCommodity
-     *
-     * @return Table
-     */
-    private function setTableBasketCommodityDebtor(Schema &$Schema, Table $tblBasketCommodity)
-    {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblBasketCommodityDebtor');
-
-        if (!$this->getConnection()->hasColumn('tblBasketCommodityDebtor', 'serviceBilling_Debtor')) {
-            $Table->addColumn('serviceBilling_Debtor', 'bigint');
-        }
-
-        $this->getConnection()->addForeignKey($Table, $tblBasketCommodity);
-
-        return $Table;
-    }
+//    /**
+//     * @param Schema $Schema
+//     * @param Table  $tblBasket
+//     *
+//     * @return Table
+//     */
+//    private function setTableBasketCommodity(Schema &$Schema, Table $tblBasket)
+//    {
+//
+//        $Table = $this->getConnection()->createTable($Schema, 'tblBasketCommodity');
+//
+//        if (!$this->getConnection()->hasColumn('tblBasketCommodity', 'serviceManagement_Person')) {
+//            $Table->addColumn('serviceManagement_Person', 'bigint');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblBasketCommodity', 'serviceBilling_Commodity')) {
+//            $Table->addColumn('serviceBilling_Commodity', 'bigint');
+//        }
+//
+//        $this->getConnection()->addForeignKey($Table, $tblBasket);
+//
+//        return $Table;
+//    }
+//
+//    /**
+//     * @param Schema $Schema
+//     * @param Table  $tblBasketCommodity
+//     *
+//     * @return Table
+//     */
+//    private function setTableBasketCommodityDebtor(Schema &$Schema, Table $tblBasketCommodity)
+//    {
+//
+//        $Table = $this->getConnection()->createTable($Schema, 'tblBasketCommodityDebtor');
+//
+//        if (!$this->getConnection()->hasColumn('tblBasketCommodityDebtor', 'serviceBilling_Debtor')) {
+//            $Table->addColumn('serviceBilling_Debtor', 'bigint');
+//        }
+//
+//        $this->getConnection()->addForeignKey($Table, $tblBasketCommodity);
+//
+//        return $Table;
+//    }
 }

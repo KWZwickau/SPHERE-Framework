@@ -9,13 +9,14 @@ use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemType;
 use SPHERE\Application\Billing\Inventory\Item\Service\Setup;
+use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -63,6 +64,20 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getItemTypeById($Id);
     }
 
+    /**
+     * @param $Name
+     *
+     * @return bool|TblItemType
+     */
+    public function getItemTypeByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getItemTypeByName($Name);
+    }
+
+    /**
+     * @return bool|TblItemType[]
+     */
     public function getItemTypeAll()
     {
 
@@ -112,6 +127,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblItem $tblItem
+     *
+     * @return bool|TblCalculation
+     */
+    public function getCalculationStandardValueAllByItem(TblItem $tblItem)
+    {
+
+        return (new Data($this->getBinding()))->getCalculationStandardValueAllByItem($tblItem);
+    }
+
+    /**
+     * @param TblItem $tblItem
+     *
+     * @return int
+     */
+    public function countCalculationByItem(TblItem $tblItem)
+    {
+
+        return (new Data($this->getBinding()))->countCalculationByItem($tblItem);
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblItemAccount
@@ -145,52 +182,46 @@ class Service extends AbstractService
             $Stage->setError('Item[Name]', 'Bitte geben Sie einen Artikel-Namen an');
             $Error = true;
         }
-        if (isset( $Item['ItemType'] ) && empty( $Item['ItemType'] )) {
-            $Stage->setError('Item[ItemType]', 'Art des Artikels wird benötigt');
-            $Error = true;
-        }
         if ($this->existsItem($Item['Name'])) {
             $Stage->setError('Item[Name]', 'Bitte geben Sie einen nicht vergebenen Artikel-Namen an');
             $Error = true;
         }
-
+        if (isset( $Item['Value'] ) && empty( $Item['Value'] )) {
+            $Stage->setError('Item[Value]', 'Bitte geben Sie einen Standard-Preis an');
+            $Error = true;
+        }
         if (!$Error) {
-            $tblItemType = Item::useService()->getItemTypeById($Item['ItemType']);
-            if ($tblItemType) {
-                (new Data($this->getBinding()))->createItem(
-                    $tblItemType,
-                    $Item['Name'],
-                    $Item['Description']
-                );
-                return new Success('Der Artikel wurde erfolgreich angelegt')
-                .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS);
-            }
-            return new Danger('Der Artikel konnte nicht angelegt werden')
-            .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR);
 
+            $tblItemType = Item::useService()->getItemTypeByName($Item['ItemType']);
+            $tblItem = (new Data($this->getBinding()))->createItem(
+                $tblItemType,
+                $Item['Name'],
+                $Item['Description']);
+            $tblCalculation = (new Data($this->getBinding()))->createCalculation($Item['Value']);
+            (new Data($this->getBinding()))->createItemCalculation($tblItem, $tblCalculation);
+            return new Success('Der Artikel wurde erfolgreich angelegt')
+            .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS);
         }
         return $Stage;
     }
 
     /**
-     * @param TblItem $tblItem
+     * @param TblCalculation $tblCalculation
+     * @param TblItem        $tblItem
      *
-     * @return string
+     * @return bool
      */
-    public function destroyItem(TblItem $tblItem)
+    public function destroyCalculation(TblCalculation $tblCalculation, TblItem $tblItem)
     {
 
-        if (null === $tblItem) {
-            return '';
+        if (null === $tblCalculation) {
+            return false;
         }
 
-        if ((new Data($this->getBinding()))->destroyItem($tblItem)) {
-            return new Success('Der Artikel wurde erfolgreich gelöscht')
-            .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS);
-        } else {
-            return new Danger('Der Artikel konnte nicht gelöscht werden. Überprüfen Sie ob er noch in einer Leistung verwendet wird.')
-            .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR);
+        if ((new Data($this->getBinding()))->destroyCalculation($tblCalculation, $tblItem)) {
+            return true;
         }
+        return false;
     }
 
     /**
@@ -260,7 +291,7 @@ class Service extends AbstractService
      * @param IFormInterface|null $Stage
      * @param TblItem             $tblItem
      * @param TblCalculation      $tblCalculation
-     * @param array               $Condition
+     * @param array               $Calculation
      *
      * @return IFormInterface|string
      */
@@ -268,36 +299,36 @@ class Service extends AbstractService
         IFormInterface &$Stage = null,
         TblItem $tblItem,
         TblCalculation $tblCalculation,
-        $Condition
+        $Calculation
     ) {
 
         /**
          * Skip to Frontend
          */
-        if (null === $Condition
+        if (null === $Calculation
         ) {
             return $Stage;
         }
 
         $Error = false;
 
-        if (isset( $Condition['Price'] ) && empty( $Condition['Price'] )) {
-            $Stage->setError('Condition[Price]', 'Bitte geben Sie einen Artikel-Preis an');
+        if (isset( $Calculation['Price'] ) && empty( $Calculation['Price'] )) {
+            $Stage->setError('Calculation[Price]', 'Bitte geben Sie einen Artikel-Preis an');
             $Error = true;
         }
 
         if (!$Error) {
             if ((new Data($this->getBinding()))->updateCalculation(
                 $tblCalculation,
-                $Condition['Value']
+                $Calculation['Value']
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Billing/Inventory/Item/Condition', Redirect::TIMEOUT_SUCCESS,
+                    .new Redirect('/Billing/Inventory/Item/Calculation', Redirect::TIMEOUT_SUCCESS,
                         array('Id' => $tblItem->getId()));
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Inventory/Item/Condition', Redirect::TIMEOUT_ERROR,
+                    .new Redirect('/Billing/Inventory/Item/Calculation', Redirect::TIMEOUT_ERROR,
                         array('Id' => $tblItem->getId()));
             };
         }
@@ -328,29 +359,40 @@ class Service extends AbstractService
             $Error = true;
         }
 
+//        if (!isset( $Calculation['SchoolType'] ) && !isset( $Calculation['SiblingRank'] )) {
+//            $Calculation['SchoolType'] = '0';
+//            $Calculation['SiblingRank'] = '0';
+//        }
+
         if ($this->existsCalculation($tblItem, $Calculation['SchoolType'], $Calculation['SiblingRank'])) {
-            $Stage->setError('Calculation[SchoolType]', 'Bedingungskombination vorhanden!');
-            $Stage->setError('Calculation[SiblingRank]', 'Bedingungskombination vorhanden!');
+            $Stage->setError('Calculation[SchoolType]', 'Bedingungskombination vorhanden');
+            $Stage->setError('Calculation[SiblingRank]', 'Bedingungskombination vorhanden');
             $Error = true;
         }
 
-        Debugger::screenDump($Calculation);
-
         if (!$Error) {
-            if ((new Data($this->getBinding()))->createCalculation(
-                $tblItem,
+            $tblType = Type::useService()->getTypeById($Calculation['SchoolType']);
+            if (!$tblType) {
+                $tblType = null;
+            }
+            $tblSiblingRank = Relationship::useService()->getSiblingRankById($Calculation['SiblingRank']);
+            if (!$tblSiblingRank) {
+                $tblSiblingRank = null;
+            }
+            $tblCalculation = (new Data($this->getBinding()))->createCalculation(
                 $Calculation['Value'],
-                $Calculation['SchoolType'],
-                $Calculation['SiblingRank']
-            )
-            ) {
+                $tblType,
+                $tblSiblingRank);
+            if ($tblCalculation) {
+                (new Data($this->getBinding()))->createItemCalculation($tblItem, $tblCalculation);
                 $Stage .= new Success('Gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Billing/Inventory/Item/Condition', Redirect::TIMEOUT_SUCCESS,
+                    .new Redirect('/Billing/Inventory/Item/Calculation', Redirect::TIMEOUT_SUCCESS,
                         array('Id' => $tblItem->getId()));
+
             } else {
                 $Stage .= new Danger('Es konnten nicht gespeichert werden.
                                         Möglicherweise gibt es die Bedingungskombination schon')
-                    .new Redirect('/Billing/Inventory/Item/Condition', Redirect::TIMEOUT_ERROR,
+                    .new Redirect('/Billing/Inventory/Item/Calculation', Redirect::TIMEOUT_ERROR,
                         array('Id' => $tblItem->getId()));
             };
         }

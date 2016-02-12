@@ -9,6 +9,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -18,10 +19,13 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Money;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -32,6 +36,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Redirect;
@@ -66,13 +72,45 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Name'] = $tblItem->getName();
                 $Item['Description'] = $tblItem->getDescription();
                 $Item['ItemType'] = $tblItem->getTblItemType()->getName();
+                $tblCalculationList = Item::useService()->getCalculationAllByItem($tblItem);
+                $CalculationContent = array();
+                if ($tblCalculationList) {
+                    /** @var TblCalculation $tblCalculation */
+
+                    foreach ($tblCalculationList as $Key => $tblCalculation) {
+                        $CalculationContent[$Key] = $tblCalculation->getPriceString();
+                        if ($tblCalculation->getServiceSchoolType()) {
+                            $CalculationContent[$Key] .= ' - '.$tblCalculation->getServiceSchoolType()->getName();
+                        } else {
+                            $CalculationContent[$Key] .= ' - keine';
+                        }
+                        if ($tblCalculation->getServiceStudentChildRank()) {
+                            $CalculationContent[$Key] .= ' - '.$tblCalculation->getServiceStudentChildRank()->getName();
+                        } else {
+                            $CalculationContent[$Key] .= ' - keine';
+                        }
+                        if (!$tblCalculation->getServiceStudentChildRank() && !$tblCalculation->getServiceSchoolType()) {
+                            $CalculationContent[$Key] = $tblCalculation->getPriceString().' Grundpreis';
+                        }
+                    }
+                }
+                $Item['Condition'] = new \SPHERE\Common\Frontend\Layout\Repository\Listing($CalculationContent);
+
                 $Item['Option'] =
-                    new Standard('', '/Billing/Inventory/Item/Condition', new Money(), array('Id' => $tblItem->getId()), 'Preise / Bedingungen eintragen')
+                    new Standard('', '/Billing/Inventory/Item/Calculation', new Money(), array('Id' => $tblItem->getId()), 'Preise / Bedingungen eintragen')
                     .new Standard('', '/Billing/Inventory/Item/Change', new Pencil(), array('Id' => $tblItem->getId()), 'Bearbeiten');
+
                 array_push($TableContent, $Item);
             });
 
         }
+
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Item'] )) {
+            $Global->POST['Item']['ItemType'] = true;
+            $Global->savePost();
+        }
+
         $Form = $this->formItem()
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
@@ -87,6 +125,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Name'        => 'Name',
                                     'Description' => 'Beschreibung',
                                     'ItemType'    => 'Art',
+                                    'Condition'   => 'Preis - Schulart - Geschwister',
                                     'Option'      => ''
                                 )
                             )
@@ -121,8 +160,11 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel('Artikel',
                             array(
                                 new TextField('Item[Name]', 'Name', 'Name', new Conversation()),
-                                new SelectBox('Item[ItemType]', 'Leistungsart', array(
-                                    'Name' => Item::useService()->getItemTypeAll()))
+                                new TextField('Item[Value]', 'Preis', 'Standard-Preis', new Money()),
+                                new RadioBox('Item[ItemType]', 'Sammelleistung', 'Sammelleistung'),
+                                new RadioBox('Item[ItemType]', 'Einzelleistung', 'Einzelleistung'),
+
+//                                new CheckBox('Item[ItemType]', 'Einzelleistung', 'Einzelleistung', array('Item[CalculationType]')),
                             ), Panel::PANEL_TYPE_INFO)
                         , 6),
                     new FormColumn(
@@ -159,66 +201,77 @@ class Frontend extends Extension implements IFrontendInterface
         ));
     }
 
-//    /**
-//     * @param            $Id
-//     * @param bool|false $Confirm
-//     *
-//     * @return Stage
-//     */
-//    public function frontendItemDestroy($Id, $Confirm = false)
-//    {
-//
-//        $Stage = new Stage('Artikel', 'Entfernen');
-//        if ($Id) {
-//            $tblItem = Item::useService()->getItemById($Id);
-//            if (!$Confirm) {
-//                $Stage->setContent(
-//                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-//                        new Panel(new Question().' Diesen Artikel "'.$tblItem->getName().'" wirklich entfernen?',
-//                            array(
-//                                $tblItem->getName().'<br/>'
-//                                .$tblItem->getPriceString(),
-//                            ),
-//                            Panel::PANEL_TYPE_DANGER,
-//                            new Standard(
-//                                'Ja', '/Billing/Inventory/Item/Destroy', new Ok(),
-//                                array('Id' => $Id, 'Confirm' => true)
-//                            )
-//                            .new Standard(
-//                                'Nein', '/Billing/Inventory/Item', new Disable()
-//                            )
-//                        )
-//                    ))))
-//                );
-//            } else {
-//
-//                // Destroy Group
-//                $Stage->setContent(
-//                    new Layout(new LayoutGroup(array(
-//                        new LayoutRow(new LayoutColumn(array(
-//                            ( Item::useService()->destroyItem($tblItem)
-//                                ? new Success('Der Artikel wurde gelöscht')
-//                                .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS)
-//                                : new Danger('Der Artikel konnte nicht gelöscht werden')
-//                                .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR)
-//                            )
-//                        )))
-//                    )))
-//                );
-//            }
-//        } else {
-//            $Stage->setContent(
-//                new Layout(new LayoutGroup(array(
-//                    new LayoutRow(new LayoutColumn(array(
-//                        new Danger('Der Artikel konnte nicht gefunden werden'),
-//                        new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR)
-//                    )))
-//                )))
-//            );
-//        }
-//
-//        return $Stage;
-//    }
+    /**
+     * @param            $Id
+     * @param            $CalculationId
+     * @param bool|false $Confirm
+     *
+     * @return Stage
+     */
+    public function frontendCalculationDestroy($Id, $CalculationId, $Confirm = false)
+    {
+
+        $Stage = new Stage('Zuordnung', 'Entfernen');
+        if ($CalculationId) {
+            $tblCalculation = Item::useService()->getCalculationById($CalculationId);
+            $tblItem = Item::useService()->getItemById($Id);
+            if ($tblCalculation && $tblItem) {
+                $Content = array();
+                $Content[] = 'Preis: '.$tblCalculation->getPriceString();
+                if ($tblCalculation->getServiceSchoolType()) {
+                    $Content[] = 'Schulart: '.$tblCalculation->getServiceSchoolType()->getName();
+                }
+                if ($tblCalculation->getServiceStudentChildRank()) {
+                    $Content[] = 'Geschwister: '.$tblCalculation->getServiceStudentChildRank()->getName();
+                }
+                if (!$Confirm) {
+                    $Stage->setContent(
+                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                            new Panel(new Question().' Diese Zurodnung wirklich entfernen?',
+                                $Content,
+                                Panel::PANEL_TYPE_DANGER,
+                                new Standard(
+                                    'Ja', '/Billing/Inventory/Item/Calculation/Destroy', new Ok(),
+                                    array('Id' => $Id, 'Confirm' => true, 'CalculationId' => $CalculationId)
+                                )
+                                .new Standard(
+                                    'Nein', '/Billing/Inventory/Item/Calculation', new Disable(), array('Id' => $tblItem->getId())
+                                )
+                            )
+                        ))))
+                    );
+                } else {
+
+                    // Destroy Group
+                    $Stage->setContent(
+                        new Layout(new LayoutGroup(array(
+                            new LayoutRow(new LayoutColumn(array(
+                                ( Item::useService()->destroyCalculation($tblCalculation, $tblItem)
+                                    ? new Success('Die Zuordnung wurde gelöscht')
+                                    .new Redirect('/Billing/Inventory/Item/Calculation', Redirect::TIMEOUT_SUCCESS,
+                                        array('Id' => $tblItem->getId()))
+                                    : new Danger('Die Zuordnung konnte nicht gelöscht werden')
+                                    .new Redirect('/Billing/Inventory/Item/Calculation', Redirect::TIMEOUT_ERROR,
+                                        array('Id' => $tblItem->getId()))
+                                )
+                            )))
+                        )))
+                    );
+                }
+            }
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Danger('Bedingung konnte nicht gefunden werden'),
+                        new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR)
+                    )))
+                )))
+            );
+        }
+
+        return $Stage;
+    }
 
     /**
      * @param $Id
@@ -244,7 +297,7 @@ class Frontend extends Extension implements IFrontendInterface
             if (!isset( $Global->POST['Item'] )) {
                 $Global->POST['Item']['Name'] = $tblItem->getName();
                 $Global->POST['Item']['Description'] = $tblItem->getDescription();
-                $Global->POST['Item']['ItemType'] = $tblItem->getTblItemType()->getId();
+//                $Global->POST['Item']['ItemType'] = $tblItem->getTblItemType()->getId();
                 $Global->savePost();
             }
 
@@ -321,9 +374,6 @@ class Frontend extends Extension implements IFrontendInterface
                     $Item['Price'] = $tblCalculation->getPriceString();
                     $Item['Cours'] = '';
                     $Item['SiblingRank'] = '';
-                    $Item['Option'] = new Standard('', '/Billing/Inventory/Item/Calculation/Change', new Pencil(),
-                        array('Id'            => $tblItem->getId(),
-                              'CalculationId' => $tblCalculation->getId()));
 
                     if ($tblCalculation->getServiceSchoolType()) {
                         $Item['Cours'] = $tblCalculation->getServiceSchoolType()->getName();
@@ -331,6 +381,20 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblCalculation->getServiceStudentChildRank()) {
                         $Item['SiblingRank'] = $tblCalculation->getServiceStudentChildRank()->getName();
                     }
+
+                    if ($Item['SiblingRank'] === '' && $Item['Cours'] === '') {
+                        $Item['Option'] = new Standard('', '/Billing/Inventory/Item/Calculation/Change', new Pencil(),
+                            array('Id'            => $tblItem->getId(),
+                                  'CalculationId' => $tblCalculation->getId()));
+                    } else {
+                        $Item['Option'] = new Standard('', '/Billing/Inventory/Item/Calculation/Change', new Pencil(),
+                                array('Id'            => $tblItem->getId(),
+                                      'CalculationId' => $tblCalculation->getId()))
+                            .new Standard('', '/Billing/Inventory/Item/Calculation/Destroy', new Disable(),
+                                array('Id'            => $tblItem->getId(),
+                                      'CalculationId' => $tblCalculation->getId()));
+                    }
+
                     array_push($TableContent, $Item);
                 });
             }
@@ -430,13 +494,60 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @return Form
+     */
+    public function formItemCalculationPercentage()
+    {
+
+        $tblSchoolType = Type::useService()->getTypeAll();
+        $tblSchoolType[] = new TblType();
+        $tblSiblingRank = Relationship::useService()->getSiblingRankAll();
+        $tblSiblingRank[] = new TblSiblingRank();
+
+        return new Form(
+            new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Prozent', array(new TextField('Calculation[Value]', '', '')), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Schulart', array(new SelectBox('Calculation[SchoolType]', '',
+                            array('Name' => $tblSchoolType))), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Geschwisterkind', array(new SelectBox('Calculation[SiblingRank]', '',
+                            array('Name' => $tblSiblingRank))), Panel::PANEL_TYPE_INFO)
+                        , 4)
+                ))
+            )
+        );
+    }
+
+    /**
+     * @return Form
+     */
+    public function formItemPrice()
+    {
+
+        return new Form(
+            new FormGroup(
+                new FormRow(
+                    new FormColumn(
+                        new Panel('Gesamt-Preis', array(new TextField('Calculation[Value]', '', '')), Panel::PANEL_TYPE_INFO)
+                        , 4)
+                )
+            )
+        );
+    }
+
+    /**
      * @param      $Id
      * @param      $CalculationId
      * @param null $Calculation
      *
      * @return Stage
      */
-    public function frontendItemCalculationChange($Id, $CalculationId, $Calculation = null)
+    public function frontendCalculationChange($Id, $CalculationId, $Calculation = null)
     {
 
         $Stage = new Stage('Bedinung', 'Bearbeiten');

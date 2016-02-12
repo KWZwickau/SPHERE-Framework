@@ -15,6 +15,8 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityItem;
+use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblCalculation;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -527,10 +529,31 @@ class Data extends AbstractData
                 TblBasketItem::ATTR_TBL_BASKET                     => $tblBasket->getId(),
                 TblBasketItem::ATTR_SERVICE_BILLING_COMMODITY_ITEM => $tblCommodityItem->getId()
             ));
+
+            $StandardPrice = '0';
             if (null === $Entity) {
+                $tblItem = $tblCommodityItem->getTblItem();
+                if($tblItem)
+                {
+                    $tblCalculationList = Item::useService()->getCalculationAllByItem($tblItem);
+                    if($tblCalculationList)
+                    {
+                        /** @var TblCalculation $tblCalculation */
+                        foreach($tblCalculationList as $tblCalculation)
+                        {
+                            if(!$tblCalculation->getServiceSchoolType() && !$tblCalculation->getServiceStudentChildRank())
+                            {
+                                $StandardPrice = $tblCalculation->getValue();
+                            }
+                        }
+                    }
+                }
+
+
+
                 $Entity = new TblBasketItem();
-                $Entity->setPrice($tblCommodityItem->getTblItem()->getPrice());
-                $Entity->setQuantity($tblCommodityItem->getQuantity());
+                $Entity->setPrice($StandardPrice);
+                $Entity->setQuantity(1);
                 $Entity->setServiceBillingCommodityItem($tblCommodityItem);
                 $Entity->setTblBasket($tblBasket);
 

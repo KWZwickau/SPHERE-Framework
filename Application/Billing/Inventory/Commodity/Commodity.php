@@ -24,24 +24,16 @@ class Commodity implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__,
                 __NAMESPACE__.'\Frontend::frontendStatus'
-            )->setParameterDefault('Commodity', null)
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Create',
-                __NAMESPACE__.'\Frontend::frontendCreate'
-            )->setParameterDefault('Commodity', null)
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
-                __NAMESPACE__.'\Frontend::frontendDestroy'
-            )->setParameterDefault('Id', null)
-        );
+            ));
+//        Main::getDispatcher()->registerRoute(
+//            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
+//                __NAMESPACE__.'\Frontend::frontendDestroy'
+//            )->setParameterDefault('Id', null)
+//        );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Change',
                 __NAMESPACE__.'\Frontend::frontendChange'
-            )->setParameterDefault('Id', null)
-                ->setParameterDefault('Commodity', null)
-        );
+            ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Account/Select',
                 __NAMESPACE__.'\Frontend::frontendItemAccountSelect'

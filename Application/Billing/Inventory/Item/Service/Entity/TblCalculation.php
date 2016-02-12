@@ -13,7 +13,7 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblItemCalculation")
+ * @Table(name="tblCalculation")
  * @Cache(usage="READ_ONLY")
  */
 class TblCalculation extends Element
@@ -59,7 +59,7 @@ class TblCalculation extends Element
     public function getPriceString()
     {
 
-        $result = sprintf("%01.4f", $this->Value);
+        $result = sprintf("%01.2f", $this->Value);
         return str_replace('.', ',', $result)." €";
     }
 
