@@ -1072,21 +1072,69 @@ class Frontend extends Extension implements IFrontendInterface
         $tblScoreRuleAll = Gradebook::useService()->getScoreRuleAll();
         if ($tblScoreRuleAll) {
             foreach ($tblScoreRuleAll as &$tblScoreRule) {
-                $scoreConditions = array();
-                $tblScoreConditions = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
-                if ($tblScoreConditions) {
-                    foreach ($tblScoreConditions as $tblScoreCondition) {
-                        $scoreConditions[] = $tblScoreCondition->getTblScoreCondition()->getName() . ' (P:'
-                            . $tblScoreCondition->getTblScoreCondition()->getPriority() . ')';
-                    }
-                }
-                if (empty($scoreConditions)) {
-                    $scoreConditions = '';
-                } else {
-                    $scoreConditions = implode(', ', $scoreConditions);
+
+                $structure = array();
+                if ($tblScoreRule->getDescription() != '')
+                {
+                    $structure[] = 'Beschreibung: ' . $tblScoreRule->getDescription() . '<br>';
                 }
 
-                $tblScoreRule->ScoreConditions = $scoreConditions;
+                $tblScoreConditions = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
+                if ($tblScoreConditions) {
+                    $tblScoreConditions =  $this->getSorter($tblScoreConditions)->sortObjectList('Priority');
+                    $count = 1;
+                    /** @var TblScoreRuleConditionList $tblScoreCondition */
+                    foreach ($tblScoreConditions as $tblScoreCondition) {
+                        $structure[] = $count++ . '. Berechnungsvariante: ' . $tblScoreCondition->getTblScoreCondition()->getName()
+                            . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priortität: '
+                            . $tblScoreCondition->getTblScoreCondition()->getPriority();
+
+                        $tblScoreConditionGradeTypeListByCondition = Gradebook::useService()->getScoreConditionGradeTypeListByCondition(
+                            $tblScoreCondition->getTblScoreCondition()
+                        );
+                        if ($tblScoreConditionGradeTypeListByCondition){
+                            $list = array();
+                            foreach($tblScoreConditionGradeTypeListByCondition as $tblScoreConditionGradeTypeList)
+                            {
+                                $list[] = $tblScoreConditionGradeTypeList->getTblGradeType()->getName();
+                            }
+
+                            $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Bedingungen: ' . implode(', ', $list);
+                        }
+
+                        $tblScoreConditionGroupListByCondition = Gradebook::useService()->getScoreConditionGroupListByCondition(
+                            $tblScoreCondition->getTblScoreCondition()
+                        );
+                        if ($tblScoreConditionGroupListByCondition){
+                            foreach($tblScoreConditionGroupListByCondition as $tblScoreConditionGroupList){
+                                $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Zensuren-Gruppe: '
+                                    . $tblScoreConditionGroupList->getTblScoreGroup()->getName()
+                                    . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
+                                    . $tblScoreConditionGroupList->getTblScoreGroup()->getMultiplier();
+
+                                $tblGradeTypeList = Gradebook::useService()->getScoreGroupGradeTypeListByGroup(
+                                    $tblScoreConditionGroupList->getTblScoreGroup()
+                                );
+                                if ($tblGradeTypeList){
+                                    foreach ($tblGradeTypeList as $tblGradeType){
+                                        $structure[] = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9702;&nbsp;&nbsp;'
+                                            . 'Zensuren-Typ: ' . $tblGradeType->getTblGradeType()->getName()
+                                            . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
+                                            . $tblGradeType->getMultiplier();
+                                    }
+                                }
+                            }
+                        }
+                        $structure[] = ' ';
+                    }
+                }
+
+                if (empty($structure)) {
+                    $tblScoreRule->Structure = '';
+                } else {
+                    $tblScoreRule->Structure = implode('<br>', $structure);
+                }
+
                 $tblScoreRule->Option =
                     (new Standard('', '/Education/Graduation/Gradebook/Score/Edit', new Edit(),
                         array('Id' => $tblScoreRule->getId()), 'Bearbeiten')) .
@@ -1106,8 +1154,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new TableData($tblScoreRuleAll, null, array(
                                 'Name' => 'Name',
-                                'Description' => 'Beschreibung',
-                                'ScoreConditions' => 'Berechnungsvarianten',
+                                'Structure' => '',
                                 'Option' => '',
                             ))
                         ))
