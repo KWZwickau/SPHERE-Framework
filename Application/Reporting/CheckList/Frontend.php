@@ -734,7 +734,8 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Check-Listen', 'Ein Object einer Check-Liste hinzufügen');
 
         if ($ListId === null || $ObjectId === null || $ObjectTypeId === null) {
-            return $Stage;
+            return $Stage . new Danger(new Ban() . ' Daten nicht abrufbar.')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
         }
 
         $tblList = CheckList::useService()->getListById($ListId);
@@ -937,6 +938,16 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Check-Listen', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft()));
 
+        if (!$Id) {
+            return $Stage . new Danger(new Ban() . ' Liste nicht gefunden')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
+        $tblList = CheckList::useService()->getListById($Id);
+        if (!$tblList) {
+            return $Stage . new Danger(new Ban() . ' Liste nicht gefunden')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
+
         $columnDefinition = array(
             'Name' => 'Name',
         );
@@ -1009,7 +1020,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblList = CheckList::useService()->getListById($Id);
         if ($tblList) {
 
             // set Header
@@ -1224,11 +1234,11 @@ class Frontend extends Extension implements IFrontendInterface
             $form = $this->formCheckListFilter(array())->appendFormButton(new Primary('Filtern', new Filter()));
         }
 
-        if ($filterSchoolOption1 &&  $filterSchoolOption2){
+        if ($filterSchoolOption1 && $filterSchoolOption2) {
             $filterSchoolOptionText = $filterSchoolOption1->getName() . ', ' . $filterSchoolOption2->getName();
-        } elseif ($filterSchoolOption1){
+        } elseif ($filterSchoolOption1) {
             $filterSchoolOptionText = $filterSchoolOption1->getName();
-        } elseif ($filterSchoolOption2){
+        } elseif ($filterSchoolOption2) {
             $filterSchoolOptionText = $filterSchoolOption2->getName();
         } else {
             $filterSchoolOptionText = '';

@@ -368,7 +368,18 @@ class Service extends AbstractService
     public function removeElementFromList($Id = null)
     {
 
+        $Stage = new Stage('Check-Listen', 'Ein Element von einer Check-Liste entfernen');
+
+        if (!$Id) {
+            return $Stage . new Danger(new Ban() . ' Element nicht gefunden')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
         $tblListElementList = $this->getListElementListById($Id);
+        if (!$tblListElementList) {
+            return $Stage . new  Danger(new Ban() . ' Element nicht gefunden')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
+
         $tblList = $tblListElementList->getTblList();
         $Stage = new Stage('Check-Listen', 'Element entfernen');
         if ((new Data($this->getBinding()))->removeElementFromList($tblListElementList)) {
@@ -443,7 +454,17 @@ class Service extends AbstractService
     {
 
         $Stage = new Stage('Check-Listen', 'Ein Object von einer Check-Liste entfernen');
+
+        if (!$Id) {
+            return $Stage . new Danger(new Ban() . ' Objekt nicht gefunden')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
         $tblListObjectList = $this->getListObjectListById($Id);
+        if (!$tblListObjectList) {
+            return $Stage . new Danger(new Ban() . ' Objekt nicht gefunden')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
+
         $tblList = $tblListObjectList->getTblList();
         $tblObjectType = $tblListObjectList->getTblObjectType();
         if ((new Data($this->getBinding()))->removeObjectFromList($tblListObjectList)) {
