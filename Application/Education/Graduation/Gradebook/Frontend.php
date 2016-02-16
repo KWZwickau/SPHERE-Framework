@@ -970,7 +970,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                     $tblTestType,
                                                     $tblScoreRuleDivisionSubject->getTblScoreRule(),
                                                     null,
-                                                    null
+                                                    null,
+                                                    true
                                                 );
 
                                                 if (is_array($totalAverage)) {
@@ -1003,18 +1004,27 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $subColumnList = array();
                                                 if ($tblGradeList) {
                                                     foreach ($tblGradeList as $tblGrade) {
-                                                        $gradeValue = $tblGrade->getGrade();
-                                                        if ($gradeValue) {
-                                                            $trend = $tblGrade->getTrend();
-                                                            if (TblGrade::VALUE_TREND_PLUS === $trend) {
-                                                                $gradeValue .= '+';
-                                                            } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
-                                                                $gradeValue .= '-';
+                                                        $tblTest = $tblGrade->getServiceTblTest();
+                                                        if ($tblTest) {
+                                                            if ($tblTest->getReturnDate()) {
+                                                                $testDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");
+                                                                $now = (new \DateTime('now'))->format("Y-m-d");
+                                                                if ($testDate <= $now) {
+                                                                    $gradeValue = $tblGrade->getGrade();
+                                                                    if ($gradeValue) {
+                                                                        $trend = $tblGrade->getTrend();
+                                                                        if (TblGrade::VALUE_TREND_PLUS === $trend) {
+                                                                            $gradeValue .= '+';
+                                                                        } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
+                                                                            $gradeValue .= '-';
+                                                                        }
+                                                                    }
+                                                                    if ($tblGrade->getGrade()) {
+                                                                        $subColumnList[] = new LayoutColumn($tblGrade->getGrade() ? $gradeValue : ' ',
+                                                                            1);
+                                                                    }
+                                                                }
                                                             }
-                                                        }
-                                                        if ($tblGrade->getGrade()) {
-                                                            $subColumnList[] = new LayoutColumn($tblGrade->getGrade() ? $gradeValue : ' ',
-                                                                1);
                                                         }
                                                     }
                                                 }
@@ -1035,7 +1045,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                             $tblTestType,
                                                             $tblScoreRuleDivisionSubject->getTblScoreRule(),
                                                             $tblPeriod,
-                                                            null
+                                                            null,
+                                                            true
                                                         );
                                                         if (is_array($average)) {
                                                             $average = '';
@@ -1046,7 +1057,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                             }
                                                         }
 
-                                                        if ( $average != '') {
+                                                        if ($average != '') {
                                                             $subColumnList[] = new LayoutColumn(new Container(new Bold('&#216;' . $average)),
                                                                 1);
                                                         }
@@ -1079,7 +1090,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                             $tblTestType,
                                                             $tblScoreRuleDivisionSubject->getTblScoreRule(),
                                                             null,
-                                                            null
+                                                            null,
+                                                            true
                                                         );
 
                                                         if (is_array($totalAverage)) {
@@ -1111,18 +1123,27 @@ class Frontend extends Extension implements IFrontendInterface
                                                         $subColumnList = array();
                                                         if ($tblGradeList) {
                                                             foreach ($tblGradeList as $tblGrade) {
-                                                                $gradeValue = $tblGrade->getGrade();
-                                                                if ($gradeValue) {
-                                                                    $trend = $tblGrade->getTrend();
-                                                                    if (TblGrade::VALUE_TREND_PLUS === $trend) {
-                                                                        $gradeValue .= '+';
-                                                                    } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
-                                                                        $gradeValue .= '-';
+                                                                $tblTest = $tblGrade->getServiceTblTest();
+                                                                if ($tblTest) {
+                                                                    if ($tblTest->getReturnDate()) {
+                                                                        $testDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");
+                                                                        $now = (new \DateTime('now'))->format("Y-m-d");
+                                                                        if ($testDate <= $now) {
+                                                                            $gradeValue = $tblGrade->getGrade();
+                                                                            if ($gradeValue) {
+                                                                                $trend = $tblGrade->getTrend();
+                                                                                if (TblGrade::VALUE_TREND_PLUS === $trend) {
+                                                                                    $gradeValue .= '+';
+                                                                                } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
+                                                                                    $gradeValue .= '-';
+                                                                                }
+                                                                            }
+                                                                            if ($tblGrade->getGrade()) {
+                                                                                $subColumnList[] = new LayoutColumn($tblGrade->getGrade() ? $gradeValue : ' ',
+                                                                                    1);
+                                                                            }
+                                                                        }
                                                                     }
-                                                                }
-                                                                if ($tblGrade->getGrade()) {
-                                                                    $subColumnList[] = new LayoutColumn($tblGrade->getGrade() ? $gradeValue : ' ',
-                                                                        1);
                                                                 }
                                                             }
                                                         }
@@ -1143,7 +1164,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                                     $tblTestType,
                                                                     $tblScoreRuleDivisionSubject->getTblScoreRule(),
                                                                     $tblPeriod,
-                                                                    null
+                                                                    null,
+                                                                    true
                                                                 );
                                                                 if (is_array($average)) {
                                                                     $average = '';
@@ -1154,7 +1176,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                                     }
                                                                 }
 
-                                                                if ( $average != '') {
+                                                                if ($average != '') {
                                                                     $subColumnList[] = new LayoutColumn(new Container(new Bold('&#216;' . $average)),
                                                                         1);
                                                                 }
