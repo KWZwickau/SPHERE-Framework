@@ -6,6 +6,7 @@ use MOC\V\Component\Template\Template;
 use MOC\V\Core\HttpKernel\HttpKernel;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\HandlerInterface;
+use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Config\ConfigFactory;
 use SPHERE\System\Config\Reader\IniReader;
 use SPHERE\System\Config\Reader\ReaderInterface;
@@ -137,8 +138,15 @@ class Extension
      */
     public function getTemplate($Location)
     {
-
-        return Template::getTemplate($Location);
+        $Key = md5($Location);
+        $Cache = $this->getCache( new MemoryHandler() );
+        if( !($Template = $Cache->getValue( $Key, __METHOD__ )) ) {
+            $Template = Template::getTemplate($Location);
+            $Cache->setValue( $Key, $Template, 0, __METHOD__ );
+            return clone $Template;
+        } else {
+            return clone $Template;
+        }
     }
 
     /**

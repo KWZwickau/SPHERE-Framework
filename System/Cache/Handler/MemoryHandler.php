@@ -5,6 +5,7 @@ use SPHERE\System\Cache\CacheStatus;
 use SPHERE\System\Config\Reader\ReaderInterface;
 use SPHERE\System\Debugger\DebuggerFactory;
 use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Debugger\Logger\ErrorLogger;
 
 /**
  * Class MemoryHandler
@@ -47,6 +48,11 @@ class MemoryHandler extends AbstractHandler implements HandlerInterface
         if (false !== $Container) {
             self::$HitCount++;
             return $Container->getValue();
+        } else {
+            (new DebuggerFactory())->createLogger(new ErrorLogger())
+                ->addLog(__METHOD__.' Error: '
+                    .$Region.'->'.$Key
+                );
         }
         self::$MissCount++;
         return null;
