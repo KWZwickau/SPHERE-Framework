@@ -75,7 +75,7 @@ class Service extends Extension
             try {
                 /** @var EdenPhpSmtp $Mail */
                 $Mail = Mail::getSmtpMail()->connectServer(
-                    'sslout.de', 'helpdesk@kreda.schule', '20!Kreide!15', 465, true
+                    'mail.ims-firmen.de', 'kreda.schule1', '20!Kreide!15', 465, true
                 );
                 $Mail->setMailSubject(utf8_decode($Ticket['Subject']).' - Account: '.Account::useService()->getAccountBySession()->getId().' ('.$Ticket['Mail'].')');
                 $Mail->setMailBody($Ticket['Body']);
