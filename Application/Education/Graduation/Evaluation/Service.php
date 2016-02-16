@@ -14,6 +14,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTestType;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Setup;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblSubjectGroup;
@@ -230,7 +231,7 @@ class Service extends AbstractService
         );
 
         return new Success('Test erfolgreich geändert.', new \SPHERE\Common\Frontend\Icon\Repository\Success()) .
-            new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_SUCCESS,
+        new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_SUCCESS,
             array('DivisionSubjectId' => $tblDivisionSubject->getId()));
     }
 
@@ -283,9 +284,11 @@ class Service extends AbstractService
             $tblTestType = $this->getTestTypeById($Task['Type']);
             $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
             (new Data($this->getBinding()))->createTask(
-                $tblTestType, $Task['Name'], $Task['Date'], $Task['FromDate'], $Task['ToDate'], $tblPeriod ? $tblPeriod : null
+                $tblTestType, $Task['Name'], $Task['Date'], $Task['FromDate'], $Task['ToDate'],
+                $tblPeriod ? $tblPeriod : null
             );
-            $Stage .= new Success('Notenauftrag erfolgreich angelegt', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+            $Stage .= new Success('Notenauftrag erfolgreich angelegt',
+                    new \SPHERE\Common\Frontend\Icon\Repository\Success())
                 . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_SUCCESS);
         }
 
@@ -332,7 +335,8 @@ class Service extends AbstractService
             $tblPeriod ? $tblPeriod : null
         );
 
-        $Stage .= new Success('Notenauftrag erfolgreich geändert', new \SPHERE\Common\Frontend\Icon\Repository\Success())
+        $Stage .= new Success('Notenauftrag erfolgreich geändert',
+                new \SPHERE\Common\Frontend\Icon\Repository\Success())
             . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_SUCCESS);
 
         return $Stage;
@@ -437,8 +441,58 @@ class Service extends AbstractService
         }
     }
 
+    public function addBehaviorGradeTypeToDivisionAndTask(
+        TblTask $tblTask,
+        TblDivision $tblDivision,
+        TblGradeType $tblGradeType
+    ) {
+
+        $tblDivisionSubjectAll = Division::useService()->getDivisionSubjectByDivision(
+            $tblDivision
+        );
+
+        if ($tblDivisionSubjectAll) {
+            foreach ($tblDivisionSubjectAll as $tblDivisionSubject) {
+                $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR');
+                $tblGradeTypeAllWhereBehavior = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
+                if ($tblGradeTypeAllWhereBehavior) {
+                    if ($tblDivisionSubject->getTblSubjectGroup()) {
+                        (new Data($this->getBinding()))->createTest(
+                            $tblDivision,
+                            $tblDivisionSubject->getServiceTblSubject(),
+                            $tblDivisionSubject->getTblSubjectGroup(),
+                            null,
+                            $tblGradeType,
+                            $tblTask->getTblTestType(),
+                            $tblTask,
+                            '',
+                            $tblTask->getDate()
+                        );
+                    } else {
+                        if (!Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                            $tblDivision, $tblDivisionSubject->getServiceTblSubject()
+                        )
+                        ) {
+                            (new Data($this->getBinding()))->createTest(
+                                $tblDivision,
+                                $tblDivisionSubject->getServiceTblSubject(),
+                                null,
+                                null,
+                                $tblGradeType,
+                                $tblTask->getTblTestType(),
+                                $tblTask,
+                                '',
+                                $tblTask->getDate()
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /**
-     * @param TblTask     $tblTask
+     * @param TblTask $tblTask
      * @param TblDivision $tblDivision
      */
     public function removeDivisionFromTask(
