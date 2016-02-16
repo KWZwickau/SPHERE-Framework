@@ -37,7 +37,11 @@ abstract class Cacheable extends Extension
     final protected function getCachedEntityById($__METHOD__, Manager $EntityManager, $EntityName, $Id)
     {
 
-        $Key = $this->getKeyHash($EntityName, $Id);
+        // Only if NOT REMOVED
+        $Parameter['EntityRemove'] = null;
+        $Parameter['Id'] = $Id;
+
+        $Key = $this->getKeyHash($EntityName, $Parameter);
 
         $Memory = (new CacheFactory())->createHandler(new MemoryHandler());
         if (!$this->Enabled || null === ( $Entity = $Memory->getValue($Key, $__METHOD__) )) {
@@ -45,14 +49,14 @@ abstract class Cacheable extends Extension
             $Cache = self::getCacheSystem($__METHOD__);
             $Entity = null;
             if (!$this->Enabled || null === ( $Entity = $Cache->getValue($Key, $__METHOD__) )) {
-                $Entity = $EntityManager->getEntityById($EntityName, $Id);
+                $Entity = $EntityManager->getEntity($EntityName)->findOneBy($Parameter);
                 if (null === $Entity) {
                     $Entity = false;
                 }
                 $Cache->setValue($Key, $Entity, 0, $__METHOD__);
-                $this->debugFactory($__METHOD__, $Entity, $Id);
+                $this->debugFactory($__METHOD__, $Entity, $Parameter);
             } else {
-                $this->debugCache($__METHOD__, $Entity, $Id);
+                $this->debugCache($__METHOD__, $Entity, $Parameter);
             }
             $Memory->setValue($Key, $Entity, 0, $__METHOD__);
             return ( null === $Entity || false === $Entity ? false : $Entity );
@@ -170,6 +174,8 @@ abstract class Cacheable extends Extension
     final protected function getCachedEntityBy($__METHOD__, Manager $EntityManager, $EntityName, $Parameter)
     {
 
+        // Only if NOT REMOVED
+        $Parameter['EntityRemove'] = null;
         $Key = $this->getKeyHash($EntityName, $Parameter);
 
         $Memory = (new CacheFactory())->createHandler(new MemoryHandler());
@@ -206,6 +212,8 @@ abstract class Cacheable extends Extension
     final protected function getCachedEntityListBy($__METHOD__, Manager $EntityManager, $EntityName, $Parameter)
     {
 
+        // Only if NOT REMOVED
+        $Parameter['EntityRemove'] = null;
         $Key = $this->getKeyHash($EntityName, $Parameter);
 
         $Memory = (new CacheFactory())->createHandler(new MemoryHandler());
@@ -246,7 +254,9 @@ abstract class Cacheable extends Extension
             $Cache = self::getCacheSystem($__METHOD__);
             $EntityList = null;
             if (!$this->Enabled || null === ( $EntityList = $Cache->getValue($Key, $__METHOD__) )) {
-                $EntityList = $EntityManager->getEntity($EntityName)->findAll();
+                // Only if NOT REMOVED
+                $Parameter['EntityRemove'] = null;
+                $EntityList = $EntityManager->getEntity($EntityName)->findBy($Parameter);
                 $Cache->setValue($Key, $EntityList, 0, $__METHOD__);
                 $this->debugFactory($__METHOD__, $EntityList, 'All');
             } else {
@@ -271,6 +281,8 @@ abstract class Cacheable extends Extension
     final protected function getCachedCountBy($__METHOD__, Manager $EntityManager, $EntityName, $Parameter)
     {
 
+        // Only if NOT REMOVED
+        $Parameter['EntityRemove'] = null;
         $Key = $this->getKeyHash($EntityName, $Parameter);
 
         $Memory = (new CacheFactory())->createHandler(new MemoryHandler());

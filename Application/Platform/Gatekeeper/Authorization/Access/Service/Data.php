@@ -518,9 +518,9 @@ class Data extends AbstractData
     public function getLevelByName($Name)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblLevel')
-            ->findOneBy(array(TblLevel::ATTR_NAME => $Name));
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityBy( __METHOD__,$this->getConnection()->getEntityManager(), 'TblLevel',array(
+            TblLevel::ATTR_NAME => $Name
+        ));
     }
 
     /**
@@ -542,9 +542,9 @@ class Data extends AbstractData
     public function getPrivilegeByName($Name)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblPrivilege')
-            ->findOneBy(array(TblPrivilege::ATTR_NAME => $Name));
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityBy( __METHOD__,$this->getConnection()->getEntityManager(), 'TblPrivilege',array(
+            TblPrivilege::ATTR_NAME => $Name
+        ));
     }
 
     /**
@@ -555,9 +555,8 @@ class Data extends AbstractData
      */
     public function getPrivilegeAllByLevel(TblLevel $tblLevel)
     {
-
         /** @var TblLevelPrivilege[] $EntityList */
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblLevelPrivilege')->findBy(array(
+        $EntityList = $this->getCachedEntityListBy( __METHOD__,$this->getConnection()->getEntityManager(), 'TblLevelPrivilege',array(
             TblLevelPrivilege::ATTR_TBL_LEVEL => $tblLevel->getId()
         ));
         array_walk($EntityList, function (TblLevelPrivilege &$V) {
@@ -577,7 +576,7 @@ class Data extends AbstractData
     {
 
         /** @var TblPrivilegeRight[] $EntityList */
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblPrivilegeRight')->findBy(array(
+        $EntityList = $this->getCachedEntityListBy( __METHOD__,$this->getConnection()->getEntityManager(), 'TblPrivilegeRight',array(
             TblPrivilegeRight::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId()
         ));
         array_walk($EntityList, function (TblPrivilegeRight &$V) {
@@ -624,9 +623,9 @@ class Data extends AbstractData
     public function getRoleByName($Name)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblRole')
-            ->findOneBy(array(TblRole::ATTR_NAME => $Name));
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityBy( __METHOD__,$this->getConnection()->getEntityManager(), 'TblRole',array(
+            TblRole::ATTR_NAME => $Name
+        ));
     }
 
     /**

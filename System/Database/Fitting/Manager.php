@@ -76,7 +76,7 @@ class Manager extends Extension
     }
 
     /**
-     * @param $Entity
+     * @param Element $Entity
      *
      * @return EntityManager
      */
@@ -85,6 +85,18 @@ class Manager extends Extension
 
         $this->EntityManager->remove($Entity);
         $this->flushCache(get_class($Entity));
+        return $this;
+    }
+
+    /**
+     * @param Element $Entity
+     *
+     * @return EntityManager
+     */
+    final public function removeEntity($Entity)
+    {
+        $Entity->setEntityRemove(true);
+        $this->saveEntity( $Entity );
         return $this;
     }
 
