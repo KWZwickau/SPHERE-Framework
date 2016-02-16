@@ -38,6 +38,10 @@ abstract class Element extends Extension
      * @Column(type="datetime")
      */
     protected $EntityUpdate;
+    /**
+     * @Column(type="datetime")
+     */
+    protected $EntityRemove;
 
     /**
      * @PrePersist
@@ -94,6 +98,31 @@ abstract class Element extends Extension
     {
 
         return $this->EntityUpdate;
+    }
+
+    /**
+     * @return null|\DateTime
+     */
+    public function getEntityRemove()
+    {
+
+        return $this->EntityRemove;
+    }
+
+    /**
+     * @param bool $Toggle
+     *
+     * @return Element
+     */
+    public function setEntityRemove($Toggle = true)
+    {
+
+        if( $Toggle ) {
+            $this->EntityRemove = new \DateTime("now");
+        } else {
+            $this->EntityRemove = null;
+        }
+        return $this;
     }
 
     /**
