@@ -49,7 +49,7 @@ class Sprint
     public function getIssues()
     {
 
-        Utility::orderIssuesBy($this->Issues, 'getPriority() ASC, getState() DESC, getSubsystem() ASC');
+        Utility::orderIssuesBy($this->Issues, 'getPriority() ASC, getSubsystem() ASC, getState() DESC');
         return $this->Issues;
     }
 

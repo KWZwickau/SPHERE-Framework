@@ -6,7 +6,7 @@ use SPHERE\System\Cache\Handler\MemcachedHandler;
 class Parser extends Connection
 {
 
-    private $YoutrackFilter = 'Beheben in: 1.* Typ: Feature,Bug,Aufgabe Teilsystem: {10*},{03*},{2*} Status: Erfasst,Offen,{In Bearbeitung},Behoben';
+    private $YoutrackFilter = 'Beheben in: 1.* Typ: Feature,Bug,Aufgabe Teilsystem: {10*},{03*},{2*} Status: Erfasst,Offen,{In Bearbeitung},Behoben,{Zu besprechen}';
     /** @var bool $Authenticated */
     private $Authenticated = false;
 
@@ -101,10 +101,7 @@ class Parser extends Connection
             curl_setopt($CurlHandler, CURLOPT_RETURNTRANSFER, 1);
             $Response = curl_exec($CurlHandler);
             curl_close($CurlHandler);
-            $Cache->setValue($Key, $Response, ( 60 * 60 * 2 ), __METHOD__);
-//            $this->getDebugger()->screenDump('GET API '.$Url);
-        } else {
-//            $this->getDebugger()->screenDump('CACHED API '.$Url);
+            $Cache->setValue($Key, $Response, ( 60 * 60 * 24 ), __METHOD__);
         }
         return $Response;
     }
