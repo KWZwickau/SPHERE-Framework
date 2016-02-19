@@ -558,4 +558,54 @@ class Data extends AbstractData
         }
         return $Entity;
     }
+
+    /**
+     * @param TblList $tblList
+     *
+     * @return bool
+     */
+    public function destroyList(TblList $tblList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $EntityItems = $Manager->getEntity('TblListObjectElementList')
+            ->findBy(array(TblListObjectElementList::ATTR_TBL_LIST => $tblList->getId()));
+        if (null !== $EntityItems) {
+            foreach ($EntityItems as $Entity) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+                $Manager->killEntity($Entity);
+            }
+        }
+
+        $EntityItems = $Manager->getEntity('TblListElementList')
+            ->findBy(array(TblListElementList::ATTR_TBL_LIST => $tblList->getId()));
+        if (null !== $EntityItems) {
+            foreach ($EntityItems as $Entity) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+                $Manager->killEntity($Entity);
+            }
+        }
+
+        $EntityItems = $Manager->getEntity('TblListObjectList')
+            ->findBy(array(TblListObjectList::ATTR_TBL_LIST => $tblList->getId()));
+        if (null !== $EntityItems) {
+            foreach ($EntityItems as $Entity) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+                $Manager->killEntity($Entity);
+            }
+        }
+
+        /** @var TblList $Entity */
+        $Entity = $Manager->getEntityById('TblList', $tblList->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
 }

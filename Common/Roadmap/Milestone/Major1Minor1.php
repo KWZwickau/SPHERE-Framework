@@ -56,5 +56,12 @@ class Major1Minor1
         $Category = $Release->createCategory('Firmenverwaltung');
         $Category->createFeature('Firma löschen');
 
+        // Auswertung
+        $Category = $Release->createCategory('Auswertung');
+        $Feature = $Category->createFeature('Check-Listen');
+        $Feature->createTask('Erweiterung Check-Listen')
+            ->createDuty('Check-Listen bearbeiten (Name, Beschreibung)', true)
+            ->createDuty('Check-Listen lösen', true);
+
     }
 }
