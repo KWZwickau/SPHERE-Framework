@@ -5,6 +5,7 @@ use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\Platform\Assistance\Assistance;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Gatekeeper;
+use SPHERE\Application\Platform\Roadmap\Roadmap;
 use SPHERE\Application\Platform\System\System;
 use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
@@ -48,6 +49,7 @@ class Platform implements IClusterInterface
         System::registerApplication();
         Gatekeeper::registerApplication();
         Assistance::registerApplication();
+        Roadmap::registerApplication();
         /**
          * Register Navigation
          */
