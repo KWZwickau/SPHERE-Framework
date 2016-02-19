@@ -758,7 +758,9 @@ class Service extends AbstractService
      * @param TblScoreRule $tblScoreRule
      * @param TblPeriod|null $tblPeriod
      * @param TblSubjectGroup|null $tblSubjectGroup
-     * @return bool|float|string|array
+     * @param bool $isStudentView
+     *
+     * @return array|bool|float|string
      */
     public function calcStudentGrade(
         TblPerson $tblPerson,
@@ -767,12 +769,32 @@ class Service extends AbstractService
         TblTestType $tblTestType,
         TblScoreRule $tblScoreRule = null,
         TblPeriod $tblPeriod = null,
-        TblSubjectGroup $tblSubjectGroup = null
+        TblSubjectGroup $tblSubjectGroup = null,
+        $isStudentView = false
     ) {
 
         $tblGradeList = $this->getGradesByStudent(
             $tblPerson, $tblDivision, $tblSubject, $tblTestType, $tblPeriod, $tblSubjectGroup
         );
+
+        // filter by Test Return for StudentView
+        if ($isStudentView && $tblGradeList ){
+            $filteredGradeList = array();
+            foreach($tblGradeList as $tblGrade){
+                $tblTest = $tblGrade->getServiceTblTest();
+                if ($tblTest) {
+                    if ($tblTest->getReturnDate()) {
+                        $testDate = (new \DateTime($tblTest->getReturnDate()))->format("Y-m-d");
+                        $now = (new \DateTime('now'))->format("Y-m-d");
+                        if ($testDate <= $now) {
+                            $filteredGradeList[$tblGrade->getId()] = $tblGrade;
+                        }
+                    }
+                }
+            }
+
+            $tblGradeList = empty($filteredGradeList) ? false : $filteredGradeList;
+        }
 
         if ($tblGradeList) {
             $result = array();

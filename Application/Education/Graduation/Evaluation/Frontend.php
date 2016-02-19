@@ -1534,13 +1534,53 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblDivisionAvailableList = false;
             }
 
+            $gradeTypeColumnList = array();
+            if ($tblTask->getTblTestType()->getIdentifier() == 'BEHAVIOR_TASK') {
+                $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType(
+                    Evaluation::useService()->getTestTypeByIdentifier('BEHAVIOR')
+                );
+                if ($tblGradeTypeList) {
+                    foreach ($tblGradeTypeList as $tblGradeType) {
+                        $gradeTypeColumnList[] = new FormColumn(
+                            new CheckBox('GradeType[' . $tblGradeType->getId() . ']', $tblGradeType->getName(), 1), 6
+                        );
+                    }
+                    $gradeTypeColumnList[] = new FormColumn(
+                        new Primary(
+                            'Hinzufügen', new Plus()
+                        )
+                    );
+                }
+            }
+
             if ($tblDivisionAvailableList) {
                 /** @var TblDivision $tblDivision */
                 foreach ($tblDivisionAvailableList as $tblDivision) {
                     $tblDivision->DisplayName = $tblDivision->getDisplayName();
-                    $tblDivision->Option2 = new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
-                        '/Education/Graduation/Evaluation/Headmaster/Task/Division/Add', new Plus(),
-                        array('TaskId' => $tblTask->getId(), 'DivisionId' => $tblDivision->getId()));
+                    if ($tblTask->getTblTestType()->getIdentifier() == 'APPOINTED_DATE_TASK') {
+                        $tblDivision->Option2 = new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen',
+                            '/Education/Graduation/Evaluation/Headmaster/Task/Division/Add', new Plus(),
+                            array('TaskId' => $tblTask->getId(), 'DivisionId' => $tblDivision->getId()));
+                    } else {
+                        if (!empty($gradeTypeColumnList)) {
+                            $tblDivision->Option2 =
+                                new Form(
+                                    new FormGroup(
+                                        new FormRow(
+                                            $gradeTypeColumnList
+                                        )
+                                    ),
+                                    null,
+                                    '/Education/Graduation/Evaluation/Headmaster/Task/Division/Add',
+                                    array(
+                                        'TaskId' => $tblTask->getId(),
+                                        'DivisionId' => $tblDivision->getId()
+                                    )
+                                );
+                        } else {
+                            $tblDivision->Option2 = '';
+                        }
+                    }
                 }
             }
 
@@ -1614,10 +1654,11 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $TaskId
      * @param null $DivisionId
+     * @param null $GradeType
      *
      * @return Stage
      */
-    public function frontendHeadmasterTaskAddDivision($TaskId = null, $DivisionId = null)
+    public function frontendHeadmasterTaskAddDivision($TaskId = null, $DivisionId = null, $GradeType = null)
     {
 
         $Stage = new Stage('Notenauftrag', 'Klasse hinzufügen');
@@ -1627,7 +1668,20 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblTask && $tblDivision) {
 
-            Evaluation::useService()->addDivisionToTask($tblTask, $tblDivision);
+            if ($tblTask->getTblTestType()->getIdentifier() == 'APPOINTED_DATE_TASK') {
+                Evaluation::useService()->addDivisionToTask($tblTask, $tblDivision);
+            } else {
+                if ($GradeType !== null) {
+                    foreach ($GradeType as $gradeTypeId => $value) {
+                        $tblGradeType = Gradebook::useService()->getGradeTypeById($gradeTypeId);
+                        if ($tblGradeType) {
+                            Evaluation::useService()->addBehaviorGradeTypeToDivisionAndTask(
+                                $tblTask, $tblDivision, $tblGradeType
+                            );
+                        }
+                    }
+                }
+            }
 
             $Stage->setContent(
                 new Layout(array(
