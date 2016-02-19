@@ -101,7 +101,7 @@ class Parser extends Connection
             curl_setopt($CurlHandler, CURLOPT_RETURNTRANSFER, 1);
             $Response = curl_exec($CurlHandler);
             curl_close($CurlHandler);
-            $Cache->setValue($Key, $Response, ( 60 * 60 * 24 ), __METHOD__);
+            $Cache->setValue($Key, $Response, ( 60 * 30 * 1 ), __METHOD__);
         }
         return $Response;
     }

@@ -9,7 +9,6 @@ use SPHERE\Application\Platform\Roadmap\Youtrack\Issue;
 use SPHERE\Application\Platform\Roadmap\Youtrack\Parser;
 use SPHERE\Application\Platform\Roadmap\Youtrack\Sprint;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Badge;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
@@ -17,7 +16,6 @@ use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -31,9 +29,8 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Extension;
 
-class Roadmap extends Extension implements IApplicationInterface, IModuleInterface
+class Roadmap implements IApplicationInterface, IModuleInterface
 {
 
     public static function registerApplication()
@@ -74,21 +71,23 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('KREDA', 'Roadmap');
-
-        $Parser = new Parser(
-            new Credentials(),
-            'Typ: Feature,Bug,Aufgabe Teilsystem: {10*},{2*} Status: Erfasst,Offen,{In Bearbeitung},Behoben,{Zu besprechen}'
-        );
+        $Stage = new Stage('KREDA Roadmap');
 
         try {
-            $Map = $Parser->getMap();
+            $Map = $this->getRoadmap();
         } catch (\Exception $Exception) {
             $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(
                 new LayoutColumn(new Warning('Roadmap konnte nicht abgerufen werden'))
             ))));
             return $Stage;
         }
+
+        $Stage->setMessage(
+            'Aktuelle Versionen: <br/>'.
+            new Label('Preview: '.$Map->getVersionPreview(), Label::LABEL_TYPE_WARNING)
+            .' '.
+            new Label('Release: '.$Map->getVersionRelease(), Label::LABEL_TYPE_PRIMARY)
+        );
 
         $Sprints = $Map->getSprints();
 
@@ -115,7 +114,7 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
 
         $SubsystemColor = array(
             '0' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning',
-            '1' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning',
+            '1' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Info',
             '2' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Info'
         );
 
@@ -132,37 +131,23 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
                 $ColumnList = array();
                 if ($Issue->getState() == 'Behoben') {
 
-                    $Description = explode("\n", $Issue->getDescription());
-                    array_walk( $Description, function(&$Line){
-                        if( empty( $Line ) ) {
-                            $Line = false;
-                        }
-                        if( strpos( $Line, '@' ) === 0 ) {
-                            $Line = false;
-                        }
-                    } );
-                    $Description = array_filter( $Description );
+                    $Description = $this->sanitizeDescription($Issue->getDescription());
+                    $Title = $this->sanitizeTitle($Issue->getTitle());
 
                     $ColumnList[] = new LayoutColumn(
                         new Panel(new Label($Issue->getId())
 
-                    .( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)] )
-                        ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]($Issue->getSubsystem())
-                        : $Issue->getSubsystem()
-                    )
-                    .( isset( $TypeColor[$Issue->getType()] )
-                        ? new $TypeColor[$Issue->getType()]($Issue->getType())
-                        : $Issue->getType()
-                    )
-
-
-                            .'&nbsp;&nbsp;&nbsp;'.$Issue->getTitle(), new Small(
-                                nl2br(trim(implode("\n",
-                                    array_slice($Description, 0, 3)
-                                )))
-                                .' '.( count( $Description ) > 3 ? '[...]' : '')
+                            .( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)] )
+                                ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]($Issue->getSubsystem())
+                                : $Issue->getSubsystem()
                             )
-                            , Panel::PANEL_TYPE_SUCCESS
+                            .( isset( $TypeColor[$Issue->getType()] )
+                                ? new $TypeColor[$Issue->getType()]($Issue->getType())
+                                : $Issue->getType()
+                            )
+
+                            .'&nbsp;&nbsp;&nbsp;'.$Title, new Small(nl2br($Description)),
+                            Panel::PANEL_TYPE_SUCCESS
                         ));
 
                     $ResolvedList = array_merge($ResolvedList, $ColumnList);
@@ -175,11 +160,17 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
                         $ProgressBar = new ProgressBar($Issue->getTimePercent(), 0, 100);
                     }
 
+                    $Title = $this->sanitizeTitle($Issue->getTitle());
+                    $Description = $this->sanitizeDescription($Issue->getDescription());
+
                     $ColumnList[] = new LayoutColumn(array(
-                        new Panel('#'.$Issue->getId().': '.$Issue->getTitle().' '.$ProgressBar,
-                            ( strlen(trim( $Issue->getDescription() )) == 0 ? '' :
-                            new Small(nl2br($Issue->getDescription()))),
+                        new Panel($Title.' '.$ProgressBar,
+                            ( strlen($Description) == 0 ? '' :
+                                new Small(nl2br($Description)) ),
                             Panel::PANEL_TYPE_INFO, new PullClear(
+                                new PullLeft(
+                                    new Label($Issue->getId())
+                                ).
                                 new PullLeft(
                                     ( isset( $PriorityColor[$Issue->getPriority()] )
                                         ? new $PriorityColor[$Issue->getPriority()]($Issue->getPriority())
@@ -225,11 +216,8 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
                 $SprintList = new Layout(new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Success('Keine offenen Aufgaben')
-                            , 4),
-                        new LayoutColumn(
                             new Layout(new LayoutGroup(new LayoutRow($ResolvedList)))
-                            , 8),
+                        ),
                     )),
                 )));
             } else {
@@ -245,27 +233,42 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
                 )));
             }
 
+            if ($SprintComplete) {
+                $VersionHeader = new Success(new PullClear(
+                    new PullLeft('Änderungen in '.$Sprint->getVersion())
+                    .new PullRight(
+                        new Label('Freigabe Demo @ '.date('m / Y',
+                                strtotime($Sprint->getTimestampFinish().' +1 day')),
+                            Label::LABEL_TYPE_WARNING)
+                        .new Label('Freigabe Live @ '.date('m / Y',
+                                strtotime($Sprint->getTimestampFinish().' +2 month')),
+                            Label::LABEL_TYPE_PRIMARY)
+                    )
+                ));
+                $VersionFooter = null;
+            } else {
+                $VersionHeader = new Info(new PullClear(
+                    new PullLeft('Version '.$Sprint->getVersion())
+                    .new PullRight(
+                        new Label('Freigabe Demo @ '.date('m / Y',
+                                strtotime($Sprint->getTimestampFinish().' +1 day')),
+                            Label::LABEL_TYPE_WARNING)
+                        .new Label('Freigabe Live @ '.date('m / Y',
+                                strtotime($Sprint->getTimestampFinish().' +2 month')),
+                            Label::LABEL_TYPE_PRIMARY)
+                    )
+                ));
+                $VersionHeader .= new ProgressBar($this->getDatePercent($Sprint->getTimestampStart(),
+                    $Sprint->getTimestampFinish()), 0, 100);
+                $VersionFooter = new Muted(new Small($Sprint->getTimestampStart().' - '.$Sprint->getTimestampFinish()));
+
+            }
+
             $LayoutColumns[] = new LayoutColumn(
                 new Panel(
-                    new Info(
-                        new PullClear(
-                            new PullLeft(
-                                ( $SprintComplete ? 'Änderungen in ' : 'Version ' ).$Sprint->getVersion()
-                            )
-                            .new PullRight(
-                                new Label('Freigabe Demo @ '.date('m / Y',
-                                        strtotime($Sprint->getTimestampFinish().' +1 day')),
-                                    Label::LABEL_TYPE_WARNING)
-                                .new Label('Freigabe Live @ '.date('m / Y',
-                                        strtotime($Sprint->getTimestampFinish().' +2 month')),
-                                    Label::LABEL_TYPE_PRIMARY)
-                            )
-                        )
-                    )
-                    .new ProgressBar($this->getDatePercent($Sprint->getTimestampStart(),
-                        $Sprint->getTimestampFinish()), 0, 100),
+                    $VersionHeader,
                     (string)$SprintList, ( $SprintComplete ? Panel::PANEL_TYPE_SUCCESS : Panel::PANEL_TYPE_WARNING ),
-                    new Muted(new Small($Sprint->getTimestampStart().' - '.$Sprint->getTimestampFinish()))
+                    $VersionFooter
                 )
             );
         }
@@ -273,6 +276,73 @@ class Roadmap extends Extension implements IApplicationInterface, IModuleInterfa
         $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow($LayoutColumns))));
 
         return $Stage;
+    }
+
+    /**
+     * Get RoadMap-Object
+     *
+     * @return Youtrack\Map
+     * @trows \Exception
+     */
+    public function getRoadmap()
+    {
+
+        $Parser = new Parser(
+            new Credentials(),
+            'Typ: Feature,Bug,Aufgabe Teilsystem: {10*},{2*} Status: Erfasst,Offen,{In Bearbeitung},Behoben,{Zu besprechen}'
+        );
+        return $Parser->getMap();
+    }
+
+    /**
+     * @param $Value
+     *
+     * @return string
+     */
+    private function sanitizeDescription($Value)
+    {
+
+        $Value = explode("\n", $Value);
+        array_walk($Value, function (&$Line) {
+
+            if (empty( $Line )) {
+                $Line = false;
+            }
+            if (strpos($Line, '@') === 0) {
+                $Line = false;
+            }
+            if (strpos($Line, 'Line:') === 0) {
+                $Line = false;
+            }
+            if (strpos($Line, '!') === 0) {
+                $Line = false;
+            }
+        });
+        $Value = array_filter($Value);
+        $Value = preg_replace('!\s+?[\-]+\>!is', ': ', $Value);
+
+        $Result = trim(implode("\n", array_slice($Value, 0, 3)));
+        if (strlen($Result) > 0 && count($Value) > 3) {
+            $Result .= "\n ".new Muted('[...]');
+        }
+        return $Result;
+    }
+
+    /**
+     * @param $Value
+     *
+     * @return string
+     */
+    private function sanitizeTitle($Value)
+    {
+
+        $Value = preg_replace('!Account: [0-9]+!is', '[Support-System Report]', $Value);
+        $Value = preg_replace('!^Error!is', 'Anwendungsfehler', $Value);
+        $Value = preg_replace('!^Shutdown!is', 'Absturz der Anwendung', $Value);
+        $Value = preg_replace('!\bBug\b!is', 'Fehler', $Value);
+        $Value = preg_replace('!\s+?[\-]+\>!is', ': ', $Value);
+        $Value = preg_replace('!\bnull\b!is', 'leer', $Value);
+        return $Value;
     }
 
     /**

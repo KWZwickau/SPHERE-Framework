@@ -15,11 +15,12 @@ class Utility
      * @param Issue[]|Sprint[] $List      the array we want to sort
      * @param string           $Clause    a string specifying how to sort the array similar to SQL ORDER BY clause
      *                                    e.g. 'getPropertyMethod() ASC, getPropertyMethod() DESC'
+     * @param string           $Comparator
      * @param bool             $Ascending that default sorts fall back to when no direction is specified
      *
      * @return null
      */
-    public static function orderIssuesBy(&$List, $Clause, $Ascending = true)
+    public static function orderIssuesBy(&$List, $Clause, $Comparator = '', $Ascending = true)
     {
 
         $Clause = str_ireplace('order by', '', $Clause);

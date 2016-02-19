@@ -35,15 +35,6 @@ class Sprint
     }
 
     /**
-     * @return bool|string
-     */
-    public function getTimestampFinish()
-    {
-
-        return date('d.m.Y', substr((string)current($this->Sprint->xpath('finish')), 0, -3));
-    }
-
-    /**
      * @return Issue[]
      */
     public function getIssues()
@@ -73,4 +64,24 @@ class Sprint
         return (string)current($this->Sprint->xpath('version'));
     }
 
+    /**
+     * @return bool
+     */
+    public function isDone()
+    {
+
+        if (time() >= strtotime($this->getTimestampFinish())) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return bool|string
+     */
+    public function getTimestampFinish()
+    {
+
+        return date('d.m.Y', substr((string)current($this->Sprint->xpath('finish')), 0, -3));
+    }
 }
