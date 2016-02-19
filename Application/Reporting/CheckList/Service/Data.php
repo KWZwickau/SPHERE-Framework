@@ -395,6 +395,35 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblList $tblList
+     * @param $Name
+     * @param $Description
+     * @return bool
+     */
+    public function updateList(
+        TblList $tblList,
+        $Name,
+        $Description
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblList $Entity */
+        $Entity = $Manager->getEntityById('TblList', $tblList->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param TblList        $tblList
      * @param TblElementType $tblElementType
      * @param                $Name

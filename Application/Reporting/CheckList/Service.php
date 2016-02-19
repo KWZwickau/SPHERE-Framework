@@ -326,6 +326,47 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
+     * @param $Id
+     * @param $List
+     * @return IFormInterface|string
+     */
+    public function updateList(IFormInterface $Stage = null, $Id, $List)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $List || null === $Id) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($List['Name']) && empty($List['Name'])) {
+            $Stage->setError('List[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        $tblList = $this->getListById($Id);
+        if (!$tblList) {
+            return new Danger(new Ban() . ' Check-List nicht gefunden')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->updateList(
+                $tblList,
+                $List['Name'],
+                $List['Description']
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Check-List ist erfolgreich gespeichert worden')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
      * @param                     $Id
      * @param                     $Element
      *
