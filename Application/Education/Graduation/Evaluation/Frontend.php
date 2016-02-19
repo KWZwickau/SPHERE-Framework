@@ -830,9 +830,9 @@ class Frontend extends Extension implements IFrontendInterface
                         } else {
                             $trend = $grade->getTrend();
                             if ($trend !== null) {
-                                if ($trend == TblGrade::VALUE_TREND_PLUS){
+                                if ($trend == TblGrade::VALUE_TREND_PLUS) {
                                     $trend = '+';
-                                } elseif ($trend == TblGrade::VALUE_TREND_MINUS){
+                                } elseif ($trend == TblGrade::VALUE_TREND_MINUS) {
                                     $trend = '-';
                                 } else {
                                     $trend = '';
@@ -1851,7 +1851,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $gradeValue .= '-';
             }
 
-            if ($isGradeInRange){
+            if ($isGradeInRange) {
                 $gradeValue = new Success($gradeValue);
             } else {
                 $gradeValue = new \SPHERE\Common\Frontend\Text\Repository\Danger($gradeValue);
@@ -2152,6 +2152,23 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                 }
+
+                // Bug Schüler ist nicht in der Gruppe, wenn nicht alle Schüler in einer Gruppe sind, z.B. bei Ethik
+                if (!empty($studentList)) {
+                    foreach ($studentList as $divisionListId => $students) {
+                        if (is_array($students)) {
+                            foreach ($students as $studentId => $student) {
+                                foreach ($tableHeaderList[$divisionListId] as $key => $value) {
+                                    if (!isset($student[$key]))
+                                    {
+                                        $studentList[$divisionId][$studentId][$key] = "";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
             } else {
 
                 // Kopfnoten
@@ -2234,6 +2251,9 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     );
             }
+
+//            Debugger::screenDump($tableList);
+
             return $tableList;
         }
         return $tableList;
