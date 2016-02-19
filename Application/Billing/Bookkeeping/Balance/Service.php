@@ -2,12 +2,10 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Balance;
 
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Data;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblBalance;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPayment;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Setup;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -35,103 +33,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDebtor $tblDebtor
+     * @param $Id
      *
-     * @return bool|TblPayment[]
+     * @return bool|TblPayment
      */
-    public function checkPaymentFromDebtorExistsByDebtor(TblDebtor $tblDebtor)
+    public function getPaymentById($Id)
     {
 
-        return (new Data($this->getBinding()))->checkPaymentFromDebtorExistsByDebtor($tblDebtor);
-    }
-
-    /**
-     * @param TblInvoice $tblInvoice
-     *
-     * @return bool|TblBalance
-     */
-    public function getBalanceByInvoice(TblInvoice $tblInvoice)
-    {
-
-        return (new Data($this->getBinding()))->getBalanceByInvoice($tblInvoice);
-    }
-
-    /**
-     * @param TblBalance $tblBalance
-     *
-     * @return float
-     */
-    public function sumPriceItemByBalance(TblBalance $tblBalance)
-    {
-
-        return (new Data($this->getBinding()))->sumPriceItemByBalance($tblBalance);
-    }
-
-    /**
-     * @param TblBalance $tblBalance
-     *
-     * @return string
-     */
-    public function sumPriceItemStringByBalance(TblBalance $tblBalance)
-    {
-
-        return (new Data($this->getBinding()))->sumPriceItemStringByBalance($tblBalance);
-    }
-
-    /**
-     * @param TblDebtor  $serviceBilling_Banking
-     * @param TblInvoice $serviceBilling_Invoice
-     * @param            $ExportDate
-     * @param            $BankName
-     * @param            $IBAN
-     * @param            $BIC
-     * @param            $Owner
-     * @param            $CashSign
-     * @param            $Reference
-     *
-     * @return bool
-     */
-    public function createBalance(
-        TblDebtor $serviceBilling_Banking,
-        TblInvoice $serviceBilling_Invoice,
-        $ExportDate = null,
-        $BankName = null,
-        $IBAN = null,
-        $BIC = null,
-        $Owner = null,
-        $CashSign = null,
-        $Reference = null
-    ) {
-
-        return (new Data($this->getBinding()))->createBalance($serviceBilling_Banking, $serviceBilling_Invoice,
-            $ExportDate,
-            $BankName,
-            $IBAN,
-            $BIC,
-            $Owner,
-            $CashSign,
-            $Reference);
-    }
-
-    /**
-     * @param TblBalance $tblBalance
-     * @param TblInvoice $tblInvoice
-     *
-     * @return bool
-     */
-    public function copyBalance(TblBalance $tblBalance, TblInvoice $tblInvoice)
-    {
-
-        return (new Data($this->getBinding()))->copyBalance($tblBalance, $tblInvoice);
-    }
-
-    /**
-     * @return bool|TblInvoice[]
-     */
-    public function getInvoiceHasFullPaymentAll()
-    {
-
-        return (new Data($this->getBinding()))->getInvoiceHasFullPaymentAll();
+        return (new Data($this->getBinding()))->getPaymentById($Id);
     }
 
     /**
@@ -143,14 +52,35 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getPaymentAll();
     }
 
+
     /**
      * @param $Id
      *
-     * @return bool|TblBalance
+     * @return false|TblPaymentType
      */
-    public function getBalanceById($Id)
+    public function getPaymentTypeById($Id)
     {
 
-        return (new Data($this->getBinding()))->getBalanceById($Id);
+        return (new Data($this->getBinding()))->getPaymentTypeById($Id);
+    }
+
+    /**
+     * @return false|TblPaymentType[]
+     */
+    public function getPaymentTypeAll()
+    {
+
+        return (new Data($this->getBinding()))->getPaymentTypeAll();
+    }
+
+    /**
+     * @param $Name
+     *
+     * @return false|TblPaymentType
+     */
+    public function getPaymentTypeByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getPaymentTypeByName($Name);
     }
 }

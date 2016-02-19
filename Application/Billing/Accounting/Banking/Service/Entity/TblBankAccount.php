@@ -5,19 +5,20 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Billing\Accounting\Banking\Banking;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblAccount")
+ * @Table(name="tblBankAccount")
  * @Cache(usage="READ_ONLY")
  */
-class TblAccount extends Element
+class TblBankAccount extends Element
 {
 
-    const ATTR_TBL_DEBTOR = 'tblDebtor';
-    const ATTR_TBL_ACTIVE = 'Active';
+    const SERVICE_TBL_PERSON = 'ServicePeople_Person';
+    const ATTR_IBAN = 'IBAN';
 
 //    /**
 //     * @Column(type="integer")
@@ -50,11 +51,7 @@ class TblAccount extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblDebtor;
-    /**
-     * @Column(type="boolean")
-     */
-    protected $Active;
+    protected $ServicePeople_Person;
 
 //    /**
 //     * @return integer $LeadTimeFirst
@@ -183,43 +180,25 @@ class TblAccount extends Element
     }
 
     /**
-     * @return bool|TblDebtor
+     * @return bool|TblPerson
      */
-    public function getTblDebtor()
+    public function getServicePeoplePerson()
     {
 
-        if (null === $this->tblDebtor) {
+        if (null === $this->ServicePeople_Person) {
             return false;
         } else {
-            return Banking::useService()->getDebtorById($this->tblDebtor);
+            return Person::useService()->getPersonById($this->ServicePeople_Person);
         }
     }
 
     /**
-     * @param TblDebtor|null $tblDebtor
+     * @param TblPerson|null $tblPerson
      */
-    public function setTblDebtor(TblDebtor $tblDebtor = null)
+    public function setServicePeoplePerson(TblPerson $tblPerson = null)
     {
 
-        $this->tblDebtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );
-    }
-
-    /**
-     * @return bool
-     */
-    public function getActive()
-    {
-
-        return $this->Active;
-    }
-
-    /**
-     * @param bool|$Active
-     */
-    public function setActive($Active)
-    {
-
-        $this->Active = $Active;
+        $this->ServicePeople_Person = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**

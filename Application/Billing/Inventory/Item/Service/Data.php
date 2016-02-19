@@ -514,8 +514,8 @@ class Data extends AbstractData
 
         $Entity = $Manager->getEntity('TblItemAccount')->findOneBy(
             array(
-                TblItemAccount::ATTR_TBL_ITEM                => $tblItem->getId(),
-                TblItemAccount::ATTR_SERVICE_BILLING_ACCOUNT => $tblAccount->getId()
+                TblItemAccount::ATTR_TBL_ITEM           => $tblItem->getId(),
+                TblItemAccount::SERVICE_BILLING_ACCOUNT => $tblAccount->getId()
             ));
         if (null === $Entity) {
             $Entity = new TblItemAccount();

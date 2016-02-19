@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Billing\Accounting\Banking\Service\Entity;
+namespace SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;

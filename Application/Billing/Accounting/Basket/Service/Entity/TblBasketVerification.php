@@ -21,15 +21,15 @@ class TblBasketVerification extends Element
 {
 
     const ATTR_TBL_BASKET = 'tblBasket';
-    const ATTR_SERVICE_MANAGEMENT_PERSON = 'serviceManagement_Person';
-    const ATTR_SERVICE_INVENTORY_ITEM = 'serviceInventory_Item';
+    const SERVICE_PEOPLE_PERSON = 'servicePeople_Person';
+    const SERVICE_INVENTORY_ITEM = 'serviceInventory_Item';
 
     /**
      * @Column(type="decimal", precision=14, scale=4)
      */
     protected $Value;
     /**
-     * @Column(type="int")
+     * @Column(type="integer")
      */
     protected $Quantity;
     /**
@@ -39,7 +39,7 @@ class TblBasketVerification extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceManagement_Person;
+    protected $servicePeople_Person;
     /**
      * @Column(type="bigint")
      */
@@ -64,7 +64,7 @@ class TblBasketVerification extends Element
     }
 
     /**
-     * @return string
+     * @return int
      */
     public function getQuantity()
     {
@@ -106,29 +106,29 @@ class TblBasketVerification extends Element
     /**
      * @return bool|TblPerson
      */
-    public function getServiceManagementPerson()
+    public function getServicePeoplePerson()
     {
 
-        if (null === $this->serviceManagement_Person) {
+        if (null === $this->servicePeople_Person) {
             return false;
         } else {
-            return Person::useService()->getPersonById($this->serviceManagement_Person);
+            return Person::useService()->getPersonById($this->servicePeople_Person);
         }
     }
 
     /**
      * @param null|TblPerson $tblPerson
      */
-    public function setServiceManagementPerson(TblPerson $tblPerson = null)
+    public function setServicePeoplePerson(TblPerson $tblPerson = null)
     {
 
-        $this->serviceManagement_Person = ( null === $tblPerson ? null : $tblPerson->getId() );
+        $this->servicePeople_Person = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**
      * @return bool|TblItem
      */
-    public function getTblItem()
+    public function getServiceInventoryItem()
     {
 
         if (null === $this->serviceInventory_Item) {
@@ -141,10 +141,33 @@ class TblBasketVerification extends Element
     /**
      * @param null|TblItem $tblItem
      */
-    public function setTblItem(TblItem $tblItem = null)
+    public function setServiceInventoryItem(TblItem $tblItem = null)
     {
 
         $this->serviceInventory_Item = ( null === $tblItem ? null : $tblItem->getId() );
+    }
+
+    /**
+     * @return string
+     */
+    public function getSinglePrice()
+    {
+
+        if ($this->Quantity !== 0) {
+            $result = $this->Value / $this->Quantity;
+        } else {
+            $result = $this->Value;
+        }
+        return number_format($result, 2).' €';
+    }
+
+    /**
+     * @return string
+     */
+    public function getSummaryPrice()
+    {
+
+        return number_format($this->Value, 2).' €';
     }
 
 

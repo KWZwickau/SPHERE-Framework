@@ -82,12 +82,12 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblCalculation->getServiceSchoolType()) {
                             $CalculationContent[$Key] .= ' - '.$tblCalculation->getServiceSchoolType()->getName();
                         } else {
-                            $CalculationContent[$Key] .= ' - keine';
+                            $CalculationContent[$Key] .= ' - ';
                         }
                         if ($tblCalculation->getServiceStudentChildRank()) {
                             $CalculationContent[$Key] .= ' - '.$tblCalculation->getServiceStudentChildRank()->getName();
                         } else {
-                            $CalculationContent[$Key] .= ' - keine';
+                            $CalculationContent[$Key] .= ' - ';
                         }
                         if (!$tblCalculation->getServiceStudentChildRank() && !$tblCalculation->getServiceSchoolType()) {
                             $CalculationContent[$Key] = $tblCalculation->getPriceString().' Grundpreis';
@@ -263,7 +263,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
-                        new Danger('Bedingung konnte nicht gefunden werden'),
+                        new Danger('Bedingung nicht gefunden'),
                         new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR)
                     )))
                 )))

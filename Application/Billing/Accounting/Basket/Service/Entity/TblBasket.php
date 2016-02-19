@@ -16,13 +16,13 @@ class TblBasket extends Element
 {
 
     /**
-     * @Column(type="datetime")
-     */
-    protected $CreateDate;
-    /**
      * @Column(type="string")
      */
     protected $Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $Description;
 
     /**
      * @return string
@@ -45,27 +45,36 @@ class TblBasket extends Element
     /**
      * @return string
      */
+    public function getDescription()
+    {
+
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription($Description)
+    {
+
+        $this->Description = $Description;
+    }
+
+    /**
+     * @return string
+     */
     public function getCreateDate()
     {
 
-        if (null === $this->CreateDate) {
+        if (null === $this->EntityCreate) {
             return false;
         }
         /** @var \DateTime $CreateDate */
-        $CreateDate = $this->CreateDate;
+        $CreateDate = $this->EntityCreate;
         if ($CreateDate instanceof \DateTime) {
             return $CreateDate->format('d.m.Y H:i:s');
         } else {
             return (string)$CreateDate;
         }
-    }
-
-    /**
-     * @param \DateTime $CreateDate
-     */
-    public function setCreateDate(\DateTime $CreateDate)
-    {
-
-        $this->CreateDate = $CreateDate;
     }
 }

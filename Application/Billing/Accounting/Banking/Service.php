@@ -2,16 +2,12 @@
 namespace SPHERE\Application\Billing\Accounting\Banking;
 
 use SPHERE\Application\Billing\Accounting\Banking\Service\Data;
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblAccount;
+use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankAccount;
+use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtorCommodity;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblPaymentType;
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblReference;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Setup;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
-use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
-use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -55,63 +51,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDebtor $tblDebtor
-     *
-     * @return bool|TblReference[]
-     */
-    public function getReferenceByDebtor(TblDebtor $tblDebtor)
-    {
-
-        return (new Data($this->getBinding()))->getReferenceByDebtor($tblDebtor);
-    }
-
-    /**
-     * @param TblDebtor    $tblDebtor
-     * @param TblCommodity $tblCommodity
-     *
-     * @return bool|TblReference
-     */
-    public function getReferenceByDebtorAndCommodity(TblDebtor $tblDebtor, TblCommodity $tblCommodity)
-    {
-
-        return (new Data($this->getBinding()))->getReferenceByDebtorAndCommodity($tblDebtor, $tblCommodity);
-    }
-
-    /**
-     * @param TblAccount   $tblAccount
-     * @param TblCommodity $tblCommodity
-     *
-     * @return bool|TblReference
-     */
-    public function getReferenceByAccountAndCommodity(TblAccount $tblAccount, TblCommodity $tblCommodity)
-    {
-
-        return (new Data($this->getBinding()))->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity);
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblDebtorCommodity
-     */
-    public function getDebtorCommodityById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getDebtorCommodityById($Id);
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblReference
-     */
-    public function getReferenceById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getReferenceById($Id);
-    }
-
-    /**
      * @return bool|TblPaymentType[]
      */
     public function getPaymentTypeAll()
@@ -132,15 +71,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDebtor    $tblDebtor
-     * @param TblCommodity $tblCommodity
+     * @param TblPerson $Person
      *
-     * @return bool|TblDebtor[]
+     * @return false|TblDebtor
      */
-    public function getDebtorCommodityAllByDebtorAndCommodity(TblDebtor $tblDebtor, TblCommodity $tblCommodity)
+    public function getDebtorByPerson(TblPerson $Person)
     {
 
-        return (new Data($this->getBinding()))->getDebtorCommodityAllByDebtorAndCommodity($tblDebtor, $tblCommodity);
+        return (new Data($this->getBinding()))->getDebtorByPerson($Person);
     }
 
     /**
@@ -148,10 +86,10 @@ class Service extends AbstractService
      *
      * @return bool|TblDebtor[]
      */
-    public function getDebtorByServiceManagementPerson($ServiceManagement_Person)
+    public function getDebtorByServicePeoplePerson($ServiceManagement_Person)
     {
 
-        return (new Data($this->getBinding()))->getDebtorByServiceManagementPerson($ServiceManagement_Person);
+        return (new Data($this->getBinding()))->getDebtorByServicePeoplePerson($ServiceManagement_Person);
     }
 
     /**
@@ -166,84 +104,46 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDebtor $tblDebtor
+     * @param TblPerson $tblPerson
      *
-     * @return bool|TblCommodity[]
+     * @return false|Service\Entity\TblBankAccount[]
      */
-    public function getCommodityAllByDebtor(TblDebtor $tblDebtor)
+    public function getBankAccountByPerson(TblPerson $tblPerson)
     {
 
-        $tblDebtorCommodityList = $this->getCommodityDebtorAllByDebtor($tblDebtor);
-        $tblCommodity = array();
-        foreach ($tblDebtorCommodityList as $tblDebtorCommodity) {
-            array_push($tblCommodity, $tblDebtorCommodity->getServiceBillingCommodity());
-        }
-        return $tblCommodity;
+        return (new Data($this->getBinding()))->getBankAccountByPerson($tblPerson);
     }
 
     /**
-     * @param TblDebtor $tblDebtor
+     * @param TblPerson $tblPerson
      *
-     * @return bool|TblDebtorCommodity[]
+     * @return false|TblBankReference[]
      */
-    public function getCommodityDebtorAllByDebtor(TblDebtor $tblDebtor)
+    public function getBankReferenceByPerson(TblPerson $tblPerson)
     {
 
-        return (new Data($this->getBinding()))->getCommodityDebtorAllByDebtor($tblDebtor);
+        return (new Data($this->getBinding()))->getBankReferenceByPerson($tblPerson);
     }
 
-    /**
-     * @param TblAccount $tblAccount
-     *
-     * @return bool|TblReference[]
-     */
-    public function getReferenceByAccount(TblAccount $tblAccount)
-    {
-
-        return (new Data($this->getBinding()))->getReferenceByAccount($tblAccount);
-    }
-
-    /**
-     * @param TblAccount $tblAccount
-     *
-     * @return TblReference[]
-     */
-    public function getReferenceActiveByAccount(TblAccount $tblAccount)
-    {
-
-        return (new Data($this->getBinding()))->getReferenceActiveByAccount($tblAccount);
-    }
-
-    /**
-     * @param TblDebtor $tblDebtor
-     *
-     * @return int
-     */
-    public function getLeadTimeByDebtor(TblDebtor $tblDebtor)   //ToDO get first/followLeadTime from School
-    {
-
-        if (( $tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor) )) {
-            if (Invoice::useService()->checkInvoiceFromDebtorIsPaidByDebtor($tblDebtor) ||
-                Balance::useService()->checkPaymentFromDebtorExistsByDebtor($tblDebtor)
-            ) {
-                return $tblAccount->getLeadTimeFollow();
-            } else {
-                return $tblAccount->getLeadTimeFirst();
-            }
-        }
-        return false;
-    }
-
-    /**
-     * @param TblDebtor $tblDebtor
-     *
-     * @return bool|Service\Entity\TblAccount
-     */
-    public function getActiveAccountByDebtor(TblDebtor $tblDebtor)
-    {
-
-        return (new Data($this->getBinding()))->getActiveAccountByDebtor($tblDebtor);
-    }
+//    /**
+//     * @param TblDebtor $tblDebtor
+//     *
+//     * @return int
+//     */
+//    public function getLeadTimeByDebtor(TblDebtor $tblDebtor)   //ToDO get first/followLeadTime from School
+//    {
+//
+//        if (( $tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor) )) {
+//            if (Invoice::useService()->checkInvoiceFromDebtorIsPaidByDebtor($tblDebtor) ||
+//                Balance::useService()->checkPaymentFromDebtorExistsByDebtor($tblDebtor)
+//            ) {
+//                return $tblAccount->getLeadTimeFollow();
+//            } else {
+//                return $tblAccount->getLeadTimeFirst();
+//            }
+//        }
+//        return false;
+//    }
 
     /**
      * @param TblDebtor $tblDebtor
@@ -304,90 +204,33 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblDebtor $tblDebtor
-     *
-     * @return bool|TblAccount[]
-     */
-    public function getAccountAllByDebtor(TblDebtor $tblDebtor)
-    {
-
-        return (new Data($this->getBinding()))->getAccountByDebtor($tblDebtor);
-    }
-
-    /**
-     * @param TblAccount $tblAccount
+     * @param TblBankAccount $tblAccount
      *
      * @return bool
      */
-    public function destroyAccount(TblAccount $tblAccount)
+    public function destroyAccount(TblBankAccount $tblAccount)
     {
 
         return (new Data($this->getBinding()))->destroyAccount($tblAccount);
     }
 
     /**
-     * @param TblDebtorCommodity $tblDebtorCommodity
+     * @param TblBankReference $tblBankReference
      *
      * @return string
      */
-    public function removeCommodityToDebtor(TblDebtorCommodity $tblDebtorCommodity)
+    public function deactivateBankReference(TblBankReference $tblBankReference)
     {
 
-        if ((new Data($this->getBinding()))->removeCommodityToDebtor($tblDebtorCommodity)) {
-            return new Success('Die Leistung '.$tblDebtorCommodity->getServiceBillingCommodity()->getName().' wurde erfolgreich entfernt')
-            .new Redirect('/Billing/Accounting/Banking/Commodity/Select', Redirect::TIMEOUT_SUCCESS,
-                array('Id' => $tblDebtorCommodity->getTblDebtor()->getId()));
-        } else {
-            return new Warning('Die Leistung '.$tblDebtorCommodity->getServiceBillingCommodity()->getName().' konnte nicht entfernt werden')
-            .new Redirect('/Billing/Accounting/Banking/Commodity/Select', Redirect::TIMEOUT_ERROR,
-                array('Id' => $tblDebtorCommodity->getTblDebtor()->getId()));
-        }
-    }
-
-    /**
-     * @param TblDebtor    $tblDebtor
-     * @param TblCommodity $tblCommodity
-     *
-     * @return string
-     */
-    public function addCommodityToDebtor(TblDebtor $tblDebtor, TblCommodity $tblCommodity)
-    {
-
-        if ((new Data($this->getBinding()))->addCommodityToDebtor($tblDebtor, $tblCommodity)) {
-            return new Success('Die Leistung '.$tblCommodity->getName().' wurde erfolgreich hinzugefügt')
-            .new Redirect('/Billing/Accounting/Banking/Commodity/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblDebtor->getId()));
-        } else {
-            return new Warning('Die Leistung '.$tblCommodity->getName().' konnte nicht hinzugefügt werden')
-            .new Redirect('/Billing/Accounting/Banking/Commodity/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblDebtor->getId()));
-        }
-    }
-
-    /**
-     * @param TblReference $tblReference
-     * @param              $AccountId
-     *
-     * @return string
-     */
-    public function deactivateBankingReference(TblReference $tblReference, $AccountId)
-    {
-
-        if (null === $tblReference) {
+        if (null === $tblBankReference) {
             return '';
         }
-        if ((new Data($this->getBinding()))->deactivateReference($tblReference)) {
+        if ((new Data($this->getBinding()))->deactivateReference($tblBankReference)) {
             return new Success('Die Deaktivierung ist erfasst worden')
-            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', Redirect::TIMEOUT_SUCCESS,
-                array(
-                    'DebtorId'  => $tblReference->getServiceTblDebtor()->getId(),
-                    'AccountId' => $AccountId
-                ));
+            .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_SUCCESS);
         } else {
             return new Danger('Die Referenz konnte nicht deaktiviert werden')
-            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', Redirect::TIMEOUT_ERROR,
-                array(
-                    'DebtorId'  => $tblReference->getServiceTblDebtor()->getId(),
-                    'AccountId' => $AccountId
-                ));
+            .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_ERROR);
         }
     }
 
@@ -403,7 +246,7 @@ class Service extends AbstractService
     {
 
         $tblDebtor = Banking::useService()->getDebtorById($Id);
-        $tblAccount = Banking::useService()->getAccountById($Account);
+        $tblAccount = Banking::useService()->getBankAccountById($Account);
         $tblOldAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor);
 
         if (!empty( $tblOldAccount )) {
@@ -433,53 +276,41 @@ class Service extends AbstractService
     /**
      * @param $Id
      *
-     * @return bool|Service\Entity\TblAccount
+     * @return false|TblBankReference
      */
-    public function getAccountById($Id)
+    public function getBankReferenceById($Id)
     {
 
-        return (new Data($this->getBinding()))->getAccountById($Id);
+        return (new Data($this->getBinding()))->getBankReferenceById($Id);
     }
 
     /**
-     * @param IFormInterface $Stage
-     * @param TblDebtor      $tblDebtor
-     * @param                $Debtor
-     *
-     * @return IFormInterface|string
+     * @return false|TblBankReference[]
      */
-    public function changeDebtor(IFormInterface &$Stage = null, TblDebtor $tblDebtor, $Debtor)
+    public function getBankReferenceAll()
     {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Debtor
-        ) {
-            return $Stage;
-        }
+        return (new Data($this->getBinding()))->getBankReferenceAll();
+    }
 
-        $Error = false;
-//        if (isset( $Debtor['Description'] ) && empty( $Debtor['Description'] )) {
-//            $Stage->setError('Debtor[Description]', 'Bitte geben sie eine Beschreibung an');
-//            $Error = true;
-//        }
+    /**
+     * @param $Id
+     *
+     * @return bool|TblBankAccount
+     */
+    public function getBankAccountById($Id)
+    {
 
-        if (!$Error) {
-            if ((new Data($this->getBinding()))->updateDebtor(
-                $tblDebtor,
-                $Debtor['Description']
-            )
-            ) {
-                $Stage .= new Success('Änderungen sind erfasst')
-                    .new Redirect('/Billing/Accounting/Banking/Debtor/View', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblDebtor->getId()));
-            } else {
-                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
-            }
-            return $Stage;
-        }
-        return $Stage;
+        return (new Data($this->getBinding()))->getBankAccountById($Id);
+    }
+
+    /**
+     * @return bool|TblBankAccount[]
+     */
+    public function getBankAccountAll()
+    {
+
+        return (new Data($this->getBinding()))->getBankAccountAll();
     }
 
     /**
@@ -515,188 +346,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface|null $Stage
-     * @param                     $DebtorId
-     * @param                     $AccountId
-     * @param                     $Account
-     *
-     * @return IFormInterface|string
-     */
-    public function changeAccount(IFormInterface &$Stage = null, $DebtorId, $AccountId, $Account)
-    {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Account
-        ) {
-            return $Stage;
-        }
-
-        $Error = false;
-        if (isset( $Account['Owner'] ) && empty( $Account['Owner'] )) {
-            $Stage->setError('Account[Owner]', 'Bitte geben sie einen Besitzer an');
-            $Error = true;
-        }
-        if (isset( $Account['IBAN'] ) && empty( $Account['IBAN'] )) {
-            $Stage->setError('Account[IBAN]', 'Bitte geben sie eine IBAN an');
-            $Error = true;
-        }
-//        if (isset( $Account['BIC'] ) && empty( $Account['BIC'] )) {
-//            $Stage->setError('Account[BIC]', 'Bitte geben sie einen Besitzer an');
-//            $Error = true;
-//        }
-        if (isset( $Account['BankName'] ) && empty( $Account['BankName'] )) {
-            $Stage->setError('Account[BankName]', 'Bitte geben sie einen Besitzer an');
-            $Error = true;
-        }
-//        if (isset( $Account['CashSign'] ) && empty( $Account['CashSign'] )) {
-//            $Stage->setError('Account[CashSign]', 'Bitte geben sie einen Besitzer an');
-//            $Error = true;
-//        }
-
-        $tblDebtor = Banking::useService()->getDebtorById($DebtorId);
-
-        if (!$Error) {
-
-            if ((new Data($this->getBinding()))->updateAccount(
-                Banking::useService()->getAccountById($AccountId),
-                $Account['Owner'],
-                $Account['IBAN'],
-                $Account['BIC'],
-                $Account['CashSign'],
-                $Account['BankName'],
-                $DebtorId
-            )
-            ) {
-                $Stage .= new Success('Änderungen sind erfasst')
-                    .new Redirect('/Billing/Accounting/Banking/Debtor/View', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblDebtor->getId()));
-            } else {
-                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
-            }
-            return $Stage;
-        }
-        return $Stage;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param TblReference        $tblReference
-     * @param                     $DebtorId
-     * @param                     $AccountId
-     * @param                     $Reference
-     *
-     * @return IFormInterface|string
-     */
-    public function changeReference(
-        IFormInterface &$Stage = null,
-        TblReference $tblReference,
-        $DebtorId,
-        $AccountId,
-        $Reference
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Reference
-        ) {
-            return $Stage;
-        }
-
-        $Error = false;
-        if (isset( $Reference['Date'] ) && empty( $Reference['Date'] )) {
-            $Stage->setError('Reference[Date]', 'Bitte geben sie ein Datum an');
-            $Error = true;
-        }
-
-        if (!$Error) {
-            if ((new Data($this->getBinding()))->updateReference(
-                $tblReference,
-                $Reference['Date']
-            )
-            ) {
-                $Stage .= new Success('Änderungen sind erfasst')
-                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', Redirect::TIMEOUT_SUCCESS, array(
-                        'DebtorId'  => $DebtorId,
-                        'AccountId' => $AccountId
-                    ));
-            } else {
-                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', Redirect::TIMEOUT_ERROR, array(
-                        'Id'        => $DebtorId,
-                        'AccountId' => $AccountId
-                    ));
-            }
-            return $Stage;
-        }
-        return $Stage;
-    }
-
-    /**
-     * @param IFormInterface|null $Stage
-     * @param TblDebtor           $tblDebtor
-     * @param TblAccount          $tblAccount
-     * @param                     $Reference
-     *
-     * @return IFormInterface|string
-     */
-    public function createReference(
-        IFormInterface &$Stage = null,
-        TblDebtor $tblDebtor,
-        TblAccount $tblAccount,
-        $Reference
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Reference) {
-            return $Stage;
-        }
-
-        $Error = false;
-        if (isset( $Reference['Reference'] ) && empty( $Reference['Reference'] )) {
-            $Stage->setError('Reference[Reference]', 'Bitte geben sie eine Mandatsreferenz an');
-            $Error = true;
-        }
-        if (isset( $Reference['Reference'] ) && Banking::useService()->getReferenceByReferenceActive($Reference['Reference'])) {
-            $Stage->setError('Reference[Reference]',
-                'Die Mandatsreferenz exisitiert bereits. Bitte geben Sie eine andere an');
-            $Error = true;
-        }
-
-        if (!$Error) {
-
-            (new Data($this->getBinding()))->createReference($Reference['Reference'],
-                $tblDebtor->getDebtorNumber(),
-                $Reference['ReferenceDate'],
-                Commodity::useService()->getCommodityById($Reference['Commodity']),
-                $tblAccount);
-
-            return new Success('Die Referenz ist erfasst worden')
-            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', Redirect::TIMEOUT_SUCCESS, array(
-                'DebtorId'  => $tblDebtor->getId(),
-                'AccountId' => $tblAccount->getId()
-            ));
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param $Reference
-     *
-     * @return bool|TblReference
-     */
-    public function getReferenceByReferenceActive($Reference)
-    {
-
-        return (new Data($this->getBinding()))->getReferenceByReferenceActive($Reference);
-    }
-
-    /**
      * @param IFormInterface $Stage
      * @param                $Debtor
      * @param                $Id
@@ -723,39 +372,98 @@ class Service extends AbstractService
                 'Die Debitorennummer exisitiert bereits. Bitte geben Sie eine andere Debitorennummer an');
             $Error = true;
         }
-//        if (isset( $Debtor['Reference'] ) && Banking::useService()->getReferenceByReference($Debtor['Reference'])) {
-//            $Stage->setError('Debtor[Reference]',
-//                'Die Mandatsreferenz exisitiert bereits. Bitte geben Sie eine andere an');
-//            $Error = true;
-//        }
 
         if (!$Error) {
+            $tblPerson = Person::useService()->getPersonById($Id);
+            if ($tblPerson) {
+                if (!Banking::useService()->getDebtorAllByPerson($tblPerson)) {
+                    (new Data($this->getBinding()))->createDebtor($tblPerson, $Debtor['DebtorNumber']);
 
-            (new Data($this->getBinding()))->createDebtor($Debtor['DebtorNumber'],
-                $Debtor['Description'],
-                Person::useService()->getPersonById($Id),
-                $Debtor['PaymentType']);
-
-//            if (!empty( $Debtor['Reference'] )) {
-//                (new Data ($this->getBinding()))->createReference($Debtor['Reference'],
-//                    $Debtor['DebtorNumber'],
-//                    $Debtor['ReferenceDate'],
-//                    Commodity::useService()->getCommodityById($Debtor['Commodity']));
-//            }
-            return new Success('Der Debitor ist erfasst worden')
-            .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_SUCCESS);
+                    return new Success('Der Debitor ist erfasst worden')
+                    .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_SUCCESS);
+                } else {
+                    return new Danger('Person beitzt bereits eine Debitor-Nummer')
+                    .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
+                }
+            } else {
+                return new Danger('Person nicht gefunden')
+                .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
+            }
         }
         return $Stage;
     }
 
     /**
      * @param IFormInterface|null $Stage
-     * @param                     $Account
      * @param TblDebtor           $tblDebtor
+     * @param                     $Debtor
      *
      * @return IFormInterface|string
      */
-    public function createAccount(IFormInterface &$Stage = null, $Account, TblDebtor $tblDebtor)
+    public function changeDebtor(IFormInterface &$Stage = null, TblDebtor $tblDebtor, $Debtor)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Debtor) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset( $Debtor['DebtorNumber'] ) && empty( $Debtor['DebtorNumber'] )) {
+            $Stage->setError('Debtor[DebtorNumber]', 'Bitte geben sie die Debitorennummer an');
+            $Error = true;
+        }
+        if (isset( $Debtor['DebtorNumber'] ) && Banking::useService()->getDebtorByDebtorNumber($Debtor['DebtorNumber'])) {
+            $Stage->setError('Debtor[DebtorNumber]',
+                'Die Debitorennummer exisitiert bereits. Bitte geben Sie eine andere Debitorennummer an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+
+            if ((new Data($this->getBinding()))->updateDebtor($tblDebtor, $Debtor['DebtorNumber'])) {
+                return new Success('Die Debitor-Nummer ist geändert worden')
+                .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_SUCCESS);
+            } else {
+                return new Danger('Die Debitor-Nummer konnte nicht geändert werden')
+                .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
+            }
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param $IBAN
+     *
+     * @return false|TblBankAccount
+     */
+    public function getIBANIsUsed($IBAN)
+    {
+
+        return (new Data($this->getBinding()))->getIBANIsUsed($IBAN);
+    }
+
+    /**
+     * @param $Reference
+     *
+     * @return false|TblBankReference
+     */
+    public function getReferenceIsUsed($Reference)
+    {
+
+        return (new Data($this->getBinding()))->getReferenceIsUsed($Reference);
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblPerson           $tblPerson
+     * @param                     $Account
+     *
+     * @return IFormInterface|string
+     */
+    public function createAccount(IFormInterface &$Stage = null, TblPerson $tblPerson, $Account)
     {
 
         /**
@@ -766,6 +474,25 @@ class Service extends AbstractService
         }
 
         $Error = false;
+        if (isset( $Account['BankName'] ) && empty( $Account['BankName'] )) {
+            $Stage->setError('Account[BankName]', 'Bitte geben Sie den Namen der Bank an');
+            $Error = true;
+        }
+        if (isset( $Account['Owner'] ) && empty( $Account['Owner'] )) {
+            $Stage->setError('Account[Owner]', 'Bitte geben Sie den Besitzer des Konto\'s an');
+            $Error = true;
+        }
+        if (isset( $Account['IBAN'] ) && empty( $Account['IBAN'] )) {
+            $Stage->setError('Account[IBAN]', 'Bitte geben Sie die IBAN des Konto\'s an');
+            $Error = true;
+        } else {
+//            if (Banking::useService()->getIBANIsUsed($Account['IBAN'])) {     //ToDO Doppelte IBAN erlauben?
+//                $Stage->setError('Account[IBAN]', 'IBAN-Nummer schon vergeben');
+//                $Error = true;
+//            }
+
+        }
+
 //        if (isset( $Account['LeadTimeFirst'] ) && empty( $Account['LeadTimeFirst'] )) {
 //            $Stage->setError('Account[LeadTimeFirst]', 'Bitte geben sie den Ersteinzug an.');
 //            $Error = true;
@@ -784,27 +511,79 @@ class Service extends AbstractService
 //        }
 
         if (!$Error) {
-            if (Banking::useService()->getActiveAccountByDebtor($tblDebtor)) {
-                $Account['Active'] = false;
-            } else {
-                $Account['Active'] = true;
-            }
             if ((new Data ($this->getBinding()))->createAccount(
+                $tblPerson,
 //                $Account['LeadTimeFirst'],
 //                $Account['LeadTimeFollow'],
                 $Account['BankName'],
                 $Account['Owner'],
                 $Account['CashSign'],
                 $Account['IBAN'],
-                $Account['BIC'],
-                $Account['Active'],
-                $tblDebtor)
+                $Account['BIC'])
             ) {
-                return new Success('Der Debitor ist erfasst worden')
-                .new Redirect('/Billing/Accounting/Banking/Debtor/View', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblDebtor->getId()));
+                return new Success('Das Konto ist erfasst worden')
+                .new Redirect('/Billing/Accounting/BankAccount/', Redirect::TIMEOUT_SUCCESS);
             } else {
-                return new Warning('Der Debitor konnte nicht erfasst werden')
-                .new Redirect('/Billing/Accounting/Banking/Debtor/View', Redirect::TIMEOUT_ERROR, array('Id' => $tblDebtor->getId()));
+                return new Warning('Das Konto konnte nicht erfasst werden')
+                .new Redirect('/Billing/Accounting/BankAccount', Redirect::TIMEOUT_ERROR);
+            }
+
+        }
+        return $Stage;
+    }
+
+    public function changeAccount(
+        IFormInterface &$Stage = null,
+        TblBankAccount $tblBankAccount,
+        $Account
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Account) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset( $Account['BankName'] ) && empty( $Account['BankName'] )) {
+            $Stage->setError('Account[BankName]', 'Bitte geben Sie den Namen der Bank an');
+            $Error = true;
+        }
+        if (isset( $Account['Owner'] ) && empty( $Account['Owner'] )) {
+            $Stage->setError('Account[Owner]', 'Bitte geben Sie den Besitzer des Konto\'s an');
+            $Error = true;
+        }
+        if (isset( $Account['IBAN'] ) && empty( $Account['IBAN'] )) {
+            $Stage->setError('Account[IBAN]', 'Bitte geben Sie die IBAN des Konto\'s an');
+            $Error = true;
+        } else {
+//            if (($tblBankAcc =  Banking::useService()->getIBANIsUsed($Account['IBAN']))) {    //ToDO Doppelte IBAN erlauben?
+//                if($tblBankAcc->getId() !== $tblBankAccount->getId())
+//                {
+//                    $Stage->setError('Account[IBAN]', 'IBAN-Nummer schon vergeben');
+//                    $Error = true;
+//                }
+//            }
+        }
+
+        if (!$Error) {
+            if ((new Data ($this->getBinding()))->updateAccount(
+                $tblBankAccount,
+                $Account['Owner'],
+                $Account['IBAN'],
+                $Account['BIC'],
+                $Account['CashSign'],
+                $Account['BankName']
+            )
+            ) {
+                return new Success('Das Konto ist geändert worden')
+                .new Redirect('/Billing/Accounting/BankAccount/View', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblBankAccount->getId()));
+            } else {
+                return new Warning('Das Konto konnte nicht geändert werden werden')
+                .new Redirect('/Billing/Accounting/BankAccount/View', Redirect::TIMEOUT_ERROR,
+                    array('Id' => $tblBankAccount->getId()));
             }
 
         }
@@ -812,13 +591,79 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Reference
+     * @param IFormInterface|null $Stage
+     * @param TblPerson           $tblPerson
+     * @param                     $Reference
      *
-     * @return bool|TblReference
+     * @return IFormInterface|string
      */
-    public function getReferenceByReference($Reference)
-    {
+    public function createReference(
+        IFormInterface &$Stage = null,
+        TblPerson $tblPerson,
+        $Reference
+    ) {
 
-        return (new Data($this->getBinding()))->getReferenceByReference($Reference);
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Reference) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset( $Reference['Reference'] ) && empty( $Reference['Reference'] )) {
+            $Stage->setError('Reference[Reference]', 'Bitte geben sie eine Mandatsreferenz an');
+            $Error = true;
+        } else {
+            if (Banking::useService()->getReferenceIsUsed($Reference['Reference'])) {
+                $Stage->setError('Reference[Reference]', 'Referenz ist schon vergeben');
+                $Error = true;
+            }
+        }
+
+        if (!$Error) {
+
+            (new Data($this->getBinding()))->createReference(
+                $tblPerson,
+                $Reference['Reference'],
+                $Reference['ReferenceDate']);
+
+            return new Success('Die Referenz ist erfasst worden')
+            .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $Stage;
+    }
+
+    public function changeReference(
+        IFormInterface &$Stage = null,
+        TblBankReference $tblBankReference,
+        $Reference
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Reference) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset( $Reference['ReferenceDate'] ) && empty( $Reference['ReferenceDate'] )) {
+            $Stage->setError('Reference[ReferenceDate]', 'Bitte geben sie eine Datum an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+
+            (new Data($this->getBinding()))->updateReference(
+                $tblBankReference,
+                $Reference['ReferenceDate']);
+
+            return new Success('Die Referenzdatum ist geändert worden')
+            .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $Stage;
     }
 }

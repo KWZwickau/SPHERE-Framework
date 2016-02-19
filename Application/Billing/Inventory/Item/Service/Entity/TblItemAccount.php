@@ -19,7 +19,7 @@ class TblItemAccount extends Element
 {
 
     const ATTR_TBL_ITEM = 'tblItem';
-    const ATTR_SERVICE_BILLING_ACCOUNT = 'serviceBilling_Account';
+    const SERVICE_BILLING_ACCOUNT = 'serviceBilling_Account';
 
     /**
      * @Column(type="bigint")

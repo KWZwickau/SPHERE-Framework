@@ -38,7 +38,7 @@ class Frontend extends Extension implements IFrontendInterface
         $invoiceAllByIsConfirmedState = Invoice::useService()->getInvoiceAllByIsConfirmedState(true);
         $invoiceAllByIsVoidState = Invoice::useService()->getInvoiceAllByIsVoidState(true);
         $invoiceAllByIsPaidState = Invoice::useService()->getInvoiceAllByIsPaidState(true);
-        $invoiceHasFullPaymentAll = Balance::useService()->getInvoiceHasFullPaymentAll();
+//        $invoiceHasFullPaymentAll = Balance::useService()->getInvoiceHasFullPaymentAll();
 
         if ($invoiceAllByIsConfirmedState && $invoiceAllByIsVoidState) {
             $invoiceAllByIsConfirmedState = array_udiff($invoiceAllByIsConfirmedState, $invoiceAllByIsVoidState,
@@ -54,28 +54,28 @@ class Frontend extends Extension implements IFrontendInterface
                     return $invoiceA->getId() - $invoiceB->getId();
                 });
         }
-        if ($invoiceAllByIsConfirmedState && $invoiceHasFullPaymentAll) {
-            $invoiceAllByIsConfirmedState = array_udiff($invoiceAllByIsConfirmedState, $invoiceHasFullPaymentAll,
-                function (TblInvoice $invoiceA, TblInvoice $invoiceB) {
-
-                    return $invoiceA->getId() - $invoiceB->getId();
-                });
-        }
+//        if ($invoiceAllByIsConfirmedState && $invoiceHasFullPaymentAll) {
+//            $invoiceAllByIsConfirmedState = array_udiff($invoiceAllByIsConfirmedState, $invoiceHasFullPaymentAll,
+//                function (TblInvoice $invoiceA, TblInvoice $invoiceB) {
+//
+//                    return $invoiceA->getId() - $invoiceB->getId();
+//                });
+//        }
         $TableContent = array();
         if (!empty( $invoiceAllByIsConfirmedState )) {
 //            /** @var TblInvoice $invoiceByIsConfirmedState */
             array_walk($invoiceAllByIsConfirmedState, function (TblInvoice $tblInvoice) use (&$TableContent) {
 
-                $tblBalance = Balance::useService()->getBalanceByInvoice($tblInvoice);
+//                $tblBalance = Balance::useService()->getBalanceByInvoice($tblInvoice);
                 $AdditionInvoice = Invoice::useService()->sumPriceItemAllStringByInvoice($tblInvoice);
-                $AdditionPayment = Balance::useService()->sumPriceItemStringByBalance($tblBalance);
+//                $AdditionPayment = Balance::useService()->sumPriceItemStringByBalance($tblBalance);
                 $Temp['Number'] = $tblInvoice->getNumber();
                 $Temp['InvoiceDate'] = $tblInvoice->getInvoiceDate();
                 $Temp['PaymentDate'] = $tblInvoice->getPaymentDate();
                 $Temp['DebtorNumber'] = $tblInvoice->getDebtorNumber();
 
                 $Temp['FullName'] = $tblInvoice->getDebtorFullName();
-                $Temp['PaidPayment'] = $AdditionPayment;
+//                $Temp['PaidPayment'] = $AdditionPayment;
                 $Temp['PaidInvoice'] = $AdditionInvoice;
                 $Temp['Option'] = new Primary('Bezahlt', '/Billing/Bookkeeping/Invoice/Pay',
                     new Ok(), array(
@@ -125,14 +125,14 @@ class Frontend extends Extension implements IFrontendInterface
         if ($paymentList) {
             array_walk($paymentList, function (TblPayment &$tblPayment) {
 
-                $tblInvoice = $tblPayment->getTblBalance()->getServiceBillingInvoice();
-                if ($tblInvoice) {
-                    $tblPayment->InvoiceNumber = $tblInvoice->getNumber();
-                    $tblPayment->InvoiceDate = $tblInvoice->getInvoiceDate();
-                    $tblPayment->DebtorFullName = $tblInvoice->getDebtorFullName();
-                    $tblPayment->DebtorNumber = $tblInvoice->getDebtorNumber();
-                    $tblPayment->ValueString = $tblPayment->getValueString();
-                }
+//                $tblInvoice = $tblPayment->getTblBalance()->getServiceBillingInvoice();
+//                if ($tblInvoice) {
+//                    $tblPayment->InvoiceNumber = $tblInvoice->getNumber();
+//                    $tblPayment->InvoiceDate = $tblInvoice->getInvoiceDate();
+//                    $tblPayment->DebtorFullName = $tblInvoice->getDebtorFullName();
+//                    $tblPayment->DebtorNumber = $tblInvoice->getDebtorNumber();
+//                    $tblPayment->ValueString = $tblPayment->getValueString();
+//                }
             });
         }
 

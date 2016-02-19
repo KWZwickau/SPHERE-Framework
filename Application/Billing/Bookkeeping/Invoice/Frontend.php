@@ -3,7 +3,7 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblAccount;
+use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
@@ -243,7 +243,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice/Order', new ChevronLeft()));
 
         $tblOrder = Invoice::useService()->getOrderById($Id);
-        $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblOrder->getDebtorNumber());
+//        $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblOrder->getDebtorNumber());
 
 
         $tblOrderItemAll = Invoice::useService()->getOrderItemAllByOrder($tblOrder);
@@ -314,11 +314,11 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblOrder->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
 
                 $ReferenceOk = true;
-                foreach ($tblOrderItemAll as $tblOrderItem) {
-                    if ($tblOrderItem->Status != new \SPHERE\Common\Frontend\Text\Repository\Success('Mandatsreferenz'.' '.new Ok())) {
-                        $ReferenceOk = false;
-                    }
-                }
+//                foreach ($tblOrderItemAll as $tblOrderItem) {
+//                    if ($tblOrderItem->Status != new \SPHERE\Common\Frontend\Text\Repository\Success('Mandatsreferenz'.' '.new Ok())) {
+//                        $ReferenceOk = false;
+//                    }
+//                }
 
                 $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblOrder->getDebtorNumber());
                 if ($tblDebtor) {
@@ -403,7 +403,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         ( ( $tblDebtor = Banking::useService()->getDebtorByDebtorNumber(
                                             $tblOrder->getDebtorNumber()) )
                                         && count(Address::useService()->getAddressAllByPerson(
-                                            $tblDebtor->getServiceManagementPerson())) > 1
+                                            $tblDebtor->getServicePeoplePerson())) > 1
                                             ? new Standard('',
                                                 '/Billing/Bookkeeping/Invoice/Order/Address/Select',
                                                 new Edit(),
@@ -435,16 +435,16 @@ class Frontend extends Extension implements IFrontendInterface
                                 ), 3
                             ),
                         )),
-                        ( ( $tblOrder->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift' ) ?
-                            ( $tblDebtor ) ?
-                                new LayoutRow(
-                                    new LayoutColumn(
-                                        self::layoutAccount($tblDebtor,
-                                            '/Billing/Bookkeeping/Invoice/Order/Edit', $tblOrder->getId())
-                                    )
-                                ) : null
-                            : null
-                        ),
+//                        ( ( $tblOrder->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift' ) ?
+//                            ( $tblDebtor ) ?
+//                                new LayoutRow(
+//                                    new LayoutColumn(
+//                                        self::layoutAccount($tblDebtor,
+//                                            '/Billing/Bookkeeping/Invoice/Order/Edit', $tblOrder->getId())
+//                                    )
+//                                ) : null
+//                            : null
+//                        ),
                         new LayoutRow(
                             new LayoutColumn(
                                 new Aspect('Betrag')
@@ -495,11 +495,11 @@ class Frontend extends Extension implements IFrontendInterface
         $tblAccountList = Banking::useService()->getAccountAllByDebtor($tblDebtor);
         if (!empty( $tblAccountList )) {
             $mainAccount = false;
-            foreach ($tblAccountList as $Account) {
-                if ($Account->getActive()) {
-                    $mainAccount = true;
-                }
-            }
+//            foreach ($tblAccountList as $Account) {
+//                if ($Account->getActive()) {
+//                    $mainAccount = true;
+//                }
+//            }
             if ($mainAccount === false) {
                 $Warning = new LayoutRow(new LayoutColumn(
                     new Warning('Bitte legen sie ein aktives Konto fest (mit '.new Ok().')')));
@@ -507,33 +507,30 @@ class Frontend extends Extension implements IFrontendInterface
                 $Warning = null;
             }
 
-            /** @var TblAccount $tblAccount */
-            foreach ($tblAccountList as $Key => &$tblAccount) {
-                $tblAccountList[$Key] = new LayoutColumn(
-                    new Panel(( $tblAccount->getActive() ?
-                            'aktives Konto '
-                            : null ).'&nbsp', array(
-                        new Panel('', array(
-                            'Besitzer'.new PullRight($tblAccount->getOwner()),
-                            'IBAN'.new PullRight($tblAccount->getIBAN()),
-                            'BIC'.new PullRight($tblAccount->getBIC()),
-                            'Kassenzeichen'.new PullRight($tblAccount->getCashSign()),
-                            'Bankname'.new PullRight($tblAccount->getBankName()),
-                            Banking::useFrontend()->layoutReference($tblAccount),
-                        ), null, ( $tblAccount->getActive() === false ?
-                            new Standard('', '/Billing/Accounting/Banking/Account/Activate', new Ok(),
-                                array(
-                                    'Id'      => $tblDebtor->getId(),
-                                    'Account' => $tblAccount->getId(),
-                                    'Path'    => $Path,
-                                    'IdBack'  => $IdBack
-                                )) : null )
-                        )
-                    ), ( $tblAccount->getActive() ?
-                        Panel::PANEL_TYPE_SUCCESS
-                        : Panel::PANEL_TYPE_DEFAULT ))
-                    , 4);
-            }
+            /** @var TblBankAccount $tblAccount */
+//            foreach ($tblAccountList as $Key => &$tblAccount) {
+//                $tblAccountList[$Key] = new LayoutColumn(
+//                    new Panel(( $tblAccount->getActive() ?
+//                            'aktives Konto '
+//                            : null ).'&nbsp', array(
+//                        new Panel('', array(
+//                            'Besitzer'.new PullRight($tblAccount->getOwner()),
+//                            'IBAN'.new PullRight($tblAccount->getIBAN()),
+//                            'BIC'.new PullRight($tblAccount->getBIC()),
+//                            'Kassenzeichen'.new PullRight($tblAccount->getCashSign()),
+//                            'Bankname'.new PullRight($tblAccount->getBankName()),
+////                            Banking::useFrontend()->layoutReference($tblAccount),
+//                        ), null, ( $tblAccount->getActive() === false ?
+//                            new Standard('', '/Billing/Accounting/Banking/Account/Activate', new Ok(),
+//                                array(
+//                                    'Id'      => $tblDebtor->getId(),
+//                                    'Account' => $tblAccount->getId(),
+//                                    'Path'    => $Path,
+//                                    'IdBack'  => $IdBack
+//                                )) : null )
+//                        )))
+//                    , 4);
+//            }
         } else {
             $tblAccountList = new LayoutColumn(new Warning('Es ist kein Konto für diesen Debitor angelegt'));
         }
@@ -868,7 +865,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblOrder = Invoice::useService()->getOrderById($Id);
         $tblAddressAll = Address::useService()->getAddressAllByPerson(
-            Banking::useService()->getDebtorByDebtorNumber($tblOrder->getDebtorNumber())->getServiceManagementPerson());
+            Banking::useService()->getDebtorByDebtorNumber($tblOrder->getDebtorNumber())->getServicePeoplePerson());
 
         $layoutGroup = self::layoutAddress($tblAddressAll, $tblOrder->getServiceManagementAddress(), $tblOrder);
 

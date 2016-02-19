@@ -8,10 +8,15 @@ use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketCommodi
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketCommodityDebtor;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketItem;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketPerson;
+use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketVerification;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
+use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityItem;
+use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblCalculation;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -20,6 +25,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -157,18 +163,51 @@ class Service extends AbstractService
     /**
      * @param TblBasket $tblBasket
      *
-     * @return array
+     * @return false|TblBasketVerification[]
+     */
+    public function getBasketVerificationByBasket(TblBasket $tblBasket)
+    {
+
+        return (new Data($this->getBinding()))->getBasketVerificationByBasket($tblBasket);
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return bool|TblPerson[]
      */
     public function getPersonAllByBasket(TblBasket $tblBasket)
     {
 
         $tblBasketPersonList = $this->getBasketPersonAllByBasket($tblBasket);
         $tblPerson = array();
-        foreach ($tblBasketPersonList as $tblBasketPerson) {
-            array_push($tblPerson, $tblBasketPerson->getServiceManagementPerson());
+        if ($tblBasketPersonList) {
+            foreach ($tblBasketPersonList as $tblBasketPerson) {
+                array_push($tblPerson, $tblBasketPerson->getServicePeople_Person());
+            }
         }
 
-        return $tblPerson;
+
+        return ( empty( $tblPerson ) ? false : $tblPerson );
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return bool|TblItem[]
+     */
+    public function getItemAllByBasket(TblBasket $tblBasket)
+    {
+
+        $tblBasketItemList = $this->getBasketItemAllByBasket($tblBasket);
+        $tblItem = array();
+        if ($tblBasketItemList) {
+            foreach ($tblBasketItemList as $tblBasketItem) {
+                array_push($tblItem, $tblBasketItem->getServiceInventoryItem());
+            }
+
+        }
+        return ( empty( $tblItem ) ? false : $tblItem );
     }
 
     /**
@@ -207,15 +246,239 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
+            if (!isset( $Basket['Description'] )) {
+                $Basket['Description'] = '';
+            }
+
             $tblBasket = (new Data($this->getBinding()))->createBasket(
-                $Basket['Name']
+                $Basket['Name'], $Basket['Description']
             );
             return new Success('Der Warenkorb wurde erfolgreich erstellt')
-            .new Redirect('/Billing/Accounting/Basket/Commodity/Select', Redirect::TIMEOUT_SUCCESS
+            .new Redirect('/Billing/Accounting/Basket/Content', Redirect::TIMEOUT_SUCCESS
                 , array('Id' => $tblBasket->getId()));
         }
 
         return $Stage;
+    }
+
+    public function createBasketVerification(TblBasket $tblBasket)
+    {
+
+        $tblPersonList = $this->getPersonAllByBasket($tblBasket);
+        $tblItemList = $this->getItemAllByBasket($tblBasket);
+
+        if (!$tblPersonList && !$tblItemList) {
+            return new Warning('Keine Personen und Artikel im Warenkorb')
+            .new Redirect('/Billing/Accounting/Basket/Content', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
+        }
+        if (!$tblPersonList) {
+            return new Warning('Keine Personen im Warenkorb')
+            .new Redirect('/Billing/Accounting/Basket/Content', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
+        }
+        if (!$tblItemList) {
+            return new Warning('Keine Artikel im Warenkorb')
+            .new Redirect('/Billing/Accounting/Basket/Content', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
+        }
+        $PersonCount = Count($tblPersonList);
+
+        foreach ($tblPersonList as $tblPerson) {
+            $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+            $PersonChildRank = false;
+            $PersonCourse = false;
+            if ($tblStudent) {
+                $tblBilling = $tblStudent->getTblStudentBilling();
+                if ($tblBilling) {
+                    $tblSiblingRank = $tblBilling->getServiceTblSiblingRank();
+                    if ($tblSiblingRank) {
+                        $PersonChildRank = $tblSiblingRank->getId();
+                    }
+                }
+                $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                if ($tblTransferType) {
+                    $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                        $tblTransferType);
+                    if ($tblStudentTransfer) {
+                        $tblType = $tblStudentTransfer->getServiceTblType();
+                        if ($tblType) {
+                            $PersonCourse = $tblType->getId();
+                        }
+                    }
+                }
+            }
+            foreach ($tblItemList as $tblItem) {
+                $tblCalculationList = Item::useService()->getCalculationAllByItem($tblItem);
+                if (is_array($tblCalculationList)) {
+                    /** @var TblCalculation $tblCalculation */
+                    if (count($tblCalculationList) === 1) {
+                        foreach ($tblCalculationList as $tblCalculation) {
+                            if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
+                                break;
+                            }
+                            $ItemChildRankId = false;
+                            $ItemCourseId = false;
+                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+                            if ($tblItemCourseType) {
+                                $ItemCourseId = $tblItemCourseType->getId();
+                            }
+                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+                            if ($tblItemChildRank) {
+                                $ItemChildRankId = $tblItemChildRank->getId();
+                            }
+
+                            if (false === $ItemChildRankId && false === $ItemCourseId) {
+                                print_r('Item ChildRank False && Item Course False'.'<br/>');
+                                if ($tblItem->getTblItemType()->getName() === 'Sammelleistung') {
+                                    $Price = $tblCalculation->getValue();
+                                    $Price = ( ceil(( $Price / $PersonCount ) * 100) ) / 100; // Centbetrag immer aufrunden
+                                } else {
+                                    $Price = $tblCalculation->getValue();
+                                }
+                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                            }
+                        }
+                    }
+
+                    foreach ($tblCalculationList as $tblCalculation) {
+                        if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
+                            break;
+                        }
+                        $ItemChildRankId = false;
+                        $ItemChildRankName = '';
+                        $ItemCourseId = false;
+                        $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+                        if ($tblItemCourseType) {
+                            $ItemCourseId = $tblItemCourseType->getId();
+                        }
+                        $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+                        if ($tblItemChildRank) {
+                            $ItemChildRankId = $tblItemChildRank->getId();
+                            $ItemChildRankName = $tblItemChildRank->getName();
+                        }
+                        // Bedinungen stimmen
+                        if ($PersonChildRank === $ItemChildRankId && $PersonCourse === $ItemCourseId) {
+                            print_r($PersonChildRank.' = '.$ItemChildRankId.' && '.$PersonCourse.' = '.$ItemCourseId.'<br/>');
+                            $Price = $tblCalculation->getValue();
+                            (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                        }   // Fehlende Geschwisterangabe = 1.Geschwisterkind
+                        if ($PersonChildRank === false && $ItemChildRankName === '1. Geschwisterkind' && $PersonCourse === $ItemCourseId) {
+                            print_r('False = '.$ItemChildRankName.' && '.$PersonCourse.' = '.$ItemCourseId.'<br/>');
+                            $Price = $tblCalculation->getValue();
+                            (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                        }
+                    }
+
+
+                    foreach ($tblCalculationList as $tblCalculation) {
+
+                        if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
+                            break;
+                        }
+                        $ItemChildRankId = false;
+                        $ItemChildRankName = '';
+                        $ItemCourseId = false;
+
+                        $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+                        if ($tblItemCourseType) {
+                            $ItemCourseId = $tblItemCourseType->getId();
+                        }
+                        $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+                        if ($tblItemChildRank) {
+                            $ItemChildRankId = $tblItemChildRank->getId();
+                            $ItemChildRankName = $tblItemChildRank->getName();
+                        }
+                        // Ignoriert Geschwisterkinder
+                        if (false === $ItemChildRankId && $PersonCourse === $ItemCourseId) {
+                            print_r($PersonChildRank.' = '.$ItemChildRankId.' && '.$PersonCourse.' = '.$ItemCourseId.'<br/>');
+                            $Price = $tblCalculation->getValue();
+                            (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                        }
+                        // Ignoriert SchulTyp
+                        if ($PersonChildRank === $ItemChildRankId && false === $ItemCourseId) {
+                            print_r($PersonChildRank.' = '.$ItemChildRankId.' && '.$PersonCourse.' = '.$ItemCourseId.'<br/>');
+                            $Price = $tblCalculation->getValue();
+                            (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                        }
+                        // Fehlende Geschwisterangabe = 1.Geschwisterkind
+                        if ($PersonChildRank === false && $ItemChildRankName === '1. Geschwisterkind' && false === $ItemCourseId) {
+                            print_r('False = '.$ItemChildRankName.' && '.$PersonCourse.' = '.$ItemCourseId.'<br/>');
+                            $Price = $tblCalculation->getValue();
+                            (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                        }
+                    }
+
+                    if ($tblItem->getTblItemType()->getName() === 'Sammelleistung') {
+                        foreach ($tblCalculationList as $tblCalculation) {
+                            if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
+                                break;
+                            }
+                            $ItemChildRankId = false;
+                            $ItemCourseId = false;
+                            Debugger::screenDump($ItemChildRankId.' - '.$ItemCourseId);
+                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+                            if ($tblItemCourseType) {
+                                $ItemCourseId = $tblItemCourseType->getId();
+                            }
+                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+                            if ($tblItemChildRank) {
+                                $ItemChildRankId = $tblItemChildRank->getId();
+                            }
+                            // Das Verteilen der Sammelleistung bei vergebenen Bedingungen an alle nicht der Bedingung zutreffenden Personen
+                            if (false === $ItemChildRankId && false === $ItemCourseId) {
+                                print_r('Item ChildRank False && Item Course False'.'<br/>');
+                                $Price = $tblCalculation->getValue();
+                                $Price = ( ceil(( $Price / $PersonCount ) * 100) ) / 100; // Centbetrag immer aufrunden
+                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return new Success('Warenkorb bereitmachen für Bearbeitung')
+        .new Redirect('/Billing/Accounting/Basket/Verification', 600 /*Redirect::TIMEOUT_WAIT*/, array('Id' => $tblBasket->getId()));
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return array|bool
+     */
+    public function getUnusedCommodityByBasket(TblBasket $tblBasket)
+    {
+
+        $tblBasketItemList = Basket::useService()->getBasketItemAllByBasket($tblBasket);
+        $ItemList = array();
+        if ($tblBasketItemList) {
+            foreach ($tblBasketItemList as $tblBasketItem) {
+                $ItemList[] = $tblBasketItem->getServiceInventoryItem();
+            }
+        }
+
+        $tblCommodityAll = Commodity::useService()->getCommodityAll();
+        $tblCommodityList = array();
+
+        if (!empty( $tblCommodityAll )) {
+            if (empty( $ItemList )) {
+                $tblCommodityList = $tblCommodityAll;
+            } else {
+                foreach ($tblCommodityAll as $tblCommodity) {
+                    $CommodityItemList = Commodity::useService()->getItemAllByCommodity($tblCommodity);
+                    if (!empty( $CommodityItemList )) {
+                        $CommodityItemList = array_udiff($CommodityItemList, $ItemList,
+                            function (TblItem $ObjectA, TblItem $ObjectB) {
+
+                                return $ObjectA->getId() - $ObjectB->getId();
+                            }
+                        );
+                        if (!empty( $CommodityItemList )) {
+                            $tblCommodityList[] = $tblCommodity;
+                        }
+                    }
+                }
+            }
+        }
+
+        return ( ( $tblCommodityList === null ) ? false : $tblCommodityList );
     }
 
     /**
@@ -246,7 +509,8 @@ class Service extends AbstractService
         if (!$Error) {
             if ((new Data($this->getBinding()))->updateBasket(
                 $tblBasket,
-                $Basket['Name']
+                $Basket['Name'],
+                $Basket['Description']
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
@@ -277,6 +541,36 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblBasketVerification $tblBasketVerification
+     *
+     * @return string
+     */
+    public function destroyBasketVerification(TblBasketVerification $tblBasketVerification)
+    {
+
+        if ((new Data($this->getBinding()))->destroyBasketVerification($tblBasketVerification)) {
+            return new Success('Der Eintrag wurde erfolgreich gelöscht')
+            .new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_SUCCESS,
+                array('Id' => $tblBasketVerification->getTblBasket()->getId()));
+        } else {
+            return new Warning('Der Eintrag konnte nicht gelöscht werden')
+            .new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblBasketVerification->getTblBasket()->getId()));
+        }
+    }
+
+    /**
+     * @param TblBasketVerification $tblBasketVerification
+     *
+     * @return bool
+     */
+    public function destroyBasketVerificationList(TblBasketVerification $tblBasketVerification)
+    {
+
+        return (new Data($this->getBinding()))->destroyBasketVerification($tblBasketVerification);
+    }
+
+    /**
      * @param TblBasket    $tblBasket
      * @param TblCommodity $tblCommodity
      *
@@ -286,12 +580,27 @@ class Service extends AbstractService
     {
 
         if ((new Data($this->getBinding()))->addBasketItemsByCommodity($tblBasket, $tblCommodity)) {
-            return new Success('Die Leistung '.$tblCommodity->getName().' wurde erfolgreich hinzugefügt')
-            .new Redirect('/Billing/Accounting/Basket/Commodity/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+            return new Success('Die Artikelgruppe '.$tblCommodity->getName().' wurde erfolgreich hinzugefügt')
+            .new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
         } else {
-            return new Warning('Die Leistung '.$tblCommodity->getName().' konnte nicht hinzugefügt werden')
-            .new Redirect('/Billing/Accounting/Basket/Commodity/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
+            return new Warning('Die Artikelgruppe '.$tblCommodity->getName().' konnte nicht kmplett hinzugefügt werden')
+            .new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
         }
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param TblItem   $tblItem
+     *
+     * @return string
+     */
+    public function addItemToBasket(TblBasket $tblBasket, TblItem $tblItem)
+    {
+
+        (new Data($this->getBinding()))->addItemToBasket($tblBasket, $tblItem);
+
+        return new Success('Der Artikel '.$tblItem->getName().' wurde erfolgreich hinzugefügt')
+        .new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
     }
 
     /**
@@ -321,12 +630,61 @@ class Service extends AbstractService
     {
 
         if ((new Data($this->getBinding()))->removeBasketItem($tblBasketItem)) {
-            return new Success('Der Artikel '.$tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getName().' wurde erfolgreich entfernt')
-            .new Redirect('/Billing/Accounting/Basket/Item', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasketItem->getTblBasket()->getId()));
+            return new Success('Der Artikel '.$tblBasketItem->getServiceInventoryItem()->getName().' wurde erfolgreich entfernt')
+            .new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasketItem->getTblBasket()->getId()));
         } else {
-            return new Warning('Der Artikel '.$tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getName().' konnte nicht entfernt werden')
-            .new Redirect('/Billing/Accounting/Basket/Item', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasketItem->getTblBasket()->getId()));
+            return new Warning('Der Artikel '.$tblBasketItem->getServiceInventoryItem()->getName().' konnte nicht entfernt werden')
+            .new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasketItem->getTblBasket()->getId()));
         }
+    }
+
+    public function changeBasketVerification(IFormInterface &$Stage = null, TblBasketVerification $tblBasketVerification, $Item)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Item
+        ) {
+            return $Stage;
+        }
+
+        $Error = false;
+
+        if (isset( $Item['Price'] ) && empty( $Item['Price'] )) {
+            $Stage->setError('Item[Price]', 'Bitte geben Sie einen Preis an');
+            $Error = true;
+        }
+        if (isset( $Item['Quantity'] ) && empty( $Item['Quantity'] )) {
+            $Stage->setError('Item[Quantity]', 'Bitte geben Sie eine Anzahl an');
+            $Error = true;
+        } else {
+            $Item['Quantity'] = (int)round(str_replace(',', '.', $Item['Quantity']), 0);
+            if (!is_integer($Item['Quantity']) || $Item['Quantity'] < 1) {
+                $Stage->setError('Item[Quantity]', 'Bitte geben Sie eine Natürliche Zahl an');
+                $Error = true;
+            }
+        }
+        if (!$Error) {
+            if ($Item['PriceChoice'] === 'Einzelpreis') {
+                $Item['Price'] = $Item['Price'] * $Item['Quantity'];
+            }
+            if ((new Data($this->getBinding()))->updateBasketVerification(
+                $tblBasketVerification,
+                $Item['Price'],
+                $Item['Quantity']
+            )
+            ) {
+                $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
+                    .new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_SUCCESS,
+                        array('Id' => $tblBasketVerification->getTblBasket()->getId()));
+            } else {
+                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
+                    .new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_ERROR,
+                        array('Id' => $tblBasketVerification->getTblBasket()->getId()));
+            };
+        }
+        return $Stage;
     }
 
     /**
@@ -386,13 +744,10 @@ class Service extends AbstractService
     public function addBasketPerson(TblBasket $tblBasket, TblPerson $tblPerson)
     {
 
-        if ((new Data($this->getBinding()))->addBasketPerson($tblBasket, $tblPerson)) {
-            return new Success('Die Person '.$tblPerson->getFullName().' wurde erfolgreich hinzugefügt')
-            .new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
-        } else {
-            return new Warning('Die Person '.$tblPerson->getFullName().' konnte nicht hinzugefügt werden')
-            .new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
-        }
+        (new Data($this->getBinding()))->addBasketPerson($tblBasket, $tblPerson);
+
+        return new Success('Die Person '.$tblPerson->getFullName().' wurde erfolgreich hinzugefügt')
+        .new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
     }
 
     /**
@@ -404,11 +759,11 @@ class Service extends AbstractService
     {
 
         if ((new Data($this->getBinding()))->removeBasketPerson($tblBasketPerson)) {
-            return new Success('Die Person '.$tblBasketPerson->getServiceManagementPerson()->getFullName().' wurde erfolgreich entfernt')
+            return new Success('Die Person '.$tblBasketPerson->getServicePeople_Person()->getFullName().' wurde erfolgreich entfernt')
             .new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_SUCCESS,
                 array('Id' => $tblBasketPerson->getTblBasket()->getId()));
         } else {
-            return new Warning('Die Person '.$tblBasketPerson->getServiceManagementPerson()->getFullName().' konnte nicht entfernt werden')
+            return new Warning('Die Person '.$tblBasketPerson->getServicePeople_Person()->getFullName().' konnte nicht entfernt werden')
             .new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblBasketPerson->getTblBasket()->getId()));
         }
@@ -451,9 +806,9 @@ class Service extends AbstractService
             $ErrorMissing = true;
         } else {
             foreach ($tblBasketPersonAllByBasket as $tblBasketPerson) {
-                $tblPerson = $tblBasketPerson->getServiceManagementPerson();
+                $tblPerson = $tblBasketPerson->getServicePeople_Person();
                 if (!(new Data($this->getBinding()))->checkDebtorExistsByPerson($tblPerson)) {
-                    $Stage .= new Danger("Für die Person ".$tblBasketPerson->getServiceManagementPerson()->getFullName()
+                    $Stage .= new Danger("Für die Person ".$tblBasketPerson->getServicePeople_Person()->getFullName()
                         ." gibt es noch keinen relevanten Debitoren. Bitte legen Sie diesen zunächst an");
                     $ErrorMissing = true;
                 }
@@ -550,6 +905,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getBasketById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblBasketVerification
+     */
+    public function getBasketVerificationById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getBasketVerificationById($Id);
     }
 
     /**

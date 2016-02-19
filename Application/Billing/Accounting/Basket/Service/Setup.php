@@ -51,11 +51,11 @@ class Setup extends AbstractSetup
 
         $Table = $this->getConnection()->createTable($Schema, 'tblBasket');
 
-        if (!$this->getConnection()->hasColumn('tblBasket', 'CreateDate')) {
-            $Table->addColumn('CreateDate', 'datetime');
-        }
         if (!$this->getConnection()->hasColumn('tblBasket', 'Name')) {
             $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblBasket', 'Description')) {
+            $Table->addColumn('Description', 'string');
         }
 
         return $Table;
@@ -72,8 +72,8 @@ class Setup extends AbstractSetup
 
         $Table = $this->getConnection()->createTable($Schema, 'tblBasketPerson');
 
-        if (!$this->getConnection()->hasColumn('tblBasketPerson', 'serviceManagement_Person')) {
-            $Table->addColumn('serviceManagement_Person', 'bigint');
+        if (!$this->getConnection()->hasColumn('tblBasketPerson', 'servicePeople_Person')) {
+            $Table->addColumn('servicePeople_Person', 'bigint');
         }
 
         $this->getConnection()->addForeignKey($Table, $tblBasket);
@@ -92,14 +92,8 @@ class Setup extends AbstractSetup
 
         $Table = $this->getConnection()->createTable($Schema, 'tblBasketItem');
 
-        if (!$this->getConnection()->hasColumn('tblBasketItem', 'serviceBilling_CommodityItem')) {
-            $Table->addColumn('serviceBilling_CommodityItem', 'bigint');
-        }
-        if (!$this->getConnection()->hasColumn('tblBasketItem', 'Price')) {
-            $Table->addColumn('Price', 'decimal', array('precision' => 14, 'scale' => 4));
-        }
-        if (!$this->getConnection()->hasColumn('tblBasketItem', 'Quantity')) {
-            $Table->addColumn('Quantity', 'decimal', array('precision' => 14, 'scale' => 4));
+        if (!$this->getConnection()->hasColumn('tblBasketItem', 'serviceInventory_Item')) {
+            $Table->addColumn('serviceInventory_Item', 'bigint');
         }
 
         $this->getConnection()->addForeignKey($Table, $tblBasket);
@@ -118,8 +112,8 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblBasketVerification', 'Quantity')) {
             $Table->addColumn('Quantity', 'integer');
         }
-        if (!$this->getConnection()->hasColumn('tblBasketVerification', 'serviceManagement_Person')) {
-            $Table->addColumn('serviceManagement_Person', 'bigint');
+        if (!$this->getConnection()->hasColumn('tblBasketVerification', 'servicePeople_Person')) {
+            $Table->addColumn('servicePeople_Person', 'bigint');
         }
         if (!$this->getConnection()->hasColumn('tblBasketVerification', 'serviceInventory_Item')) {
             $Table->addColumn('serviceInventory_Item', 'bigint');
