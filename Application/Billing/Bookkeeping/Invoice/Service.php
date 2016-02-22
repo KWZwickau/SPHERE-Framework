@@ -2,11 +2,8 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
-use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasket;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Data;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem;
@@ -14,7 +11,6 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblOrder;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblOrderItem;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblTempInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Setup;
-use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -305,114 +301,114 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getOrderAll();
     }
 
-    /**
-     * @param TblOrder $tblOrder
-     * @param          $Account
-     *
-     * @return string
-     */
-    public function createInvoice(TblOrder $tblOrder, $Account = null)
-    {
-
-        $tblOrderItemList = Invoice::useService()->getOrderItemAllByOrder($tblOrder);
-        if (!empty( $tblOrderItemList )) {
-            if ($tblInvoice = (new Data($this->getBinding()))->createInvoice($tblOrder)) {
-
-                foreach ($tblOrderItemList as $tblOrderItem) {
-                    Invoice::useService()->createInvoiceItem($tblOrderItem, $tblInvoice);
-                }
-                if ($Account !== false || $Account !== null) {
-                    $tblAccount = Banking::useService()->getAccountById($Account);
-
-                    $tblOrderItemList = Invoice::useService()->getOrderItemAllByOrder($tblOrder);
-                    if (!empty( $tblOrderItemList )) {
-                        if ($tblOrder->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
-                            if ($tblAccount) {
-                                $tblCommodity = Commodity::useService()->getCommodityByName($tblOrderItemList[0]->getCommodityName());
-                                if ($tblCommodity) {
-                                    $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblOrder->getDebtorNumber());
-                                    if ($tblDebtor) {
-//                                    if (Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor,
-//                                        $tblCommodity)) {
-                                        if (Banking::useService()->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity)) {
-                                            $tblReference = Banking::useService()->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity);
-                                            $Reference = $tblReference->getReference();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if (!isset( $Reference )) {
-                            $Reference = null;
-                        }
-
-                        if (Balance::useService()->createBalance(
-                            Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
-                            $tblInvoice,
-                            null,
-                            $tblAccount->getBankName(),
-                            $tblAccount->getIBAN(),
-                            $tblAccount->getBIC(),
-                            $tblAccount->getOwner(),
-                            $tblAccount->getCashSign(),
-                            $Reference
-                        )
-                        ) {
-                            if (Invoice::useService()->destroyOrder($tblOrder)) {
-                                return new Success('Die Rechnung wurde erstellt')
-                                .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
-                            } else {
-                                return new Success('Die Rechnung erstellt, Auftrag aber nicht gelöscht', Redirect::TIMEOUT_ERROR)
-                                .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
-                            }
-                        } else {
-                            return new Warning('Die Rechnung konnte nicht erstellt werden')
-                            .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
-                                array('Id' => $tblOrder->getId()));
-                        }
-                    }
-                    return new Warning('Die Rechnung kann ohne Artikel nicht erstellt werden.')
-                    .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblOrder->getId()));
-
-
-                }
-//                elseif($Account === null){
+//    /**
+//     * @param TblOrder $tblOrder
+//     * @param          $Account
+//     *
+//     * @return string
+//     */
+//    public function createInvoice(TblOrder $tblOrder, $Account = null)
+//    {
 //
-//                    $tblBalance = Balance::useService()->getBalanceByInvoice($tblInvoice);
-//                    if($tblBalance)
-//                    {
-//                        if(Balance::useService()->copyBalance($tblBalance, $tblInvoice))
-//                        {
-//                            return new Success('Die Rechnung wurde Stoniert')
-//                            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_SUCCESS);
+//        $tblOrderItemList = Invoice::useService()->getOrderItemAllByOrder($tblOrder);
+//        if (!empty( $tblOrderItemList )) {
+//            if ($tblInvoice = (new Data($this->getBinding()))->createInvoice($tblOrder)) {
+//
+//                foreach ($tblOrderItemList as $tblOrderItem) {
+//                    Invoice::useService()->createInvoiceItem($tblOrderItem, $tblInvoice);
+//                }
+//                if ($Account !== false || $Account !== null) {
+//                    $tblAccount = Banking::useService()->getAccountById($Account);
+//
+//                    $tblOrderItemList = Invoice::useService()->getOrderItemAllByOrder($tblOrder);
+//                    if (!empty( $tblOrderItemList )) {
+//                        if ($tblOrder->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
+//                            if ($tblAccount) {
+//                                $tblCommodity = Commodity::useService()->getCommodityByName($tblOrderItemList[0]->getCommodityName());
+//                                if ($tblCommodity) {
+//                                    $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblOrder->getDebtorNumber());
+//                                    if ($tblDebtor) {
+////                                    if (Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor,
+////                                        $tblCommodity)) {
+//                                        if (Banking::useService()->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity)) {
+//                                            $tblReference = Banking::useService()->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity);
+//                                            $Reference = $tblReference->getReference();
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                        if (!isset( $Reference )) {
+//                            $Reference = null;
+//                        }
+//
+//                        if (Balance::useService()->createBalance(
+//                            Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
+//                            $tblInvoice,
+//                            null,
+//                            $tblAccount->getBankName(),
+//                            $tblAccount->getIBAN(),
+//                            $tblAccount->getBIC(),
+//                            $tblAccount->getOwner(),
+//                            $tblAccount->getCashSign(),
+//                            $Reference
+//                        )
+//                        ) {
+//                            if (Invoice::useService()->destroyOrder($tblOrder)) {
+//                                return new Success('Die Rechnung wurde erstellt')
+//                                .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
+//                            } else {
+//                                return new Success('Die Rechnung erstellt, Auftrag aber nicht gelöscht', Redirect::TIMEOUT_ERROR)
+//                                .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
+//                            }
+//                        } else {
+//                            return new Warning('Die Rechnung konnte nicht erstellt werden')
+//                            .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
+//                                array('Id' => $tblOrder->getId()));
 //                        }
 //                    }
+//                    return new Warning('Die Rechnung kann ohne Artikel nicht erstellt werden.')
+//                    .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
+//                        array('Id' => $tblOrder->getId()));
+//
 //
 //                }
-                else {
-                    if (Balance::useService()->createBalance(
-                        Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
-                        $tblInvoice
-                    )
-                    ) {
-                        return new Success('Die Rechnung wurde erfolgreich bestätigt und freigegeben')
-                        .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
-                    } else {
-                        return new Warning('Die Rechnung konnte nicht bestätigt und freigegeben werden')
-                        .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
-                            array('Id' => $tblOrder->getId()));
-                    }
-                }
-            }
-            return new Warning('Die Rechnung konnte nicht erstellt werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
-                array('Id' => $tblOrder->getId()));
-        }
-        return new Warning('Die Rechnung enthält keine Artikel')
-        .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
-            array('Id' => $tblOrder->getId()));
-    }
+////                elseif($Account === null){
+////
+////                    $tblBalance = Balance::useService()->getBalanceByInvoice($tblInvoice);
+////                    if($tblBalance)
+////                    {
+////                        if(Balance::useService()->copyBalance($tblBalance, $tblInvoice))
+////                        {
+////                            return new Success('Die Rechnung wurde Stoniert')
+////                            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_SUCCESS);
+////                        }
+////                    }
+////
+////                }
+//                else {
+//                    if (Balance::useService()->createBalance(
+//                        Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
+//                        $tblInvoice
+//                    )
+//                    ) {
+//                        return new Success('Die Rechnung wurde erfolgreich bestätigt und freigegeben')
+//                        .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
+//                    } else {
+//                        return new Warning('Die Rechnung konnte nicht bestätigt und freigegeben werden')
+//                        .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
+//                            array('Id' => $tblOrder->getId()));
+//                    }
+//                }
+//            }
+//            return new Warning('Die Rechnung konnte nicht erstellt werden')
+//            .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
+//                array('Id' => $tblOrder->getId()));
+//        }
+//        return new Warning('Die Rechnung enthält keine Artikel')
+//        .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
+//            array('Id' => $tblOrder->getId()));
+//    }
 
 //    /**
 //     * @param TblInvoice $tblInvoice
@@ -429,138 +425,136 @@ class Service extends AbstractService
 //        .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
 //    }
 
-    /**
-     * @param TblInvoice $tblInvoice
-     *
-     * @return TblInvoice
-     */
-    public function copyInvoice(TblInvoice $tblInvoice)
-    {
+//    /**
+//     * @param TblInvoice $tblInvoice
+//     *
+//     * @return TblInvoice
+//     */
+//    public function copyInvoice(TblInvoice $tblInvoice)
+//    {
+//
+//        $tblInvoiceCopy = (new Data($this->getBinding()))->copyInvoice($tblInvoice);
+//        $tblBalance = Balance::useService()->getBalanceByInvoice($tblInvoice);
+//        if ($tblBalance) {
+//            Balance::useService()->copyBalance($tblBalance, $tblInvoiceCopy);
+//        }
+//        if ($tblInvoiceItemList = Invoice::useService()->getInvoiceItemAllByInvoice($tblInvoice)) {
+//            foreach ($tblInvoiceItemList as $tblInvoiceItem) {
+//                Invoice::useService()->createInvoiceItemCopy($tblInvoiceItem, $tblInvoiceCopy);
+//            }
+//        }
+//        return $tblInvoiceCopy;
+//    }
 
-        $tblInvoiceCopy = (new Data($this->getBinding()))->copyInvoice($tblInvoice);
-        $tblBalance = Balance::useService()->getBalanceByInvoice($tblInvoice);
-        if ($tblBalance) {
-            Balance::useService()->copyBalance($tblBalance, $tblInvoiceCopy);
-        }
-        if ($tblInvoiceItemList = Invoice::useService()->getInvoiceItemAllByInvoice($tblInvoice)) {
-            foreach ($tblInvoiceItemList as $tblInvoiceItem) {
-                Invoice::useService()->createInvoiceItemCopy($tblInvoiceItem, $tblInvoiceCopy);
-            }
-        }
-        return $tblInvoiceCopy;
-    }
+//    /**
+//     * @param TblInvoice $tblInvoice
+//     * @param            $Account
+//     *
+//     * @return string
+//     */
+//    public function confirmInvoice(TblInvoice $tblInvoice, $Account)
+//    {
+//
+//        If ($Account !== false) {
+//            $tblAccount = Banking::useService()->getAccountById($Account);
+//
+//            $tblInvoiceItemList = Invoice::useService()->getInvoiceItemAllByInvoice($tblInvoice);
+//            if (!empty( $tblInvoiceItemList )) {
+//                if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
+//                    if ($tblAccount) {
+//                        $tblCommodity = Commodity::useService()->getCommodityByName($tblInvoiceItemList[0]->getCommodityName());
+//                        if ($tblCommodity) {
+//                            $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+//                            if ($tblDebtor) {
+////                                    if (Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor,
+////                                        $tblCommodity)) {
+//                                if (Banking::useService()->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity)) {
+//                                    $tblReference = Banking::useService()->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity);
+//                                    $Reference = $tblReference->getReference();
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//                if (!isset( $Reference )) {
+//                    $Reference = null;
+//                }
+//
+//                if (Balance::useService()->createBalance(
+//                    Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
+//                    $tblInvoice,
+//                    null,
+//                    $tblAccount->getBankName(),
+//                    $tblAccount->getIBAN(),
+//                    $tblAccount->getBIC(),
+//                    $tblAccount->getOwner(),
+//                    $tblAccount->getCashSign(),
+//                    $Reference
+//                )
+//                ) {
+//                    return new Success('Die Rechnung wurde erfolgreich bestätigt und freigegeben')
+//                    .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
+//                } else {
+//                    return new Warning('Die Rechnung konnte nicht bestätigt und freigegeben werden')
+//                    .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
+//                        array('Id' => $tblInvoice->getId()));
+//                }
+//            }
+//            return new Warning('Die Rechnung konnte nicht bestätigt und freigegeben werden. Fehlende Artikel!')
+//            .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
+//                array('Id' => $tblInvoice->getId()));
+//
+//
+//        } else {
+//            if (Balance::useService()->createBalance(
+//                Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
+//                $tblInvoice
+//            )
+//            ) {
+//                return new Success('Die Rechnung wurde erfolgreich bestätigt und freigegeben')
+//                .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
+//            } else {
+//                return new Warning('Die Rechnung konnte nicht bestätigt und freigegeben werden')
+//                .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
+//                    array('Id' => $tblInvoice->getId()));
+//            }
+//        }
+//    }
 
-    /**
-     * @param TblInvoice $tblInvoice
-     * @param            $Account
-     *
-     * @return string
-     */
-    public function confirmInvoice(TblInvoice $tblInvoice, $Account)
-    {
-
-        If ($Account !== false) {
-            $tblAccount = Banking::useService()->getAccountById($Account);
-
-            $tblInvoiceItemList = Invoice::useService()->getInvoiceItemAllByInvoice($tblInvoice);
-            if (!empty( $tblInvoiceItemList )) {
-                if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
-                    if ($tblAccount) {
-                        $tblCommodity = Commodity::useService()->getCommodityByName($tblInvoiceItemList[0]->getCommodityName());
-                        if ($tblCommodity) {
-                            $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
-                            if ($tblDebtor) {
-//                                    if (Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor,
-//                                        $tblCommodity)) {
-                                if (Banking::useService()->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity)) {
-                                    $tblReference = Banking::useService()->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity);
-                                    $Reference = $tblReference->getReference();
-                                }
-                            }
-                        }
-                    }
-                }
-                if (!isset( $Reference )) {
-                    $Reference = null;
-                }
-
-                if (Balance::useService()->createBalance(
-                    Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
-                    $tblInvoice,
-                    null,
-                    $tblAccount->getBankName(),
-                    $tblAccount->getIBAN(),
-                    $tblAccount->getBIC(),
-                    $tblAccount->getOwner(),
-                    $tblAccount->getCashSign(),
-                    $Reference
-                )
-                ) {
-                    return new Success('Die Rechnung wurde erfolgreich bestätigt und freigegeben')
-                    .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
-                } else {
-                    return new Warning('Die Rechnung konnte nicht bestätigt und freigegeben werden')
-                    .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
-                        array('Id' => $tblInvoice->getId()));
-                }
-            }
-            return new Warning('Die Rechnung konnte nicht bestätigt und freigegeben werden. Fehlende Artikel!')
-            .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
-                array('Id' => $tblInvoice->getId()));
-
-
-        } else {
-            if (Balance::useService()->createBalance(
-                Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
-                $tblInvoice
-            )
-            ) {
-                return new Success('Die Rechnung wurde erfolgreich bestätigt und freigegeben')
-                .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
-            } else {
-                return new Warning('Die Rechnung konnte nicht bestätigt und freigegeben werden')
-                .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblInvoice->getId()));
-            }
-        }
-    }
-
-    /**
-     * @param TblInvoice $tblInvoice
-     *
-     * @return string
-     */
-    public function cancelInvoice(
-        TblInvoice $tblInvoice
-    ) {
-
-//        if (!$tblInvoice->isConfirmed()) {
+//    /**
+//     * @param TblInvoice $tblInvoice
+//     *
+//     * @return string
+//     */
+//    public function cancelInvoice(
+//        TblInvoice $tblInvoice
+//    ) {
+//
+////        if (!$tblInvoice->isConfirmed()) {
+////            if ((new Data($this->getBinding()))->cancelInvoice($tblInvoice)) {
+////                return new Success('Die Rechnung wurde erfolgreich storniert')
+////                .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_SUCCESS);
+////            } else {
+////                return new Warning('Die Rechnung konnte nicht storniert werden')
+////                .new Redirect('/Billing/Bookkeeping/Invoice/Show', Redirect::TIMEOUT_ERROR,
+////                    array('Id' => $tblInvoice->getId()));
+////            }
+////        } else {
+//        //TODO cancel confirmed invoice
+//
+//        if (Invoice::useService()->copyInvoice($tblInvoice)) {
 //            if ((new Data($this->getBinding()))->cancelInvoice($tblInvoice)) {
 //                return new Success('Die Rechnung wurde erfolgreich storniert')
 //                .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_SUCCESS);
 //            } else {
 //                return new Warning('Die Rechnung konnte nicht storniert werden')
-//                .new Redirect('/Billing/Bookkeeping/Invoice/Show', Redirect::TIMEOUT_ERROR,
-//                    array('Id' => $tblInvoice->getId()));
+//                .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
 //            }
 //        } else {
-        //TODO cancel confirmed invoice
-
-        if (Invoice::useService()->copyInvoice($tblInvoice)) {
-            if ((new Data($this->getBinding()))->cancelInvoice($tblInvoice)) {
-                return new Success('Die Rechnung wurde erfolgreich storniert')
-                .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_SUCCESS);
-            } else {
-                return new Warning('Die Rechnung konnte nicht storniert werden')
-                .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-            }
-        } else {
-            return new Warning('Die Rechnung konnte nicht storniert werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
-        }
-
-
-    }
+//            return new Warning('Die Rechnung konnte nicht storniert werden')
+//            .new Redirect('/Billing/Bookkeeping/Invoice', Redirect::TIMEOUT_ERROR);
+//        }
+//    }
 
     /**
      * @param TblOrder $tblOrder
@@ -606,23 +600,23 @@ class Service extends AbstractService
         }
     }
 
-    /**
-     * @param TblInvoice     $tblInvoice
-     * @param TblPaymentType $tblPaymentType
-     *
-     * @return string
-     */
-    public function changeInvoicePaymentType(TblInvoice $tblInvoice, TblPaymentType $tblPaymentType)
-    {
-
-        if ((new Data($this->getBinding()))->changeInvoicePaymentType($tblInvoice, $tblPaymentType)) {
-            return new Success('Die Zahlungsart wurde erfolgreich geändert')
-            .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblInvoice->getId()));
-        } else {
-            return new Warning('Die Zahlungsart konnte nicht geändert werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR, array('Id' => $tblInvoice->getId()));
-        }
-    }
+//    /**
+//     * @param TblInvoice     $tblInvoice
+//     * @param TblPaymentType $tblPaymentType
+//     *
+//     * @return string
+//     */
+//    public function changeInvoicePaymentType(TblInvoice $tblInvoice, TblPaymentType $tblPaymentType)
+//    {
+//
+//        if ((new Data($this->getBinding()))->changeInvoicePaymentType($tblInvoice, $tblPaymentType)) {
+//            return new Success('Die Zahlungsart wurde erfolgreich geändert')
+//            .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblInvoice->getId()));
+//        } else {
+//            return new Warning('Die Zahlungsart konnte nicht geändert werden')
+//            .new Redirect('/Billing/Bookkeeping/Invoice/Order/Edit', Redirect::TIMEOUT_ERROR, array('Id' => $tblInvoice->getId()));
+//        }
+//    }
 
     /**
      * @param TblInvoice $tblInvoice
@@ -644,7 +638,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
-     * @param TblOrderItem        $tblInvoiceItem
+     * @param TblOrderItem        $tblOrderItem
      * @param                     $OrderItem
      *
      * @return IFormInterface|string

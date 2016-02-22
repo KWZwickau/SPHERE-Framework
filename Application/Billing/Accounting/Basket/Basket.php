@@ -26,11 +26,6 @@ class Basket implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendBasketList'
             )
         );
-//        Main::getDispatcher()->registerRoute(
-//            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Create',
-//                __NAMESPACE__.'\Frontend::frontendBasketCreate'
-//            )->setParameterDefault('Basket', null)
-//        );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Change',
                 __NAMESPACE__.'\Frontend::frontendBasketChange'
@@ -63,12 +58,6 @@ class Basket implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Remove',
                 __NAMESPACE__.'\Frontend::frontendBasketItemRemove'
             ));
-//        Main::getDispatcher()->registerRoute(
-//            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Change',
-//                __NAMESPACE__.'\Frontend::frontendBasketItemChange'
-//            )->setParameterDefault('Id', null)
-//                ->setParameterDefault('BasketItem', null)
-//        );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Person/Select',
                 __NAMESPACE__.'\Frontend::frontendBasketPersonSelect'
@@ -90,8 +79,16 @@ class Basket implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendBasketVerification'
             ));
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Verification/Person',
+                __NAMESPACE__.'\Frontend::frontendBasketVerificationPersonShow'
+            ));
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Verification/Edit',
                 __NAMESPACE__.'\Frontend::frontendBasketVerificationEdit'
+            ));
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Verification/Person/Remove',
+                __NAMESPACE__.'\Frontend::frontendBasketVerificationPersonRemove'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Verification/Destroy',

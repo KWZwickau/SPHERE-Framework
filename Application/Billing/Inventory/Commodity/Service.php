@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Billing\Inventory\Commodity;
 
 use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
-use SPHERE\Application\Billing\Accounting\Basket\Basket;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Data;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityItem;
@@ -239,14 +238,14 @@ class Service extends AbstractService
         if (null === $tblCommodity) {
             return '';
         }
-        $tblCommodityItemList = Commodity::useService()->getCommodityItemAllByCommodity($tblCommodity);
-        /** @var TblCommodityItem $tblCommodityItem */
-        foreach ($tblCommodityItemList as $tblCommodityItem) {
-            $tblBasketItemList = Basket::useService()->getBasketItemAllByCommodityItem($tblCommodityItem);
-            foreach ($tblBasketItemList as $tblBasketItem) {
-                Basket::useService()->removeBasketItem($tblBasketItem);
-            }
-        }
+//        $tblCommodityItemList = Commodity::useService()->getCommodityItemAllByCommodity($tblCommodity);
+//        /** @var TblCommodityItem $tblCommodityItem */
+//        foreach ($tblCommodityItemList as $tblCommodityItem) {
+//            $tblBasketItemList = Basket::useService()->getBasketItemAllByCommodityItem($tblCommodityItem);
+//            foreach ($tblBasketItemList as $tblBasketItem) {
+//                Basket::useService()->removeBasketItem($tblBasketItem);
+//            }
+//        }
 
         if ((new Data($this->getBinding()))->destroyCommodity($tblCommodity)) {
             return new Success('Die Leistung wurde erfolgreich gelöscht')

@@ -50,7 +50,6 @@ use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -782,7 +781,6 @@ class Frontend extends Extension implements IFrontendInterface
             }
             return $Stage;
         } else {
-            Debugger::screenDump($Id);
             $tblInvoice = Invoice::useService()->getInvoiceById($Id);
             if ($tblInvoice) {
                 $Stage->addButton(new Danger('Artikel Stornieren', '/Billing/Bookkeeping/Invoice/Cancel', new Remove(), array(

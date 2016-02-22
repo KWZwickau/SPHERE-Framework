@@ -471,8 +471,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Konto', 'Bearbeiten');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankAccount/View', new ChevronLeft(),
-            array('Id' => $Id)));
+        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankAccount', new ChevronLeft()));
         $tblBankAccount = Banking::useService()->getBankAccountById($Id);
         if ($tblBankAccount) {
 
