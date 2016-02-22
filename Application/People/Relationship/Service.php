@@ -270,11 +270,11 @@ class Service extends AbstractService
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich geändert')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()));
+                    array('Id' => $tblToPerson->getServiceTblPersonFrom() ? $tblToPerson->getServiceTblPersonFrom()->getId() : 0));
             } else {
                 return new Danger(new Ban() . ' Die Beziehung konnte nicht geändert werden')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()));
+                    array('Id' => $tblToPerson->getServiceTblPersonFrom() ? $tblToPerson->getServiceTblPersonFrom()->getId() : 0));
             }
         }
         return $Form;
@@ -323,11 +323,11 @@ class Service extends AbstractService
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich geändert')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblToCompany->getServiceTblPerson()->getId()));
+                    array('Id' => $tblToCompany->getServiceTblPerson() ? $tblToCompany->getServiceTblPerson()->getId() : 0));
             } else {
                 return new Danger(new Ban() . ' Die Beziehung konnte nicht geändert werden')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblToCompany->getServiceTblPerson()->getId()));
+                    array('Id' => $tblToCompany->getServiceTblPerson() ? $tblToCompany->getServiceTblPerson()->getId() : 0));
             }
         }
         return $Form;
