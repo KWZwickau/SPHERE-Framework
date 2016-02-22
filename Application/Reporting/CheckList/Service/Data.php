@@ -126,7 +126,9 @@ class Data extends AbstractData
         if ($tblListObjectList) {
             /** @var TblListObjectList $item */
             foreach ($tblListObjectList as $item) {
-                $returnList[] = $item->getServiceTblObject();
+                if ($item->getServiceTblObject()) {
+                    $returnList[] = $item->getServiceTblObject();
+                }
             }
         }
 
