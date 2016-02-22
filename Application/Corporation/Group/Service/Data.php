@@ -174,13 +174,11 @@ class Data extends AbstractData
 
                 $V = $V->getServiceTblCompany();
             });
+            array_filter($EntityList);
+
             $Cache->setValue($tblGroup->getId(), $EntityList, 0, __METHOD__);
         } else {
             $EntityList = $ResultList;
-        }
-
-        if (is_array($EntityList)) {
-            array_filter($EntityList);
         }
 
         return ( null === $EntityList ? false : $EntityList );

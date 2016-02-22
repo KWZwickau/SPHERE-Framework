@@ -179,8 +179,8 @@ class Data extends AbstractData
 
                 $V = $V->getServiceTblPerson();
             });
-            $Cache->setValue($tblGroup->getId(), $EntityList, 0, __METHOD__);
             array_filter($EntityList);
+            $Cache->setValue($tblGroup->getId(), $EntityList, 0, __METHOD__);
         } else {
             $EntityList = $ResultList;
         }
