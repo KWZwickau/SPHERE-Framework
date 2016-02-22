@@ -10,7 +10,6 @@ use SPHERE\Application\Platform\System\System;
 use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -29,13 +28,15 @@ class Platform implements IClusterInterface
         $tblAccount = Account::useService()->getAccountBySession();
         $tblIdentification = Account::useService()->getIdentificationByName('System');
         if ($tblAccount && $tblIdentification) {
-            if ($tblAccount->getServiceTblIdentification()->getId() == $tblIdentification->getId()) {
+            if ($tblAccount->getServiceTblIdentification()
+                && $tblAccount->getServiceTblIdentification()->getId() == $tblIdentification->getId()) {
                 Main::getDisplay()->addServiceNavigation(
                     new Link(
                         new Link\Route('/Setting/MyAccount/Consumer'),
                         new Link\Name(
                             new Bold( new Label(
-                                'Mandant '.$tblAccount->getServiceTblConsumer()->getAcronym()
+                                'Mandant '
+                                . ($tblAccount->getServiceTblConsumer()?$tblAccount->getServiceTblConsumer()->getAcronym() : '')
                             , Label::LABEL_TYPE_DANGER) )
                         )
                     )

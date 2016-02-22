@@ -86,7 +86,7 @@ class Service extends AbstractService
                         /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization $tblAuthorization */
                         foreach ($tblAuthorizationAll as $tblAuthorization) {
                             $tblRole = $tblAuthorization->getServiceTblRole();
-                            if (false !== ( $tblLevelAll = $tblRole->getTblLevelAll() )) {
+                            if ($tblRole && (false !== ( $tblLevelAll = $tblRole->getTblLevelAll() ))) {
                                 /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel $tblLevel */
                                 foreach ($tblLevelAll as $tblLevel) {
                                     $tblPrivilegeAll = $tblLevel->getTblPrivilegeAll();

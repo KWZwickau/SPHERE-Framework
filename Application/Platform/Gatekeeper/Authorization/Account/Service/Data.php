@@ -782,6 +782,7 @@ class Data extends AbstractData
 
                 $tblUser = $tblUser->getServiceTblPerson();
             });
+            array_filter($tblUserAll);
             $EntityList = $tblUserAll;
         } else {
             $EntityList = null;

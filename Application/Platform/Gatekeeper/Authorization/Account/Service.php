@@ -344,7 +344,9 @@ class Service extends AbstractService
         /** @noinspection PhpUnusedParameterInspection */
         array_walk($tblAuthorization, function (TblAuthorization &$tblAuthorization) use ($tblRole) {
 
-            if ($tblAuthorization->getServiceTblRole()->getId() != $tblRole->getId()) {
+            if ($tblAuthorization->getServiceTblRole()
+                && $tblAuthorization->getServiceTblRole()->getId() != $tblRole->getId())
+            {
                 $tblAuthorization = false;
             }
         });
