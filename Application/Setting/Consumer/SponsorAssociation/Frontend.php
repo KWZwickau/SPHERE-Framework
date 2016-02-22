@@ -76,15 +76,16 @@ class Frontend extends Extension implements IFrontendInterface
             $Form = null;
             foreach ($tblSponsorAssociationAll as $tblSponsorAssociation) {
                 $tblCompany = $tblSponsorAssociation->getServiceTblCompany();
-
-                $Form .= new Layout(array(
-                    new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(
-                            School::useFrontend()->frontendLayoutCombine($tblCompany)
-                        )),
-                    ), (new Title(new TagList().' Kontaktdaten', 'von '.$tblCompany->getName()))
-                    ),
-                ));
+                if ($tblCompany) {
+                    $Form .= new Layout(array(
+                        new LayoutGroup(array(
+                            new LayoutRow(new LayoutColumn(
+                                School::useFrontend()->frontendLayoutCombine($tblCompany)
+                            )),
+                        ), (new Title(new TagList() . ' Kontaktdaten', 'von ' . $tblCompany->getName()))
+                        ),
+                    ));
+                }
             }
             $Stage->setContent(
                 new Standard('Förderverein hinzufügen', '/Setting/Consumer/SponsorAssociation/Create')
@@ -180,30 +181,34 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblSponsorAssociationAll, function (TblSponsorAssociation &$tblSponsorAssociation) {
 
                 $tblCompany = $tblSponsorAssociation->getServiceTblCompany();
-
-                $Address = array();
-                $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
-                if ($tblAddressAll) {
-                    foreach ($tblAddressAll as $tblAddress) {
-                        $Address[] = $tblAddress->getTblAddress()->getStreetName().' '
-                            .$tblAddress->getTblAddress()->getStreetNumber().' '
-                            .$tblAddress->getTblAddress()->getTblCity()->getName();
+                if ($tblCompany) {
+                    $Address = array();
+                    $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
+                    if ($tblAddressAll) {
+                        foreach ($tblAddressAll as $tblAddress) {
+                            $Address[] = $tblAddress->getTblAddress()->getStreetName() . ' '
+                                . $tblAddress->getTblAddress()->getStreetNumber() . ' '
+                                . $tblAddress->getTblAddress()->getTblCity()->getName();
+                        }
                     }
+                    $Content = array(
+                        ($tblCompany->getName() ? $tblCompany->getName() : false),
+                        (isset($Address[0]) ? new Small(new Muted($Address[0])) : false),
+                        (isset($Address[1]) ? new Small(new Muted($Address[1])) : false),
+                        (isset($Address[2]) ? new Small(new Muted($Address[2])) : false),
+                        (new Standard('', '/Setting/Consumer/SponsorAssociation/Destroy', new Remove(),
+                            array('Id' => $tblSponsorAssociation->getId())))
+                    );
+                    $Content = array_filter($Content);
+                    $Type = Panel::PANEL_TYPE_WARNING;
+                    $tblSponsorAssociation = new LayoutColumn(
+                        new Panel('Förderverein', $Content, $Type)
+                        , 6);
+                } else {
+                    $tblSponsorAssociation = false;
                 }
-                $Content = array(
-                    ( $tblCompany->getName() ? $tblCompany->getName() : false ),
-                    ( isset( $Address[0] ) ? new Small(new Muted($Address[0])) : false ),
-                    ( isset( $Address[1] ) ? new Small(new Muted($Address[1])) : false ),
-                    ( isset( $Address[2] ) ? new Small(new Muted($Address[2])) : false ),
-                    (new Standard('', '/Setting/Consumer/SponsorAssociation/Destroy', new Remove(),
-                        array('Id' => $tblSponsorAssociation->getId())))
-                );
-                $Content = array_filter($Content);
-                $Type = Panel::PANEL_TYPE_WARNING;
-                $tblSponsorAssociation = new LayoutColumn(
-                    new Panel('Förderverein', $Content, $Type)
-                    , 6);
             });
+            $tblSponsorAssociationAll = array_filter($tblSponsorAssociationAll);
 
             $LayoutRowList = array();
             $LayoutRowCount = 0;
@@ -245,48 +250,59 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Förderverein', 'Löschen');
         if ($Id) {
             $tblSponsorAssociation = SponsorAssociation::useService()->getSponsorAssociationById($Id);
-            if (!$Confirm) {
+            if ($tblSponsorAssociation->getServiceTblCompany()) {
+                if (!$Confirm) {
 
-                $Address = array();
-                $tblAddressAll = Address::useService()->getAddressAllByCompany($tblSponsorAssociation->getServiceTblCompany());
-                if ($tblAddressAll) {
-                    foreach ($tblAddressAll as $tblAddress) {
-                        $Address[] = $tblAddress->getTblAddress()->getStreetName().' '
-                            .$tblAddress->getTblAddress()->getStreetNumber().' '
-                            .$tblAddress->getTblAddress()->getTblCity()->getName();
+                    $Address = array();
+                    $tblAddressAll = Address::useService()->getAddressAllByCompany($tblSponsorAssociation->getServiceTblCompany());
+                    if ($tblAddressAll) {
+                        foreach ($tblAddressAll as $tblAddress) {
+                            $Address[] = $tblAddress->getTblAddress()->getStreetName() . ' '
+                                . $tblAddress->getTblAddress()->getStreetNumber() . ' '
+                                . $tblAddress->getTblAddress()->getTblCity()->getName();
+                        }
                     }
-                }
-                $Stage->setContent(
-                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        new Panel(new Question().' Diesen Förderverein wirklich löschen?', array(
-                            $tblSponsorAssociation->getServiceTblCompany()->getName().' '.$tblSponsorAssociation->getServiceTblCompany()->getDescription(),
-                            ( isset( $Address[0] ) ? new Muted(new Small($Address[0])) : false ),
-                            ( isset( $Address[1] ) ? new Muted(new Small($Address[1])) : false ),
-                            ( isset( $Address[2] ) ? new Muted(new Small($Address[2])) : false ),
-                        ),
-                            Panel::PANEL_TYPE_DANGER,
-                            new Standard(
-                                'Ja', '/Setting/Consumer/SponsorAssociation/Destroy', new Ok(),
-                                array('Id' => $Id, 'Confirm' => true)
+                    $Stage->setContent(
+                        new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                            new Panel(new Question() . ' Diesen Förderverein wirklich löschen?', array(
+                                $tblSponsorAssociation->getServiceTblCompany()->getName() . ' ' . $tblSponsorAssociation->getServiceTblCompany()->getDescription(),
+                                (isset($Address[0]) ? new Muted(new Small($Address[0])) : false),
+                                (isset($Address[1]) ? new Muted(new Small($Address[1])) : false),
+                                (isset($Address[2]) ? new Muted(new Small($Address[2])) : false),
+                            ),
+                                Panel::PANEL_TYPE_DANGER,
+                                new Standard(
+                                    'Ja', '/Setting/Consumer/SponsorAssociation/Destroy', new Ok(),
+                                    array('Id' => $Id, 'Confirm' => true)
+                                )
+                                . new Standard(
+                                    'Nein', '/Setting/Consumer/SponsorAssociation', new Disable()
+                                )
                             )
-                            .new Standard(
-                                'Nein', '/Setting/Consumer/SponsorAssociation', new Disable()
-                            )
-                        )
-                    ))))
-                );
-            } else {
+                        ))))
+                    );
+                } else {
 
-                // Destroy Group
+                    // Destroy Group
+                    $Stage->setContent(
+                        new Layout(new LayoutGroup(array(
+                            new LayoutRow(new LayoutColumn(array(
+                                (SponsorAssociation::useService()->destroySponsorAssociation($tblSponsorAssociation)
+                                    ? new Success('Der Förderverein wurde gelöscht')
+                                    . new Redirect('/Setting/Consumer/SponsorAssociation', Redirect::TIMEOUT_SUCCESS)
+                                    : new Danger('Der Förderverein konnte nicht gelöscht werden')
+                                    . new Redirect('/Setting/Consumer/SponsorAssociation', Redirect::TIMEOUT_ERROR)
+                                )
+                            )))
+                        )))
+                    );
+                }
+            } else {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            ( SponsorAssociation::useService()->destroySponsorAssociation($tblSponsorAssociation)
-                                ? new Success('Der Förderverein wurde gelöscht')
-                                .new Redirect('/Setting/Consumer/SponsorAssociation', Redirect::TIMEOUT_SUCCESS)
-                                : new Danger('Der Förderverein konnte nicht gelöscht werden')
-                                .new Redirect('/Setting/Consumer/SponsorAssociation', Redirect::TIMEOUT_ERROR)
-                            )
+                            new Danger('Der Förderverein konnte nicht gefunden werden'),
+                            new Redirect('/Setting/Consumer/SponsorAssociation', Redirect::TIMEOUT_ERROR)
                         )))
                     )))
                 );
