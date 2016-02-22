@@ -164,6 +164,7 @@ class Data extends AbstractData
             array(
                 TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
             ));
+
         $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
         if (null === ( $ResultList = $Cache->getValue($tblGroup->getId(), __METHOD__) )
             && !empty( $EntityList )
@@ -177,6 +178,11 @@ class Data extends AbstractData
         } else {
             $EntityList = $ResultList;
         }
+
+        if (is_array($EntityList)) {
+            array_filter($EntityList);
+        }
+
         return ( null === $EntityList ? false : $EntityList );
     }
 
