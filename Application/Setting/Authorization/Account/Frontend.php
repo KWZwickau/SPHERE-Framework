@@ -113,7 +113,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblAuthorization = false;
                             }
                         });
-                        array_filter($tblAuthorizationAll);
+                        $tblAuthorizationAll = array_filter($tblAuthorizationAll);
                     }
 
                     $tblAccount = array(
@@ -526,7 +526,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblAuthorization = false;
                         }
                     });
-                    array_filter(($tblAuthorizationAll));
+                    $tblAuthorizationAll = array_filter(($tblAuthorizationAll));
                     $Content = array_merge($Content, $tblAuthorizationAll);
                 }
 

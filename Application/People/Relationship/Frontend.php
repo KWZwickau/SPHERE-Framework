@@ -553,7 +553,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblToPerson = false;
                 }
             });
-            array_filter($tblRelationshipAll);
+            $tblRelationshipAll = array_filter($tblRelationshipAll);
         } else {
             $tblRelationshipAll = array(
                 new LayoutColumn(
@@ -644,7 +644,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblToCompany = false;
                 }
             });
-            array_filter($tblRelationshipAll);
+            $tblRelationshipAll = array_filter($tblRelationshipAll);
         } else {
             $tblRelationshipAll = array(
                 new LayoutColumn(
