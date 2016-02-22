@@ -326,6 +326,47 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface|null $Stage
+     * @param $Id
+     * @param $List
+     * @return IFormInterface|string
+     */
+    public function updateList(IFormInterface $Stage = null, $Id, $List)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $List || null === $Id) {
+            return $Stage;
+        }
+
+        $Error = false;
+        if (isset($List['Name']) && empty($List['Name'])) {
+            $Stage->setError('List[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        }
+
+        $tblList = $this->getListById($Id);
+        if (!$tblList) {
+            return new Danger(new Ban() . ' Check-List nicht gefunden')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
+
+        if (!$Error) {
+            (new Data($this->getBinding()))->updateList(
+                $tblList,
+                $List['Name'],
+                $List['Description']
+            );
+            return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Check-List ist erfolgreich gespeichert worden')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_SUCCESS);
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
      * @param                     $Id
      * @param                     $Element
      *
@@ -368,7 +409,18 @@ class Service extends AbstractService
     public function removeElementFromList($Id = null)
     {
 
+        $Stage = new Stage('Check-Listen', 'Ein Element von einer Check-Liste entfernen');
+
+        if (!$Id) {
+            return $Stage . new Danger(new Ban() . ' Element nicht gefunden')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
         $tblListElementList = $this->getListElementListById($Id);
+        if (!$tblListElementList) {
+            return $Stage . new  Danger(new Ban() . ' Element nicht gefunden')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
+
         $tblList = $tblListElementList->getTblList();
         $Stage = new Stage('Check-Listen', 'Element entfernen');
         if ((new Data($this->getBinding()))->removeElementFromList($tblListElementList)) {
@@ -443,7 +495,17 @@ class Service extends AbstractService
     {
 
         $Stage = new Stage('Check-Listen', 'Ein Object von einer Check-Liste entfernen');
+
+        if (!$Id) {
+            return $Stage . new Danger(new Ban() . ' Objekt nicht gefunden')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
         $tblListObjectList = $this->getListObjectListById($Id);
+        if (!$tblListObjectList) {
+            return $Stage . new Danger(new Ban() . ' Objekt nicht gefunden')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+        }
+
         $tblList = $tblListObjectList->getTblList();
         $tblObjectType = $tblListObjectList->getTblObjectType();
         if ((new Data($this->getBinding()))->removeObjectFromList($tblListObjectList)) {
@@ -1019,6 +1081,17 @@ class Service extends AbstractService
         }
 
         return $resultList;
+    }
+
+    /**
+     * @param TblList $tblList
+     *
+     * @return bool
+     */
+    public function destroyList(TblList $tblList)
+    {
+
+        return (new Data($this->getBinding()))->destroyList($tblList);
     }
 
 }

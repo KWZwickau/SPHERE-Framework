@@ -5,9 +5,9 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Roadmap\Roadmap;
 use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Accordion;
-use SPHERE\Common\Roadmap\Roadmap;
 use SPHERE\Common\Script;
 use SPHERE\Common\Style;
 use SPHERE\Common\Window\Navigation\Link;
@@ -240,7 +240,7 @@ class Display extends Extension implements ITemplateInterface
                 .( isset( $Trace['line'] ) ? '<br/>Line: '.$Trace['line'] : '<br/>Line: ' )
                 .'</samp>');
         }
-        $Hit = '<samp class="text-danger"><div class="h6">' . nl2br($Exception->getMessage()) . '</div>File: ' . $Exception->getFile() . '<br/>Line: ' . $Exception->getLine() . '</samp>' . $TraceList;
+        $Hit = '<samp class="text-danger"><div class="h6">'.nl2br($Exception->getMessage()).'</div>File: '.$Exception->getFile().'<br/>Line: '.$Exception->getLine().'</samp>'.$TraceList;
         $this->addContent(new Error(
             $Exception->getCode() == 0 ? $Name : $Exception->getCode(), $Hit
         ));
@@ -293,20 +293,20 @@ class Display extends Extension implements ITemplateInterface
         if (Debugger::$Enabled) {
             $Debugger = new Accordion();
             $ProtocolBenchmark = $this->getLogger(new BenchmarkLogger())->getLog();
-            if (!empty($ProtocolBenchmark)) {
+            if (!empty( $ProtocolBenchmark )) {
                 $Debugger->addItem('Debugger (Benchmark)',
                     implode('<br/>', $this->getLogger(new BenchmarkLogger())->getLog())
                     , true);
             }
             $ProtocolError = $this->getLogger(new ErrorLogger())->getLog();
-            if (!empty($ProtocolError)) {
+            if (!empty( $ProtocolError )) {
                 $Debugger->addItem('Debugger (Error)',
                     implode('<br/>', $this->getLogger(new ErrorLogger())->getLog())
                     , true);
             }
             $Protocol = $Debug->getProtocol();
-            if (!empty($Protocol)) {
-                $Debugger->addItem('Debug Protocol ' . $Runtime, $Protocol);
+            if (!empty( $Protocol )) {
+                $Debugger->addItem('Debug Protocol '.$Runtime, $Protocol);
             }
             $this->Template->setVariable('DebuggerProtocol', $Debugger);
         }
@@ -317,7 +317,6 @@ class Display extends Extension implements ITemplateInterface
         } else {
             $this->Template->setVariable('DebuggerSessionCount', '-NA-');
         }
-        $this->Template->setVariable('RoadmapVersion', (new Roadmap())->getVersionNumber());
 
         $this->Template->setVariable('Content', implode('', $this->Content));
         $this->Template->setVariable('CacheSlot', (new MemcachedHandler())->getSlot());
@@ -341,15 +340,26 @@ class Display extends Extension implements ITemplateInterface
             )
         );
 
+        // Read RoadMap-Version
+        try {
+            $Map = (new Roadmap())->getRoadmap();
+        } catch (\Exception $Exception) {
+            $Map = null;
+        }
+
+        // Set Depending Information
         switch (strtolower($this->getRequest()->getHost())) {
             case 'www.kreda.schule':
                 $BrandTitle = '<a class="navbar-brand" href="/">KREDA <span class="text-info">Professional</span></a>';
+                $this->Template->setVariable('RoadmapVersion', $Map ? $Map->getVersionRelease() : 'Roadmap');
                 break;
             case 'demo.kreda.schule':
                 $BrandTitle = '<a class="navbar-brand" href="/">KREDA <span class="text-danger">DEMO</span></a>';
+                $this->Template->setVariable('RoadmapVersion', $Map ? $Map->getVersionPreview() : 'Roadmap');
                 break;
             default:
                 $BrandTitle = '<a class="navbar-brand" href="/">KREDA <span class="text-warning">'.$this->getRequest()->getHost().'</span></a>';
+                $this->Template->setVariable('RoadmapVersion', 'Roadmap');
         }
         $this->Template->setVariable('BrandSwitch', $BrandTitle);
 
@@ -369,8 +379,9 @@ class Display extends Extension implements ITemplateInterface
     }
 
     /**
-     * @param $Bytes
+     * @param     $Bytes
      * @param int $usePrecision
+     *
      * @return string
      */
     private function formatBytes($Bytes, $usePrecision = 2)

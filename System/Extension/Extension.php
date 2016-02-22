@@ -6,6 +6,7 @@ use MOC\V\Component\Template\Template;
 use MOC\V\Core\HttpKernel\HttpKernel;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\HandlerInterface;
+use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Config\ConfigFactory;
 use SPHERE\System\Config\Reader\IniReader;
 use SPHERE\System\Config\Reader\ReaderInterface;
@@ -15,7 +16,6 @@ use SPHERE\System\Debugger\Logger\LoggerInterface;
 use SPHERE\System\Extension\Repository\DataTables;
 use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\ModHex;
-use SPHERE\System\Extension\Repository\Roadmap;
 use SPHERE\System\Extension\Repository\Sorter;
 use SPHERE\System\Extension\Repository\SuperGlobal;
 use SPHERE\System\Extension\Repository\Upload;
@@ -137,8 +137,15 @@ class Extension
      */
     public function getTemplate($Location)
     {
-
-        return Template::getTemplate($Location);
+        $Key = md5($Location);
+        $Cache = $this->getCache( new MemoryHandler() );
+        if( !($Template = $Cache->getValue( $Key, __METHOD__ )) ) {
+            $Template = Template::getTemplate($Location);
+            $Cache->setValue( $Key, $Template, 0, __METHOD__ );
+            return clone $Template;
+        } else {
+            return clone $Template;
+        }
     }
 
     /**
@@ -170,15 +177,6 @@ class Extension
     {
 
         return new Converter();
-    }
-
-    /**
-     * @return Roadmap
-     */
-    public function getRoadmap()
-    {
-
-        return new Roadmap();
     }
 
     /**

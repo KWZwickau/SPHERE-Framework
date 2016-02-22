@@ -60,6 +60,9 @@ class Structure
         if (!$this->Database->hasColumn($Name, 'EntityUpdate')) {
             $Table->addColumn('EntityUpdate', 'datetime', array('notnull' => false));
         }
+        if (!$this->Database->hasColumn($Name, 'EntityRemove')) {
+            $Table->addColumn('EntityRemove', 'datetime', array('notnull' => false));
+        }
         return $Table;
     }
 
