@@ -364,18 +364,24 @@ class Service extends AbstractService
             );
             // Remove current
             (new Data($this->getBinding()))->removeAddressToPerson($tblToPerson);
-            // Add new
-            if ((new Data($this->getBinding()))->addAddressToPerson($tblToPerson->getServiceTblPerson(), $tblAddress,
-                $tblType,
-                $Type['Remark'])
-            ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adresse wurde erfolgreich geändert')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
+
+            if ($tblToPerson->getServiceTblPerson()) {
+                // Add new
+                if ((new Data($this->getBinding()))->addAddressToPerson($tblToPerson->getServiceTblPerson(),
+                    $tblAddress,
+                    $tblType,
+                    $Type['Remark'])
+                ) {
+                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adresse wurde erfolgreich geändert')
+                    . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
+                        array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
+                } else {
+                    return new Danger(new Ban() . ' Die Adresse konnte nicht geändert werden')
+                    . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
+                        array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
+                }
             } else {
-                return new Danger(new Ban() . ' Die Adresse konnte nicht geändert werden')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
+                new Danger('Person nicht gefunden', new Ban());
             }
         }
         return $Form;
@@ -453,18 +459,24 @@ class Service extends AbstractService
             );
             // Remove current
             (new Data($this->getBinding()))->removeAddressToCompany($tblToCompany);
-            // Add new
-            if ((new Data($this->getBinding()))->addAddressToCompany($tblToCompany->getServiceTblCompany(), $tblAddress,
-                $tblType,
-                $Type['Remark'])
-            ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adresse wurde erfolgreich geändert')
-                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+
+            if ($tblToCompany->getServiceTblCompany()) {
+                // Add new
+                if ((new Data($this->getBinding()))->addAddressToCompany($tblToCompany->getServiceTblCompany(),
+                    $tblAddress,
+                    $tblType,
+                    $Type['Remark'])
+                ) {
+                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Adresse wurde erfolgreich geändert')
+                    . new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
+                        array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+                } else {
+                    return new Danger(new Ban() . ' Die Adresse konnte nicht geändert werden')
+                    . new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
+                        array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+                }
             } else {
-                return new Danger(new Ban() . ' Die Adresse konnte nicht geändert werden')
-                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+                new Danger('Firma nicht gefunden', new Ban());
             }
         }
         return $Form;

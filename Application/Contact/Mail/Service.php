@@ -254,17 +254,22 @@ class Service extends AbstractService
             $tblMail = (new Data($this->getBinding()))->createMail($Address);
             // Remove current
             (new Data($this->getBinding()))->removeMailToPerson($tblToPerson);
-            // Add new
-            if ((new Data($this->getBinding()))->addMailToPerson($tblToPerson->getServiceTblPerson(), $tblMail,
-                $tblType, $Type['Remark'])
-            ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die E-Mail Adresse wurde erfolgreich geändert')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
+
+            if ($tblToPerson->getServiceTblPerson()) {
+                // Add new
+                if ((new Data($this->getBinding()))->addMailToPerson($tblToPerson->getServiceTblPerson(), $tblMail,
+                    $tblType, $Type['Remark'])
+                ) {
+                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die E-Mail Adresse wurde erfolgreich geändert')
+                    . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
+                        array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
+                } else {
+                    return new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht geändert werden')
+                    . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
+                        array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
+                }
             } else {
-                return new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht geändert werden')
-                .new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
+                return new Danger('Person nicht gefunden', new Ban());
             }
         }
         return $Form;
@@ -307,17 +312,22 @@ class Service extends AbstractService
             $tblMail = (new Data($this->getBinding()))->createMail($Address);
             // Remove current
             (new Data($this->getBinding()))->removeMailToCompany($tblToCompany);
-            // Add new
-            if ((new Data($this->getBinding()))->addMailToCompany($tblToCompany->getServiceTblCompany(), $tblMail,
-                $tblType, $Type['Remark'])
-            ) {
-                return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die E-Mail Adresse wurde erfolgreich geändert')
-                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+
+            if ($tblToCompany->getServiceTblCompany()) {
+                // Add new
+                if ((new Data($this->getBinding()))->addMailToCompany($tblToCompany->getServiceTblCompany(), $tblMail,
+                    $tblType, $Type['Remark'])
+                ) {
+                    return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die E-Mail Adresse wurde erfolgreich geändert')
+                    . new Redirect('/Corporation/Company', Redirect::TIMEOUT_SUCCESS,
+                        array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+                } else {
+                    return new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht geändert werden')
+                    . new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
+                        array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+                }
             } else {
-                return new Danger(new Ban() . ' Die E-Mail Adresse konnte nicht geändert werden')
-                .new Redirect('/Corporation/Company', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+                return new Danger('Firma nicht gefunden', new Ban());
             }
         }
         return $Form;

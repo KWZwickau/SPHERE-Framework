@@ -206,6 +206,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Die E-Mail Adresse der gewählten Person ändern');
 
         $tblToPerson = Mail::useService()->getMailToPersonById($Id);
+
+        if (!$tblToPerson->getServiceTblPerson()){
+            return $Stage . new Danger('Person nicht gefunden', new Ban());
+        }
+
         $Stage->addButton(
             new Standard('Zurück', '/People/Person', new ChevronLeft(),
                 array('Id' => $tblToPerson->getServiceTblPerson()->getId())
@@ -266,6 +271,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Die E-Mail Adresse der gewählten Firma ändern');
 
         $tblToCompany = Mail::useService()->getMailToCompanyById($Id);
+
+        if (!$tblToCompany->getServiceTblCompany()){
+            return $Stage . new Danger('Firma nicht gefunden', new Ban());
+        }
+
         $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
             array('Id' => $tblToCompany->getServiceTblCompany()->getId())
         ));
@@ -463,6 +473,11 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Id) {
             $tblToPerson = Mail::useService()->getMailToPersonById($Id);
             $tblPerson = $tblToPerson->getServiceTblPerson();
+
+            if (!$tblPerson){
+                return $Stage . new Danger('Person nicht gefunden', new Ban());
+            }
+
             $Stage->addButton(
                 new Standard('Zurück', '/People/Person', new ChevronLeft(),
                     array('Id' => $tblPerson->getId())
@@ -532,6 +547,11 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Id) {
             $tblToCompany = Mail::useService()->getMailToCompanyById($Id);
             $tblCompany = $tblToCompany->getServiceTblCompany();
+
+            if (!$tblCompany){
+                return $Stage . new Danger('Firma nicht gefunden', new Ban());
+            }
+
             $Stage->addButton( new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
                 array('Id' => $tblCompany->getId())
             ));

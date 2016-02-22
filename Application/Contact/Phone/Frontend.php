@@ -209,6 +209,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Die Telefonnummer der gewählten Person ändern');
 
         $tblToPerson = Phone::useService()->getPhoneToPersonById($Id);
+
+        if (!$tblToPerson->getServiceTblPerson()){
+            return $Stage . new Danger('Person nicht gefunden', new Ban());
+        }
+
         $Stage->addButton(
             new Standard('Zurück', '/People/Person', new ChevronLeft(),
                 array('Id' => $tblToPerson->getServiceTblPerson()->getId())
@@ -269,6 +274,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Die Telefonnummer der gewählten Firma ändern');
 
         $tblToCompany = Phone::useService()->getPhoneToCompanyById($Id);
+
+        if (!$tblToCompany->getServiceTblCompany()){
+            return $Stage . new Danger('Firma nicht gefunden', new Ban());
+        }
+
         $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
             array('Id' => $tblToCompany->getServiceTblCompany()->getId())
         ));
@@ -505,6 +515,11 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Id) {
             $tblToPerson = Phone::useService()->getPhoneToPersonById($Id);
             $tblPerson = $tblToPerson->getServiceTblPerson();
+
+            if (!$tblPerson){
+                return $Stage . new Danger('Person nicht gefunden', new Ban());
+            }
+
             $Stage->addButton(
                 new Standard('Zurück', '/People/Person', new ChevronLeft(),
                     array('Id' => $tblPerson->getId())
@@ -574,6 +589,11 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Id) {
             $tblToCompany = Phone::useService()->getPhoneToCompanyById($Id);
             $tblCompany = $tblToCompany->getServiceTblCompany();
+
+            if (!$tblCompany){
+                return $Stage . new Danger('Firma nicht gefunden', new Ban());
+            }
+
             $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
                 array('Id' => $tblCompany->getId())
             ));
