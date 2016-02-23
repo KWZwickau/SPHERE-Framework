@@ -1181,9 +1181,10 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblListObjectElementList) {
                 $Global = $this->getGlobal();
                 foreach ($tblListObjectElementList as $item) {
-
-                    $Global->POST['Data'][$item->getTblObjectType()->getId()][$item->getServiceTblObject()->getId()]
-                    [$item->getTblListElementList()->getId()] = $item->getValue();
+                    if ($item->getServiceTblObject()) {
+                        $Global->POST['Data'][$item->getTblObjectType()->getId()][$item->getServiceTblObject()->getId()]
+                        [$item->getTblListElementList()->getId()] = $item->getValue();
+                    }
                 }
 
                 $Global->savePost();

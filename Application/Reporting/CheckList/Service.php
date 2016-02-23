@@ -558,17 +558,19 @@ class Service extends AbstractService
             $tblListObjectElementListByList = CheckList::useService()->getListObjectElementListByList($tblList);
             if ($tblListObjectElementListByList) {
                 foreach ($tblListObjectElementListByList as $tblListObjectElementList) {
-                    if (!isset($Data[$tblListObjectElementList->getTblObjectType()->getId()]
-                        [$tblListObjectElementList->getServiceTblObject()->getId()]
-                        [$tblListObjectElementList->getTblListElementList()->getId()])
-                    ) {
-                        (new Data($this->getBinding()))->updateObjectElementToList(
-                            $tblList,
-                            $tblListObjectElementList->getTblObjectType(),
-                            $tblListObjectElementList->getTblListElementList(),
-                            $tblListObjectElementList->getServiceTblObject(),
-                            ''
-                        );
+                    if ($tblListObjectElementList->getServiceTblObject()) {
+                        if (!isset($Data[$tblListObjectElementList->getTblObjectType()->getId()]
+                            [$tblListObjectElementList->getServiceTblObject()->getId()]
+                            [$tblListObjectElementList->getTblListElementList()->getId()])
+                        ) {
+                            (new Data($this->getBinding()))->updateObjectElementToList(
+                                $tblList,
+                                $tblListObjectElementList->getTblObjectType(),
+                                $tblListObjectElementList->getTblListElementList(),
+                                $tblListObjectElementList->getServiceTblObject(),
+                                ''
+                            );
+                        }
                     }
                 }
             }
@@ -587,17 +589,19 @@ class Service extends AbstractService
                                 );
                                 if ($listObjectElementListList) {
                                     foreach ($listObjectElementListList as $tblListObjectElementList) {
-                                        if (!isset($Data[$tblListObjectElementList->getTblObjectType()->getId()]
-                                            [$tblListObjectElementList->getServiceTblObject()->getId()]
-                                            [$tblListObjectElementList->getTblListElementList()->getId()])
-                                        ) {
-                                            (new Data($this->getBinding()))->updateObjectElementToList(
-                                                $tblList,
-                                                $tblListObjectElementList->getTblObjectType(),
-                                                $tblListObjectElementList->getTblListElementList(),
-                                                $tblListObjectElementList->getServiceTblObject(),
-                                                ''
-                                            );
+                                        if ($tblListObjectElementList->getServiceTblObject()) {
+                                            if (!isset($Data[$tblListObjectElementList->getTblObjectType()->getId()]
+                                                [$tblListObjectElementList->getServiceTblObject()->getId()]
+                                                [$tblListObjectElementList->getTblListElementList()->getId()])
+                                            ) {
+                                                (new Data($this->getBinding()))->updateObjectElementToList(
+                                                    $tblList,
+                                                    $tblListObjectElementList->getTblObjectType(),
+                                                    $tblListObjectElementList->getTblListElementList(),
+                                                    $tblListObjectElementList->getServiceTblObject(),
+                                                    ''
+                                                );
+                                            }
                                         }
                                     }
                                 }

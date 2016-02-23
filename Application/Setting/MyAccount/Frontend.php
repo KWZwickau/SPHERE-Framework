@@ -171,8 +171,10 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblAuthorizationAll) {
             array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
 
-                $tblAuthorization = $tblAuthorization->getServiceTblRole()->getName();
+                $tblAuthorization = $tblAuthorization->getServiceTblRole()
+                    ? $tblAuthorization->getServiceTblRole()->getName() : false;
             });
+            $tblAuthorizationAll = array_filter($tblAuthorizationAll);
         }
 
         $Person = new Panel('Informationen zur Person',
@@ -323,7 +325,8 @@ class Frontend extends Extension implements IFrontendInterface
                         });
                     }
                     $Result[] = new Panel(
-                        new Bold($tblSchool->getServiceTblType()->getName()).' - '.$tblCompany->getName().' '.$tblCompany->getDescription(),
+                        new Bold($tblSchool->getServiceTblType()? $tblSchool->getServiceTblType()->getName() : '')
+                            .' - '.$tblCompany->getName().' '.$tblCompany->getDescription(),
                         $List,
                         Panel::PANEL_TYPE_DEFAULT
                     );

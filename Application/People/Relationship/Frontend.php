@@ -127,7 +127,8 @@ class Frontend extends Extension implements IFrontendInterface
             if (!isset($Global->POST['To'])) {
                 $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
-                $Global->POST['To'] = $tblToPerson->getServiceTblPersonTo()->getId();
+                $Global->POST['To'] = $tblToPerson->getServiceTblPersonTo()
+                    ? $tblToPerson->getServiceTblPersonTo()->getId() : 0;
                 $Global->savePost();
             }
 
@@ -283,7 +284,8 @@ class Frontend extends Extension implements IFrontendInterface
             if (!isset($Global->POST['To'])) {
                 $Global->POST['Type']['Type'] = $tblToCompany->getTblType()->getId();
                 $Global->POST['Type']['Remark'] = $tblToCompany->getRemark();
-                $Global->POST['To'] = $tblToCompany->getServiceTblCompany()->getId();
+                $Global->POST['To'] = $tblToCompany->getServiceTblCompany()
+                    ? $tblToCompany->getServiceTblCompany()->getId() : 0;
                 $Global->savePost();
             }
             $currentCompany = $tblToCompany->getServiceTblCompany();
@@ -389,6 +391,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         /** @Var TblToPerson $tblToPerson */
         $tblToPerson = Relationship::useService()->getRelationshipToPersonById($Id);
+
+        if (!$tblToPerson->getServiceTblPersonFrom()){
+            return $Stage . new Danger('Person nicht gefunden' , new Ban());
+        }
+
         $Stage->addButton(
             new Standard('Zurück', '/People/Person', new ChevronLeft(),
                 array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId())
@@ -442,6 +449,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         /** @Var TblToPerson $tblToPerson */
         $tblToCompany = Relationship::useService()->getRelationshipToCompanyById($Id);
+
+        if (!$tblToCompany->getServiceTblPerson()){
+            return $Stage . new Danger('Person nicht gefunden' , new Ban());
+        }
+
         $Stage->addButton(
             new Standard('Zurück', '/People/Person', new ChevronLeft(),
                 array('Id' => $tblToCompany->getServiceTblPerson()->getId())
@@ -494,49 +506,54 @@ class Frontend extends Extension implements IFrontendInterface
             /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblRelationshipAll, function (TblToPerson &$tblToPerson) use ($tblPerson) {
 
-                $Panel = array(
-                    $tblPerson->getLastFirstName() . ' ' .
-                    ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
-                        ? new ChevronRight() . ' ' . $tblToPerson->getServiceTblPersonTo()->getLastFirstName()
-                        : new ChevronLeft() . ' ' . $tblToPerson->getServiceTblPersonFrom()->getLastFirstName()
-                    )
-                );
-                if ($tblToPerson->getRemark()) {
-                    array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
-                }
-
-                $tblToPerson = new LayoutColumn(
-                    new Panel(
-                        new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName(),
-                        $Panel,
+                if ($tblToPerson->getServiceTblPersonFrom() && $tblToPerson->getServiceTblPersonTo()) {
+                    $Panel = array(
+                        $tblPerson->getLastFirstName() . ' ' .
                         ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
-                            ? Panel::PANEL_TYPE_SUCCESS
-                            : Panel::PANEL_TYPE_DEFAULT
-                        ),
-                        ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
-                            ? new Standard(
-                                '', '/People/Person/Relationship/Edit', new Edit(),
-                                array('Id' => $tblToPerson->getId()),
-                                'Bearbeiten'
-                            )
-                            . new Standard(
-                                '', '/People/Person/Relationship/Destroy', new Remove(),
-                                array('Id' => $tblToPerson->getId()), 'Löschen'
-                            )
-                            . new Standard(
-                                '', '/People/Person', new PersonIcon(),
-                                array('Id' => $tblToPerson->getServiceTblPersonTo()->getId()), 'zur Person'
-                            )
-                            :
-                            new Standard(
-                                '', '/People/Person', new PersonIcon(),
-                                array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()), 'zur Person'
-                            )
-
+                            ? new ChevronRight() . ' ' . $tblToPerson->getServiceTblPersonTo()->getLastFirstName()
+                            : new ChevronLeft() . ' ' . $tblToPerson->getServiceTblPersonFrom()->getLastFirstName()
                         )
-                    )
+                    );
+                    if ($tblToPerson->getRemark()) {
+                        array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
+                    }
+
+                    $tblToPerson = new LayoutColumn(
+                        new Panel(
+                            new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName(),
+                            $Panel,
+                            ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
+                                ? Panel::PANEL_TYPE_SUCCESS
+                                : Panel::PANEL_TYPE_DEFAULT
+                            ),
+                            ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
+                                ? new Standard(
+                                    '', '/People/Person/Relationship/Edit', new Edit(),
+                                    array('Id' => $tblToPerson->getId()),
+                                    'Bearbeiten'
+                                )
+                                . new Standard(
+                                    '', '/People/Person/Relationship/Destroy', new Remove(),
+                                    array('Id' => $tblToPerson->getId()), 'Löschen'
+                                )
+                                . new Standard(
+                                    '', '/People/Person', new PersonIcon(),
+                                    array('Id' => $tblToPerson->getServiceTblPersonTo()->getId()), 'zur Person'
+                                )
+                                :
+                                new Standard(
+                                    '', '/People/Person', new PersonIcon(),
+                                    array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()), 'zur Person'
+                                )
+
+                            )
+                        )
                     , 3);
+                } else {
+                    $tblToPerson = false;
+                }
             });
+            $tblRelationshipAll = array_filter($tblRelationshipAll);
         } else {
             $tblRelationshipAll = array(
                 new LayoutColumn(
@@ -585,44 +602,49 @@ class Frontend extends Extension implements IFrontendInterface
             /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblRelationshipAll, function (TblToCompany &$tblToCompany) use ($tblEntity) {
 
-                $Panel = array(
-                    $tblToCompany->getServiceTblPerson()->getFullName(),
-                    $tblToCompany->getServiceTblCompany()->getName()
-                );
-                if ($tblToCompany->getRemark()) {
-                    array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
-                }
+                if ($tblToCompany->getServiceTblPerson() && $tblToCompany->getServiceTblCompany()) {
+                    $Panel = array(
+                        $tblToCompany->getServiceTblPerson()->getFullName(),
+                        $tblToCompany->getServiceTblCompany()->getName()
+                    );
+                    if ($tblToCompany->getRemark()) {
+                        array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
+                    }
 
-                $tblToCompany = new LayoutColumn(
-                    new Panel(
-                        new Building() . ' ' . new Link() . ' ' . $tblToCompany->getTblType()->getName(), $Panel,
-                        ($tblEntity instanceof TblPerson
-                            ? Panel::PANEL_TYPE_INFO
-                            : Panel::PANEL_TYPE_DEFAULT
-                        ),
-                        ($tblEntity instanceof TblPerson
-                            ? new Standard(
-                                '', '/Corporation/Company/Relationship/Edit', new Edit(),
-                                array('Id' => $tblToCompany->getId()),
-                                'Bearbeiten'
-                            )
-                            . new Standard(
-                                '', '/Corporation/Company/Relationship/Destroy', new Remove(),
-                                array('Id' => $tblToCompany->getId()), 'Löschen'
-                            )
-                            . new Standard(
-                                '', '/Corporation/Company', new Building(),
-                                array('Id' => $tblToCompany->getServiceTblCompany()->getId()), 'zur Firma'
-                            )
-                            :
-                            new Standard(
-                                '', '/People/Person', new PersonIcon(),
-                                array('Id' => $tblToCompany->getServiceTblPerson()->getId()), 'zur Person'
+                    $tblToCompany = new LayoutColumn(
+                        new Panel(
+                            new Building() . ' ' . new Link() . ' ' . $tblToCompany->getTblType()->getName(), $Panel,
+                            ($tblEntity instanceof TblPerson
+                                ? Panel::PANEL_TYPE_INFO
+                                : Panel::PANEL_TYPE_DEFAULT
+                            ),
+                            ($tblEntity instanceof TblPerson
+                                ? new Standard(
+                                    '', '/Corporation/Company/Relationship/Edit', new Edit(),
+                                    array('Id' => $tblToCompany->getId()),
+                                    'Bearbeiten'
+                                )
+                                . new Standard(
+                                    '', '/Corporation/Company/Relationship/Destroy', new Remove(),
+                                    array('Id' => $tblToCompany->getId()), 'Löschen'
+                                )
+                                . new Standard(
+                                    '', '/Corporation/Company', new Building(),
+                                    array('Id' => $tblToCompany->getServiceTblCompany()->getId()), 'zur Firma'
+                                )
+                                :
+                                new Standard(
+                                    '', '/People/Person', new PersonIcon(),
+                                    array('Id' => $tblToCompany->getServiceTblPerson()->getId()), 'zur Person'
+                                )
                             )
                         )
-                    )
-                    , 3);
+                        , 3);
+                } else {
+                    $tblToCompany = false;
+                }
             });
+            $tblRelationshipAll = array_filter($tblRelationshipAll);
         } else {
             $tblRelationshipAll = array(
                 new LayoutColumn(
@@ -661,7 +683,12 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Beziehung', 'Löschen');
         if ($Id) {
             $tblToPerson = Relationship::useService()->getRelationshipToPersonById($Id);
+
             $tblPersonFrom = $tblToPerson->getServiceTblPersonFrom();
+            if (!$tblPersonFrom){
+                return $Stage . new Danger('Person nicht gefunden' , new Ban());
+            }
+
             $Stage->addButton(
                 new Standard('Zurück', '/People/Person', new ChevronLeft(),
                     array('Id' => $tblPersonFrom->getId())
@@ -676,7 +703,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         new Panel(new Question() . ' Diese Beziehung wirklich löschen?', array(
                             $tblToPerson->getTblType()->getName() . ' ' . $tblToPerson->getTblType()->getDescription(),
-                            $tblToPerson->getServiceTblPersonTo()->getFullName(),
+                            $tblToPerson->getServiceTblPersonTo() ? $tblToPerson->getServiceTblPersonTo()->getFullName() : '',
                             new Muted(new Small($tblToPerson->getRemark()))
                         ),
                             Panel::PANEL_TYPE_DANGER,
@@ -730,7 +757,12 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Beziehung', 'Löschen');
         if ($Id) {
             $tblToCompany = Relationship::useService()->getRelationshipToCompanyById($Id);
+
             $tblPerson = $tblToCompany->getServiceTblPerson();
+            if (!$tblPerson){
+                return $Stage . new Danger('Person nicht gefunden' , new Ban());
+            }
+
             $Stage->addButton(
                 new Standard('Zurück', '/People/Person', new ChevronLeft(),
                     array('Id' => $tblPerson->getId())
@@ -745,7 +777,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ),
                         new Panel(new Question() . ' Diese Beziehung wirklich löschen?', array(
                             $tblToCompany->getTblType()->getName() . ' ' . $tblToCompany->getTblType()->getDescription(),
-                            $tblToCompany->getServiceTblCompany()->getName(),
+                            $tblToCompany->getServiceTblCompany() ? $tblToCompany->getServiceTblCompany()->getName() : '',
                             new Muted(new Small($tblToCompany->getRemark()))
                         ),
                             Panel::PANEL_TYPE_DANGER,

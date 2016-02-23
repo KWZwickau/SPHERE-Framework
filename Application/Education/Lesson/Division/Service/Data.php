@@ -510,7 +510,9 @@ class Data extends AbstractData
         if (!empty ( $TempList )) {
             /** @var TblDivisionStudent $tblDivisionStudent */
             foreach ($TempList as $tblDivisionStudent) {
-                array_push($EntityList, $tblDivisionStudent->getServiceTblPerson());
+                if ($tblDivisionStudent->getServiceTblPerson()) {
+                    array_push($EntityList, $tblDivisionStudent->getServiceTblPerson());
+                }
             }
         }
         return empty( $EntityList ) ? false : $EntityList;
@@ -537,7 +539,9 @@ class Data extends AbstractData
         if (!empty ( $TempList )) {
             /** @var TblDivisionTeacher $tblDivisionTeacher */
             foreach ($TempList as $tblDivisionTeacher) {
-                array_push($EntityList, $tblDivisionTeacher->getServiceTblPerson());
+                if ($tblDivisionTeacher->getServiceTblPerson()) {
+                    array_push($EntityList, $tblDivisionTeacher->getServiceTblPerson());
+                }
             }
         }
         return empty( $EntityList ) ? false : $EntityList;
@@ -560,12 +564,14 @@ class Data extends AbstractData
         if (!empty ( $EntityList )) {
             /** @var TblDivisionTeacher $singleEntity */
             foreach ($EntityList as $singleEntity) {
-                $Entity = new TblDivisionTeacher();
-                $Entity->setTblDivision($tblDivisionCopy);
-                $Entity->setServiceTblPerson($singleEntity->getServiceTblPerson());
-                $Entity->setDescription($singleEntity->getDescription());
-                $Manager->saveEntity($Entity);
-                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+                if ($singleEntity->getServiceTblPerson()) {
+                    $Entity = new TblDivisionTeacher();
+                    $Entity->setTblDivision($tblDivisionCopy);
+                    $Entity->setServiceTblPerson($singleEntity->getServiceTblPerson());
+                    $Entity->setDescription($singleEntity->getDescription());
+                    $Manager->saveEntity($Entity);
+                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+                }
             }
         }
 
@@ -593,7 +599,9 @@ class Data extends AbstractData
         if (!empty ( $TempList )) {
             /** @var TblDivisionCustody $tblDivisionCustody */
             foreach ($TempList as $tblDivisionCustody) {
-                array_push($EntityList, $tblDivisionCustody->getServiceTblPerson());
+                if ($tblDivisionCustody->getServiceTblPerson()) {
+                    array_push($EntityList, $tblDivisionCustody->getServiceTblPerson());
+                }
             }
         }
         return empty( $EntityList ) ? false : $EntityList;
@@ -616,12 +624,14 @@ class Data extends AbstractData
         if (!empty ( $EntityList )) {
             /** @var TblDivisionCustody $singleEntity */
             foreach ($EntityList as $singleEntity) {
-                $Entity = new TblDivisionCustody();
-                $Entity->setTblDivision($tblDivisionCopy);
-                $Entity->setServiceTblPerson($singleEntity->getServiceTblPerson());
-                $Entity->setDescription($singleEntity->getDescription());
-                $Manager->saveEntity($Entity);
-                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+                if ($singleEntity->getServiceTblPerson()) {
+                    $Entity = new TblDivisionCustody();
+                    $Entity->setTblDivision($tblDivisionCopy);
+                    $Entity->setServiceTblPerson($singleEntity->getServiceTblPerson());
+                    $Entity->setDescription($singleEntity->getDescription());
+                    $Manager->saveEntity($Entity);
+                    Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+                }
             }
         }
 
@@ -644,7 +654,9 @@ class Data extends AbstractData
         if (!empty ( $TempList )) {
             /** @var TblSubjectTeacher $tblSubjectTeacher */
             foreach ($TempList as $tblSubjectTeacher) {
-                array_push($EntityList, $tblSubjectTeacher->getServiceTblPerson());
+                if ($tblSubjectTeacher->getServiceTblPerson()) {
+                    array_push($EntityList, $tblSubjectTeacher->getServiceTblPerson());
+                }
             }
         }
         return empty( $EntityList ) ? false : $EntityList;
@@ -672,7 +684,9 @@ class Data extends AbstractData
             /** @var TblDivisionSubject $tblDivisionSubject */
             foreach ($TempList as $tblDivisionSubject) {
                 if (!$tblDivisionSubject->getTblSubjectGroup()) {
-                    array_push($EntityList, $tblDivisionSubject->getServiceTblSubject());
+                    if ($tblDivisionSubject->getServiceTblSubject()) {
+                        array_push($EntityList, $tblDivisionSubject->getServiceTblSubject());
+                    }
                 }
             }
         }

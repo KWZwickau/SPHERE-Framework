@@ -327,59 +327,62 @@ class Service extends AbstractService
             foreach ($Grade as $personId => $value) {
                 $tblPerson = Person::useService()->getPersonById($personId);
 
-                // set trend
-                if (isset($value['Trend'])) {
-                    $trend = $value['Trend'];
-                } else {
-                    $trend = 0;
-                }
+                if ($tblTest->getServiceTblDivision() && $tblTest->getServiceTblSubject()) {
 
-                if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))) {
-                    if (isset($value['Attendance'])) {
-                        (new Data($this->getBinding()))->createGrade(
-                            $tblPerson,
-                            $tblTest->getServiceTblDivision(),
-                            $tblTest->getServiceTblSubject(),
-                            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null,
-                            $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod() : null,
-                            $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType() : null,
-                            $tblTest,
-                            $tblTest->getTblTestType(),
-                            null,
-                            trim($value['Comment']),
-                            $trend
-                        );
-                    } elseif (trim($value['Grade']) !== '') {
-                        (new Data($this->getBinding()))->createGrade(
-                            $tblPerson,
-                            $tblTest->getServiceTblDivision(),
-                            $tblTest->getServiceTblSubject(),
-                            $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null,
-                            $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod() : null,
-                            $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType() : null,
-                            $tblTest,
-                            $tblTest->getTblTestType(),
-                            trim($value['Grade']),
-                            trim($value['Comment']),
-                            $trend
-                        );
-                    }
-                } elseif ($IsEdit && $tblGrade) {
-
-                    if (isset($value['Attendance'])) {
-                        (new Data($this->getBinding()))->updateGrade(
-                            $tblGrade,
-                            null,
-                            trim($value['Comment']),
-                            $trend
-                        );
+                    // set trend
+                    if (isset($value['Trend'])) {
+                        $trend = $value['Trend'];
                     } else {
-                        (new Data($this->getBinding()))->updateGrade(
-                            $tblGrade,
-                            trim($value['Grade']),
-                            trim($value['Comment']),
-                            $trend
-                        );
+                        $trend = 0;
+                    }
+
+                    if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))) {
+                        if (isset($value['Attendance'])) {
+                            (new Data($this->getBinding()))->createGrade(
+                                $tblPerson,
+                                $tblTest->getServiceTblDivision(),
+                                $tblTest->getServiceTblSubject(),
+                                $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null,
+                                $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod() : null,
+                                $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType() : null,
+                                $tblTest,
+                                $tblTest->getTblTestType(),
+                                null,
+                                trim($value['Comment']),
+                                $trend
+                            );
+                        } elseif (trim($value['Grade']) !== '') {
+                            (new Data($this->getBinding()))->createGrade(
+                                $tblPerson,
+                                $tblTest->getServiceTblDivision(),
+                                $tblTest->getServiceTblSubject(),
+                                $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null,
+                                $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod() : null,
+                                $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType() : null,
+                                $tblTest,
+                                $tblTest->getTblTestType(),
+                                trim($value['Grade']),
+                                trim($value['Comment']),
+                                $trend
+                            );
+                        }
+                    } elseif ($IsEdit && $tblGrade) {
+
+                        if (isset($value['Attendance'])) {
+                            (new Data($this->getBinding()))->updateGrade(
+                                $tblGrade,
+                                null,
+                                trim($value['Comment']),
+                                $trend
+                            );
+                        } else {
+                            (new Data($this->getBinding()))->updateGrade(
+                                $tblGrade,
+                                trim($value['Grade']),
+                                trim($value['Comment']),
+                                $trend
+                            );
+                        }
                     }
                 }
             }

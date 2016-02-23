@@ -62,14 +62,16 @@ class Consumer implements IApplicationInterface
         if ($tblSchoolAll) {
             /** @var TblSchool $tblSchool */
             foreach ((array)$tblSchoolAll as $Index => $tblSchool) {
-                $tblSchoolAll[$tblSchool->getServiceTblCompany()->getName().$tblSchool->getServiceTblType()->getName()] =
-                    new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn(
-                                new Muted(new Small($tblSchool->getServiceTblCompany()->getDescription())).'<br/>'
-                                .$tblSchool->getServiceTblCompany()->getName()
-                                , 12),
-                        )
-                    )));
+                if ($tblSchool->getServiceTblCompany() && $tblSchool->getServiceTblType()) {
+                    $tblSchoolAll[$tblSchool->getServiceTblCompany()->getName() . $tblSchool->getServiceTblType()->getName()] =
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Muted(new Small($tblSchool->getServiceTblCompany()->getDescription())) . '<br/>'
+                                    . $tblSchool->getServiceTblCompany()->getName()
+                                    , 12),
+                            )
+                        )));
+                }
                 $tblSchoolAll[$Index] = false;
             }
             $tblSchoolAll = array_filter($tblSchoolAll);
@@ -99,14 +101,16 @@ class Consumer implements IApplicationInterface
         if ($tblResponsibilityAll) {
             /** @var TblResponsibility $tblResponsibility */
             foreach ((array)$tblResponsibilityAll as $Index => $tblResponsibility) {
-                $tblResponsibilityAll[$tblResponsibility->getServiceTblCompany()->getName()] =
-                    new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn(
-                                $tblResponsibility->getServiceTblCompany()->getName()
-                                .new Muted(new Small('<br/>'.$tblResponsibility->getServiceTblCompany()->getDescription()))
-                                , 12),
-                        )
-                    )));
+                if ($tblResponsibility->getServiceTblCompany()) {
+                    $tblResponsibilityAll[$tblResponsibility->getServiceTblCompany()->getName()] =
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn(
+                                    $tblResponsibility->getServiceTblCompany()->getName()
+                                    . new Muted(new Small('<br/>' . $tblResponsibility->getServiceTblCompany()->getDescription()))
+                                    , 12),
+                            )
+                        )));
+                }
                 $tblResponsibilityAll[$Index] = false;
             }
             $tblResponsibilityAll = array_filter($tblResponsibilityAll);
@@ -135,14 +139,16 @@ class Consumer implements IApplicationInterface
         if ($tblSponsorAssociationAll) {
             /** @var TblSponsorAssociation $tblSponsorAssociation */
             foreach ((array)$tblSponsorAssociationAll as $Index => $tblSponsorAssociation) {
-                $tblSponsorAssociationAll[$tblSponsorAssociation->getServiceTblCompany()->getName()] =
-                    new Layout(new LayoutGroup(new LayoutRow(array(
-                            new LayoutColumn(
-                                $tblSponsorAssociation->getServiceTblCompany()->getName()
-                                .new Muted(new Small('<br/>'.$tblSponsorAssociation->getServiceTblCompany()->getDescription()))
-                                , 12),
-                        )
-                    )));
+                if ($tblSponsorAssociation->getServiceTblCompany()) {
+                    $tblSponsorAssociationAll[$tblSponsorAssociation->getServiceTblCompany()->getName()] =
+                        new Layout(new LayoutGroup(new LayoutRow(array(
+                                new LayoutColumn(
+                                    $tblSponsorAssociation->getServiceTblCompany()->getName()
+                                    . new Muted(new Small('<br/>' . $tblSponsorAssociation->getServiceTblCompany()->getDescription()))
+                                    , 12),
+                            )
+                        )));
+                }
                 $tblSponsorAssociationAll[$Index] = false;
             }
             $tblSponsorAssociationAll = array_filter($tblSponsorAssociationAll);

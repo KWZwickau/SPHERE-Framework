@@ -68,7 +68,7 @@ class Service
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
-                        if ($guardian->getTblType()->getId() == 1) {
+                        if ($guardian->getServiceTblPersonFrom() && $guardian->getTblType()->getId() == 1) {
                             if (( $salutation = $guardian->getServiceTblPersonFrom()->getTblSalutation() )) {
                                 if ($salutation->getId() == 1) {
                                     $father = $guardian->getServiceTblPersonFrom();
@@ -624,7 +624,9 @@ class Service
                 $relationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if (!empty( $relationshipList )) {
                     foreach ($relationshipList as $relationship) {
-                        if ($relationship->getTblType()->getName() == 'Geschwisterkind') {
+                        if ($relationship->getServiceTblPersonFrom() && $relationship->getServiceTblPersonTo()
+                            && $relationship->getTblType()->getName() == 'Geschwisterkind'
+                        ) {
                             if ($relationship->getServiceTblPersonFrom()->getId() == $tblPerson->getId()) {
                                 $tblPerson->Siblings .= $relationship->getServiceTblPersonTo()->getFullName().' ';
                             } else {
@@ -650,7 +652,7 @@ class Service
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
-                        if ($guardian->getTblType()->getId() == 1) {
+                        if ($guardian->getServiceTblPersonFrom() && $guardian->getTblType()->getId() == 1) {
                             if (( $salutation = $guardian->getServiceTblPersonFrom()->getTblSalutation() )) {
                                 if ($salutation->getId() == 1) {
                                     $father = $guardian->getServiceTblPersonFrom();
@@ -810,7 +812,7 @@ class Service
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
-                        if ($guardian->getTblType()->getId() == 1) {
+                        if ($guardian->getServiceTblPersonFrom() && $guardian->getTblType()->getId() == 1) {
                             if (( $salutation = $guardian->getServiceTblPersonFrom()->getTblSalutation() )) {
                                 if ($salutation->getId() == 1) {
                                     $father = $guardian->getServiceTblPersonFrom();
@@ -945,10 +947,14 @@ class Service
                         if ($guardian->getTblType()->getId() == 1) {
                             if ($father === null) {
                                 $father = $guardian->getServiceTblPersonFrom();
-                                $fatherPhoneList = Phone::useService()->getPhoneAllByPerson($father);
+                                if ($father) {
+                                    $fatherPhoneList = Phone::useService()->getPhoneAllByPerson($father);
+                                }
                             } else {
                                 $mother = $guardian->getServiceTblPersonFrom();
-                                $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
+                                if ($mother) {
+                                    $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
+                                }
                             }
                         }
                     }
@@ -1011,14 +1017,18 @@ class Service
                 }
                 if ($fatherPhoneList) {
                     foreach ($fatherPhoneList as $phone) {
-                        $phoneNumbers[] = $phone->getTblPhone()->getNumber().' '.$phone->getTblType()->getName() . ' '
-                            . $phone->getServiceTblPerson()->getFullName() .( $phone->getRemark() !== '' ? ' '.$phone->getRemark() : '' );
+                        if ($phone->getServiceTblPerson()) {
+                            $phoneNumbers[] = $phone->getTblPhone()->getNumber() . ' ' . $phone->getTblType()->getName() . ' '
+                                . $phone->getServiceTblPerson()->getFullName() . ($phone->getRemark() !== '' ? ' ' . $phone->getRemark() : '');
+                        }
                     }
                 }
                 if ($motherPhoneList) {
                     foreach ($motherPhoneList as $phone) {
-                        $phoneNumbers[] = $phone->getTblPhone()->getNumber().' '.$phone->getTblType()->getName() . ' '
-                            . $phone->getServiceTblPerson()->getFullName() .( $phone->getRemark() !== '' ? ' '.$phone->getRemark() : '' );
+                        if ($phone->getServiceTblPerson()) {
+                            $phoneNumbers[] = $phone->getTblPhone()->getNumber() . ' ' . $phone->getTblType()->getName() . ' '
+                                . $phone->getServiceTblPerson()->getFullName() . ($phone->getRemark() !== '' ? ' ' . $phone->getRemark() : '');
+                        }
                     }
                 }
 
@@ -1035,8 +1045,8 @@ class Service
                         $tblStudent,
                         Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION')
                     );
-                    if ($tblStudentOrientation) {
-                        $tblPerson->Orientation = $tblStudentOrientation[0]->getServiceTblSubject()->getName();
+                    if ($tblStudentOrientation && ($tblSubject = $tblStudentOrientation[0]->getServiceTblSubject()) ) {
+                        $tblPerson->Orientation = $tblSubject->getName();
                     } else {
                         $tblPerson->Orientation = '';
                     }

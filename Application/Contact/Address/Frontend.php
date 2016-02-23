@@ -231,11 +231,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Adresse', 'Bearbeiten');
         $Stage->setMessage('Die Adresse der gewählten Person ändern');
-        $Stage->addButton(
-            new Standard('Zurück', '/People/Person', new ChevronLeft(),
-                array('Id' => $tblToPerson->getServiceTblPerson()->getId())
-            )
-        );
+        if ($tblToPerson->getServiceTblPerson()) {
+            $Stage->addButton(
+                new Standard('Zurück', '/People/Person', new ChevronLeft(),
+                    array('Id' => $tblToPerson->getServiceTblPerson()->getId())
+                )
+            );
+        }
 
         $Global = $this->getGlobal();
         if (!isset($Global->POST['Address'])) {
@@ -258,7 +260,9 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Panel(new PersonIcon() . ' Person',
-                                $tblToPerson->getServiceTblPerson()->getFullName(),
+                                $tblToPerson->getServiceTblPerson()
+                                    ? $tblToPerson->getServiceTblPerson()->getFullName()
+                                    : 'Person nicht gefunden.'   ,
                                 Panel::PANEL_TYPE_INFO
                             )
                         )
@@ -299,9 +303,11 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Adresse', 'Bearbeiten');
         $Stage->setMessage('Die Adresse der gewählten Firma ändern');
-        $Stage->addButton(new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
-            array('Id' => $tblToCompany->getServiceTblCompany()->getId())
-        ));
+        if ($tblToCompany->getServiceTblCompany()) {
+            $Stage->addButton(new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
+                array('Id' => $tblToCompany->getServiceTblCompany()->getId())
+            ));
+        }
 
         $Global = $this->getGlobal();
         if (!isset($Global->POST['Address'])) {
@@ -324,7 +330,9 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             new Panel(new PersonIcon() . ' Firma',
-                                $tblToCompany->getServiceTblCompany()->getName(),
+                                $tblToCompany->getServiceTblCompany()
+                                    ? $tblToCompany->getServiceTblCompany()->getName()
+                                    : 'Firma nicht gefunden.',
                                 Panel::PANEL_TYPE_INFO
                             )
                         )
@@ -362,11 +370,16 @@ class Frontend extends Extension implements IFrontendInterface
         if ($Id) {
             $tblToPerson = Address::useService()->getAddressToPersonById($Id);
             $tblPerson = $tblToPerson->getServiceTblPerson();
-            $Stage->addButton(
-                new Standard('Zurück', '/People/Person', new ChevronLeft(),
-                    array('Id' => $tblPerson->getId())
-                )
-            );
+            if ($tblPerson) {
+                $Stage->addButton(
+                    new Standard('Zurück', '/People/Person', new ChevronLeft(),
+                        array('Id' => $tblPerson->getId())
+                    )
+                );
+            } else {
+                return $Stage . new Danger('Person nicht gefunden', new Ban());
+            }
+
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
@@ -430,7 +443,12 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Adresse', 'Löschen');
         if ($Id) {
             $tblToCompany = Address::useService()->getAddressToCompanyById($Id);
+
             $tblCompany = $tblToCompany->getServiceTblCompany();
+            if(!$tblCompany){
+                return $Stage . new Danger('Firma nicht gefunden', new Ban());
+            }
+
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(

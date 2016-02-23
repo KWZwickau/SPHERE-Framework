@@ -76,14 +76,16 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblResponsibilityAll as $tblResponsibility) {
                 $tblCompany = $tblResponsibility->getServiceTblCompany();
 
-                $Form .= new Layout(array(
-                    new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(
-                            School::useFrontend()->frontendLayoutCombine($tblCompany)
-                        )),
-                    ), (new Title(new TagList().' Kontaktdaten', 'von '.$tblCompany->getName()))
-                    ),
-                ));
+                if ($tblCompany) {
+                    $Form .= new Layout(array(
+                        new LayoutGroup(array(
+                            new LayoutRow(new LayoutColumn(
+                                School::useFrontend()->frontendLayoutCombine($tblCompany)
+                            )),
+                        ), (new Title(new TagList() . ' Kontaktdaten', 'von ' . $tblCompany->getName()))
+                        ),
+                    ));
+                }
             }
             $Stage->setContent(
                 new Standard('Schulträger hinzufügen', '/Setting/Consumer/Responsibility/Create')
@@ -180,30 +182,34 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblResponsibilityAll, function (TblResponsibility &$tblResponsibility) {
 
                 $tblCompany = $tblResponsibility->getServiceTblCompany();
-
-                $Address = array();
-                $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
-                if ($tblAddressAll) {
-                    foreach ($tblAddressAll as $tblAddress) {
-                        $Address[] = $tblAddress->getTblAddress()->getStreetName().' '
-                            .$tblAddress->getTblAddress()->getStreetNumber().' '
-                            .$tblAddress->getTblAddress()->getTblCity()->getName();
+                if ($tblCompany) {
+                    $Address = array();
+                    $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
+                    if ($tblAddressAll) {
+                        foreach ($tblAddressAll as $tblAddress) {
+                            $Address[] = $tblAddress->getTblAddress()->getStreetName() . ' '
+                                . $tblAddress->getTblAddress()->getStreetNumber() . ' '
+                                . $tblAddress->getTblAddress()->getTblCity()->getName();
+                        }
                     }
+                    $Content = array(
+                        ($tblCompany->getName() ? $tblCompany->getName() : false),
+                        (isset($Address[0]) ? new Small(new Muted($Address[0])) : false),
+                        (isset($Address[1]) ? new Small(new Muted($Address[1])) : false),
+                        (isset($Address[2]) ? new Small(new Muted($Address[2])) : false),
+                        (new Standard('', '/Setting/Consumer/Responsibility/Destroy', new Remove(),
+                            array('Id' => $tblResponsibility->getId())))
+                    );
+                    $Content = array_filter($Content);
+                    $Type = Panel::PANEL_TYPE_WARNING;
+                    $tblResponsibility = new LayoutColumn(
+                        new Panel('Schulträger', $Content, $Type)
+                        , 6);
+                } else {
+                    $tblResponsibility = false;
                 }
-                $Content = array(
-                    ( $tblCompany->getName() ? $tblCompany->getName() : false ),
-                    ( isset( $Address[0] ) ? new Small(new Muted($Address[0])) : false ),
-                    ( isset( $Address[1] ) ? new Small(new Muted($Address[1])) : false ),
-                    ( isset( $Address[2] ) ? new Small(new Muted($Address[2])) : false ),
-                    (new Standard('', '/Setting/Consumer/Responsibility/Destroy', new Remove(),
-                        array('Id' => $tblResponsibility->getId())))
-                );
-                $Content = array_filter($Content);
-                $Type = Panel::PANEL_TYPE_WARNING;
-                $tblResponsibility = new LayoutColumn(
-                    new Panel('Schulträger', $Content, $Type)
-                    , 6);
             });
+            $tblResponsibilityAll = array_filter($tblResponsibilityAll);
 
             $LayoutRowList = array();
             $LayoutRowCount = 0;
@@ -248,18 +254,23 @@ class Frontend extends Extension implements IFrontendInterface
             if (!$Confirm) {
 
                 $Address = array();
-                $tblAddressAll = Address::useService()->getAddressAllByCompany($tblResponsibility->getServiceTblCompany());
-                if ($tblAddressAll) {
-                    foreach ($tblAddressAll as $tblAddress) {
-                        $Address[] = $tblAddress->getTblAddress()->getStreetName().' '
-                            .$tblAddress->getTblAddress()->getStreetNumber().' '
-                            .$tblAddress->getTblAddress()->getTblCity()->getName();
+                if ($tblResponsibility->getServiceTblCompany()) {
+                    $tblAddressAll = Address::useService()->getAddressAllByCompany($tblResponsibility->getServiceTblCompany());
+                    if ($tblAddressAll) {
+                        foreach ($tblAddressAll as $tblAddress) {
+                            $Address[] = $tblAddress->getTblAddress()->getStreetName() . ' '
+                                . $tblAddress->getTblAddress()->getStreetNumber() . ' '
+                                . $tblAddress->getTblAddress()->getTblCity()->getName();
+                        }
                     }
                 }
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                         new Panel(new Question().' Diesen Schulträger wirklich löschen?', array(
-                            $tblResponsibility->getServiceTblCompany()->getName().' '.$tblResponsibility->getServiceTblCompany()->getDescription(),
+                            $tblResponsibility->getServiceTblCompany()
+                                ? $tblResponsibility->getServiceTblCompany()->getName().' '
+                                .$tblResponsibility->getServiceTblCompany()->getDescription()
+                                : '',
                             ( isset( $Address[0] ) ? new Muted(new Small($Address[0])) : false ),
                             ( isset( $Address[1] ) ? new Muted(new Small($Address[1])) : false ),
                             ( isset( $Address[2] ) ? new Muted(new Small($Address[2])) : false ),
