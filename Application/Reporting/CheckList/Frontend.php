@@ -98,6 +98,9 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblListAll as &$tblList) {
                 $tblList->Option =
                     (new Standard('',
+                        '/Reporting/CheckList/Edit', new Edit(),
+                        array('Id' => $tblList->getId()), 'Liste bearbeiten'))
+                    .(new Standard('',
                         '/Reporting/CheckList/Destroy', new Remove(),
                         array('Id' => $tblList->getId()), 'Liste löschen'))
                     . (new Standard('(' . CheckList::useService()->countListElementListByList($tblList) . ')',

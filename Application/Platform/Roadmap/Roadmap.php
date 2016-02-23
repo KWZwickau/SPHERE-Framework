@@ -245,6 +245,10 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                             Label::LABEL_TYPE_PRIMARY)
                     )
                 ));
+                if( !$Sprint->isDone() ) {
+                    $SprintPercent = $this->getDatePercent($Sprint->getTimestampStart(), $Sprint->getTimestampFinish());
+                    $VersionHeader .= new ProgressBar($SprintPercent, 100 - $SprintPercent, 100);
+                }
                 $VersionFooter = null;
             } else {
                 $VersionHeader = new Info(new PullClear(
@@ -273,7 +277,10 @@ class Roadmap implements IApplicationInterface, IModuleInterface
             );
         }
 
-        $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow($LayoutColumns))));
+        $Stage->setContent(
+            '<style>.panel.panel-success {margin-bottom:0;}</style>'.
+            new Layout(new LayoutGroup(new LayoutRow($LayoutColumns)))
+        );
 
         return $Stage;
     }
