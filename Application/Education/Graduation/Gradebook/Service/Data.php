@@ -406,9 +406,20 @@ class Data extends AbstractData
     public function getGradeAllByTest(TblTest $tblTest)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblGrade')->findBy(array(
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGrade', array(
             TblGrade::ATTR_SERVICE_TBL_TEST => $tblTest->getId()
         ));
+
+        if ($EntityList) {
+            /** @var TblGrade $item */
+            foreach ($EntityList as &$item) {
+                // filter deleted persons
+                if (!$item->getServiceTblPerson()) {
+                    $item = false;
+                }
+            }
+            $EntityList = array_filter($EntityList);
+        }
 
         return empty($EntityList) ? false : $EntityList;
     }
