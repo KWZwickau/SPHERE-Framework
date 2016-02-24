@@ -1,73 +1,112 @@
 <?php
 namespace SPHERE\Common\Frontend\Link\Repository\Backward;
 
-use SPHERE\System\Authenticator\Authenticator;
-use SPHERE\System\Authenticator\Type\Get;
-
 /**
  * Class History
+ *
  * @package SPHERE\Common\Frontend\Link\Repository\Backward
  */
 class History
 {
-    /** @var Step[] $StepList */
-    private $StepList = array();
+
+    /** @var Step[] $StepStack */
+    private $StepStack = array();
 
     /**
      * @param Step $Step
+     *
+     * @return bool
+     */
+    public function cleanStep(Step $Step)
+    {
+
+        // Clean only if Step is a GoBack Step
+        if ($Step->isGoBack()) {
+            $this->removeStep($Step);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Remove Step if is last History-Step
+     *
+     * @param Step $Step
+     *
+     * @return bool
+     */
+    public function removeStep(Step $Step)
+    {
+
+        $Last = $this->getLastStep();
+        if ($Last && $Last->getRoute() == $Step->getRoute()) {
+            array_pop($this->StepStack);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Get last History-Step
+     *
+     * @return false|Step
+     */
+    public function getLastStep()
+    {
+
+        if (!empty( $this->StepStack )) {
+            return end($this->StepStack);
+        }
+        return false;
+    }
+
+    /**
+     * Get current Back-Step
+     *
+     * @return false|Step
+     */
+    public function getBackStep()
+    {
+
+        if (!empty( $this->StepStack )) {
+            if( ($Count = count($this->StepStack)) == 1 ) {
+                return current($this->StepStack);
+            } else {
+                return $this->StepStack[$Count-2];
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Add Step if not equals last History-Step
+     *
+     * @param Step $Step
+     *
+     * @return bool
      */
     public function addStep(Step $Step)
     {
 
-        $Data = $Step->getData();
-        if ($Step->isValid() && !isset($Data['_goBack'])) {
-            // Ignore same Step
-            $LastStep = end($this->StepList);
-            if ($LastStep) {
-                if ($LastStep->getRoute() == $Step->getRoute()) {
-                    return;
-                }
-            }
-            // Add New Step
-            $Step->setGoBack();
-            array_push($this->StepList, $Step);
-            (new Session())->saveHistory($this);
-        }
+        // Is not a GoBack Step
+        if (!$Step->isGoBack()) {
+            $Last = $this->getLastStep();
+            // Stack is empty
+            if (!$Last && $Step->isValid()) {
+                // Make Step > GoBack & Add to Stack
+                $Step->setGoBack();
+                array_push($this->StepStack, $Step);
+                return true;
 
-        if (isset($Data['_goBack']) && !empty($this->StepList)) {
-            /** @var Step $Last */
-            if (isset($this->StepList[count($this->StepList) - 2])) {
-                $Last = $this->StepList[count($this->StepList) - 2];
-                $Signature = (new Authenticator(new Get()))->getAuthenticator();
-                $Last = $Step->getPath()
-                    . '?' . http_build_query($Signature->createSignature($Last->getData(), $Last->getPath()));
-
-                if (
-                    $Last == $Step->getRoute()
-                ) {
-                    array_pop($this->StepList);
-                    (new Session())->saveHistory($this);
-                }
+            } // Stack is not empty
+            elseif ($Step->isValid() && $Last->getRoute() != $Step->getRoute()) {
+                // Make Step > GoBack & Add to Stack
+                $Step->setGoBack();
+                array_push($this->StepStack, $Step);
+                return true;
             }
         }
-    }
-
-    /**
-     * @return Step
-     */
-    public function getStep()
-    {
-        if (isset($this->StepList[count($this->StepList) - 2])) {
-            return $this->StepList[count($this->StepList) - 2];
-        }
-        return new Step('/');
-    }
-
-    /**
-     * @return int
-     */
-    public function getCount()
-    {
-        return (count($this->StepList) - 1);
+        // Step not added
+        return false;
     }
 }

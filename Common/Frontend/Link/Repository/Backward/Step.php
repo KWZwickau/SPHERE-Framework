@@ -7,10 +7,12 @@ use SPHERE\System\Extension\Extension;
 
 /**
  * Class Step
+ *
  * @package SPHERE\Common\Frontend\Link\Repository\Backward
  */
 class Step extends Extension
 {
+
     /** @var string $Route */
     private $Route = '';
     /** @var string $Path */
@@ -38,15 +40,16 @@ class Step extends Extension
      */
     public function isValid()
     {
+
         $Authenticator = (new Authenticator(new Get()))->getAuthenticator();
 
-        if (empty($this->Data)) {
+        if (empty( $this->Data )) {
             return true;
         } else {
-            if (isset($this->Data['_Sign'])) {
+            if (isset( $this->Data['_Sign'] )) {
                 $Signature = $this->Data['_Sign'];
                 $Data = $this->Data;
-                unset($Data['_Sign']);
+                unset( $Data['_Sign'] );
                 $Check = $Authenticator->createSignature($Data, $this->Path);
                 if ($Check['_Sign'] == $Signature) {
                     return true;
@@ -64,6 +67,7 @@ class Step extends Extension
      */
     public function getRoute()
     {
+
         return $this->Route;
     }
 
@@ -72,6 +76,7 @@ class Step extends Extension
      */
     public function getPath()
     {
+
         return $this->Path;
     }
 
@@ -80,8 +85,9 @@ class Step extends Extension
      */
     public function getData()
     {
+
         $Data = $this->Data;
-        unset($Data['_Sign']);
+        unset( $Data['_Sign'] );
         return $Data;
     }
 
@@ -90,6 +96,16 @@ class Step extends Extension
      */
     public function setGoBack()
     {
+
         $this->Data['_goBack'] = true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isGoBack()
+    {
+
+        return isset( $this->Data['_goBack'] );
     }
 }

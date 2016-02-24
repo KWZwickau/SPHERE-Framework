@@ -6,10 +6,12 @@ use SPHERE\System\Extension\Extension;
 
 /**
  * Class Session
+ *
  * @package SPHERE\Common\Frontend\Link\Repository\Backward
  */
 class Session extends Extension
 {
+
     /** @var string $SessionKey */
     private $SessionKey = '';
 
@@ -18,7 +20,8 @@ class Session extends Extension
      */
     public function __construct()
     {
-        $this->SessionKey = sha1(session_id() . '#' . date('d.m.Y', time()));
+
+        $this->SessionKey = sha1(session_id().'#'.date('d.m.Y H', time()));
     }
 
     /**
@@ -26,8 +29,9 @@ class Session extends Extension
      */
     public function loadHistory()
     {
+
         $Cache = $this->getCache(new MemcachedHandler(), 'Memcached');
-        if (!($History = $Cache->getValue($this->SessionKey, __CLASS__))) {
+        if (!( $History = $Cache->getValue($this->SessionKey, __CLASS__) )) {
             $History = new History();
         }
         return $History;
@@ -35,12 +39,14 @@ class Session extends Extension
 
     /**
      * @param History $History
+     *
      * @return History
      */
     public function saveHistory(History $History)
     {
+
         $Cache = $this->getCache(new MemcachedHandler(), 'Memcached');
-        $Cache->setValue($this->SessionKey, $History, (60 * 60 * 24), __CLASS__);
+        $Cache->setValue($this->SessionKey, $History, ( 60 * 60 * 24 ), __CLASS__);
         return $History;
     }
 }

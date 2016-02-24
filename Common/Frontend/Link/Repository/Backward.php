@@ -7,25 +7,40 @@ use SPHERE\Common\Frontend\Link\Repository\Backward\Step;
 
 /**
  * Class Backward
+ *
  * @package SPHERE\Common\Frontend\Link\Repository
  */
 class Backward extends Standard
 {
 
+    private $BackStep = null;
+
     /**
      * Backward constructor.
+     *
+     * @param bool $IgnoreStep Disable History for this Step
      */
-    final public function __construct()
+    final public function __construct($IgnoreStep = false)
     {
 
+        $Session = new Session();
+        $History = $Session->loadHistory();
+        $Step = new Step($this->getRequest()->getUrl());
 
-        $History = (new Session())->loadHistory();
-        $History->addStep(new Step($this->getRequest()->getUrl()));
+        $History->cleanStep($Step);
+        if (!$IgnoreStep) {
+            $History->addStep($Step);
+        }
+        $this->BackStep = $History->getBackStep();
+        $Session->saveHistory($History);
 
-        $Step = $History->getStep();
+        $this->getDebugger()->screenDump( $History );
 
-        parent::__construct('Zurück (' . $History->getCount() . ')', $Step->getPath(), new ChevronLeft(),
-            $Step->getData(), $Step->getRoute());
+
+        if ($this->BackStep) {
+            parent::__construct('Zurück', $this->BackStep->getPath(), new ChevronLeft(),
+                $this->BackStep->getData(), $this->BackStep->getRoute());
+        }
     }
 
     /**
@@ -33,13 +48,10 @@ class Backward extends Standard
      */
     public function getContent()
     {
-        $History = (new Session())->loadHistory();
 
-        if ($History->getCount() > 0) {
-            return parent::getContent();
+        if ($this->BackStep) {
+            return (string)parent::getContent();
         }
         return '';
     }
-
-
 }
