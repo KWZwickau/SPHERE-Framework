@@ -34,6 +34,9 @@ class Person implements IApplicationInterface, IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'Frontend::frontendPerson'
         ));
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy', __NAMESPACE__.'\Frontend::frontendDestroyPerson')
+        );
 
         // Contact: Address
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

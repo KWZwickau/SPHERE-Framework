@@ -286,4 +286,15 @@ class Service extends AbstractService
 
         return $exists;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function destroyPerson(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->destroyPerson($tblPerson);
+    }
 }

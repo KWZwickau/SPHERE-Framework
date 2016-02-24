@@ -199,4 +199,24 @@ class Data extends AbstractData
             ->getQuery();
         return $Query->getResult(IdHydrator::HYDRATION_MODE);
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function destroyPerson(TblPerson $tblPerson)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblPerson $Entity */
+        $Entity = $Manager->getEntityById('TblPerson', $tblPerson->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->removeEntity($Entity);
+            return true;
+        }
+        return false;
+    }
 }
