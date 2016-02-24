@@ -116,4 +116,24 @@ class Data extends AbstractData
 
         return false;
     }
+
+    /**
+     * @param TblCompany $tblCompany
+     *
+     * @return bool
+     */
+    public function destroyCompany(TblCompany $tblCompany)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblCompany $Entity */
+        $Entity = $Manager->getEntityById('TblCompany', $tblCompany->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->removeEntity($Entity);
+            return true;
+        }
+        return false;
+    }
 }
