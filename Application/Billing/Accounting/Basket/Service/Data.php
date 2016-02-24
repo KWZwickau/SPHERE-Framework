@@ -2,8 +2,6 @@
 
 namespace SPHERE\Application\Billing\Accounting\Basket\Service;
 
-use SPHERE\Application\Billing\Accounting\Banking\Banking;
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasket;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketItem;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketPerson;
@@ -13,7 +11,6 @@ use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
-use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
@@ -249,48 +246,6 @@ class Data extends AbstractData
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketVerification',
             array(TblBasketVerification::SERVICE_PEOPLE_PERSON => $tblPerson->getId()
             , TblBasketVerification::ATTR_TBL_BASKET           => $tblBasket->getId()));
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     *
-     * @return TblDebtor[]|bool
-     */
-    public function checkDebtorExistsByPerson(
-        TblPerson $tblPerson
-    ) {
-
-        $tblDebtorAllList = array();
-
-        $debtorPersonAll = Banking::useService()->getDebtorAllByPerson($tblPerson);
-        if (!empty( $debtorPersonAll )) {
-            foreach ($debtorPersonAll as $debtor) {
-                array_push($tblDebtorAllList, $debtor);
-            }
-        }
-
-        $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
-        if (!empty( $tblPersonRelationshipList )) {
-            foreach ($tblPersonRelationshipList as $tblPersonRelationship) {
-                if ($tblPerson->getId() === $tblPersonRelationship->getServiceTblPersonFrom()->getId()) {
-                    $tblDebtorList = Banking::useService()->getDebtorAllByPerson($tblPersonRelationship->getServiceTblPersonTo());
-                } else {
-                    $tblDebtorList = Banking::useService()->getDebtorAllByPerson($tblPersonRelationship->getServiceTblPersonFrom());
-                }
-
-                if (!empty( $tblDebtorList )) {
-                    foreach ($tblDebtorList as $tblDebtor) {
-                        array_push($tblDebtorAllList, $tblDebtor);
-                    }
-                }
-            }
-        }
-
-        if (empty( $tblDebtorAllList )) {
-            return false;
-        } else {
-            return $tblDebtorAllList;
-        }
     }
 
     /**

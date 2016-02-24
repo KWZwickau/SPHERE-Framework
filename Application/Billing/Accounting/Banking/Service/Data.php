@@ -87,18 +87,6 @@ class Data extends AbstractData
      *
      * @return TblDebtor[]|bool
      */
-    public function getDebtorByServicePeoplePerson(TblPerson $tblPerson)
-    {
-
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblDebtor')->findBy(array(TblDebtor::SERVICE_TBL_PERSON => $tblPerson->getId()));
-        return ( null === $Entity ? false : $Entity );
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     *
-     * @return TblDebtor[]|bool
-     */
     public function getDebtorAllByPerson(TblPerson $tblPerson)
     {
 
@@ -151,6 +139,58 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankAccount');
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblItem   $tblItem
+     * without Debtor
+     *
+     * @return false|TblDebtorSelection
+     */
+    public function getDebtorSelectionByPersonAndItem(TblPerson $tblPerson, TblItem $tblItem)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection',
+            array(TblDebtorSelection::SERVICE_PEOPLE_PERSON  => $tblPerson->getId(),
+                  TblDebtorSelection::SERVICE_INVENTORY_ITEM => $tblItem->getId()));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblItem   $tblItem
+     * without Debtor
+     *
+     * @return false|TblDebtorSelection
+     */
+    public function getDebtorSelectionByPersonAndItemWithoutDebtor(TblPerson $tblPerson, TblItem $tblItem)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection',
+            array(TblDebtorSelection::SERVICE_PEOPLE_PERSON  => $tblPerson->getId(),
+                  TblDebtorSelection::SERVICE_INVENTORY_ITEM => $tblItem->getId(),
+                  TblDebtorSelection::ATTR_TBL_DEBTOR        => null,));
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblDebtorSelection
+     */
+    public function getDebtorSelectionById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection', $Id);
+    }
+
+    public function checkDebtorSelectionDebtor(TblDebtorSelection $tblDebtorSelection)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection',
+            array(TblDebtorSelection::SERVICE_PEOPLE_PERSON  => $tblDebtorSelection->getServicePeoplePerson()->getId(),
+                  TblDebtorSelection::SERVICE_INVENTORY_ITEM => $tblDebtorSelection->getServiceInventoryItem()->getId(),
+                  TblDebtorSelection::ATTR_TBL_DEBTOR        => null,
+            ));
     }
 
     /**
@@ -232,42 +272,35 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblPerson             $serviceTblPerson (#Bezahler)
-     * @param TblPaymentType        $serviceBalance_PaymentType
-     * @param TblItem               $serviceItem_Item
-     * @param TblDebtor             $tblDebtor
-     * @param TblBankAccount|null   $tblBankAccount
-     * @param TblBankReference|null $tblBankReference
+     * @param TblPerson      $serviceTblPerson
+     * @param TblPerson      $serviceTblPersonPayers
+     * @param TblPaymentType $serviceBalance_PaymentType
+     * @param TblItem        $serviceItem_Item
      *
-     * @return null|object|TblDebtor
+     * @return null|object|TblDebtorSelection
      */
     public function createDebtorSelection(
         TblPerson $serviceTblPerson,
+        TblPerson $serviceTblPersonPayers,
         TblPaymentType $serviceBalance_PaymentType,
-        TblItem $serviceItem_Item,
-        TblDebtor $tblDebtor,
-        TblBankAccount $tblBankAccount = null,
-        TblBankReference $tblBankReference = null
+        TblItem $serviceItem_Item
     ) {
+
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblDebtorSelection')->findOneBy(array(
-            TblDebtorSelection::SERVICE_PEOPLE_PERSON        => $serviceTblPerson->getId(),
-            TblDebtorSelection::SERVICE_BALANCE_PAYMENT_TYPE => $serviceBalance_PaymentType->getId(),
-            TblDebtorSelection::SERVICE_PEOPLE_PERSON        => $serviceItem_Item->getId(),
-            TblDebtorSelection::ATTR_TBL_DEBTOR              => $tblDebtor->getId(),
-            TblDebtorSelection::ATTR_TBL_BANK_ACCOUNT        => $tblBankAccount->getId(),
-            TblDebtorSelection::ATTR_TBL_BANK_REFERENCE      => $tblBankReference->getId(),
+            TblDebtorSelection::SERVICE_PEOPLE_PERSON  => $serviceTblPerson->getId(),
+//            TblDebtorSelection::SERVICE_PEOPLE_PERSON_PAYERS => $serviceTblPersonPayers->getId(),
+//            TblDebtorSelection::SERVICE_BALANCE_PAYMENT_TYPE => $serviceBalance_PaymentType->getId(),
+            TblDebtorSelection::SERVICE_INVENTORY_ITEM => $serviceItem_Item->getId(),
         ));
 
         if (null === $Entity) {
             $Entity = new TblDebtorSelection();
             $Entity->setServicePeoplePerson($serviceTblPerson);
+            $Entity->setServicePeoplePersonPayers($serviceTblPersonPayers);
             $Entity->setServicePaymentType($serviceBalance_PaymentType);
-            $Entity->setServiceInventory_Item($serviceItem_Item);
-            $Entity->setTblDebtor($tblDebtor);
-            $Entity->setTblBankAccount($tblBankAccount);
-            $Entity->setTblBankReference($tblBankReference);
+            $Entity->setServiceInventoryItem($serviceItem_Item);
 
             $Manager->saveEntity($Entity);
 
@@ -275,6 +308,34 @@ class Data extends AbstractData
                 $Entity);
         }
         return $Entity;
+    }
+
+    public function UpdateDebtorSelection(
+        TblDebtorSelection $tblDebtorSelection,
+        TblDebtor $tblDebtor,
+        TblBankAccount $tblBankAccount = null,
+        TblBankReference $tblBankReference = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $this->getCachedEntityById(__METHOD__, $Manager, 'TblDebtorSelection', $tblDebtorSelection->getId());
+
+        if (null !== $Entity) {
+            /** @var TblDebtorSelection $Entity */
+            $Protocol = clone $Entity;
+            $Entity->setTblDebtor($tblDebtor);
+            $Entity->setTblBankAccount($tblBankAccount);
+            $Entity->setTblBankReference($tblBankReference);
+
+            $Manager->saveEntity($Entity);
+
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return $Entity;
+        }
+        return false;
     }
 
     /**
@@ -319,10 +380,12 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblDebtor', $tblDebtor->getId());
 
         /** @var TblDebtor $Entity */
+        $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setDebtorNumber($DebtorNumber);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
                 $Entity);
             return $Entity;
         }

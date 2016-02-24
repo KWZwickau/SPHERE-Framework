@@ -5,9 +5,12 @@ use SPHERE\Application\Billing\Accounting\Banking\Service\Data;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblPaymentType;
+use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtorSelection;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Setup;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
+use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasket;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
+use SPHERE\Application\Billing\Inventory\Item\Item;
+use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -51,26 +54,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @return bool|TblPaymentType[]
-     */
-    public function getPaymentTypeAll()
-    {
-
-        return (new Data($this->getBinding()))->getPaymentTypeAll();
-    }
-
-    /**
-     * @param TblPerson $Person
-     *
-     * @return bool|TblDebtor[]
-     */
-    public function getDebtorAllByPerson(TblPerson $Person)
-    {
-
-        return (new Data($this->getBinding()))->getDebtorAllByPerson($Person);
-    }
-
-    /**
      * @param TblPerson $Person
      *
      * @return false|TblDebtor
@@ -79,28 +62,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getDebtorByPerson($Person);
-    }
-
-    /**
-     * @param $ServiceManagement_Person
-     *
-     * @return bool|TblDebtor[]
-     */
-    public function getDebtorByServicePeoplePerson($ServiceManagement_Person)
-    {
-
-        return (new Data($this->getBinding()))->getDebtorByServicePeoplePerson($ServiceManagement_Person);
-    }
-
-    /**
-     * @param $PaymentType
-     *
-     * @return bool|TblPaymentType
-     */
-    public function getPaymentTypeByName($PaymentType)
-    {
-
-        return (new Data($this->getBinding()))->getPaymentTypeByName($PaymentType);
     }
 
     /**
@@ -145,6 +106,12 @@ class Service extends AbstractService
 //        return false;
 //    }
 
+    public function checkDebtorSelectionDebtor(TblDebtorSelection $tblDebtorSelection)
+    {
+
+        return (new Data($this->getBinding()))->checkDebtorSelectionDebtor($tblDebtorSelection);
+    }
+
     /**
      * @param TblDebtor $tblDebtor
      *
@@ -156,39 +123,13 @@ class Service extends AbstractService
         if (null === $tblDebtor) {
             return '';
         }
-        $Error = false;
 
-        $tblInvoiceList = Invoice::useService()->getInvoiceAll();
-        foreach ($tblInvoiceList as $tblInvoice) {
-            if (!$tblInvoice->isVoid()) {
-                if (!$tblInvoice->isPaid()) {
-                    if (!$tblInvoice->isConfirmed()) {
-                        $tblDebtorInvoice = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
-                        if ($tblDebtorInvoice->getId() === $tblDebtor->getId()) {
-                            $Error = true;
-                        }
-                    }
-                }
-            }
+        if ((new Data($this->getBinding()))->removeBanking($tblDebtor)) {
+            return new Success('Der Debitor wurde erfolgreich gelöscht')
+            .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_SUCCESS);
         }
 
-        if (!$Error) {
-            if (Banking::useService()->getAccountAllByDebtor($tblDebtor)) {
-                $tblAccountList = Banking::useService()->getAccountAllByDebtor($tblDebtor);
-                foreach ($tblAccountList as $tblAccount) {
-                    Banking::useService()->destroyAccount($tblAccount);
-                }
-            }
-
-            if ((new Data($this->getBinding()))->removeBanking($tblDebtor)) {
-                return new Success('Der Debitor wurde erfolgreich gelöscht')
-                .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_SUCCESS);
-            } else {
-                return new Danger('Der Debitor konnte nicht gelöscht werden')
-                .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
-            }
-        }
-        return new Danger('Es bestehen noch offene Rechnungen mit diesem Debitor')
+        return new Danger('Der Debitor konnte nicht gelöscht werden')
         .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
     }
 
@@ -235,31 +176,38 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     * @param $Account
-     * @param $Path
-     * @param $IdBack
+     * @param TblPerson $tblPerson
+     * @param TblItem   $tblItem
      *
-     * @return string
+     * @return false|TblDebtorSelection
      */
-    public function changeActiveAccount($Id, $Account, $Path, $IdBack)
+    public function getDebtorSelectionByPersonAndItem(TblPerson $tblPerson, TblItem $tblItem)
     {
 
-        $tblDebtor = Banking::useService()->getDebtorById($Id);
-        $tblAccount = Banking::useService()->getBankAccountById($Account);
-        $tblOldAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor);
+        return (new Data($this->getBinding()))->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem);
+    }
 
-        if (!empty( $tblOldAccount )) {
-            (new Data($this->getBinding()))->deactivateAccount($tblOldAccount);
-        }
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblItem   $tblItem
+     *
+     * @return false|TblDebtorSelection
+     */
+    public function getDebtorSelectionByPersonAndItemWithoutDebtor(TblPerson $tblPerson, TblItem $tblItem)
+    {
 
-        if ((new Data($this->getBinding()))->activateAccount($tblAccount)) {
-            return new Success('Das Konto wurde als aktives Konto gesetzt')
-            .new Redirect($Path, Redirect::TIMEOUT_SUCCESS, array('Id' => $IdBack));
-        } else {
-            return new Warning('Das Konto konte nicht als aktives Konto gesetzt werden')
-            .new Redirect($Path, Redirect::TIMEOUT_ERROR, array('Id' => $IdBack));
-        }
+        return (new Data($this->getBinding()))->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblDebtorSelection
+     */
+    public function getDebtorSelectionById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionById($Id);
     }
 
     /**
@@ -314,38 +262,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     * @param $PaymentType
-     *
-     * @return string
-     */
-    public function changeDebtorPaymentType($Id, $PaymentType)
-    {
-
-        $tblDebtor = Banking::useService()->getDebtorById($Id);
-        $tblPaymentType = Banking::useService()->getPaymentTypeById($PaymentType);
-
-        if ((new Data($this->getBinding()))->changePaymentType($tblDebtor, $tblPaymentType)) {
-            return new Success('Die Zahlungsart wurde geändert')
-            .new Redirect('/Billing/Accounting/Banking/Debtor/View', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblDebtor->getId()));
-        } else {
-            return new Warning('Die Zahlungsart konnte nicht geändert werden')
-            .new Redirect('/Billing/Accounting/Banking/Debtor/View', Redirect::TIMEOUT_ERROR, array('Id' => $tblDebtor->getId()));
-        }
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblPaymentType
-     */
-    public function getPaymentTypeById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getPaymentTypeById($Id);
-    }
-
-    /**
      * @param IFormInterface $Stage
      * @param                $Debtor
      * @param                $Id
@@ -376,7 +292,7 @@ class Service extends AbstractService
         if (!$Error) {
             $tblPerson = Person::useService()->getPersonById($Id);
             if ($tblPerson) {
-                if (!Banking::useService()->getDebtorAllByPerson($tblPerson)) {
+                if (!Banking::useService()->getDebtorByPerson($tblPerson)) {
                     (new Data($this->getBinding()))->createDebtor($tblPerson, $Debtor['DebtorNumber']);
 
                     return new Success('Der Debitor ist erfasst worden')
@@ -529,6 +445,130 @@ class Service extends AbstractService
             }
 
         }
+        return $Stage;
+    }
+
+    public function createDebtorSelection(IFormInterface &$Stage = null, TblBasket $tblBasket, $Data = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+
+        $Error = false;
+        $PersonArray = array();
+        if (is_array($Data)) {
+            foreach ($Data as $Key => $Row) {
+                if (!isset( $Row['PersonPayers'] ) || empty( $Row['PersonPayers'] )) {
+                    $PersonArray[$Row['Person']] = Person::useService()->getPersonById($Row['Person']);
+                    $Error = true;
+                }
+                if (!$Error) {
+
+                    $tblPerson = Person::useService()->getPersonById($Row['Person']);
+                    $tblPersonPayers = Person::useService()->getPersonById($Row['PersonPayers']);
+                    $tblPaymentType = Balance::useService()->getPaymentTypeById($Row['Payment']);
+                    $tblItem = Item::useService()->getItemById($Row['Item']);
+
+                    (new Data ($this->getBinding()))->createDebtorSelection(
+                        $tblPerson,
+                        $tblPersonPayers,
+                        $tblPaymentType,
+                        $tblItem);
+                }
+            }
+            if (!$Error) {
+                return new Success('Daten sind erfasst worden.')
+                .new Redirect('/Billing/Accounting/Pay/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+            }
+            if ($Error === true && !empty( $PersonArray )) {
+                /** @var TblPerson $Person */
+                foreach ($PersonArray as $Person)
+                    $Stage .= new Warning('Bezahler für '.$Person->getfullName().' ist noch nicht eingerichtet');
+            }
+        }
+
+        return $Stage;
+    }
+
+    public function changeDebtorSelection(IFormInterface &$Stage = null, TblBasket $tblBasket, $Data = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+
+        $Error = false;
+        $Debtor = false;
+        $Bank = false;
+
+        if (is_array($Data)) {
+            // Testdurchlauf durch alle Eingaben
+            foreach ($Data as $Key => $Row) {
+                $tblDebtorSelection = Banking::useService()->getDebtorSelectionById($Key);
+
+                if ($tblDebtorSelection) {
+                    if (!isset( $Row['Debtor'] ) || empty( $Row['Debtor'] )) {
+                        $Stage->setError('[Data]['.$Key.'][Debtor]', 'Debitor benötigt!');
+                        $Error = true;
+                        $Debtor = true;
+                    }
+                    if (!isset( $Row['SelectBox'] ) || empty( $Row['SelectBox'] )) {
+                        $Stage->setError('[Data]['.$Key.'][Select]', 'Auswahl treffen!');
+                        $Error = true;
+                        $Bank = true;
+                    }
+                }
+            }
+            if (!$Error) {
+                // Durchführung nach bestehen des Testdurchlauf's
+                foreach ($Data as $Key => $Row) {
+                    $tblDebtorSelection = Banking::useService()->getDebtorSelectionById($Key);
+
+                    if ($tblDebtorSelection) {
+
+                        if (!$Error) {
+
+                            $tblDebtor = Banking::useService()->getDebtorById($Row['Debtor']);
+                            $tblBankAccount = null;
+                            $tblBankReference = null;
+
+                            $string = substr($Row['SelectBox'], 0, 3);
+                            $Id = substr($Row['SelectBox'], 3);
+                            if ($string === 'Ban') {
+                                $tblBankAccount = Banking::useService()->getBankAccountById($Id);
+                            } elseif ($string === 'Ref') {
+                                $tblBankReference = Banking::useService()->getBankReferenceById($Id);
+                            }
+
+                            (new Data ($this->getBinding()))->UpdateDebtorSelection(
+                                $tblDebtorSelection,
+                                $tblDebtor,
+                                $tblBankAccount,
+                                $tblBankReference);
+                        }
+                    }
+                }
+            }
+
+            if (!$Error) {
+                return new Success('Daten sind erfasst worden.')
+                .new Redirect('/Billing/Accounting/Pay/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+            }
+            if ($Error && $Debtor) {
+                $Stage .= new Warning('Bitte zuerst die benötigte Debitoren anlegen');
+            }
+            if ($Error && $Bank) {
+                $Stage .= new Warning('Gewählte Bezahler haben keine Zahlungs-Information');
+            }
+        }
+
         return $Stage;
     }
 

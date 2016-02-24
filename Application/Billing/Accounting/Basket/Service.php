@@ -414,7 +414,7 @@ class Service extends AbstractService
 //                }
 //            }
 //        }
-        return new Success('Warenkorb bereitmachen für Bearbeitung')
+        return new Success('Berechnung bereitmachen für Bearbeitung')
         .new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
     }
 
@@ -637,6 +637,8 @@ class Service extends AbstractService
         if (isset( $Item['Price'] ) && empty( $Item['Price'] )) {
             $Stage->setError('Item[Price]', 'Bitte geben Sie einen Preis an');
             $Error = true;
+        } else {
+            $Item['Price'] = str_replace(',', '.', $Item['Price']);
         }
         if (isset( $Item['Quantity'] ) && empty( $Item['Quantity'] )) {
             $Stage->setError('Item[Quantity]', 'Bitte geben Sie eine Anzahl an');
@@ -649,6 +651,7 @@ class Service extends AbstractService
             }
         }
         if (!$Error) {
+
             if ($Item['PriceChoice'] === 'Einzelpreis') {
                 $Item['Price'] = $Item['Price'] * $Item['Quantity'];
             }

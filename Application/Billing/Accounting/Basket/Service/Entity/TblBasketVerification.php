@@ -154,7 +154,7 @@ class TblBasketVerification extends Element
     {
 
         if ($this->Quantity !== 0) {
-            $result = $this->Value / $this->Quantity;
+            $result = ( Ceil(100 * ( $this->Value / $this->Quantity )) ) / 100;
         } else {
             $result = $this->Value;
         }

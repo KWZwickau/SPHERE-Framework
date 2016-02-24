@@ -23,6 +23,7 @@ class TblDebtorSelection extends Element
 {
 
     const SERVICE_PEOPLE_PERSON = 'ServicePeople_Person';
+    const SERVICE_PEOPLE_PERSON_PAYERS = 'ServicePeople_PersonPayers';
     const SERVICE_BALANCE_PAYMENT_TYPE = 'ServicePaymentType';
     const SERVICE_INVENTORY_ITEM = 'ServiceInventory_Item';
     const ATTR_TBL_DEBTOR = 'tblDebtor';
@@ -33,6 +34,10 @@ class TblDebtorSelection extends Element
      * @Column(type="bigint")
      */
     protected $ServicePeople_Person;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $ServicePeople_PersonPayers;
     /**
      * @Column(type="bigint")
      */
@@ -77,6 +82,28 @@ class TblDebtorSelection extends Element
     }
 
     /**
+     * @return bool|TblPerson
+     */
+    public function getServicePeoplePersonPayers()
+    {
+
+        if (null === $this->ServicePeople_PersonPayers) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->ServicePeople_PersonPayers);
+        }
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     */
+    public function setServicePeoplePersonPayers(TblPerson $tblPerson = null)
+    {
+
+        $this->ServicePeople_PersonPayers = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
      * @return bool|TblPaymentType
      */
     public function getServicePaymentType()
@@ -101,7 +128,7 @@ class TblDebtorSelection extends Element
     /**
      * @return bool|TblItem
      */
-    public function getServiceInventory_Item()
+    public function getServiceInventoryItem()
     {
 
         if (null === $this->ServiceInventory_Item) {
@@ -114,7 +141,7 @@ class TblDebtorSelection extends Element
     /**
      * @param TblItem|null $tblItem
      */
-    public function setServiceInventory_Item(TblItem $tblItem = null)
+    public function setServiceInventoryItem(TblItem $tblItem = null)
     {
 
         $this->ServiceInventory_Item = ( null === $tblItem ? null : $tblItem->getId() );
@@ -158,7 +185,7 @@ class TblDebtorSelection extends Element
     /**
      * @param null|TblBankReference $tblBankReference
      */
-    public function setTblBankReference(TblBankReference $tblBankReference)
+    public function setTblBankReference(TblBankReference $tblBankReference = null)
     {
 
         $this->tblBankReference = ( null === $tblBankReference ? null : $tblBankReference->getId() );
@@ -180,7 +207,7 @@ class TblDebtorSelection extends Element
     /**
      * @param null|TblBankAccount $tblBankAccount
      */
-    public function setTblBankAccount(TblBankAccount $tblBankAccount)
+    public function setTblBankAccount(TblBankAccount $tblBankAccount = null)
     {
 
         $this->tblBankAccount = ( null === $tblBankAccount ? null : $tblBankAccount->getId() );

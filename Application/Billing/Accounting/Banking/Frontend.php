@@ -5,11 +5,20 @@ namespace SPHERE\Application\Billing\Accounting\Banking;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankAccount;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblBankReference;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
+use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtorSelection;
+use SPHERE\Application\Billing\Accounting\Basket\Basket;
+use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketVerification;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -126,13 +135,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking', new ChevronLeft()));
         $tblPerson = Person::useService()->getPersonById($Id);
 
-        $TableContent = array();
-        $tblDebtorList = Banking::useService()->getDebtorAllByPerson($tblPerson);
-        if ($tblDebtorList) {
-            array_walk($tblDebtorList, function (TblDebtor $tblDebtor) use (&$TableContent) {
-
-                $TableContent[] = $tblDebtor->getDebtorNumber();
-            });
+        $Content = '';
+        $tblDebtor = Banking::useService()->getDebtorByPerson($tblPerson);
+        if ($tblDebtor) {
+            $Content = $tblDebtor->getDebtorNumber();
         }
 
         $PersonPanel = '';
@@ -149,8 +155,8 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
                                 , 4),
                             new LayoutColumn(
-                                ( !empty( $TableContent ) ) ?
-                                    new Panel('Debitor-Nummer der Person', $TableContent
+                                ( !empty( $Content ) ) ?
+                                    new Panel('Debitor-Nummer der Person', array($Content)
                                         , Panel::PANEL_TYPE_SUCCESS)
                                     : null
                                 , 4)
@@ -170,7 +176,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
-                                ( empty( $TableContent ) ) ?
+                                ( empty( $Content ) ) ?
                                     new Well(
                                         Banking::useService()->createDebtor(
                                             $Form, $Debtor, $Id
@@ -1013,4 +1019,308 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
+
+    /**
+     * @param      $Id
+     * @param null $Data
+     *
+     * @return Stage|string
+     */
+    public function frontendPaySelection($Id, $Data = null)
+    {
+
+        $Stage = new Stage('Zuordnung', 'Bezahler');
+        $tblBasket = Basket::useService()->getBasketById($Id);
+        if (!$tblBasket) {
+            $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
+            return $Stage
+            .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+        }
+        // Abbruch beim löschen der Zuordnungen
+        $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
+        if (!$tblBasketVerification) {
+            $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Warning('Keine Daten zum fakturieren vorhanden.'));
+            return $Stage.new Redirect('Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+        }
+
+        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification', new ChevronLeft()
+            , array('Id' => $tblBasket->getId())));
+        $Global = $this->getGlobal();
+
+        $TableContent = array();
+
+        $tblBasketVerificationList = Basket::useService()->getBasketVerificationByBasket($tblBasket);
+        if ($tblBasketVerificationList) {
+            array_walk($tblBasketVerificationList, function (TblBasketVerification $tblBasketVerification) use (&$TableContent, &$Global, &$Data) {
+
+                $tblPerson = $tblBasketVerification->getServicePeoplePerson();
+                $tblItem = $tblBasketVerification->getServiceInventoryItem();
+
+                if (!Banking::useService()->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem)) {
+                    $Item['Person'] = $tblBasketVerification->getServicePeoplePerson()->getFullName();
+                    $Item['SiblingRank'] = '';
+                    $Item['SchoolType'] = '';
+                    $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                    if ($tblStudent) {
+                        if (( $tblBilling = $tblStudent->getTblStudentBilling() )) {
+                            if (( $tblSiblingRank = $tblBilling->getServiceTblSiblingRank() )) {
+                                $Item['SiblingRank'] = $tblSiblingRank->getName();
+                            }
+                        }
+
+                        $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
+                        if ($tblTransferType) {
+                            $tblStudentTransfer = Student::useService()->getStudentTransferByType($tblStudent,
+                                $tblTransferType);
+                            if ($tblStudentTransfer) {
+                                $tblType = $tblStudentTransfer->getServiceTblType();
+                                if ($tblType) {
+                                    $Item['SchoolType'] = $tblType->getName();
+                                }
+                            }
+                        }
+                    }
+
+                    $PaymentPerson = array();
+                    $tblRelationShipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+                    if ($tblRelationShipList) {
+                        array_walk($tblRelationShipList, function (TblToPerson $tblRelationShip) use (&$PaymentPerson) {
+
+                            $tblPerson = $tblRelationShip->getServiceTblPersonFrom();
+                            if ($tblPerson) {
+                                $tblBankAccount = Banking::useService()->getBankAccountByPerson($tblPerson);
+                                $tblBankReference = Banking::useService()->getBankReferenceByPerson($tblPerson);
+
+                                if (!empty( $tblBankAccount ) || !empty( $tblBankReference )) {
+                                    $PaymentPerson[] = $tblPerson;
+                                }
+                            }
+                        });
+                    }
+                    $tblDebtor = Banking::useService()->getDebtorByPerson($tblPerson);
+                    $tblBankAccount = Banking::useService()->getBankAccountByPerson($tblPerson);
+                    $tblBankReference = Banking::useService()->getBankReferenceByPerson($tblPerson);
+                    if (!empty( $tblDebtor ) || !empty( $tblBankAccount ) || !empty( $tblBankReference )) {
+                        $PaymentPerson[] = $tblPerson;
+                    }
+
+                    $Item['Item'] = $tblItem->getName();
+                    $Item['Value'] = $tblBasketVerification->getSummaryPrice();
+                    $Item['ItemType'] = $tblItem->getTblItemType()->getName();
+                    if (!empty( $PaymentPerson )) {
+                        $Item['SelectPayers'] = new SelectBox('Data['.$tblBasketVerification->getId().'][PersonPayers]', '', array(
+                            '{{ FullName }}'
+//                    .' - {{ ServiceBillingDebtor.ServicePeoplePerson.FullName }}'
+//                    .'{% if( ServiceBillingDebtor.Description is not empty) %} - {{ ServiceBillingDebtor.Description }}{% endif %}'
+                            => $PaymentPerson
+                        ));
+                    } else {
+                        $Item['SelectPayers'] = new Warning('Bezahler anlegen!');
+                    }
+
+                    if (!isset( $Data )) {
+                        $Global->POST['Data'][$tblBasketVerification->getId()]['Payment'] = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift')->getId();
+                    }
+                    $tblPaymentType = Balance::useService()->getPaymentTypeAll();
+                    $Item['SelectPayType'] = new SelectBox('Data['.$tblBasketVerification->getId().'][Payment]', '', array(
+                        '{{ Name }}'
+                        => $tblPaymentType
+                    ));
+                    if ($Data !== null) {
+                        $Data[$tblBasketVerification->getId()]['Person'] = $tblPerson->getId();
+                        $Data[$tblBasketVerification->getId()]['Item'] = $tblBasketVerification->getServiceInventoryItem()->getId();
+                    }
+                    array_push($TableContent, $Item);
+                }
+
+            });
+        }
+
+        $Global->savePost();
+
+        $Form = new Form(
+            new FormGroup(
+                new FormRow(
+                    new FormColumn(
+                        new TableData(
+                            $TableContent, null, array(
+                            'Person'        => 'Person',
+                            'SiblingRank'   => 'Geschwister',
+                            'SchoolType'    => 'Schulart',
+                            'Item'          => 'Artikel',
+                            'Value'         => 'Gesamtpreis',
+                            'ItemType'      => 'Typ',
+                            'SelectPayers'  => 'Bezahler',
+                            'SelectPayType' => 'Typ'
+                        ), false) // array("bPaginate" => false)
+                    )
+                )
+            )
+        );
+        $Form->appendFormButton(new Primary('Speichern', new Save()));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ( !empty( $TableContent ) ?
+                                Banking::useService()->createDebtorSelection(
+                                    $Form, $tblBasket, $Data
+                                ) : new Success('Warenbezogene Bezahler sind bekannt.')
+                                .new Redirect('/Billing/Accounting/Pay/Choose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId())) )
+                        )
+                    )
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param      $Id
+     * @param null $Data
+     *
+     * @return Stage|string
+     */
+    public function frontendPayChoose($Id, $Data = null)
+    {
+
+        $Stage = new Stage('Zuordnung', 'Bezahler');
+        $tblBasket = Basket::useService()->getBasketById($Id);
+        if (!$tblBasket) {
+            $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
+            return $Stage
+            .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+        }
+        // Abbruch beim löschen der Zuordnungen
+        $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
+        if (!$tblBasketVerification) {
+            $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Warning('Keine Daten zum fakturieren vorhanden.'));
+            return $Stage.new Redirect('Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+        }
+
+        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification', new ChevronLeft()
+            , array('Id' => $tblBasket->getId())));
+        $Global = $this->getGlobal();
+
+        $TableContent = array();
+        $tblDebtorSelectionList = array();
+        $tblBasketVerificationList = Basket::useService()->getBasketVerificationByBasket($tblBasket);
+        if ($tblBasketVerificationList) {
+            foreach ($tblBasketVerificationList as $tblBasketVerification) {
+                $tblPerson = $tblBasketVerification->getServicePeoplePerson();
+                $tblItem = $tblBasketVerification->getServiceInventoryItem();
+                $tblDebtorSelectionList[] = Banking::useService()->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem);
+            }
+        }
+
+        if (!empty( $tblDebtorSelectionList )) {
+            array_walk($tblDebtorSelectionList, function (TblDebtorSelection $tblDebtorSelection) use (&$TableContent, &$Global, &$Data) {
+
+                $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
+                if ($tblPaymentType->getId() === $tblDebtorSelection->getServicePaymentType()->getId()) {
+                    if (Banking::useService()->checkDebtorSelectionDebtor($tblDebtorSelection)) {
+                        $tblPerson = $tblDebtorSelection->getServicePeoplePerson();
+                        $tblPersonPayers = $tblDebtorSelection->getServicePeoplePersonPayers();
+                        $tblItem = $tblDebtorSelection->getServiceInventoryItem();
+                        $Item['Person'] = $tblPerson->getFullName();
+                        $Item['PersonPayers'] = $tblPersonPayers->getFullName();
+                        $Item['Item'] = $tblItem->getName();
+
+                        $Payment = array();
+//                    $Payment[] = new RadioBox('test','','inhalt');
+                        $tblBankAccountList = Banking::useService()->getBankAccountByPerson($tblPersonPayers);
+                        if ($tblBankAccountList) {
+                            foreach ($tblBankAccountList as $tblBankAccount) {
+                                $Payment[] = 'Bank: '.new RadioBox('Data['.$tblDebtorSelection->getId().'][SelectBox]',
+                                        $tblBankAccount->getOwner().' - '.$tblBankAccount->getBankName(), 'Ban'.$tblBankAccount->getId());
+                            }
+                        }
+                        $tblBankReferenceList = Banking::useService()->getBankReferenceByPerson($tblPersonPayers);
+                        if ($tblBankReferenceList) {
+                            foreach ($tblBankReferenceList as $tblBankReference) {
+                                $Payment[] = 'Referenz: '.new RadioBox('Data['.$tblDebtorSelection->getId().'][SelectBox]',
+                                        $tblBankReference->getReference(), 'Ref'.$tblBankReference->getId());
+                            }
+                        }
+                        $Debtor = array();
+                        if (Banking::useService()->getDebtorByPerson($tblPerson)) {
+                            $Debtor[] = Banking::useService()->getDebtorByPerson($tblPerson);
+                        }
+                        if (Banking::useService()->getDebtorByPerson($tblPersonPayers)) {
+                            $Debtor[] = Banking::useService()->getDebtorByPerson($tblPersonPayers);
+                        }
+
+                        if (!empty( $Debtor )) {
+//                        $Debtor[] = new TblDebtor();
+                            $Item['SelectDebtor'] = new SelectBox('Data['.$tblDebtorSelection->getId().'][Debtor]', '',
+                                array(
+                                    '{{ DebtorNumber }}'
+//                                .' - {{ ServicePeoplePerson.FullName }}'
+//                        .'{% if( ServiceBillingDebtor.Description is not empty) %} - {{ ServiceBillingDebtor.Description }}{% endif %}'
+                                    => $Debtor)
+                            );
+                        } else {
+                            $Item['SelectDebtor'] = new \SPHERE\Common\Frontend\Text\Repository\Danger('Debitor benötigt!');
+                        }
+                        if (!empty( $Payment )) {
+                            $Item['SelectBox'] = new Panel('Zahlung:', $Payment);
+                        } else {
+                            $Item['SelectBox'] = new Warning('keine Kontoinformationen');
+                        }
+
+                        if ($Data !== null) {
+                            $Data[$tblDebtorSelection->getId()]['Person'] = $tblPerson->getId();
+                            $Data[$tblDebtorSelection->getId()]['Item'] = $tblItem->getId();
+                        }
+                        array_push($TableContent, $Item);
+                    }
+                }
+            });
+        }
+
+        $Global->savePost();
+
+        $Form = new Form(
+            new FormGroup(
+                new FormRow(
+                    new FormColumn(
+                        new TableData(
+                            $TableContent, null, array(
+                            'Person'       => 'Person',
+                            'PersonPayers' => 'Bezahler',
+                            'Item'         => 'Artikel',
+                            'SelectDebtor' => 'Debitor',
+                            'SelectBox'    => 'Zahlungsinformation',
+//                            'SelectPayType' => 'Typ'
+                        ), false) // array("bPaginate" => false)
+                    )
+                )
+            )
+        );
+        $Form->appendFormButton(new Primary('Speichern', new Save()));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ( !empty( $TableContent ) ?
+                                Banking::useService()->changeDebtorSelection(
+                                    $Form, $tblBasket, $Data)
+                                : new Success('Debitoren der Bezahler sind bekannt.')
+                                .new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId())) )
+                        )
+                    )
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
 }
