@@ -509,18 +509,19 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblListObjectList->Name = '';
                                 $tblListObjectList->Groups = '';
                             }
-                        } else {
-                            $tblListObjectList->Name = '';
-                            $tblListObjectList->Groups = '';
-                        }
 
-                        $tblListObjectList->Option =
-                            (new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
-                                '/Reporting/CheckList/Object/Remove',
-                                new Minus(), array(
-                                    'Id' => $tblListObjectList->getId()
-                                )))->__toString();
+                            $tblListObjectList->Option =
+                                (new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
+                                    '/Reporting/CheckList/Object/Remove',
+                                    new Minus(), array(
+                                        'Id' => $tblListObjectList->getId()
+                                    )))->__toString();
+                        } else {
+                           $tblListObjectList = false;
+                        }
                     }
+
+                    $tblListObjectListByList = array_filter($tblListObjectListByList);
                 }
 
                 $tblObjectTypeAll = CheckList::useService()->getObjectTypeAll();
