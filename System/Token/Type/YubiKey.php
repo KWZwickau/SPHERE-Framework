@@ -1,6 +1,9 @@
 <?php
 namespace SPHERE\System\Token\Type;
 
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
+use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Proxy\Proxy;
 use SPHERE\System\Proxy\Type\Http;
 use SPHERE\System\Token\ITypeInterface;
@@ -29,12 +32,16 @@ class YubiKey implements ITypeInterface
 
     /** @var array $YubiApiEndpoint */
     private $YubiApiEndpoint = array(
-        '23.253.41.154/wsapi/2.0/verify',
-        'api2.yubico.com/wsapi/2.0/verify',
-        'api3.yubico.com/wsapi/2.0/verify',
-        'api4.yubico.com/wsapi/2.0/verify',
-        'api5.yubico.com/wsapi/2.0/verify'
+        'api1.yubico.com',
+        'api2.yubico.com',
+        'api3.yubico.com',
+        'api4.yubico.com',
+        'api5.yubico.com'
     );
+
+    /** @var string $YubiApiLocation */
+    private $YubiApiLocation = '/wsapi/2.0/verify';
+
 
     /**
      * @param string $Value
@@ -44,6 +51,8 @@ class YubiKey implements ITypeInterface
      */
     final public function parseKey($Value)
     {
+
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api Parse' );
 
         if (!preg_match("/^((.*)".$this->KeyDelimiter.")?".
             "(([cbdefghijklnrtuvCBDEFGHIJKLNRTUV]{0,16})".
@@ -66,12 +75,17 @@ class YubiKey implements ITypeInterface
     final public function verifyKey(KeyValue $Key)
     {
 
+        (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api Verify' );
+
         $Parameter = $this->createParameter($Key);
         $Query = $this->createSignature($Parameter);
 
         $QueryList = array();
         foreach ((array)$this->YubiApiEndpoint as $YubiApiEndpoint) {
-            $QueryList[] = 'http://'.$YubiApiEndpoint."?".$Query;
+
+            if (($YubiApiAddress = $this->getHostIpAddress($YubiApiEndpoint))) {
+                $QueryList[] = 'http://'.$YubiApiAddress.$this->YubiApiLocation."?".$Query;
+            }
         }
 
         $Proxy = (new Proxy(new Http()))->getProxy();
@@ -137,10 +151,13 @@ class YubiKey implements ITypeInterface
         $Decision = array_sum($Decision) / ( count($Decision) > 0 ? count($Decision) : 1 );
 
         if ($Decision > 0.5) {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api Verification: '.$Decision.' OK' );
             return true;
         } elseif ($Decision == 0) {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api Verification: '.$Decision.' Failed' );
             throw new ReplayedOTPException();
         } else {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api Verification: '.$Decision.' Failed' );
             return false;
         }
     }
@@ -190,6 +207,34 @@ class YubiKey implements ITypeInterface
             $Parameter .= '&h='.$Signature;
         }
         return $Parameter;
+    }
+
+    /**
+     * @param string $Host e.g. "localhost"
+     *
+     * @return false|string Host is offline (false) or IP-Address of Host e.g. "127.0.0.1"
+     */
+    private function getHostIpAddress($Host)
+    {
+
+        $Address = gethostbyname( $Host );
+
+        if( $Address == $Host ) {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api Offline! (DNS: '.$Host.')' );
+            return false;
+        }
+
+        $ErrorNumber = null;
+        $ErrorMessage = null;
+
+        $Handler = fsockopen($Host, 80, $ErrorNumber, $ErrorMessage, 10);
+        if (!$Handler) {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api offline! '.$ErrorMessage );
+            return false;
+        } else {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog( 'YubiKey-Api Online '.$Host.' > '.$Address );
+            return (string)$Address;
+        }
     }
 
     /**
