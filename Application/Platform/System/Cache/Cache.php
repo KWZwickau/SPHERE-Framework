@@ -16,6 +16,7 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Cache\Handler\APCuHandler;
+use SPHERE\System\Cache\Handler\CookieHandler;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Cache\Handler\OpCacheHandler;
@@ -82,6 +83,7 @@ class Cache extends Extension implements IModuleInterface
             $this->getRequest()->getPathBase().'/UnitTest/Console/phpMemcachedAdmin-1.2.2'));
 
         if ($Clear) {
+            $this->getCache(new CookieHandler())->clearCache();
             $this->getCache(new MemcachedHandler(), 'Memcached')->clearCache();
             $this->getCache(new APCuHandler())->clearCache();
             $this->getCache(new MemoryHandler())->clearCache();
@@ -91,6 +93,11 @@ class Cache extends Extension implements IModuleInterface
         }
         $Stage->setContent(
             new Layout(array(
+                new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(new Status(
+                        $this->getCache(new CookieHandler())->getStatus()
+                    ))
+                ), new Title('Cookie')),
                 new LayoutGroup(new LayoutRow(
                     new LayoutColumn(new Status(
                         $this->getCache(new MemcachedHandler(), 'Memcached')->getStatus()
