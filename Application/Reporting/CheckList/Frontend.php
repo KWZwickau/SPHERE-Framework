@@ -448,7 +448,7 @@ class Frontend extends Extension implements IFrontendInterface
                         if (($tblObject = $tblListObjectList->getServiceTblObject())) {
                             if ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSON') {
                                 /** @var TblPerson $tblObject */
-                                $tblListObjectList->DisplayName = $tblObject->getLastName() . ', ' . $tblObject->getFirstName();
+                                $tblListObjectList->DisplayName = $tblObject->getLastFirstName();
 
                                 // display groups
                                 $groups = array();
@@ -509,18 +509,19 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblListObjectList->Name = '';
                                 $tblListObjectList->Groups = '';
                             }
-                        } else {
-                            $tblListObjectList->Name = '';
-                            $tblListObjectList->Groups = '';
-                        }
 
-                        $tblListObjectList->Option =
-                            (new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
-                                '/Reporting/CheckList/Object/Remove',
-                                new Minus(), array(
-                                    'Id' => $tblListObjectList->getId()
-                                )))->__toString();
+                            $tblListObjectList->Option =
+                                (new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen',
+                                    '/Reporting/CheckList/Object/Remove',
+                                    new Minus(), array(
+                                        'Id' => $tblListObjectList->getId()
+                                    )))->__toString();
+                        } else {
+                           $tblListObjectList = false;
+                        }
                     }
+
+                    $tblListObjectListByList = array_filter($tblListObjectListByList);
                 }
 
                 $tblObjectTypeAll = CheckList::useService()->getObjectTypeAll();
@@ -552,7 +553,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                             if ($tblPersonAll) {
                                 foreach ($tblPersonAll as $tblPerson) {
-                                    $tblPerson->DisplayName = $tblPerson->getLastName() . ', ' . $tblPerson->getFirstName();
+                                    $tblPerson->DisplayName = $tblPerson->getLastFirstName();
 
                                     // display groups
                                     $groups = array();
@@ -1260,7 +1261,7 @@ class Frontend extends Extension implements IFrontendInterface
                         foreach ($objects as $objectId => $value) {
                             if ($tblObjectType->getIdentifier() === 'PERSON') {
                                 $tblPerson = Person::useService()->getPersonById($objectId);
-                                $list[$count]['Name'] = $tblPerson->getLastName() . ', ' . $tblPerson->getFirstName()
+                                $list[$count]['Name'] = $tblPerson->getLastFirstName()
                                     . new PullRight(new Standard('', '/People/Person',
                                         new \SPHERE\Common\Frontend\Icon\Repository\Person(),
                                         array('Id' => $tblPerson->getId()), 'Zur Person'));

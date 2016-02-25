@@ -149,15 +149,15 @@ class Service
                 }
 
                 $tblPerson->FatherName = $father !== null ? ( $tblPerson->getLastName() == $father->getLastName()
-                    ? $father->getFirstName() : $father->getFirstName().' '.$father->getLastName() ) : '';
+                    ? $father->getFirstSecondName() : $father->getFirstSecondName().' '.$father->getLastName() ) : '';
                 $tblPerson->MotherName = $mother !== null ? ( $tblPerson->getLastName() == $mother->getLastName()
-                    ? $mother->getFirstName() : $mother->getFirstName().' '.$mother->getLastName() ) : '';
-                $tblPerson->DisplayName = $tblPerson->getLastName().', '.$tblPerson->getFirstName()
+                    ? $mother->getFirstSecondName() : $mother->getFirstSecondName().' '.$mother->getLastName() ) : '';
+                $tblPerson->DisplayName = $tblPerson->getLastFirstName()
                     .( $father !== null || $mother !== null ? '<br>('.( $mother !== null ? $tblPerson->MotherName
                             .( $father !== null ? ', ' : '' ) : '' )
                         .( $father !== null ? $tblPerson->FatherName : '' ).')' : '' );
 
-                $tblPerson->ExcelNameRow1 = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
+                $tblPerson->ExcelNameRow1 = $tblPerson->getLastFirstName();
                 if ($father !== null || $mother !== null) {
                     $tblPerson->ExcelNameRow2 = '('.( $mother !== null ? $tblPerson->MotherName
                             .( $father !== null ? ', ' : '' ) : '' )
