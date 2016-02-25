@@ -507,11 +507,15 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblRelationshipAll, function (TblToPerson &$tblToPerson) use ($tblPerson) {
 
                 if ($tblToPerson->getServiceTblPersonFrom() && $tblToPerson->getServiceTblPersonTo()) {
+                    if ($tblToPerson->getTblType()->isBidirectional()){
+                        $sign = ' ' . new ChevronLeft() . new ChevronRight() . ' ';
+                    } else {
+                        $sign = ' ' . new ChevronRight() . ' ';
+                    }
                     $Panel = array(
-                        $tblPerson->getLastFirstName() . ' ' .
                         ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
-                            ? new ChevronRight() . ' ' . $tblToPerson->getServiceTblPersonTo()->getLastFirstName()
-                            : new ChevronLeft() . ' ' . $tblToPerson->getServiceTblPersonFrom()->getLastFirstName()
+                            ? $tblPerson->getLastFirstName() . $sign . $tblToPerson->getServiceTblPersonTo()->getLastFirstName()
+                            : $tblToPerson->getServiceTblPersonFrom()->getLastFirstName() . $sign . $tblPerson->getLastFirstName()
                         )
                     );
                     if ($tblToPerson->getRemark()) {
@@ -523,8 +527,9 @@ class Frontend extends Extension implements IFrontendInterface
                             new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName(),
                             $Panel,
                             ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
-                                ? Panel::PANEL_TYPE_SUCCESS
-                                : Panel::PANEL_TYPE_DEFAULT
+                                || $tblToPerson->getTblType()->isBidirectional()
+                                    ? Panel::PANEL_TYPE_SUCCESS
+                                    : Panel::PANEL_TYPE_DEFAULT
                             ),
                             ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
                                 ? new Standard(

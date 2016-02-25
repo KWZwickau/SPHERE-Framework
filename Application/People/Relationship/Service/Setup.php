@@ -78,6 +78,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblType', 'IsLocked')) {
             $Table->addColumn('IsLocked', 'boolean');
         }
+        if (!$this->getConnection()->hasColumn('tblType', 'IsBidirectional')) {
+            $Table->addColumn('IsBidirectional', 'boolean', array('notnull' => false));
+        }
         $this->getConnection()->addForeignKey($Table, $tblGroup, true);
         return $Table;
     }
