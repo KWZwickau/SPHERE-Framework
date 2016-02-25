@@ -13,69 +13,22 @@ class History
     private $StepStack = array();
 
     /**
-     * @param Step $Step
-     *
-     * @return bool
-     */
-    public function cleanStep(Step $Step)
-    {
-
-        // Clean only if Step is a GoBack Step
-        if ($Step->isGoBack()) {
-            $this->removeStep($Step);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Remove Step if is last History-Step
-     *
-     * @param Step $Step
-     *
-     * @return bool
-     */
-    public function removeStep(Step $Step)
-    {
-
-        $Last = $this->getLastStep();
-        if ($Last && $Last->getRoute() == $Step->getRoute()) {
-            array_pop($this->StepStack);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Get last History-Step
-     *
-     * @return false|Step
-     */
-    public function getLastStep()
-    {
-
-        if (!empty( $this->StepStack )) {
-            return end($this->StepStack);
-        }
-        return false;
-    }
-
-    /**
      * Get current Back-Step
      *
      * @return false|Step
      */
-    public function getBackStep()
+    public function getStep()
     {
 
         if (!empty( $this->StepStack )) {
-            if( ($Count = count($this->StepStack)) == 1 ) {
+            if (( $Count = count($this->StepStack) ) == 1) {
+                return false;
                 return current($this->StepStack);
             } else {
-                return $this->StepStack[$Count-2];
+                return $this->StepStack[$Count - 2];
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -83,14 +36,14 @@ class History
      *
      * @param Step $Step
      *
-     * @return bool
+     * @return bool|null true - added, false - removed, null - not handled
      */
-    public function addStep(Step $Step)
+    public function setStep(Step $Step)
     {
 
+        $Last = $this->getLastStep();
         // Is not a GoBack Step
         if (!$Step->isGoBack()) {
-            $Last = $this->getLastStep();
             // Stack is empty
             if (!$Last && $Step->isValid()) {
                 // Make Step > GoBack & Add to Stack
@@ -105,8 +58,48 @@ class History
                 array_push($this->StepStack, $Step);
                 return true;
             }
+        } else {
+            if (
+                ( $Last->getPath() != $Step->getPath() )
+                || ( $Last->getCleanData() != $Step->getCleanData() )
+            ) {
+                $this->removeStep($Last);
+                return false;
+            }
         }
-        // Step not added
+        // Step not handled
+        return null;
+    }
+
+    /**
+     * Get last History-Step
+     *
+     * @return false|Step
+     */
+    private function getLastStep()
+    {
+
+        if (!empty( $this->StepStack )) {
+            return end($this->StepStack);
+        }
+        return false;
+    }
+
+    /**
+     * Remove Step if is last History-Step
+     *
+     * @param Step $Step
+     *
+     * @return bool
+     */
+    private function removeStep(Step $Step)
+    {
+
+        $Last = $this->getLastStep();
+        if ($Last && $Last->getRoute() == $Step->getRoute()) {
+            array_pop($this->StepStack);
+            return true;
+        }
         return false;
     }
 }

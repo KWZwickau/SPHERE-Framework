@@ -92,6 +92,18 @@ class Step extends Extension
     }
 
     /**
+     * @return array
+     */
+    public function getCleanData()
+    {
+
+        $Data = $this->Data;
+        unset( $Data['_Sign'] );
+        unset( $Data['_goBack'] );
+        return $Data;
+    }
+
+    /**
      * Mark as goBack Route
      */
     public function setGoBack()

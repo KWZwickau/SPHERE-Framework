@@ -27,15 +27,14 @@ class Backward extends Standard
         $History = $Session->loadHistory();
         $Step = new Step($this->getRequest()->getUrl());
 
-        $History->cleanStep($Step);
         if (!$IgnoreStep) {
-            $History->addStep($Step);
+            $History->setStep($Step);
+            $Session->saveHistory($History);
         }
-        $this->BackStep = $History->getBackStep();
-        $Session->saveHistory($History);
 
         $this->getDebugger()->screenDump( $History );
 
+        $this->BackStep = $History->getStep();
 
         if ($this->BackStep) {
             parent::__construct('Zurück', $this->BackStep->getPath(), new ChevronLeft(),
