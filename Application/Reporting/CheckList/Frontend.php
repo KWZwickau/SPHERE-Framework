@@ -100,7 +100,7 @@ class Frontend extends Extension implements IFrontendInterface
                     (new Standard('',
                         '/Reporting/CheckList/Edit', new Edit(),
                         array('Id' => $tblList->getId()), 'Liste bearbeiten'))
-                    .(new Standard('',
+                    . (new Standard('',
                         '/Reporting/CheckList/Destroy', new Remove(),
                         array('Id' => $tblList->getId()), 'Liste löschen'))
                     . (new Standard('(' . CheckList::useService()->countListElementListByList($tblList) . ')',
@@ -157,8 +157,7 @@ class Frontend extends Extension implements IFrontendInterface
             new Standard('Zur&uuml;ck', '/Reporting/CheckList', new ChevronLeft())
         );
 
-        if ($Id == null)
-        {
+        if ($Id == null) {
             return $Stage . new Danger(new Ban() . ' Daten nicht abrufbar.')
             . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
         }
@@ -240,7 +239,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft())
             );
             $tblList = CheckList::useService()->getListById($Id);
-            if (!$tblList){
+            if (!$tblList) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
@@ -517,7 +516,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         'Id' => $tblListObjectList->getId()
                                     )))->__toString();
                         } else {
-                           $tblListObjectList = false;
+                            $tblListObjectList = false;
                         }
                     }
 
@@ -891,154 +890,175 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblList && $tblObjectType && $ObjectId !== null) {
             if ($tblObjectType->getIdentifier() === 'PERSON') {
                 $tblPerson = Person::useService()->getPersonById($ObjectId);
-                if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblPerson)) {
-                    return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
-                        ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                    . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
-                        array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
-                } else {
-                    return $Stage . new Danger(new Ban() .
-                        ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
-                    . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
-                        array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
-                }
-            } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
-                $tblCompany = Company::useService()->getCompanyById($ObjectId);
-                if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblCompany)) {
-                    return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
-                        ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                    . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
-                        array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
-                } else {
-                    return $Stage . new Danger(new Ban() .
-                        ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
-                    . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
-                        array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
-                }
-            } elseif ($tblObjectType->getIdentifier() === 'PERSONGROUP') {
-                $tblPersonGroup = PersonGroup::useService()->getGroupById($ObjectId);
-
-                if (isset($Option[$tblPersonGroup->getId()])) {
-
-                    if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblPersonGroup)) {
+                if ($tblPerson) {
+                    if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblPerson)) {
                         return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
                             ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
                         . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
                             array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
-                    } else {
-                        return $Stage . new Danger(new Ban() .
-                            ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
-                        . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
+                    }
+                }
+                return $Stage . new Danger(new Ban() .
+                    ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
+                . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
+                    array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+            } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
+                $tblCompany = Company::useService()->getCompanyById($ObjectId);
+                if ($tblCompany) {
+                    if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblCompany)) {
+                        return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
+                            ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
+                        . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
                             array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                     }
+                }
+                return $Stage . new Danger(new Ban() .
+                    ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
+                . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
+                    array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+            } elseif ($tblObjectType->getIdentifier() === 'PERSONGROUP') {
+                $tblPersonGroup = PersonGroup::useService()->getGroupById($ObjectId);
+                if ($tblPersonGroup) {
+                    if (isset($Option[$tblPersonGroup->getId()])) {
 
-                } else {
-                    $tblPersonAllByGroup = PersonGroup::useService()->getPersonAllByGroup($tblPersonGroup);
-                    $countAdd = 0;
-                    $countExists = 0;
-                    if ($tblPersonAllByGroup) {
-                        foreach ($tblPersonAllByGroup as $tblPerson) {
-                            if (CheckList::useService()->getListObjectListByListAndObjectTypeAndObject(
-                                $tblList, CheckList::useService()->getObjectTypeByIdentifier('PERSON'), $tblPerson)
-                            ) {
-                                $countExists++;
-                            } else {
-                                CheckList::useService()->addObjectToList($tblList,
-                                    CheckList::useService()->getObjectTypeByIdentifier('PERSON'), $tblPerson);
-                                $countAdd++;
+                        if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblPersonGroup)) {
+                            return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
+                                ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
+                            . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
+                                array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                        } else {
+                            return $Stage . new Danger(new Ban() .
+                                ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
+                            . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
+                                array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                        }
+
+                    } else {
+                        $tblPersonAllByGroup = PersonGroup::useService()->getPersonAllByGroup($tblPersonGroup);
+                        $countAdd = 0;
+                        $countExists = 0;
+                        if ($tblPersonAllByGroup) {
+                            foreach ($tblPersonAllByGroup as $tblPerson) {
+                                if (CheckList::useService()->getListObjectListByListAndObjectTypeAndObject(
+                                    $tblList, CheckList::useService()->getObjectTypeByIdentifier('PERSON'), $tblPerson)
+                                ) {
+                                    $countExists++;
+                                } else {
+                                    CheckList::useService()->addObjectToList($tblList,
+                                        CheckList::useService()->getObjectTypeByIdentifier('PERSON'), $tblPerson);
+                                    $countAdd++;
+                                }
                             }
                         }
-                    }
 
-                    return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
-                        ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                    . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . $countAdd . ' Person/en hinzugefügt.')
-                    . ($countExists > 0 ? new Warning($countExists . ' Person/en existierten bereits in der Check-Liste') : '')
-                    . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
+                        return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
+                            ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
+                        . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . $countAdd . ' Person/en hinzugefügt.')
+                        . ($countExists > 0 ? new Warning($countExists . ' Person/en existierten bereits in der Check-Liste') : '')
+                        . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
+                            array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                    }
+                } else {
+                    return $Stage . new Danger(new Ban() .
+                        ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
+                    . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
                         array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                 }
             } elseif ($tblObjectType->getIdentifier() === 'COMPANYGROUP') {
                 $tblCompanyGroup = CompanyGroup::useService()->getGroupById($ObjectId);
+                if ($tblCompanyGroup) {
+                    if (isset($Option[$tblCompanyGroup->getId()])) {
 
-                if (isset($Option[$tblCompanyGroup->getId()])) {
+                        if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblCompanyGroup)) {
+                            return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
+                                ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
+                            . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
+                                array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                        } else {
+                            return $Stage . new Danger(new Ban() .
+                                ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
+                            . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
+                                array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                        }
 
-                    if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblCompanyGroup)) {
-                        return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
-                            ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                        . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
-                            array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                     } else {
-                        return $Stage . new Danger(new Ban() .
-                            ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
-                        . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
-                            array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
-                    }
-
-                } else {
-                    $tblCompanyByGroup = CompanyGroup::useService()->getCompanyAllByGroup($tblCompanyGroup);
-                    $countAdd = 0;
-                    $countExists = 0;
-                    if ($tblCompanyByGroup) {
-                        foreach ($tblCompanyByGroup as $tblCompany) {
-                            if (CheckList::useService()->getListObjectListByListAndObjectTypeAndObject(
-                                $tblList, CheckList::useService()->getObjectTypeByIdentifier('COMPANY'), $tblCompany)
-                            ) {
-                                $countExists++;
-                            } else {
-                                CheckList::useService()->addObjectToList($tblList,
-                                    CheckList::useService()->getObjectTypeByIdentifier('COMPANY'), $tblCompany);
-                                $countAdd++;
+                        $tblCompanyByGroup = CompanyGroup::useService()->getCompanyAllByGroup($tblCompanyGroup);
+                        $countAdd = 0;
+                        $countExists = 0;
+                        if ($tblCompanyByGroup) {
+                            foreach ($tblCompanyByGroup as $tblCompany) {
+                                if (CheckList::useService()->getListObjectListByListAndObjectTypeAndObject(
+                                    $tblList, CheckList::useService()->getObjectTypeByIdentifier('COMPANY'),
+                                    $tblCompany)
+                                ) {
+                                    $countExists++;
+                                } else {
+                                    CheckList::useService()->addObjectToList($tblList,
+                                        CheckList::useService()->getObjectTypeByIdentifier('COMPANY'), $tblCompany);
+                                    $countAdd++;
+                                }
                             }
                         }
-                    }
 
-                    return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
-                        ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                    . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . $countAdd . ' Firma/en hinzugefügt.')
-                    . ($countExists > 0 ? new Warning($countExists . ' Firma/en existierten bereits in der Check-Liste') : '')
-                    . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
+                        return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
+                            ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
+                        . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . $countAdd . ' Firma/en hinzugefügt.')
+                        . ($countExists > 0 ? new Warning($countExists . ' Firma/en existierten bereits in der Check-Liste') : '')
+                        . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
+                            array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                    }
+                } else {
+                    return $Stage . new Danger(new Ban() .
+                        ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
+                    . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
                         array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                 }
             } elseif ($tblObjectType->getIdentifier() === 'DIVISIONGROUP') {
                 $tblDivision = Division::useService()->getDivisionById($ObjectId);
+                if ($tblDivision) {
+                    if (isset($Option[$tblDivision->getId()])) {
 
-                if (isset($Option[$tblDivision->getId()])) {
+                        if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblDivision)) {
+                            return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
+                                ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
+                            . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
+                                array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                        } else {
+                            return $Stage . new Danger(new Ban() .
+                                ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
+                            . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
+                                array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                        }
 
-                    if (CheckList::useService()->addObjectToList($tblList, $tblObjectType, $tblDivision)) {
-                        return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
-                            ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                        . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
-                            array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                     } else {
-                        return $Stage . new Danger(new Ban() .
-                            ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
-                        . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
-                            array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
-                    }
-
-                } else {
-                    $tblDivisionStudentByGroup = Division::useService()->getStudentAllByDivision($tblDivision);
-                    $countAdd = 0;
-                    $countExists = 0;
-                    if ($tblDivisionStudentByGroup) {
-                        foreach ($tblDivisionStudentByGroup as $tblPerson) {
-                            if (CheckList::useService()->getListObjectListByListAndObjectTypeAndObject(
-                                $tblList, CheckList::useService()->getObjectTypeByIdentifier('PERSON'), $tblPerson)
-                            ) {
-                                $countExists++;
-                            } else {
-                                CheckList::useService()->addObjectToList($tblList,
-                                    CheckList::useService()->getObjectTypeByIdentifier('PERSON'), $tblPerson);
-                                $countAdd++;
+                        $tblDivisionStudentByGroup = Division::useService()->getStudentAllByDivision($tblDivision);
+                        $countAdd = 0;
+                        $countExists = 0;
+                        if ($tblDivisionStudentByGroup) {
+                            foreach ($tblDivisionStudentByGroup as $tblPerson) {
+                                if (CheckList::useService()->getListObjectListByListAndObjectTypeAndObject(
+                                    $tblList, CheckList::useService()->getObjectTypeByIdentifier('PERSON'), $tblPerson)
+                                ) {
+                                    $countExists++;
+                                } else {
+                                    CheckList::useService()->addObjectToList($tblList,
+                                        CheckList::useService()->getObjectTypeByIdentifier('PERSON'), $tblPerson);
+                                    $countAdd++;
+                                }
                             }
                         }
-                    }
 
-                    return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
-                        ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
-                    . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . $countAdd . ' Person/en hinzugefügt.')
-                    . ($countExists > 0 ? new Warning($countExists . ' Person/en existierten bereits in der Check-Liste') : '')
-                    . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
+                        return $Stage . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() .
+                            ' Die ' . $tblObjectType->getName() . ' ist zur Check-Liste hinzugefügt worden.')
+                        . new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . $countAdd . ' Person/en hinzugefügt.')
+                        . ($countExists > 0 ? new Warning($countExists . ' Person/en existierten bereits in der Check-Liste') : '')
+                        . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS,
+                            array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
+                    }
+                } else {
+                    return $Stage . new Danger(new Ban() .
+                        ' Die ' . $tblObjectType->getName() . ' konnte zur Check-Liste nicht hinzugefügt werden.')
+                    . new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_ERROR,
                         array('ListId' => $tblList->getId(), 'ObjectTypeId' => $tblObjectType->getId()));
                 }
             }
@@ -1053,8 +1073,10 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendListObjectRemove($Id = null)
-    {
+    public
+    function frontendListObjectRemove(
+        $Id = null
+    ) {
 
         return CheckList::useService()->removeObjectFromList($Id);
     }
@@ -1071,7 +1093,8 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendListObjectElementEdit(
+    public
+    function frontendListObjectElementEdit(
         $Id = null,
         $Filter = null,
         $Data = null,
@@ -1459,8 +1482,10 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $filterPersonObjectList
      * @return Form
      */
-    private function formCheckListFilter($filterPersonObjectList)
-    {
+    private
+    function formCheckListFilter(
+        $filterPersonObjectList
+    ) {
 
         $yearAll = array();
         $levelAll = array();
