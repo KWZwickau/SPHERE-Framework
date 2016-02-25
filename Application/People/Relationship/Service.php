@@ -204,6 +204,11 @@ class Service extends AbstractService
             $Error = true;
         } else {
             $tblCompanyTo = Company::useService()->getCompanyById($tblCompanyTo);
+            $tblCompanyTo = Company::useService()->getCompanyById($tblCompanyTo);
+            if (!$tblCompanyTo){
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Firma')))));
+                $Error = true;
+            }
         }
 
         if (!$Error) {
@@ -311,6 +316,10 @@ class Service extends AbstractService
             $Error = true;
         } else {
             $tblCompanyTo = Company::useService()->getCompanyById($tblCompanyTo);
+            if (!$tblCompanyTo){
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Firma')))));
+                $Error = true;
+            }
         }
 
         if (!$Error) {
