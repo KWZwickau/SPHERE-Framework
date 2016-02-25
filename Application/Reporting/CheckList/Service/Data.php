@@ -298,10 +298,30 @@ class Data extends AbstractData
     public function countListObjectListByList(TblList $tblList)
     {
 
-        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListObjectList',
-            array(TblListObjectList::ATTR_TBL_LIST => $tblList->getId()));
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+//        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListObjectList',
+//            array(TblListObjectList::ATTR_TBL_LIST => $tblList->getId()));
+//
+//        return $result ? $result : 0;
 
-        return $result ? $result : 0;
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListObjectList',
+            array(
+                TblListObjectList::ATTR_TBL_LIST => $tblList->getId()
+            ));
+
+        if ($EntityList){
+            /** @var TblListObjectList $item */
+            foreach ($EntityList as &$item){
+                if (!$item->getServiceTblObject()) {
+                    $item = false;
+                }
+            }
+            $EntityList = array_filter($EntityList);
+
+            return count($EntityList);
+        } else {
+            return 0;
+        }
     }
 
     /**

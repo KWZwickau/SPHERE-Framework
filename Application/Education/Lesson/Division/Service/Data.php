@@ -1202,10 +1202,30 @@ class Data extends AbstractData
     public function countDivisionStudentAllByDivision(TblDivision $tblDivision)
     {
 
-        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionStudent',
-            array(TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()));
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+//        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionStudent',
+//            array(TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()));
+//
+//        return $result ? $result : 0;
 
-        return $result ? $result : 0;
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionStudent',
+            array(
+                TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()
+            ));
+
+        if ($EntityList){
+            /** @var TblDivisionStudent $item */
+            foreach ($EntityList as &$item){
+                if (!$item->getServiceTblPerson()) {
+                    $item = false;
+                }
+            }
+            $EntityList = array_filter($EntityList);
+
+            return count($EntityList);
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -1216,10 +1236,30 @@ class Data extends AbstractData
     public function countDivisionTeacherAllByDivision(TblDivision $tblDivision)
     {
 
-        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher',
-            array(TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()));
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+//        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher',
+//            array(TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()));
+//
+//        return $result ? $result : 0;
 
-        return $result ? $result : 0;
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher',
+            array(
+                TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()
+            ));
+
+        if ($EntityList){
+            /** @var TblDivisionTeacher $item */
+            foreach ($EntityList as &$item){
+                if (!$item->getServiceTblPerson()) {
+                    $item = false;
+                }
+            }
+            $EntityList = array_filter($EntityList);
+
+            return count($EntityList);
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -1229,11 +1269,30 @@ class Data extends AbstractData
      */
     public function countDivisionCustodyAllByDivision(TblDivision $tblDivision)
     {
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+//        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionCustody',
+//            array(TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId()));
+//
+//        return $result ? $result : 0;
 
-        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionCustody',
-            array(TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId()));
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionCustody',
+            array(
+                TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId()
+            ));
 
-        return $result ? $result : 0;
+        if ($EntityList){
+            /** @var TblDivisionCustody $item */
+            foreach ($EntityList as &$item){
+                if (!$item->getServiceTblPerson()) {
+                    $item = false;
+                }
+            }
+            $EntityList = array_filter($EntityList);
+
+            return count($EntityList);
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -1243,11 +1302,30 @@ class Data extends AbstractData
      */
     public function countDivisionSubjectAllByDivision(TblDivision $tblDivision)
     {
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+//        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionSubject',
+//            array(TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId()));
+//
+//        return $result ? $result : 0;
 
-        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionSubject',
-            array(TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()));
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionSubject',
+            array(
+                TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId()
+            ));
 
-        return $result ? $result : 0;
+        if ($EntityList){
+            /** @var TblDivisionSubject $item */
+            foreach ($EntityList as &$item){
+                if (!$item->getServiceTblSubject()) {
+                    $item = false;
+                }
+            }
+            $EntityList = array_filter($EntityList);
+
+            return count($EntityList);
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -1396,12 +1474,32 @@ class Data extends AbstractData
         TblDivisionSubject $tblDivisionSubject
     ) {
 
-        $count = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectStudent',
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+//        $count = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectStudent',
+//            array(
+//                TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()
+//            )
+//        );
+//
+//        return $count ? $count : 0;
+
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectStudent',
             array(
                 TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()
-            )
-        );
+            ));
 
-        return $count ? $count : 0;
+        if ($EntityList){
+            /** @var TblSubjectStudent $item */
+            foreach ($EntityList as &$item){
+                if (!$item->getServiceTblPerson()) {
+                    $item = false;
+                }
+            }
+            $EntityList = array_filter($EntityList);
+
+            return count($EntityList);
+        } else {
+            return 0;
+        }
     }
 }

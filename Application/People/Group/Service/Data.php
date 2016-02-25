@@ -152,9 +152,30 @@ class Data extends AbstractData
     public function countPersonAllByGroup(TblGroup $tblGroup)
     {
 
-        return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', array(
-            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
-        ));
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+//        return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', array(
+//            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+//        ));
+
+
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
+            array(
+                TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+            ));
+
+        if ($EntityList){
+            /** @var TblMember $item */
+            foreach ($EntityList as &$item){
+                if (!$item->getServiceTblPerson()) {
+                    $item = false;
+                }
+            }
+            $EntityList = array_filter($EntityList);
+
+            return count($EntityList);
+        } else {
+            return 0;
+        }
     }
 
     /**
