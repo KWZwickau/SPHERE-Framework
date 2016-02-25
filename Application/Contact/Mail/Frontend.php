@@ -71,6 +71,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Eine E-Mail Adresse zur gewählten Person hinzufügen');
 
         $tblPerson = Person::useService()->getPersonById($Id);
+        if(!$tblPerson){
+            return $Stage . new Danger('Person nicht gefunden', new Ban())
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+        }
+
         $Stage->addButton(
             new Standard('Zurück', '/People/Person', new ChevronLeft(),
                 array('Id' => $tblPerson->getId())
@@ -214,7 +219,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblToPerson = Mail::useService()->getMailToPersonById($Id);
 
         if (!$tblToPerson->getServiceTblPerson()){
-            return $Stage . new Danger('Person nicht gefunden', new Ban());
+            return $Stage . new Danger('Person nicht gefunden', new Ban())
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
         }
 
         $Stage->addButton(
@@ -482,7 +488,8 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPerson = $tblToPerson->getServiceTblPerson();
 
             if (!$tblPerson){
-                return $Stage . new Danger('Person nicht gefunden', new Ban());
+                return $Stage . new Danger('Person nicht gefunden', new Ban())
+                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
             }
 
             $Stage->addButton(
@@ -556,7 +563,8 @@ class Frontend extends Extension implements IFrontendInterface
             $tblCompany = $tblToCompany->getServiceTblCompany();
 
             if (!$tblCompany){
-                return $Stage . new Danger('Firma nicht gefunden', new Ban());
+                return $Stage . new Danger('Firma nicht gefunden', new Ban())
+                . new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR);
             }
 
             $Stage->addButton( new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),

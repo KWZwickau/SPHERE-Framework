@@ -75,6 +75,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Adresse', 'Hinzufügen');
         $Stage->setMessage('Eine Adresse zur gewählten Person hinzufügen');
+
+        if(!$tblPerson){
+            return $Stage . new Danger('Person nicht gefunden', new Ban())
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+        }
+
         $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(),
             array('Id' => $tblPerson->getId())
         ));
@@ -238,12 +244,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Adresse', 'Bearbeiten');
         $Stage->setMessage('Die Adresse der gewählten Person ändern');
-        if ($tblToPerson->getServiceTblPerson()) {
-            $Stage->addButton(
-                new Standard('Zurück', '/People/Person', new ChevronLeft(),
-                    array('Id' => $tblToPerson->getServiceTblPerson()->getId())
-                )
-            );
+
+        if(!$tblToPerson->getServiceTblPerson()){
+            return $Stage . new Danger('Person nicht gefunden', new Ban())
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
         }
 
         $Global = $this->getGlobal();
@@ -388,7 +392,8 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 );
             } else {
-                return $Stage . new Danger('Person nicht gefunden', new Ban());
+                return $Stage . new Danger('Person nicht gefunden', new Ban())
+                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
             }
 
             if (!$Confirm) {
@@ -457,7 +462,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             $tblCompany = $tblToCompany->getServiceTblCompany();
             if(!$tblCompany){
-                return $Stage . new Danger('Firma nicht gefunden', new Ban());
+                return $Stage . new Danger('Firma nicht gefunden', new Ban())
+                . new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR);
             }
 
             if (!$Confirm) {
