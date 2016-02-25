@@ -48,6 +48,9 @@ class Data extends AbstractData
         $this->createType('Sekretariat', '', $tblGroupCompany);
         $this->createType('Schulleiter', '', $tblGroupCompany);
         $this->createType('Vorstandsmitglied', '', $tblGroupCompany);
+        $this->createType('Abgeordneter', '', $tblGroupCompany);
+        $this->createType('Pfarrer', '', $tblGroupCompany);
+        $this->createType('Amtsleiter', '', $tblGroupCompany);
 
         $this->createSiblingRank('1. Geschwisterkind');
         $this->createSiblingRank('2. Geschwisterkind');
