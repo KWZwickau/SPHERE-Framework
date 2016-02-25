@@ -30,6 +30,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblCompany')->findOneBy(array(
             TblCompany::ATTR_NAME => $Name,
+            'EntityRemove' => null
         ));
         if (null === $Entity) {
             $Entity = new TblCompany();
