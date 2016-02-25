@@ -1972,7 +1972,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Klasse', 'entfernen');
         if ($tblDivision = Division::useService()->getDivisionById($Id)) {
-//            $tblDivision = Division::useService()->getDivisionById($Id);
             if (!$Confirm) {
 
                 $tblDivision = Division::useService()->getDivisionById($Id);
