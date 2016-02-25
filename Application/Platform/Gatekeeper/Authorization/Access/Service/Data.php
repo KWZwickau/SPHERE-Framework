@@ -579,10 +579,12 @@ class Data extends AbstractData
         $EntityList = $this->getCachedEntityListBy( __METHOD__,$this->getConnection()->getEntityManager(), 'TblPrivilegeRight',array(
             TblPrivilegeRight::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId()
         ));
-        array_walk($EntityList, function (TblPrivilegeRight &$V) {
+        if ($EntityList) {
+            array_walk($EntityList, function (TblPrivilegeRight &$V) {
 
-            $V = $V->getTblRight();
-        });
+                $V = $V->getTblRight();
+            });
+        }
         return ( null === $EntityList ? false : $EntityList );
     }
 
