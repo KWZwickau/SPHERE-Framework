@@ -1214,15 +1214,14 @@ class Data extends AbstractData
             ));
 
         if ($EntityList){
+            $count = 0;
             /** @var TblDivisionStudent $item */
             foreach ($EntityList as &$item){
-                if (!$item->getServiceTblPerson()) {
-                    $item = false;
+                if ($item->getServiceTblPerson()) {
+                    $count++;
                 }
             }
-            $EntityList = array_filter($EntityList);
-
-            return count($EntityList);
+            return $count;
         } else {
             return 0;
         }
@@ -1248,15 +1247,14 @@ class Data extends AbstractData
             ));
 
         if ($EntityList){
+            $count = 0;
             /** @var TblDivisionTeacher $item */
             foreach ($EntityList as &$item){
-                if (!$item->getServiceTblPerson()) {
-                    $item = false;
+                if ($item->getServiceTblPerson()) {
+                    $count++;
                 }
             }
-            $EntityList = array_filter($EntityList);
-
-            return count($EntityList);
+            return $count;
         } else {
             return 0;
         }
@@ -1281,15 +1279,14 @@ class Data extends AbstractData
             ));
 
         if ($EntityList){
+            $count = 0;
             /** @var TblDivisionCustody $item */
             foreach ($EntityList as &$item){
-                if (!$item->getServiceTblPerson()) {
-                    $item = false;
+                if ($item->getServiceTblPerson()) {
+                    $count++;
                 }
             }
-            $EntityList = array_filter($EntityList);
-
-            return count($EntityList);
+            return $count;
         } else {
             return 0;
         }
@@ -1314,15 +1311,14 @@ class Data extends AbstractData
             ));
 
         if ($EntityList){
+            $count = 0;
             /** @var TblDivisionSubject $item */
             foreach ($EntityList as &$item){
-                if (!$item->getServiceTblSubject()) {
-                    $item = false;
+                if ($item->getServiceTblSubject()) {
+                    $count++;
                 }
             }
-            $EntityList = array_filter($EntityList);
-
-            return count($EntityList);
+            return $count;
         } else {
             return 0;
         }
@@ -1489,15 +1485,14 @@ class Data extends AbstractData
             ));
 
         if ($EntityList){
+            $count = 0;
             /** @var TblSubjectStudent $item */
             foreach ($EntityList as &$item){
-                if (!$item->getServiceTblPerson()) {
-                    $item = false;
+                if ($item->getServiceTblPerson()) {
+                    $count++;
                 }
             }
-            $EntityList = array_filter($EntityList);
-
-            return count($EntityList);
+            return $count;
         } else {
             return 0;
         }

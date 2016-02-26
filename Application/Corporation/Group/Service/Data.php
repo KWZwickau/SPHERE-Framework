@@ -157,15 +157,14 @@ class Data extends AbstractData
             ));
 
         if ($EntityList){
+            $count = 0;
             /** @var TblMember $item */
             foreach ($EntityList as &$item){
-                if (!$item->getServiceTblCompany()) {
-                    $item = false;
+                if ($item->getServiceTblCompany()) {
+                    $count++;
                 }
             }
-            $EntityList = array_filter($EntityList);
-
-            return count($EntityList);
+            return $count;
         } else {
             return 0;
         }
