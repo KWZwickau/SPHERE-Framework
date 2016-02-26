@@ -28,6 +28,9 @@ class ProgressBar extends Extension implements ITemplateInterface
     /** @var float $Plan */
     private $Plan = 100.0;
 
+    /** @var int $Size */
+    private $Size = 4;
+
     /** @var string $ColorDone */
     private $ColorDone = self::BAR_COLOR_SUCCESS;
     /** @var string $ColorWork */
@@ -41,11 +44,13 @@ class ProgressBar extends Extension implements ITemplateInterface
      * @param float $Done
      * @param float $Work
      * @param float $Plan
+     * @param int $Height 4px
      */
-    public function __construct($Done, $Work, $Plan)
+    public function __construct($Done, $Work, $Plan, $Height = 4)
     {
 
         $this->setStatus($Done, $Work, $Plan);
+        $this->setSize($Height);
         $this->Template = $this->getTemplate(__DIR__.'/ProgressBar.twig');
     }
 
@@ -62,6 +67,17 @@ class ProgressBar extends Extension implements ITemplateInterface
         $this->Done = (float)$Done;
         $this->Work = (float)$Work;
         $this->Plan = (float)$Plan;
+        return $this;
+    }
+
+    /**
+     * @param $Height
+     *
+     * @return ProgressBar
+     */
+    public function setSize($Height)
+    {
+        $this->Size = (int)$Height;
         return $this;
     }
 
@@ -98,6 +114,8 @@ class ProgressBar extends Extension implements ITemplateInterface
      */
     public function getContent()
     {
+
+        $this->Template->setVariable('Size', $this->Size);
 
         $this->Template->setVariable('Done', $this->Done);
         $this->Template->setVariable('Work', $this->Work);

@@ -5,6 +5,7 @@ use MOC\V\Core\AutoLoader\AutoLoader;
 use SPHERE\Common\Main;
 use SPHERE\System\Cache\CacheFactory;
 use SPHERE\System\Cache\Handler\APCuHandler;
+use SPHERE\System\Cache\Handler\CookieHandler;
 use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Cache\Handler\MemoryHandler;
 use SPHERE\System\Cache\Handler\OpCacheHandler;
@@ -32,11 +33,13 @@ require_once(__DIR__ . '/Library/MOC-V/Core/AutoLoader/AutoLoader.php');
 AutoLoader::getNamespaceAutoLoader('MOC\V', __DIR__ . '/Library/MOC-V');
 AutoLoader::getNamespaceAutoLoader('SPHERE', __DIR__ . '/', 'SPHERE');
 AutoLoader::getNamespaceAutoLoader('Markdownify', __DIR__ . '/Library/Markdownify/2.1.6/src');
+AutoLoader::getNamespaceAutoLoader('phpFastCache', __DIR__ . '/Library/PhpFastCache/4.3.6/src');
 
 $Main = new Main();
 
 if (false) {
     $CacheConfig = (new ConfigFactory())->createReader(__DIR__ . '/System/Cache/Configuration.ini', new IniReader());
+    (new CacheFactory())->createHandler(new CookieHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new MemcachedHandler(), $CacheConfig, 'Memcached')->clearCache();
     (new CacheFactory())->createHandler(new APCuHandler(), $CacheConfig)->clearCache();
     (new CacheFactory())->createHandler(new MemoryHandler(), $CacheConfig)->clearCache();
