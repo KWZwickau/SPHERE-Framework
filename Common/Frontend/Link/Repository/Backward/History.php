@@ -41,6 +41,9 @@ class History
     public function setStep(Step $Step)
     {
 
+        // Shrink History
+        $this->shrinkHistory(3);
+
         $Last = $this->getLastStep();
         // Is not a GoBack Step
         if (!$Step->isGoBack()) {
@@ -98,6 +101,24 @@ class History
         $Last = $this->getLastStep();
         if ($Last && $Last->getRoute() == $Step->getRoute()) {
             array_pop($this->StepStack);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Remove oldest Step if History is to large
+     *
+     * @param int $ToSize 4
+     *
+     * @return bool
+     */
+    private function shrinkHistory( $ToSize = 4 )
+    {
+        var_dump( count( $this->StepStack ), $ToSize );
+
+        if( count( $this->StepStack ) > $ToSize ) {
+            array_shift( $this->StepStack );
             return true;
         }
         return false;

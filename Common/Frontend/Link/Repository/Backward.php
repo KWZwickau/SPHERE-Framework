@@ -29,8 +29,8 @@ class Backward extends Standard
 
         if (!$IgnoreStep) {
             $History->setStep($Step);
-            $Session->saveHistory($History);
         }
+        $Session->saveHistory($History);
 
         $this->getDebugger()->screenDump( $History );
 
