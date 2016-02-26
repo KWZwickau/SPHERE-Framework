@@ -15,6 +15,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -92,6 +93,7 @@ class People implements IClusterInterface
     {
 
         $Stage = new Stage('Dashboard', 'Personen');
+        $Stage->addButton( new Backward() );
 
         $Stage->setContent(Main::getDispatcher()->fetchDashboard('Personen'));
 

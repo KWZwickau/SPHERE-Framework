@@ -39,6 +39,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -70,17 +71,13 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehungen', 'Hinzufügen');
+        $Stage->addButton( new Backward(true) );
         $Stage->setMessage(
             'Eine Beziehungen zur gewählten Person hinzufügen'
             . '<br/>Beispiel: Die Person (Vater) > hat folgende Beziehung (Sorgeberechtigt), Bemerkung: Vater > zu folgender Person (Kind)'
         );
 
         $tblPerson = Person::useService()->getPersonById($Id);
-        $Stage->addButton(
-            new Standard('Zurück', '/People/Person', new ChevronLeft(),
-                array('Id' => $tblPerson->getId())
-            )
-        );
 
         $Stage->setContent(
             new Layout(array(
@@ -228,16 +225,12 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehungen', 'Hinzufügen');
+        $Stage->addButton( new Backward(true) );
         $Stage->setMessage(
             'Eine Beziehungen zur gewählten Person hinzufügen'
         );
 
         $tblPerson = Person::useService()->getPersonById($Id);
-        $Stage->addButton(
-            new Standard('Zurück', '/People/Person', new ChevronLeft(),
-                array('Id' => $tblPerson->getId())
-            )
-        );
 
         $Stage->setContent(
             new Layout(array(
@@ -387,6 +380,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehungen', 'Bearbeiten');
+        $Stage->addButton( new Backward(true) );
         $Stage->setMessage('Eine Beziehungen der gewählten Person ändern');
 
         /** @Var TblToPerson $tblToPerson */
@@ -395,12 +389,6 @@ class Frontend extends Extension implements IFrontendInterface
         if (!$tblToPerson->getServiceTblPersonFrom()){
             return $Stage . new Danger('Person nicht gefunden' , new Ban());
         }
-
-        $Stage->addButton(
-            new Standard('Zurück', '/People/Person', new ChevronLeft(),
-                array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId())
-            )
-        );
 
         $Stage->setContent(
             new Layout(array(
@@ -445,6 +433,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehungen', 'Bearbeiten');
+        $Stage->addButton( new Backward(true) );
         $Stage->setMessage('Eine Beziehungen der gewählten Person ändern');
 
         /** @Var TblToPerson $tblToPerson */
@@ -453,12 +442,6 @@ class Frontend extends Extension implements IFrontendInterface
         if (!$tblToCompany->getServiceTblPerson()){
             return $Stage . new Danger('Person nicht gefunden' , new Ban());
         }
-
-        $Stage->addButton(
-            new Standard('Zurück', '/People/Person', new ChevronLeft(),
-                array('Id' => $tblToCompany->getServiceTblPerson()->getId())
-            )
-        );
 
         $Stage->setContent(
             new Layout(array(
@@ -681,6 +664,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehung', 'Löschen');
+        $Stage->addButton( new Backward(true) );
         if ($Id) {
             $tblToPerson = Relationship::useService()->getRelationshipToPersonById($Id);
 
@@ -689,11 +673,6 @@ class Frontend extends Extension implements IFrontendInterface
                 return $Stage . new Danger('Person nicht gefunden' , new Ban());
             }
 
-            $Stage->addButton(
-                new Standard('Zurück', '/People/Person', new ChevronLeft(),
-                    array('Id' => $tblPersonFrom->getId())
-                )
-            );
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
@@ -755,6 +734,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehung', 'Löschen');
+        $Stage->addButton( new Backward(true) );
         if ($Id) {
             $tblToCompany = Relationship::useService()->getRelationshipToCompanyById($Id);
 
@@ -763,11 +743,6 @@ class Frontend extends Extension implements IFrontendInterface
                 return $Stage . new Danger('Person nicht gefunden' , new Ban());
             }
 
-            $Stage->addButton(
-                new Standard('Zurück', '/People/Person', new ChevronLeft(),
-                    array('Id' => $tblPerson->getId())
-                )
-            );
             if (!$Confirm) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(

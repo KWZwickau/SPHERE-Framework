@@ -41,6 +41,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -74,10 +75,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblPerson = Person::useService()->getPersonById($Id);
 
         $Stage = new Stage('Adresse', 'Hinzufügen');
+        $Stage->addButton( new Backward(true) );
         $Stage->setMessage('Eine Adresse zur gewählten Person hinzufügen');
-        $Stage->addButton(new Standard('Zurück', '/People/Person', new ChevronLeft(),
-            array('Id' => $tblPerson->getId())
-        ));
 
         $Stage->setContent(
             new Layout(array(
@@ -178,10 +177,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblCompany = Company::useService()->getCompanyById($Id);
 
         $Stage = new Stage('Adresse', 'Hinzufügen');
+        $Stage->addButton( new Backward(true) );
         $Stage->setMessage('Eine Adresse zur gewählten Firma hinzufügen');
-        $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
-            array('Id' => $tblCompany->getId())
-        ));
 
         $Stage->setContent(
             new Layout(array(
@@ -230,14 +227,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblToPerson = Address::useService()->getAddressToPersonById($Id);
 
         $Stage = new Stage('Adresse', 'Bearbeiten');
+        $Stage->addButton( new Backward(true) );
         $Stage->setMessage('Die Adresse der gewählten Person ändern');
-        if ($tblToPerson->getServiceTblPerson()) {
-            $Stage->addButton(
-                new Standard('Zurück', '/People/Person', new ChevronLeft(),
-                    array('Id' => $tblToPerson->getServiceTblPerson()->getId())
-                )
-            );
-        }
 
         $Global = $this->getGlobal();
         if (!isset($Global->POST['Address'])) {
@@ -302,12 +293,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblToCompany = Address::useService()->getAddressToCompanyById($Id);
 
         $Stage = new Stage('Adresse', 'Bearbeiten');
+        $Stage->addButton( new Backward(true) );
         $Stage->setMessage('Die Adresse der gewählten Firma ändern');
-        if ($tblToCompany->getServiceTblCompany()) {
-            $Stage->addButton(new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
-                array('Id' => $tblToCompany->getServiceTblCompany()->getId())
-            ));
-        }
 
         $Global = $this->getGlobal();
         if (!isset($Global->POST['Address'])) {
@@ -367,16 +354,11 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Adresse', 'Löschen');
+        $Stage->addButton( new Backward(true) );
         if ($Id) {
             $tblToPerson = Address::useService()->getAddressToPersonById($Id);
             $tblPerson = $tblToPerson->getServiceTblPerson();
-            if ($tblPerson) {
-                $Stage->addButton(
-                    new Standard('Zurück', '/People/Person', new ChevronLeft(),
-                        array('Id' => $tblPerson->getId())
-                    )
-                );
-            } else {
+            if (!$tblPerson) {
                 return $Stage . new Danger('Person nicht gefunden', new Ban());
             }
 
@@ -441,6 +423,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Adresse', 'Löschen');
+        $Stage->addButton( new Backward(true) );
         if ($Id) {
             $tblToCompany = Address::useService()->getAddressToCompanyById($Id);
 
