@@ -7,7 +7,7 @@ use SPHERE\System\Cache\CacheStatus;
  * Class CookieHandler
  * @package SPHERE\System\Cache\Handler
  */
-class CookieHandler extends AbstractFastCacheHandler
+class CookieHandler extends AbstractFastCacheAdapter
 {
     /**
      * CookieHandler constructor.

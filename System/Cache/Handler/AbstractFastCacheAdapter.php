@@ -10,7 +10,7 @@ use SPHERE\System\Config\Reader\ReaderInterface;
  * Class AbstractFastCacheHandler
  * @package SPHERE\System\Cache\Handler
  */
-abstract class AbstractFastCacheHandler extends AbstractHandler
+abstract class AbstractFastCacheAdapter extends AbstractHandler
 {
     const CACHE_TYPE_COOKIE = 'cookie';
 
