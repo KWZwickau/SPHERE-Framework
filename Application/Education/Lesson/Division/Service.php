@@ -1133,8 +1133,7 @@ class Service extends AbstractService
 
         $DivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
         $SubjectUsedCount = 0;
-        if (!$DivisionSubjectList) {
-        } else {
+        if ($DivisionSubjectList) {
             foreach ($DivisionSubjectList as $DivisionSubject) {
 
                 if (!$DivisionSubject->getTblSubjectGroup()) {
@@ -1149,7 +1148,9 @@ class Service extends AbstractService
                                 $TempList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubjectActive);
                                 if ($TempList) {
                                     foreach ($TempList as $Temp) {
-                                        array_push($TeacherGroup, $Temp->getId());
+                                        if ($Temp->getServiceTblPerson()) {
+                                            array_push($TeacherGroup, $Temp->getId());
+                                        }
                                     }
                                 }
                             }

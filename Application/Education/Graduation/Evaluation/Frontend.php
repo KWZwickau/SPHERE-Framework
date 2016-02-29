@@ -1907,7 +1907,7 @@ class Frontend extends Extension implements IFrontendInterface
         $studentList
     ) {
         $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
-            $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName();
+            $tblPerson->getLastFirstName();
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
 
@@ -1994,7 +1994,7 @@ class Frontend extends Extension implements IFrontendInterface
         $grades
     ) {
         $studentList[$tblDivision->getId()][$tblPerson->getId()]['Name'] =
-            $tblPerson->getFirstName() . ' ' . $tblPerson->getLastName();
+            $tblPerson->getLastFirstName();
         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
             $tblPerson);
 
