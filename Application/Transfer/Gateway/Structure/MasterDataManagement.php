@@ -1,16 +1,16 @@
 <?php
 namespace SPHERE\Application\Transfer\Gateway\Structure;
 
+use SPHERE\Application\Platform\Roadmap\Roadmap;
 use SPHERE\Application\Transfer\Gateway\Converter\Output;
 use SPHERE\Application\Transfer\Gateway\Fragment\Contact;
 use SPHERE\Application\Transfer\Gateway\Fragment\Corporation;
 use SPHERE\Application\Transfer\Gateway\Fragment\People;
-use SPHERE\Application\Transfer\Gateway\Item\Contact\Address;
 use SPHERE\Application\Transfer\Gateway\Item\Company;
+use SPHERE\Application\Transfer\Gateway\Item\Contact\Address;
 use SPHERE\Application\Transfer\Gateway\Item\Contact\Mail;
 use SPHERE\Application\Transfer\Gateway\Item\Contact\Phone;
 use SPHERE\Application\Transfer\Gateway\Item\Person;
-use SPHERE\Common\Roadmap\Roadmap;
 
 /**
  * Class MasterDataManagement
@@ -26,7 +26,7 @@ class MasterDataManagement extends AbstractStructure
     public function __construct()
     {
         $Roadmap = new Roadmap();
-        $this->Output = new Output( $Roadmap->getVersionNumber() );
+        $this->Output = new Output($Roadmap->getRoadmap()->getVersionRelease());
 
         $this->People = new People();
         $this->Output->addFragment($this->People);
