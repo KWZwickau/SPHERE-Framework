@@ -21,7 +21,6 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Italic;
@@ -133,29 +132,29 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                 $ColumnList = array();
                 if ($Issue->getState() == 'Behoben') {
 
-                    $Description = $this->sanitizeDescription($Issue->getDescription(),0);
+                    $Description = $this->sanitizeDescription($Issue->getDescription(), 0);
                     $Title = $this->sanitizeTitle($Issue->getTitle());
 
                     $ColumnList[] = new LayoutColumn(
                         new Panel(
 
-
                             new Small($Title), $Description,
-                            Panel::PANEL_TYPE_SUCCESS,   new Label($Issue->getId()).( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)] )
-                                                            ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]($Issue->getSubsystem())
-                                                            : $Issue->getSubsystem()
-                                                        )
-                                                        .( isset( $TypeColor[$Issue->getType()] )
-                                                            ? new $TypeColor[$Issue->getType()]($Issue->getType())
-                                                            : $Issue->getType()
-                                                        )
+                            Panel::PANEL_TYPE_SUCCESS,
+                            new Label($Issue->getId()).( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)] )
+                                ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]($Issue->getSubsystem())
+                                : $Issue->getSubsystem()
+                            )
+                            .( isset( $TypeColor[$Issue->getType()] )
+                                ? new $TypeColor[$Issue->getType()]($Issue->getType())
+                                : $Issue->getType()
+                            )
 
                         ), 3);
 
                     $ResolvedList = array_merge($ResolvedList, $ColumnList);
                 } else {
                     $SprintComplete = false;
-                    if( !$SprintCurrent ) {
+                    if (!$SprintCurrent) {
                         $SprintCurrent = $Sprint->getVersion();
                     }
 
@@ -166,7 +165,7 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                     }
 
                     $Title = $this->sanitizeTitle($Issue->getTitle());
-                    $Description = $this->sanitizeDescription($Issue->getDescription(),6);
+                    $Description = $this->sanitizeDescription($Issue->getDescription(), 6);
 
                     $ColumnList[] = new LayoutColumn(array(
                         new Panel($Title.' '.$ProgressBar,
@@ -175,7 +174,7 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                             new Layout(
                                 new LayoutGroup(
                                     new LayoutRow(array(
-                                        new LayoutColumn( array(
+                                        new LayoutColumn(array(
                                             new PullClear(
                                                 new PullLeft(
                                                     new Label($Issue->getId())
@@ -188,40 +187,29 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                                                 )
                                                 .
                                                 new PullLeft(
-                                                   ( isset( $StateColor[$Issue->getState()] )
-                                                       ? new $StateColor[$Issue->getState()]($Issue->getState())
-                                                       : $Issue->getState()
-                                                   )
-                                               ).
-                                               new PullLeft(
-                                                   ( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)] )
-                                                       ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]
-                                                       ($Issue->getSubsystem())
-                                                       : $Issue->getSubsystem()
-                                                   )
-                                               ).
-                                               new PullLeft(
-                                                   ( isset( $TypeColor[$Issue->getType()] )
-                                                       ? new $TypeColor[$Issue->getType()]($Issue->getType())
-                                                       : $Issue->getType()
-                                                   )
-                                               )
-                                            )
-                                        ),8),
-                                        new LayoutColumn(
-                                            new PullClear(
-                                                new PullRight(
-                                                    new External($Issue->getId(),
-                                                        'https://ticket.swe.haus-der-edv.de/issue/'.$Issue->getId(), null, array(),
-                                                        false
+                                                    ( isset( $StateColor[$Issue->getState()] )
+                                                        ? new $StateColor[$Issue->getState()]($Issue->getState())
+                                                        : $Issue->getState()
+                                                    )
+                                                ).
+                                                new PullLeft(
+                                                    ( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)] )
+                                                        ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]
+                                                        ($Issue->getSubsystem())
+                                                        : $Issue->getSubsystem()
+                                                    )
+                                                ).
+                                                new PullLeft(
+                                                    ( isset( $TypeColor[$Issue->getType()] )
+                                                        ? new $TypeColor[$Issue->getType()]($Issue->getType())
+                                                        : $Issue->getType()
                                                     )
                                                 )
                                             )
-                                        ,4)
+                                        ))
                                     ))
                                 )
                             )
-
 
                         )
                     ), 11);
@@ -265,7 +253,7 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                             Label::LABEL_TYPE_PRIMARY)
                     )
                 ));
-                if( !$Sprint->isDone() ) {
+                if (!$Sprint->isDone()) {
                     $SprintPercent = $this->getDatePercent($Sprint->getTimestampStart(), $Sprint->getTimestampFinish());
                     $VersionHeader .= new ProgressBar($SprintPercent, 100 - $SprintPercent, 100);
                 }
@@ -327,11 +315,11 @@ class Roadmap implements IApplicationInterface, IModuleInterface
 
     /**
      * @param string $Value
-     * @param int $MaxLineCount
+     * @param int    $MaxLineCount
      *
      * @return string
      */
-    private function sanitizeDescription($Value,$MaxLineCount = 3)
+    private function sanitizeDescription($Value, $MaxLineCount = 3)
     {
 
         $Value = explode("\n", $Value);
@@ -356,16 +344,16 @@ class Roadmap implements IApplicationInterface, IModuleInterface
         $ShortDescription = trim(implode("\n", array_slice($Value, 0, $MaxLineCount)));
         $LongDescription = trim(implode("\n", array_slice($Value, $MaxLineCount)));
 
-        if( strlen( $ShortDescription ) == 0 && $MaxLineCount > 0) {
-            return new Small(new Italic( new Muted( 'Keine Beschreibung angegeben' )) );
+        if (strlen($ShortDescription) == 0 && $MaxLineCount > 0) {
+            return new Small(new Italic(new Muted('Keine Beschreibung angegeben')));
         }
 
-        if( strlen( $LongDescription ) > 0 ) {
+        if (strlen($LongDescription) > 0) {
             return new Small(nl2br($ShortDescription))
-                .(new Accordion())->addItem(
-                    new Italic(new Small('[mehr anzeigen]')),
-                    new Small(nl2br( $LongDescription ))
-                )->getContent();
+            .(new Accordion())->addItem(
+                new Italic(new Small('[mehr anzeigen]')),
+                new Small(nl2br($LongDescription))
+            )->getContent();
         } else {
             return new Small(nl2br($ShortDescription));
         }
