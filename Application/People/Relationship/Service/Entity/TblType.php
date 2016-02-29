@@ -20,6 +20,7 @@ class TblType extends Element
     const ATTR_DESCRIPTION = 'Description';
     const ATTR_IS_LOCKED = 'IsLocked';
     const ATTR_TBL_GROUP = 'tblGroup';
+    const ATTR_IS_BIDIRECTIONAL = 'IsBidirectional';
 
     /**
      * @Column(type="string")
@@ -37,6 +38,10 @@ class TblType extends Element
      * @Column(type="bigint")
      */
     protected $tblGroup;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsBidirectional;
 
     /**
      * @return string
@@ -90,6 +95,24 @@ class TblType extends Element
     {
 
         $this->IsLocked = (bool)$IsLocked;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isBidirectional()
+    {
+
+        return (bool)$this->IsBidirectional;
+    }
+
+    /**
+     * @param bool|null $IsBidirectional
+     */
+    public function setBidirectional($IsBidirectional)
+    {
+
+        $this->IsBidirectional = $IsBidirectional === null ? null: (bool)$IsBidirectional;
     }
 
     /**

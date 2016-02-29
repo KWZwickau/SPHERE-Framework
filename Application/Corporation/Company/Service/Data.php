@@ -30,6 +30,7 @@ class Data extends AbstractData
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblCompany')->findOneBy(array(
             TblCompany::ATTR_NAME => $Name,
+            'EntityRemove' => null
         ));
         if (null === $Entity) {
             $Entity = new TblCompany();
@@ -114,6 +115,26 @@ class Data extends AbstractData
             }
         }
 
+        return false;
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     *
+     * @return bool
+     */
+    public function destroyCompany(TblCompany $tblCompany)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblCompany $Entity */
+        $Entity = $Manager->getEntityById('TblCompany', $tblCompany->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->removeEntity($Entity);
+            return true;
+        }
         return false;
     }
 }

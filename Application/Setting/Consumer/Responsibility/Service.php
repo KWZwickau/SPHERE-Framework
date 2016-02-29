@@ -74,20 +74,25 @@ class Service extends AbstractService
          * Skip to Frontend
          */
         $Global = $this->getGlobal();
-
         if (empty( $Global->POST )) {
-            return $Form;
-        }
-        if (!empty( $Global->POST ) && null === $Responsibility) {
-            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie einen Schulträger aus')))));
             return $Form;
         }
 
         $Error = false;
 
+        if (null === $Responsibility) {
+            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Schulträger aus')))));
+            $Error = true;
+        } else {
+            $tblCompany = Company::useService()->getCompanyById($Responsibility);
+            if (!$tblCompany){
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Schulträger aus')))));
+                $Error = true;
+            }
+        }
+
         if (!$Error) {
             $tblCompany = Company::useService()->getCompanyById($Responsibility);
-
             if ((new Data($this->getBinding()))->addResponsibility($tblCompany)
             ) {
                 return new Success('Der Schulträger wurde erfolgreich hinzugefügt')

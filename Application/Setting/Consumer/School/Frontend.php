@@ -18,6 +18,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
@@ -456,6 +457,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Schule', 'Löschen');
         if ($Id) {
             $tblSchool = School::useService()->getSchoolById($Id);
+            if (!$tblSchool){
+                return $Stage . new Danger('Die Schule konnte nicht gefunden werden', new Ban())
+                    . new Redirect('/Setting/Consumer/School', Redirect::TIMEOUT_ERROR);
+            }
+
             if (!$Confirm) {
 
                 $Address = array();

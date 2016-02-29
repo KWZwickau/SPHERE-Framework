@@ -9,6 +9,7 @@ use SPHERE\Application\Platform\Roadmap\Youtrack\Issue;
 use SPHERE\Application\Platform\Roadmap\Youtrack\Parser;
 use SPHERE\Application\Platform\Roadmap\Youtrack\Sprint;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\ProgressBar;
@@ -21,9 +22,9 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\External;
-use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Main;
@@ -103,7 +104,7 @@ class Roadmap implements IApplicationInterface, IModuleInterface
             'Offen'          => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger',
             'In Bearbeitung' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Warning',
             'Behoben'        => '\SPHERE\Common\Frontend\Layout\Repository\Label\Success',
-            'Zu besprechen'  => '\SPHERE\Common\Frontend\Layout\Repository\Label'
+            'Zu besprechen'  => '\SPHERE\Common\Frontend\Layout\Repository\Label\Danger'
         );
 
         $TypeColor = array(
@@ -118,6 +119,7 @@ class Roadmap implements IApplicationInterface, IModuleInterface
             '2' => '\SPHERE\Common\Frontend\Layout\Repository\Label\Info'
         );
 
+        $SprintCurrent = null;
         $LayoutColumns = array();
         /** @var Sprint $Sprint */
         foreach ((array)$Sprints as $Sprint) {
@@ -131,28 +133,31 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                 $ColumnList = array();
                 if ($Issue->getState() == 'Behoben') {
 
-                    $Description = $this->sanitizeDescription($Issue->getDescription());
+                    $Description = $this->sanitizeDescription($Issue->getDescription(),0);
                     $Title = $this->sanitizeTitle($Issue->getTitle());
 
                     $ColumnList[] = new LayoutColumn(
-                        new Panel(new Label($Issue->getId())
+                        new Panel(
 
-                            .( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)] )
-                                ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]($Issue->getSubsystem())
-                                : $Issue->getSubsystem()
-                            )
-                            .( isset( $TypeColor[$Issue->getType()] )
-                                ? new $TypeColor[$Issue->getType()]($Issue->getType())
-                                : $Issue->getType()
-                            )
 
-                            .'&nbsp;&nbsp;&nbsp;'.$Title, new Small(nl2br($Description)),
-                            Panel::PANEL_TYPE_SUCCESS
-                        ));
+                            new Small($Title), $Description,
+                            Panel::PANEL_TYPE_SUCCESS,   new Label($Issue->getId()).( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)] )
+                                                            ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]($Issue->getSubsystem())
+                                                            : $Issue->getSubsystem()
+                                                        )
+                                                        .( isset( $TypeColor[$Issue->getType()] )
+                                                            ? new $TypeColor[$Issue->getType()]($Issue->getType())
+                                                            : $Issue->getType()
+                                                        )
+
+                        ), 3);
 
                     $ResolvedList = array_merge($ResolvedList, $ColumnList);
                 } else {
                     $SprintComplete = false;
+                    if( !$SprintCurrent ) {
+                        $SprintCurrent = $Sprint->getVersion();
+                    }
 
                     if ($Issue->getState() == 'In Bearbeitung') {
                         $ProgressBar = new ProgressBar($Issue->getTimePercent(), 100 - $Issue->getTimePercent(), 100);
@@ -161,48 +166,63 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                     }
 
                     $Title = $this->sanitizeTitle($Issue->getTitle());
-                    $Description = $this->sanitizeDescription($Issue->getDescription());
+                    $Description = $this->sanitizeDescription($Issue->getDescription(),6);
 
                     $ColumnList[] = new LayoutColumn(array(
                         new Panel($Title.' '.$ProgressBar,
-                            ( strlen($Description) == 0 ? '' :
-                                new Small(nl2br($Description)) ),
-                            Panel::PANEL_TYPE_INFO, new PullClear(
-                                new PullLeft(
-                                    new Label($Issue->getId())
-                                ).
-                                new PullLeft(
-                                    ( isset( $PriorityColor[$Issue->getPriority()] )
-                                        ? new $PriorityColor[$Issue->getPriority()]($Issue->getPriority())
-                                        : $Issue->getPriority()
-                                    )
-                                ).
-                                new PullLeft(
-                                    ( isset( $StateColor[$Issue->getState()] )
-                                        ? new $StateColor[$Issue->getState()]($Issue->getState())
-                                        : $Issue->getState()
-                                    )
-                                ).
-                                new PullLeft(
-                                    ( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)] )
-                                        ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]
-                                        ($Issue->getSubsystem())
-                                        : $Issue->getSubsystem()
-                                    )
-                                ).
-                                new PullLeft(
-                                    ( isset( $TypeColor[$Issue->getType()] )
-                                        ? new $TypeColor[$Issue->getType()]($Issue->getType())
-                                        : $Issue->getType()
-                                    )
-                                ).
-                                new PullRight(
-                                    new External($Issue->getId(),
-                                        'https://ticket.swe.haus-der-edv.de/issue/'.$Issue->getId(), null, array(),
-                                        false
-                                    )
+                            ( strlen($Description) == 0 ? '' : $Description ),
+                            Panel::PANEL_TYPE_INFO,
+                            new Layout(
+                                new LayoutGroup(
+                                    new LayoutRow(array(
+                                        new LayoutColumn( array(
+                                            new PullClear(
+                                                new PullLeft(
+                                                    new Label($Issue->getId())
+                                                ).
+                                                new PullLeft(
+                                                    ( isset( $PriorityColor[$Issue->getPriority()] )
+                                                        ? new $PriorityColor[$Issue->getPriority()]($Issue->getPriority())
+                                                        : $Issue->getPriority()
+                                                    )
+                                                )
+                                                .
+                                                new PullLeft(
+                                                   ( isset( $StateColor[$Issue->getState()] )
+                                                       ? new $StateColor[$Issue->getState()]($Issue->getState())
+                                                       : $Issue->getState()
+                                                   )
+                                               ).
+                                               new PullLeft(
+                                                   ( isset( $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)] )
+                                                       ? new $SubsystemColor[substr($Issue->getSubsystem(), 0, 1)]
+                                                       ($Issue->getSubsystem())
+                                                       : $Issue->getSubsystem()
+                                                   )
+                                               ).
+                                               new PullLeft(
+                                                   ( isset( $TypeColor[$Issue->getType()] )
+                                                       ? new $TypeColor[$Issue->getType()]($Issue->getType())
+                                                       : $Issue->getType()
+                                                   )
+                                               )
+                                            )
+                                        ),8),
+                                        new LayoutColumn(
+                                            new PullClear(
+                                                new PullRight(
+                                                    new External($Issue->getId(),
+                                                        'https://ticket.swe.haus-der-edv.de/issue/'.$Issue->getId(), null, array(),
+                                                        false
+                                                    )
+                                                )
+                                            )
+                                        ,4)
+                                    ))
                                 )
                             )
+
+
                         )
                     ), 11);
 
@@ -251,7 +271,12 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                 }
                 $VersionFooter = null;
             } else {
-                $VersionHeader = new Info(new PullClear(
+                $SprintColor = ( $Sprint->getVersion() == $SprintCurrent
+                    ? '\SPHERE\Common\Frontend\Message\Repository\Info'
+                    : '\SPHERE\Common\Frontend\Message\Repository\Warning'
+                );
+
+                $VersionHeader = new $SprintColor(new PullClear(
                     new PullLeft('Version '.$Sprint->getVersion())
                     .new PullRight(
                         new Label('Freigabe Demo @ '.date('m / Y',
@@ -265,7 +290,6 @@ class Roadmap implements IApplicationInterface, IModuleInterface
                 $VersionHeader .= new ProgressBar($this->getDatePercent($Sprint->getTimestampStart(),
                     $Sprint->getTimestampFinish()), 0, 100);
                 $VersionFooter = new Muted(new Small($Sprint->getTimestampStart().' - '.$Sprint->getTimestampFinish()));
-
             }
 
             $LayoutColumns[] = new LayoutColumn(
@@ -302,11 +326,12 @@ class Roadmap implements IApplicationInterface, IModuleInterface
     }
 
     /**
-     * @param $Value
+     * @param string $Value
+     * @param int $MaxLineCount
      *
      * @return string
      */
-    private function sanitizeDescription($Value)
+    private function sanitizeDescription($Value,$MaxLineCount = 3)
     {
 
         $Value = explode("\n", $Value);
@@ -328,11 +353,22 @@ class Roadmap implements IApplicationInterface, IModuleInterface
         $Value = array_filter($Value);
         $Value = preg_replace('!\s+?[\-]+\>!is', ': ', $Value);
 
-        $Result = trim(implode("\n", array_slice($Value, 0, 3)));
-        if (strlen($Result) > 0 && count($Value) > 3) {
-            $Result .= "\n ".new Muted('[...]');
+        $ShortDescription = trim(implode("\n", array_slice($Value, 0, $MaxLineCount)));
+        $LongDescription = trim(implode("\n", array_slice($Value, $MaxLineCount)));
+
+        if( strlen( $ShortDescription ) == 0 && $MaxLineCount > 0) {
+            return new Small(new Italic( new Muted( 'Keine Beschreibung angegeben' )) );
         }
-        return $Result;
+
+        if( strlen( $LongDescription ) > 0 ) {
+            return new Small(nl2br($ShortDescription))
+                .(new Accordion())->addItem(
+                    new Italic(new Small('[mehr anzeigen]')),
+                    new Small(nl2br( $LongDescription ))
+                )->getContent();
+        } else {
+            return new Small(nl2br($ShortDescription));
+        }
     }
 
     /**

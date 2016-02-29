@@ -796,7 +796,7 @@ class Service extends AbstractService
                                 if ($tblObjectType->getIdentifier() === 'PERSON') {
                                     $tblPerson = Person::useService()->getPersonById($objectId);
                                     $tblObject = $tblPerson;
-                                    $name = $tblPerson->getLastName() . ', ' . $tblPerson->getFirstName();
+                                    $name = $tblPerson->getLastFirstName();
                                     $export->setValue($export->getCell($columnCount++, $rowCount), trim($name));
 
                                     if ($isProspectList) {

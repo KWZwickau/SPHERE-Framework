@@ -35,6 +35,9 @@ class Company implements IApplicationInterface, IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'Frontend::frontendCompany'
         ));
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy', __NAMESPACE__.'\Frontend::frontendDestroyCompany')
+        );
 
         // Contact: Address
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

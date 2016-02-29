@@ -108,8 +108,13 @@ class Service extends AbstractService
             $Error = true;
         } else {
             $tblPersonTo = Person::useService()->getPersonById($tblPersonTo);
-            if ($tblPersonFrom->getId() == $tblPersonTo->getId()) {
-                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Eine Person kann nur mit einer anderen Person verknüpft werden')))));
+            if (!$tblPersonTo){
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Person')))));
+                $Error = true;
+            }
+            elseif ($tblPersonFrom->getId() == $tblPersonTo->getId()) {
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger(
+                    'Eine Person kann nur mit einer anderen Person verknüpft werden')))));
                 $Error = true;
             }
         }
@@ -204,6 +209,10 @@ class Service extends AbstractService
             $Error = true;
         } else {
             $tblCompanyTo = Company::useService()->getCompanyById($tblCompanyTo);
+            if (!$tblCompanyTo){
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Firma')))));
+                $Error = true;
+            }
         }
 
         if (!$Error) {
@@ -254,7 +263,11 @@ class Service extends AbstractService
             $Error = true;
         } else {
             $tblPersonTo = Person::useService()->getPersonById($tblPersonTo);
-            if ($tblPersonFrom->getId() == $tblPersonTo->getId()) {
+            if (!$tblPersonTo){
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Person')))));
+                $Error = true;
+            }
+            elseif ($tblPersonFrom->getId() == $tblPersonTo->getId()) {
                 $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger(new Ban() . ' Eine Person kann nur mit einer anderen Person verknüpft werden')))));
                 $Error = true;
             }
@@ -311,6 +324,10 @@ class Service extends AbstractService
             $Error = true;
         } else {
             $tblCompanyTo = Company::useService()->getCompanyById($tblCompanyTo);
+            if (!$tblCompanyTo){
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Firma')))));
+                $Error = true;
+            }
         }
 
         if (!$Error) {

@@ -6,6 +6,7 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
@@ -86,10 +87,14 @@ class Frontend extends Extension implements IFrontendInterface
                             ? $tblAddressAll
                             : new Warning('Keine Adresse hinterlegt')
                         ),
-                        'Option'      => new Standard('', '/Corporation/Company', new Pencil(), array(
+                        'Option'      => (new Standard('', '/Corporation/Company', new Pencil(), array(
                             'Id'    => $tblCompany->getId(),
                             'Group' => $tblGroup->getId()
-                        ), 'Bearbeiten'),
+                        ), 'Bearbeiten'))
+                        . (new Standard('', '/Corporation/Company/Destroy', new Remove(), array(
+                                'Id'    => $tblCompany->getId(),
+                                'Group' => $tblGroup->getId()
+                            ), 'Löschen')),
                         'Description' => $tblCompany->getDescription()
                     ));
                 });

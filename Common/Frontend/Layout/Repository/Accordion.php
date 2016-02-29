@@ -30,7 +30,7 @@ class Accordion extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param bool   $Header
+     * @param string $Header
      *
      * @param string $Content
      * @param bool   $Toggle

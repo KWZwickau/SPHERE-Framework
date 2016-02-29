@@ -25,13 +25,26 @@ class Data extends AbstractData
         $tblGroupPerson = $this->createGroup('PERSON', 'Personenbeziehung', 'Person zu Person');
         $tblGroupCompany = $this->createGroup('COMPANY', 'Firmenbeziehungen', 'Person zu Firma');
 
-        $this->createType('Sorgeberechtigt', '', $tblGroupPerson);
-        $this->createType('Vormund', '', $tblGroupPerson);
-        $this->createType('Bevollmächtigt', '', $tblGroupPerson);
-        $this->createType('Geschwisterkind', '', $tblGroupPerson);
-        $this->createType('Arzt', '', $tblGroupPerson);
-        $this->createType('Ehepartner', '', $tblGroupPerson);
-        $this->createType('Lebenspartner', '', $tblGroupPerson);
+        $tblType = $this->createType('Sorgeberechtigt', '', $tblGroupPerson);
+        $this->updateType($tblType, false);
+
+        $tblType = $this->createType('Vormund', '', $tblGroupPerson);
+        $this->updateType($tblType, false);
+
+        $tblType = $this->createType('Bevollmächtigt', '', $tblGroupPerson);
+        $this->updateType($tblType, false);
+
+        $tblType = $this->createType('Geschwisterkind', '', $tblGroupPerson);
+        $this->updateType($tblType, true);
+
+        $tblType = $this->createType('Arzt', '', $tblGroupPerson);
+        $this->updateType($tblType, false);
+
+        $tblType = $this->createType('Ehepartner', '', $tblGroupPerson);
+        $this->updateType($tblType, true);
+
+        $tblType = $this->createType('Lebenspartner', '', $tblGroupPerson);
+        $this->updateType($tblType, true);
 
         $this->createType('Geschäftsführer', '', $tblGroupCompany);
         $this->createType('Assistenz der Geschäftsleitung', '', $tblGroupCompany);
@@ -48,6 +61,9 @@ class Data extends AbstractData
         $this->createType('Sekretariat', '', $tblGroupCompany);
         $this->createType('Schulleiter', '', $tblGroupCompany);
         $this->createType('Vorstandsmitglied', '', $tblGroupCompany);
+        $this->createType('Abgeordneter', '', $tblGroupCompany);
+        $this->createType('Pfarrer', '', $tblGroupCompany);
+        $this->createType('Amtsleiter', '', $tblGroupCompany);
 
         $this->createSiblingRank('1. Geschwisterkind');
         $this->createSiblingRank('2. Geschwisterkind');
@@ -83,14 +99,15 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string        $Name
-     * @param string        $Description
+     * @param string $Name
+     * @param string $Description
      * @param null|TblGroup $tblGroup
-     * @param bool          $IsLocked
+     * @param bool $IsLocked
+     * @param bool|null $IsBidirectional
      *
      * @return TblType
      */
-    public function createType($Name, $Description = '', TblGroup $tblGroup = null, $IsLocked = false)
+    public function createType($Name, $Description = '', TblGroup $tblGroup = null, $IsLocked = false, $IsBidirectional = null)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -113,10 +130,31 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Entity->setLocked($IsLocked);
             $Entity->setTblGroup($tblGroup);
+            $Entity->setBidirectional($IsBidirectional);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param TblType $tblType
+     * @param null $IsBidirectional
+     * @return bool
+     */
+    public function updateType(TblType $tblType, $IsBidirectional = null)
+    {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblType $Entity */
+        $Entity = $Manager->getEntityById('TblType', $tblType->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setBidirectional($IsBidirectional);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+            return true;
+        }
+        return false;
     }
 
     /**

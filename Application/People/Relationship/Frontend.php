@@ -78,6 +78,10 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $tblPerson = Person::useService()->getPersonById($Id);
+        if(!$tblPerson){
+            return $Stage . new Danger('Person nicht gefunden', new Ban())
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+        }
 
         $Stage->setContent(
             new Layout(array(
@@ -231,6 +235,10 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $tblPerson = Person::useService()->getPersonById($Id);
+        if(!$tblPerson){
+            return $Stage . new Danger('Person nicht gefunden', new Ban())
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+        }
 
         $Stage->setContent(
             new Layout(array(
@@ -387,7 +395,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblToPerson = Relationship::useService()->getRelationshipToPersonById($Id);
 
         if (!$tblToPerson->getServiceTblPersonFrom()){
-            return $Stage . new Danger('Person nicht gefunden' , new Ban());
+            return $Stage . new Danger('Person nicht gefunden' , new Ban())
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
         }
 
         $Stage->setContent(
@@ -440,7 +449,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblToCompany = Relationship::useService()->getRelationshipToCompanyById($Id);
 
         if (!$tblToCompany->getServiceTblPerson()){
-            return $Stage . new Danger('Person nicht gefunden' , new Ban());
+            return $Stage . new Danger('Person nicht gefunden' , new Ban())
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
         }
 
         $Stage->setContent(
@@ -490,11 +500,15 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblRelationshipAll, function (TblToPerson &$tblToPerson) use ($tblPerson) {
 
                 if ($tblToPerson->getServiceTblPersonFrom() && $tblToPerson->getServiceTblPersonTo()) {
+                    if ($tblToPerson->getTblType()->isBidirectional()){
+                        $sign = ' ' . new ChevronLeft() . new ChevronRight() . ' ';
+                    } else {
+                        $sign = ' ' . new ChevronRight() . ' ';
+                    }
                     $Panel = array(
-                        $tblPerson->getLastFirstName() . ' ' .
                         ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
-                            ? new ChevronRight() . ' ' . $tblToPerson->getServiceTblPersonTo()->getLastFirstName()
-                            : new ChevronLeft() . ' ' . $tblToPerson->getServiceTblPersonFrom()->getLastFirstName()
+                            ? $tblPerson->getLastFirstName() . $sign . $tblToPerson->getServiceTblPersonTo()->getLastFirstName()
+                            : $tblToPerson->getServiceTblPersonFrom()->getLastFirstName() . $sign . $tblPerson->getLastFirstName()
                         )
                     );
                     if ($tblToPerson->getRemark()) {
@@ -506,8 +520,9 @@ class Frontend extends Extension implements IFrontendInterface
                             new PersonIcon() . ' ' . new Link() . ' ' . $tblToPerson->getTblType()->getName(),
                             $Panel,
                             ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
-                                ? Panel::PANEL_TYPE_SUCCESS
-                                : Panel::PANEL_TYPE_DEFAULT
+                                || $tblToPerson->getTblType()->isBidirectional()
+                                    ? Panel::PANEL_TYPE_SUCCESS
+                                    : Panel::PANEL_TYPE_DEFAULT
                             ),
                             ($tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
                                 ? new Standard(
@@ -667,10 +682,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton( new Backward(true) );
         if ($Id) {
             $tblToPerson = Relationship::useService()->getRelationshipToPersonById($Id);
-
             $tblPersonFrom = $tblToPerson->getServiceTblPersonFrom();
-            if (!$tblPersonFrom){
-                return $Stage . new Danger('Person nicht gefunden' , new Ban());
+            if (!$tblToPerson || !$tblPersonFrom){
+                return $Stage . new Danger('Person nicht gefunden' , new Ban())
+                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
             }
 
             if (!$Confirm) {
@@ -737,10 +752,14 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton( new Backward(true) );
         if ($Id) {
             $tblToCompany = Relationship::useService()->getRelationshipToCompanyById($Id);
-
+            if (!$tblToCompany){
+                return $Stage . new Danger('Firma nicht gefunden' , new Ban())
+                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+            }
             $tblPerson = $tblToCompany->getServiceTblPerson();
             if (!$tblPerson){
-                return $Stage . new Danger('Person nicht gefunden' , new Ban());
+                return $Stage . new Danger('Person nicht gefunden' , new Ban())
+                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
             }
 
             if (!$Confirm) {

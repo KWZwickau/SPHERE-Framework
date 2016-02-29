@@ -73,22 +73,25 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-
         $Global = $this->getGlobal();
-
         if (empty( $Global->POST )) {
-            return $Form;
-        }
-        if (!empty( $Global->POST ) && null === $SponsorAssociation) {
-            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie einen Förderverein aus')))));
             return $Form;
         }
 
         $Error = false;
+        if (null === $SponsorAssociation) {
+            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Förderverein aus')))));
+            $Error = true;
+        } else {
+            $tblCompany = Company::useService()->getCompanyById($SponsorAssociation);
+            if (!$tblCompany){
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Förderverein aus')))));
+                $Error = true;
+            }
+        }
 
         if (!$Error) {
             $tblCompany = Company::useService()->getCompanyById($SponsorAssociation);
-
             if ((new Data($this->getBinding()))->addSponsorAssociation($tblCompany)
             ) {
                 return new Success('Der Förderverein wurde erfolgreich hinzugefügt')

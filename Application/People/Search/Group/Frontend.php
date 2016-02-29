@@ -12,6 +12,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Label;
@@ -160,10 +161,13 @@ class Frontend extends Extension implements IFrontendInterface
                             ? $tblAddress
                             : new Warning('Keine Adresse hinterlegt')
                         ),
-                        'Option' => new Standard('', '/People/Person', new Edit(), array(
+                        'Option' => (new Standard('', '/People/Person', new Edit(), array(
                             'Id' => $tblPerson->getId(),
                             'Group' => $tblGroup->getId()
-                        ), 'Bearbeiten'),
+                        ), 'Bearbeiten'))
+                            . (new Standard('',
+                                '/People/Person/Destroy', new Remove(),
+                                array('Id' => $tblPerson->getId(), 'Group' => $tblGroup->getId()), 'Person löschen')),
                         'Remark' => (
                         $Acronym == 'ESZC' && $tblGroup->getMetaTable() == 'CUSTODY'
                             ? (($Common = Common::useService()->getCommonByPerson($tblPerson)) ? $Common->getRemark() : '')

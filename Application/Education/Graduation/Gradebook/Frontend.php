@@ -957,7 +957,7 @@ class Frontend extends Extension implements IFrontendInterface
                         // Header
                         $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
                         $columnList = array();
-                        $columnList[] = new LayoutColumn(new Title($tblPerson->getFullName()
+                        $columnList[] = new LayoutColumn(new Title($tblPerson->getLastFirstName()
                             . new Small(new Muted(' Klasse ' . $tblDivision->getDisplayName()))),
                             12);
                         if ($tblPeriodList) {

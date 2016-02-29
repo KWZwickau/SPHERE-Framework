@@ -1148,8 +1148,8 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $tblPerson = new CheckBox(
                         'Student['.$tblPerson->getId().']',
-                        ( ( $trigger ) ? new \SPHERE\Common\Frontend\Text\Repository\Warning($tblPerson->getLastName().', '.$tblPerson->getFirstName().' '.$tblPerson->getSecondName())
-                            : $tblPerson->getLastName().', '.$tblPerson->getFirstName().' '.$tblPerson->getSecondName() )
+                        ( ( $trigger ) ? new \SPHERE\Common\Frontend\Text\Repository\Warning($tblPerson->getLastFirstName())
+                            : $tblPerson->getLastFirstName() )
                         ,
                         $tblPerson->getId()
                     );
@@ -1647,8 +1647,7 @@ class Frontend extends Extension implements IFrontendInterface
                 array_multisort($LastName, SORT_ASC, $FirstName, SORT_ASC, $tblDivisionStudentList);
 
                 foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                    $tblDivisionStudent->FullName = $tblDivisionStudent->getLastName().', '.$tblDivisionStudent->getFirstName().' '.
-                        $tblDivisionStudent->getSecondName();
+                    $tblDivisionStudent->FullName = $tblDivisionStudent->getLastFirstName();
                     $tblCommon = Common::useService()->getCommonByPerson($tblDivisionStudent);
                     if ($tblCommon) {
                         $tblDivisionStudent->Birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
@@ -1920,7 +1919,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblTeacherList) {
                         /** @var TblPerson $Teacher */
                         foreach ($tblTeacherList as $Teacher) {
-                            $teacherArray[] = $Teacher->getFirstName().' '.$Teacher->getLastName();
+                            $teacherArray[] = $Teacher->getLastFirstName();
                         }
                         $teacherString = implode(', ', $teacherArray);
                     }
@@ -1973,7 +1972,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Klasse', 'entfernen');
         if ($tblDivision = Division::useService()->getDivisionById($Id)) {
-//            $tblDivision = Division::useService()->getDivisionById($Id);
             if (!$Confirm) {
 
                 $tblDivision = Division::useService()->getDivisionById($Id);

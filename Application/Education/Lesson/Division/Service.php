@@ -552,9 +552,12 @@ class Service extends AbstractService
             if (is_array($Student)) {
                 array_walk($Student, function ($Student) use ($tblDivisionSubject, &$Error) {
 
-                    if (!(new Data($this->getBinding()))->addSubjectStudent($tblDivisionSubject, Person::useService()->getPersonById($Student))
-                    ) {
-                        $Error = false;
+                    $tblPerson = Person::useService()->getPersonById($Student);
+                    if ($tblPerson) {
+                        if (!(new Data($this->getBinding()))->addSubjectStudent($tblDivisionSubject, $tblPerson)
+                        ) {
+                            $Error = false;
+                        }
                     }
                 });
             }
@@ -1133,8 +1136,7 @@ class Service extends AbstractService
 
         $DivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
         $SubjectUsedCount = 0;
-        if (!$DivisionSubjectList) {
-        } else {
+        if ($DivisionSubjectList) {
             foreach ($DivisionSubjectList as $DivisionSubject) {
 
                 if (!$DivisionSubject->getTblSubjectGroup()) {
@@ -1149,7 +1151,9 @@ class Service extends AbstractService
                                 $TempList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubjectActive);
                                 if ($TempList) {
                                     foreach ($TempList as $Temp) {
-                                        array_push($TeacherGroup, $Temp->getId());
+                                        if ($Temp->getServiceTblPerson()) {
+                                            array_push($TeacherGroup, $Temp->getId());
+                                        }
                                     }
                                 }
                             }
