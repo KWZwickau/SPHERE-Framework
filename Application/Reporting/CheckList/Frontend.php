@@ -62,6 +62,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -157,8 +158,7 @@ class Frontend extends Extension implements IFrontendInterface
             new Standard('Zur&uuml;ck', '/Reporting/CheckList', new ChevronLeft())
         );
 
-        if ($Id == null)
-        {
+        if ($Id == null) {
             return $Stage . new Danger(new Ban() . ' Daten nicht abrufbar.')
             . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
         }
@@ -240,7 +240,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Standard('Zurück', '/Reporting/CheckList', new ChevronLeft())
             );
             $tblList = CheckList::useService()->getListById($Id);
-            if (!$tblList){
+            if (!$tblList) {
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
@@ -1108,6 +1108,10 @@ class Frontend extends Extension implements IFrontendInterface
         $filterSchoolOption1 = false;
         $filterSchoolOption2 = false;
 
+        $countPerson = 0;
+        $countTotalPerson = 0;
+        $countCompany = 0;
+
         // filter
         if ($YearPersonId !== null) {
             $Global = $this->getGlobal();
@@ -1202,6 +1206,7 @@ class Frontend extends Extension implements IFrontendInterface
                         if (!empty($objects)) {
                             foreach ($objects as $objectId => $value) {
                                 if ($tblObjectType->getIdentifier() === 'PERSON') {
+                                    $countTotalPerson++;
                                     $tblPerson = Person::useService()->getPersonById($objectId);
                                     $filterPersonObjectList[$tblPerson->getId()] = $tblPerson;
                                 }
@@ -1259,6 +1264,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if (!empty($objects)) {
                         foreach ($objects as $objectId => $value) {
                             if ($tblObjectType->getIdentifier() === 'PERSON') {
+                                $countPerson++;
                                 $tblPerson = Person::useService()->getPersonById($objectId);
                                 $list[$count]['Name'] = $tblPerson->getLastName() . ', ' . $tblPerson->getFirstName()
                                     . new PullRight(new Standard('', '/People/Person',
@@ -1307,6 +1313,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 }
 
                             } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
+                                $countCompany++;
                                 $tblCompany = Company::useService()->getCompanyById($objectId);
                                 $list[$count]['Name'] = $tblCompany->getName()
                                     . new PullRight(new Standard('', '/Corporation/Company',
@@ -1427,6 +1434,14 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new Title(new Edit() . ' Bearbeiten'),
+                            $isProspectList
+                                ? ($hasFilter
+                                    ? new Info($countPerson . ' von ' . $countTotalPerson . ' Interessenten')
+                                    : new Info($countPerson . ' Interessenten'))
+                                : new Info(
+                                'Anzahl der Objekte: ' . ($countPerson + $countCompany) . ' (Personen: ' . $countPerson
+                                . ', Firmen: ' . $countCompany . ')'
+                            ),
                             CheckList::useService()->updateListObjectElementList(
                                 new Form(
                                     new FormGroup(array(
