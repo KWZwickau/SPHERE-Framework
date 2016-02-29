@@ -71,6 +71,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Eine E-Mail Adresse zur gewählten Person hinzufügen');
 
         $tblPerson = Person::useService()->getPersonById($Id);
+        if(!$tblPerson){
+            return $Stage . new Danger('Person nicht gefunden', new Ban())
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
+        }
+
         $Stage->addButton(
             new Standard('Zurück', '/People/Person', new ChevronLeft(),
                 array('Id' => $tblPerson->getId())
@@ -156,40 +161,46 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setMessage('Eine E-Mail Adresse zur gewählten Firma hinzufügen');
 
         $tblCompany = Company::useService()->getCompanyById($Id);
-        $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
-            array('Id' => $tblCompany->getId())
-        ));
+        if ($tblCompany) {
 
-        $Stage->setContent(
-            new Layout(array(
-                new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Panel(new PersonIcon() . ' Firma',
-                                $tblCompany->getName(),
-                                Panel::PANEL_TYPE_INFO
+            $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
+                array('Id' => $tblCompany->getId())
+            ));
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Panel(new PersonIcon() . ' Firma',
+                                    $tblCompany->getName(),
+                                    Panel::PANEL_TYPE_INFO
+                                )
                             )
-                        )
-                    ),
-                )),
-                new LayoutGroup(array(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new Well(
-                                Mail::useService()->createMailToCompany(
-                                    $this->formAddress()
-                                        ->appendFormButton(new Primary('Speichern', new Save()))
-                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                                    , $tblCompany, $Address, $Type
+                        ),
+                    )),
+                    new LayoutGroup(array(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Well(
+                                    Mail::useService()->createMailToCompany(
+                                        $this->formAddress()
+                                            ->appendFormButton(new Primary('Speichern', new Save()))
+                                            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                        , $tblCompany, $Address, $Type
+                                    )
                                 )
                             )
                         )
-                    )
-                ), new Title(new PlusSign() . ' Hinzufügen')),
-            ))
-        );
+                    ), new Title(new PlusSign() . ' Hinzufügen')),
+                ))
+            );
 
-        return $Stage;
+            return $Stage;
+        } else {
+            return $Stage . new Danger(new Ban() . ' Firma nicht gefunden.')
+            . new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR);
+        }
     }
 
     /**
@@ -208,7 +219,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblToPerson = Mail::useService()->getMailToPersonById($Id);
 
         if (!$tblToPerson->getServiceTblPerson()){
-            return $Stage . new Danger('Person nicht gefunden', new Ban());
+            return $Stage . new Danger('Person nicht gefunden', new Ban())
+            . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
         }
 
         $Stage->addButton(
@@ -273,7 +285,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblToCompany = Mail::useService()->getMailToCompanyById($Id);
 
         if (!$tblToCompany->getServiceTblCompany()){
-            return $Stage . new Danger('Firma nicht gefunden', new Ban());
+            return $Stage . new Danger('Firma nicht gefunden', new Ban())
+            . new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR);
         }
 
         $Stage->addButton(new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),
@@ -475,7 +488,8 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPerson = $tblToPerson->getServiceTblPerson();
 
             if (!$tblPerson){
-                return $Stage . new Danger('Person nicht gefunden', new Ban());
+                return $Stage . new Danger('Person nicht gefunden', new Ban())
+                . new Redirect('/People/Search/Group', Redirect::TIMEOUT_ERROR);
             }
 
             $Stage->addButton(
@@ -549,7 +563,8 @@ class Frontend extends Extension implements IFrontendInterface
             $tblCompany = $tblToCompany->getServiceTblCompany();
 
             if (!$tblCompany){
-                return $Stage . new Danger('Firma nicht gefunden', new Ban());
+                return $Stage . new Danger('Firma nicht gefunden', new Ban())
+                . new Redirect('/Corporation/Search/Group', Redirect::TIMEOUT_ERROR);
             }
 
             $Stage->addButton( new Standard('Zurück', '/Corporation/Company', new ChevronLeft(),

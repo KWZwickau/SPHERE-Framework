@@ -76,7 +76,6 @@ class Service extends AbstractService
         /**
          * Skip to Frontend
          */
-
         if (null === $Type) {
             return $Form;
         }
@@ -86,12 +85,17 @@ class Service extends AbstractService
         if (null === $School) {
             $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Schule aus')))));
             $Error = true;
+        } else {
+            $tblCompany = Company::useService()->getCompanyById($School);
+            if (!$tblCompany){
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Schule aus')))));
+                $Error = true;
+            }
         }
 
         if (!$Error) {
             $tblCompany = Company::useService()->getCompanyById($School);
             $tblType = Type::useService()->getTypeById($Type['Type']);
-
             if ((new Data($this->getBinding()))->addSchool($tblCompany, $tblType)
             ) {
                 return new Success('Die Schule wurde erfolgreich hinzugefügt')

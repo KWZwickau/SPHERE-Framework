@@ -552,9 +552,12 @@ class Service extends AbstractService
             if (is_array($Student)) {
                 array_walk($Student, function ($Student) use ($tblDivisionSubject, &$Error) {
 
-                    if (!(new Data($this->getBinding()))->addSubjectStudent($tblDivisionSubject, Person::useService()->getPersonById($Student))
-                    ) {
-                        $Error = false;
+                    $tblPerson = Person::useService()->getPersonById($Student);
+                    if ($tblPerson) {
+                        if (!(new Data($this->getBinding()))->addSubjectStudent($tblDivisionSubject, $tblPerson)
+                        ) {
+                            $Error = false;
+                        }
                     }
                 });
             }

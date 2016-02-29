@@ -811,6 +811,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_push($tblCompanyAllSchool, new TblCompany());
         } else {
             $tblCompanyAllSchool = array();
+            $tblCompanyAllSchool[] = new TblCompany();
         }
 
         $PanelDisorder = array();

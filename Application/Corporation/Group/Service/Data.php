@@ -146,9 +146,28 @@ class Data extends AbstractData
     public function countCompanyAllByGroup(TblGroup $tblGroup)
     {
 
-        return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', array(
-            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
-        ));
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+//        return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', array(
+//            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+//        ));
+
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
+            array(
+                TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+            ));
+
+        if ($EntityList){
+            $count = 0;
+            /** @var TblMember $item */
+            foreach ($EntityList as &$item){
+                if ($item->getServiceTblCompany()) {
+                    $count++;
+                }
+            }
+            return $count;
+        } else {
+            return 0;
+        }
     }
 
     /**
