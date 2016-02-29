@@ -8,10 +8,12 @@ use SPHERE\System\Config\Reader\ReaderInterface;
 
 /**
  * Class AbstractFastCacheHandler
+ *
  * @package SPHERE\System\Cache\Handler
  */
 abstract class AbstractFastCacheAdapter extends AbstractHandler
 {
+
     const CACHE_TYPE_COOKIE = 'cookie';
 
     /** @var null|DriverAbstract $FastCacheInstance */
@@ -19,14 +21,15 @@ abstract class AbstractFastCacheAdapter extends AbstractHandler
 
     /**
      * @param string $Key
-     * @param mixed $Value
-     * @param int $Timeout
+     * @param mixed  $Value
+     * @param int    $Timeout
      * @param string $Region
      *
      * @return HandlerInterface
      */
     public function setValue($Key, $Value, $Timeout = 0, $Region = 'Default')
     {
+
         if ($this->FastCacheInstance) {
             $this->FastCacheInstance->set($Key, serialize($Value), $Timeout);
         }
@@ -41,6 +44,7 @@ abstract class AbstractFastCacheAdapter extends AbstractHandler
      */
     public function getValue($Key, $Region = 'Default')
     {
+
         if ($this->FastCacheInstance) {
             return unserialize($this->FastCacheInstance->get($Key));
         }
@@ -48,13 +52,14 @@ abstract class AbstractFastCacheAdapter extends AbstractHandler
     }
 
     /**
-     * @param string $Name
+     * @param string          $Name
      * @param ReaderInterface $Config
      *
      * @return HandlerInterface
      */
     public function setConfig($Name, ReaderInterface $Config = null)
     {
+
         // TODO: Implement setConfig() method.
         return $this;
     }
@@ -64,6 +69,7 @@ abstract class AbstractFastCacheAdapter extends AbstractHandler
      */
     public function clearCache()
     {
+
         if ($this->FastCacheInstance) {
             $this->FastCacheInstance->clean();
         }
@@ -80,6 +86,7 @@ abstract class AbstractFastCacheAdapter extends AbstractHandler
      */
     protected function setCacheType($CACHE_TYPE)
     {
+
         $this->FastCacheInstance = CacheManager::getInstance($CACHE_TYPE);
     }
 
@@ -88,6 +95,7 @@ abstract class AbstractFastCacheAdapter extends AbstractHandler
      */
     protected function getCacheStatus()
     {
+
         if ($this->FastCacheInstance) {
             return $this->FastCacheInstance->stats();
         }

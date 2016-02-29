@@ -82,6 +82,9 @@ class Status extends Extension implements ITemplateInterface
         $Bytes /= pow(1024, $Power);
         // $bytes /= (1 << (10 * $pow));
 
+        if ($Power < 0) {
+            $Power = 0;
+        }
         return round($Bytes, $usePrecision).' '.$UnitList[$Power];
     }
 

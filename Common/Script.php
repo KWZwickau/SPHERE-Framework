@@ -198,6 +198,9 @@ class Script extends Extension
         $this->setModule(
             'ModForm', array('jQuery.Sisyphus', 'jQuery.Mask', 'jQuery')
         );
+        $this->setModule(
+            'ModCleanStorage', array('jQuery')
+        );
     }
 
     /**

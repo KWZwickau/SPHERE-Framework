@@ -27,6 +27,9 @@ class Backward extends Standard
         $History = $Session->loadHistory();
         $Step = new Step($this->getRequest()->getUrl());
 
+        if ($Step->getPath() == '/') {
+            (new Session())->clearCache();
+        }
         if (!$IgnoreStep) {
             $History->setStep($Step);
         }

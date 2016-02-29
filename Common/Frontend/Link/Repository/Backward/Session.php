@@ -2,7 +2,6 @@
 namespace SPHERE\Common\Frontend\Link\Repository\Backward;
 
 use SPHERE\System\Cache\Handler\CookieHandler;
-use SPHERE\System\Cache\Handler\MemcachedHandler;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -49,5 +48,11 @@ class Session extends Extension
         $Cache = $this->getCache(new CookieHandler());
         $Cache->setValue($this->SessionKey, $History, ( 60 * 60 * 24 ), __CLASS__);
         return $History;
+    }
+
+    public function clearCache()
+    {
+
+        $this->getCache(new CookieHandler())->clearCache();
     }
 }
