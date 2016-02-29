@@ -32,7 +32,7 @@ class Status extends Extension implements ITemplateInterface
             $HitCount = 100 / ( $Cache->getHitCount() + $Cache->getMissCount() ) * $Cache->getHitCount();
             $MissCount = 100 / ( $Cache->getHitCount() + $Cache->getMissCount() ) * $Cache->getMissCount();
             $Quality = new Header('Hits: '.number_format($HitCount, 2, ',', '.').'%')
-                .(new ProgressBar($HitCount, $MissCount, 0))
+                . (new ProgressBar($HitCount, $MissCount, 0, 3))
                     ->setColor(ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_DANGER)
                     ->getContent();
         } else {
@@ -51,7 +51,7 @@ class Status extends Extension implements ITemplateInterface
                     .' ~ '
                     .$this->formatBytes($Cache->getWastedSize())
                     , number_format($Used, 2, ',', '.').'%').
-                (new ProgressBar($Used, $Free, $Wasted))
+                (new ProgressBar($Used, $Free, $Wasted, 5))
                     ->setColor(
                         ProgressBar::BAR_COLOR_WARNING, ProgressBar::BAR_COLOR_SUCCESS, ProgressBar::BAR_COLOR_STRIPED
                     )
@@ -82,6 +82,9 @@ class Status extends Extension implements ITemplateInterface
         $Bytes /= pow(1024, $Power);
         // $bytes /= (1 << (10 * $pow));
 
+        if ($Power < 0) {
+            $Power = 0;
+        }
         return round($Bytes, $usePrecision).' '.$UnitList[$Power];
     }
 

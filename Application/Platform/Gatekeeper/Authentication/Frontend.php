@@ -13,6 +13,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -35,6 +36,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Willkommen', 'KREDA Professional');
+        $Stage->addButton(new Backward(true));
         $Stage->setMessage(date('d.m.Y - H:i:s'));
         return $Stage;
     }
@@ -238,8 +240,19 @@ class Frontend extends Extension implements IFrontendInterface
 
         $View = new Stage('Abmelden', 'Bitte warten...');
         $View->setContent(Account::useService()->destroySession(
-            new Redirect('/Platform/Gatekeeper/Authentication', 0)
-        ));
+                new Redirect('/Platform/Gatekeeper/Authentication', 5)
+            ).'
+        <script language=javascript>
+        //noinspection JSUnresolvedFunction
+            executeScript(function()
+            {
+                Client.Use(\'ModCleanStorage\', function()
+                {
+                    jQuery().ModCleanStorage();
+                });
+            });
+        </script>
+        ');
         return $View;
 
     }

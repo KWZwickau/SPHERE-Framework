@@ -23,7 +23,6 @@ class History
         if (!empty( $this->StepStack )) {
             if (( $Count = count($this->StepStack) ) == 1) {
                 return false;
-                return current($this->StepStack);
             } else {
                 return $this->StepStack[$Count - 2];
             }
@@ -40,6 +39,9 @@ class History
      */
     public function setStep(Step $Step)
     {
+
+        // Shrink History
+        $this->shrinkHistory(8);
 
         $Last = $this->getLastStep();
         // Is not a GoBack Step
@@ -69,6 +71,23 @@ class History
         }
         // Step not handled
         return null;
+    }
+
+    /**
+     * Remove oldest Step if History is to large
+     *
+     * @param int $ToSize 4
+     *
+     * @return bool
+     */
+    private function shrinkHistory($ToSize = 4)
+    {
+
+        if (count($this->StepStack) > $ToSize) {
+            array_shift($this->StepStack);
+            return true;
+        }
+        return false;
     }
 
     /**

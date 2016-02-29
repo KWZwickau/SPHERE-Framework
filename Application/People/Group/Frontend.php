@@ -34,6 +34,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -62,6 +63,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Gruppen', 'Übersicht');
+        $Stage->addButton( new Backward() );
+
         $tblGroupAll = Group::useService()->getGroupAll();
         if ($tblGroupAll) {
             array_walk($tblGroupAll, function (TblGroup &$tblGroup) {
@@ -172,7 +175,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Gruppe', 'Bearbeiten');
-        $Stage->addButton(new Standard('Zurück', '/People/Group', new ChevronLeft()));
+        $Stage->addButton( new Backward(true) );
+
         $tblGroup = Group::useService()->getGroupById($Id);
         if ($tblGroup) {
 
@@ -242,7 +246,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Gruppe', 'Löschen');
-        $Stage->addButton(new Standard('Zurück', '/People/Group', new ChevronLeft()));
+        $Stage->addButton( new Backward(true) );
+
         if ($Id) {
             $tblGroup = Group::useService()->getGroupById($Id);
             if (!$Confirm) {
