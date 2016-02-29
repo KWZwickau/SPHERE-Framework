@@ -349,7 +349,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Group
      * @return Stage
      */
-    public function frontendDestroyPerson($Id, $Confirm = false, $Group = null)
+    public function frontendDestroyPerson($Id = null, $Confirm = false, $Group = null)
     {
 
         $Stage = new Stage('Person', 'Löschen');

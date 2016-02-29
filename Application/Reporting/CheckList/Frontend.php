@@ -230,7 +230,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param bool|false $Confirm
      * @return Stage
      */
-    public function frontendDestroyList($Id, $Confirm = false)
+    public function frontendDestroyList($Id = null, $Confirm = false)
     {
 
         $Stage = new Stage('Check-List', 'Löschen');
