@@ -284,7 +284,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param null $Group
      * @return Stage
      */
-    public function frontendDestroyCompany($Id, $Confirm = false, $Group = null)
+    public function frontendDestroyCompany($Id = null, $Confirm = false, $Group = null)
     {
 
         $Stage = new Stage('Firma', 'Löschen');
