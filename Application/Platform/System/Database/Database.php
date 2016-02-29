@@ -277,7 +277,8 @@ class Database extends Extension implements IModuleInterface
             new Title('Mandanten werden aktualisiert...')
             .'<div id="ConsumerProgress" class="progress" style="height: 15px; margin: 0;">
                 <div class="progress-bar progress-bar-success" style="width: 0%;"></div>
-                <div class="progress-bar progress-bar-warning progress-bar-striped active" style="width: 100%;"></div>
+                <div class="progress-bar progress-bar-info progress-bar-striped active" style="width: 0%;"></div>
+                <div class="progress-bar progress-bar-warning" style="width: 100%;"></div>
             </div>'
             .'<div id="ConsumerProtocol" class="small"></div>'
             .'<script language=javascript>
@@ -315,15 +316,23 @@ class Database extends Extension implements IModuleInterface
                             var ResultConsumer = [];
                             var ErrorConsumer = false;
 
+                            var Progress = 100 / Size * Object.keys(settings.consumer).length;
+                            var Info = 100 / Size;
+                            var Bar = jQuery("#ConsumerProgress");
+                            Bar.find(".progress-bar-info").css("width",(Info)+"%");
+                            Bar.find(".progress-bar-warning").css("width",(Progress-Info)+"%");
+
                             var runConsumer = function( Api ){
-                                var Progress = 100 / Size * Object.keys(settings.consumer).length;
-                                var Bar = jQuery("#ConsumerProgress");
+                                Progress = 100 / Size * Object.keys(settings.consumer).length;
+                                Info = 100 / Size;
+
+                                Bar.find(".progress-bar-info").css("width",(Info)+"%");
 
                                 if( Api ) {
                                     jQuery.get( Api, function( Result ){
 
                                         Bar.find(".progress-bar-success").css("width",(100-Progress)+"%").html( (Size-Object.keys(settings.consumer).length)+" / "+Size );
-                                        Bar.find(".progress-bar-warning").css("width",(Progress)+"%");
+                                        Bar.find(".progress-bar-warning").css("width",(Progress-Info)+"%");
 
                                         var Consumer = Result.substr(0,Result.indexOf(\' \'));
                                         Result = Result.substr(Result.indexOf(\' \'),Result.length);
@@ -344,6 +353,7 @@ class Database extends Extension implements IModuleInterface
                                         } else {
                                         Bar.find(".progress-bar-success").html("DONE")
                                         }
+                                        Bar.find(".progress-bar-success").removeClass("active");
                                 }
                             };
 
