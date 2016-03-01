@@ -97,14 +97,6 @@ class Evaluation implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendHeadmasterTaskDivision')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\Division\Add',
-                __NAMESPACE__.'\Frontend::frontendHeadmasterTaskAddDivision')
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\Division\Remove',
-                __NAMESPACE__.'\Frontend::frontendHeadmasterTaskRemoveDivision')
-        );
-        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\Grades',
                 __NAMESPACE__.'\Frontend::frontendHeadmasterTaskGrades')
         );
