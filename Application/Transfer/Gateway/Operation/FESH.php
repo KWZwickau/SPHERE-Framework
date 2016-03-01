@@ -66,8 +66,8 @@ class FESH extends AbstractConverter
     {
 
         // Fertige Zeile,
-//        print_r($Row);
 
+//        print_r($Row);
         $Person = new Person(new TblPerson());
         $Person->setPayload(array_merge($Row['B'], $Row['C']));
         $this->getStructure()->addPerson( $Person );
