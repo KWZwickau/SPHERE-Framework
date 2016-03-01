@@ -46,6 +46,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -74,6 +75,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Warenkorb', 'Übersicht');
         $Stage->setMessage('Zeigt alle vorhandenen Warenkörbe an');
+        new Backward();
         $tblBasketAll = Basket::useService()->getBasketAll();
 
         $TableContent = array();
@@ -168,9 +170,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Warenkorb', 'Bearbeiten');
         $Stage->setMessage('Der Name des Warenkorbs ist Teil des Buchungstextes');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket',
-            new ChevronLeft()
-        ));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket',
+//            new ChevronLeft()
+//        ));
+        $Stage->addButton(new Backward());
 
         if (empty( $Id )) {
             $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
@@ -282,6 +285,7 @@ class Frontend extends Extension implements IFrontendInterface
 //                            Preis: '.$tblItem->getServiceBillingCommodityItem()->getTblItem()->getPriceString();
                     }
                 }
+                $Stage->addButton(new Backward());
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                         new Panel(new Question().' Diesen Warenkorb mit dem Namen "<b>'.$tblBasket->getName().'</b>" wirklich löschen?',
@@ -380,7 +384,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Warenkorb', 'Übersicht');
         $Stage->setMessage('Enthaltene Artikel und Personen');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket', new ChevronLeft()));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket', new ChevronLeft()));
+        $Stage->addButton(new Backward());
 
         $tblBasket = Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
@@ -491,7 +496,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Artikel', 'Auswahl');
         $Stage->setMessage('Einzelne Artikel oder ganze Artikelgruppen auswählen');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Content', new ChevronLeft(), array('Id' => $Id)));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Content', new ChevronLeft(), array('Id' => $Id)));
+        $Stage->addButton(new Backward());
         $tblBasket = Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
@@ -725,12 +731,13 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblBasket->getId()));
         }
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Content', new ChevronLeft(),
+//            array('Id' => $Id)));
+        $Stage->addButton(new Backward());
         $tblBasketPersonList = Basket::useService()->getBasketPersonAllByBasket($tblBasket);
         $tblPersonByBasketList = Basket::useService()->getPersonAllByBasket($tblBasket);
         $tblPersonAll = Person::useService()->getPersonAll();
 
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Content', new ChevronLeft(),
-            array('Id' => $Id)));
 
         if (!empty( $tblPersonByBasketList )) {
             $tblPersonAll = array_udiff($tblPersonAll, $tblPersonByBasketList,
@@ -949,6 +956,7 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
         $Stage->addButton(new Standard('Warenkorb verlassen', '/Billing/Accounting/Basket', new ChevronLeft()));
+        new Backward();
         $Stage->addButton(new \SPHERE\Common\Frontend\Link\Repository\Danger('Berechnungen leeren', '/Billing/Accounting/Basket/Verification/Destroy', new Disable()
             , array('BasketId' => $tblBasket->getId())));
         $Stage->addButton(new Standard('Zahlung fakturieren', '/Billing/Accounting/Pay/Selection', new Ok()
@@ -1071,8 +1079,9 @@ class Frontend extends Extension implements IFrontendInterface
             $Address = Address::useService()->getAddressByPerson($tblPerson)->getGuiLayout();
         }
 
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification', new ChevronLeft(),
-            array('Id' => $tblBasket->getId())));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification', new ChevronLeft(),
+//            array('Id' => $tblBasket->getId())));
+        $Stage->addButton(new Backward());
 
         $TableContent = array();
         $tblBasketVerificationList = Basket::useService()->getBasketVerificationByPersonAndBasket($tblPerson, $tblBasket);
@@ -1164,9 +1173,10 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(new Warning('Warenkorbinhalt nicht gefunden'));
             return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification/Person', new ChevronLeft(),
-            array('PersonId' => $tblBasketVerification->getServicePeoplePerson()->getId(),
-                  'BasketId' => $tblBasketVerification->getTblBasket()->getId())));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification/Person', new ChevronLeft(),
+//            array('PersonId' => $tblBasketVerification->getServicePeoplePerson()->getId(),
+//                  'BasketId' => $tblBasketVerification->getTblBasket()->getId())));
+        $Stage->addButton(new Backward());
 
         $tblItem = $tblBasketVerification->getServiceInventoryItem();
         $tblPerson = $tblBasketVerification->getServicePeoplePerson();
@@ -1312,7 +1322,7 @@ class Frontend extends Extension implements IFrontendInterface
             if (empty( $Content )) {
                 $Content = 'Keine Artikel zugewiesen.';
             }
-
+            $Stage->addButton(new Backward());
             $Stage->setContent(
                 new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                     new Panel(new Question().' Diese Person "'.$Person.'" inklusive folgender Artikel wirklich entfernen?', $Content
@@ -1378,6 +1388,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
+                $Stage->addButton(new Backward());
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                         new Panel(new Question().' Diesen Eintrag mit folgenden Daten wirklich entfernen?',
@@ -1426,6 +1437,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     $PanelContent[] = $tblBasketVerifications->getServiceInventoryItem()->getName();
                                 }
                             }
+                            $Stage->addButton(new Backward());
                             $Stage->setContent(
                                 new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                                     new Panel(new Question().' Berechnung mit '.$CountVerification.' Einträgen wirklich löschen?',

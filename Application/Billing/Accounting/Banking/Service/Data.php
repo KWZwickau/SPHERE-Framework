@@ -54,8 +54,7 @@ class Data extends AbstractData
     public function getBankReferenceAll()
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankReference',
-            array(TblBankReference::ATTR_IS_VOID => false));
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankReference');
     }
 
     /**
@@ -128,8 +127,7 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankReference',
-            array(TblBankReference::ATTR_REFERENCE_NUMBER => $Reference,
-                  TblBankReference::ATTR_IS_VOID          => false));
+            array(TblBankReference::ATTR_REFERENCE_NUMBER => $Reference));
     }
 
     /**
@@ -272,21 +270,16 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function deactivateReference(TblBankReference $tblBankReference)
+    public function removeReference(TblBankReference $tblBankReference)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblBankReference $Entity */
         $Entity = $Manager->getEntityById('TblBankReference', $tblBankReference->getId());
-        $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setVoid(true);
-
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
-                $Protocol,
-                $Entity);
+            $Manager->removeEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             return true;
         }
         return false;
@@ -482,7 +475,6 @@ class Data extends AbstractData
         $Entity = new TblBankReference();
         $Entity->setReference($Reference);
         $Entity->setServicePeoplePerson($tblPerson);
-        $Entity->setVoid(false);
         if ($ReferenceDate) {
             $Entity->setReferenceDate(new \DateTime($ReferenceDate));
         } else {
@@ -582,7 +574,6 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBankReference',
-            array(TblBankReference::SERVICE_TBL_PERSON => $tblPerson->getId(),
-                  TblBankReference::ATTR_IS_VOID       => false));
+            array(TblBankReference::SERVICE_TBL_PERSON => $tblPerson->getId()));
     }
 }

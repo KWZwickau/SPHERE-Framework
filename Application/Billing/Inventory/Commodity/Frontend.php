@@ -33,6 +33,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
@@ -57,13 +58,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Leistungen');
         $Stage->setDescription('Übersicht');
-//        $Stage->setMessage('Zeigt die verfügbaren Leistungen an. <br />
-//                            Leistungen sind Zusammenfassungen aller Artikel,
-//                            die unter einem Punkt für den Debitor abgerechnet werden. <br />
-//                            Beispielsweise: Schulgeld, Hortgeld, Klassenfahrt usw.');
-//        $Stage->addButton(
-//            new Standard('Leistung anlegen', '/Billing/Inventory/Commodity/Create', new Plus())
-//        );
+        new Backward();
 
         $tblCommodityAll = Commodity::useService()->getCommodityAll();
 
@@ -184,16 +179,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Leistungen');
         $Stage->setDescription('Bearbeiten');
-//        $Stage->setMessage(
-//            '<b>Hinweis:</b> <br>
-//            Bei einer Einzelleistung wird für jede Person der gesamten Betrag berechnet. <br>
-//            Hingegen bei einer Sammelleisung bezahlt jede Person einen Teil des gesamten Betrags, abhängig von der
-//            Personenanzahl. <br>
-//            (z.B.: für Klassenfahrten)
-//        ');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity',
-            new ChevronLeft()
-        ));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity',
+//            new ChevronLeft()
+//        ));
+        $Stage->addButton(new Backward());
         $tblCommodity = Commodity::useService()->getCommodityById($Id);
         if (empty( $tblCommodity )) {
             $Stage->setContent(new Warning('Die Leistung konnte nicht abgerufen werden'));
@@ -394,9 +383,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Leistung');
         $Stage->setDescription('Artikel auswählen');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity',
-            new ChevronLeft()
-        ));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity',
+//            new ChevronLeft()
+//        ));
+        $Stage->addButton(new Backward());
         $tblCommodity = Commodity::useService()->getCommodityById($Id);
         if (empty( $tblCommodity )) {
             $Stage->setContent(new Warning('Die Leistung konnte nicht abgerufen werden'));

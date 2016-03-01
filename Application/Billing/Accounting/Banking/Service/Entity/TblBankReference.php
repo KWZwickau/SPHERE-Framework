@@ -33,10 +33,6 @@ class TblBankReference extends Element
      * @Column(type="date")
      */
     protected $ReferenceDate;
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsVoid;
 
     /**
      * @return string $Reference
@@ -102,23 +98,5 @@ class TblBankReference extends Element
     {
 
         $this->ReferenceDate = $ReferenceDate;
-    }
-
-    /**
-     * @return boolean $IsVoid
-     */
-    public function isVoid()
-    {
-
-        return $this->IsVoid;
-    }
-
-    /**
-     * @param boolean $IsVoid
-     */
-    public function setVoid($IsVoid)
-    {
-
-        $this->IsVoid = $IsVoid;
     }
 }

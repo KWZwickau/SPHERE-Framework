@@ -265,24 +265,18 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            $tblItemType = Item::useService()->getItemTypeById($Item['ItemType']);
-            if ($tblItemType) {
-                if ((new Data($this->getBinding()))->updateItem(
-                    $tblItem,
-                    $Item['Name'],
-                    $Item['Description']
-                )
-                ) {
-                    $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                        .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS);
-                } else {
-                    $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                        .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR);
-                };
+            if ((new Data($this->getBinding()))->updateItem(
+                $tblItem,
+                $Item['Name'],
+                $Item['Description']
+            )
+            ) {
+                $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
+                    .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_SUCCESS);
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
                     .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR);
-            }
+            };
         }
         return $Stage;
     }

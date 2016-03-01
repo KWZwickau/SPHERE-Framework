@@ -35,6 +35,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -59,10 +60,8 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendItemStatus($Item = null)
     {
 
-        $Stage = new Stage();
-        $Stage->setTitle('Artikel');
-        $Stage->setDescription('Übersicht');
-
+        $Stage = new Stage('Artikel', 'Übersicht');
+        new Backward();
         $tblItemAll = Item::useService()->getItemAll();
 
         $TableContent = array();
@@ -225,6 +224,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Content[] = 'Geschwister: '.$tblCalculation->getServiceStudentChildRank()->getName();
                 }
                 if (!$Confirm) {
+                    $Stage->addButton(new Backward());
                     $Stage->setContent(
                         new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                             new Panel(new Question().' Diese Zurodnung wirklich entfernen?',
@@ -285,70 +285,71 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Artikel');
         $Stage->setDescription('Bearbeiten');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item',
-            new ChevronLeft()
-        ));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item',
+//            new ChevronLeft()
+//        ));
+        $Stage->addButton(new Backward());
 
         $tblItem = Item::useService()->getItemById($Id);
         if (!$tblItem) {
-            $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
-        } else {
-            $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Item'] )) {
-                $Global->POST['Item']['Name'] = $tblItem->getName();
-                $Global->POST['Item']['Description'] = $tblItem->getDescription();
+            $Stage->setContent(new Warning('Der Artikel konnten nicht aufgerufenn werden'));
+            return $Stage.new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR);
+        }
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Item'] )) {
+            $Global->POST['Item']['Name'] = $tblItem->getName();
+            $Global->POST['Item']['Description'] = $tblItem->getDescription();
 //                $Global->POST['Item']['ItemType'] = $tblItem->getTblItemType()->getId();
-                $Global->savePost();
-            }
+            $Global->savePost();
+        }
 
-            $PanelValue = array();
+        $PanelValue = array();
 
-            $PanelValue[0] = $tblItem->getName();
-            $PanelValue[1] = $tblItem->getDescription();
-            $PanelValue[2] = $tblItem->getTblItemType()->getName();
+        $PanelValue[0] = $tblItem->getName();
+        $PanelValue[1] = $tblItem->getDescription();
+        $PanelValue[2] = $tblItem->getTblItemType()->getName();
 
-            $PanelContent = new Layout(
-                new LayoutGroup(array(
-                    new LayoutRow(array(
+        $PanelContent = new Layout(
+            new LayoutGroup(array(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Name', $PanelValue[0], Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new LayoutColumn(
+                        new Panel('Beschreibung', $PanelValue[1], Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new LayoutColumn(
+                        new Panel('Art', $PanelValue[2], Panel::PANEL_TYPE_INFO)
+                        , 4),
+                )),
+            ))
+        );
+
+
+        $Form = $this->formItemChange()
+            ->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
                         new LayoutColumn(
-                            new Panel('Name', $PanelValue[0], Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Beschreibung', $PanelValue[1], Panel::PANEL_TYPE_INFO)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Art', $PanelValue[2], Panel::PANEL_TYPE_INFO)
-                            , 4),
-                    )),
-                ))
-            );
-
-
-            $Form = $this->formItemChange()
-                ->appendFormButton(new Primary('Speichern', new Save()))
-                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                $PanelContent
-                            )
+                            $PanelContent
                         )
                     )
                 )
-                .new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(array(
-                            new LayoutColumn(new Well(
-                                Item::useService()->changeItem($Form, $tblItem, $Item)
-                            ))
-                        )), new Title(new Pencil().' Bearbeiten')
-                    )
+            )
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(new Well(
+                            Item::useService()->changeItem($Form, $tblItem, $Item)
+                        ))
+                    )), new Title(new Pencil().' Bearbeiten')
                 )
-            );
-        }
+            )
+        );
 
         return $Stage;
     }
@@ -363,7 +364,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Preise', 'mit Bedingungen');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item', new ChevronLeft()));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item', new ChevronLeft()));
+        $Stage->addButton(new Backward());
         $tblItem = Item::useService()->getItemById($Id);
         if ($tblItem) {
             $tblCalculationList = Item::useService()->getCalculationAllByItem($tblItem);
@@ -560,6 +562,10 @@ class Frontend extends Extension implements IFrontendInterface
                 .new Redirect('/Billing/Inventory/Item', Redirect::TIMEOUT_ERROR)
             );
         } else {
+//            $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item/Calculation', new ChevronLeft(),
+//            array('Id' => $tblItem->getId())));
+            $Stage->addButton(new Backward());
+
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Calculation'] )) {
                 $Global->POST['Calculation']['Value'] = $tblCalculation->getValue();
@@ -590,9 +596,6 @@ class Frontend extends Extension implements IFrontendInterface
             );
             $Form->appendFormButton(new Primary('Speichern', new Save()));
             $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
-            $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item/Calculation', new ChevronLeft(),
-                array('Id' => $tblItem->getId())));
             $Stage->setContent(
                 $this->layoutArtikel($tblItem)
                 .new Layout(

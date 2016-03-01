@@ -33,7 +33,7 @@ class Banking implements IModuleInterface
          */
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__,
-                __NAMESPACE__.'\Frontend::frontendDebtor'
+                __NAMESPACE__.'\Frontend::frontendBanking'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/Billing/Accounting/BankAccount',
@@ -45,19 +45,15 @@ class Banking implements IModuleInterface
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Add',
-                __NAMESPACE__.'\Frontend::frontendDebtorAdd'
+                __NAMESPACE__.'\Frontend::frontendBankingAdd'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Change',
-                __NAMESPACE__.'\Frontend::frontendDebtorChange'
+                __NAMESPACE__.'\Frontend::frontendBankingChange'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/Billing/Accounting/BankAccount/Add',
                 __NAMESPACE__.'\Frontend::frontendBankAccountAdd'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/BankAccount/View',
-                __NAMESPACE__.'\Frontend::frontendBankAccountView'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/Billing/Accounting/BankAccount/Change',
@@ -72,8 +68,8 @@ class Banking implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendBankReferenceChange'
             ));
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/BankReference/Deactivate',
-                __NAMESPACE__.'\Frontend::frontendBankReferenceDeactivate'
+            Main::getDispatcher()->createRoute('/Billing/Accounting/BankReference/Remove',
+                __NAMESPACE__.'\Frontend::frontendBankReferenceRemove'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/Billing/Accounting/Pay/Selection',

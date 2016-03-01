@@ -160,14 +160,14 @@ class Service extends AbstractService
      *
      * @return string
      */
-    public function deactivateBankReference(TblBankReference $tblBankReference)
+    public function removeBankReference(TblBankReference $tblBankReference)
     {
 
         if (null === $tblBankReference) {
             return '';
         }
 
-        return (new Data($this->getBinding()))->deactivateReference($tblBankReference);
+        return (new Data($this->getBinding()))->removeReference($tblBankReference);
     }
 
     /**
@@ -633,12 +633,10 @@ class Service extends AbstractService
             )
             ) {
                 return new Success('Das Konto ist geändert worden')
-                .new Redirect('/Billing/Accounting/BankAccount/View', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblBankAccount->getId()));
+                .new Redirect('/Billing/Accounting/BankAccount', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Warning('Das Konto konnte nicht geändert werden werden')
-                .new Redirect('/Billing/Accounting/BankAccount/View', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblBankAccount->getId()));
+                .new Redirect('/Billing/Accounting/BankAccount', Redirect::TIMEOUT_ERROR);
             }
 
         }

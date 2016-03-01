@@ -26,7 +26,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Briefcase;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -46,6 +45,7 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -67,7 +67,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendDebtor()
+    public function frontendBanking()
     {
 
         $Stage = new Stage();
@@ -77,7 +77,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        $Stage->addButton(
 //            new Standard('Debitor anlegen', '/Billing/Accounting/Banking/Person', new Plus())
 //        );
-
+        new Backward();
         $TableContent = array();
         $tblDebtorAll = Banking::useService()->getDebtorAll();
         if ($tblDebtorAll) {
@@ -87,7 +87,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPerson = $tblDebtor->getServicePeoplePerson();
                 $Item['Person'] = $tblPerson->getFullName();
                 $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                $Item['Address'] = '';
+                $Item['Address'] = new Warning('Nicht hinterlegt');
                 if ($tblAddress) {
                     $Item['Address'] = $tblAddress->getGuiString();
                 }
@@ -111,9 +111,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($TableContent, null,
                                 array(
-                                    'DebtorNumber' => 'Debitoren-Nr',
                                     'Person'       => 'Name',
                                     'Address'      => 'Adresse',
+                                    'DebtorNumber' => 'Debitoren-Nr',
                                     'Option'       => ''
                                 ))
                         )
@@ -132,11 +132,12 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendDebtorAdd($Id, $Debtor = null)
+    public function frontendBankingAdd($Id, $Debtor = null)
     {
 
         $Stage = new Stage('Debitor', 'Anlegen');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking', new ChevronLeft()));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking', new ChevronLeft()));
+        $Stage->addButton(new Backward());
         $tblPerson = Person::useService()->getPersonById($Id);
 
         $Content = '';
@@ -197,11 +198,12 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendDebtorChange($Id, $Debtor = null)
+    public function frontendBankingChange($Id, $Debtor = null)
     {
 
         $Stage = new Stage('Debitor', 'Bearbeiten');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking', new ChevronLeft()));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking', new ChevronLeft()));
+        $Stage->addButton(new Backward());
         $tblDebtor = Banking::useService()->getDebtorById($Id);
         $tblPerson = $tblDebtor->getServicePeoplePerson();
         $PersonPanel = '';
@@ -283,7 +285,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Bankinformation', 'Übersicht');
-
+        new Backward();
         $TableContent = array();
         $tblBankAccountAll = Banking::useService()->getBankAccountAll();
         if ($tblBankAccountAll) {
@@ -315,12 +317,12 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($TableContent, null,
                                 array(
+                                    'Person'   => 'Person',
                                     'Owner'    => 'Kontoinhaber',
                                     'Bank'     => 'Bank',
                                     'IBAN'     => 'IBAN',
                                     'BIC'      => 'BIC',
                                     'CashSign' => 'Kassenzeichen',
-                                    'Person'   => 'Person',
                                     'Option'   => ''
                                 ))
                         )
@@ -343,7 +345,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Kontodaten', 'Anlegen');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankAccount', new ChevronLeft()));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankAccount', new ChevronLeft()));
+        $Stage->addButton(new Backward());
         $tblPerson = Person::useService()->getPersonById($Id);
         $PersonPanel = '';
         if ($tblPerson) {
@@ -424,53 +427,6 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendBankAccountView($Id)
-    {
-
-        $Stage = new Stage('Konto', 'Detailansicht');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankAccount', new ChevronLeft()));
-        $tblBankAccount = Banking::useService()->getBankAccountById($Id);
-        if ($tblBankAccount) {
-
-            $tblPerson = $tblBankAccount->getServicePeoplePerson();
-            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-            $PersonPanel = new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
-                                new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
-                            , 4)
-                    )), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
-                )
-            );
-
-            $Stage->setContent(
-                $PersonPanel
-                .$this->layoutBankAccount($tblBankAccount)
-                .new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new Standard('Bearbeiten', '/Billing/Accounting/BankAccount/Change', new Pencil(),
-                                    array('Id' => $tblBankAccount->getId()))
-                            )
-                        )
-                    )
-                )
-            );
-        } else {
-            $Stage->setContent(
-                new \SPHERE\Common\Frontend\Message\Repository\Warning('Konto nicht gefunden')
-                .new Redirect('/Billing/Accounting/BankAccount', Redirect::TIMEOUT_ERROR)
-            );
-        }
-        return $Stage;
-    }
-
     /**
      * @param      $Id
      * @param null $Account
@@ -481,7 +437,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Konto', 'Bearbeiten');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankAccount', new ChevronLeft()));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankAccount', new ChevronLeft()));
+        $Stage->addButton(new Backward());
         $tblBankAccount = Banking::useService()->getBankAccountById($Id);
         if ($tblBankAccount) {
 
@@ -616,6 +573,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Mandatsreferenz', 'Übersicht');
+        new Backward();
         $TableContent = array();
         $tblBankReferenceAll = Banking::useService()->getBankReferenceAll();
         if ($tblBankReferenceAll) {
@@ -632,7 +590,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Pencil(), array(
                             'Id' => $tblBankReference->getId()
                         ), 'Datum bearbeiten'))
-                    .(new Standard('', '/Billing/Accounting/BankReference/Deactivate',
+                    .(new Standard('', '/Billing/Accounting/BankReference/Remove',
                         new Disable(), array(
                             'Id' => $tblBankReference->getId()
                         ), 'Mandatsreferenz entfernen'))->__toString();
@@ -648,9 +606,9 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($TableContent, null,
                                 array(
+                                    'Person'        => 'Person',
                                     'Reference'     => 'Mandatsreferenz',
                                     'ReferenceDate' => 'Gültig ab',
-                                    'Person'        => 'Person',
                                     'Option'        => ''
                                 ))
                         )
@@ -672,7 +630,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Mandatsreferenz', 'Anlegen');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankReference', new ChevronLeft()));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankReference', new ChevronLeft()));
+        $Stage->addButton(new Backward());
         $tblPerson = Person::useService()->getPersonById($Id);
         $ReferenceContent = array();
         $PersonPanel = '';
@@ -747,7 +706,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Mandatsreferenz', 'Bearbeiten');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankReference', new ChevronLeft()));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankReference', new ChevronLeft()));
+        $Stage->addButton(new Backward());
         $tblBankReference = Banking::useService()->getBankReferenceById($Id);
         $tblPerson = $tblBankReference->getServicePeoplePerson();
         $PersonPanel = '';
@@ -935,7 +895,7 @@ class Frontend extends Extension implements IFrontendInterface
         return false;
     }
 
-    public function frontendBankReferenceDeactivate($Id, $Confirm = false)
+    public function frontendBankReferenceRemove($Id, $Confirm = false)
     {
 
         $Stage = new Stage('Mandatsreferenz', 'Entfernen');
@@ -979,6 +939,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Content[] = 'Mandatsreferenz: '.$tblBankReference->getReference();
             $Content[] = 'Datum: '.$tblBankReference->getReferenceDate();
             if (!$Confirm) {
+                $Stage->addButton(new Backward());
                 $Stage->setContent(
                     $PersonPanel
                     .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
@@ -986,7 +947,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $Content,
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
-                                'Ja', '/Billing/Accounting/BankReference/Deactivate', new Ok(),
+                                'Ja', '/Billing/Accounting/BankReference/Remove', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
                             .new Standard(
@@ -1000,7 +961,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            ( Banking::useService()->deactivateBankReference($tblBankReference)
+                            ( Banking::useService()->removeBankReference($tblBankReference)
                                 ? new Success('Mandatsreferenz entfernt')
                                 .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_SUCCESS)
                                 : new Danger('Mandatsreferenz konnte nicht entfernt werden')
@@ -1047,8 +1008,9 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Redirect('Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
 
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification', new ChevronLeft()
-            , array('Id' => $tblBasket->getId())));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification', new ChevronLeft()
+//            , array('Id' => $tblBasket->getId())));
+        $Stage->addButton(new Backward());
         $Global = $this->getGlobal();
 
         $TableContent = array();
@@ -1101,10 +1063,10 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         });
                     }
-                    $tblDebtor = Banking::useService()->getDebtorByPerson($tblPerson);
+//                    $tblDebtor = Banking::useService()->getDebtorByPerson($tblPerson);
                     $tblBankAccount = Banking::useService()->getBankAccountByPerson($tblPerson);
                     $tblBankReference = Banking::useService()->getBankReferenceByPerson($tblPerson);
-                    if (!empty( $tblDebtor ) || !empty( $tblBankAccount ) || !empty( $tblBankReference )) {
+                    if (!empty( $tblBankAccount ) || !empty( $tblBankReference )) { // ToDO /*!empty( $tblDebtor ) ||*/ Schüler nur mit Debitornummer auch anzeigen lassen?
                         $PaymentPerson[] = $tblPerson;
                     }
 
@@ -1206,8 +1168,9 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage.new Redirect('Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
 
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification', new ChevronLeft()
-            , array('Id' => $tblBasket->getId())));
+//        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification', new ChevronLeft()
+//            , array('Id' => $tblBasket->getId())));
+        $Stage->addButton(new Backward(true));
         $Global = $this->getGlobal();
 
         $TableContent = array();

@@ -131,9 +131,6 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblBankReference', 'ReferenceDate')) {
             $Table->addColumn('ReferenceDate', 'date', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblBankReference', 'isVoid')) {
-            $Table->addColumn('isVoid', 'boolean');
-        }
         if (!$this->getConnection()->hasColumn('tblBankReference', 'ServicePeople_Person')) {
             $Table->addColumn('ServicePeople_Person', 'bigint', array('notnull' => false));
         }
