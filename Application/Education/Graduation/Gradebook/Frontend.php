@@ -617,31 +617,26 @@ class Frontend extends Extension implements IFrontendInterface
         $tblTestType = Evaluation::useService()->getTestTypeByIdentifier('TEST');
 
         if ($tblDivisionSubject->getTblSubjectGroup()) {
-            $tblStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
-            if ($tblStudentList) {
-                foreach ($tblStudentList as $tblSubjectStudent) {
-                    if ($tblSubjectStudent->getServiceTblPerson() && $tblDivisionSubject->getServiceTblSubject()) {
-                        $grades[$tblSubjectStudent->getServiceTblPerson()->getId()] = Gradebook::useService()->getGradesByStudent(
-                            $tblSubjectStudent->getServiceTblPerson(),
-                            $tblDivision,
-                            $tblDivisionSubject->getServiceTblSubject(),
-                            $tblTestType
-                        );
-                    }
-                }
-            }
+            $tblStudentList = Division::useService()->getStudentByDivisionSubject($tblDivisionSubject);
         } else {
             $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
-            if ($tblStudentList) {
-                foreach ($tblStudentList as $tblPerson) {
-                    if ($tblDivisionSubject->getServiceTblSubject()) {
-                        $grades[$tblPerson->getId()] = Gradebook::useService()->getGradesByStudent(
-                            $tblPerson,
-                            $tblDivision,
-                            $tblDivisionSubject->getServiceTblSubject(),
-                            $tblTestType
-                        );
-                    }
+        }
+
+        if ($tblStudentList) {
+            foreach ($tblStudentList as $key => $row) {
+                $name[$key] = strtoupper($row->getLastName());
+                $firstName[$key] = strtoupper($row->getFirstSecondName());
+            }
+            array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $tblStudentList);
+
+            foreach ($tblStudentList as $tblPerson) {
+                if ($tblDivisionSubject->getServiceTblSubject()) {
+                    $grades[$tblPerson->getId()] = Gradebook::useService()->getGradesByStudent(
+                        $tblPerson,
+                        $tblDivision,
+                        $tblDivisionSubject->getServiceTblSubject(),
+                        $tblTestType
+                    );
                 }
             }
         }

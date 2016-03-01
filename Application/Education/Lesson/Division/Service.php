@@ -607,6 +607,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getStudentByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        return (new Data($this->getBinding()))->getStudentByDivisionSubject($tblDivisionSubject);
+    }
+
+    /**
      * @param TblSubjectStudent $tblSubjectStudent
      *
      * @return string
