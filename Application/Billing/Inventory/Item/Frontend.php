@@ -78,7 +78,7 @@ class Frontend extends Extension implements IFrontendInterface
                     /** @var TblCalculation $tblCalculation */
 
                     foreach ($tblCalculationList as $Key => $tblCalculation) {
-                        $CalculationContent[$Key] = $tblCalculation->getPriceString();
+                        $CalculationContent[$Key] = 'Bedingung: '.$tblCalculation->getPriceString();
                         if ($tblCalculation->getServiceSchoolType()) {
                             $CalculationContent[$Key] .= ' - '.$tblCalculation->getServiceSchoolType()->getName();
                         } else {

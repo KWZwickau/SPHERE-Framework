@@ -143,6 +143,18 @@ class Data extends AbstractData
 
     /**
      * @param TblPerson $tblPerson
+     *
+     * @return false|TblDebtorSelection[]
+     */
+    public function getDebtorSelectionByPerson(TblPerson $tblPerson)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection',
+            array(TblDebtorSelection::SERVICE_PEOPLE_PERSON => $tblPerson->getId()));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
      * @param TblItem   $tblItem
      * without Debtor
      *
@@ -181,6 +193,15 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection', $Id);
+    }
+
+    /**
+     * @return false|TblDebtorSelection[]
+     */
+    public function getDebtorSelectionAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDebtorSelection');
     }
 
     public function checkDebtorSelectionDebtor(TblDebtorSelection $tblDebtorSelection)

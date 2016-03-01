@@ -166,13 +166,19 @@ class Service extends AbstractService
         if (null === $tblBankReference) {
             return '';
         }
-        if ((new Data($this->getBinding()))->deactivateReference($tblBankReference)) {
-            return new Success('Die Deaktivierung ist erfasst worden')
-            .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_SUCCESS);
-        } else {
-            return new Danger('Die Referenz konnte nicht deaktiviert werden')
-            .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_ERROR);
-        }
+
+        return (new Data($this->getBinding()))->deactivateReference($tblBankReference);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return false|TblDebtorSelection[]
+     */
+    public function getDebtorSelectionByPerson(TblPerson $tblPerson)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionByPerson($tblPerson);
     }
 
     /**
@@ -208,6 +214,15 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getDebtorSelectionById($Id);
+    }
+
+    /**
+     * @return false|TblDebtorSelection[]
+     */
+    public function getDebtorSelectionAll()
+    {
+
+        return (new Data($this->getBinding()))->getDebtorSelectionAll();
     }
 
     /**
@@ -656,7 +671,7 @@ class Service extends AbstractService
             $Error = true;
         } else {
             if (Banking::useService()->getReferenceIsUsed($Reference['Reference'])) {
-                $Stage->setError('Reference[Reference]', 'Referenz ist schon vergeben');
+                $Stage->setError('Reference[Reference]', 'Mandatsreferenz ist schon vergeben');
                 $Error = true;
             }
         }
@@ -668,7 +683,7 @@ class Service extends AbstractService
                 $Reference['Reference'],
                 $Reference['ReferenceDate']);
 
-            return new Success('Die Referenz ist erfasst worden')
+            return new Success('Die Mandatsreferenz ist erfasst worden')
             .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_SUCCESS);
         }
 
@@ -690,7 +705,7 @@ class Service extends AbstractService
 
         $Error = false;
         if (isset( $Reference['ReferenceDate'] ) && empty( $Reference['ReferenceDate'] )) {
-            $Stage->setError('Reference[ReferenceDate]', 'Bitte geben sie eine Datum an');
+            $Stage->setError('Reference[ReferenceDate]', 'Bitte geben sie ein Datum an');
             $Error = true;
         }
 
@@ -700,7 +715,7 @@ class Service extends AbstractService
                 $tblBankReference,
                 $Reference['ReferenceDate']);
 
-            return new Success('Die Referenzdatum ist geändert worden')
+            return new Success('Das Mandatsreferenz-Datum ist geändert worden')
             .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_SUCCESS);
         }
 

@@ -14,6 +14,7 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -22,9 +23,11 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\CommodityItem;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\EyeOpen;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Money;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -85,16 +88,16 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Option'] =
                     ( !$tblBasketVerification ?
-                        (new Standard('Warenkorb Füllen', '/Billing/Accounting/Basket/Content',
+                        (new Standard('Warenkorb füllen', '/Billing/Accounting/Basket/Content',
                             new Listing(), array(
                                 'Id' => $tblBasket->getId()
                             )))->__toString() :
 
-                        (new Standard('Berechnung Bearbeiten', '/Billing/Accounting/Basket/Verification',
+                        (new Standard('Berechnung bearbeiten', '/Billing/Accounting/Basket/Verification',
                             new Pencil(), array(
                                 'Id' => $tblBasket->getId()
                             )))->__toString() ).
-                    (new Standard('Name Bearbeiten', '/Billing/Accounting/Basket/Change',
+                    (new Standard('Name bearbeiten', '/Billing/Accounting/Basket/Change',
                         new Edit(), array(
                             'Id' => $tblBasket->getId()
                         )))->__toString().
@@ -397,7 +400,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        $Stage->addButton(new Standard('Personen hinzufügen/entfernen', '/Billing/Accounting/Basket/Person/Select', null,
 //            array('Id' => $tblBasket->getId())));
         $Stage->addButton(
-            new Standard('Warenkorb Berechnen', '/Billing/Accounting/Basket/Calculation', null,
+            new Standard('Warenkorb berechnen', '/Billing/Accounting/Basket/Calculation', null,
                 array('Id' => $tblBasket->getId())));
 
         $TableItemContent = array();
@@ -525,7 +528,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['Calculation'] = count($tblCalculationList) - 1;
                     }
                 }
-                $Item['Option'] = new Standard('', '/Billing/Accounting/Basket/Item/Remove', new Disable(), array('Id' => $tblBasketItem->getId()));
+                $Item['Option'] = new Standard('', '/Billing/Accounting/Basket/Item/Remove', new Disable(),
+                    array('Id' => $tblBasketItem->getId()), 'Entfernen');
                 array_push($TableItemContent, $Item);
             });
         }
@@ -550,7 +554,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Type'] = $tblItem->getTblItemType()->getName();
                 $Item['Option'] = new Standard('', '/Billing/Accounting/Basket/Item/Add', new Plus(),
                     array('Id'     => $tblBasket->getId(),
-                          'ItemId' => $tblItem->getId()));
+                          'ItemId' => $tblItem->getId()), 'Hinzufügen');
 
                 array_push($TableItemAddContent, $Item);
             });
@@ -577,7 +581,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Option'] = new Standard('', '/Billing/Accounting/Basket/Commodity/Add', new Plus(),
                     array('Id'          => $tblBasket->getId(),
-                          'CommodityId' => $tblCommodity->getId()));
+                          'CommodityId' => $tblCommodity->getId()), 'Hinzufügen');
 
                 array_push($TableCommodityAddContent, $Item);
             });
@@ -672,31 +676,12 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if ($tblBasketVerification) {
             $Stage->setContent(new Warning('Berechnung schon im Gange'));
-            return $Stage.new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
+            return $Stage.new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblBasket->getId()));
         }
         $Stage->setContent(Basket::useService()->addItemToBasket($tblBasket, $tblItem));
         return $Stage;
     }
-
-//    /**
-//     * @param $Id
-//     * @param $CommodityId
-//     *
-//     * @return Stage
-//     */
-//    public function frontendBasketCommodityRemove($Id, $CommodityId)
-//    {
-//
-//        $Stage = new Stage();
-//        $Stage->setTitle('Warenkorb');
-//        $Stage->setDescription('Leistung Entfernen');
-//
-//        $tblBasket = Basket::useService()->getBasketById($Id);
-//        $tblCommodity = Commodity::useService()->getCommodityById($CommodityId);
-//        $Stage->setContent(Basket::useService()->removeCommodityToBasket($tblBasket, $tblCommodity));
-//
-//        return $Stage;
-//    }
 
     /**
      * @param $Id
@@ -712,7 +697,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if ($tblBasketVerification) {
             $Stage->setContent(new Warning('Berechnung schon im Gange'));
-            return $Stage.new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
+            return $Stage.new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblBasket->getId()));
         }
         $Stage->setContent(Basket::useService()->removeBasketItem($tblBasketItem));
         return $Stage;
@@ -736,7 +722,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if ($tblBasketVerification) {
             $Stage->setContent(new Warning('Berechnung schon im Gange'));
-            return $Stage.new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
+            return $Stage.new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblBasket->getId()));
         }
         $tblBasketPersonList = Basket::useService()->getBasketPersonAllByBasket($tblBasket);
         $tblPersonByBasketList = Basket::useService()->getPersonAllByBasket($tblBasket);
@@ -775,7 +762,7 @@ class Frontend extends Extension implements IFrontendInterface
                     (new Standard('', '/Billing/Accounting/Basket/Person/Remove',
                         new Disable(), array(
                             'Id' => $tblBasketPerson->getId()
-                        )))->__toString();
+                        ), 'Entfernen'))->__toString();
                 array_push($TableContent, $Temp);
             });
         }
@@ -801,7 +788,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Plus(), array(
                             'Id'       => $tblBasket->getId(),
                             'PersonId' => $tblPerson->getId()
-                        )))->__toString();
+                        ), 'Hinzufügen'))->__toString();
                 array_push($TableContentPerson, $Temp);
             });
         }
@@ -821,7 +808,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         )
-                    ), new Title('zugewiesene Personen')
+                    ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' zugewiesene Personen')
                 )
             ))
             .new Layout(
@@ -838,7 +825,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
 
                         )
-                    ), new Title('mögliche Personen')
+                    ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' mögliche Personen')
                 )
             )
         );
@@ -922,14 +909,14 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasket = Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
-            return $Stage.new Redirect('Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if ($tblBasketVerification) {
             $Stage->setContent(new Warning('Berechnung schon im Gange'));
             return $Stage.new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
         }
-        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Content', new ChevronLeft(), array('Id' => $tblBasket->getId())));
+        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket', new ChevronLeft(), array('Id' => $tblBasket->getId())));
 
         $Stage->setContent(
             $this->layoutBasket($tblBasket)
@@ -959,23 +946,23 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasket = Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
-            return $Stage.new Redirect('Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
         $Stage->addButton(new Standard('Warenkorb verlassen', '/Billing/Accounting/Basket', new ChevronLeft()));
         $Stage->addButton(new \SPHERE\Common\Frontend\Link\Repository\Danger('Berechnungen leeren', '/Billing/Accounting/Basket/Verification/Destroy', new Disable()
             , array('BasketId' => $tblBasket->getId())));
-        $Stage->addButton(new Standard('Zahlung Fakturieren', '/Billing/Accounting/Pay/Selection', new Ok()
+        $Stage->addButton(new Standard('Zahlung fakturieren', '/Billing/Accounting/Pay/Selection', new Ok()
             , array('Id' => $tblBasket->getId())));
 
         $tblPersonList = Basket::useService()->getPersonAllByBasket($tblBasket);
         if (!$tblPersonList) {
             $Stage->setContent(new Warning('Keine Personen in der Berechnung enthalten.'));
-            return $Stage.new Redirect('Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if (!$tblBasketVerification) {
             $Stage->setContent(new Warning('Keine Daten zum fakturieren vorhanden.'));
-            return $Stage.new Redirect('Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
 
         $TableContent = array();
@@ -1025,12 +1012,12 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                $Item['Option'] = new Standard('', '/Billing/Accounting/Basket/Verification/Person', new Pencil(),
+                $Item['Option'] = new Standard('', '/Billing/Accounting/Basket/Verification/Person', new EyeOpen(),
                         array('PersonId' => $tblPerson->getId(),
-                              'BasketId' => $tblBasket->getId()))
+                              'BasketId' => $tblBasket->getId()), 'Artikel anzeigen')
                     .new Standard('', '/Billing/Accounting/Basket/Verification/Person/Remove', new Disable(),
                         array('Id'       => $tblBasket->getId(),
-                              'PersonId' => $tblPerson->getId()));
+                              'PersonId' => $tblPerson->getId()), 'Person aus Berechnung entfernen');
 
                 array_push($TableContent, $Item);
             });
@@ -1056,7 +1043,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Option'       => '',
                                 ))
                         )
-                    )
+                    ), new Title(new Listing().' Übersicht')
                 )
             )
         );
@@ -1073,7 +1060,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
-            return $Stage.new Redirect('Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
         if (!$tblPerson) {
             $Stage->setContent(new Warning('Person nicht gefunden'));
@@ -1100,9 +1087,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Quantity'] = $tblBasketVerification->getQuantity();
                 $Item['Summary'] = $tblBasketVerification->getSummaryPrice();
                 $Item['Option'] = new Standard('', '/Billing/Accounting/Basket/Verification/Edit', new Pencil(),
-                        array('Id' => $tblBasketVerification->getId()))
+                        array('Id' => $tblBasketVerification->getId()), 'Preis / Anzahl bearbeiten')
                     .new Standard('', '/Billing/Accounting/Basket/Verification/Destroy', new Disable(),
-                        array('Id' => $tblBasketVerification->getId()));
+                        array('Id' => $tblBasketVerification->getId()), 'Artikel von Person entfernen');
 
                 array_push($TableContent, $Item);
             });
@@ -1145,7 +1132,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new Panel('Adresse', array($Address)
                                 , Panel::PANEL_TYPE_SUCCESS)
                             , 6),
-                    ))
+                    )), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
                 )
             )
             .new Layout(
@@ -1161,7 +1148,7 @@ class Frontend extends Extension implements IFrontendInterface
                                       'Option'      => '',
                                 ))
                         )
-                    )
+                    ), new Title(new Listing().' Übersicht')
                 )
             )
         );
@@ -1175,7 +1162,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasketVerification = Basket::useService()->getBasketVerificationById($Id);
         if (!$tblBasketVerification) {
             $Stage->setContent(new Warning('Warenkorbinhalt nicht gefunden'));
-            return $Stage.new Redirect('Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
         $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification/Person', new ChevronLeft(),
             array('PersonId' => $tblBasketVerification->getServicePeoplePerson()->getId(),
@@ -1247,7 +1234,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Gesamtpreis: '.$tblBasketVerification->getSummaryPrice(),
                         ), Panel::PANEL_TYPE_SUCCESS)
                         , 6),
-                ))
+                )), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person / '.new CommodityItem().' Artikel')
             )
         );
 
@@ -1268,7 +1255,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             )
         );
-        $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()))
+        $Form->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
         $Stage->setContent(
@@ -1378,12 +1365,14 @@ class Frontend extends Extension implements IFrontendInterface
             if (!$Confirm) {
                 $Person = '';
                 $Item = '';
+                $Price = '';
                 $ItemType = '';
                 if ($tblBasketVerification->getServicePeoplePerson()) {
                     $Person = $tblBasketVerification->getServicePeoplePerson()->getFullName();
                 }
                 if ($tblBasketVerification->getServiceInventoryItem()) {
                     $Item = $tblBasketVerification->getServiceInventoryItem()->getName();
+                    $Price = $tblBasketVerification->getSummaryPrice();
                     if ($tblBasketVerification->getServiceInventoryItem()->getTblItemType()) {
                         $ItemType = $tblBasketVerification->getServiceInventoryItem()->getTblItemType()->getName();
                     }
@@ -1395,6 +1384,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array(
                                 'Person: '.$Person,
                                 'Artikel: '.$Item,
+                                'Preis: '.$Price,
                                 'Artikel Typ: '.$ItemType,
                             ),
                             Panel::PANEL_TYPE_DANGER,

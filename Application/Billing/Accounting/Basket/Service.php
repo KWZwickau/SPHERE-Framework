@@ -276,9 +276,88 @@ class Service extends AbstractService
             }
             foreach ($tblItemList as $tblItem) {
                 $tblCalculationList = Item::useService()->getCalculationAllByItem($tblItem);
+
+                /** @var TblCalculation $tblCalculation */
                 if (is_array($tblCalculationList)) {
-                    /** @var TblCalculation $tblCalculation */
-                    if (count($tblCalculationList) === 1) {
+                    // Berechnung für Sammelleistung
+                    if ($tblItem->getTblItemType()->getName() === 'Sammelleistung') {
+                        foreach ($tblCalculationList as $tblCalculation) {
+                            if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
+                                break;
+                            }
+                            $ItemChildRankId = false;
+                            $ItemCourseId = false;
+                            $ItemChildRankName = '';
+                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+                            if ($tblItemCourseType) {
+                                $ItemCourseId = $tblItemCourseType->getId();
+                            }
+                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+                            if ($tblItemChildRank) {
+                                $ItemChildRankId = $tblItemChildRank->getId();
+                                $ItemChildRankName = $tblItemChildRank->getName();
+                            }
+
+                            if (count($tblCalculationList) === 1) {
+                                $Price = $tblCalculation->getValue();
+                                $Price = ( ceil(( $Price / $PersonCount ) * 100) ) / 100; // Centbetrag immer aufrunden
+                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                            } else {
+                                // Bedinungen stimmen
+                                if ($PersonChildRank === $ItemChildRankId && $PersonCourse === $ItemCourseId) {
+                                    if ($PersonChildRank !== false && $PersonCourse !== false) {
+                                        $Price = $tblCalculation->getValue();
+                                        if ($ItemChildRankId === false && $ItemCourseId === false) {
+                                            $Price = ( ceil(( $Price / $PersonCount ) * 100) ) / 100; // Centbetrag immer aufrunden
+                                        }
+                                        (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                                    }
+                                }
+                                // Fehlende Geschwisterangabe = 1.Geschwisterkind
+                                if ($PersonChildRank === false && $ItemChildRankName === '1. Geschwisterkind' && $PersonCourse === $ItemCourseId) {
+                                    $Price = $tblCalculation->getValue();
+                                    if ($ItemChildRankId === false && $ItemCourseId === false) {
+                                        $Price = ( ceil(( $Price / $PersonCount ) * 100) ) / 100; // Centbetrag immer aufrunden
+                                    }
+                                    (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                                }
+                            }
+                        }
+
+                        foreach ($tblCalculationList as $tblCalculation) {
+                            if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
+                                break;
+                            }
+                            $ItemChildRankId = false;
+                            $ItemCourseId = false;
+                            $ItemChildRankName = '';
+                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+                            if ($tblItemCourseType) {
+                                $ItemCourseId = $tblItemCourseType->getId();
+                            }
+                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+                            if ($tblItemChildRank) {
+                                $ItemChildRankId = $tblItemChildRank->getId();
+                                $ItemChildRankName = $tblItemChildRank->getName();
+                            }
+                            if ($PersonChildRank !== false && $PersonCourse !== false) {
+                                if (false === $ItemChildRankId && $PersonCourse === $ItemCourseId) {    // Ignoriert Geschwisterkinder
+                                    $Price = $tblCalculation->getValue();
+                                    (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                                } elseif ($PersonChildRank === $ItemChildRankId && false === $ItemCourseId) { // Ignoriert SchulTyp
+                                    $Price = $tblCalculation->getValue();
+                                    (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                                } elseif ($PersonChildRank === false                                       //false = Geschwisterkind 1
+                                    && $ItemChildRankName === '1. Geschwisterkind'
+                                    && $PersonCourse === $ItemCourseId
+                                ) {
+                                    $Price = $tblCalculation->getValue();
+                                    (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                                }
+                            }
+                        }
+
+                        // Bedinungen nicht getroffen (Preisaufteilung)
                         foreach ($tblCalculationList as $tblCalculation) {
                             if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
                                 break;
@@ -293,19 +372,15 @@ class Service extends AbstractService
                             if ($tblItemChildRank) {
                                 $ItemChildRankId = $tblItemChildRank->getId();
                             }
-                            // Sammelleistung ohne Bedinungen auf alle Personen verteilen
                             if (false === $ItemChildRankId && false === $ItemCourseId) {
-                                if ($tblItem->getTblItemType()->getName() === 'Sammelleistung') {
-                                    $Price = $tblCalculation->getValue();
-                                    $Price = ( ceil(( $Price / $PersonCount ) * 100) ) / 100; // Centbetrag immer aufrunden
-                                } else {
-                                    $Price = $tblCalculation->getValue();
-                                }
+                                $Price = $tblCalculation->getValue();
+                                $Price = ( ceil(( $Price / $PersonCount ) * 100) ) / 100; // Centbetrag immer aufrunden
                                 (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
                             }
                         }
                     }
-                    if (count($tblCalculationList) > 1) {
+                    // Berechnung für Einzelleistung
+                    if ($tblItem->getTblItemType()->getName() === 'Einzelleistung') {
                         foreach ($tblCalculationList as $tblCalculation) {
                             if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
                                 break;
@@ -324,6 +399,11 @@ class Service extends AbstractService
                                 $ItemChildRankId = $tblItemChildRank->getId();
                                 $ItemChildRankName = $tblItemChildRank->getName();
                                 $Changed = true;
+                            }
+                            if (count($tblCalculationList) === 1) {
+                                $Price = $tblCalculation->getValue();
+                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                                break;
                             }
                             // Bedinungen stimmen
                             if ($PersonChildRank === $ItemChildRankId && $PersonCourse === $ItemCourseId && $Changed === true) {
@@ -335,71 +415,154 @@ class Service extends AbstractService
                                 (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
                             }
                         }
-
-
                         foreach ($tblCalculationList as $tblCalculation) {
-
                             if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
                                 break;
                             }
                             $ItemChildRankId = false;
-                            $ItemChildRankName = '';
                             $ItemCourseId = false;
-                            $Changed = false;
-
                             $tblItemCourseType = $tblCalculation->getServiceSchoolType();
                             if ($tblItemCourseType) {
                                 $ItemCourseId = $tblItemCourseType->getId();
-                                $Changed = true;
                             }
                             $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
                             if ($tblItemChildRank) {
                                 $ItemChildRankId = $tblItemChildRank->getId();
-                                $ItemChildRankName = $tblItemChildRank->getName();
-                                $Changed = true;
                             }
-                            // Ignoriert Geschwisterkinder
-                            if (false === $ItemChildRankId && $PersonCourse === $ItemCourseId && $Changed === true) {
-                                $Price = $tblCalculation->getValue();
-                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
-                            }
-                            // Ignoriert SchulTyp
-                            if ($PersonChildRank === $ItemChildRankId && false === $ItemCourseId && $Changed === true) {
-                                $Price = $tblCalculation->getValue();
-                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
-                            }
-                            // Fehlende Geschwisterangabe = 1.Geschwisterkind
-                            if ($PersonChildRank === false && $ItemChildRankName === '1. Geschwisterkind' && false === $ItemCourseId && $Changed === true) {
-                                $Price = $tblCalculation->getValue();
-                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
-                            }
-                        }
-
-                        if ($tblItem->getTblItemType()->getName() === 'Sammelleistung') {
-                            foreach ($tblCalculationList as $tblCalculation) {
-                                if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
-                                    break;
-                                }
-                                $ItemChildRankId = false;
-                                $ItemCourseId = false;
-                                $tblItemCourseType = $tblCalculation->getServiceSchoolType();
-                                if ($tblItemCourseType) {
-                                    $ItemCourseId = $tblItemCourseType->getId();
-                                }
-                                $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
-                                if ($tblItemChildRank) {
-                                    $ItemChildRankId = $tblItemChildRank->getId();
-                                }
-                                // Das Verteilen der Sammelleistung bei vergebenen Bedingungen an alle nicht der Bedingung zutreffenden Personen
-                                if (false === $ItemChildRankId && false === $ItemCourseId) {
+                            if ($PersonChildRank !== false && $PersonCourse !== false) {
+                                if (false === $ItemChildRankId && $PersonCourse === $ItemCourseId) {    // Ignoriert Geschwisterkinder
                                     $Price = $tblCalculation->getValue();
-                                    $Price = ( ceil(( $Price / $PersonCount ) * 100) ) / 100; // Centbetrag immer aufrunden
+                                    (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+                                } elseif ($PersonChildRank === $ItemChildRankId && false === $ItemCourseId) { // Ignoriert SchulTyp
+                                    $Price = $tblCalculation->getValue();
                                     (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
                                 }
                             }
                         }
                     }
                 }
+
+
+//                    if (count($tblCalculationList) === 1) {
+//                        foreach ($tblCalculationList as $tblCalculation) {
+//                            if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
+//                                break;
+//                            }
+//                            $ItemChildRankId = false;
+//                            $ItemCourseId = false;
+//                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+//                            if ($tblItemCourseType) {
+//                                $ItemCourseId = $tblItemCourseType->getId();
+//                            }
+//                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+//                            if ($tblItemChildRank) {
+//                                $ItemChildRankId = $tblItemChildRank->getId();
+//                            }
+//                            // Sammelleistung ohne Bedinungen auf alle Personen verteilen
+//                            if (false === $ItemChildRankId && false === $ItemCourseId) {
+//                                if ($tblItem->getTblItemType()->getName() === 'Sammelleistung') {
+//                                    $Price = $tblCalculation->getValue();
+//                                    $Price = ( ceil(( $Price / $PersonCount ) * 100) ) / 100; // Centbetrag immer aufrunden
+//                                } else {
+//                                    $Price = $tblCalculation->getValue();
+//                                }
+//                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+//                            }
+//                        }
+//                    }
+//                    if (count($tblCalculationList) > 1) {
+//                        foreach ($tblCalculationList as $tblCalculation) {
+//                            if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
+//                                break;
+//                            }
+//                            $ItemChildRankId = false;
+//                            $ItemChildRankName = '';
+//                            $ItemCourseId = false;
+//                            $Changed = false;
+//                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+//                            if ($tblItemCourseType) {
+//                                $ItemCourseId = $tblItemCourseType->getId();
+//                                $Changed = true;
+//                            }
+//                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+//                            if ($tblItemChildRank) {
+//                                $ItemChildRankId = $tblItemChildRank->getId();
+//                                $ItemChildRankName = $tblItemChildRank->getName();
+//                                $Changed = true;
+//                            }
+//                            // Bedinungen stimmen
+//                            if ($PersonChildRank === $ItemChildRankId && $PersonCourse === $ItemCourseId && $Changed === true) {
+//                                $Price = $tblCalculation->getValue();
+//                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+//                            }   // Fehlende Geschwisterangabe = 1.Geschwisterkind
+//                            if ($PersonChildRank === false && $ItemChildRankName === '1. Geschwisterkind' && $PersonCourse === $ItemCourseId && $Changed === true) {
+//                                $Price = $tblCalculation->getValue();
+//                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+//                            }
+//                        }
+//
+//
+//                        foreach ($tblCalculationList as $tblCalculation) {
+//
+//                            if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
+//                                break;
+//                            }
+//                            $ItemChildRankId = false;
+//                            $ItemChildRankName = '';
+//                            $ItemCourseId = false;
+//                            $Changed = false;
+//
+//                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+//                            if ($tblItemCourseType) {
+//                                $ItemCourseId = $tblItemCourseType->getId();
+//                                $Changed = true;
+//                            }
+//                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+//                            if ($tblItemChildRank) {
+//                                $ItemChildRankId = $tblItemChildRank->getId();
+//                                $ItemChildRankName = $tblItemChildRank->getName();
+//                                $Changed = true;
+//                            }
+//                            // Ignoriert Geschwisterkinder
+//                            if (false === $ItemChildRankId && $PersonCourse === $ItemCourseId && $Changed === true) {
+//                                $Price = $tblCalculation->getValue();
+//                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+//                            }
+//                            // Ignoriert SchulTyp
+//                            if ($PersonChildRank === $ItemChildRankId && false === $ItemCourseId && $Changed === true) {
+//                                $Price = $tblCalculation->getValue();
+//                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+//                            }
+//                            // Fehlende Geschwisterangabe = 1.Geschwisterkind
+//                            if ($PersonChildRank === false && $ItemChildRankName === '1. Geschwisterkind' && false === $ItemCourseId && $Changed === true) {
+//                                $Price = $tblCalculation->getValue();
+//                                (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+//                            }
+//                        }
+//
+//                        if ($tblItem->getTblItemType()->getName() === 'Sammelleistung') {
+//                            foreach ($tblCalculationList as $tblCalculation) {
+//                                if ((new Data($this->getBinding()))->checkBasketVerificationIsSet($tblBasket, $tblPerson, $tblItem)) {
+//                                    break;
+//                                }
+//                                $ItemChildRankId = false;
+//                                $ItemCourseId = false;
+//                                $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+//                                if ($tblItemCourseType) {
+//                                    $ItemCourseId = $tblItemCourseType->getId();
+//                                }
+//                                $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+//                                if ($tblItemChildRank) {
+//                                    $ItemChildRankId = $tblItemChildRank->getId();
+//                                }
+//                                // Das Verteilen der Sammelleistung bei vergebenen Bedingungen an alle nicht der Bedingung zutreffenden Personen
+//                                if (false === $ItemChildRankId && false === $ItemCourseId) {
+//                                    $Price = $tblCalculation->getValue();
+//                                    $Price = ( ceil(( $Price / $PersonCount ) * 100) ) / 100; // Centbetrag immer aufrunden
+//                                    (new Data($this->getBinding()))->createBasketVerification($tblBasket, $tblPerson, $tblItem, $Price);
+//                                }
+//                            }
+//                        }
             }
         }
         //ToDO Personen ohne einträge automatisch entfernen?

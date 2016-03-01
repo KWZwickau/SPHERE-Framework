@@ -73,7 +73,14 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Item['Name'] = $tblCommodity->getName();
                 $Item['Description'] = $tblCommodity->getDescription();
-                $Item['ItemCount'] = Commodity::useService()->countItemAllByCommodity($tblCommodity);
+                $ItemList = Commodity::useService()->getItemAllByCommodity($tblCommodity);
+                $ItemArray = array();
+                if ($ItemList) {
+                    foreach ($ItemList as $ItemL) {
+                        $ItemArray[] = $ItemL->getName();
+                    }
+                }
+                $Item['ItemList'] = new \SPHERE\Common\Frontend\Layout\Repository\Listing($ItemArray);
                 $Item['Option'] = (new Standard('Bearbeiten', '/Billing/Inventory/Commodity/Change',
                         new Pencil(), array(
                             'Id' => $tblCommodity->getId()
@@ -100,10 +107,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             new TableData($TableContent, null,
                                 array(
-                                    'Name'         => 'Name',
-                                    'Description'  => 'Beschreibung',
-                                    'ItemCount'    => 'Artikelanzahl',
-                                    'Option'       => ''
+                                    'Name'        => 'Name',
+                                    'Description' => 'Beschreibung',
+                                    'ItemList'    => 'Artikel',
+                                    'Option'      => ''
                                 )
                             )
                         )
