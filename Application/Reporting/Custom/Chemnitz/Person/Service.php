@@ -778,8 +778,8 @@ class Service
         if (!empty( $studentList )) {
             foreach ($studentList as $tblPerson) {
 
-                if (( $debtorList = Banking::useService()->getDebtorAllByPerson($tblPerson) )) {
-                    $tblPerson->DebtorNumber = $debtorList[0]->getDebtorNumber();
+                if (( $debtor = Banking::useService()->getDebtorByPerson($tblPerson) )) {
+                    $tblPerson->DebtorNumber = $debtor->getDebtorNumber();
                 } else {
                     $tblPerson->DebtorNumber = '';
                 }
