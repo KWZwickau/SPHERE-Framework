@@ -1175,7 +1175,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $tableColumns['Grade'] = 'Zensur';
-            $tableColumns['Comment'] = 'Kommentar';
+            $tableColumns['Comment'] = 'Optionaler Grund';
         } else {
             $period = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getName() : '';
             $gradeType = $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '';
@@ -1183,7 +1183,7 @@ class Frontend extends Extension implements IFrontendInterface
             $tableColumns = array(
                 'Name' => 'Schüler',
                 'Grade' => 'Zensur',
-                'Comment' => 'Kommentar',
+                'Comment' => 'Optionaler Grund',
                 'Attendance' => 'Nicht teilgenommen'
             );
         }
