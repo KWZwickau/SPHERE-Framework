@@ -541,6 +541,23 @@ class Frontend extends Extension implements IFrontendInterface
         $tblGradeTypeList = Gradebook::useService()->getGradeTypeAllByTestType($tblTestType);
         $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
 
+        // select current period
+        $Global = $this->getGlobal();
+        if (!$Global->POST && $tblPeriodList) {
+            foreach ($tblPeriodList as $tblPeriod){
+                if ($tblPeriod->getFromDate() && $tblPeriod->getToDate())
+                {
+                    $fromDate = (new \DateTime($tblPeriod->getFromDate()))->format("Y-m-d");
+                    $toDate = (new \DateTime($tblPeriod->getToDate()))->format("Y-m-d");
+                    $now = (new \DateTime('now'))->format("Y-m-d");
+                    if ($fromDate <= $now && $now <= $toDate) {
+                        $Global->POST['Test']['Period'] = $tblPeriod->getId();
+                    }
+                }
+            }
+            $Global->savePost();
+        }
+
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
