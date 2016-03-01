@@ -35,8 +35,6 @@ class Backward extends Standard
         }
         $Session->saveHistory($History);
 
-        $this->getDebugger()->screenDump( $History );
-
         $this->BackStep = $History->getStep();
 
         if ($this->BackStep) {

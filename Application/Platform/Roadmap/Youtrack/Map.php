@@ -69,11 +69,7 @@ class Map
             /** @var Sprint $Sprint */
             foreach ((array)$Sprints as $Index => $Sprint) {
                 if ($Sprint->isDone()) {
-//                    if (isset( $Sprints[( $Index + 1 )] )) {
-//                        $this->VersionRelease = $Sprints[( $Index + 1 )]->getVersion();
-//                    } else {
                     $this->VersionRelease = $Sprint->getVersion();
-//                    }
                     break;
                 }
             }
