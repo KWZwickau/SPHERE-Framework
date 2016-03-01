@@ -503,7 +503,7 @@ class Frontend extends Extension implements IFrontendInterface
             if (is_array($tblDivisionStudentActive)) {
                 array_walk($tblDivisionStudentActive, function (TblPerson &$Entity) use (&$Id) {
 
-                    $Entity->Name = $Entity->getFullName();
+                    $Entity->Name = $Entity->getLastFirstName();
                     $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($Entity);
                     $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
                     if (!empty( $tblAddressAll )) {
@@ -534,7 +534,7 @@ class Frontend extends Extension implements IFrontendInterface
             if (isset( $tblDivisionStudentAll ) && !empty( $tblDivisionStudentAll )) {
                 array_walk($tblDivisionStudentAll, function (TblPerson &$Entity) use ($Id) {
 
-                    $Entity->Name = $Entity->getFullName();
+                    $Entity->Name = $Entity->getLastFirstName();
                     $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($Entity);
                     $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
                     if (!empty( $tblAddressAll )) {
@@ -1786,7 +1786,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     /** @var TblSubjectStudent $tblSubjectStudents */
                                     foreach ($tblSubjectStudentsList as $tblSubjectStudents) {
                                         if ($tblSubjectStudents->getServiceTblPerson()) {
-                                            $StudentArray[] = $tblSubjectStudents->getServiceTblPerson()->getFullName();
+                                            $StudentArray[] = $tblSubjectStudents->getServiceTblPerson()->getLastFirstName();
                                             $StudentsGroupCount = $StudentsGroupCount + 1;
                                         }
                                     }
