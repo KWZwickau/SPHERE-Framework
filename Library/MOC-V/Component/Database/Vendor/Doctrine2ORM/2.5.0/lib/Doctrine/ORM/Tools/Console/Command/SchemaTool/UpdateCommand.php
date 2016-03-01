@@ -38,6 +38,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class UpdateCommand extends AbstractCommand
 {
+
     /**
      * @var string
      */
@@ -48,6 +49,7 @@ class UpdateCommand extends AbstractCommand
      */
     protected function configure()
     {
+
         $this
             ->setName($this->name)
             ->setDescription(
@@ -110,6 +112,7 @@ EOT
         SchemaTool $schemaTool,
         array $metadatas
     ) {
+
         // Defining if update is complete or not (--complete not defined means $saveMode = true)
         $saveMode = !$input->getOption('complete');
 

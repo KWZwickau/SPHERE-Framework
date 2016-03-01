@@ -360,7 +360,7 @@ function parse_data_uri($data_uri)
     $result = array(
         'charset' => $match['charset'] ? $match['charset'] : 'US-ASCII',
         'mime'    => $match['mime'] ? $match['mime'] : 'text/plain',
-        'data' => $match['base64'] ? base64_decode($match['data']) : $match['data'],
+        'data'    => $match['base64'] ? base64_decode($match['data']) : $match['data'],
     );
 
     return $result;
@@ -760,11 +760,11 @@ if (!function_exists("imagecreatefrombmp")) {
                 switch ($meta['bits']) {
                     case 32:
                     case 24:
-                    if (!( $part = substr($data, $p, 3 /*$meta['bytes']*/) )) {
-                        trigger_error($error, E_USER_WARNING);
+                        if (!( $part = substr($data, $p, 3 /*$meta['bytes']*/) )) {
+                            trigger_error($error, E_USER_WARNING);
                             return $im;
                         }
-                    $color = unpack('V', $part.$vide);
+                        $color = unpack('V', $part.$vide);
                         break;
                     case 16:
                         if (!( $part = substr($data, $p, 2 /*$meta['bytes']*/) )) {

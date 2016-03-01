@@ -62,7 +62,7 @@ function smarty_function_html_options($params)
 
             case 'values':
             case 'output':
-            $$_key = array_values((array)$_val);
+                $$_key = array_values((array)$_val);
                 break;
 
             case 'selected':

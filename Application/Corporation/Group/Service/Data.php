@@ -146,9 +146,28 @@ class Data extends AbstractData
     public function countCompanyAllByGroup(TblGroup $tblGroup)
     {
 
-        return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', array(
-            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
-        ));
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+//        return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember', array(
+//            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+//        ));
+
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblMember',
+            array(
+                TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+            ));
+
+        if ($EntityList){
+            $count = 0;
+            /** @var TblMember $item */
+            foreach ($EntityList as &$item){
+                if ($item->getServiceTblCompany()) {
+                    $count++;
+                }
+            }
+            return $count;
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -164,6 +183,7 @@ class Data extends AbstractData
             array(
                 TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
             ));
+
         $Cache = (new CacheFactory())->createHandler(new MemcachedHandler());
         if (null === ( $ResultList = $Cache->getValue($tblGroup->getId(), __METHOD__) )
             && !empty( $EntityList )
@@ -173,10 +193,13 @@ class Data extends AbstractData
 
                 $V = $V->getServiceTblCompany();
             });
+            $EntityList = array_filter($EntityList);
+
             $Cache->setValue($tblGroup->getId(), $EntityList, 0, __METHOD__);
         } else {
             $EntityList = $ResultList;
         }
+
         return ( null === $EntityList ? false : $EntityList );
     }
 

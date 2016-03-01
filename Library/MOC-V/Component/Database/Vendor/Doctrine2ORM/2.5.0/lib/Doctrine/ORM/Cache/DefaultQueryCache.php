@@ -38,6 +38,7 @@ use Doctrine\ORM\Query\ResultSetMapping;
  */
 class DefaultQueryCache implements QueryCache
 {
+
     /**
      * @var array
      */
@@ -69,6 +70,7 @@ class DefaultQueryCache implements QueryCache
      */
     public function __construct(EntityManagerInterface $em, Region $region)
     {
+
         $cacheConfig = $em->getConfiguration()->getSecondLevelCacheConfiguration();
 
         $this->em = $em;
@@ -215,6 +217,7 @@ class DefaultQueryCache implements QueryCache
      */
     public function put(QueryCacheKey $key, ResultSetMapping $rsm, $result, array $hints = array())
     {
+
         if ($rsm->scalarMappings) {
             throw new CacheException("Second level cache does not support scalar results.");
         }
@@ -342,6 +345,7 @@ class DefaultQueryCache implements QueryCache
      */
     public function clear()
     {
+
         return $this->region->evictAll();
     }
 
@@ -350,6 +354,7 @@ class DefaultQueryCache implements QueryCache
      */
     public function getRegion()
     {
+
         return $this->region;
     }
 }

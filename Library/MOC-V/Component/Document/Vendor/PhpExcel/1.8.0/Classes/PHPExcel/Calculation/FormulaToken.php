@@ -110,7 +110,7 @@ class PHPExcel_Calculation_FormulaToken
      * Create a new PHPExcel_Calculation_FormulaToken
      *
      * @param string $pValue
-     * @param string $pTokenType Token type (represented by TOKEN_TYPE_*)
+     * @param string $pTokenType    Token type (represented by TOKEN_TYPE_*)
      * @param string $pTokenSubType Token Subtype (represented by TOKEN_SUBTYPE_*)
      */
     public function __construct(

@@ -59,7 +59,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Schulträger', 'Übersicht');
 
         $Stage->setContent(new Standard('Schulträger hinzufügen', '/Setting/Consumer/Responsibility/Create')
-            .new Layout(
+            . new Layout(
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
@@ -70,25 +70,27 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
-        if (( $tblResponsibilityAll = Responsibility::useService()->getResponsibilityAll() )) {
+        if (($tblResponsibilityAll = Responsibility::useService()->getResponsibilityAll())) {
 
             $Form = null;
             foreach ($tblResponsibilityAll as $tblResponsibility) {
                 $tblCompany = $tblResponsibility->getServiceTblCompany();
 
-                $Form .= new Layout(array(
-                    new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(
-                            School::useFrontend()->frontendLayoutCombine($tblCompany)
-                        )),
-                    ), (new Title(new TagList().' Kontaktdaten', 'von '.$tblCompany->getName()))
-                    ),
-                ));
+                if ($tblCompany) {
+                    $Form .= new Layout(array(
+                        new LayoutGroup(array(
+                            new LayoutRow(new LayoutColumn(
+                                School::useFrontend()->frontendLayoutCombine($tblCompany)
+                            )),
+                        ), (new Title(new TagList() . ' Kontaktdaten', 'von ' . $tblCompany->getName()))
+                        ),
+                    ));
+                }
             }
             $Stage->setContent(
                 new Standard('Schulträger hinzufügen', '/Setting/Consumer/Responsibility/Create')
-                .new Standard('Schulträger entfernen', '/Setting/Consumer/Responsibility/Delete')
-                .$Form
+                . new Standard('Schulträger entfernen', '/Setting/Consumer/Responsibility/Delete')
+                . $Form
             );
         }
 
@@ -117,7 +119,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $Responsibility
                             )
                         ))
-                    ), new Title(new PlusSign().' Hinzufügen')
+                    ), new Title(new PlusSign() . ' Hinzufügen')
                 )
             )
 
@@ -134,7 +136,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $PanelSelectCompanyTitle = new PullClear(
             'Schulträger auswählen:'
-            .new PullRight(
+            . new PullRight(
                 new Standard('Neue Firma anlegen', '/Corporation/Company', new Building()
                     , array(), '"Schulträger hinzufügen" verlassen'
                 ))
@@ -145,7 +147,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblCompanyAll, function (TblCompany $tblCompany) use (&$TableContent) {
 
                 $temp = new PullClear(new RadioBox('Responsibility',
-                    $tblCompany->getName().' '.new SuccessText($tblCompany->getDescription()),
+                    $tblCompany->getName() . ' ' . new SuccessText($tblCompany->getDescription()),
                     $tblCompany->getId()));
                 array_push($TableContent, $temp);
             });
@@ -156,7 +158,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
-                        !empty( $TableContent ) ?
+                        !empty($TableContent) ?
                             new Panel($PanelSelectCompanyTitle, $TableContent, Panel::PANEL_TYPE_INFO, null, 15)
                             : new Panel($PanelSelectCompanyTitle,
                             new Warning('Es ist keine Firma vorhanden die ausgewählt werden kann')
@@ -180,30 +182,34 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblResponsibilityAll, function (TblResponsibility &$tblResponsibility) {
 
                 $tblCompany = $tblResponsibility->getServiceTblCompany();
-
-                $Address = array();
-                $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
-                if ($tblAddressAll) {
-                    foreach ($tblAddressAll as $tblAddress) {
-                        $Address[] = $tblAddress->getTblAddress()->getStreetName().' '
-                            .$tblAddress->getTblAddress()->getStreetNumber().' '
-                            .$tblAddress->getTblAddress()->getTblCity()->getName();
+                if ($tblCompany) {
+                    $Address = array();
+                    $tblAddressAll = Address::useService()->getAddressAllByCompany($tblCompany);
+                    if ($tblAddressAll) {
+                        foreach ($tblAddressAll as $tblAddress) {
+                            $Address[] = $tblAddress->getTblAddress()->getStreetName() . ' '
+                                . $tblAddress->getTblAddress()->getStreetNumber() . ' '
+                                . $tblAddress->getTblAddress()->getTblCity()->getName();
+                        }
                     }
+                    $Content = array(
+                        ($tblCompany->getName() ? $tblCompany->getName() : false),
+                        (isset($Address[0]) ? new Small(new Muted($Address[0])) : false),
+                        (isset($Address[1]) ? new Small(new Muted($Address[1])) : false),
+                        (isset($Address[2]) ? new Small(new Muted($Address[2])) : false),
+                        (new Standard('', '/Setting/Consumer/Responsibility/Destroy', new Remove(),
+                            array('Id' => $tblResponsibility->getId())))
+                    );
+                    $Content = array_filter($Content);
+                    $Type = Panel::PANEL_TYPE_WARNING;
+                    $tblResponsibility = new LayoutColumn(
+                        new Panel('Schulträger', $Content, $Type)
+                        , 6);
+                } else {
+                    $tblResponsibility = false;
                 }
-                $Content = array(
-                    ( $tblCompany->getName() ? $tblCompany->getName() : false ),
-                    ( isset( $Address[0] ) ? new Small(new Muted($Address[0])) : false ),
-                    ( isset( $Address[1] ) ? new Small(new Muted($Address[1])) : false ),
-                    ( isset( $Address[2] ) ? new Small(new Muted($Address[2])) : false ),
-                    (new Standard('', '/Setting/Consumer/Responsibility/Destroy', new Remove(),
-                        array('Id' => $tblResponsibility->getId())))
-                );
-                $Content = array_filter($Content);
-                $Type = Panel::PANEL_TYPE_WARNING;
-                $tblResponsibility = new LayoutColumn(
-                    new Panel('Schulträger', $Content, $Type)
-                    , 6);
             });
+            $tblResponsibilityAll = array_filter($tblResponsibilityAll);
 
             $LayoutRowList = array();
             $LayoutRowCount = 0;
@@ -245,31 +251,45 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Schulträger', 'Löschen');
         if ($Id) {
             $tblResponsibility = Responsibility::useService()->getResponsibilityById($Id);
-            if (!$Confirm) {
+            if ($tblResponsibility->getServiceTblCompany()) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            new Danger('Der Schulträger konnte nicht gefunden werden'),
+                            new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_ERROR)
+                        )))
+                    )))
+                );
+            }
 
+            if (!$Confirm) {
                 $Address = array();
                 $tblAddressAll = Address::useService()->getAddressAllByCompany($tblResponsibility->getServiceTblCompany());
                 if ($tblAddressAll) {
                     foreach ($tblAddressAll as $tblAddress) {
-                        $Address[] = $tblAddress->getTblAddress()->getStreetName().' '
-                            .$tblAddress->getTblAddress()->getStreetNumber().' '
-                            .$tblAddress->getTblAddress()->getTblCity()->getName();
+                        $Address[] = $tblAddress->getTblAddress()->getStreetName() . ' '
+                            . $tblAddress->getTblAddress()->getStreetNumber() . ' '
+                            . $tblAddress->getTblAddress()->getTblCity()->getName();
                     }
                 }
+
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        new Panel(new Question().' Diesen Schulträger wirklich löschen?', array(
-                            $tblResponsibility->getServiceTblCompany()->getName().' '.$tblResponsibility->getServiceTblCompany()->getDescription(),
-                            ( isset( $Address[0] ) ? new Muted(new Small($Address[0])) : false ),
-                            ( isset( $Address[1] ) ? new Muted(new Small($Address[1])) : false ),
-                            ( isset( $Address[2] ) ? new Muted(new Small($Address[2])) : false ),
+                        new Panel(new Question() . ' Diesen Schulträger wirklich löschen?', array(
+                            $tblResponsibility->getServiceTblCompany()
+                                ? $tblResponsibility->getServiceTblCompany()->getName() . ' '
+                                . $tblResponsibility->getServiceTblCompany()->getDescription()
+                                : '',
+                            (isset($Address[0]) ? new Muted(new Small($Address[0])) : false),
+                            (isset($Address[1]) ? new Muted(new Small($Address[1])) : false),
+                            (isset($Address[2]) ? new Muted(new Small($Address[2])) : false),
                         ),
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/Setting/Consumer/Responsibility/Destroy', new Ok(),
                                 array('Id' => $Id, 'Confirm' => true)
                             )
-                            .new Standard(
+                            . new Standard(
                                 'Nein', '/Setting/Consumer/Responsibility', new Disable()
                             )
                         )
@@ -281,11 +301,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            ( Responsibility::useService()->destroyResponsibility($tblResponsibility)
+                            (Responsibility::useService()->destroyResponsibility($tblResponsibility)
                                 ? new Success('Der Schulträger wurde gelöscht')
-                                .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_SUCCESS)
+                                . new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_SUCCESS)
                                 : new Danger('Der Schulträger konnte nicht gelöscht werden')
-                                .new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_ERROR)
+                                . new Redirect('/Setting/Consumer/Responsibility', Redirect::TIMEOUT_ERROR)
                             )
                         )))
                     )))

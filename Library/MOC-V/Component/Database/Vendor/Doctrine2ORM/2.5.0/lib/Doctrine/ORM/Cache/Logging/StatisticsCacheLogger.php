@@ -32,6 +32,7 @@ use Doctrine\ORM\Cache\QueryCacheKey;
  */
 class StatisticsCacheLogger implements CacheLogger
 {
+
     /**
      * @var array
      */
@@ -190,6 +191,7 @@ class StatisticsCacheLogger implements CacheLogger
      */
     public function getRegionsMiss()
     {
+
         return $this->cacheMissCountMap;
     }
 
@@ -198,6 +200,7 @@ class StatisticsCacheLogger implements CacheLogger
      */
     public function getRegionsHit()
     {
+
         return $this->cacheHitCountMap;
     }
 
@@ -206,6 +209,7 @@ class StatisticsCacheLogger implements CacheLogger
      */
     public function getRegionsPut()
     {
+
         return $this->cachePutCountMap;
     }
 
@@ -240,6 +244,7 @@ class StatisticsCacheLogger implements CacheLogger
      */
     public function getPutCount()
     {
+
         return array_sum($this->cachePutCountMap);
     }
 
@@ -250,6 +255,7 @@ class StatisticsCacheLogger implements CacheLogger
      */
     public function getHitCount()
     {
+
         return array_sum($this->cacheHitCountMap);
     }
 
@@ -260,6 +266,7 @@ class StatisticsCacheLogger implements CacheLogger
      */
     public function getMissCount()
     {
+
         return array_sum($this->cacheMissCountMap);
     }
 }

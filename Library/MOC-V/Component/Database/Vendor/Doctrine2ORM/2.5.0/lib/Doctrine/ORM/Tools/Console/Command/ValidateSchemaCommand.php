@@ -38,11 +38,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class ValidateSchemaCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
+
         $this
             ->setName('orm:validate-schema')
             ->setDescription('Validate the mapping files.')
@@ -70,6 +72,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         $em = $this->getHelper('em')->getEntityManager();
         $validator = new SchemaValidator($em);
         $exit = 0;

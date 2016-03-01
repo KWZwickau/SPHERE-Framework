@@ -38,11 +38,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class QueryCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
+
         $this
             ->setName('orm:clear-cache:query')
             ->setDescription('Clear all query cache of the various cache drivers.')
@@ -78,6 +80,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         $em = $this->getHelper('em')->getEntityManager();
         $cacheDriver = $em->getConfiguration()->getQueryCacheImpl();
 

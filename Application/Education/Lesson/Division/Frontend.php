@@ -149,11 +149,15 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblDivisionAll) {
             array_walk($tblDivisionAll, function (TblDivision $tblDivision) use (&$TableContent) {
 
-                $Temp['Year'] = $tblDivision->getServiceTblYear()->getName();
+                $Temp['Year'] = $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '';
                 $Temp['SchoolType'] = $tblDivision->getTypeName();
                 $Temp['ClassGroup'] = $tblDivision->getDisplayName();
 
-                $tblPeriodAll = $tblDivision->getServiceTblYear()->getTblPeriodAll();
+                if ($tblDivision->getServiceTblYear()) {
+                    $tblPeriodAll = $tblDivision->getServiceTblYear()->getTblPeriodAll();
+                } else {
+                    $tblPeriodAll = false;
+                }
                 $Period = array();
                 if ($tblPeriodAll) {
                     foreach ($tblPeriodAll as $tblPeriod) {
@@ -338,10 +342,12 @@ class Frontend extends Extension implements IFrontendInterface
 
             if (!$tblDivision->getTblLevel()) {
                 if ($tblDivision->getTblLevel()) {
-                    $Stage->setMessage('Liste aller Schüler die im Schuljahr '.$tblDivision->getServiceTblYear()->getName()
+                    $Stage->setMessage('Liste aller Schüler die im Schuljahr ' . ($tblDivision->getServiceTblYear()
+                        ? $tblDivision->getServiceTblYear() ->getName() : '')
                         .' noch keiner Klasse zugeordnet sind.');
                 } else {
-                    $Stage->setMessage('Liste aller Schüler im Schuljahr '.$tblDivision->getServiceTblYear()->getName().'.');
+                    $Stage->setMessage('Liste aller Schüler im Schuljahr '.($tblDivision->getServiceTblYear()
+                        ? $tblDivision->getServiceTblYear()->getName() : '').'.');
                 }
 
                 if ($tblDivision && null !== $StudentId && ( $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($StudentId) )) {
@@ -369,21 +375,23 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $tblStudentList = Group::useService()->getPersonAllByGroup($tblGroup);  // Alle Schüler
                     if ($tblDivision->getTblLevel()) {
-                        $tblDivisionList = Division::useService()->getDivisionByYear($tblDivision->getServiceTblYear());
-                        if ($tblStudentList) {
-                            if ($tblDivisionList) {
-                                foreach ($tblDivisionList as $tblSingleDivision) {
-                                    $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblSingleDivision);
-                                    if ($tblDivision->getTblLevel() && $tblDivisionStudentList) {
-                                        $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
-                                            function (TblPerson $invoiceA, TblPerson $invoiceB) {
+                        if ($tblDivision->getServiceTblYear()) {
+                            $tblDivisionList = Division::useService()->getDivisionByYear($tblDivision->getServiceTblYear());
+                            if ($tblStudentList) {
+                                if ($tblDivisionList) {
+                                    foreach ($tblDivisionList as $tblSingleDivision) {
+                                        $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblSingleDivision);
+                                        if ($tblDivision->getTblLevel() && $tblDivisionStudentList) {
+                                            $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
+                                                function (TblPerson $tblPersonA, TblPerson $tblPersonB) {
 
-                                                return $invoiceA->getId() - $invoiceB->getId();
-                                            });
+                                                    return $tblPersonA->getId() - $tblPersonB->getId();
+                                                });
+                                        }
                                     }
-                                }
-                                if (is_array($tblStudentList)) {
-                                    $tblDivisionStudentAll = $tblStudentList;
+                                    if (is_array($tblStudentList)) {
+                                        $tblDivisionStudentAll = $tblStudentList;
+                                    }
                                 }
                             }
                         }
@@ -404,10 +412,12 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             } else {
                 if ($tblDivision->getTblLevel()->getIsChecked()) {
-                    $Stage->setMessage('Liste aller Schüler die im Schuljahr '.$tblDivision->getServiceTblYear()->getName()
+                    $Stage->setMessage('Liste aller Schüler die im Schuljahr '. ($tblDivision->getServiceTblYear()
+                        ? $tblDivision->getServiceTblYear()->getName() : '')
                         .' noch keiner Klasse zugeordnet sind.');
                 } else {
-                    $Stage->setMessage('Liste aller Schüler im Schuljahr '.$tblDivision->getServiceTblYear()->getName().'.');
+                    $Stage->setMessage('Liste aller Schüler im Schuljahr '. ($tblDivision->getServiceTblYear()
+                        ? $tblDivision->getServiceTblYear()->getName() :'') .'.');
                 }
 
                 if ($tblDivision && null !== $StudentId && ( $tblPerson = \SPHERE\Application\People\Person\Person::useService()->getPersonById($StudentId) )) {
@@ -436,24 +446,26 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblStudentList = Group::useService()->getPersonAllByGroup($tblGroup);  // Alle Schüler
                     $IsChecked = $tblDivision->getTblLevel()->getIsChecked();
                     if (!$IsChecked) {
-                        $tblDivisionList = Division::useService()->getDivisionByYear($tblDivision->getServiceTblYear());
-                        if ($tblStudentList) {
+                        if ($tblDivision->getServiceTblYear()) {
+                            $tblDivisionList = Division::useService()->getDivisionByYear($tblDivision->getServiceTblYear());
+                            if ($tblStudentList) {
 
-                            if ($tblDivisionList) {
-                                foreach ($tblDivisionList as $tblSingleDivision) {
-                                    if ($tblSingleLevel = $tblSingleDivision->getTblLevel()) {
-                                        $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblSingleDivision);
-                                        if (!$tblSingleLevel->getIsChecked() && $tblDivisionStudentList) {
-                                            $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
-                                                function (TblPerson $invoiceA, TblPerson $invoiceB) {
+                                if ($tblDivisionList) {
+                                    foreach ($tblDivisionList as $tblSingleDivision) {
+                                        if ($tblSingleLevel = $tblSingleDivision->getTblLevel()) {
+                                            $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblSingleDivision);
+                                            if (!$tblSingleLevel->getIsChecked() && $tblDivisionStudentList) {
+                                                $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
+                                                    function (TblPerson $invoiceA, TblPerson $invoiceB) {
 
-                                                    return $invoiceA->getId() - $invoiceB->getId();
-                                                });
+                                                        return $invoiceA->getId() - $invoiceB->getId();
+                                                    });
+                                            }
                                         }
                                     }
-                                }
-                                if (is_array($tblStudentList)) {
-                                    $tblDivisionStudentAll = $tblStudentList;
+                                    if (is_array($tblStudentList)) {
+                                        $tblDivisionStudentAll = $tblStudentList;
+                                    }
                                 }
                             }
                         }
@@ -461,9 +473,9 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblDivisionStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
                         if ($tblDivisionStudentList) {
                             $tblStudentList = array_udiff($tblStudentList, $tblDivisionStudentList,
-                                function (TblPerson $invoiceA, TblPerson $invoiceB) {
+                                function (TblPerson $tblPersonA, TblPerson $tblPersonB) {
 
-                                    return $invoiceA->getId() - $invoiceB->getId();
+                                    return $tblPersonA->getId() - $tblPersonB->getId();
                                 });
                         }
                         if (is_array($tblStudentList)) {
@@ -1034,7 +1046,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutRow(
                                 new LayoutColumn(
                                     new Panel('Fach - Gruppe', array(
-                                        'Fach: '.new Bold($tblDivisionSubject->getServiceTblSubject()->getName()),
+                                        'Fach: '.new Bold($tblDivisionSubject->getServiceTblSubject()
+                                            ? $tblDivisionSubject->getServiceTblSubject()->getName(): ''),
                                         'Gruppe: '.new Bold($tblDivisionSubject->getTblSubjectGroup()->getName())
                                     ), Panel::PANEL_TYPE_INFO)
                                 )
@@ -1084,7 +1097,9 @@ class Frontend extends Extension implements IFrontendInterface
             $Global = $this->getGlobal();
             array_walk($tblSubjectStudentAllSelected, function (TblSubjectStudent &$tblSubjectStudent) use (&$Global) {
 
-                $Global->POST['Student'][$tblSubjectStudent->getServiceTblPerson()->getId()] = $tblSubjectStudent->getServiceTblPerson()->getId();
+                if ($tblSubjectStudent->getServiceTblPerson()) {
+                    $Global->POST['Student'][$tblSubjectStudent->getServiceTblPerson()->getId()] = $tblSubjectStudent->getServiceTblPerson()->getId();
+                }
             });
             $Global->savePost();
         }
@@ -1099,18 +1114,22 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 array_multisort($name, SORT_ASC, $firstName, SORT_ASC, $tblStudentList);
 
-                $tblDivisionSubjectControlList = Division::useService()->
-                getDivisionSubjectBySubjectAndDivision($tblDivisionSubject->getServiceTblSubject(),
-                    $tblDivisionSubject->getTblDivision());
-                if ($tblDivisionSubjectControlList) {
-                    /** @var TblDivisionSubject $tblDivisionSubjectControl */
-                    $PersonId = array();
-                    foreach ($tblDivisionSubjectControlList as $tblDivisionSubjectControl) {
-                        if ($tblDivisionSubjectControl->getId() !== $tblDivisionSubject->getId()) {
-                            $tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectControl);
-                            if ($tblSubjectStudentList) {
-                                foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                                    $PersonId[] = $tblSubjectStudent->getServiceTblPerson()->getId();
+                if ($tblDivisionSubject->getServiceTblSubject()) {
+                    $tblDivisionSubjectControlList = Division::useService()->
+                    getDivisionSubjectBySubjectAndDivision($tblDivisionSubject->getServiceTblSubject(),
+                        $tblDivisionSubject->getTblDivision());
+                    if ($tblDivisionSubjectControlList) {
+                        /** @var TblDivisionSubject $tblDivisionSubjectControl */
+                        $PersonId = array();
+                        foreach ($tblDivisionSubjectControlList as $tblDivisionSubjectControl) {
+                            if ($tblDivisionSubjectControl->getId() !== $tblDivisionSubject->getId()) {
+                                $tblSubjectStudentList = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubjectControl);
+                                if ($tblSubjectStudentList) {
+                                    foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                                        if ($tblSubjectStudent->getServiceTblPerson()) {
+                                            $PersonId[] = $tblSubjectStudent->getServiceTblPerson()->getId();
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1129,8 +1148,8 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     $tblPerson = new CheckBox(
                         'Student['.$tblPerson->getId().']',
-                        ( ( $trigger ) ? new \SPHERE\Common\Frontend\Text\Repository\Warning($tblPerson->getLastName().', '.$tblPerson->getFirstName().' '.$tblPerson->getSecondName())
-                            : $tblPerson->getLastName().', '.$tblPerson->getFirstName().' '.$tblPerson->getSecondName() )
+                        ( ( $trigger ) ? new \SPHERE\Common\Frontend\Text\Repository\Warning($tblPerson->getLastFirstName())
+                            : $tblPerson->getLastFirstName() )
                         ,
                         $tblPerson->getId()
                     );
@@ -1168,10 +1187,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $Title = $tblDivision->getDisplayName();
                 if ($tblDivisionSubject->getTblSubjectGroup()) {
-                    $Fach = new Bold($tblDivisionSubject->getServiceTblSubject()->getName())
+                    $Fach = new Bold($tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getServiceTblSubject()->getName() : '')
                         .' und die Gruppe '.new Bold($tblDivisionSubject->getTblSubjectGroup()->getName());
                 } else {
-                    $Fach = new Bold($tblDivisionSubject->getServiceTblSubject()->getName());
+                    $Fach = new Bold($tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getServiceTblSubject()->getName() : '');
                 }
 
                 $Stage = new Stage('Fachlehrer ', 'Klasse '.new Bold($Title));
@@ -1231,7 +1250,9 @@ class Frontend extends Extension implements IFrontendInterface
             $Global = $this->getGlobal();
             array_walk($tblSubjectTeacherAllSelected, function (TblSubjectTeacher &$tblSubjectTeacher) use (&$Global) {
 
-                $Global->POST['SubjectTeacher'][$tblSubjectTeacher->getServiceTblPerson()->getId()] = $tblSubjectTeacher->getServiceTblPerson()->getId();
+                if ($tblSubjectTeacher->getServiceTblPerson()) {
+                    $Global->POST['SubjectTeacher'][$tblSubjectTeacher->getServiceTblPerson()->getId()] = $tblSubjectTeacher->getServiceTblPerson()->getId();
+                }
             });
             $Global->savePost();
         }
@@ -1282,12 +1303,12 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('FachGruppe', 'Übersicht');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
             array('Id' => $Id)));
-        if (Division::useService()->getDivisionById($Id) && Division::useService()->getDivisionSubjectById($DivisionSubjectId)->getServiceTblSubject()) {
-            $tblDivision = Division::useService()->getDivisionById($Id);
-            $tblSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId)->getServiceTblSubject();
 
-            $Titel = $tblDivision->getDisplayName();
-            $Stage->setDescription('Klasse '.new Bold($Titel));
+        $tblDivision = Division::useService()->getDivisionById($Id);
+        $tblSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId)->getServiceTblSubject();
+        if ($tblDivision && $tblSubject) {
+            $Title = $tblDivision->getDisplayName();
+            $Stage->setDescription('Klasse '.new Bold($Title));
             $tblDivisionSubjectList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblSubject,
                 $tblDivision);
             $TableContent = array();
@@ -1295,7 +1316,7 @@ class Frontend extends Extension implements IFrontendInterface
                 array_walk($tblDivisionSubjectList, function (TblDivisionSubject $tblDivisionSubject) use (&$TableContent, $tblDivision, $tblSubject) {
 
                     if ($tblDivisionSubject->getTblSubjectGroup()) {
-                        $Temp['Name'] = $tblDivisionSubject->getServiceTblSubject()->getName();
+                        $Temp['Name'] = $tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getServiceTblSubject()->getName() : '';
                         $Temp['Description'] = $tblDivisionSubject->getTblSubjectGroup()->getDescription();
                         if ($tblDivisionSubject->getTblSubjectGroup()) {
                             $Temp['GroupName'] = $tblDivisionSubject->getTblSubjectGroup()->getName();
@@ -1515,22 +1536,22 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (!$tblDivision->getTblLevel()) {
             $PanelShow = new Panel('Beschreibung für', array(
-                $tblDivision->getServiceTblYear()->getName()
+                ($tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '')
                 .' - '.$tblDivision->getDisplayName(),
                 $tblDivision->getDescription()
             ), Panel::PANEL_TYPE_INFO);
 
         } elseif ($tblDivision->getTblLevel()->getName() == '') {
             $PanelShow = new Panel('Beschreibung für', array(
-                $tblDivision->getServiceTblYear()->getName()
-                .' - '.$tblDivision->getTblLevel()->getServiceTblType()->getName()
+                ($tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '')
+                .' - '.($tblDivision->getTblLevel()->getServiceTblType() ? $tblDivision->getTblLevel()->getServiceTblType()->getName() : '')
                 .' - '.$tblDivision->getDisplayName(),
                 $tblDivision->getDescription()
             ), Panel::PANEL_TYPE_INFO);
         } else {
             $PanelShow = new Panel('Beschreibung für', array(
-                $tblDivision->getServiceTblYear()->getName()
-                .' - '.$tblDivision->getTblLevel()->getServiceTblType()->getName()
+                ($tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '')
+                .' - '.($tblDivision->getTblLevel()->getServiceTblType() ? $tblDivision->getTblLevel()->getServiceTblType()->getName() : '')
                 .' - '.$tblDivision->getDisplayName(),
                 $tblDivision->getDescription()
             ), Panel::PANEL_TYPE_INFO);
@@ -1626,8 +1647,7 @@ class Frontend extends Extension implements IFrontendInterface
                 array_multisort($LastName, SORT_ASC, $FirstName, SORT_ASC, $tblDivisionStudentList);
 
                 foreach ($tblDivisionStudentList as $tblDivisionStudent) {
-                    $tblDivisionStudent->FullName = $tblDivisionStudent->getLastName().', '.$tblDivisionStudent->getFirstName().' '.
-                        $tblDivisionStudent->getSecondName();
+                    $tblDivisionStudent->FullName = $tblDivisionStudent->getLastFirstName();
                     $tblCommon = Common::useService()->getCommonByPerson($tblDivisionStudent);
                     if ($tblCommon) {
                         $tblDivisionStudent->Birthday = $tblCommon->getTblCommonBirthDates()->getBirthday();
@@ -1688,8 +1708,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                 /** @var TblDivisionSubject $row */
                 foreach ($tblDivisionSubjectList as $key => $row) {
-                    $name[$key] = strtoupper($row->getServiceTblSubject()->getName());
-                    $Acronym[$key] = strtoupper($row->getServiceTblSubject()->getAcronym());
+                    $name[$key] = strtoupper($row->getServiceTblSubject() ? $row->getServiceTblSubject()->getName() : '');
+                    $Acronym[$key] = strtoupper($row->getServiceTblSubject() ? $row->getServiceTblSubject()->getAcronym() : '');
                 }
                 array_multisort($name, SORT_ASC, $Acronym, SORT_ASC, $tblDivisionSubjectList);
 
@@ -1700,14 +1720,17 @@ class Frontend extends Extension implements IFrontendInterface
 //                    $tblDivisionSubject->Student = new Panel('Alle Schüler','aus der Klasse',Panel::PANEL_TYPE_INFO);
                     $tblDivisionSubject->Student = '';
 
-                    $tblDivisionSubject->Subject = new Panel($tblDivisionSubject->getServiceTblSubject()->getName(),
+                    $tblDivisionSubject->Subject = new Panel($tblDivisionSubject->getServiceTblSubject()
+                        ? $tblDivisionSubject->getServiceTblSubject()->getName() : '',
                         $StudentTableCount.' / '.$StudentTableCount.' Schüler aus der Klasse', Panel::PANEL_TYPE_INFO);
 
                     $tblDivisionTeachersList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
                     $TeacherArray = array();
                     if ($tblDivisionTeachersList) {
                         foreach ($tblDivisionTeachersList as $tblDivisionTeachers) {
-                            $TeacherArray[] = $tblDivisionTeachers->getServiceTblPerson()->getFullName();
+                            if ($tblDivisionTeachers->getServiceTblPerson()) {
+                                $TeacherArray[] = $tblDivisionTeachers->getServiceTblPerson()->getFullName();
+                            }
                         }
                     }
                     $SubjectTeacherPanel = new Panel('Fachlehrer', $TeacherArray, Panel::PANEL_TYPE_INFO,
@@ -1717,8 +1740,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 'DivisionSubjectId' => $tblDivisionSubject->getId()
                             ), 'Fachleher festlegen'));
 
-                    $tblDivisionSubjectTestList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblDivisionSubject->getServiceTblSubject(),
-                        $tblDivisionSubject->getTblDivision());
+                    if ($tblDivisionSubject->getServiceTblSubject()) {
+                        $tblDivisionSubjectTestList = Division::useService()->getDivisionSubjectBySubjectAndDivision($tblDivisionSubject->getServiceTblSubject(),
+                            $tblDivisionSubject->getTblDivision());
+                    } else {
+                        $tblDivisionSubjectTestList = false;
+                    }
 
                     if (count($tblDivisionSubjectTestList) > 1) {
                         $Grouparray = array();
@@ -1734,7 +1761,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblSubjectTeacherList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubjectTest);
                                 if ($tblSubjectTeacherList) {
                                     foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
-                                        $TeachersArray[] = $tblSubjectTeacher->getServiceTblPerson()->getFullName();
+                                        if ( $tblSubjectTeacher->getServiceTblPerson()) {
+                                            $TeachersArray[] = $tblSubjectTeacher->getServiceTblPerson()->getFullName();
+                                        }
                                     }
                                 }
                                 if ($TeachersArray) {
@@ -1756,8 +1785,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 if ($tblSubjectStudentsList) {
                                     /** @var TblSubjectStudent $tblSubjectStudents */
                                     foreach ($tblSubjectStudentsList as $tblSubjectStudents) {
-                                        $StudentArray[] = $tblSubjectStudents->getServiceTblPerson()->getFullName();
-                                        $StudentsGroupCount = $StudentsGroupCount + 1;
+                                        if ($tblSubjectStudents->getServiceTblPerson()) {
+                                            $StudentArray[] = $tblSubjectStudents->getServiceTblPerson()->getFullName();
+                                            $StudentsGroupCount = $StudentsGroupCount + 1;
+                                        }
                                     }
                                 }
                                 $StudentPanel .= new Panel($tblDivisionSubjectTest->getTblSubjectGroup()->getName(),
@@ -1772,7 +1803,8 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         if ($StudentTableCount > $StudentsGroupCount) {
-                            $tblDivisionSubject->Subject = new Panel($tblDivisionSubject->getServiceTblSubject()->getName(),
+                            $tblDivisionSubject->Subject = new Panel($tblDivisionSubject->getServiceTblSubject()
+                                ? $tblDivisionSubject->getServiceTblSubject()->getName() : '',
                                 new \SPHERE\Common\Frontend\Text\Repository\Warning($StudentsGroupCount.' / '.$StudentTableCount.' Schüler aus der Klasse'),
                                 Panel::PANEL_TYPE_INFO);
                         }
@@ -1871,8 +1903,10 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblDivisionSubjectList) {
                 foreach ($tblDivisionSubjectList as &$tblDivisionSubject) {
 
-                    $tblDivisionSubject->Name = $tblDivisionSubject->getServiceTblSubject()->getName();
-                    $tblDivisionSubject->Acronym = $tblDivisionSubject->getServiceTblSubject()->getAcronym();
+                    $tblDivisionSubject->Name = $tblDivisionSubject->getServiceTblSubject()
+                        ? $tblDivisionSubject->getServiceTblSubject()->getName() : '';
+                    $tblDivisionSubject->Acronym = $tblDivisionSubject->getServiceTblSubject()
+                        ? $tblDivisionSubject->getServiceTblSubject()->getAcronym() : '';
                     $tblDivisionSubject->Option = new Standard('', '/Education/Lesson/Division/SubjectTeacher/Add',
                         new Plus(), array(
                             'Id'                => $Id,
@@ -1885,7 +1919,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblTeacherList) {
                         /** @var TblPerson $Teacher */
                         foreach ($tblTeacherList as $Teacher) {
-                            $teacherArray[] = $Teacher->getFirstName().' '.$Teacher->getLastName();
+                            $teacherArray[] = $Teacher->getLastFirstName();
                         }
                         $teacherString = implode(', ', $teacherArray);
                     }
@@ -1938,12 +1972,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Klasse', 'entfernen');
         if ($tblDivision = Division::useService()->getDivisionById($Id)) {
-//            $tblDivision = Division::useService()->getDivisionById($Id);
             if (!$Confirm) {
 
                 $tblDivision = Division::useService()->getDivisionById($Id);
                 $tblLevel = $tblDivision->getTblLevel();
-                $tblYear = $tblDivision->getServiceTblYear();
                 $StudentInt = Division::useService()->countDivisionStudentAllByDivision($tblDivision);
                 $TeacherInt = Division::useService()->countDivisionTeacherAllByDivision($tblDivision);
                 $CustodyInt = Division::useService()->countDivisionCustodyAllByDivision($tblDivision);
@@ -1957,8 +1989,10 @@ class Frontend extends Extension implements IFrontendInterface
                     $CustodyInt = new Danger($CustodyInt);
                 }
 
-                $Content[] = 'Jahr: '.new Bold($tblYear->getName());
-                $Content[] = 'Typ: '.new Bold($tblLevel->getServiceTblType()->getName());
+                $Content[] = 'Jahr: '.new Bold($tblDivision->getServiceTblYear()
+                        ? $tblDivision->getServiceTblYear()->getName() : '');
+                $Content[] = 'Typ: '.new Bold($tblLevel->getServiceTblType()
+                        ? $tblLevel->getServiceTblType()->getName() : '');
                 $Content[] = 'Stufe: '.new Bold($tblLevel->getName());
                 $Content[] = 'Gruppe: '.new Bold($tblDivision->getName());
                 $Content[] = 'Klassenbezeichnung: '.new Bold($tblDivision->getDisplayName());
@@ -2033,12 +2067,13 @@ class Frontend extends Extension implements IFrontendInterface
             return $Stage->setContent(new Warning('zugehörige Schulart / Klassenstufe fehlt'))
             .new Redirect('/Education/Lesson/Division', Redirect::TIMEOUT_ERROR);
         }
-        $tblYear = $tblDivision->getServiceTblYear();
 
-        $Content[] = 'Typ: '.new Bold($tblLevel->getServiceTblType()->getName());
+        $Content[] = 'Typ: '.new Bold($tblLevel->getServiceTblType()
+                ? $tblLevel->getServiceTblType()->getName() : '');
         $Content[] = 'Stufe: '.new Bold($tblLevel->getName());
         $Content[] = 'Klassenbezeichnung: '.new Bold($tblDivision->getDisplayName());
-        $Content1[] = 'Jahr: '.new Bold($tblYear->getName());
+        $Content1[] = 'Jahr: '.new Bold($tblDivision->getServiceTblYear()
+                ? $tblDivision->getServiceTblYear()->getName() : '');
         $Content1[] = 'Gruppe: '.new Bold($tblDivision->getName());
         $Content1[] = 'Beschreibung: '.new Bold($tblDivision->getDescription());
         $Content2[] = 'Schüler: '.new Bold(Division::useService()->countDivisionStudentAllByDivision($tblDivision));

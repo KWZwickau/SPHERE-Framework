@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Common\Window\Navigation\Link;
 
+use SPHERE\Common\Frontend\Text\ITextInterface;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -24,7 +25,7 @@ class Name extends Extension
     public function __construct($Value)
     {
 
-        if (preg_match($this->Pattern, $Value)) {
+        if ((is_object($Value) && $Value instanceof ITextInterface ) || preg_match($this->Pattern, $Value)) {
             $this->Value = $Value;
         } else {
             throw new \Exception(__CLASS__.' > Pattern mismatch: ('.$Value.') ['.$this->Pattern.']');

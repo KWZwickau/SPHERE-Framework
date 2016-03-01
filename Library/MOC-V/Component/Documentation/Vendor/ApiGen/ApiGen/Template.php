@@ -206,9 +206,9 @@ class Template extends Nette\Templating\FileTemplate
                 case 'param':
                 case 'return':
                 case 'throws':
-                $description = $that->description($value, $context);
-                return sprintf('<code>%s</code>%s', $that->getTypeLinks($value, $context),
-                    $description ? '<br>'.$description : '');
+                    $description = $that->description($value, $context);
+                    return sprintf('<code>%s</code>%s', $that->getTypeLinks($value, $context),
+                        $description ? '<br>'.$description : '');
                 case 'license':
                     list( $url, $description ) = $that->split($value);
                     return $that->link($url, $description ?: $url);
@@ -230,11 +230,11 @@ class Template extends Nette\Templating\FileTemplate
                     return implode(', ', $doc);
                 case 'uses':
                 case 'usedby':
-                list( $link, $description ) = $that->split($value);
+                    list( $link, $description ) = $that->split($value);
                     $separator = $context instanceof ReflectionClass || !$description ? ' ' : '<br>';
-                if (null !== $generator->resolveElement($link, $context)) {
-                    return sprintf('<code>%s</code>%s%s', $that->getTypeLinks($link, $context), $separator,
-                        $description);
+                    if (null !== $generator->resolveElement($link, $context)) {
+                        return sprintf('<code>%s</code>%s%s', $that->getTypeLinks($link, $context), $separator,
+                            $description);
                     }
                     break;
                 default:

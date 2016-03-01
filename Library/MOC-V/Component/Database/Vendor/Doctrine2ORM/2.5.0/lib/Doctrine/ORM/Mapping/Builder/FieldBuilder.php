@@ -29,6 +29,7 @@ namespace Doctrine\ORM\Mapping\Builder;
  */
 class FieldBuilder
 {
+
     /**
      * @var ClassMetadataBuilder
      */
@@ -60,6 +61,7 @@ class FieldBuilder
      */
     public function __construct(ClassMetadataBuilder $builder, array $mapping)
     {
+
         $this->builder = $builder;
         $this->mapping = $mapping;
     }
@@ -73,6 +75,7 @@ class FieldBuilder
      */
     public function length($length)
     {
+
         $this->mapping['length'] = $length;
         return $this;
     }
@@ -86,6 +89,7 @@ class FieldBuilder
      */
     public function nullable($flag = true)
     {
+
         $this->mapping['nullable'] = (bool)$flag;
         return $this;
     }
@@ -99,6 +103,7 @@ class FieldBuilder
      */
     public function unique($flag = true)
     {
+
         $this->mapping['unique'] = (bool)$flag;
         return $this;
     }
@@ -112,6 +117,7 @@ class FieldBuilder
      */
     public function columnName($name)
     {
+
         $this->mapping['columnName'] = $name;
         return $this;
     }
@@ -125,6 +131,7 @@ class FieldBuilder
      */
     public function precision($p)
     {
+
         $this->mapping['precision'] = $p;
         return $this;
     }
@@ -138,6 +145,7 @@ class FieldBuilder
      */
     public function scale($s)
     {
+
         $this->mapping['scale'] = $s;
         return $this;
     }
@@ -150,6 +158,7 @@ class FieldBuilder
      */
     public function isPrimaryKey()
     {
+
         return $this->makePrimaryKey();
     }
 
@@ -160,6 +169,7 @@ class FieldBuilder
      */
     public function makePrimaryKey()
     {
+
         $this->mapping['id'] = true;
         return $this;
     }
@@ -174,6 +184,7 @@ class FieldBuilder
      */
     public function option($name, $value)
     {
+
         $this->mapping['options'][$name] = $value;
         return $this;
     }
@@ -185,6 +196,7 @@ class FieldBuilder
      */
     public function generatedValue($strategy = 'AUTO')
     {
+
         $this->generatedValue = $strategy;
         return $this;
     }
@@ -196,6 +208,7 @@ class FieldBuilder
      */
     public function isVersionField()
     {
+
         $this->version = true;
         return $this;
     }
@@ -211,10 +224,11 @@ class FieldBuilder
      */
     public function setSequenceGenerator($sequenceName, $allocationSize = 1, $initialValue = 1)
     {
+
         $this->sequenceDef = array(
-            'sequenceName' => $sequenceName,
+            'sequenceName'   => $sequenceName,
             'allocationSize' => $allocationSize,
-            'initialValue' => $initialValue,
+            'initialValue'   => $initialValue,
         );
         return $this;
     }
@@ -228,6 +242,7 @@ class FieldBuilder
      */
     public function columnDefinition($def)
     {
+
         $this->mapping['columnDefinition'] = $def;
         return $this;
     }
@@ -241,6 +256,7 @@ class FieldBuilder
      */
     public function build()
     {
+
         $cm = $this->builder->getClassMetadata();
         if ($this->generatedValue) {
             $cm->setIdGeneratorType(constant('Doctrine\ORM\Mapping\ClassMetadata::GENERATOR_TYPE_'.$this->generatedValue));

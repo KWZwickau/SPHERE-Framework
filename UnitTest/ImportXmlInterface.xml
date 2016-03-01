@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<import name="custom-management" version="0.0.1">
+    <fragment name="people">
+        <item type="person" identifier="1">
+            <essential>
+                <firstName/>
+                <lastName/>
+            </essential>
+            <additional>
+                <title/>
+                <salutation/>
+                <secondName/>
+                <birthName/>
+            </additional>
+        </item>
+        <item type="person" identifier="2">
+            <essential>
+                <firstName/>
+                <lastName/>
+            </essential>
+            <additional>
+                <title/>
+                <salutation/>
+                <secondName/>
+                <birthName/>
+            </additional>
+        </item>
+        <fragment name="meta">
+            <item type="common" reference="1">
+                <essential/>
+                <additional>
+                    <birthday/>
+                    <birthplace/>
+                    <gender/>
+                    <nationality/>
+                    <denomination/>
+                    <assistanceActivity/>
+                    <isAssistance/>
+                    <remark/>
+                </additional>
+            </item>
+            <item type="custody" reference="1">
+                <essential/>
+                <additional>
+                    <occupation/>
+                    <employment/>
+                    <remark/>
+                </additional>
+            </item>
+            <item type="prospect" reference="1">
+                <essential/>
+                <additional>
+                    <reservationDate/>
+                    <interviewDate/>
+                    <trialDate/>
+                    <reservationYear/>
+                    <reservationDivision/>
+                    <schoolTypeOptionA/>
+                    <schoolTypeOptionB/>
+                    <remark/>
+                </additional>
+            </item>
+            <item type="student" reference="1">
+                <essential>
+                    <number/>
+                </essential>
+                <additional>
+                    <schoolType/>
+                    <schoolYear/>
+                    <level/>
+                    <division/>
+                    <lockerNumber/>
+                    <keyNumber/>
+                    <insurance/>
+                    <route/>
+                    <stationEntrance/>
+                    <entrollmentDate/>
+                    <arriveDate/>
+                    <arriveSchool/>
+                    <leaveDate/>
+                    <leaveSchool/>
+                </additional>
+            </item>
+        </fragment>
+        <fragment name="contact">
+            <item type="address" reference="1">
+                <essential>
+                    <streetName/>
+                    <streetNumber/>
+                    <code/>
+                    <name/>
+                    <type/>
+                </essential>
+                <additional>
+                    <postOfficeBox/>
+                    <district/>
+                    <state/>
+                    <remark/>
+                </additional>
+            </item>
+            <item type="mail" reference="1">
+                <essential>
+                    <address/>
+                    <type/>
+                </essential>
+                <additional>
+                    <remark/>
+                </additional>
+            </item>
+            <item type="phone" reference="1">
+                <essential>
+                    <number/>
+                    <type/>
+                </essential>
+                <additional>
+                    <remark/>
+                </additional>
+            </item>
+        </fragment>
+        <item type="group" reference="1">
+            <essential>
+                <name/>
+            </essential>
+            <additional>
+                <description/>
+                <remark/>
+            </additional>
+        </item>
+        <fragment name="relationship">
+            <item type="person" reference="1" target="2">
+                <essential>
+                    <type/>
+                </essential>
+                <additional>
+                    <remark/>
+                </additional>
+            </item>
+            <item type="company" reference="2" target="1">
+                <essential>
+                    <type/>
+                </essential>
+                <additional>
+                    <remark/>
+                </additional>
+            </item>
+        </fragment>
+    </fragment>
+
+    <fragment name="corporation">
+        <item type="company" identifier="1">
+            <essential>
+                <name/>
+            </essential>
+            <additional>
+                <description/>
+            </additional>
+
+        </item>
+        <fragment name="contact">
+            <item type="address" reference="1">
+                <essential>
+                    <streetName/>
+                    <streetNumber/>
+                    <code/>
+                    <name/>
+                    <type/>
+                </essential>
+                <additional>
+                    <postOfficeBox/>
+                    <district/>
+                    <state/>
+                    <remark/>
+                </additional>
+            </item>
+            <item type="mail" reference="1">
+                <essential>
+                    <address/>
+                    <type/>
+                </essential>
+                <additional>
+                    <remark/>
+                </additional>
+            </item>
+            <item type="phone" reference="1">
+                <essential>
+                    <number/>
+                    <type/>
+                </essential>
+                <additional>
+                    <remark/>
+                </additional>
+            </item>
+        </fragment>
+        <item type="group" reference="1">
+            <essential>
+                <name/>
+            </essential>
+            <additional>
+                <description/>
+                <remark/>
+            </additional>
+        </item>
+        <fragment name="relationship">
+            <item type="person" reference="1" target="2">
+                <essential>
+                    <type/>
+                </essential>
+                <additional>
+                    <remark/>
+                </additional>
+            </item>
+            <item type="company" reference="2" target="1">
+                <essential>
+                    <type/>
+                </essential>
+                <additional>
+                    <remark/>
+                </additional>
+            </item>
+        </fragment>
+    </fragment>
+
+</import>
+
+
+
+

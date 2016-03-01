@@ -10,7 +10,7 @@ abstract class NamespaceSearch extends NamespaceMapping
 {
 
     /**
-     * @param array $DirectoryList
+     * @param array  $DirectoryList
      * @param string $ClassName
      * @param string $Namespace
      *
@@ -25,7 +25,7 @@ abstract class NamespaceSearch extends NamespaceMapping
     }
 
     /**
-     * @param array $DirectoryList
+     * @param array  $DirectoryList
      * @param string $ClassName
      *
      * @return bool
@@ -38,7 +38,7 @@ abstract class NamespaceSearch extends NamespaceMapping
     }
 
     /**
-     * @param array $DirectoryList
+     * @param array  $DirectoryList
      * @param string $ClassName
      *
      * @return bool
@@ -59,7 +59,7 @@ abstract class NamespaceSearch extends NamespaceMapping
     }
 
     /**
-     * @param array $DirectoryList
+     * @param array  $DirectoryList
      * @param string $ClassName
      * @param string $Namespace
      *

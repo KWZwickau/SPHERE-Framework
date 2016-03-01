@@ -68,14 +68,14 @@ function smarty_function_html_radios($params, $template)
 
             case 'checked':
             case 'selected':
-            if (is_array($_val)) {
-                trigger_error('html_radios: the "'.$_key.'" attribute cannot be an array', E_USER_WARNING);
-            } elseif (is_object($_val)) {
-                if (method_exists($_val, "__toString")) {
-                    $selected = smarty_function_escape_special_chars((string)$_val->__toString());
+                if (is_array($_val)) {
+                    trigger_error('html_radios: the "'.$_key.'" attribute cannot be an array', E_USER_WARNING);
+                } elseif (is_object($_val)) {
+                    if (method_exists($_val, "__toString")) {
+                        $selected = smarty_function_escape_special_chars((string)$_val->__toString());
                     } else {
-                    trigger_error("html_radios: selected attribute is an object of class '".get_class($_val)."' without __toString() method",
-                        E_USER_NOTICE);
+                        trigger_error("html_radios: selected attribute is an object of class '".get_class($_val)."' without __toString() method",
+                            E_USER_NOTICE);
                     }
                 } else {
                     $selected = (string)$_val;
@@ -94,7 +94,7 @@ function smarty_function_html_radios($params, $template)
 
             case 'values':
             case 'output':
-            $$_key = array_values((array)$_val);
+                $$_key = array_values((array)$_val);
                 break;
 
             case 'radios':

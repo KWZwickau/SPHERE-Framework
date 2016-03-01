@@ -874,14 +874,14 @@ class GD_Adapter implements Canvas
                     $options["quality"] = 75;
                 }
 
-            header("Content-type: image/jpeg");
-            imagejpeg($dst, '', $options["quality"]);
+                header("Content-type: image/jpeg");
+                imagejpeg($dst, '', $options["quality"]);
                 break;
 
             case "png":
             default:
-            header("Content-type: image/png");
-            imagepng($dst);
+                header("Content-type: image/png");
+                imagepng($dst);
                 break;
         }
 
@@ -927,12 +927,12 @@ class GD_Adapter implements Canvas
                     $options["quality"] = 75;
                 }
 
-            imagejpeg($dst, '', $options["quality"]);
+                imagejpeg($dst, '', $options["quality"]);
                 break;
 
             case "png":
             default:
-            imagepng($dst);
+                imagepng($dst);
                 break;
         }
 

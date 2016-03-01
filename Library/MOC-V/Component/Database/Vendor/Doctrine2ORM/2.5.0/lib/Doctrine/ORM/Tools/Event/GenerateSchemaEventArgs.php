@@ -33,6 +33,7 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class GenerateSchemaEventArgs extends EventArgs
 {
+
     /**
      * @var \Doctrine\ORM\EntityManagerInterface
      */
@@ -49,6 +50,7 @@ class GenerateSchemaEventArgs extends EventArgs
      */
     public function __construct(EntityManagerInterface $em, Schema $schema)
     {
+
         $this->em = $em;
         $this->schema = $schema;
     }
@@ -58,6 +60,7 @@ class GenerateSchemaEventArgs extends EventArgs
      */
     public function getEntityManager()
     {
+
         return $this->em;
     }
 
@@ -66,6 +69,7 @@ class GenerateSchemaEventArgs extends EventArgs
      */
     public function getSchema()
     {
+
         return $this->schema;
     }
 }

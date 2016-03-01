@@ -51,7 +51,7 @@ interface IBridgeInterface
     public function prepareStatement($Sql);
 
     /**
-     * @param mixed $Value
+     * @param mixed    $Value
      * @param null|int $Type
      *
      * @return IBridgeInterface

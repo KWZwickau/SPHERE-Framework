@@ -415,46 +415,6 @@ class OraclePlatform extends AbstractPlatform
     }
 
     /**
-     * Returns the autoincrement primary key identifier name for the given table identifier.
-     *
-     * Quotes the autoincrement primary key identifier name
-     * if the given table name is quoted by intention.
-     *
-     * @param Identifier $table The table identifier to return the autoincrement primary key identifier name for.
-     *
-     * @return string
-     */
-    private function getAutoincrementIdentifierName(Identifier $table)
-    {
-
-        $identifierName = $table->getName().'_AI_PK';
-
-        return $table->isQuoted()
-            ? $this->quoteSingleIdentifier($identifierName)
-            : $identifierName;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getIdentitySequenceName($tableName, $columnName)
-    {
-
-        $table = new Identifier($tableName);
-
-        // No usage of column name to preserve BC compatibility with <2.5
-        $identitySequenceName = $table->getName().'_SEQ';
-
-        if ($table->isQuoted()) {
-            $identitySequenceName = '"'.$identitySequenceName.'"';
-        }
-
-        $identitySequenceIdentifier = $this->normalizeIdentifier($identitySequenceName);
-
-        return $identitySequenceIdentifier->getQuotedName($this);
-    }
-
-    /**
      * {@inheritDoc}
      */
     public function getDropSequenceSQL($sequence)
@@ -1072,6 +1032,46 @@ BEGIN
 END;';
 
         return $sql;
+    }
+
+    /**
+     * Returns the autoincrement primary key identifier name for the given table identifier.
+     *
+     * Quotes the autoincrement primary key identifier name
+     * if the given table name is quoted by intention.
+     *
+     * @param Identifier $table The table identifier to return the autoincrement primary key identifier name for.
+     *
+     * @return string
+     */
+    private function getAutoincrementIdentifierName(Identifier $table)
+    {
+
+        $identifierName = $table->getName().'_AI_PK';
+
+        return $table->isQuoted()
+            ? $this->quoteSingleIdentifier($identifierName)
+            : $identifierName;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIdentitySequenceName($tableName, $columnName)
+    {
+
+        $table = new Identifier($tableName);
+
+        // No usage of column name to preserve BC compatibility with <2.5
+        $identitySequenceName = $table->getName().'_SEQ';
+
+        if ($table->isQuoted()) {
+            $identitySequenceName = '"'.$identitySequenceName.'"';
+        }
+
+        $identitySequenceIdentifier = $this->normalizeIdentifier($identitySequenceName);
+
+        return $identitySequenceIdentifier->getQuotedName($this);
     }
 
     /**

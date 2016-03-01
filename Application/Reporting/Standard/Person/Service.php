@@ -87,24 +87,6 @@ class Service
 
         if (!empty( $studentList )) {
             foreach ($studentList as $tblPerson) {
-//                $father = null;
-//                $mother = null;
-//                $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
-//                if ($guardianList) {
-//                    foreach ($guardianList as $guardian) {
-//                        if (( $guardian->getTblType()->getId() == 1 )
-//                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1 )
-//                        ) {
-//                            $father = $guardian->getServiceTblPersonFrom();
-//                        }
-//                        if (( $guardian->getTblType()->getId() == 1 )
-//                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2 )
-//                        ) {
-//                            $mother = $guardian->getServiceTblPersonFrom();
-//                        }
-//                    }
-//                }
-
                 if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
                     $address = $addressList[0];
                 } else {
@@ -174,7 +156,7 @@ class Service
 
                 $export->setValue($export->getCell("0", $Row), $tblPerson->Salutation);
                 /** @var TblPerson $tblPerson */
-                $export->setValue($export->getCell("1", $Row), $tblPerson->getFirstName());
+                $export->setValue($export->getCell("1", $Row), $tblPerson->getFirstSecondName());
                 $export->setValue($export->getCell("2", $Row), $tblPerson->getLastName());
                 /** @var $tblPerson */
                 $export->setValue($export->getCell("3", $Row), $tblPerson->Denomination);
@@ -220,7 +202,7 @@ class Service
             foreach ($studentList as $tblPerson) {
                 $All++;
                 $tblPerson->Number = '';
-                $tblPerson->Name = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
+                $tblPerson->Name = $tblPerson->getLastFirstName();
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
                     $tblBirhdates = $tblCommon->getTblCommonBirthDates();
@@ -287,10 +269,14 @@ class Service
                     foreach ($guardianList as $guardian) {
                         if ($guardian->getTblType()->getName() == 'Sorgeberechtigt') {
                             if ($Count === 0) {
-                                $Guardian1 = $guardian->getServiceTblPersonFrom();
+                                if ($guardian->getServiceTblPersonFrom()) {
+                                    $Guardian1 = $guardian->getServiceTblPersonFrom();
+                                }
                             }
                             if ($Count === 1) {
-                                $Guardian2 = $guardian->getServiceTblPersonFrom();
+                                if ($guardian->getServiceTblPersonFrom()) {
+                                    $Guardian2 = $guardian->getServiceTblPersonFrom();
+                                }
                             }
                             $Count = $Count + 1;
                         }
@@ -494,7 +480,7 @@ class Service
             foreach ($studentList as $tblPerson) {
                 $All++;
                 $tblPerson->Number = $All;
-                $tblPerson->Name = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
+                $tblPerson->Name = $tblPerson->getLastFirstName();
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
                     $tblBirhdates = $tblCommon->getTblCommonBirthDates();
@@ -674,7 +660,7 @@ class Service
                 } else {
                     $tblPerson->Gender = '';
                 }
-                $tblPerson->Name = $tblPerson->getLastName().'<br/>'.$tblPerson->getFirstName();
+                $tblPerson->Name = $tblPerson->getLastName().'<br/>'.$tblPerson->getFirstSecondName();
                 if (( $addressList = Address::useService()->getAddressAllByPerson($tblPerson) )) {
                     $address = $addressList[0];
                 } else {
@@ -708,7 +694,7 @@ class Service
                 if ($guardianList) {
                     $Count = 0;
                     foreach ($guardianList as $guardian) {
-                        if ($guardian->getTblType()->getName() == 'Sorgeberechtigt') {
+                        if ($guardian->getServiceTblPersonFrom() && $guardian->getTblType()->getName() == 'Sorgeberechtigt') {
                             if ($Count === 0) {
                                 $Guardian1 = $guardian->getServiceTblPersonFrom();
                             }
@@ -1028,7 +1014,7 @@ class Service
                 $export->setValue($export->getCell("0", $Row), $tblPerson->Number);
                 $export->setValue($export->getCell("1", $Row), $tblPerson->Salutation);
                 /** @var TblPerson $tblPerson */
-                $export->setValue($export->getCell("2", $Row), $tblPerson->getFirstName());
+                $export->setValue($export->getCell("2", $Row), $tblPerson->getFirstSecondName());
                 $export->setValue($export->getCell("3", $Row), $tblPerson->getLastName());
                 /** @var $tblPerson */
                 $export->setValue($export->getCell("4", $Row), $tblPerson->Birthday);

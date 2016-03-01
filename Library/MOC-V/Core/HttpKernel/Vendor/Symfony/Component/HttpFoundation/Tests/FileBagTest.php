@@ -81,19 +81,19 @@ class FileBagTest extends \PHPUnit_Framework_TestCase
 
         $bag = new FileBag(array(
             'child' => array(
-                'name'  => array(
+                'name'     => array(
                     'file' => basename($tmpFile),
                 ),
-                'type'  => array(
+                'type'     => array(
                     'file' => 'text/plain',
                 ),
                 'tmp_name' => array(
                     'file' => $tmpFile,
                 ),
-                'error' => array(
+                'error'    => array(
                     'file' => 0,
                 ),
-                'size'  => array(
+                'size'     => array(
                     'file' => 100,
                 ),
             )
@@ -111,19 +111,19 @@ class FileBagTest extends \PHPUnit_Framework_TestCase
 
         $bag = new FileBag(array(
             'child' => array(
-                'name'  => array(
+                'name'     => array(
                     'sub' => array('file' => basename($tmpFile))
                 ),
-                'type'  => array(
+                'type'     => array(
                     'sub' => array('file' => 'text/plain')
                 ),
                 'tmp_name' => array(
                     'sub' => array('file' => $tmpFile)
                 ),
-                'error' => array(
+                'error'    => array(
                     'sub' => array('file' => 0)
                 ),
-                'size'  => array(
+                'size'     => array(
                     'sub' => array('file' => 100)
                 ),
             )

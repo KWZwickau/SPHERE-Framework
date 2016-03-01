@@ -25,6 +25,7 @@ namespace Doctrine\ORM\Mapping;
  */
 final class OneToMany implements Annotation
 {
+
     /**
      * @var string
      */

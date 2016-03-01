@@ -124,7 +124,7 @@ class PhpWriter extends Nette\Object
                         return "Nette\\Templating\\Helpers::escapeHtmlComment($s)";
                     case Compiler::CONTENT_JS:
                     case Compiler::CONTENT_CSS:
-                    return 'Nette\Templating\Helpers::escape'.ucfirst($context[0])."($s)";
+                        return 'Nette\Templating\Helpers::escape'.ucfirst($context[0])."($s)";
                     default:
                         return "Nette\\Templating\\Helpers::escapeHtml($s, ENT_NOQUOTES)";
                 }
@@ -132,7 +132,7 @@ class PhpWriter extends Nette\Object
             case Compiler::CONTENT_JS:
             case Compiler::CONTENT_CSS:
             case Compiler::CONTENT_ICAL:
-            return 'Nette\Templating\Helpers::escape'.ucfirst($this->compiler->getContentType())."($s)";
+                return 'Nette\Templating\Helpers::escape'.ucfirst($this->compiler->getContentType())."($s)";
             case Compiler::CONTENT_TEXT:
                 return $s;
             default:

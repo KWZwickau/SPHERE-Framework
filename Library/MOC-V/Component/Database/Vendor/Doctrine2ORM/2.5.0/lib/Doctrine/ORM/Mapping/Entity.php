@@ -25,6 +25,7 @@ namespace Doctrine\ORM\Mapping;
  */
 final class Entity implements Annotation
 {
+
     /**
      * @var string
      */

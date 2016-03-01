@@ -28,6 +28,7 @@ namespace Doctrine\ORM\Cache;
  */
 interface TimestampRegion extends Region
 {
+
     /**
      * Update an specific key into the cache region.
      *

@@ -29,6 +29,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class JoinVariableDeclaration extends Node
 {
+
     /**
      * @var Join
      */
@@ -57,6 +58,7 @@ class JoinVariableDeclaration extends Node
      */
     public function dispatch($walker)
     {
+
         return $walker->walkJoinVariableDeclaration($this);
     }
 }

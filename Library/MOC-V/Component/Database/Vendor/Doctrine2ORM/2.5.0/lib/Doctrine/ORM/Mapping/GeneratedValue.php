@@ -25,6 +25,7 @@ namespace Doctrine\ORM\Mapping;
  */
 final class GeneratedValue implements Annotation
 {
+
     /**
      * The type of Id generator.
      *

@@ -65,5 +65,5 @@ Nette\Utils\SafeStream::register();
 function callback($callback, $m = null)
 {
 
-	return new Nette\Callback($callback, $m);
+    return new Nette\Callback($callback, $m);
 }

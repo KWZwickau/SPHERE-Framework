@@ -29,6 +29,7 @@ use Doctrine\ORM\Query\SqlWalker;
  */
 class CountOutputWalker extends SqlWalker
 {
+
     /**
      * @var \Doctrine\DBAL\Platforms\AbstractPlatform
      */
@@ -57,6 +58,7 @@ class CountOutputWalker extends SqlWalker
      */
     public function __construct($query, $parserResult, array $queryComponents)
     {
+
         $this->platform = $query->getEntityManager()->getConnection()->getDatabasePlatform();
         $this->rsm = $parserResult->getResultSetMapping();
         $this->queryComponents = $queryComponents;
@@ -79,6 +81,7 @@ class CountOutputWalker extends SqlWalker
      */
     public function walkSelectStatement(SelectStatement $AST)
     {
+
         if ($this->platform->getName() === "mssql") {
             $AST->orderByClause = null;
         }

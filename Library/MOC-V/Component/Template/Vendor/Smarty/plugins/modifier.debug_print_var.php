@@ -68,7 +68,7 @@ function smarty_modifier_debug_print_var($var, $depth = 0, $length = 40)
 
         case 'integer' :
         case 'float' :
-        $results = htmlspecialchars((string)$var);
+            $results = htmlspecialchars((string)$var);
             break;
 
         case 'string' :
@@ -88,7 +88,7 @@ function smarty_modifier_debug_print_var($var, $depth = 0, $length = 40)
 
         case 'unknown type' :
         default :
-        $results = strtr((string)$var, $_replace);
+            $results = strtr((string)$var, $_replace);
             if (Smarty::$_MBSTRING) {
                 if (mb_strlen($results, Smarty::$_CHARSET) > $length) {
                     $results = mb_substr($results, 0, $length - 3, Smarty::$_CHARSET).'...';
@@ -99,7 +99,7 @@ function smarty_modifier_debug_print_var($var, $depth = 0, $length = 40)
                 }
             }
 
-        $results = htmlspecialchars($results);
+            $results = htmlspecialchars($results);
     }
 
     return $results;

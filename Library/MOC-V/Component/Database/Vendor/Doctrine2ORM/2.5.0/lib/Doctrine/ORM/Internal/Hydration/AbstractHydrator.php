@@ -36,6 +36,7 @@ use PDO;
  */
 abstract class AbstractHydrator
 {
+
     /**
      * The ResultSetMapping.
      *
@@ -179,6 +180,7 @@ abstract class AbstractHydrator
      */
     protected function cleanup()
     {
+
         $this->_stmt->closeCursor();
 
         $this->_stmt = null;
@@ -195,6 +197,7 @@ abstract class AbstractHydrator
      */
     public function hydrateRow()
     {
+
         $row = $this->_stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$row) {
@@ -224,6 +227,7 @@ abstract class AbstractHydrator
      */
     protected function hydrateRowData(array $data, array &$result)
     {
+
         throw new HydrationException("hydrateRowData() not implemented by this hydrator.");
     }
 
@@ -248,7 +252,7 @@ abstract class AbstractHydrator
      * field names during this procedure as well as any necessary conversions on
      * the values applied. Scalar values are kept in a specific key 'scalars'.
      *
-     * @param array $data SQL Result Row.
+     * @param array $data                SQL Result Row.
      * @param array &$id                 Dql-Alias => ID-Hash.
      * @param array &$nonemptyComponents Does this DQL-Alias has at least one non NULL value?
      *
@@ -257,6 +261,7 @@ abstract class AbstractHydrator
      */
     protected function gatherRowData(array $data, array &$id, array &$nonemptyComponents)
     {
+
         $rowData = array('data' => array());
 
         foreach ($data as $key => $value) {
@@ -414,6 +419,7 @@ abstract class AbstractHydrator
      */
     protected function gatherScalarRowData(&$data)
     {
+
         $rowData = array();
 
         foreach ($data as $key => $value) {
@@ -453,6 +459,7 @@ abstract class AbstractHydrator
      */
     protected function registerManaged(ClassMetadata $class, $entity, array $data)
     {
+
         if ($class->isIdentifierComposite) {
             $id = array();
 

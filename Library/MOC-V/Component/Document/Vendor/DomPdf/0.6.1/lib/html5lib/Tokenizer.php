@@ -658,7 +658,7 @@ class HTML5_Tokenizer
                         point), and its value to the empty string. Switch to the
                         attribute name state.*/
                         $this->token['attr'][] = array(
-                            'name' => strtolower($char),
+                            'name'  => strtolower($char),
                             'value' => ''
                         );
 
@@ -826,7 +826,7 @@ class HTML5_Tokenizer
                         point), and its value to the empty string. Switch to the
                         attribute name state. */
                         $this->token['attr'][] = array(
-                            'name' => strtolower($char),
+                            'name'  => strtolower($char),
                             'value' => ''
                         );
 
@@ -1549,7 +1549,7 @@ class HTML5_Tokenizer
                         the character's code point). Switch to the DOCTYPE name
                         state. */
                         $this->token = array(
-                            'name' => strtolower($char),
+                            'name'  => strtolower($char),
                             'type'  => self::DOCTYPE,
                             'error' => true
                         );

@@ -311,7 +311,7 @@ class PHPExcel
                 break;
             case 'target':
             case 'data':
-            if (is_array($this->_ribbonXMLData) && array_key_exists($What, $this->_ribbonXMLData)) {
+                if (is_array($this->_ribbonXMLData) && array_key_exists($What, $this->_ribbonXMLData)) {
                     $ReturnData = $this->_ribbonXMLData[$What];
                 }//else $ReturnData stay at null
                 break;
@@ -348,7 +348,7 @@ class PHPExcel
                 break;
             case 'names':
             case 'data':
-            if (is_array($this->_ribbonBinObjects) && array_key_exists($What, $this->_ribbonBinObjects)) {
+                if (is_array($this->_ribbonBinObjects) && array_key_exists($What, $this->_ribbonBinObjects)) {
                     $ReturnData = $this->_ribbonBinObjects[$What];
                 }
                 break;

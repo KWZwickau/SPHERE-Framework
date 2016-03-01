@@ -25,6 +25,7 @@ namespace Doctrine\ORM\Mapping;
  */
 final class ManyToMany implements Annotation
 {
+
     /**
      * @var string
      */

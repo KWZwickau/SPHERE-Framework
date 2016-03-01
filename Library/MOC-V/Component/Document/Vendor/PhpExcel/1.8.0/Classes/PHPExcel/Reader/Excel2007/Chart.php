@@ -79,35 +79,35 @@ class PHPExcel_Reader_Excel2007_Chart
                                             break;
                                         case "barChart":
                                         case "bar3DChart":
-                                        $barDirection = self::_getAttribute($chartDetail->barDir, 'val',
-                                            'string');
-                                        $plotSer = self::_chartDataSeries($chartDetail, $namespacesChartMeta,
-                                            $chartDetailKey);
-                                        $plotSer->setPlotDirection($barDirection);
+                                            $barDirection = self::_getAttribute($chartDetail->barDir, 'val',
+                                                'string');
+                                            $plotSer = self::_chartDataSeries($chartDetail, $namespacesChartMeta,
+                                                $chartDetailKey);
+                                            $plotSer->setPlotDirection($barDirection);
                                             $plotSeries[] = $plotSer;
-                                        $plotAttributes = self::_readChartAttributes($chartDetail);
+                                            $plotAttributes = self::_readChartAttributes($chartDetail);
                                             break;
                                         case "lineChart":
                                         case "line3DChart":
-                                        $plotSeries[] = self::_chartDataSeries($chartDetail, $namespacesChartMeta,
-                                            $chartDetailKey);
-                                        $plotAttributes = self::_readChartAttributes($chartDetail);
+                                            $plotSeries[] = self::_chartDataSeries($chartDetail, $namespacesChartMeta,
+                                                $chartDetailKey);
+                                            $plotAttributes = self::_readChartAttributes($chartDetail);
                                             break;
                                         case "areaChart":
                                         case "area3DChart":
-                                        $plotSeries[] = self::_chartDataSeries($chartDetail, $namespacesChartMeta,
-                                            $chartDetailKey);
-                                        $plotAttributes = self::_readChartAttributes($chartDetail);
+                                            $plotSeries[] = self::_chartDataSeries($chartDetail, $namespacesChartMeta,
+                                                $chartDetailKey);
+                                            $plotAttributes = self::_readChartAttributes($chartDetail);
                                             break;
                                         case "doughnutChart":
                                         case "pieChart":
                                         case "pie3DChart":
                                             $explosion = isset( $chartDetail->ser->explosion );
-                                        $plotSer = self::_chartDataSeries($chartDetail, $namespacesChartMeta,
-                                            $chartDetailKey);
-                                        $plotSer->setPlotStyle($explosion);
+                                            $plotSer = self::_chartDataSeries($chartDetail, $namespacesChartMeta,
+                                                $chartDetailKey);
+                                            $plotSer->setPlotStyle($explosion);
                                             $plotSeries[] = $plotSer;
-                                        $plotAttributes = self::_readChartAttributes($chartDetail);
+                                            $plotAttributes = self::_readChartAttributes($chartDetail);
                                             break;
                                         case "scatterChart":
                                             $scatterStyle = self::_getAttribute($chartDetail->scatterStyle, 'val',
@@ -138,13 +138,13 @@ class PHPExcel_Reader_Excel2007_Chart
                                             break;
                                         case "surfaceChart":
                                         case "surface3DChart":
-                                        $wireFrame = self::_getAttribute($chartDetail->wireframe, 'val',
-                                            'boolean');
-                                        $plotSer = self::_chartDataSeries($chartDetail, $namespacesChartMeta,
-                                            $chartDetailKey);
-                                        $plotSer->setPlotStyle($wireFrame);
+                                            $wireFrame = self::_getAttribute($chartDetail->wireframe, 'val',
+                                                'boolean');
+                                            $plotSer = self::_chartDataSeries($chartDetail, $namespacesChartMeta,
+                                                $chartDetailKey);
+                                            $plotSer->setPlotStyle($wireFrame);
                                             $plotSeries[] = $plotSer;
-                                        $plotAttributes = self::_readChartAttributes($chartDetail);
+                                            $plotAttributes = self::_readChartAttributes($chartDetail);
                                             break;
                                         case "stockChart":
                                             $plotSeries[] = self::_chartDataSeries($chartDetail, $namespacesChartMeta,

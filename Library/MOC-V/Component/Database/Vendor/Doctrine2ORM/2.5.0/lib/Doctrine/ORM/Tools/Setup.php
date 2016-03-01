@@ -34,6 +34,7 @@ use Doctrine\ORM\Mapping\Driver\YamlDriver;
  */
 class Setup
 {
+
     /**
      * Use this method to register all autoloads for a downloaded Doctrine library.
      * Pick the directory the library was uncompressed into.
@@ -44,6 +45,7 @@ class Setup
      */
     public static function registerAutoloadDirectory($directory)
     {
+
         if (!class_exists('Doctrine\Common\ClassLoader', false)) {
             require_once $directory."/Doctrine/Common/ClassLoader.php";
         }
@@ -73,6 +75,7 @@ class Setup
         Cache $cache = null,
         $useSimpleAnnotationReader = true
     ) {
+
         $config = self::createConfiguration($isDevMode, $proxyDir, $cache);
         $config->setMetadataDriverImpl($config->newDefaultAnnotationDriver($paths, $useSimpleAnnotationReader));
 
@@ -90,6 +93,7 @@ class Setup
      */
     public static function createConfiguration($isDevMode = false, $proxyDir = null, Cache $cache = null)
     {
+
         $proxyDir = $proxyDir ?: sys_get_temp_dir();
 
         if ($isDevMode === false && $cache === null) {
@@ -145,6 +149,7 @@ class Setup
         $proxyDir = null,
         Cache $cache = null
     ) {
+
         $config = self::createConfiguration($isDevMode, $proxyDir, $cache);
         $config->setMetadataDriverImpl(new XmlDriver($paths));
 
@@ -167,6 +172,7 @@ class Setup
         $proxyDir = null,
         Cache $cache = null
     ) {
+
         $config = self::createConfiguration($isDevMode, $proxyDir, $cache);
         $config->setMetadataDriverImpl(new YamlDriver($paths));
 

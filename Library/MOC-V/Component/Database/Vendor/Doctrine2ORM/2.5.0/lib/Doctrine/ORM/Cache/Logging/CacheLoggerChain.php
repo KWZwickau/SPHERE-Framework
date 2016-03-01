@@ -32,6 +32,7 @@ use Doctrine\ORM\Cache\QueryCacheKey;
  */
 class CacheLoggerChain implements CacheLogger
 {
+
     /**
      * @var array<\Doctrine\ORM\Cache\Logging\CacheLogger>
      */
@@ -43,6 +44,7 @@ class CacheLoggerChain implements CacheLogger
      */
     public function setLogger($name, CacheLogger $logger)
     {
+
         $this->loggers[$name] = $logger;
     }
 
@@ -62,6 +64,7 @@ class CacheLoggerChain implements CacheLogger
      */
     public function getLoggers()
     {
+
         return $this->loggers;
     }
 
@@ -70,6 +73,7 @@ class CacheLoggerChain implements CacheLogger
      */
     public function collectionCacheHit($regionName, CollectionCacheKey $key)
     {
+
         foreach ($this->loggers as $logger) {
             $logger->collectionCacheHit($regionName, $key);
         }
@@ -80,6 +84,7 @@ class CacheLoggerChain implements CacheLogger
      */
     public function collectionCacheMiss($regionName, CollectionCacheKey $key)
     {
+
         foreach ($this->loggers as $logger) {
             $logger->collectionCacheMiss($regionName, $key);
         }
@@ -90,6 +95,7 @@ class CacheLoggerChain implements CacheLogger
      */
     public function collectionCachePut($regionName, CollectionCacheKey $key)
     {
+
         foreach ($this->loggers as $logger) {
             $logger->collectionCachePut($regionName, $key);
         }
@@ -100,6 +106,7 @@ class CacheLoggerChain implements CacheLogger
      */
     public function entityCacheHit($regionName, EntityCacheKey $key)
     {
+
         foreach ($this->loggers as $logger) {
             $logger->entityCacheHit($regionName, $key);
         }
@@ -110,6 +117,7 @@ class CacheLoggerChain implements CacheLogger
      */
     public function entityCacheMiss($regionName, EntityCacheKey $key)
     {
+
         foreach ($this->loggers as $logger) {
             $logger->entityCacheMiss($regionName, $key);
         }
@@ -120,6 +128,7 @@ class CacheLoggerChain implements CacheLogger
      */
     public function entityCachePut($regionName, EntityCacheKey $key)
     {
+
         foreach ($this->loggers as $logger) {
             $logger->entityCachePut($regionName, $key);
         }
@@ -130,6 +139,7 @@ class CacheLoggerChain implements CacheLogger
      */
     public function queryCacheHit($regionName, QueryCacheKey $key)
     {
+
         foreach ($this->loggers as $logger) {
             $logger->queryCacheHit($regionName, $key);
         }
@@ -140,6 +150,7 @@ class CacheLoggerChain implements CacheLogger
      */
     public function queryCacheMiss($regionName, QueryCacheKey $key)
     {
+
         foreach ($this->loggers as $logger) {
             $logger->queryCacheMiss($regionName, $key);
         }
@@ -150,6 +161,7 @@ class CacheLoggerChain implements CacheLogger
      */
     public function queryCachePut($regionName, QueryCacheKey $key)
     {
+
         foreach ($this->loggers as $logger) {
             $logger->queryCachePut($regionName, $key);
         }

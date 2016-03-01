@@ -99,11 +99,11 @@ class RoutingPanel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 
         $this->routers[] = array(
             'matched'  => $matched,
-            'class'  => get_class($router),
+            'class'    => get_class($router),
             'defaults' => $router instanceof Routers\Route || $router instanceof Routers\SimpleRouter ? $router->getDefaults() : array(),
             'mask'     => $router instanceof Routers\Route ? $router->getMask() : null,
             'request'  => $request,
-            'module' => rtrim($module, ':')
+            'module'   => rtrim($module, ':')
         );
     }
 

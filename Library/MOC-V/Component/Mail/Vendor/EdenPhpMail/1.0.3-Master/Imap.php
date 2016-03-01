@@ -700,7 +700,7 @@ class Imap extends Base
             'mailbox'    => $this->mailbox,
             'uid'        => $uniqueId,
             'date'       => $date,
-            'subject' => str_replace('’', '\'', $headers1->subject),
+            'subject'    => str_replace('’', '\'', $headers1->subject),
             'from'       => $sender,
             'flags'      => $flags,
             'to'         => $recipientsTo,
@@ -1308,7 +1308,7 @@ if (!function_exists('imap_rfc822_parse_headers')) {
         } else {
             $from = array(
                 'personal' => '',
-                'email' => trim($from)
+                'email'    => trim($from)
             );
         }
 

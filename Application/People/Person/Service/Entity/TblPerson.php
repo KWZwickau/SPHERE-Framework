@@ -193,9 +193,21 @@ class TblPerson extends Element
         return Address::useService()->getAddressByPerson($this);
     }
 
+    /**
+     * @return string
+     */
     public function getLastFirstName()
     {
 
-        return $this->LastName . ', ' . $this->FirstName;
+        return trim($this->LastName . ', ' . $this->FirstName . ' ' . $this->SecondName);
+    }
+
+    /**
+     * @return string
+     */
+    public function getFirstSecondName()
+    {
+
+        return trim($this->FirstName . ' ' . $this->SecondName);
     }
 }

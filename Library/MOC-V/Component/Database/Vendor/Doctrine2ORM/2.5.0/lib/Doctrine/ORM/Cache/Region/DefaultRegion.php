@@ -36,6 +36,7 @@ use Doctrine\ORM\Cache\Region;
  */
 class DefaultRegion implements Region
 {
+
     /**
      * @var CacheAdapter
      */
@@ -69,6 +70,7 @@ class DefaultRegion implements Region
      */
     public function getName()
     {
+
         return $this->name;
     }
 
@@ -77,6 +79,7 @@ class DefaultRegion implements Region
      */
     public function getCache()
     {
+
         return $this->cache;
     }
 
@@ -103,6 +106,7 @@ class DefaultRegion implements Region
      */
     public function getMultiple(CollectionCacheEntry $collection)
     {
+
         $keysToRetrieve = array();
 
         foreach ($collection->identifiers as $index => $key) {
@@ -112,6 +116,7 @@ class DefaultRegion implements Region
         $items = array_filter(
             array_map([$this->cache, 'fetch'], $keysToRetrieve),
             function ($retrieved) {
+
                 return false !== $retrieved;
             }
         );

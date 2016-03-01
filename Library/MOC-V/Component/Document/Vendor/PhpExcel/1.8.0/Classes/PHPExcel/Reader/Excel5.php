@@ -999,17 +999,17 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
                     case self::XLS_Type_FORMULA:
                     case self::XLS_Type_BOOLERR:
                     case self::XLS_Type_LABEL:
-                    $length = self::_GetInt2d($this->_data, $this->_pos + 2);
-                    $recordData = $this->_readRecordData($this->_data, $this->_pos + 4, $length);
+                        $length = self::_GetInt2d($this->_data, $this->_pos + 2);
+                        $recordData = $this->_readRecordData($this->_data, $this->_pos + 4, $length);
 
                         // move stream pointer to next record
                         $this->_pos += 4 + $length;
 
-                    $rowIndex = self::_GetInt2d($recordData, 0) + 1;
-                    $columnIndex = self::_GetInt2d($recordData, 2);
+                        $rowIndex = self::_GetInt2d($recordData, 0) + 1;
+                        $columnIndex = self::_GetInt2d($recordData, 2);
 
-                    $tmpInfo['totalRows'] = max($tmpInfo['totalRows'], $rowIndex);
-                    $tmpInfo['lastColumnIndex'] = max($tmpInfo['lastColumnIndex'], $columnIndex);
+                        $tmpInfo['totalRows'] = max($tmpInfo['totalRows'], $rowIndex);
+                        $tmpInfo['lastColumnIndex'] = max($tmpInfo['lastColumnIndex'], $columnIndex);
                         break;
                     case self::XLS_Type_BOF:
                         $this->_readBof();
@@ -3367,7 +3367,7 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
                         $name = 'tAttrSpace';
                         $size = 4;
                         // offset: 2; size: 2; space type and position
-                    switch (ord($formulaData[2])) {
+                        switch (ord($formulaData[2])) {
                             case 0x00:
                                 $spacetype = 'type0';
                                 break;
@@ -3391,9 +3391,9 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
                                 break;
                         }
                         // offset: 3; size: 1; number of inserted spaces/carriage returns
-                    $spacecount = ord($formulaData[3]);
+                        $spacecount = ord($formulaData[3]);
 
-                    $data = array('spacetype' => $spacetype, 'spacecount' => $spacecount);
+                        $data = array('spacetype' => $spacetype, 'spacecount' => $spacecount);
                         break;
                     default:
                         throw new PHPExcel_Reader_Exception('Unrecognized attribute flag in tAttr token');
@@ -3439,7 +3439,7 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
                 $name = 'tFunc';
                 $size = 3;
                 // offset: 1; size: 2; index to built-in sheet function
-            switch (self::_GetInt2d($formulaData, 1)) {
+                switch (self::_GetInt2d($formulaData, 1)) {
                     case   2:
                         $function = 'ISNA';
                         $args = 1;
@@ -4084,7 +4084,7 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
                         throw new PHPExcel_Reader_Exception('Unrecognized function in formula');
                         break;
                 }
-            $data = array('function' => $function, 'args' => $args);
+                $data = array('function' => $function, 'args' => $args);
                 break;
             case 0x22:    //	function with variable number of arguments
             case 0x42:
@@ -4092,9 +4092,9 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
                 $name = 'tFuncV';
                 $size = 4;
                 // offset: 1; size: 1; number of arguments
-            $args = ord($formulaData[1]);
+                $args = ord($formulaData[1]);
                 // offset: 2: size: 2; index to built-in sheet function
-            $index = self::_GetInt2d($formulaData, 2);
+                $index = self::_GetInt2d($formulaData, 2);
                 switch ($index) {
                     case   0:
                         $function = 'COUNT';
@@ -4364,7 +4364,7 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
                         throw new PHPExcel_Reader_Exception('Unrecognized function in formula');
                         break;
                 }
-            $data = array('function' => $function, 'args' => $args);
+                $data = array('function' => $function, 'args' => $args);
                 break;
             case 0x23:    //	index to defined name
             case 0x43:
@@ -4372,7 +4372,7 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
                 $name = 'tName';
                 $size = 5;
                 // offset: 1; size: 2; one-based index to definedname record
-            $definedNameIndex = self::_GetInt2d($formulaData, 1) - 1;
+                $definedNameIndex = self::_GetInt2d($formulaData, 1) - 1;
                 // offset: 2; size: 2; not used
                 $data = $this->_definedname[$definedNameIndex]['name'];
                 break;
@@ -4381,14 +4381,14 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
             case 0x64:
                 $name = 'tRef';
                 $size = 5;
-            $data = $this->_readBIFF8CellAddress(substr($formulaData, 1, 4));
+                $data = $this->_readBIFF8CellAddress(substr($formulaData, 1, 4));
                 break;
             case 0x25:    //	cell range reference to cells in the same sheet (2d)
             case 0x45:
             case 0x65:
                 $name = 'tArea';
                 $size = 9;
-            $data = $this->_readBIFF8CellRangeAddress(substr($formulaData, 1, 8));
+                $data = $this->_readBIFF8CellRangeAddress(substr($formulaData, 1, 8));
                 break;
             case 0x26:    //	Constant reference sub-expression
             case 0x46:
@@ -4396,9 +4396,9 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
                 $name = 'tMemArea';
                 // offset: 1; size: 4; not used
                 // offset: 5; size: 2; size of the following subexpression
-            $subSize = self::_GetInt2d($formulaData, 5);
+                $subSize = self::_GetInt2d($formulaData, 5);
                 $size = 7 + $subSize;
-            $data = $this->_getFormulaFromData(substr($formulaData, 7, $subSize));
+                $data = $this->_getFormulaFromData(substr($formulaData, 7, $subSize));
                 break;
             case 0x27:    //	Deleted constant reference sub-expression
             case 0x47:
@@ -4406,18 +4406,18 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
                 $name = 'tMemErr';
                 // offset: 1; size: 4; not used
                 // offset: 5; size: 2; size of the following subexpression
-            $subSize = self::_GetInt2d($formulaData, 5);
+                $subSize = self::_GetInt2d($formulaData, 5);
                 $size = 7 + $subSize;
-            $data = $this->_getFormulaFromData(substr($formulaData, 7, $subSize));
+                $data = $this->_getFormulaFromData(substr($formulaData, 7, $subSize));
                 break;
             case 0x29:    //	Variable reference sub-expression
             case 0x49:
             case 0x69:
                 $name = 'tMemFunc';
                 // offset: 1; size: 2; size of the following sub-expression
-            $subSize = self::_GetInt2d($formulaData, 1);
+                $subSize = self::_GetInt2d($formulaData, 1);
                 $size = 3 + $subSize;
-            $data = $this->_getFormulaFromData(substr($formulaData, 3, $subSize));
+                $data = $this->_getFormulaFromData(substr($formulaData, 3, $subSize));
                 break;
 
             case 0x2C: // Relative 2d cell reference reference, used in shared formulas and some other places
@@ -4425,7 +4425,7 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
             case 0x6C:
                 $name = 'tRefN';
                 $size = 5;
-            $data = $this->_readBIFF8CellAddressB(substr($formulaData, 1, 4), $baseCell);
+                $data = $this->_readBIFF8CellAddressB(substr($formulaData, 1, 4), $baseCell);
                 break;
 
             case 0x2D:    //	Relative 2d range reference
@@ -4433,7 +4433,7 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
             case 0x6D:
                 $name = 'tAreaN';
                 $size = 9;
-            $data = $this->_readBIFF8CellRangeAddressB(substr($formulaData, 1, 8), $baseCell);
+                $data = $this->_readBIFF8CellRangeAddressB(substr($formulaData, 1, 8), $baseCell);
                 break;
 
             case 0x39:    //	External name
@@ -4443,7 +4443,7 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
                 $size = 7;
                 // offset: 1; size: 2; index to REF entry in EXTERNSHEET record
                 // offset: 3; size: 2; one-based index to DEFINEDNAME or EXTERNNAME record
-            $index = self::_GetInt2d($formulaData, 3);
+                $index = self::_GetInt2d($formulaData, 3);
                 // assume index is to EXTERNNAME record
                 $data = $this->_externalNames[$index - 1]['name'];
                 // offset: 5; size: 2; not used
@@ -4899,14 +4899,14 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
                 case 'tPower': // power
                 case 'tRange': // range
                 case 'tSub': // subtraction
-                $op2 = array_pop($formulaStrings);
-                $op1 = array_pop($formulaStrings);
+                    $op2 = array_pop($formulaStrings);
+                    $op1 = array_pop($formulaStrings);
                     $formulaStrings[] = "$op1$space1$space0{$token['data']}$op2";
                     unset( $space0, $space1 );
                     break;
                 case 'tUplus': // unary plus
                 case 'tUminus': // unary minus
-                $op = array_pop($formulaStrings);
+                    $op = array_pop($formulaStrings);
                     $formulaStrings[] = "$space1$space0{$token['data']}$op";
                     unset( $space0, $space1 );
                     break;
@@ -8196,8 +8196,8 @@ class PHPExcel_Reader_Excel5 extends PHPExcel_Reader_Abstract implements PHPExce
         $text = $this->_getSplicedRecordData();
 
         $this->_textObjects[$this->textObjRef] = array(
-            'text'   => substr($text["recordData"], $text["spliceOffsets"][0] + 1, $cchText),
-            'format' => substr($text["recordData"], $text["spliceOffsets"][1], $cbRuns),
+            'text'      => substr($text["recordData"], $text["spliceOffsets"][0] + 1, $cchText),
+            'format'    => substr($text["recordData"], $text["spliceOffsets"][1], $cbRuns),
             'alignment' => $grbitOpts,
             'rotation'  => $rot
         );

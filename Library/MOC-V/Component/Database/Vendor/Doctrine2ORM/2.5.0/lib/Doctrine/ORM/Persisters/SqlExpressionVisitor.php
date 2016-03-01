@@ -30,10 +30,11 @@ use Doctrine\ORM\Persisters\Entity\BasicEntityPersister;
  * Visit Expressions and generate SQL WHERE conditions from them.
  *
  * @author Benjamin Eberlei <kontakt@beberlei.de>
- * @since 2.3
+ * @since  2.3
  */
 class SqlExpressionVisitor extends ExpressionVisitor
 {
+
     /**
      * @var \Doctrine\ORM\Persisters\Entity\BasicEntityPersister
      */
@@ -50,6 +51,7 @@ class SqlExpressionVisitor extends ExpressionVisitor
      */
     public function __construct(BasicEntityPersister $persister, ClassMetadata $classMetadata)
     {
+
         $this->persister = $persister;
         $this->classMetadata = $classMetadata;
     }
@@ -63,6 +65,7 @@ class SqlExpressionVisitor extends ExpressionVisitor
      */
     public function walkComparison(Comparison $comparison)
     {
+
         $field = $comparison->getField();
         $value = $comparison->getValue()->getValue(); // shortcut for walkValue()
 
@@ -89,6 +92,7 @@ class SqlExpressionVisitor extends ExpressionVisitor
      */
     public function walkCompositeExpression(CompositeExpression $expr)
     {
+
         $expressionList = array();
 
         foreach ($expr->getExpressionList() as $child) {
@@ -116,6 +120,7 @@ class SqlExpressionVisitor extends ExpressionVisitor
      */
     public function walkValue(Value $value)
     {
+
         return '?';
     }
 }

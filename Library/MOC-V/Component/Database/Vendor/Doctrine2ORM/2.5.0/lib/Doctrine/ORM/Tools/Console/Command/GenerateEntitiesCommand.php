@@ -40,11 +40,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class GenerateEntitiesCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
+
         $this
             ->setName('orm:generate-entities')
             ->setAliases(array('orm:generate:entities'))
@@ -114,6 +116,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         $em = $this->getHelper('em')->getEntityManager();
 
         $cmf = new DisconnectedClassMetadataFactory();

@@ -30,6 +30,7 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
  */
 class PhpExporter extends AbstractExporter
 {
+
     /**
      * @var string
      */
@@ -40,6 +41,7 @@ class PhpExporter extends AbstractExporter
      */
     public function exportClassMetadata(ClassMetadataInfo $metadata)
     {
+
         $lines = array();
         $lines[] = '<?php';
         $lines[] = null;
@@ -105,7 +107,7 @@ class PhpExporter extends AbstractExporter
             $associationMappingArray = array(
                 'fieldName'    => $associationMapping['fieldName'],
                 'targetEntity' => $associationMapping['targetEntity'],
-                'cascade' => $cascade,
+                'cascade'      => $cascade,
             );
 
             if (isset( $associationMapping['fetch'] )) {
@@ -163,6 +165,7 @@ class PhpExporter extends AbstractExporter
      */
     protected function _varExport($var)
     {
+
         $export = var_export($var, true);
         $export = str_replace("\n", PHP_EOL.str_repeat(' ', 8), $export);
         $export = str_replace('  ', ' ', $export);

@@ -33,11 +33,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class InfoCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
+
         $this
             ->setName('orm:info')
             ->setDescription('Show basic information about all mapped entities')
@@ -54,6 +56,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         /* @var $entityManager \Doctrine\ORM\EntityManager */
         $entityManager = $this->getHelper('em')->getEntityManager();
 

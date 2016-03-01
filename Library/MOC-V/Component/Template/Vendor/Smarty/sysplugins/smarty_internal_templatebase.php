@@ -354,7 +354,7 @@ abstract class Smarty_Internal_TemplateBase extends Smarty_Internal_Data
                         case 'cgi': // php-cgi < 5.3
                         case 'cgi-fcgi': // php-cgi >= 5.3
                         case 'fpm-fcgi': // php-fpm >= 5.3.3
-                        header('Status: 304 Not Modified');
+                            header('Status: 304 Not Modified');
                             break;
 
                         case 'cli':

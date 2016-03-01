@@ -41,7 +41,7 @@ class Dispatcher extends Extension
             // Roadmap
             try {
                 $this->registerRoute($this->createRoute('Roadmap/Current',
-                    'SPHERE\Common\Roadmap\Roadmap::frontendMap')
+                    'SPHERE\Application\Platform\Roadmap\Roadmap::frontendDashboard')
                 );
             } catch (\Exception $Exception) {
                 $this->getLogger(new ErrorLogger())->addLog('Unable to register Roadmap');

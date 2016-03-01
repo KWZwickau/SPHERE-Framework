@@ -36,7 +36,7 @@ class Font_EOT_Header extends Font_Header
             "FontDataSize"       => self::uint32,
             "Version"            => self::uint32,
             "Flags"              => self::uint32,
-            "FontPANOSE" => array(self::uint8, 10),
+            "FontPANOSE"         => array(self::uint8, 10),
             "Charset"            => self::uint8,
             "Italic"             => self::uint8,
             "Weight"             => self::uint32,

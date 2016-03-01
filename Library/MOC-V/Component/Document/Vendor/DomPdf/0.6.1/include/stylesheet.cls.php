@@ -776,10 +776,10 @@ class Stylesheet
 
         foreach ($src[0] as $i => $value) {
             $source = array(
-                "local" => strtolower($src[1][$i]) === "local",
+                "local"  => strtolower($src[1][$i]) === "local",
                 "uri"    => $src[2][$i],
                 "format" => $src[4][$i],
-                "path"  => build_url($this->_protocol, $this->_base_host, $this->_base_path, $src[2][$i]),
+                "path"   => build_url($this->_protocol, $this->_base_host, $this->_base_path, $src[2][$i]),
             );
 
             if (!$source["local"] && in_array($source["format"], array("", "woff", "opentype", "truetype"))) {
@@ -1092,12 +1092,12 @@ class Stylesheet
                     // the current token
                     $expr = $s === " " ? "descendant" : "child";
 
-                if (mb_substr($query, -1, 1) !== "/") {
+                    if (mb_substr($query, -1, 1) !== "/") {
                         $query .= "/";
                     }
 
                     // Tag names are case-insensitive
-                $tok = strtolower($tok);
+                    $tok = strtolower($tok);
 
                     if (!$tok) {
                         $tok = "*";
@@ -1115,7 +1115,7 @@ class Stylesheet
                     $attr = $s === "." ? "class" : "id";
 
                     // empty class/id == *
-                if (mb_substr($query, -1, 1) === "/") {
+                    if (mb_substr($query, -1, 1) === "/") {
                         $query .= "*";
                     }
 
@@ -1180,10 +1180,10 @@ class Stylesheet
                         case "nth-of-type":
                         case "nth-child":
                             $p = $i + 1;
-                        $nth = trim(mb_substr($selector, $p, strpos($selector, ")", $i) - $p));
+                            $nth = trim(mb_substr($selector, $p, strpos($selector, ")", $i) - $p));
 
                             // 1
-                        if (preg_match("/^\d+$/", $nth)) {
+                            if (preg_match("/^\d+$/", $nth)) {
                                 $condition = "position() = $nth";
                             } // odd
                             elseif ($nth === "odd") {

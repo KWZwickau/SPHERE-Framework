@@ -48,8 +48,8 @@ class FireLogger extends Nette\Object
         $item = array(
             'name'     => 'PHP',
             'level'    => $priority,
-            'order' => count(self::$payload['logs']),
-            'time'  => str_pad(number_format(( microtime(true) - Debugger::$time ) * 1000, 1, '.', ' '), 8, '0',
+            'order'    => count(self::$payload['logs']),
+            'time'     => str_pad(number_format(( microtime(true) - Debugger::$time ) * 1000, 1, '.', ' '), 8, '0',
                     STR_PAD_LEFT).' ms',
             'template' => '',
             'message'  => '',

@@ -293,7 +293,7 @@ class PHPExcel_Reader_Excel2003XML extends PHPExcel_Reader_Abstract implements P
     /**
      * Loads PHPExcel from file into PHPExcel instance
      *
-     * @param    string $pFilename
+     * @param    string   $pFilename
      * @param    PHPExcel $objPHPExcel
      *
      * @return    PHPExcel

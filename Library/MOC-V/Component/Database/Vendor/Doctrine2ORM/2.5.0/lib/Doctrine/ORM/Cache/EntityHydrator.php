@@ -30,6 +30,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  */
 interface EntityHydrator
 {
+
     /**
      * @param \Doctrine\ORM\Mapping\ClassMetadata $metadata The entity metadata.
      * @param \Doctrine\ORM\Cache\EntityCacheKey  $key      The entity cache key.

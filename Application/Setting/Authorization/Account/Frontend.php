@@ -90,8 +90,10 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblAccountAll, function (TblAccount &$tblAccount) {
 
                 if (
-                    ( $tblAccount->getServiceTblIdentification() && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId() )
-                    && $tblAccount->getServiceTblConsumer()->getId() == Consumer::useService()->getConsumerBySession()->getId()
+                    ( $tblAccount->getServiceTblIdentification()
+                        && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId() )
+                        && $tblAccount->getServiceTblConsumer()
+                        && $tblAccount->getServiceTblConsumer()->getId() == Consumer::useService()->getConsumerBySession()->getId()
                 ) {
 
                     $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
@@ -105,9 +107,13 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
                     if ($tblAuthorizationAll) {
                         array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
-
-                            $tblAuthorization = $tblAuthorization->getServiceTblRole()->getName();
+                            if ($tblAuthorization->getServiceTblRole()) {
+                                $tblAuthorization = $tblAuthorization->getServiceTblRole()->getName();
+                            } else {
+                                $tblAuthorization = false;
+                            }
                         });
+                        $tblAuthorizationAll = array_filter($tblAuthorizationAll);
                     }
 
                     $tblAccount = array(
@@ -419,7 +425,8 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Global = $this->getGlobal();
             if (!$Global->POST) {
-                $Global->POST['Account']['Identification'] = $tblAccount->getServiceTblIdentification()->getId();
+                $Global->POST['Account']['Identification'] = $tblAccount->getServiceTblIdentification()
+                    ? $tblAccount->getServiceTblIdentification()->getId() : 0;
                 $Global->POST['Account']['Token'] = (
                 $tblAccount->getServiceTblToken()
                     ? $tblAccount->getServiceTblToken()->getId()
@@ -429,7 +436,7 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($User) {
                     $tblPerson = $User[0]->getServiceTblPerson();
                     if ($tblPerson) {
-                        $Global->POST['Account']['User'] = $User[0]->getServiceTblPerson()->getId();
+                        $Global->POST['Account']['User'] = $tblPerson->getId();
                     }
                 }
 
@@ -437,7 +444,9 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($Authorization) {
                     /** @var TblAuthorization $Role */
                     foreach ((array)$Authorization as $Role) {
-                        $Global->POST['Account']['Role'][$Role->getServiceTblRole()->getId()] = $Role->getServiceTblRole()->getId();
+                        if ($Role->getServiceTblRole()) {
+                            $Global->POST['Account']['Role'][$Role->getServiceTblRole()->getId()] = $Role->getServiceTblRole()->getId();
+                        }
                     }
                 }
 
@@ -511,8 +520,13 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblAuthorizationAll) {
                     array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
 
-                        $tblAuthorization = new Nameplate().' '.$tblAuthorization->getServiceTblRole()->getName();
+                        if ($tblAuthorization->getServiceTblRole()) {
+                            $tblAuthorization = new Nameplate() . ' ' . $tblAuthorization->getServiceTblRole()->getName();
+                        } else {
+                            $tblAuthorization = false;
+                        }
                     });
+                    $tblAuthorizationAll = array_filter(($tblAuthorizationAll));
                     $Content = array_merge($Content, $tblAuthorizationAll);
                 }
 
@@ -563,8 +577,10 @@ class Frontend extends Extension implements IFrontendInterface
                 if (!empty( $tblAuthorizationAll )) {
                     /** @var TblAuthorization $tblAuthorization */
                     foreach ($tblAuthorizationAll as $tblAuthorization) {
-                        Account::useService()->removeAccountAuthorization($tblAccount,
-                            $tblAuthorization->getServiceTblRole());
+                        if ($tblAuthorization->getServiceTblRole()) {
+                            Account::useService()->removeAccountAuthorization($tblAccount,
+                                $tblAuthorization->getServiceTblRole());
+                        }
                     }
                 }
 

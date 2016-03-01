@@ -126,9 +126,9 @@ class NativeSessionStorageTest extends \PHPUnit_Framework_TestCase
 
         $options = array(
             'cookie_lifetime' => 123456,
-            'cookie_path'   => '/my/cookie/path',
-            'cookie_domain' => 'symfony2.example.com',
-            'cookie_secure' => true,
+            'cookie_path'     => '/my/cookie/path',
+            'cookie_domain'   => 'symfony2.example.com',
+            'cookie_secure'   => true,
             'cookie_httponly' => false,
         );
 

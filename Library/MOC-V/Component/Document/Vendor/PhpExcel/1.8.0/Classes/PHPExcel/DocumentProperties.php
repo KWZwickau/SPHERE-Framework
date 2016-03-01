@@ -163,7 +163,7 @@ class PHPExcel_DocumentProperties
             case 'ui4'        :    //    4-Byte Unsigned Integer
             case 'ui8'        :    //    8-Byte Unsigned Integer
             case 'uint'        :    //    Unsigned Integer
-            return abs((int)$propertyValue);
+                return abs((int)$propertyValue);
                 break;
             case 'r4'        :    //    4-Byte Real Number
             case 'r8'        :    //    8-Byte Real Number
@@ -177,7 +177,7 @@ class PHPExcel_DocumentProperties
                 break;
             case 'date'        :    //    Date and Time
             case 'filetime'    :    //    File Time
-            return strtotime($propertyValue);
+                return strtotime($propertyValue);
                 break;
             case 'bool'        :    //    Boolean
                 return ( $propertyValue == 'true' ) ? true : false;

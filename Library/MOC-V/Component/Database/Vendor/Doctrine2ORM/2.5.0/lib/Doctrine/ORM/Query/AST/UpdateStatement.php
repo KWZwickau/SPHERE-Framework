@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class UpdateStatement extends Node
 {
+
     /**
      * @var UpdateClause
      */
@@ -45,6 +46,7 @@ class UpdateStatement extends Node
      */
     public function __construct($updateClause)
     {
+
         $this->updateClause = $updateClause;
     }
 
@@ -53,6 +55,7 @@ class UpdateStatement extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkUpdateStatement($this);
     }
 }

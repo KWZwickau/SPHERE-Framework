@@ -68,7 +68,7 @@ class Service
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
-                        if ($guardian->getTblType()->getId() == 1) {
+                        if ($guardian->getServiceTblPersonFrom() && $guardian->getTblType()->getId() == 1) {
                             if (( $salutation = $guardian->getServiceTblPersonFrom()->getTblSalutation() )) {
                                 if ($salutation->getId() == 1) {
                                     $father = $guardian->getServiceTblPersonFrom();
@@ -93,8 +93,8 @@ class Service
                 }
 
                 $tblPerson->Salutation = $tblPerson->getSalutation();
-                $tblPerson->Father = $father !== null ? $father->getFirstName() : '';
-                $tblPerson->Mother = $mother !== null ? $mother->getFirstName() : '';
+                $tblPerson->Father = $father !== null ? $father->getFirstSecondName() : '';
+                $tblPerson->Mother = $mother !== null ? $mother->getFirstSecondName() : '';
 
                 if ($address !== null) {
                     $tblPerson->StreetName = $address->getTblAddress()->getStreetName();
@@ -624,7 +624,9 @@ class Service
                 $relationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if (!empty( $relationshipList )) {
                     foreach ($relationshipList as $relationship) {
-                        if ($relationship->getTblType()->getName() == 'Geschwisterkind') {
+                        if ($relationship->getServiceTblPersonFrom() && $relationship->getServiceTblPersonTo()
+                            && $relationship->getTblType()->getName() == 'Geschwisterkind'
+                        ) {
                             if ($relationship->getServiceTblPersonFrom()->getId() == $tblPerson->getId()) {
                                 $tblPerson->Siblings .= $relationship->getServiceTblPersonTo()->getFullName().' ';
                             } else {
@@ -650,7 +652,7 @@ class Service
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
-                        if ($guardian->getTblType()->getId() == 1) {
+                        if ($guardian->getServiceTblPersonFrom() && $guardian->getTblType()->getId() == 1) {
                             if (( $salutation = $guardian->getServiceTblPersonFrom()->getTblSalutation() )) {
                                 if ($salutation->getId() == 1) {
                                     $father = $guardian->getServiceTblPersonFrom();
@@ -670,7 +672,7 @@ class Service
                 if ($father !== null) {
                     $tblPerson->FatherSalutation = $father->getSalutation();
                     $tblPerson->FatherLastName = $father->getLastName();
-                    $tblPerson->FatherFirstName = $father->getFirstName();
+                    $tblPerson->FatherFirstName = $father->getFirstSecondName();
                     $tblPerson->Father = $father->getFullName();
                 } else {
                     $tblPerson->FatherSalutation = $tblPerson->FatherLastName = $tblPerson->FatherFirstName = '';
@@ -679,7 +681,7 @@ class Service
                 if ($mother !== null) {
                     $tblPerson->MotherSalutation = $mother->getSalutation();
                     $tblPerson->MotherLastName = $mother->getLastName();
-                    $tblPerson->MotherFirstName = $mother->getFirstName();
+                    $tblPerson->MotherFirstName = $mother->getFirstSecondName();
                     $tblPerson->Mother = $mother->getFullName();
                 } else {
                     $tblPerson->MotherSalutation = $tblPerson->MotherLastName = $tblPerson->MotherFirstName = '';
@@ -810,7 +812,7 @@ class Service
                 $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                 if ($guardianList) {
                     foreach ($guardianList as $guardian) {
-                        if ($guardian->getTblType()->getId() == 1) {
+                        if ($guardian->getServiceTblPersonFrom() && $guardian->getTblType()->getId() == 1) {
                             if (( $salutation = $guardian->getServiceTblPersonFrom()->getTblSalutation() )) {
                                 if ($salutation->getId() == 1) {
                                     $father = $guardian->getServiceTblPersonFrom();
@@ -830,8 +832,8 @@ class Service
                 if ($father !== null) {
                     $tblPerson->FatherSalutation = $father->getSalutation();
                     $tblPerson->FatherLastName = $father->getLastName();
-                    $tblPerson->FatherFirstName = $father->getFirstName();
-                    $tblPerson->Father = $father->getLastName() . ', ' . $father->getFirstName();
+                    $tblPerson->FatherFirstName = $father->getFirstSecondName();
+                    $tblPerson->Father = $father->getLastFirstName();
                 } else {
                     $tblPerson->FatherSalutation = $tblPerson->FatherLastName = $tblPerson->FatherFirstName = '';
                     $tblPerson->Father = '';
@@ -839,8 +841,8 @@ class Service
                 if ($mother !== null) {
                     $tblPerson->MotherSalutation = $mother->getSalutation();
                     $tblPerson->MotherLastName = $mother->getLastName();
-                    $tblPerson->MotherFirstName = $mother->getFirstName();
-                    $tblPerson->Mother = $mother->getLastName() . ', ' . $mother->getFirstName();
+                    $tblPerson->MotherFirstName = $mother->getFirstSecondName();
+                    $tblPerson->Mother = $mother->getLastFirstName();
                 } else {
                     $tblPerson->MotherSalutation = $tblPerson->MotherLastName = $tblPerson->MotherFirstName = '';
                     $tblPerson->Mother = '';
@@ -945,10 +947,14 @@ class Service
                         if ($guardian->getTblType()->getId() == 1) {
                             if ($father === null) {
                                 $father = $guardian->getServiceTblPersonFrom();
-                                $fatherPhoneList = Phone::useService()->getPhoneAllByPerson($father);
+                                if ($father) {
+                                    $fatherPhoneList = Phone::useService()->getPhoneAllByPerson($father);
+                                }
                             } else {
                                 $mother = $guardian->getServiceTblPersonFrom();
-                                $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
+                                if ($mother) {
+                                    $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
+                                }
                             }
                         }
                     }
@@ -961,15 +967,15 @@ class Service
                 }
 
                 $tblPerson->FatherName = $father !== null ? ( $tblPerson->getLastName() == $father->getLastName()
-                    ? $father->getFirstName() : $father->getFirstName().' '.$father->getLastName() ) : '';
+                    ? $father->getFirstSecondName() : $father->getFirstSecondName().' '.$father->getLastName() ) : '';
                 $tblPerson->MotherName = $mother !== null ? ( $tblPerson->getLastName() == $mother->getLastName()
-                    ? $mother->getFirstName() : $mother->getFirstName().' '.$mother->getLastName() ) : '';
-                $tblPerson->DisplayName = $tblPerson->getLastName().', '.$tblPerson->getFirstName()
+                    ? $mother->getFirstSecondName() : $mother->getFirstSecondName().' '.$mother->getLastName() ) : '';
+                $tblPerson->DisplayName = $tblPerson->getLastFirstName()
                     .( $father !== null || $mother !== null ? '<br>('.( $father !== null ? $tblPerson->FatherName
                             .( $mother !== null ? ', ' : '' ) : '' )
                         .( $mother !== null ? $tblPerson->MotherName : '' ).')' : '' );
 
-                $tblPerson->ExcelNameRow1 = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
+                $tblPerson->ExcelNameRow1 = $tblPerson->getLastFirstName();
                 if ($father !== null || $mother !== null) {
                     $tblPerson->ExcelNameRow2 = '('.( $father !== null ? $tblPerson->FatherName
                             .( $mother !== null ? ', ' : '' ) : '' )
@@ -1011,14 +1017,18 @@ class Service
                 }
                 if ($fatherPhoneList) {
                     foreach ($fatherPhoneList as $phone) {
-                        $phoneNumbers[] = $phone->getTblPhone()->getNumber().' '.$phone->getTblType()->getName() . ' '
-                            . $phone->getServiceTblPerson()->getFullName() .( $phone->getRemark() !== '' ? ' '.$phone->getRemark() : '' );
+                        if ($phone->getServiceTblPerson()) {
+                            $phoneNumbers[] = $phone->getTblPhone()->getNumber() . ' ' . $phone->getTblType()->getName() . ' '
+                                . $phone->getServiceTblPerson()->getFullName() . ($phone->getRemark() !== '' ? ' ' . $phone->getRemark() : '');
+                        }
                     }
                 }
                 if ($motherPhoneList) {
                     foreach ($motherPhoneList as $phone) {
-                        $phoneNumbers[] = $phone->getTblPhone()->getNumber().' '.$phone->getTblType()->getName() . ' '
-                            . $phone->getServiceTblPerson()->getFullName() .( $phone->getRemark() !== '' ? ' '.$phone->getRemark() : '' );
+                        if ($phone->getServiceTblPerson()) {
+                            $phoneNumbers[] = $phone->getTblPhone()->getNumber() . ' ' . $phone->getTblType()->getName() . ' '
+                                . $phone->getServiceTblPerson()->getFullName() . ($phone->getRemark() !== '' ? ' ' . $phone->getRemark() : '');
+                        }
                     }
                 }
 
@@ -1035,8 +1045,8 @@ class Service
                         $tblStudent,
                         Student::useService()->getStudentSubjectTypeByIdentifier('ORIENTATION')
                     );
-                    if ($tblStudentOrientation) {
-                        $tblPerson->Orientation = $tblStudentOrientation[0]->getServiceTblSubject()->getName();
+                    if ($tblStudentOrientation && ($tblSubject = $tblStudentOrientation[0]->getServiceTblSubject()) ) {
+                        $tblPerson->Orientation = $tblSubject->getName();
                     } else {
                         $tblPerson->Orientation = '';
                     }

@@ -250,7 +250,7 @@ class PHPExcel_Calculation_Financial
                 switch ($period - $n) {
                     case 0    :
                     case 1    :
-                    return round($cost * 0.5, 0);
+                        return round($cost * 0.5, 0);
                         break;
                     default    :
                         return 0.0;

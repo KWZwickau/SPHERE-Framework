@@ -824,7 +824,7 @@ class Smarty_Template_Source
         switch ($property_name) {
             case 'timestamp':
             case 'exists':
-            $this->handler->populateTimestamp($this);
+                $this->handler->populateTimestamp($this);
 
                 return $this->$property_name;
 

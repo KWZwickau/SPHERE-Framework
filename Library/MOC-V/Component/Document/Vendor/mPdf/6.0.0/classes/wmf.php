@@ -85,8 +85,8 @@ class wmf
                 case 0x01f9: // CreatePatternBrush
                 case 0x06ff: // CreateRegion
                 case 0x0142: // DibCreatePatternBrush
-                $dummyObject = array('type' => 'D');
-                $this->_AddGDIObject($dummyObject);
+                    $dummyObject = array('type' => 'D');
+                    $this->_AddGDIObject($dummyObject);
                     break;
                 case 0x0106:  // SetPolyFillMode
                     $polyFillMode = unpack('smode', $parms);
@@ -155,7 +155,7 @@ class wmf
                     break;
                 case 0x0325: // Polyline
                 case 0x0324: // Polygon
-                $coords = unpack('s'.( $size - 3 ), $parms);
+                    $coords = unpack('s'.( $size - 3 ), $parms);
                     $numpoints = $coords[1];
                     for ($i = $numpoints; $i > 0; $i--) {
                         $px = $coords[2 * $i];

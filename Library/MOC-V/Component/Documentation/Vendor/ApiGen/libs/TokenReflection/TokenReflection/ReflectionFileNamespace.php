@@ -298,10 +298,10 @@ class ReflectionFileNamespace extends ReflectionElement
                 case T_COMMENT:
                 case T_DOC_COMMENT:
                     $docblock = $tokenStream->getTokenValue();
-                if (preg_match('~^'.preg_quote(self::DOCBLOCK_TEMPLATE_START, '~').'~', $docblock)) {
-                    array_unshift($this->docblockTemplates, new ReflectionAnnotation($this, $docblock));
+                    if (preg_match('~^'.preg_quote(self::DOCBLOCK_TEMPLATE_START, '~').'~', $docblock)) {
+                        array_unshift($this->docblockTemplates, new ReflectionAnnotation($this, $docblock));
                     } elseif (self::DOCBLOCK_TEMPLATE_END === $docblock) {
-                    array_shift($this->docblockTemplates);
+                        array_shift($this->docblockTemplates);
                     }
                     $tokenStream->next();
                     break;
@@ -324,7 +324,7 @@ class ReflectionFileNamespace extends ReflectionElement
                 case T_CLASS:
                 case T_TRAIT:
                 case T_INTERFACE:
-                $class = new ReflectionClass($tokenStream, $this->getBroker(), $this);
+                    $class = new ReflectionClass($tokenStream, $this->getBroker(), $this);
                     $firstChild = $firstChild ?: $class;
 
                     $className = $class->getName();

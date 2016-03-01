@@ -365,11 +365,13 @@ class Service extends AbstractService
         $tblDivisionSubjectList = $this->getDivisionSubjectByDivision($tblDivision);
         if ($tblDivisionSubjectList) {
             foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                if ($tblDivisionSubject->getServiceTblSubject()->getId() === $tblSubject->getId()) {
-                    (new Data($this->getBinding()))->removeSubjectStudentByDivisionSubject($tblDivisionSubject);
-                    (new Data($this->getBinding()))->removeSubjectTeacherByDivisionSubject($tblDivisionSubject);
-                    if ($tblDivisionSubject->getTblSubjectGroup()) {
-                        (new Data($this->getBinding()))->removeSubjectGroup($tblDivisionSubject->getTblSubjectGroup());
+                if ($tblDivisionSubject->getServiceTblSubject()->getId()) {
+                    if ($tblDivisionSubject->getServiceTblSubject()->getId() === $tblSubject->getId()) {
+                        (new Data($this->getBinding()))->removeSubjectStudentByDivisionSubject($tblDivisionSubject);
+                        (new Data($this->getBinding()))->removeSubjectTeacherByDivisionSubject($tblDivisionSubject);
+                        if ($tblDivisionSubject->getTblSubjectGroup()) {
+                            (new Data($this->getBinding()))->removeSubjectGroup($tblDivisionSubject->getTblSubjectGroup());
+                        }
                     }
                 }
             }
@@ -550,9 +552,12 @@ class Service extends AbstractService
             if (is_array($Student)) {
                 array_walk($Student, function ($Student) use ($tblDivisionSubject, &$Error) {
 
-                    if (!(new Data($this->getBinding()))->addSubjectStudent($tblDivisionSubject, Person::useService()->getPersonById($Student))
-                    ) {
-                        $Error = false;
+                    $tblPerson = Person::useService()->getPersonById($Student);
+                    if ($tblPerson) {
+                        if (!(new Data($this->getBinding()))->addSubjectStudent($tblDivisionSubject, $tblPerson)
+                        ) {
+                            $Error = false;
+                        }
                     }
                 });
             }
@@ -1131,27 +1136,30 @@ class Service extends AbstractService
 
         $DivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
         $SubjectUsedCount = 0;
-        if (!$DivisionSubjectList) {
-        } else {
+        if ($DivisionSubjectList) {
             foreach ($DivisionSubjectList as $DivisionSubject) {
 
                 if (!$DivisionSubject->getTblSubjectGroup()) {
-                    $tblDivisionSubjectActiveList = Division::useService()
-                        ->getDivisionSubjectBySubjectAndDivision($DivisionSubject->getServiceTblSubject(),
-                            $tblDivision);
-                    $TeacherGroup = array();
-                    if ($tblDivisionSubjectActiveList) {
-                        /**@var TblDivisionSubject $tblDivisionSubjectActive */
-                        foreach ($tblDivisionSubjectActiveList as $tblDivisionSubjectActive) {
-                            $TempList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubjectActive);
-                            if ($TempList) {
-                                foreach ($TempList as $Temp) {
-                                    array_push($TeacherGroup, $Temp->getId());
+                    if ($DivisionSubject->getServiceTblSubject()) {
+                        $tblDivisionSubjectActiveList = Division::useService()
+                            ->getDivisionSubjectBySubjectAndDivision($DivisionSubject->getServiceTblSubject(),
+                                $tblDivision);
+                        $TeacherGroup = array();
+                        if ($tblDivisionSubjectActiveList) {
+                            /**@var TblDivisionSubject $tblDivisionSubjectActive */
+                            foreach ($tblDivisionSubjectActiveList as $tblDivisionSubjectActive) {
+                                $TempList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubjectActive);
+                                if ($TempList) {
+                                    foreach ($TempList as $Temp) {
+                                        if ($Temp->getServiceTblPerson()) {
+                                            array_push($TeacherGroup, $Temp->getId());
+                                        }
+                                    }
                                 }
                             }
-                        }
-                        if (empty( $TeacherGroup )) {
-                            $SubjectUsedCount = $SubjectUsedCount + 1;
+                            if (empty($TeacherGroup)) {
+                                $SubjectUsedCount = $SubjectUsedCount + 1;
+                            }
                         }
                     }
                 }
@@ -1325,7 +1333,8 @@ class Service extends AbstractService
                     $tblYear, $tblLevel, $Division['Name'], $Division['Description']
                 );
 
-                if ($tblDivision->getTblLevel()->getServiceTblType()->getId() !== $tblLevel->getServiceTblType()->getId()) {
+                if ($tblDivision->getTblLevel()->getServiceTblType() && $tblLevel->getServiceTblType()
+                    && $tblDivision->getTblLevel()->getServiceTblType()->getId() !== $tblLevel->getServiceTblType()->getId()) {
 
                     $DivisionComparison = $this->getMinDivisionByLevelType($tblLevel->getServiceTblType());
                     if ($DivisionComparison) {
@@ -1385,7 +1394,8 @@ class Service extends AbstractService
                             $tblYearList = Term::useService()->getYearByNow();
                             if ($tblYearList) {
                                 foreach ($tblYearList as $tblYear) {
-                                    if ($tblYear->getId() === $tblDivision->getServiceTblYear()->getId()) {
+                                    if ($tblDivision->getServiceTblYear()
+                                        && $tblYear->getId() === $tblDivision->getServiceTblYear()->getId()) {
                                         $DivisionList[] = $tblDivision;
                                     }
                                 }
@@ -1441,18 +1451,22 @@ class Service extends AbstractService
                 if ($tblDivisionSubjectList) {
                     $done = true;
                     foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                        $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
-                            $tblDivisionSubject->getServiceTblSubject());
+                        if ($tblDivisionSubject->getServiceTblSubject()) {
+                            $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
+                                $tblDivisionSubject->getServiceTblSubject());
 
-                        $tblSubjectTeacherList = false;
-                        if (!$tblDivisionSubject->getTblSubjectGroup()) {
-                            $tblSubjectTeacherList = $this->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
-                        }
+                            $tblSubjectTeacherList = false;
+                            if (!$tblDivisionSubject->getTblSubjectGroup()) {
+                                $tblSubjectTeacherList = $this->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
+                            }
 
-                        if ($tblSubjectTeacherList) {
-                            foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
-                                (new Data($this->getBinding()))->addSubjectTeacher($tblDivisionSubjectCopy,
-                                    $tblSubjectTeacher->getServiceTblPerson());
+                            if ($tblSubjectTeacherList) {
+                                foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
+                                    if ($tblSubjectTeacher->getServiceTblPerson()) {
+                                        (new Data($this->getBinding()))->addSubjectTeacher($tblDivisionSubjectCopy,
+                                            $tblSubjectTeacher->getServiceTblPerson());
+                                    }
+                                }
                             }
                         }
                     }
@@ -1485,39 +1499,47 @@ class Service extends AbstractService
                             $tblSubjectGroupCopy = (new Data($this->getBinding()))->createSubjectGroup($tblSubjectGroup->getName(),
                                 $tblSubjectGroup->getDescription());
                         }
-                        if (isset( $tblSubjectGroupCopy )) {
-                            $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
-                                $tblDivisionSubject->getServiceTblSubject(),
-                                $tblSubjectGroupCopy);
 
-                        } else {
-                            $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
-                                $tblDivisionSubject->getServiceTblSubject());
-                        }
+                        if ( $tblDivisionSubject->getServiceTblSubject()) {
+                            if (isset($tblSubjectGroupCopy)) {
+                                $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
+                                    $tblDivisionSubject->getServiceTblSubject(),
+                                    $tblSubjectGroupCopy);
 
-
-                        if ($tblSubjectTeacherList) {
-                            foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
-                                (new Data($this->getBinding()))->addSubjectTeacher($tblDivisionSubjectCopy,
-                                    $tblSubjectTeacher->getServiceTblPerson());
+                            } else {
+                                $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
+                                    $tblDivisionSubject->getServiceTblSubject());
                             }
-                        }
-                        if ($tblSubjectStudentList) {
-                            foreach ($tblSubjectStudentList as $tblSubjectStudent) {
-                                (new Data($this->getBinding()))->addSubjectStudent($tblDivisionSubjectCopy,
-                                    $tblSubjectStudent->getServiceTblPerson());
+
+                            if ($tblSubjectTeacherList) {
+                                foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
+                                    if ($tblSubjectTeacher->getServiceTblPerson()) {
+                                        (new Data($this->getBinding()))->addSubjectTeacher($tblDivisionSubjectCopy,
+                                            $tblSubjectTeacher->getServiceTblPerson());
+                                    }
+                                }
+                            }
+                            if ($tblSubjectStudentList) {
+                                foreach ($tblSubjectStudentList as $tblSubjectStudent) {
+                                    if ($tblSubjectStudent->getServiceTblPerson()) {
+                                        (new Data($this->getBinding()))->addSubjectStudent($tblDivisionSubjectCopy,
+                                            $tblSubjectStudent->getServiceTblPerson());
+                                    }
+                                }
                             }
                         }
                     } else {
-                        $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
-                            $tblDivisionSubject->getServiceTblSubject());
+                        if ($tblDivisionSubject->getServiceTblSubject()) {
+                            $tblDivisionSubjectCopy = (new Data($this->getBinding()))->addDivisionSubject($tblDivisionCopy,
+                                $tblDivisionSubject->getServiceTblSubject());
 
-                        $tblSubjectTeacherList = $this->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
+                            $tblSubjectTeacherList = $this->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
 
-                        if ($tblSubjectTeacherList) {
-                            foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
-                                (new Data($this->getBinding()))->addSubjectTeacher($tblDivisionSubjectCopy,
-                                    $tblSubjectTeacher->getServiceTblPerson());
+                            if ($tblSubjectTeacherList) {
+                                foreach ($tblSubjectTeacherList as $tblSubjectTeacher) {
+                                    (new Data($this->getBinding()))->addSubjectTeacher($tblDivisionSubjectCopy,
+                                        $tblSubjectTeacher->getServiceTblPerson());
+                                }
                             }
                         }
                     }

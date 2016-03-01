@@ -819,14 +819,14 @@ abstract class Abstract_Renderer
         switch ($side) {
             case "top":
             case "left":
-            $shade = array_map(array($this, "_shade"), $color);
-            $this->_border_solid($x, $y, $length, $shade, $widths, $side, $corner_style, $r1, $r2);
+                $shade = array_map(array($this, "_shade"), $color);
+                $this->_border_solid($x, $y, $length, $shade, $widths, $side, $corner_style, $r1, $r2);
                 break;
 
             case "bottom":
             case "right":
-            $tint = array_map(array($this, "_tint"), $color);
-            $this->_border_solid($x, $y, $length, $tint, $widths, $side, $corner_style, $r1, $r2);
+                $tint = array_map(array($this, "_tint"), $color);
+                $this->_border_solid($x, $y, $length, $tint, $widths, $side, $corner_style, $r1, $r2);
                 break;
 
             default:
@@ -849,14 +849,14 @@ abstract class Abstract_Renderer
         switch ($side) {
             case "top":
             case "left":
-            $tint = array_map(array($this, "_tint"), $color);
-            $this->_border_solid($x, $y, $length, $tint, $widths, $side, $corner_style, $r1, $r2);
+                $tint = array_map(array($this, "_tint"), $color);
+                $this->_border_solid($x, $y, $length, $tint, $widths, $side, $corner_style, $r1, $r2);
                 break;
 
             case "bottom":
             case "right":
-            $shade = array_map(array($this, "_shade"), $color);
-            $this->_border_solid($x, $y, $length, $shade, $widths, $side, $corner_style, $r1, $r2);
+                $shade = array_map(array($this, "_shade"), $color);
+                $this->_border_solid($x, $y, $length, $shade, $widths, $side, $corner_style, $r1, $r2);
                 break;
 
             default:

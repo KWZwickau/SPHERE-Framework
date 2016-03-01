@@ -29,6 +29,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class JoinClassPathExpression extends Node
 {
+
     /**
      * @var mixed
      */
@@ -45,6 +46,7 @@ class JoinClassPathExpression extends Node
      */
     public function __construct($abstractSchemaName, $aliasIdentificationVar)
     {
+
         $this->abstractSchemaName = $abstractSchemaName;
         $this->aliasIdentificationVariable = $aliasIdentificationVar;
     }
@@ -54,6 +56,7 @@ class JoinClassPathExpression extends Node
      */
     public function dispatch($walker)
     {
+
         return $walker->walkJoinPathExpression($this);
     }
 }

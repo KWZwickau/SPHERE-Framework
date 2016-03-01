@@ -41,7 +41,7 @@ abstract class Twig_Test_IntegrationTestCase extends PHPUnit_Framework_TestCase
 
         foreach ($outputs as $match) {
             $config = array_merge(array(
-                'cache' => false,
+                'cache'            => false,
                 'strict_variables' => true,
             ), $match[2] ? eval( $match[2].';' ) : array());
             $twig = new Twig_Environment($loader, $config);

@@ -9,6 +9,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Warning;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Link\Repository\External;
@@ -340,7 +341,7 @@ class Database extends Extension implements IModuleInterface
             });
         }
 
-        $Stage->setContent(implode($ClassList));
+        $Stage->setContent(new Listing($ClassList));
         return $Stage;
     }
 }

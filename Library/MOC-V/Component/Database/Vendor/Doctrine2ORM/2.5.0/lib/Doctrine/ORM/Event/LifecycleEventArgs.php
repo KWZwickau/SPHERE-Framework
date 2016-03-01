@@ -32,6 +32,7 @@ use Doctrine\Common\Persistence\Event\LifecycleEventArgs as BaseLifecycleEventAr
  */
 class LifecycleEventArgs extends BaseLifecycleEventArgs
 {
+
     /**
      * Retrieves associated Entity.
      *
@@ -39,6 +40,7 @@ class LifecycleEventArgs extends BaseLifecycleEventArgs
      */
     public function getEntity()
     {
+
         return $this->getObject();
     }
 
@@ -49,6 +51,7 @@ class LifecycleEventArgs extends BaseLifecycleEventArgs
      */
     public function getEntityManager()
     {
+
         return $this->getObjectManager();
     }
 }

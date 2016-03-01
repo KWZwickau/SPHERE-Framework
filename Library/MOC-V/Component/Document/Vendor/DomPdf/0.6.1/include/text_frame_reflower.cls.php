@@ -104,12 +104,12 @@ class Text_Frame_Reflower extends Frame_Reflower
 
             default:
             case "normal":
-            $frame->set_text($text = $this->_collapse_white_space($text));
+                $frame->set_text($text = $this->_collapse_white_space($text));
                 if ($text == "") {
                     break;
                 }
 
-            $split = $this->_line_break($text);
+                $split = $this->_line_break($text);
                 break;
 
             case "pre":
@@ -395,7 +395,7 @@ class Text_Frame_Reflower extends Frame_Reflower
 
             default:
             case "normal":
-            $str = preg_replace(self::$_whitespace_pattern, " ", $str);
+                $str = preg_replace(self::$_whitespace_pattern, " ", $str);
             case "pre-wrap":
             case "pre-line":
 
@@ -404,14 +404,14 @@ class Text_Frame_Reflower extends Frame_Reflower
                 // This technique (using arrays & an anonymous function) is actually
                 // faster than doing a single-pass character by character scan.  Heh,
                 // yes I took the time to bench it ;)
-            $words = array_flip(preg_split("/[\s-]+/u", $str, -1, PREG_SPLIT_DELIM_CAPTURE));
+                $words = array_flip(preg_split("/[\s-]+/u", $str, -1, PREG_SPLIT_DELIM_CAPTURE));
                 /*foreach($words as &$word) {
                   $word = Font_Metrics::get_text_width($word, $font, $size, $word_spacing, $char_spacing);
                 }*/
-            array_walk($words, create_function('&$val,$str',
-                '$val = Font_Metrics::get_text_width($str, "'.addslashes($font).'", '.$size.', '.$word_spacing.', '.$char_spacing.');'));
-            arsort($words);
-            $min = reset($words);
+                array_walk($words, create_function('&$val,$str',
+                    '$val = Font_Metrics::get_text_width($str, "'.addslashes($font).'", '.$size.', '.$word_spacing.', '.$char_spacing.');'));
+                arsort($words);
+                $min = reset($words);
                 break;
 
             case "pre":
@@ -438,7 +438,7 @@ class Text_Frame_Reflower extends Frame_Reflower
             default:
             case "normal":
             case "nowrap":
-            $str = preg_replace(self::$_whitespace_pattern, " ", $text);
+                $str = preg_replace(self::$_whitespace_pattern, " ", $text);
                 break;
 
             case "pre-line":

@@ -108,8 +108,13 @@ class Service extends AbstractService
             $Error = true;
         } else {
             $tblPersonTo = Person::useService()->getPersonById($tblPersonTo);
-            if ($tblPersonFrom->getId() == $tblPersonTo->getId()) {
-                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Eine Person kann nur mit einer anderen Person verknüpft werden')))));
+            if (!$tblPersonTo){
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Person')))));
+                $Error = true;
+            }
+            elseif ($tblPersonFrom->getId() == $tblPersonTo->getId()) {
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger(
+                    'Eine Person kann nur mit einer anderen Person verknüpft werden')))));
                 $Error = true;
             }
         }
@@ -204,6 +209,10 @@ class Service extends AbstractService
             $Error = true;
         } else {
             $tblCompanyTo = Company::useService()->getCompanyById($tblCompanyTo);
+            if (!$tblCompanyTo){
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Firma')))));
+                $Error = true;
+            }
         }
 
         if (!$Error) {
@@ -254,7 +263,11 @@ class Service extends AbstractService
             $Error = true;
         } else {
             $tblPersonTo = Person::useService()->getPersonById($tblPersonTo);
-            if ($tblPersonFrom->getId() == $tblPersonTo->getId()) {
+            if (!$tblPersonTo){
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Person')))));
+                $Error = true;
+            }
+            elseif ($tblPersonFrom->getId() == $tblPersonTo->getId()) {
                 $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger(new Ban() . ' Eine Person kann nur mit einer anderen Person verknüpft werden')))));
                 $Error = true;
             }
@@ -270,11 +283,11 @@ class Service extends AbstractService
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich geändert')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()));
+                    array('Id' => $tblToPerson->getServiceTblPersonFrom() ? $tblToPerson->getServiceTblPersonFrom()->getId() : 0));
             } else {
                 return new Danger(new Ban() . ' Die Beziehung konnte nicht geändert werden')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblToPerson->getServiceTblPersonFrom()->getId()));
+                    array('Id' => $tblToPerson->getServiceTblPersonFrom() ? $tblToPerson->getServiceTblPersonFrom()->getId() : 0));
             }
         }
         return $Form;
@@ -311,6 +324,10 @@ class Service extends AbstractService
             $Error = true;
         } else {
             $tblCompanyTo = Company::useService()->getCompanyById($tblCompanyTo);
+            if (!$tblCompanyTo){
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Firma')))));
+                $Error = true;
+            }
         }
 
         if (!$Error) {
@@ -323,11 +340,11 @@ class Service extends AbstractService
             ) {
                 return new Success(new \SPHERE\Common\Frontend\Icon\Repository\Success() . ' Die Beziehung wurde erfolgreich geändert')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblToCompany->getServiceTblPerson()->getId()));
+                    array('Id' => $tblToCompany->getServiceTblPerson() ? $tblToCompany->getServiceTblPerson()->getId() : 0));
             } else {
                 return new Danger(new Ban() . ' Die Beziehung konnte nicht geändert werden')
                 . new Redirect('/People/Person', Redirect::TIMEOUT_ERROR,
-                    array('Id' => $tblToCompany->getServiceTblPerson()->getId()));
+                    array('Id' => $tblToCompany->getServiceTblPerson() ? $tblToCompany->getServiceTblPerson()->getId() : 0));
             }
         }
         return $Form;

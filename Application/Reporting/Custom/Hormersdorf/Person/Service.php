@@ -129,10 +129,14 @@ class Service
                         if ($guardian->getTblType()->getId() == 1) {
                             if ($father === null) {
                                 $father = $guardian->getServiceTblPersonFrom();
-                                $fatherPhoneList = Phone::useService()->getPhoneAllByPerson($father);
+                                if ($father) {
+                                    $fatherPhoneList = Phone::useService()->getPhoneAllByPerson($father);
+                                }
                             } else {
                                 $mother = $guardian->getServiceTblPersonFrom();
-                                $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
+                                if ($mother) {
+                                    $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
+                                }
                             }
                         }
                     }
@@ -145,15 +149,15 @@ class Service
                 }
 
                 $tblPerson->FatherName = $father !== null ? ( $tblPerson->getLastName() == $father->getLastName()
-                    ? $father->getFirstName() : $father->getFirstName().' '.$father->getLastName() ) : '';
+                    ? $father->getFirstSecondName() : $father->getFirstSecondName().' '.$father->getLastName() ) : '';
                 $tblPerson->MotherName = $mother !== null ? ( $tblPerson->getLastName() == $mother->getLastName()
-                    ? $mother->getFirstName() : $mother->getFirstName().' '.$mother->getLastName() ) : '';
-                $tblPerson->DisplayName = $tblPerson->getLastName().', '.$tblPerson->getFirstName()
+                    ? $mother->getFirstSecondName() : $mother->getFirstSecondName().' '.$mother->getLastName() ) : '';
+                $tblPerson->DisplayName = $tblPerson->getLastFirstName()
                     .( $father !== null || $mother !== null ? '<br>('.( $mother !== null ? $tblPerson->MotherName
                             .( $father !== null ? ', ' : '' ) : '' )
                         .( $father !== null ? $tblPerson->FatherName : '' ).')' : '' );
 
-                $tblPerson->ExcelNameRow1 = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
+                $tblPerson->ExcelNameRow1 = $tblPerson->getLastFirstName();
                 if ($father !== null || $mother !== null) {
                     $tblPerson->ExcelNameRow2 = '('.( $mother !== null ? $tblPerson->MotherName
                             .( $father !== null ? ', ' : '' ) : '' )
@@ -196,14 +200,18 @@ class Service
                 }
                 if ($fatherPhoneList) {
                     foreach ($fatherPhoneList as $phone) {
-                        $phoneNumbers[] = $phone->getTblPhone()->getNumber().' '.$phone->getTblType()->getName() . ' '
-                            . $phone->getServiceTblPerson()->getFullName() .( $phone->getRemark() !== '' ? ' '.$phone->getRemark() : '' );
+                        if ($phone->getServiceTblPerson()) {
+                            $phoneNumbers[] = $phone->getTblPhone()->getNumber() . ' ' . $phone->getTblType()->getName() . ' '
+                                . $phone->getServiceTblPerson()->getFullName() . ($phone->getRemark() !== '' ? ' ' . $phone->getRemark() : '');
+                        }
                     }
                 }
                 if ($motherPhoneList) {
                     foreach ($motherPhoneList as $phone) {
-                        $phoneNumbers[] = $phone->getTblPhone()->getNumber().' '.$phone->getTblType()->getName() . ' '
-                            . $phone->getServiceTblPerson()->getFullName() .( $phone->getRemark() !== '' ? ' '.$phone->getRemark() : '' );
+                        if ($phone->getServiceTblPerson()) {
+                            $phoneNumbers[] = $phone->getTblPhone()->getNumber() . ' ' . $phone->getTblType()->getName() . ' '
+                                . $phone->getServiceTblPerson()->getFullName() . ($phone->getRemark() !== '' ? ' ' . $phone->getRemark() : '');
+                        }
                     }
                 }
 

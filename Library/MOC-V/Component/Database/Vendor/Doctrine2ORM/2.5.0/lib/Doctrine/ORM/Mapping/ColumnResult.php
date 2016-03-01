@@ -31,6 +31,7 @@ namespace Doctrine\ORM\Mapping;
  */
 final class ColumnResult implements Annotation
 {
+
     /**
      * The name of a column in the SELECT clause of a SQL query.
      *

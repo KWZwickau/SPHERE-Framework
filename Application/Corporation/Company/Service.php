@@ -211,4 +211,15 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getCompanyByDescription($Description);
     }
+
+    /**
+     * @param TblCompany $tblCompany
+     *
+     * @return bool
+     */
+    public function destroyCompany(TblCompany $tblCompany)
+    {
+
+        return (new Data($this->getBinding()))->destroyCompany($tblCompany);
+    }
 }

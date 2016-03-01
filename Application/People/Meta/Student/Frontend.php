@@ -625,7 +625,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $Type = $tblStudentSubject->getTblStudentSubjectType()->getId();
                     $Ranking = $tblStudentSubject->getTblStudentSubjectRanking()->getId();
-                    $Subject = $tblStudentSubject->getServiceTblSubject()->getId();
+                    $Subject = $tblStudentSubject->getServiceTblSubject() ? $tblStudentSubject->getServiceTblSubject()->getId() : 0;
                     $Global->POST['Meta']['Subject'][$Type][$Ranking] = $Subject;
                 });
                 $Global->savePost();
@@ -811,6 +811,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_push($tblCompanyAllSchool, new TblCompany());
         } else {
             $tblCompanyAllSchool = array();
+            $tblCompanyAllSchool[] = new TblCompany();
         }
 
         $PanelDisorder = array();

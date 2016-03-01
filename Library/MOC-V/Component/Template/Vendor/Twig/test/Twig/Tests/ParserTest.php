@@ -122,7 +122,7 @@ class Twig_Tests_ParserTest extends PHPUnit_Framework_TestCase
     {
 
         $twig = new Twig_Environment(null, array(
-            'autoescape' => false,
+            'autoescape'    => false,
             'optimizations' => 0,
         ));
         $twig->addTokenParser(new TestTokenParser());
@@ -146,7 +146,7 @@ class Twig_Tests_ParserTest extends PHPUnit_Framework_TestCase
     {
 
         $twig = new Twig_Environment(null, array(
-            'autoescape' => false,
+            'autoescape'    => false,
             'optimizations' => 0,
         ));
 

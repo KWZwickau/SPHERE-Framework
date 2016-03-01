@@ -126,7 +126,9 @@ class Data extends AbstractData
         if ($tblListObjectList) {
             /** @var TblListObjectList $item */
             foreach ($tblListObjectList as $item) {
-                $returnList[] = $item->getServiceTblObject();
+                if ($item->getServiceTblObject()) {
+                    $returnList[] = $item->getServiceTblObject();
+                }
             }
         }
 
@@ -296,10 +298,29 @@ class Data extends AbstractData
     public function countListObjectListByList(TblList $tblList)
     {
 
-        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListObjectList',
-            array(TblListObjectList::ATTR_TBL_LIST => $tblList->getId()));
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+//        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListObjectList',
+//            array(TblListObjectList::ATTR_TBL_LIST => $tblList->getId()));
+//
+//        return $result ? $result : 0;
 
-        return $result ? $result : 0;
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListObjectList',
+            array(
+                TblListObjectList::ATTR_TBL_LIST => $tblList->getId()
+            ));
+
+        if ($EntityList){
+            $count = 0;
+            /** @var TblListObjectList $item */
+            foreach ($EntityList as &$item){
+                if ($item->getServiceTblObject()) {
+                    $count++;
+                }
+            }
+            return $count;
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -392,6 +413,35 @@ class Data extends AbstractData
         }
 
         return $Entity;
+    }
+
+    /**
+     * @param TblList $tblList
+     * @param $Name
+     * @param $Description
+     * @return bool
+     */
+    public function updateList(
+        TblList $tblList,
+        $Name,
+        $Description
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblList $Entity */
+        $Entity = $Manager->getEntityById('TblList', $tblList->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -528,5 +578,55 @@ class Data extends AbstractData
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param TblList $tblList
+     *
+     * @return bool
+     */
+    public function destroyList(TblList $tblList)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $EntityItems = $Manager->getEntity('TblListObjectElementList')
+            ->findBy(array(TblListObjectElementList::ATTR_TBL_LIST => $tblList->getId()));
+        if (null !== $EntityItems) {
+            foreach ($EntityItems as $Entity) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+                $Manager->killEntity($Entity);
+            }
+        }
+
+        $EntityItems = $Manager->getEntity('TblListElementList')
+            ->findBy(array(TblListElementList::ATTR_TBL_LIST => $tblList->getId()));
+        if (null !== $EntityItems) {
+            foreach ($EntityItems as $Entity) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+                $Manager->killEntity($Entity);
+            }
+        }
+
+        $EntityItems = $Manager->getEntity('TblListObjectList')
+            ->findBy(array(TblListObjectList::ATTR_TBL_LIST => $tblList->getId()));
+        if (null !== $EntityItems) {
+            foreach ($EntityItems as $Entity) {
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                    $Entity);
+                $Manager->killEntity($Entity);
+            }
+        }
+
+        /** @var TblList $Entity */
+        $Entity = $Manager->getEntityById('TblList', $tblList->getId());
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 }

@@ -21,6 +21,8 @@ for ( $i = 0; $i < 30; $i++) {
 }
 
 
+
+
 </script>
 <?php
 echo "<p>Current PHP version: ".phpversion().".  ";

@@ -36,6 +36,7 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
  */
 class SchemaValidator
 {
+
     /**
      * @var EntityManagerInterface
      */
@@ -46,6 +47,7 @@ class SchemaValidator
      */
     public function __construct(EntityManagerInterface $em)
     {
+
         $this->em = $em;
     }
 
@@ -63,6 +65,7 @@ class SchemaValidator
      */
     public function validateMapping()
     {
+
         $errors = array();
         $cmf = $this->em->getMetadataFactory();
         $classes = $cmf->getAllMetadata();
@@ -85,6 +88,7 @@ class SchemaValidator
      */
     public function validateClass(ClassMetadataInfo $class)
     {
+
         $ce = array();
         $cmf = $this->em->getMetadataFactory();
 
@@ -265,6 +269,7 @@ class SchemaValidator
      */
     public function schemaInSyncWithMetadata()
     {
+
         $schemaTool = new SchemaTool($this->em);
 
         $allMetadata = $this->em->getMetadataFactory()->getAllMetadata();

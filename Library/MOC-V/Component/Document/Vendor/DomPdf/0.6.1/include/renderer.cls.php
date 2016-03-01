@@ -100,7 +100,7 @@ class Renderer extends Abstract_Renderer
             case "inline-block":
             case "table":
             case "inline-table":
-            $this->_render_frame("block", $frame);
+                $this->_render_frame("block", $frame);
                 break;
 
             case "inline":
@@ -118,7 +118,7 @@ class Renderer extends Abstract_Renderer
             case "table-row-group":
             case "table-header-group":
             case "table-footer-group":
-            $this->_render_frame("table-row-group", $frame);
+                $this->_render_frame("table-row-group", $frame);
                 break;
 
             case "-dompdf-list-bullet":

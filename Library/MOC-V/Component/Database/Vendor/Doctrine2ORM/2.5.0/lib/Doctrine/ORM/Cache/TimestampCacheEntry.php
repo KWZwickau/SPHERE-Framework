@@ -28,6 +28,7 @@ namespace Doctrine\ORM\Cache;
  */
 class TimestampCacheEntry implements CacheEntry
 {
+
     /**
      * READ-ONLY: Public only for performance reasons, it should be considered immutable.
      *
@@ -40,6 +41,7 @@ class TimestampCacheEntry implements CacheEntry
      */
     public function __construct($time = null)
     {
+
         $this->time = $time ? (float)$time : microtime(true);
     }
 
@@ -52,6 +54,7 @@ class TimestampCacheEntry implements CacheEntry
      */
     public static function __set_state(array $values)
     {
+
         return new self($values['time']);
     }
 }

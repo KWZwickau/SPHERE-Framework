@@ -69,10 +69,10 @@ class Criteria
     /**
      * Construct a new Criteria.
      *
-     * @param Expression $expression
+     * @param Expression    $expression
      * @param string[]|null $orderings
-     * @param int|null $firstResult
-     * @param int|null $maxResults
+     * @param int|null      $firstResult
+     * @param int|null      $maxResults
      */
     public function __construct(
         Expression $expression = null,

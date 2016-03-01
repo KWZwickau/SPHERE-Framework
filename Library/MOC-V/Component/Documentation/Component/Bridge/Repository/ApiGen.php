@@ -31,10 +31,10 @@ class ApiGen extends Bridge implements IBridgeInterface
 
 
     /**
-     * @param string             $Project
-     * @param string             $Title
-     * @param DirectoryParameter $Source
-     * @param DirectoryParameter $Destination
+     * @param string                $Project
+     * @param string                $Title
+     * @param DirectoryParameter    $Source
+     * @param DirectoryParameter    $Destination
      * @param null|ExcludeParameter $Exclude
      */
     public function __construct(
@@ -113,9 +113,9 @@ class ApiGen extends Bridge implements IBridgeInterface
             // List of allowed HTML tags in documentation
             'allowedHtml'    => array('b', 'i', 'a', 'ul', 'ol', 'li', 'p', 'br', 'var', 'samp', 'kbd', 'tt'),
             // Element types for search input autocomplete
-            'autocomplete' => array('classes', 'constants', 'functions'),
+            'autocomplete'   => array('classes', 'constants', 'functions'),
             // Generate documentation for methods and properties with given access level
-            'accessLevels' => array('public', 'protected', 'private'),
+            'accessLevels'   => array('public', 'protected', 'private'),
             // Generate documentation for elements marked as internal and display internal documentation parts
             'internal'       => true,
             // Generate documentation for PHP internal classes

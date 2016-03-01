@@ -85,7 +85,7 @@ function smarty_function_mailto($params)
 
             case 'subject':
             case 'newsgroups':
-            $mail_parms[] = $var.'='.rawurlencode($value);
+                $mail_parms[] = $var.'='.rawurlencode($value);
                 break;
 
             case 'extra':

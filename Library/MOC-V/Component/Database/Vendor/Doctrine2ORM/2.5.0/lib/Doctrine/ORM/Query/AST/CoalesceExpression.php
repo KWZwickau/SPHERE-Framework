@@ -32,6 +32,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class CoalesceExpression extends Node
 {
+
     /**
      * @var array
      */
@@ -51,6 +52,7 @@ class CoalesceExpression extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkCoalesceExpression($this);
     }
 }
