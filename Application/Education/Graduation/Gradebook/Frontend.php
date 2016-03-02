@@ -1421,7 +1421,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblScoreGroups = Gradebook::useService()->getScoreConditionGroupListByCondition($tblScoreCondition);
                 if ($tblScoreGroups) {
                     foreach ($tblScoreGroups as $tblScoreGroup) {
-                        $scoreGroups .= $tblScoreGroup->getTblScoreGroup()->getName() . ', ';
+                        $scoreGroups .= $tblScoreGroup->getTblScoreGroup()->getName()
+                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroup->getTblScoreGroup()->getMultiplier() . ')')) . ', ';
                     }
                 }
                 if (($length = strlen($scoreGroups)) > 2) {
@@ -1559,8 +1560,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(array(
                             new TableData($tblScoreGroupAll, null, array(
                                 'Name' => 'Name',
-                                'GradeTypes' => 'Zensuren-Typen',
                                 'Multiplier' => 'Faktor',
+                                'GradeTypes' => 'Zensuren-Typen',
 //                                'Round' => 'Runden',
                                 'Option' => '',
                             ))
@@ -1682,7 +1683,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Panel('Zensuren-Gruppe', $tblScoreGroup->getName(), Panel::PANEL_TYPE_INFO),
+                                    new Panel('Zensuren-Gruppe',
+                                        $tblScoreGroup->getName()
+                                        . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroup->getMultiplier() . ')')),
+                                        Panel::PANEL_TYPE_INFO),
                                     12
                                 ),
                             ))
@@ -1813,7 +1817,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if ($tblScoreConditionGroupListByCondition) {
                     foreach ($tblScoreConditionGroupListByCondition as &$tblScoreConditionGroupList) {
-                        $tblScoreConditionGroupList->Name = $tblScoreConditionGroupList->getTblScoreGroup()->getName();
+                        $tblScoreConditionGroupList->Name = $tblScoreConditionGroupList->getTblScoreGroup()->getName()
+                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreConditionGroupList->getTblScoreGroup()->getMultiplier() . ')'));
                         $tblScoreConditionGroupList->Option =
                             (new \SPHERE\Common\Frontend\Link\Repository\Primary(
                                 'Entfernen', '/Education/Graduation/Gradebook/Score/Condition/Group/Remove',
@@ -1825,6 +1830,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if ($tblScoreGroupAll) {
                     foreach ($tblScoreGroupAll as $tblScoreGroup) {
+                        $tblScoreGroup->DisplayName = $tblScoreGroup->getName()
+                            . new Small(new Muted(' (' . 'Faktor: ' . $tblScoreGroup->getMultiplier() . ')'));
                         $tblScoreGroup->Option =
                             (new \SPHERE\Common\Frontend\Link\Repository\Primary(
                                 'Hinzufügen',
@@ -1864,7 +1871,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new Title('Verfügbare', 'Zensuren-Gruppen'),
                                     new TableData($tblScoreGroupAll, null,
                                         array(
-                                            'Name' => 'Name',
+                                            'DisplayName' => 'Name',
                                             'Option' => ''
                                         )
                                     )
