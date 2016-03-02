@@ -8,6 +8,7 @@ use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectAppointmen
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectReservation;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
@@ -91,6 +92,18 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $reservationYearAll = array();
+        $tblProspectReservationAll = Prospect::useService()->getProspectReservationAll();
+        if ($tblProspectReservationAll){
+            foreach ($tblProspectReservationAll as $tblProspectReservation){
+                if ($tblProspectReservation->getReservationYear()) {
+                    if (!in_array($tblProspectReservation->getReservationYear(), $reservationYearAll)){
+                        array_push($reservationYearAll, $tblProspectReservation->getReservationYear());
+                    }
+                }
+            }
+        }
+
         $Stage->setContent(
             Prospect::useService()->createMeta(
                 (new Form(array(
@@ -113,7 +126,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ), 3),
                             new FormColumn(array(
                                 new Panel('Voranmeldung für', array(
-                                    new TextField('Meta[Reservation][Year]', 'Schuljahr', 'Schuljahr'),
+                                    new AutoCompleter('Meta[Reservation][Year]', 'Schuljahr', 'Schuljahr', $reservationYearAll),
                                     new TextField('Meta[Reservation][Division]', 'Klassenstufe', 'Klassenstufe'),
                                     new SelectBox('Meta[Reservation][SchoolTypeOptionA]', 'Schulart: Option 1',
                                         array('{{ Name }} {{ Description }}' => $tblTypeAll), new Education()),
