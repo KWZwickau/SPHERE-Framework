@@ -370,6 +370,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division' => $tblDivision->getDisplayName(),
                                 'Subject' => $tblSubject->getName(),
                                 'SubjectGroup' => $item->getName(),
+                                'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                    $tblDivision, $tblSubject, $item
+                                ),
                                 'Option' => new Standard(
                                     '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
                                     'DivisionSubjectId' => $subValue
@@ -385,6 +388,9 @@ class Frontend extends Extension implements IFrontendInterface
                             'Division' => $tblDivision->getDisplayName(),
                             'Subject' => $tblSubject->getName(),
                             'SubjectGroup' => '',
+                            'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                $tblDivision, $tblSubject
+                            ),
                             'Option' => new Standard(
                                 '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
                                 'DivisionSubjectId' => $value
@@ -408,6 +414,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division' => 'Klasse',
                                 'Subject' => 'Fach',
                                 'SubjectGroup' => 'Gruppe',
+                                'SubjectTeachers' => 'Fachlehrer',
                                 'Option' => ''
                             ))
                         ))
@@ -478,12 +485,16 @@ class Frontend extends Extension implements IFrontendInterface
                     if (is_array($value)) {
                         foreach ($value as $subjectGroupId => $subValue) {
                             $item = Division::useService()->getSubjectGroupById($subjectGroupId);
+
                             $divisionSubjectTable[] = array(
                                 'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
                                 'Type' => $tblDivision->getTypeName(),
                                 'Division' => $tblDivision->getDisplayName(),
                                 'Subject' => $tblSubject->getName(),
                                 'SubjectGroup' => $item->getName(),
+                                'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                    $tblDivision, $tblSubject, $item
+                                ),
                                 'Option' => new Standard(
                                     '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected', new Select(),
                                     array(
@@ -500,6 +511,9 @@ class Frontend extends Extension implements IFrontendInterface
                             'Division' => $tblDivision->getDisplayName(),
                             'Subject' => $tblSubject->getName(),
                             'SubjectGroup' => '',
+                            'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                $tblDivision, $tblSubject
+                            ),
                             'Option' => new Standard(
                                 '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected', new Select(),
                                 array(
@@ -524,6 +538,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Division' => 'Klasse',
                                 'Subject' => 'Fach',
                                 'SubjectGroup' => 'Gruppe',
+                                'SubjectTeachers' => 'Fachlehrer',
                                 'Option' => ''
                             ))
                         ))
@@ -795,15 +810,23 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
-                            new Panel(
-                                'Fach-Klasse',
-                                'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
-                                ($tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getServiceTblSubject()->getName() : '') .
-                                ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
-                                    ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
+                                new Panel(
+                                    'Fach-Klasse',
+                                    array(
+                                        'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
+                                        ($tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getServiceTblSubject()->getName() : '') .
+                                        ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
+                                            ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
+                                        'Fachlehrer: ' . Division::useService()->getSubjectTeacherNameList(
+                                            $tblDivision, $tblSubject, $tblDivisionSubject->getTblSubjectGroup()
+                                            ? $tblDivisionSubject->getTblSubjectGroup() : null
+                                    )
+                                ),
                                 Panel::PANEL_TYPE_INFO
                             )
-                        ), 6),
+                        ),
+                        6
+                    ),
                         new LayoutColumn(new Panel(
                             'Berechnungsvorschrift',
                             $tblScoreRule ? $scoreRuleText : new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
@@ -811,11 +834,13 @@ class Frontend extends Extension implements IFrontendInterface
                             )),
                             Panel::PANEL_TYPE_INFO
                         ), 6),
-                    )),
-                )),
+                    )
+                ),
+                )
+            ),
                 (!empty($errorRowList) ? new LayoutGroup($errorRowList) : null)
             ))
-            . new Layout(new LayoutGroup($rowList))
+        . new Layout(new LayoutGroup($rowList))
         );
 
         return $Stage;
