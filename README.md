@@ -1,10 +1,13 @@
-# KREDA-Professional (based on SPHERE-Framework)
+# KREDA-Professional 
+_based on SPHERE-Framework_
+
 -----
 > Please take into account that current versions of SPHERE-Framework could contain serious bugs.
 
 > Don't use them in production environments.
 
 > Be also aware that current interfaces may change rapidly
+
 -----
 > Prerequisites:
 
