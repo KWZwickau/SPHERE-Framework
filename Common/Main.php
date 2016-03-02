@@ -135,8 +135,7 @@ class Main extends Extension
                 /**
                  * Register Cluster
                  */
-                Platform::registerCluster();
-                Api::registerCluster();
+                self::registerApiPlatform();
 
                 if ($this->runAuthenticator()) {
                     if (Access::useService()->existsRightByName($this->getRequest()->getPathInfo())) {
@@ -170,18 +169,9 @@ class Main extends Extension
             /**
              * Register Cluster
              */
-            Platform::registerCluster();
-            Api::registerCluster();
-            People::registerCluster();
-            Corporation::registerCluster();
-            Education::registerCluster();
-            Billing::registerCluster();
-            Transfer::registerCluster();
-            Contact::registerCluster();
-            Setting::registerCluster();
-            Manual::registerCluster();
-            Reporting::registerCluster();
-            Document::registerCluster();
+            self::registerApiPlatform();
+            self::registerGuiPlatform();
+
             /**
              * Execute Request
              */
@@ -266,6 +256,13 @@ class Main extends Extension
         }
     }
 
+    public static function registerApiPlatform()
+    {
+
+        Platform::registerCluster();
+        Api::registerCluster();
+    }
+
     /**
      * @return bool
      */
@@ -330,5 +327,20 @@ class Main extends Extension
 
         echo $Display->getContent(true);
         exit( 0 );
+    }
+
+    public static function registerGuiPlatform()
+    {
+
+        People::registerCluster();
+        Corporation::registerCluster();
+        Education::registerCluster();
+        Billing::registerCluster();
+        Transfer::registerCluster();
+        Contact::registerCluster();
+        Setting::registerCluster();
+        Manual::registerCluster();
+        Reporting::registerCluster();
+        Document::registerCluster();
     }
 }

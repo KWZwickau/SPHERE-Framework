@@ -2,6 +2,8 @@
 namespace SPHERE\Application\Platform\Roadmap\Youtrack;
 
 use SPHERE\System\Cache\Handler\MemcachedHandler;
+use SPHERE\System\Debugger\DebuggerFactory;
+use SPHERE\System\Debugger\Logger\BenchmarkLogger;
 
 class Parser extends Connection
 {
@@ -85,8 +87,9 @@ class Parser extends Connection
     {
 
         $Key = md5($Url);
-        $Cache = $this->getCache(new MemcachedHandler());
+        $Cache = $this->getCache(new MemcachedHandler(), 'Memcached');
         if (!( $Response = $Cache->getValue($Key, __METHOD__) )) {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Request): '.$Url);
             if (!$this->Authenticated) {
                 $this->doLogin();
                 $this->Authenticated = true;
@@ -101,7 +104,9 @@ class Parser extends Connection
             curl_setopt($CurlHandler, CURLOPT_RETURNTRANSFER, 1);
             $Response = curl_exec($CurlHandler);
             curl_close($CurlHandler);
-            $Cache->setValue($Key, $Response, ( 60 * 30 * 1 ), __METHOD__);
+            $Cache->setValue($Key, $Response, ( 60 * 60 * 1 ), __METHOD__);
+        } else {
+            (new DebuggerFactory())->createLogger(new BenchmarkLogger())->addLog('Roadmap (Cache): '.$Url);
         }
         return $Response;
     }

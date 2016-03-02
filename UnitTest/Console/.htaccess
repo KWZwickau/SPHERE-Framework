@@ -4,7 +4,10 @@
 
 # Restrict Server PHP-File Access
 
-#	<FilesMatch "(\.php|\.html)$">
-#		Order Deny,Allow
-#		Allow from All
-#	</FilesMatch>
+    <FilesMatch "\..*$">
+        Order Deny,Allow
+        Deny from All
+    </FilesMatch>
+#    <FilesMatch "\..*$">
+#        Allow from 192.168
+#    </FilesMatch>
