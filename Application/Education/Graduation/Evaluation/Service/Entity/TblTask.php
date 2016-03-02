@@ -201,4 +201,32 @@ class TblTask extends Element
         $this->serviceTblPeriod = ( null === $tblPeriod ? null : $tblPeriod->getId() );
     }
 
+    /**
+     * @return bool
+     */
+    public function isInEditPeriod()
+    {
+
+        if ($this->getFromDate() && $this->getToDate()){
+            $fromDate = $this->FromDate;
+            if ($fromDate instanceof \DateTime) {
+                $fromDate = $fromDate->format('Y-m-d');
+            }
+
+            $toDate = $this->ToDate;
+            if ($toDate instanceof \DateTime) {
+                $toDate = $toDate->format('Y-m-d');
+            }
+
+            if ($fromDate && $toDate){
+                $now = (new \DateTime('now'))->format("Y-m-d");
+
+                if ($fromDate <= $now && $now <= $toDate){
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 }

@@ -210,7 +210,7 @@ class Frontend extends Extension implements IFrontendInterface
                     } else {
                         $divisionSubjectTable[] = array(
                             'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                            'Type' => $tblDivision->getDisplayName(),
+                            'Type' => $tblDivision->getTypeName(),
                             'Division' => $tblDivision->getDisplayName(),
                             'Subject' => $tblSubject->getName(),
                             'SubjectGroup' => '',
@@ -979,6 +979,12 @@ class Frontend extends Extension implements IFrontendInterface
         $studentList = array();
         $errorRowList = array();
 
+        $tblTask = $tblTest->getTblTask();
+        $IsTaskAndInPeriod = true;
+        if ($tblTask && !$tblTask->isInEditPeriod()) {
+            $IsTaskAndInPeriod = false;
+        }
+
         if ($tblDivisionSubject->getTblSubjectGroup()) {
             $tblSubjectStudentAllByDivisionSubject = Division::useService()->getSubjectStudentByDivisionSubject($tblDivisionSubject);
             if ($tblSubjectStudentAllByDivisionSubject) {
@@ -986,29 +992,15 @@ class Frontend extends Extension implements IFrontendInterface
 
                     $tblPerson = $tblSubjectStudent->getServiceTblPerson();
                     if ($tblPerson) {
-//                    if ($isTestAppointedDateTask) {
-//                        $average = Gradebook::useService()->calcStudentGrade(
-//                            $tblPerson,
-//                            $tblDivision,
-//                            $tblSubject,
-//                            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-//                            $tblScoreRule ? $tblScoreRule : null
-//                        );
-//
-//                        if (is_array($average)) {
-//                            $errorRowList = $average;
-//                            $average = ' ';
-//                        }
-//                    } else {
+
                         $average = false;
-//                    }
                         $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName()
                             . ($average ? new Bold('&nbsp;&nbsp;&#216; ' . $average) : '');
                         $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                             $tblPerson);
 
                         $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList,
-                            $tblScoreType ? $tblScoreType : null
+                            $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null
                         );
                     }
                 }
@@ -1018,34 +1010,18 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblDivisionStudentAll) {
                 foreach ($tblDivisionStudentAll as $tblPerson) {
 
-//                    if ($isTestAppointedDateTask) {
-//                        $average = Gradebook::useService()->calcStudentGrade(
-//                            $tblPerson,
-//                            $tblDivision,
-//                            $tblSubject,
-//                            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-//                            $tblScoreRule ? $tblScoreRule : null
-//                        );
-//                        if (is_array($average)) {
-//                            $errorRowList = $average;
-//                            $average = ' ';
-//                        }
-//                    } else {
                     $average = false;
-//                    }
                     $studentList[$tblPerson->getId()]['Name'] = $tblPerson->getLastFirstName()
                         . ($average ? new Bold('&nbsp;&nbsp;&#216; ' . $average) : '');
                     $tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest,
                         $tblPerson);
 
                     $studentList = $this->contentEditTestGradeTableRow($tblPerson, $tblGrade, $IsEdit, $studentList,
-                        $tblScoreType ? $tblScoreType : null
+                        $IsTaskAndInPeriod, $tblScoreType ? $tblScoreType : null
                     );
                 }
             }
         }
-
-        $tblTask = $tblTest->getTblTask();
         if ($tblTask) {
             $period = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
             $tableColumns = array(
@@ -1229,7 +1205,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 Panel::PANEL_TYPE_PRIMARY
                             )
                         )
-                    ))
+                    )),
+                    (($tblTask && !$IsEdit && !$tblTask->isInEditPeriod())
+                        ? new LayoutRow(new LayoutColumn(new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                                'Sie befinden sich nicht mehr im Bearbeitungszeitraum.
+                            Zensuren können von Ihnen nicht mehr eingetragen werden.', new Exclamation())
+                        ))
+                        : null
+                    ),
                 )),
                 (!empty($errorRowList) ? new LayoutGroup($errorRowList) : null),
                 new LayoutGroup(array(
@@ -1262,13 +1245,16 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $IsEdit
      * @param $student
      * @param TblScoreType|null $tblScoreType
-     * @return mixed
+     * @param bool $IsTaskAndInPeriod
+     *
+     * @return array
      */
     private function contentEditTestGradeTableRow(
         TblPerson $tblPerson,
         $tblGrade,
         $IsEdit,
         $student,
+        $IsTaskAndInPeriod = false,
         TblScoreType $tblScoreType = null
     ) {
 
@@ -1283,34 +1269,9 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         if (!$IsEdit && $tblGrade) {
-//            if ($tblScoreType) {
-//                if ($tblScoreType->getIdentifier() == 'VERBAL') {
-//                    $student[$tblPerson->getId()]['Grade']
-//                        = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
-//                        new Quote()))->setDisabled();
-//                } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
-//                    $student[$tblPerson->getId()]['Grade']
-//                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
-//                        new Rate15()))->setDisabled();
-//                } else {
-//                    $student[$tblPerson->getId()]['Grade']
-//                        = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '',
-//                            new Dice()))->setDisabled()
-//                        . (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '',
-//                            $selectBoxContent, new ResizeVertical()))->setDisabled();
-//                }
-//            } else {
-//                $student[$tblPerson->getId()]['Grade']
-//                    = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Dice()))->setDisabled()
-//                    . (new SelectBox('Grade[' . $tblPerson->getId() . '][Trend]', '',
-//                        $selectBoxContent, new ResizeVertical()))->setDisabled();
-//            }
-            $student[$tblPerson->getId()]['Grade']
-                = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setDisabled();
-            $student[$tblPerson->getId()]['Comment']
-                = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))->setDisabled();
-            $student[$tblPerson->getId()]['Attendance'] =
-                (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setDisabled();
+            $student = $this->setGradeDisabled($tblPerson, $student);
+        } elseif (!$IsEdit && !$IsTaskAndInPeriod) {
+            $student = $this->setGradeDisabled($tblPerson, $student);
         } else {
             if ($tblScoreType) {
                 if ($tblScoreType->getIdentifier() == 'VERBAL') {
@@ -1337,6 +1298,22 @@ class Frontend extends Extension implements IFrontendInterface
                 (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]', ' ', 1));
         }
 
+        return $student;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param $student
+     * @return mixed
+     */
+    private function setGradeDisabled(TblPerson $tblPerson, $student)
+    {
+        $student[$tblPerson->getId()]['Grade']
+            = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''))->setDisabled();
+        $student[$tblPerson->getId()]['Comment']
+            = (new TextField('Grade[' . $tblPerson->getId() . '][Comment]', '', '', new Comment()))->setDisabled();
+        $student[$tblPerson->getId()]['Attendance'] =
+            (new CheckBox('Grade[' . $tblPerson->getId() . '][Attendance]', ' ', 1))->setDisabled();
         return $student;
     }
 
@@ -2245,4 +2222,5 @@ class Frontend extends Extension implements IFrontendInterface
         }
         return $tableList;
     }
+
 }
