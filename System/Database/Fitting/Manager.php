@@ -89,18 +89,6 @@ class Manager extends Extension
     }
 
     /**
-     * @param Element $Entity
-     *
-     * @return EntityManager
-     */
-    final public function removeEntity($Entity)
-    {
-        $Entity->setEntityRemove(true);
-        $this->saveEntity( $Entity );
-        return $this;
-    }
-
-    /**
      * @param null|string $Region
      *
      * @return EntityManager
@@ -115,22 +103,31 @@ class Manager extends Extension
                 'Manager Full-Slot-Flush '.$Cache->getSlot().' Trigger: '.$this->Namespace
             );
             $KeyList = $Cache->getCache()->getAllKeys();
-            $ClearList = preg_grep("/^".preg_quote($Cache->getSlot()).".*/is", $KeyList);
+            $ClearList = preg_grep("/^".preg_quote($Cache->getSlot(), '/').".*/is", $KeyList);
+            // Exclude Roadmap
+            $ExcludeList = preg_grep("/^".preg_quote($Cache->getSlot(), '/').".*".preg_quote('Roadmap', '/').".*/is",
+                $KeyList);
+            if ($ExcludeList) {
+                foreach ((array)$ExcludeList as $Index => $Item) {
+                    unset( $ClearList[$Index] );
+                }
+            }
+            // Clear
             $Cache->getCache()->deleteMulti($ClearList);
-            $ClearList = preg_grep("/^".preg_quote('PUBLIC').".*/is", $KeyList);
+            $ClearList = preg_grep("/^".preg_quote('PUBLIC', '/').".*/is", $KeyList);
             $Cache->getCache()->deleteMulti($ClearList);
         } else {
-            if (!preg_match('!'.preg_quote('Platform\System\\').'(Archive|Protocol)!', $this->Namespace)) {
+            if (!preg_match('!'.preg_quote('Platform\System\\', '!').'(Archive|Protocol)!', $this->Namespace)) {
                 // Clear distributed Cache-System (if possible)
                 if (null === $Region) {
                     /** @var MemcachedHandler $Cache */
                     $KeyList = $Cache->getCache()->getAllKeys();
-                    $ClearList = preg_grep("/^".preg_quote($Cache->getSlot()).".*/is", $KeyList);
+                    $ClearList = preg_grep("/^".preg_quote($Cache->getSlot(), '/').".*/is", $KeyList);
                     $this->getLogger(new BenchmarkLogger())->addLog(
                         'Manager Slot-Flush '.$Cache->getSlot().' Trigger: '.$this->Namespace
                     );
                     $Cache->getCache()->deleteMulti($ClearList);
-                    $ClearList = preg_grep("/^".preg_quote('PUBLIC').".*/is", $KeyList);
+                    $ClearList = preg_grep("/^".preg_quote('PUBLIC', '/').".*/is", $KeyList);
                     $Cache->getCache()->deleteMulti($ClearList);
                 } else {
                     /** @var MemcachedHandler $Cache */
@@ -140,14 +137,14 @@ class Manager extends Extension
                     $RegionList[0] = $Cache->getSlotRegion($RegionList[0]);
                     $RegionList = array_slice($RegionList, 0, count($RegionList) - 2);
                     foreach ($RegionList as $Index => $Region) {
-                        if ($Index > 0 && !empty($Region) && $Index < 4) {
+                        if ($Index > 0 && !empty( $Region ) && $Index < 4) {
                             $RegionList[$Index] = $RegionList[$Index - 1].'\\'.$Region;
                         }
                     }
                     $RegionList = array_filter($RegionList);
                     krsort($RegionList);
                     foreach ($RegionList as $Region) {
-                        $ClearList = preg_grep("/^".preg_quote($Region).".*/is", $KeyList);
+                        $ClearList = preg_grep("/^".preg_quote($Region, '/').".*/is", $KeyList);
                         if (!empty( $ClearList ) && substr_count($Region, '\\') > 1) {
                             $this->getLogger(new BenchmarkLogger())->addLog(
                                 'Manager Region-Flush '.$Cache->getSlot().' '.$Region.' Trigger: '.$this->Namespace
@@ -161,6 +158,19 @@ class Manager extends Extension
         }
         $this->getCache(new MemoryHandler())->clearCache();
         $this->EntityManager->flush();
+        return $this;
+    }
+
+    /**
+     * @param Element $Entity
+     *
+     * @return EntityManager
+     */
+    final public function removeEntity($Entity)
+    {
+
+        $Entity->setEntityRemove(true);
+        $this->saveEntity($Entity);
         return $this;
     }
 

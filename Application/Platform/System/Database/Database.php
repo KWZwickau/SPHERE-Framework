@@ -12,6 +12,7 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\Table;
@@ -25,6 +26,8 @@ use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Authenticator\Authenticator;
+use SPHERE\System\Authenticator\Type\Get;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
 
@@ -67,6 +70,11 @@ class Database extends Extension implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Setup/Execution',
                 __CLASS__.'::frontendSetup'
             )->setParameterDefault('Simulation', false)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Setup/Upgrade',
+                __CLASS__.'::frontendSetupUpgrade'
+            )
         );
     }
 
@@ -195,6 +203,10 @@ class Database extends Extension implements IModuleInterface
         $Stage->addButton(new Standard('Durchführung', new Link\Route(__NAMESPACE__.'/Setup/Execution'), null,
             array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
         ));
+        $Stage->addButton(new Standard('Alle Mandanten aktualisieren', new Link\Route(__NAMESPACE__.'/Setup/Upgrade'),
+            new Warning(),
+            array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
+        ));
         $Stage->addButton(new External('phpMyAdmin',
             $this->getRequest()->getPathBase().'/UnitTest/Console/phpMyAdmin-4.3.12'));
     }
@@ -226,6 +238,140 @@ class Database extends Extension implements IModuleInterface
             new TableColumn(( isset( $Parameter['Port'] ) ? $Parameter['Port'] : 'Default' )),
             new TableColumn(isset( $Connection ) ? $Connection->getDatabase() : '-NA-')
         ));
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendSetupUpgrade()
+    {
+
+        $Stage = new Stage('Database', 'Setup aller Mandanten');
+        $this->menuButton($Stage);
+
+        $tblConsumerAll = Consumer::useService()->getConsumerAll();
+        $ConsumerRequestList = array();
+        if ($tblConsumerAll) {
+            $Authenticator = (new Authenticator(new Get()))->getAuthenticator();
+
+            array_walk($tblConsumerAll,
+                function (TblConsumer $tblConsumer) use (&$ConsumerRequestList, $Authenticator) {
+
+                    $ConsumerRequestList[$tblConsumer->getAcronym()] =
+                        'http://'.$this->getRequest()->getHost()
+                        .'/Api/Platform/Database/Upgrade'
+                        .'?'.http_build_query($Authenticator->createSignature(array(
+                            'Consumer' => $tblConsumer->getAcronym()
+                        ), '/Api/Platform/Database/Upgrade'));
+
+                });
+
+            ksort($ConsumerRequestList);
+
+            $Api = $ConsumerRequestList['DEMO'];
+            unset( $ConsumerRequestList['DEMO'] );
+            $ConsumerRequestList['DEMO'] = $Api;
+        }
+
+        $Stage->setContent(
+            new Title('Mandanten werden aktualisiert...')
+            .'<div id="ConsumerProgress" class="progress" style="height: 15px; margin: 0;">
+                <div class="progress-bar progress-bar-success" style="width: 0%;"></div>
+                <div class="progress-bar progress-bar-info progress-bar-striped active" style="width: 0%;"></div>
+                <div class="progress-bar progress-bar-warning" style="width: 100%;"></div>
+            </div>'
+            .'<div id="ConsumerProtocol" class="small"></div>'
+            .'<script language=javascript>
+            //noinspection JSUnresolvedFunction
+            executeScript(function()
+            {
+                Client.Use(\'ModAlways\', function()
+                {
+                    (function($)
+                    {
+                        \'use strict\';
+                        $.fn.ModDatabaseUpgrade = function(
+                            options
+                        )
+                        {
+
+                            // This is the easiest way to have default options.
+                            var settings = $.extend({
+                                consumer: []
+                            }, options);
+
+                            var Size = Object.keys(settings.consumer).length;
+
+                            var getConsumer = function pop(obj) {
+                              for (var key in obj) {
+                                // Uncomment below to fix prototype problem.
+                                //if (!Object.hasOwnProperty.call(obj, key)) continue;
+                                var result = obj[key];
+                                // If the property can\'t be deleted fail with an error.
+                                if (!delete obj[key]) { throw new Error(); }
+                                return result;
+                              }
+                            };
+
+                            var ResultConsumer = [];
+                            var ErrorConsumer = false;
+
+                            var Progress = 100 / Size * Object.keys(settings.consumer).length;
+                            var Info = 100 / Size;
+                            var Bar = jQuery("#ConsumerProgress");
+                            Bar.find(".progress-bar-info").css("width",(Info)+"%");
+                            Bar.find(".progress-bar-warning").css("width",(Progress-Info)+"%");
+
+                            var runConsumer = function( Api ){
+                                Progress = 100 / Size * Object.keys(settings.consumer).length;
+                                Info = 100 / Size;
+
+                                Bar.find(".progress-bar-info").css("width",(Info)+"%");
+
+                                if( Api ) {
+                                    jQuery.get( Api, function( Result ){
+
+                                        Bar.find(".progress-bar-success").css("width",(100-Progress)+"%").html( (Size-Object.keys(settings.consumer).length)+" / "+Size );
+                                        Bar.find(".progress-bar-warning").css("width",(Progress-Info)+"%");
+
+                                        var Consumer = Result.substr(0,Result.indexOf(\' \'));
+                                        Result = Result.substr(Result.indexOf(\' \'),Result.length);
+                                        jQuery("#ConsumerProtocol").append( Result );
+
+                                        if( -1 == jQuery.inArray( Consumer, ResultConsumer ) ) {
+                                            ResultConsumer.push(Consumer);
+                                        } else {
+                                            ErrorConsumer = true;
+                                        }
+
+                                        Api = getConsumer( settings.consumer );
+                                        runConsumer( Api );
+                                    }, "json" );
+                                } else {
+                                    if(ErrorConsumer) {
+                                        Bar.find(".progress-bar-success").removeClass("progress-bar-success").addClass("progress-bar-danger").html("ERROR")
+                                        } else {
+                                        Bar.find(".progress-bar-success").html("DONE")
+                                        }
+                                        Bar.find(".progress-bar-success").removeClass("active");
+                                }
+                            };
+
+                            var Api = getConsumer( settings.consumer );
+                            runConsumer( Api );
+
+                            return this;
+                        };
+
+                    }(jQuery));
+
+                    jQuery().ModDatabaseUpgrade({consumer:'.json_encode($ConsumerRequestList).' });
+                });
+            });
+        </script>'
+        );
+
+        return $Stage;
     }
 
     /**
