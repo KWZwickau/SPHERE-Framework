@@ -662,7 +662,7 @@ class Frontend extends Extension implements IFrontendInterface
             $width = floor(10 / count($tblPeriodList));
             foreach ($tblPeriodList as $tblPeriod) {
                 $columnList[] = new LayoutColumn(
-                    new Title(new Bold($tblPeriod->getName()))
+                    new Title(new Bold($tblPeriod->getDisplayName()))
                     , $width
                 );
             }
@@ -984,7 +984,7 @@ class Frontend extends Extension implements IFrontendInterface
                             $columnList[] = new LayoutColumn(new Header(new Bold('Fach')), 2);
                             $width = (12 - 2) / count($tblPeriodList);
                             foreach ($tblPeriodList as $tblPeriod) {
-                                $columnList[] = new LayoutColumn(new Header(new Bold($tblPeriod->getName())), $width);
+                                $columnList[] = new LayoutColumn(new Header(new Bold($tblPeriod->getDisplayName())), $width);
                             }
                         }
                         $rowList[] = new LayoutRow($columnList);

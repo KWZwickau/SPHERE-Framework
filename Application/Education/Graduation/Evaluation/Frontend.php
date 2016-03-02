@@ -416,19 +416,19 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $tblTask = $tblTest->getTblTask();
                 $tblTest->Subject = $tblTest->getServiceTblSubject() ? $tblTest->getServiceTblSubject()->getName() : '';
-                $tblTest->Period = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getName() : '';
+                $tblTest->Period = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : '';
                 if ($tblTest->getServiceTblGradeType()) {
                     if ($tblTask) {
                         $tblTest->GradeType = new Bold('Kopfnote: ' . $tblTest->getServiceTblGradeType()->getName())
                             . ($tblTask->getServiceTblPeriod()
-                                ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getName()))
+                                ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
                                 : new Small(new Muted(' Gesamtes Schuljahr')));
                     } else {
                         $tblTest->GradeType = $tblTest->getServiceTblGradeType()->getName();
                     }
                 } elseif ($tblTask) {
                     $tblTest->GradeType = new Bold('Stichtagsnote') . ($tblTask->getServiceTblPeriod()
-                            ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getName()))
+                            ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
                             : new Small(new Muted(' Gesamtes Schuljahr')));
                 } else {
                     $tblTest->GradeType = '';
@@ -438,7 +438,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblTest->DisplayPeriod = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
                 } else {
                     $tblTest->DisplayDescription = $tblTest->getDescription();
-                    $tblTest->DisplayPeriod = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getName() : '';
+                    $tblTest->DisplayPeriod = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : '';
                 }
 
                 $tblTest->Option =
@@ -560,7 +560,7 @@ class Frontend extends Extension implements IFrontendInterface
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new SelectBox('Test[Period]', 'Zeitraum', array('Name' => $tblPeriodList)), 6
+                    new SelectBox('Test[Period]', 'Zeitraum', array('DisplayName' => $tblPeriodList)), 6
                 ),
                 new FormColumn(
                     new SelectBox('Test[GradeType]', 'Zensuren-Typ', array('Name' => $tblGradeTypeList)), 6
@@ -701,7 +701,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                             new LayoutColumn(
                                 new Panel('Zeitraum:',
-                                    $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getName() : '',
+                                    $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : '',
                                     Panel::PANEL_TYPE_INFO), 3
                             ),
                             new LayoutColumn(
@@ -1032,7 +1032,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($isTestAppointedDateTask) {
 
                 $gradeType = 'Stichtagsnote' . ($tblTask->getServiceTblPeriod()
-                        ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getName()))
+                        ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
                         : new Small(new Muted(' Gesamtes Schuljahr')));
 
                 foreach ($studentList as $personId => $student) {
@@ -1056,7 +1056,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         $tblPeriod
                                     );
                                     if ($tblGrades) {
-                                        $tableColumns['Period' . $tblPeriod->getId()] = $tblPeriod->getName();
+                                        $tableColumns['Period' . $tblPeriod->getId()] = $tblPeriod->getDisplayName();
                                         foreach ($tblGrades as $tblGrade) {
                                             $tblGradeType = $tblGrade->getTblGradeType();
 
@@ -1147,14 +1147,14 @@ class Frontend extends Extension implements IFrontendInterface
                 // Kopfnote
                 $gradeType = 'Kopfnote: ' . ($tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '')
                     . ($tblTask->getServiceTblPeriod()
-                        ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getName()))
+                        ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
                         : new Small(new Muted(' Gesamtes Schuljahr')));
             }
 
             $tableColumns['Grade'] = 'Zensur';
             $tableColumns['Comment'] = 'Optionaler Grund';
         } else {
-            $period = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getName() : '';
+            $period = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : '';
             $gradeType = $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType()->getName() : '';
 
             $tableColumns = array(
@@ -1363,7 +1363,7 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblTaskAll as $tblTask) {
                 $tblTask->Type = $tblTask->getTblTestType()->getName();
                 $tblTask->EditPeriod = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
-                $tblTask->Period = $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod()->getName() : 'Gesamtes Schuljahr';
+                $tblTask->Period = $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod()->getDisplayName() : 'Gesamtes Schuljahr';
                 $tblTask->Option =
                     (new Standard('',
                         '/Education/Graduation/Evaluation/Headmaster/Task/Edit',
@@ -1430,14 +1430,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblTestTypeAllWhereTask = Evaluation::useService()->getTestTypeAllWhereTask();
         $tblYearAllByNow = Term::useService()->getYearByNow();
-        $periodSelect[-1] = 'Gesamtes Schuljahr';
+        $periodSelect[] = '';
         if ($tblYearAllByNow) {
             foreach ($tblYearAllByNow as $tblYear) {
                 $tblPeriodAllByYear = Term::useService()->getPeriodAllByYear($tblYear);
                 if ($tblPeriodAllByYear) {
                     foreach ($tblPeriodAllByYear as $tblPeriod) {
-                        $periodSelect[$tblPeriod->getId()] = $tblPeriod->getName() .
-                            ($tblPeriod->getDescription() !== '' ? ' - ' . $tblPeriod->getDescription() : '');
+                        $periodSelect[$tblPeriod->getId()] = $tblPeriod->getDisplayName();
                     }
                 }
             }
@@ -1454,7 +1453,7 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new FormRow(array(
                 new FormColumn(
-                    new SelectBox('Task[Period]', 'Noten-Zeitraum', $periodSelect), 3
+                    new SelectBox('Task[Period]', 'Noten-Zeitraum beschränken', $periodSelect), 3
                 ),
                 new FormColumn(
                     new DatePicker('Task[Date]', '', 'Stichtag', new Calendar()), 3
@@ -1943,7 +1942,7 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($taskList as $tblTask) {
                 $tblTask->Type = $tblTask->getTblTestType()->getName();
                 $tblTask->EditPeriod = $tblTask->getFromDate() . ' - ' . $tblTask->getToDate();
-                $tblTask->Period = $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod()->getName() : 'Gesamtes Schuljahr';
+                $tblTask->Period = $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod()->getDisplayName() : 'Gesamtes Schuljahr';
                 $tblTask->Option =
                     (new Standard('',
                         '/Education/Graduation/Evaluation/DivisionTeacher/Task/Grades',
