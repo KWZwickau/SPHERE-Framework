@@ -2,11 +2,9 @@
 _based on SPHERE-Framework_
 
 -----
-> Please take into account that current versions of SPHERE-Framework could contain serious bugs.
-
-> Don't use them in production environments.
-
-> Be also aware that current interfaces may change rapidly
+- Please take into account that current versions of SPHERE-Framework could contain serious bugs.
+- Don't use them in production environments.
+- Be also aware that current interfaces may change rapidly
 
 -----
 > Prerequisites:
@@ -24,6 +22,7 @@ _based on SPHERE-Framework_
 [![Build Status](https://travis-ci.org/DerDu/SPHERE-Framework.svg?branch=development)](https://travis-ci.org/DerDu/SPHERE-Framework)
 [![Circle CI](https://circleci.com/gh/DerDu/SPHERE-Framework/tree/development.svg?style=shield)](https://circleci.com/gh/DerDu/SPHERE-Framework/tree/development)
 
+-----
 > Master-Status:
 
 [![Build Status](https://travis-ci.org/DerDu/SPHERE-Framework.svg)](https://travis-ci.org/DerDu/SPHERE-Framework)
@@ -31,6 +30,7 @@ _based on SPHERE-Framework_
 
 -----
 > License:
+
 #### KREDA-Professional - Management Tools for Schools
 ###### Copyright (C) 2014 K&W Informatik GmbH, Software-Department
 
