@@ -542,4 +542,74 @@ class Data extends AbstractData
             TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId()
         ));
     }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblSubjectGroup $tblSubjectGroup
+     *
+     * @return bool
+     */
+    public function existsTestByTask(
+        TblTask $tblTask,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblSubjectGroup $tblSubjectGroup = null
+    ) {
+
+        if ($tblSubjectGroup === null) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                array(
+                    TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                    TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                    TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                )) ? true : false;
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                array(
+                    TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                    TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                    TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                    TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
+                )) ? true : false;
+        }
+    }
+
+    /**
+     * @param TblTask $tblTask
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblGradeType $tblGradeType
+     * @param TblSubjectGroup|null $tblSubjectGroup
+     *
+     * @return bool
+     */
+    public function existsTestByTaskAndGradeType(
+        TblTask $tblTask,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblGradeType $tblGradeType,
+        TblSubjectGroup $tblSubjectGroup = null
+    ) {
+
+        if ($tblSubjectGroup === null) {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                array(
+                    TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                    TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                    TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                    TblTest::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
+                )) ? true : false;
+        } else {
+            return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblTest',
+                array(
+                    TblTest::ATTR_TBL_TASK => $tblTask->getId(),
+                    TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+                    TblTest::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                    TblTest::ATTR_SERVICE_TBL_GRADE_TYPE => $tblGradeType->getId(),
+                    TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
+                )) ? true : false;
+        }
+    }
 }

@@ -247,6 +247,28 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblDivisionSubject $tblDivisionSubject
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getStudentByDivisionSubject(TblDivisionSubject $tblDivisionSubject)
+    {
+
+        $TempList =  $this->getSubjectStudentByDivisionSubject($tblDivisionSubject);
+
+        $EntityList = array();
+        if (!empty ( $TempList )) {
+            /** @var TblSubjectStudent $tblSubjectStudent */
+            foreach ($TempList as $tblSubjectStudent) {
+                if ($tblSubjectStudent->getServiceTblPerson()) {
+                    array_push($EntityList, $tblSubjectStudent->getServiceTblPerson());
+                }
+            }
+        }
+        return empty( $EntityList ) ? false : $EntityList;
+    }
+
+    /**
      * @param TblLevel $tblLevel
      *
      * @return bool|TblDivision[]
