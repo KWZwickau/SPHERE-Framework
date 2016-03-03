@@ -54,7 +54,7 @@ class Accounting implements IApplicationInterface
                 new Link\Icon(new \SPHERE\Common\Frontend\Icon\Repository\Basket()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/DebtorSelection'), new Link\Name('Bezahlungs Einstellung'),
+            new Link(new Link\Route(__NAMESPACE__.'/DebtorSelection'), new Link\Name('Zahlungseinstellung'),
                 new Link\Icon(new CogWheels()))
         );
 

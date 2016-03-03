@@ -352,6 +352,39 @@ class Data extends AbstractData
         return false;
     }
 
+    public function changeDebtorSelection(
+        TblDebtorSelection $tblDebtorSelection,
+        TblPerson $tblPersonPayers,
+        TblPaymentType $tblPaymentType,
+        TblDebtor $tblDebtor = null,
+        TblBankAccount $tblBankAccount = null,
+        TblBankReference $tblBankReference = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $this->getCachedEntityById(__METHOD__, $Manager, 'TblDebtorSelection', $tblDebtorSelection->getId());
+
+        if (null !== $Entity) {
+            /** @var TblDebtorSelection $Entity */
+            $Protocol = clone $Entity;
+            $Entity->setServicePeoplePersonPayers($tblPersonPayers);
+            $Entity->setServicePaymentType($tblPaymentType);
+            if ($tblPaymentType->getName() !== 'SEPA-Lastschrift') {
+                $Entity->setTblDebtor($tblDebtor);
+                $Entity->setTblBankAccount($tblBankAccount);
+                $Entity->setTblBankReference($tblBankReference);
+            }
+            $Manager->saveEntity($Entity);
+
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return $Entity;
+        }
+        return false;
+    }
+
     /**
      * @param TblPerson $tblPerson
      * @param           $DebtorNumber

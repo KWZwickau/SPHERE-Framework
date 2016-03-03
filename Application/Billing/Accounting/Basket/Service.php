@@ -691,19 +691,20 @@ class Service extends AbstractService
     public function destroyBasketVerification(TblBasketVerification $tblBasketVerification)
     {
 
-        $tblPerson = $tblBasketVerification->getServicePeoplePerson();
-        $tblBasket = $tblBasketVerification->getTblBasket();
+//        $tblPerson = $tblBasketVerification->getServicePeoplePerson();
+//        $tblBasket = $tblBasketVerification->getTblBasket();
 
-
+        /** Löschen des Artikels der Person */
         if ((new Data($this->getBinding()))->destroyBasketVerification($tblBasketVerification)) {
-            $tblBasketVerificationList = Basket::useService()->getBasketVerificationByPersonAndBasket($tblPerson, $tblBasket);
-            if (!$tblBasketVerificationList) {
-                $tblBasketPerson = Basket::useService()->getBasketPersonByBasketAndPerson($tblBasket, $tblPerson);
-                $this->removeBasketPerson($tblBasketPerson);
-                return new Success('Der Eintrag wurde erfolgreich gelöscht')
-                .new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_SUCCESS,
-                    array('Id' => $tblBasketVerification->getTblBasket()->getId()));
-            }
+            /** Löschen der Person nachdem alle Artikel gelöscht wurden */
+//            $tblBasketVerificationList = Basket::useService()->getBasketVerificationByPersonAndBasket($tblPerson, $tblBasket);
+//            if (!$tblBasketVerificationList) {
+//                $tblBasketPerson = Basket::useService()->getBasketPersonByBasketAndPerson($tblBasket, $tblPerson);
+//                $this->removeBasketPerson($tblBasketPerson);
+//                return new Success('Der Eintrag wurde erfolgreich gelöscht')
+//                .new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_SUCCESS,
+//                    array('Id' => $tblBasketVerification->getTblBasket()->getId()));
+//            }
             return new Success('Der Eintrag wurde erfolgreich gelöscht')
             .new Redirect('/Billing/Accounting/Basket/Verification/Person', Redirect::TIMEOUT_SUCCESS,
                 array('PersonId' => $tblBasketVerification->getServicePeoplePerson()->getId(),
@@ -863,6 +864,7 @@ class Service extends AbstractService
 
         $tblPerson = $tblBasketPerson->getServicePeople_Person();
         $tblBasket = $tblBasketPerson->getTblBasket();
+        /** Löschen aller Artikel von einer Person beim löschen dieser */
         $tblBasketVerificationList = Basket::useService()->getBasketVerificationByPersonAndBasket($tblPerson, $tblBasket);
         if ($tblBasketVerificationList) {
             foreach ($tblBasketVerificationList as $tblBasketVerification) {

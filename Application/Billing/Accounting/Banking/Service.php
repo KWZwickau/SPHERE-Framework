@@ -509,7 +509,7 @@ class Service extends AbstractService
         return $Stage;
     }
 
-    public function changeDebtorSelection(IFormInterface &$Stage = null, TblBasket $tblBasket, $Data = null)
+    public function updateDebtorSelection(IFormInterface &$Stage = null, TblBasket $tblBasket, $Data = null)
     {
 
         /**
@@ -586,6 +586,151 @@ class Service extends AbstractService
 
         return $Stage;
     }
+
+    public function changeDebtorSelectionPayer(IFormInterface &$Stage = null, TblPerson $tblPerson, $Data = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+
+        $Error = false;
+        $PersonPayers = false;
+
+        if (is_array($Data)) {
+            // Testdurchlauf durch alle Eingaben
+            foreach ($Data as $Key => $Row) {
+                $tblDebtorSelection = Banking::useService()->getDebtorSelectionById($Key);
+
+                if ($tblDebtorSelection) {
+                    if (!isset( $Row['PersonPayers'] ) || empty( $Row['PersonPayers'] )) {
+                        $Stage->setError('[Data]['.$Key.'][PersonPayers]', 'Bezahler benötigt!');
+                        $Error = true;
+                        $PersonPayers = true;
+                    }
+                }
+            }
+            if (!$Error) {
+                // Durchführung nach bestehen des Testdurchlauf's
+                foreach ($Data as $Key => $Row) {
+                    $tblPersonPayers = Person::useService()->getPersonById($Row['PersonPayers']);
+                    $tblPaymentType = Balance::useService()->getPaymentTypeById($Row['Payment']);
+                    $tblDebtorSelection = Banking::useService()->getDebtorSelectionById($Key);
+
+                    if ($tblDebtorSelection) {
+
+                        if (!$Error) {
+
+
+                            $tblDebtor = null;
+                            $tblBankAccount = null;
+                            $tblBankReference = null;
+
+                            (new Data ($this->getBinding()))->changeDebtorSelection(
+                                $tblDebtorSelection,
+                                $tblPersonPayers,
+                                $tblPaymentType,
+                                $tblDebtor,
+                                $tblBankAccount,
+                                $tblBankReference);
+                        }
+                    }
+                }
+            }
+
+            if (!$Error) {
+                return new Success('Daten sind erfasst worden.')
+                .new Redirect('/Billing/Accounting/DebtorSelection/PayChoose', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblPerson->getId()));
+            }
+            if ($Error && $PersonPayers) {
+                $Stage .= new Warning('Bitte zuerst Daten zum bezahlen für die Beziehungstehenden (bezahlenden) Personen anlegen');
+            }
+        }
+
+        return $Stage;
+    }
+
+    public function changeDebtorSelectionInfo(IFormInterface &$Stage = null, $Data = null)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Data) {
+            return $Stage;
+        }
+
+        $Error = false;
+        $Debtor = false;
+        $Bank = false;
+
+        if (is_array($Data)) {
+            // Testdurchlauf durch alle Eingaben
+            foreach ($Data as $Key => $Row) {
+                $tblDebtorSelection = Banking::useService()->getDebtorSelectionById($Key);
+
+                if ($tblDebtorSelection) {
+                    if (!isset( $Row['Debtor'] ) || empty( $Row['Debtor'] )) {
+                        $Stage->setError('[Data]['.$Key.'][Debtor]', 'Debitor benötigt!');
+                        $Error = true;
+                        $Debtor = true;
+                    }
+                    if (!isset( $Row['SelectBox'] ) || empty( $Row['SelectBox'] )) {
+                        $Stage->setError('[Data]['.$Key.'][Select]', 'Auswahl treffen!');
+                        $Error = true;
+                        $Bank = true;
+                    }
+                }
+            }
+            if (!$Error) {
+                // Durchführung nach bestehen des Testdurchlauf's
+                foreach ($Data as $Key => $Row) {
+                    $tblDebtorSelection = Banking::useService()->getDebtorSelectionById($Key);
+
+                    if ($tblDebtorSelection) {
+
+                        if (!$Error) {
+
+                            $tblDebtor = Banking::useService()->getDebtorById($Row['Debtor']);
+                            $tblBankAccount = null;
+                            $tblBankReference = null;
+
+                            $string = substr($Row['SelectBox'], 0, 3);
+                            $Id = substr($Row['SelectBox'], 3);
+                            if ($string === 'Ban') {
+                                $tblBankAccount = Banking::useService()->getBankAccountById($Id);
+                            } elseif ($string === 'Ref') {
+                                $tblBankReference = Banking::useService()->getBankReferenceById($Id);
+                            }
+
+                            (new Data ($this->getBinding()))->UpdateDebtorSelection(
+                                $tblDebtorSelection,
+                                $tblDebtor,
+                                $tblBankAccount,
+                                $tblBankReference);
+                        }
+                    }
+                }
+            }
+
+            if (!$Error) {
+                return new Success('Daten sind erfasst worden.')
+                .new Redirect('/Billing/Accounting/DebtorSelection', Redirect::TIMEOUT_SUCCESS);
+            }
+            if ($Error && $Debtor) {
+                $Stage .= new Warning('Bitte zuerst die benötigte Debitoren anlegen');
+            }
+            if ($Error && $Bank) {
+                $Stage .= new Warning('Gewählte Bezahler haben keine Zahlungs-Information');
+            }
+        }
+
+        return $Stage;
+    }
+
 
     public function changeAccount(
         IFormInterface &$Stage = null,

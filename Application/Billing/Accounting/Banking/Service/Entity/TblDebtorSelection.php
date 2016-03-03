@@ -163,7 +163,7 @@ class TblDebtorSelection extends Element
     /**
      * @param null|TblDebtor $tblDebtor
      */
-    public function setTblDebtor(TblDebtor $tblDebtor)
+    public function setTblDebtor(TblDebtor $tblDebtor = null)
     {
 
         $this->tblDebtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );

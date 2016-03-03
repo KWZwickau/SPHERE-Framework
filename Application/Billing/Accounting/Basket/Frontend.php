@@ -1322,7 +1322,6 @@ class Frontend extends Extension implements IFrontendInterface
             if (empty( $Content )) {
                 $Content = 'Keine Artikel zugewiesen.';
             }
-            $Stage->addButton(new Backward());
             $Stage->setContent(
                 new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                     new Panel(new Question().' Diese Person "'.$Person.'" inklusive folgender Artikel wirklich entfernen?', $Content
@@ -1372,6 +1371,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Eintrag', 'Löschen');
         if ($Id) {
             $tblBasketVerification = Basket::useService()->getBasketVerificationById($Id);
+            if (!$tblBasketVerification) {
+                $Stage->setContent(new Warning('Artikel nicht gefunden'));
+                return $Stage.new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_ERROR,
+                    array('BasketId' => $BasketId));
+            }
             if (!$Confirm) {
                 $Person = '';
                 $Item = '';
@@ -1388,7 +1392,6 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
 
-                $Stage->addButton(new Backward());
                 $Stage->setContent(
                     new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                         new Panel(new Question().' Diesen Eintrag mit folgenden Daten wirklich entfernen?',
@@ -1437,7 +1440,6 @@ class Frontend extends Extension implements IFrontendInterface
                                     $PanelContent[] = $tblBasketVerifications->getServiceInventoryItem()->getName();
                                 }
                             }
-                            $Stage->addButton(new Backward());
                             $Stage->setContent(
                                 new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                                     new Panel(new Question().' Berechnung mit '.$CountVerification.' Einträgen wirklich löschen?',
