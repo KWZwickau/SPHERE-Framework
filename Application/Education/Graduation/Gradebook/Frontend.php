@@ -1336,11 +1336,17 @@ class Frontend extends Extension implements IFrontendInterface
                                             . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
                                             . $tblGradeType->getMultiplier();
                                     }
+                                } else {
+                                    $structure[] = new Warning('Kein Zenuren-Typ hinterlegt.', new Ban());
                                 }
                             }
+                        } else {
+                            $structure[] = new Warning('Keine Zenuren-Gruppe hinterlegt.', new Ban());
                         }
                         $structure[] = ' ';
                     }
+                } else {
+                    $structure[] = new Warning('Keine Berechnungsvariante hinterlegt.', new Ban());
                 }
 
                 if (empty($structure)) {
@@ -2469,7 +2475,8 @@ class Frontend extends Extension implements IFrontendInterface
             Das Bewertungssystem bestimmt, welche Zensuren (Noten, Punkte oder verbale Bewertung) bei der Fach-Klasse
             eingegeben werden können und die Anzeige des Notenspiegels.'
         );
-        $Stage->addButton(new Standard('Zurück', '/Education/Graduation/Gradebook/Score', new ChevronLeft()));
+
+        $this->setScoreStageMenuButtons($Stage);
 
         $tblScoreTypeAll = Gradebook::useService()->getScoreTypeAll();
         if ($tblScoreTypeAll) {
