@@ -667,13 +667,18 @@ class Frontend extends Extension implements IFrontendInterface
         $gradePositions = array();
         $columnList[] = new LayoutColumn(new Title(new Bold('Schüler')), 2);
         if ($tblPeriodList) {
-            $width = floor(10 / count($tblPeriodList));
+            $width = floor(9 / count($tblPeriodList));
             foreach ($tblPeriodList as $tblPeriod) {
                 $columnList[] = new LayoutColumn(
                     new Title(new Bold($tblPeriod->getDisplayName()))
                     , $width
                 );
             }
+            // Gesamtjahr
+            $columnList[] = new LayoutColumn(
+                new Title(new Bold('Gesamtjahr'))
+                , 1
+            );
             $rowList[] = new LayoutRow($columnList);
             $columnList = array();
             $columnList[] = new LayoutColumn(new Header(' '), 2);
@@ -729,23 +734,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblPerson = Person::useService()->getPersonById($personId);
                     $columnList = array();
                     if ($tblDivisionSubject->getServiceTblSubject()) {
-                        $totalAverage = Gradebook::useService()->calcStudentGrade(
-                            $tblPerson,
-                            $tblDivision,
-                            $tblDivisionSubject->getServiceTblSubject(),
-                            $tblTestType,
-                            $tblScoreRule ? $tblScoreRule : null,
-                            null,
-                            $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
-                        );
-                        if (is_array($totalAverage)) {
-                            $errorRowList = $totalAverage;
-                            $totalAverage = '';
-                        }
-
-                        $columnList[] = new LayoutColumn(
-                            new Container($tblPerson->getLastFirstName() . ' ' . new Bold('&#216; ' . $totalAverage))
-                            , 2);
+                        $columnList[] = new LayoutColumn(new Container($tblPerson->getLastFirstName()), 2);
                         foreach ($tblPeriodList as $tblPeriod) {
                             $columnSubList = array();
                             if (isset($gradePositions[$tblPeriod->getId()])) {
@@ -807,6 +796,23 @@ class Frontend extends Extension implements IFrontendInterface
                             $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
                                 $width);
                         }
+                        $totalAverage = Gradebook::useService()->calcStudentGrade(
+                            $tblPerson,
+                            $tblDivision,
+                            $tblDivisionSubject->getServiceTblSubject(),
+                            $tblTestType,
+                            $tblScoreRule ? $tblScoreRule : null,
+                            null,
+                            $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
+                        );
+                        if (is_array($totalAverage)) {
+                            $errorRowList = $totalAverage;
+                            $totalAverage = '';
+                        }
+
+                        $columnList[] = new LayoutColumn(
+                            new Container(new Bold($totalAverage))
+                            , 2);
                         $rowList[] = new LayoutRow($columnList);
                     }
                 }
@@ -1748,7 +1754,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Typ einer Zenuseren-Gruppe hinzufügen');
 
-        if ($tblScoreGroupId === null || $tblGradeTypeId === null){
+        if ($tblScoreGroupId === null || $tblGradeTypeId === null) {
             return $Stage;
         }
 
@@ -2261,7 +2267,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Berechnungsvariante (Bedingungen)', 'Zensuren-Typ einer Berechnungsvariante hinzufügen');
 
-        if ($tblScoreConditionId === null || $tblGradeTypeId === null){
+        if ($tblScoreConditionId === null || $tblGradeTypeId === null) {
             return $Stage;
         }
 
