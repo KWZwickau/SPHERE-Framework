@@ -1132,23 +1132,6 @@ class Frontend extends Extension implements IFrontendInterface
                                                 $studentList[$tblPerson->getId()]['Period' . $tblPeriod->getId()] = $grade;
                                             }
                                         }
-
-//                                        $average = Gradebook::useService()->calcStudentGrade(
-//                                            $tblPerson,
-//                                            $tblDivision,
-//                                            $tblDivisionSubject->getServiceTblSubject(),
-//                                            Evaluation::useService()->getTestTypeByIdentifier('TEST'),
-//                                            $tblScoreRule ? $tblScoreRule : null,
-//                                            $tblPeriod
-//                                        );
-//                                        if (is_array($average)) {
-//                                            $errorRowList = $average;
-//                                            $average = ' ';
-//                                        }
-//                                        if ($average) {
-//                                            $studentList[$tblPerson->getId()]['Period' . $tblPeriod->getId()]
-//                                                .= '&nbsp;&nbsp;&nbsp;' . new Bold('&#216; ' . $average);
-//                                        }
                                     }
                                 }
                             }
@@ -1200,6 +1183,43 @@ class Frontend extends Extension implements IFrontendInterface
                     . ($tblTask->getServiceTblPeriod()
                         ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
                         : new Small(new Muted(' Gesamtes Schuljahr')));
+
+                foreach ($studentList as $personId => $student) {
+                    $tblPerson = Person::useService()->getPersonById($personId);
+                    if ($tblPerson) {
+                        $tblGradeList = Gradebook::useService()->getGradesByGradeType($tblPerson, $tblSubject,
+                            $tblTest->getServiceTblGradeType());
+
+                        $previewsGrade = '';
+                        if ($tblGradeList) {
+//                            $this->getSorter($tblGradeList)->sortObjectList('EntityCreate', Sorter::ORDER_DESC);
+
+//                            /** @var TblGrade $tblGrade */
+//                            $tblGrade = array_pop($tblGradeList);
+//                            if ($tblGrade->getServiceTblTest() && $tblGrade->getServiceTblTest()->getTblTask()
+//                                && $tblGrade->getServiceTblTest()->getTblTask()->getId() !== $tblTask->getId()){
+//                                $previewsGrade = $tblGrade->getDisplayGrade();
+//                            } elseif (!empty($tblGradeList)){
+//                                $tblGrade = array_pop($tblGradeList);
+//                                $previewsGrade = $tblGrade->getDisplayGrade();
+//                            }
+                            $count = count($tblGradeList);
+                            for ($i = 0; $i < $count; $i++) {
+                                /** @var TblGrade $tblGrade */
+                                $tblGrade = array_pop($tblGradeList);
+                                if ($tblTask->getEntityCreate() > $tblGrade->getEntityCreate())
+                                {
+                                    $previewsGrade = $tblGrade->getDisplayGrade();
+                                    break;
+                                }
+                            }
+                        }
+
+                        $studentList[$tblPerson->getId()]['PreviewsGrade'] = $previewsGrade;
+                    }
+                }
+
+                $tableColumns['PreviewsGrade'] = 'Letzte Zensur';
             }
 
             $tableColumns['Grade'] = 'Zensur';

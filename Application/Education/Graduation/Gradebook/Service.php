@@ -1329,4 +1329,16 @@ class Service extends AbstractService
 
         return $Stage;
     }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblGradeType $tblGradeType
+     * @return false|TblGrade[]
+     */
+    public function getGradesByGradeType(TblPerson $tblPerson, TblSubject $tblSubject, TblGradeType $tblGradeType)
+    {
+
+        return (new Data($this->getBinding()))->getGradesByGradeType($tblPerson, $tblSubject, $tblGradeType);
+    }
 }

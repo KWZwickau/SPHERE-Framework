@@ -1142,4 +1142,21 @@ class Data extends AbstractData
             'TblScoreRuleDivisionSubject', $Id);
     }
 
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblGradeType $tblGradeType
+     * @return false|TblGrade[]
+     */
+    public function getGradesByGradeType(TblPerson $tblPerson, TblSubject $tblSubject, TblGradeType $tblGradeType)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblGrade', array(
+                TblGrade::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId(),
+                TblGrade::ATTR_TBL_GRADE_TYPE => $tblGradeType->getId()
+            ));
+    }
+
 }

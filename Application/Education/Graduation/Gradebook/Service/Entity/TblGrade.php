@@ -330,4 +330,22 @@ class TblGrade extends Element
     {
         $this->Trend = $Trend;
     }
+
+    /**
+     * @return string
+     */
+    public function getDisplayGrade()
+    {
+        $gradeValue = $this->getGrade();
+        if ($gradeValue) {
+            $trend = $this->getTrend();
+            if (TblGrade::VALUE_TREND_PLUS === $trend) {
+                $gradeValue .= '+';
+            } elseif (TblGrade::VALUE_TREND_MINUS === $trend) {
+                $gradeValue .= '-';
+            }
+        }
+
+        return $gradeValue ? $gradeValue : '';
+    }
 }
