@@ -202,58 +202,66 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Zensuren-Typ', 'Bearbeiten');
+
+        $tblGradeType = false;
+
+        $error = false;
+        if ($Id == null) {
+            $error = true;
+        } elseif (!($tblGradeType = Gradebook::useService()->getGradeTypeById($Id))) {
+            $error = true;
+        }
+        if ($error) {
+            return $Stage . new Danger('Zensuren-Typ nicht gefunden', new Ban())
+            . new Redirect('/Education/Graduation/Gradebook/GradeType', Redirect::TIMEOUT_ERROR);
+        }
+
         $Stage->addButton(
             new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/GradeType', new ChevronLeft())
         );
 
-        $tblGradeType = Gradebook::useService()->getGradeTypeById($Id);
-        if ($tblGradeType) {
-            $Global = $this->getGlobal();
-            if (!$Global->POST) {
-                if ($tblGradeType->getServiceTblTestType()) {
-                    $Global->POST['GradeType']['Type'] = $tblGradeType->getServiceTblTestType()->getId();
-                }
-                $Global->POST['GradeType']['Name'] = $tblGradeType->getName();
-                $Global->POST['GradeType']['Code'] = $tblGradeType->getCode();
-                $Global->POST['GradeType']['IsHighlighted'] = $tblGradeType->isHighlighted();
-                $Global->POST['GradeType']['Description'] = $tblGradeType->getDescription();
-
-                $Global->savePost();
+        $Global = $this->getGlobal();
+        if (!$Global->POST) {
+            if ($tblGradeType->getServiceTblTestType()) {
+                $Global->POST['GradeType']['Type'] = $tblGradeType->getServiceTblTestType()->getId();
             }
+            $Global->POST['GradeType']['Name'] = $tblGradeType->getName();
+            $Global->POST['GradeType']['Code'] = $tblGradeType->getCode();
+            $Global->POST['GradeType']['IsHighlighted'] = $tblGradeType->isHighlighted();
+            $Global->POST['GradeType']['Description'] = $tblGradeType->getDescription();
 
-            $Form = $this->formGradeType()
-                ->appendFormButton(new Primary('Speichern', new Save()))
-                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-            $Stage->setContent(
-                new Layout(array(
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel(
-                                    'Zensuren-Typ',
-                                    $tblGradeType->getName() . ' (' . $tblGradeType->getCode() . ')' .
-                                    ($tblGradeType->getDescription() !== '' ? '&nbsp;&nbsp;'
-                                        . new Muted(new Small(new Small($tblGradeType->getDescription()))) : ''),
-                                    Panel::PANEL_TYPE_INFO
-                                )
-                            ),
-                        ))
-                    )),
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(
-                                new Well(Gradebook::useService()->updateGradeType($Form, $Id, $GradeType))
-                            ),
-                        ))
-                    ), new Title(new Edit() . ' Bearbeiten'))
-                ))
-            );
-
-            return $Stage;
-        } else {
-            return new Danger(new Ban() . ' Zensuren-Typ nicht gefunden')
-            . new Redirect('/Education/Graduation/Gradebook/GradeType', Redirect::TIMEOUT_ERROR);
+            $Global->savePost();
         }
+
+        $Form = $this->formGradeType()
+            ->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel(
+                                'Zensuren-Typ',
+                                $tblGradeType->getName() . ' (' . $tblGradeType->getCode() . ')' .
+                                ($tblGradeType->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                    . new Muted(new Small(new Small($tblGradeType->getDescription()))) : ''),
+                                Panel::PANEL_TYPE_INFO
+                            )
+                        ),
+                    ))
+                )),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Well(Gradebook::useService()->updateGradeType($Form, $Id, $GradeType))
+                        ),
+                    ))
+                ), new Title(new Edit() . ' Bearbeiten'))
+            ))
+        );
+
+        return $Stage;
     }
 
     /**
@@ -808,39 +816,39 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                                new Panel(
-                                    'Fach-Klasse',
-                                    array(
-                                        'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
-                                        ($tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getServiceTblSubject()->getName() : '') .
-                                        ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
-                                            ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
-                                        'Fachlehrer: ' . Division::useService()->getSubjectTeacherNameList(
-                                            $tblDivision, $tblSubject, $tblDivisionSubject->getTblSubjectGroup()
-                                            ? $tblDivisionSubject->getTblSubjectGroup() : null
+                        new LayoutRow(array(
+                                new LayoutColumn(array(
+                                    new Panel(
+                                        'Fach-Klasse',
+                                        array(
+                                            'Klasse ' . $tblDivision->getDisplayName() . ' - ' .
+                                            ($tblDivisionSubject->getServiceTblSubject() ? $tblDivisionSubject->getServiceTblSubject()->getName() : '') .
+                                            ($tblDivisionSubject->getTblSubjectGroup() ? new Small(
+                                                ' (Gruppe: ' . $tblDivisionSubject->getTblSubjectGroup()->getName() . ')') : ''),
+                                            'Fachlehrer: ' . Division::useService()->getSubjectTeacherNameList(
+                                                $tblDivision, $tblSubject, $tblDivisionSubject->getTblSubjectGroup()
+                                                ? $tblDivisionSubject->getTblSubjectGroup() : null
+                                            )
+                                        ),
+                                        Panel::PANEL_TYPE_INFO
                                     )
                                 ),
-                                Panel::PANEL_TYPE_INFO
+                                    6
+                                ),
+                                new LayoutColumn(new Panel(
+                                    'Berechnungsvorschrift',
+                                    $tblScoreRule ? $scoreRuleText : new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
+                                        new Ban() . ' Keine Berechnungsvorschrift hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
+                                    )),
+                                    Panel::PANEL_TYPE_INFO
+                                ), 6),
                             )
                         ),
-                        6
-                    ),
-                        new LayoutColumn(new Panel(
-                            'Berechnungsvorschrift',
-                            $tblScoreRule ? $scoreRuleText : new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
-                                new Ban() . ' Keine Berechnungsvorschrift hinterlegt. Alle Zensuren-Typen sind gleichwertig.'
-                            )),
-                            Panel::PANEL_TYPE_INFO
-                        ), 6),
                     )
                 ),
-                )
-            ),
                 (!empty($errorRowList) ? new LayoutGroup($errorRowList) : null)
             ))
-        . new Layout(new LayoutGroup($rowList))
+            . new Layout(new LayoutGroup($rowList))
         );
 
         return $Stage;
@@ -984,7 +992,8 @@ class Frontend extends Extension implements IFrontendInterface
                             $columnList[] = new LayoutColumn(new Header(new Bold('Fach')), 2);
                             $width = (12 - 2) / count($tblPeriodList);
                             foreach ($tblPeriodList as $tblPeriod) {
-                                $columnList[] = new LayoutColumn(new Header(new Bold($tblPeriod->getDisplayName())), $width);
+                                $columnList[] = new LayoutColumn(new Header(new Bold($tblPeriod->getDisplayName())),
+                                    $width);
                             }
                         }
                         $rowList[] = new LayoutRow($columnList);
@@ -1739,6 +1748,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Zensuren-Berechnung', 'Zensuren-Typ einer Zenuseren-Gruppe hinzufügen');
 
+        if ($tblScoreGroupId === null || $tblGradeTypeId === null){
+            return $Stage;
+        }
+
         $tblScoreGroup = Gradebook::useService()->getScoreGroupById($tblScoreGroupId);
         $tblGradeType = Gradebook::useService()->getGradeTypeById($tblGradeTypeId);
 
@@ -1981,7 +1994,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage;
         } else {
-            return new Danger(new Ban() . ' Berechnungsvorschrift nicht gefunden')
+            return $Stage . new Danger(new Ban() . ' Berechnungsvorschrift nicht gefunden')
             . new Redirect('/Education/Graduation/Gradebook/Score', Redirect::TIMEOUT_ERROR);
         }
     }
@@ -2038,7 +2051,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage;
         } else {
-            return new Danger(new Ban() . ' Zensuren-Gruppe nicht gefunden')
+            return $Stage . new Danger(new Ban() . ' Zensuren-Gruppe nicht gefunden')
             . new Redirect('/Education/Graduation/Gradebook/Score/Group', Redirect::TIMEOUT_ERROR);
         }
     }
@@ -2095,7 +2108,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             return $Stage;
         } else {
-            return new Danger(new Ban() . ' Berechnungsvariante nicht gefunden')
+            return $Stage . new Danger(new Ban() . ' Berechnungsvariante nicht gefunden')
             . new Redirect('/Education/Graduation/Gradebook/Score/Condition', Redirect::TIMEOUT_ERROR);
         }
     }
@@ -2247,6 +2260,10 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         $Stage = new Stage('Berechnungsvariante (Bedingungen)', 'Zensuren-Typ einer Berechnungsvariante hinzufügen');
+
+        if ($tblScoreConditionId === null || $tblGradeTypeId === null){
+            return $Stage;
+        }
 
         $tblScoreCondition = Gradebook::useService()->getScoreConditionById($tblScoreConditionId);
         $tblGradeType = Gradebook::useService()->getGradeTypeById($tblGradeTypeId);
