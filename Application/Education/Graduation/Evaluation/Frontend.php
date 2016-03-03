@@ -894,8 +894,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblSubject
             );
             if ($tblScoreRuleDivisionSubject) {
+                $tblScoreType = $tblScoreRuleDivisionSubject->getTblScoreType();
                 if ($tblScoreRuleDivisionSubject->getTblScoreRule()) {
-                    $tblScoreType = $tblScoreRuleDivisionSubject->getTblScoreType();
                     $tblScoreRule = $tblScoreRuleDivisionSubject->getTblScoreRule();
                     if ($tblScoreRule) {
                         if ($isTestAppointedDateTask) {
@@ -1207,8 +1207,7 @@ class Frontend extends Extension implements IFrontendInterface
                             for ($i = 0; $i < $count; $i++) {
                                 /** @var TblGrade $tblGrade */
                                 $tblGrade = array_pop($tblGradeList);
-                                if ($tblTask->getEntityCreate() > $tblGrade->getEntityCreate())
-                                {
+                                if ($tblTask->getEntityCreate() > $tblGrade->getEntityCreate()) {
                                     $previewsGrade = $tblGrade->getDisplayGrade();
                                     break;
                                 }
@@ -1289,21 +1288,25 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            Gradebook::useService()->updateGradeToTest(
-                                new Form(
-                                    new FormGroup(array(
-                                        new FormRow(
-                                            new FormColumn(
-                                                new TableData($studentList, null, $tableColumns, null)
-                                            )
-                                        ),
-                                    ))
-                                    , new Primary('Speichern', new Save()))
-                                , $tblTest->getId(), $Grade, $BasicRoute, $IsEdit, $minRange, $maxRange
-                            )
+                            $tblScoreType ?
+                                Gradebook::useService()->updateGradeToTest(
+                                    new Form(
+                                        new FormGroup(array(
+                                            new FormRow(
+                                                new FormColumn(
+                                                    new TableData($studentList, null, $tableColumns, null)
+                                                )
+                                            ),
+                                        ))
+                                        , new Primary('Speichern', new Save()))
+                                    , $tblTest->getId(), $Grade, $BasicRoute, $IsEdit, $minRange, $maxRange
+                                )
+                                : new \SPHERE\Common\Frontend\Message\Repository\Warning('Kein Bewertungssystem hinterlegt.
+                                Zensuren können erst vergeben werden nachdem für diese Fach-Klasse ein Bewertungssystem
+                                hinterlegt wurde.', new Ban())
                         )
                     ))
-                )),
+                ))
             ))
         );
 

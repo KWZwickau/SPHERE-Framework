@@ -1159,4 +1159,21 @@ class Data extends AbstractData
             ));
     }
 
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function existsGrades(TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+
+        $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),  'TblGrade', array(
+            TblGrade::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
+            TblGrade::ATTR_SERVICE_TBL_SUBJECT => $tblSubject->getId()
+        ));
+
+        return $list ? true : false;
+    }
+
 }

@@ -781,9 +781,9 @@ class Service extends AbstractService
         );
 
         // filter by Test Return for StudentView
-        if ($isStudentView && $tblGradeList ){
+        if ($isStudentView && $tblGradeList) {
             $filteredGradeList = array();
-            foreach($tblGradeList as $tblGrade){
+            foreach ($tblGradeList as $tblGrade) {
                 $tblTest = $tblGrade->getServiceTblTest();
                 if ($tblTest) {
                     if ($tblTest->getReturnDate()) {
@@ -1309,10 +1309,21 @@ class Service extends AbstractService
                         if (!$tblScoreRule) {
                             $tblScoreRule = null;
                         }
-                        $tblScoreType = Gradebook::useService()->getScoreTypeById($item['Type']);
-                        if (!$tblScoreType) {
-                            $tblScoreType = null;
+
+                        $tblScoreType = null;
+                        if (isset($item['Type'])) {
+                            $tblScoreType = Gradebook::useService()->getScoreTypeById($item['Type']);
+                            if (!$tblScoreType) {
+                                $tblScoreType = null;
+                            }
+                        } else {
+                            if ($tblScoreRuleDivisionSubject){
+                                if ($tblScoreRuleDivisionSubject->getTblScoreType()){
+                                    $tblScoreType = $tblScoreRuleDivisionSubject->getTblScoreType();
+                                }
+                            }
                         }
+
                         if ($tblScoreRuleDivisionSubject) {
                             (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
                                 $tblScoreRuleDivisionSubject, $tblScoreRule, $tblScoreType
@@ -1341,4 +1352,17 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getGradesByGradeType($tblPerson, $tblSubject, $tblGradeType);
     }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function existsGrades(TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+
+        return (new Data($this->getBinding()))->existsGrades($tblDivision, $tblSubject);
+    }
+
 }

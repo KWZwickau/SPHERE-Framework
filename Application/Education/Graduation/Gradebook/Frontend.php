@@ -2538,15 +2538,28 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblScoreType = $tblScoreRuleDivisionSubject->getTblScoreType();
                             if ($tblScoreType) {
                                 $Global->POST['Data'][$tblDivision->getId()][$tblSubject->getId()]['Type'] = $tblScoreType->getId();
+                                $Global->POST['Data'][$tblDivision->getId()][$tblSubject->getId()]['TypeName'] = $tblScoreType->getName();
                             }
-
-                            $Global->savePost();
+                        } else {
+                            $tblScoreType = $tblScoreRuleDivisionSubject->getTblScoreType();
+                            if ($tblScoreType) {
+                                $Global->POST['Data'][$tblDivision->getId()][$tblSubject->getId()]['TypeName'] = $tblScoreType->getName();
+                            }
                         }
+
+                        $Global->savePost();
                     }
                     $tblDivisionSubject->ScoreRule = new SelectBox('Data[' . $tblDivision->getId() . '][' . $tblSubject->getId() . '][Rule]'
                         , null, array('Name' => $tblScoreRuleAll));
-                    $tblDivisionSubject->ScoreType = new SelectBox('Data[' . $tblDivision->getId() . '][' . $tblSubject->getId() . '][Type]'
-                        , null, array('Name' => $tblScoreTypeAll));
+
+                    // Bewertungssystem nicht mehr bearbeitbar, nachdem Zensuren vergeben wurden
+                    if (Gradebook::useService()->existsGrades($tblDivision, $tblSubject)) {
+                        $tblDivisionSubject->ScoreType = (new TextField('Data[' . $tblDivision->getId() . '][' . $tblSubject->getId() . '][TypeName]'
+                            , '', ''))->setDisabled();
+                    } else {
+                        $tblDivisionSubject->ScoreType = new SelectBox('Data[' . $tblDivision->getId() . '][' . $tblSubject->getId() . '][Type]'
+                            , null, array('Name' => $tblScoreTypeAll));
+                    }
                 }
             }
         }
