@@ -32,12 +32,12 @@ class Evaluation implements IModuleInterface
                 new Link\Icon(new Document()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'\Headmaster\Test'), new Link\Name('Leistungsüberprüfung (Leitung)'),
+            new Link(new Link\Route(__NAMESPACE__.'\Headmaster\Test'), new Link\Name('Leistungsüberprüfung'),
                 new Link\Icon(new Document()))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\DivisionTeacher\Task'),
-                new Link\Name('Notenaufträge (Klassenlehrer)'),
+                new Link\Name('Notenaufträge'),
                 new Link\Icon(new ClipBoard()))
         );
         Main::getDisplay()->addModuleNavigation(

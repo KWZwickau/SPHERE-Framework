@@ -78,7 +78,7 @@ class Graduation implements IApplicationInterface
                 )) : null,
                 Access::useService()->hasAuthorization('/Education/Graduation/Gradebook/Headmaster/Gradebook') ? new TableRow(array(
                     new TableColumn(
-                        new Bold('Notenbuch (Leitung)')
+                        new Bold('Notenbuch')
                     ),
                     new TableColumn(
                         'Anzeige aller Notenbücher.'
@@ -105,7 +105,7 @@ class Graduation implements IApplicationInterface
                 )) : null,
                 Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/Headmaster/Test') ? new TableRow(array(
                     new TableColumn(
-                        new Bold('Leistungsüberprüfung (Leitung)')
+                        new Bold('Leistungsüberprüfung')
                     ),
                     new TableColumn(
                         'Verwaltung aller Leistungsüberprüfungen (inklusive Kopfnoten und Stichtagsnoten).'
@@ -113,7 +113,7 @@ class Graduation implements IApplicationInterface
                 )) : null,
                 Access::useService()->hasAuthorization('/Education/Graduation/Evaluation/DivisionTeacher/Task') ? new TableRow(array(
                     new TableColumn(
-                        new Bold('Notenaufträge (Klassenlehrer)')
+                        new Bold('Notenaufträge')
                     ),
                     new TableColumn(
                         'Anzeige der Kopfnoten- und Stichtagsnotenaufträge (inklusive vergebener Zensuren),

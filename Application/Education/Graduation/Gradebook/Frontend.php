@@ -440,7 +440,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendHeadmasterGradeBook()
     {
 
-        $Stage = new Stage('Notenbuch (Leitung)', 'Auswahl');
+        $Stage = new Stage('Notenbuch', 'Auswahl');
         $Stage->setMessage(
             'Auswahl aller Notenbücher.'
         );
@@ -869,7 +869,7 @@ class Frontend extends Extension implements IFrontendInterface
         $DivisionSubjectId = null
     ) {
 
-        $Stage = new Stage('Notenbuch (Leitung)', 'Anzeigen');
+        $Stage = new Stage('Notenbuch', 'Anzeigen');
 
         if ($DivisionSubjectId === null || !($tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId))) {
             return $Stage . new Danger(new Ban() . ' Notenbuch nicht gefunden.') . new Redirect('/Education/Graduation/Gradebook/Headmaster/Gradebook',

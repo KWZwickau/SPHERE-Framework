@@ -258,7 +258,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendHeadmasterTest()
     {
 
-        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Auswahl');
+        $Stage = new Stage('Leistungsüberprüfung', 'Auswahl');
         $Stage->setMessage(
             'Verwaltung aller Leistungsüberprüfungen (inklusive Kopfnoten und Stichtagsnoten).'
         );
@@ -616,7 +616,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Test = null
     ) {
 
-        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Übersicht');
+        $Stage = new Stage('Leistungsüberprüfung', 'Übersicht');
 
         $error = false;
         if ($DivisionSubjectId == null) {
@@ -673,7 +673,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Test = null
     ) {
 
-        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung', 'Bearbeiten');
 
         $error = false;
         if ($Id == null) {
