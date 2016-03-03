@@ -659,4 +659,15 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->existsTestByTaskAndGradeType($tblTask, $tblDivision, $tblSubject,
             $tblGradeType, $tblSubjectGroup);
     }
+
+    /**
+     * @param TblTest $tblTest
+     *
+     * @return bool
+     */
+    public function destroyTest(TblTest $tblTest)
+    {
+
+        return (new Data($this->getBinding()))->destroyTest($tblTest);
+    }
 }

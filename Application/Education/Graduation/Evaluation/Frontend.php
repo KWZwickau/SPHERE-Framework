@@ -40,14 +40,18 @@ use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Comment;
 use SPHERE\Common\Frontend\Icon\Repository\Dice;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Quote;
 use SPHERE\Common\Frontend\Icon\Repository\Rate15;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\ResizeVertical;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
@@ -431,17 +435,18 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblTest->Period = $tblTest->getServiceTblPeriod() ? $tblTest->getServiceTblPeriod()->getDisplayName() : '';
                 if ($tblTest->getServiceTblGradeType()) {
                     if ($tblTask) {
-                        $tblTest->GradeType = new Bold('Kopfnote: ' . $tblTest->getServiceTblGradeType()->getName())
-                            . ($tblTask->getServiceTblPeriod()
-                                ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
-                                : new Small(new Muted(' Gesamtes Schuljahr')));
+                        $tblTest->GradeType = new Bold('Kopfnote: ' . $tblTest->getServiceTblGradeType()->getName());
+//                            . ($tblTask->getServiceTblPeriod()
+//                                ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
+//                                : new Small(new Muted(' Gesamtes Schuljahr')));
                     } else {
                         $tblTest->GradeType = $tblTest->getServiceTblGradeType()->getName();
                     }
                 } elseif ($tblTask) {
-                    $tblTest->GradeType = new Bold('Stichtagsnote') . ($tblTask->getServiceTblPeriod()
-                            ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
-                            : new Small(new Muted(' Gesamtes Schuljahr')));
+                    $tblTest->GradeType = new Bold('Stichtagsnote');
+//                        . ($tblTask->getServiceTblPeriod()
+//                            ? new Small(new Muted(' ' . $tblTask->getServiceTblPeriod()->getDisplayName()))
+//                            : new Small(new Muted(' Gesamtes Schuljahr')));
                 } else {
                     $tblTest->GradeType = '';
                 }
@@ -456,7 +461,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblTest->Option =
                     ($tblTest->getTblTestType()->getId() == Evaluation::useService()->getTestTypeByIdentifier('TEST')->getId()
                         ? (new Standard('', $BasicRoute . '/Edit', new Edit(),
-                            array('Id' => $tblTest->getId()), 'Bearbeiten')) : '')
+                            array('Id' => $tblTest->getId()), 'Bearbeiten'))
+                        . (new Standard('', $BasicRoute . '/Destroy', new Remove(),
+                            array('Id' => $tblTest->getId()), 'Löschen'))
+                        : '')
                     . (new Standard('', $BasicRoute . '/Grade/Edit', new Listing(),
                         array('Id' => $tblTest->getId()), 'Zensuren bearbeiten'));
 
@@ -655,6 +663,33 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param $Id
+     * @param $Test
+     *
+     * @return Stage|string
+     */
+    public function frontendHeadmasterEditTest(
+        $Id = null,
+        $Test = null
+    ) {
+
+        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Bearbeiten');
+
+        $error = false;
+        if ($Id == null) {
+            $error = true;
+        } elseif (!($tblTest = Evaluation::useService()->getTestById($Id))) {
+            $error = true;
+        }
+        if ($error) {
+            return $Stage . new Danger('Test nicht gefunden.', new Ban())
+            . new Redirect('/Education/Graduation/Evaluation/Headmaster/Test', Redirect::TIMEOUT_ERROR);
+        }
+
+        return $this->contentEditTest($Stage, $Id, $Test, '/Education/Graduation/Evaluation/Headmaster/Test');
+    }
+
+    /**
      * @param Stage $Stage
      * @param        $Id
      * @param        $Test
@@ -766,30 +801,115 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
-     * @param $Test
+     * @param null $Id
+     * @param bool|false $Confirm
      *
-     * @return Stage|string
+     * @return Stage
      */
-    public function frontendHeadmasterEditTest(
+    public function frontendDestroyTest(
         $Id = null,
-        $Test = null
+        $Confirm = false
     ) {
 
-        $Stage = new Stage('Leistungsüberprüfung (Leitung)', 'Bearbeiten');
+        $Stage = new Stage('Leistungsüberprüfung', 'Löschen');
 
-        $error = false;
-        if ($Id == null) {
-            $error = true;
-        } elseif (!($tblTest = Evaluation::useService()->getTestById($Id))) {
-            $error = true;
+        if (!Evaluation::useService()->getTestById($Id)) {
+            return $Stage . new Danger('Test nicht gefunden.', new Ban())
+            . new Redirect('/Education/Graduation/Evaluation/Test', Redirect::TIMEOUT_ERROR);
         }
-        if ($error) {
+
+        return $this->contentDestroyTest($Stage, $Id, $Confirm, '/Education/Graduation/Evaluation/Test');
+    }
+
+    /**
+     * @param null $Id
+     * @param bool|false $Confirm
+     * @return Stage
+     */
+    public function frontendHeadmasterDestroyTest(
+        $Id = null,
+        $Confirm = false
+    ) {
+
+        $Stage = new Stage('Leistungsüberprüfung', 'Löschen');
+
+        if (!Evaluation::useService()->getTestById($Id)) {
             return $Stage . new Danger('Test nicht gefunden.', new Ban())
             . new Redirect('/Education/Graduation/Evaluation/Headmaster/Test', Redirect::TIMEOUT_ERROR);
         }
 
-        return $this->contentEditTest($Stage, $Id, $Test, '/Education/Graduation/Evaluation/Headmaster/Test');
+        return $this->contentDestroyTest($Stage, $Id, $Confirm, '/Education/Graduation/Evaluation/Headmaster/Test');
+    }
+
+
+    public function contentDestroyTest(Stage $Stage, $Id, $Confirm, $BasicRoute)
+    {
+
+        $tblTest = Evaluation::useService()->getTestById($Id);
+        if ($tblTest) {
+            if (!$tblTest->getServiceTblDivision()) {
+                return new Danger(new Ban() . ' Klasse nicht gefunden')
+                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+            }
+            if (!$tblTest->getServiceTblSubject()) {
+                return new Danger(new Ban() . ' Fach nicht gefunden')
+                . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+            }
+
+            $tblDivisionSubject = Division::useService()->getDivisionSubjectByDivisionAndSubjectAndSubjectGroup(
+                $tblTest->getServiceTblDivision(),
+                $tblTest->getServiceTblSubject(),
+                $tblTest->getServiceTblSubjectGroup() ? $tblTest->getServiceTblSubjectGroup() : null
+            );
+
+            $Stage->addButton(
+                new Standard('Zur&uuml;ck', $BasicRoute . '/Selected', new ChevronLeft(),
+                    array('DivisionSubjectId' => $tblDivisionSubject->getId()))
+            );
+
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                            new Panel('Test', ($tblTest->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                . new Muted(new Small(new Small($tblTest->getDescription()))) : ''),
+                                Panel::PANEL_TYPE_INFO),
+                            new Panel(new Question() . ' Diesen Test wirklich löschen?', array(
+                                $tblTest->getDescription() ? $tblTest->getDescription() : null
+                            ),
+                                Panel::PANEL_TYPE_DANGER,
+                                new Standard(
+                                    'Ja', $BasicRoute . '/Destroy', new Ok(),
+                                    array('Id' => $Id, 'Confirm' => true)
+                                )
+                                . new Standard(
+                                    'Nein', $BasicRoute . '/Selected', new Disable(),
+                                    array('DivisionSubjectId' => $tblDivisionSubject->getId())
+                                )
+                            )
+                        )
+                    ))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            (Evaluation::useService()->destroyTest($tblTest)
+                                ? new \SPHERE\Common\Frontend\Message\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                                    . ' Der Test wurde gelöscht')
+                                : new Danger(new Ban() . ' Der Test konnte nicht gelöscht werden')
+                            ),
+                            new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_SUCCESS,
+                                array('DivisionSubjectId' => $tblDivisionSubject->getId()))
+                        )))
+                    )))
+                );
+            }
+        } else {
+            return $Stage . new Danger('Test nicht gefunden.', new Ban())
+            . new Redirect($BasicRoute, Redirect::TIMEOUT_ERROR);
+        }
+
+        return $Stage;
     }
 
     /**
@@ -2332,5 +2452,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
         return $tableList;
     }
+
 
 }

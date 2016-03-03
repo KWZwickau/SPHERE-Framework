@@ -58,6 +58,10 @@ class Evaluation implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Test\Edit',
                 __NAMESPACE__.'\Frontend::frontendEditTest')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Test\Destroy',
+                __NAMESPACE__.'\Frontend::frontendDestroyTest')
+        );
 
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Test\Grade\Edit',
@@ -78,6 +82,10 @@ class Evaluation implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Test\Edit',
                 __NAMESPACE__.'\Frontend::frontendHeadmasterEditTest')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Test\Destroy',
+                __NAMESPACE__.'\Frontend::frontendHeadmasterDestroyTest')
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Test\Grade\Edit',
