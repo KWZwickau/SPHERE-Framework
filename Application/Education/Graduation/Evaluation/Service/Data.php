@@ -612,4 +612,31 @@ class Data extends AbstractData
                 )) ? true : false;
         }
     }
+
+    /**
+     * @param TblTask $tblTask
+     *
+     * @return bool
+     */
+    public function destroyTask(TblTask $tblTask)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblTask $Entity */
+        $Entity = $Manager->getEntityById('TblTask', $tblTask->getId());
+        if (null !== $Entity) {
+
+            $tblTestAllByTask = $this->getTestAllByTask($tblTask);
+            if ($tblTestAllByTask){
+                foreach ($tblTestAllByTask as $tblTest){
+                    $this->destroyTest($tblTest);
+                }
+            }
+
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
 }

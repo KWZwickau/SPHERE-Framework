@@ -1570,6 +1570,10 @@ class Frontend extends Extension implements IFrontendInterface
                         array('Id' => $tblTask->getId()),
                         'Bearbeiten'))
                     . (new Standard('',
+                        '/Education/Graduation/Evaluation/Headmaster/Task/Destroy', new Remove(),
+                        array('Id' => $tblTask->getId()),
+                        'Löschen'))
+                    . (new Standard('',
                         '/Education/Graduation/Evaluation/Headmaster/Task/Division',
                         new Listing(),
                         array('Id' => $tblTask->getId()),
@@ -2453,5 +2457,73 @@ class Frontend extends Extension implements IFrontendInterface
         return $tableList;
     }
 
+    /**
+     * @param null $Id
+     * @param bool|false $Confirm
+     *
+     * @return Stage
+     */
+    public function frontendHeadmasterTaskDestroy(
+        $Id = null,
+        $Confirm = false
+    ) {
+
+        $Stage = new Stage('Notenauftrag', 'Löschen');
+
+        if (!Evaluation::useService()->getTaskById($Id)) {
+            return $Stage . new Danger('Notenauftrag nicht gefunden nicht gefunden.', new Ban())
+            . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_ERROR);
+        }
+
+        $tblTask = Evaluation::useService()->getTaskById($Id);
+        if ($tblTask) {
+            $Stage->addButton(
+                new Standard('Zur&uuml;ck', '/Education/Graduation/Evaluation/Headmaster/Task', new ChevronLeft())
+            );
+
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                                new Panel(
+                                    $tblTask->getTblTestType()->getName(),
+                                    $tblTask->getName() . ' ' . $tblTask->getDate()
+                                    . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
+                                        $tblTask->getFromDate() . ' - ' . $tblTask->getToDate()))),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                                new Panel(new Question() . ' Diesen Notenauftrag wirklich löschen?', null,
+                                    Panel::PANEL_TYPE_DANGER,
+                                    new Standard(
+                                        'Ja', '/Education/Graduation/Evaluation/Headmaster/Task/Destroy', new Ok(),
+                                        array('Id' => $Id, 'Confirm' => true)
+                                    )
+                                    . new Standard(
+                                        'Nein', '/Education/Graduation/Evaluation/Headmaster/Task', new Disable())
+                                )
+                            )
+                        )
+                    )))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            (Evaluation::useService()->destroyTask($tblTask)
+                                ? new \SPHERE\Common\Frontend\Message\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                                    . ' Der Notenauftrag wurde gelöscht')
+                                : new Danger(new Ban() . ' Der Notenauftrag konnte nicht gelöscht werden')
+                            ),
+                            new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_SUCCESS)
+                        )))
+                    )))
+                );
+            }
+        } else {
+            return $Stage . new Danger('Notenauftrag nicht gefunden.', new Ban())
+            . new Redirect('/Education/Graduation/Evaluation/Headmaster/Task', Redirect::TIMEOUT_ERROR);
+        }
+
+        return $Stage;
+    }
 
 }

@@ -670,4 +670,15 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->destroyTest($tblTest);
     }
+
+    /**
+     * @param TblTask $tblTask
+     *
+     * @return bool
+     */
+    public function destroyTask(TblTask $tblTask)
+    {
+
+        return (new Data($this->getBinding()))->destroyTask($tblTask);
+    }
 }
