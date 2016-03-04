@@ -35,14 +35,18 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Equalizer;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -116,9 +120,11 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                 }
                 $Item['Description'] = $tblGradeType->getDescription();
-                $Item['Option'] = new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit', new Edit(), array(
+                $Item['Option'] = (new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit', new Edit(), array(
                     'Id' => $tblGradeType->getId()
-                ), 'Zensuren-Typ bearbeiten');
+                ), 'Zensuren-Typ bearbeiten'))
+                . (new Standard('', '/Education/Graduation/Gradebook/GradeType/Destroy', new Remove(),
+                        array('Id' => $tblGradeType->getId()), 'Löschen'));
 
                 array_push($TableContent, $Item);
             });
@@ -676,7 +682,7 @@ class Frontend extends Extension implements IFrontendInterface
             }
             // Gesamtjahr
             $columnList[] = new LayoutColumn(
-                new Title(new Bold('Gesamtjahr'))
+                new Title(new Bold('GJ'))
                 , 1
             );
             $rowList[] = new LayoutRow($columnList);
@@ -711,7 +717,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $columnSecondSubList[] = new LayoutColumn(
                                     new Header(
                                         $tblTest->getServiceTblGradeType()->isHighlighted()
-                                            ? new Bold($date) : $date)
+                                            ? new Bold(new Small($date)) : new Small($date))
                                     , 1);
                             }
                         }
@@ -753,8 +759,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                 }
                                                 if ($testId === $grade->getServiceTblTest()->getId()) {
                                                     $columnSubList[] = new LayoutColumn(
-                                                        new Container($grade->getTblGradeType()->isHighlighted()
-                                                            ? new Bold($gradeValue) : $gradeValue)
+                                                        new Container($grade->getTblGradeType() ? ($grade->getTblGradeType()->isHighlighted()
+                                                            ? new Bold($gradeValue) : $gradeValue) : $gradeValue)
                                                         , 1);
                                                     $hasFound = true;
                                                     break;
@@ -1309,7 +1315,9 @@ class Frontend extends Extension implements IFrontendInterface
                         if ($tblScoreConditionGradeTypeListByCondition) {
                             $list = array();
                             foreach ($tblScoreConditionGradeTypeListByCondition as $tblScoreConditionGradeTypeList) {
-                                $list[] = $tblScoreConditionGradeTypeList->getTblGradeType()->getName();
+                                if ($tblScoreConditionGradeTypeList->getTblGradeType()) {
+                                    $list[] = $tblScoreConditionGradeTypeList->getTblGradeType()->getName();
+                                }
                             }
 
                             $structure[] = '&nbsp;&nbsp;&nbsp;&bull;&nbsp;&nbsp;' . 'Bedingungen: ' . implode(', ',
@@ -1332,7 +1340,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 if ($tblGradeTypeList) {
                                     foreach ($tblGradeTypeList as $tblGradeType) {
                                         $structure[] = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9702;&nbsp;&nbsp;'
-                                            . 'Zensuren-Typ: ' . $tblGradeType->getTblGradeType()->getName()
+                                            . 'Zensuren-Typ: '
+                                            . ($tblGradeType->getTblGradeType() ? $tblGradeType->getTblGradeType()->getName() : '')
                                             . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Faktor: '
                                             . $tblGradeType->getMultiplier();
                                     }
@@ -1454,7 +1463,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblGradeTypes = Gradebook::useService()->getScoreConditionGradeTypeListByCondition($tblScoreCondition);
                 if ($tblGradeTypes) {
                     foreach ($tblGradeTypes as $tblGradeType) {
-                        $gradeTypes[] = $tblGradeType->getTblGradeType()->getName();
+                        if ($tblGradeType->getTblGradeType()) {
+                            $gradeTypes[] = $tblGradeType->getTblGradeType()->getName();
+                        }
                     }
                 }
                 if (empty($gradeTypes)) {
@@ -1555,7 +1566,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblScoreGroupGradeTypes = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup);
                 if ($tblScoreGroupGradeTypes) {
                     foreach ($tblScoreGroupGradeTypes as $tblScoreGroupGradeType) {
-                        $gradeTypes .= $tblScoreGroupGradeType->getTblGradeType()->getName() . ', ';
+                        if ($tblScoreGroupGradeType->getTblGradeType()) {
+                            $gradeTypes .= $tblScoreGroupGradeType->getTblGradeType()->getName() . ', ';
+                        }
                     }
                 }
                 if (($length = strlen($gradeTypes)) > 2) {
@@ -1650,7 +1663,9 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblScoreGroupGradeTypeListByGroup) {
                     /** @var TblScoreGroupGradeTypeList $tblScoreGroupGradeType */
                     foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeType) {
-                        $tblGradeTypeAllByGroup[] = $tblScoreGroupGradeType->getTblGradeType();
+                        if ($tblScoreGroupGradeType->getTblGradeType()) {
+                            $tblGradeTypeAllByGroup[] = $tblScoreGroupGradeType->getTblGradeType();
+                        }
                     }
                 }
 
@@ -1665,14 +1680,19 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if ($tblScoreGroupGradeTypeListByGroup) {
                     foreach ($tblScoreGroupGradeTypeListByGroup as &$tblScoreGroupGradeTypeList) {
-                        $tblScoreGroupGradeTypeList->Name = $tblScoreGroupGradeTypeList->getTblGradeType()->getName();
-                        $tblScoreGroupGradeTypeList->Option =
-                            (new \SPHERE\Common\Frontend\Link\Repository\Primary(
-                                'Entfernen', '/Education/Graduation/Gradebook/Score/Group/GradeType/Remove',
-                                new Minus(), array(
-                                'Id' => $tblScoreGroupGradeTypeList->getId()
-                            )))->__toString();
+                        if ($tblScoreGroupGradeTypeList->getTblGradeType()) {
+                            $tblScoreGroupGradeTypeList->Name = $tblScoreGroupGradeTypeList->getTblGradeType()->getName();
+                            $tblScoreGroupGradeTypeList->Option =
+                                (new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                                    'Entfernen', '/Education/Graduation/Gradebook/Score/Group/GradeType/Remove',
+                                    new Minus(), array(
+                                    'Id' => $tblScoreGroupGradeTypeList->getId()
+                                )))->__toString();
+                        } else {
+                            $tblScoreGroupGradeTypeList = false;
+                        }
                     }
+                    $tblScoreGroupGradeTypeListByGroup = array_filter($tblScoreGroupGradeTypeListByGroup);
                 }
 
                 if ($tblGradeTypeAll) {
@@ -2177,7 +2197,9 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblScoreConditionGradeTypeListByCondition) {
                     /** @var TblScoreConditionGradeTypeList $tblScoreConditionGradeType */
                     foreach ($tblScoreConditionGradeTypeListByCondition as $tblScoreConditionGradeType) {
-                        $tblGradeTypeAllByCondition[] = $tblScoreConditionGradeType->getTblGradeType();
+                        if ($tblScoreConditionGradeType->getTblGradeType()) {
+                            $tblGradeTypeAllByCondition[] = $tblScoreConditionGradeType->getTblGradeType();
+                        }
                     }
                 }
 
@@ -2192,14 +2214,19 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if ($tblScoreConditionGradeTypeListByCondition) {
                     foreach ($tblScoreConditionGradeTypeListByCondition as &$tblScoreConditionGradeTypeList) {
-                        $tblScoreConditionGradeTypeList->Name = $tblScoreConditionGradeTypeList->getTblGradeType()->getName();
-                        $tblScoreConditionGradeTypeList->Option =
-                            (new \SPHERE\Common\Frontend\Link\Repository\Primary(
-                                'Entfernen', '/Education/Graduation/Gradebook/Score/Condition/GradeType/Remove',
-                                new Minus(), array(
-                                'Id' => $tblScoreConditionGradeTypeList->getId()
-                            )))->__toString();
+                        if ($tblScoreConditionGradeTypeList->getTblGradeType()) {
+                            $tblScoreConditionGradeTypeList->Name = $tblScoreConditionGradeTypeList->getTblGradeType()->getName();
+                            $tblScoreConditionGradeTypeList->Option =
+                                (new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                                    'Entfernen', '/Education/Graduation/Gradebook/Score/Condition/GradeType/Remove',
+                                    new Minus(), array(
+                                    'Id' => $tblScoreConditionGradeTypeList->getId()
+                                )))->__toString();
+                        } else {
+                            $tblScoreConditionGradeTypeList = false;
+                        }
                     }
+                    $tblScoreConditionGradeTypeListByCondition = array_filter($tblScoreConditionGradeTypeListByCondition);
                 }
 
                 if ($tblGradeTypeAll) {
@@ -2598,6 +2625,74 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             ))
         );
+
+        return $Stage;
+    }
+
+    /**
+     * @param null $Id
+     * @param bool|false $Confirm
+     *
+     * @return Stage
+     */
+    public function frontendDestroyGradeType(
+        $Id = null,
+        $Confirm = false
+    ) {
+
+        $Stage = new Stage('Zensuren-Type', 'Löschen');
+
+        $tblGradeType = Gradebook::useService()->getGradeTypeById($Id);
+        if ($tblGradeType) {
+            $Stage->addButton(
+                new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/GradeType', new ChevronLeft())
+            );
+
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                                new Panel(
+                                    'Zensuren-Typ',
+                                    $tblGradeType->getName()
+                                    . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
+                                        $tblGradeType->getDescription()))),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                                new Panel(new Question() . ' Diesen Zensuren-Typ wirklich löschen?',
+                                    array(
+                                        $tblGradeType->getName(),
+                                        $tblGradeType->getDescription() ? $tblGradeType->getDescription() : null
+                                    ),
+                                    Panel::PANEL_TYPE_DANGER,
+                                    new Standard(
+                                        'Ja', '/Education/Graduation/Gradebook/GradeType/Destroy', new Ok(),
+                                        array('Id' => $Id, 'Confirm' => true)
+                                    )
+                                    . new Standard(
+                                        'Nein', '/Education/Graduation/Gradebook/GradeType', new Disable())
+                                )
+                            )
+                        )
+                    )))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            (Gradebook::useService()->destroyGradeType($tblGradeType)
+                                ? new \SPHERE\Common\Frontend\Message\Repository\Success(new \SPHERE\Common\Frontend\Icon\Repository\Success()
+                                    . ' Der Zensuren-Typ wurde gelöscht')
+                                : new Danger(new Ban() . ' Der Zensuren-Typ konnte nicht gelöscht werden')
+                            ),
+                            new Redirect('/Education/Graduation/Gradebook/GradeType', Redirect::TIMEOUT_SUCCESS)
+                        )))
+                    )))
+                );
+            }
+        } else {
+            return $Stage . new Danger('Zensuren-Typ nicht gefunden.', new Ban())
+            . new Redirect('/Education/Graduation/Gradebook/GradeType', Redirect::TIMEOUT_ERROR);
+        }
 
         return $Stage;
     }

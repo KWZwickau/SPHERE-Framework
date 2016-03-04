@@ -51,6 +51,10 @@ class Gradebook implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType\Edit',
                 __NAMESPACE__.'\Frontend::frontendEditGradeType')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\GradeType\Destroy',
+                __NAMESPACE__.'\Frontend::frontendDestroyGradeType')
+        );
 
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Gradebook',

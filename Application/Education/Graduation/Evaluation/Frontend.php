@@ -1240,9 +1240,10 @@ class Frontend extends Extension implements IFrontendInterface
                                             }
 
                                             $grade = $tblGrade->getGrade()
-                                                ? ($tblGradeType->isHighlighted()
+                                                ? ($tblGradeType ? ($tblGradeType->isHighlighted()
                                                     ? new Bold($gradeValue . ' (' . $tblGradeType->getCode() . ')')
                                                     : $gradeValue . ' (' . $tblGradeType->getCode() . ')')
+                                                    : $gradeValue)
                                                 : '';
 
                                             if (isset($studentList[$tblPerson->getId()]['Period' . $tblPeriod->getId()])) {
