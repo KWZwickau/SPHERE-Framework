@@ -582,11 +582,16 @@ class Service extends AbstractService
                     if ($tblObjectType->getId() == $this->getObjectTypeByIdentifier('PERSON')->getId()) {
                         if (is_array($list) && !empty($list)) {
                             foreach ($list as $objectId => $value) {
-                                $listObjectElementListList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
-                                    $tblList,
-                                    $tblObjectType,
-                                    Person::useService()->getPersonById($objectId)
-                                );
+                                $tblPerson = Person::useService()->getPersonById($objectId);
+                                if ($tblPerson) {
+                                    $listObjectElementListList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
+                                        $tblList,
+                                        $tblObjectType,
+                                        Person::useService()->getPersonById($objectId)
+                                    );
+                                } else {
+                                    $listObjectElementListList = false;
+                                }
                                 if ($listObjectElementListList) {
                                     foreach ($listObjectElementListList as $tblListObjectElementList) {
                                         if ($tblListObjectElementList->getServiceTblObject()) {
@@ -623,7 +628,7 @@ class Service extends AbstractService
                             } else {   // COMPANY
                                 $tblObject = Company::useService()->getCompanyById($objectId);
                             }
-                            if (!empty($elements)) {
+                            if (!empty($elements) && $tblObject) {
                                 foreach ($elements as $elementId => $value) {
                                     $tblListElementList = CheckList::useService()->getListElementListById($elementId);
                                     (new Data($this->getBinding()))->updateObjectElementToList(
@@ -749,7 +754,7 @@ class Service extends AbstractService
                                     if ($tblObjectType->getIdentifier() === 'PERSON') {
                                         $tblPerson = Person::useService()->getPersonById($objectId);
                                         $prospectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
-                                        if (!Group::useService()->existsGroupPerson($prospectGroup, $tblPerson)) {
+                                        if ($tblPerson && !Group::useService()->existsGroupPerson($prospectGroup, $tblPerson)) {
                                             $isProspectList = false;
                                         }
                                     } else {
@@ -792,77 +797,84 @@ class Service extends AbstractService
                         $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
                         if (!empty($objects)) {
                             foreach ($objects as $objectId => $value) {
+                                $tblObject = false;
                                 $columnCount = 0;
                                 if ($tblObjectType->getIdentifier() === 'PERSON') {
                                     $tblPerson = Person::useService()->getPersonById($objectId);
-                                    $tblObject = $tblPerson;
-                                    $name = $tblPerson->getLastFirstName();
-                                    $export->setValue($export->getCell($columnCount++, $rowCount), trim($name));
+                                    if ($tblPerson) {
+                                        $tblObject = $tblPerson;
+                                        $name = $tblPerson->getLastFirstName();
+                                        $export->setValue($export->getCell($columnCount++, $rowCount), trim($name));
 
-                                    if ($isProspectList) {
+                                        if ($isProspectList) {
 
-                                        // address
-                                        $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
-                                        $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
-                                        if (!empty($tblAddressAll)) {
-                                            $address = current($tblAddressAll)->getGuiString();
-                                        } else {
-                                            $address = '';
-                                        }
-                                        $export->setValue($export->getCell($columnCount++, $rowCount), trim($address));
+                                            // address
+                                            $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
+                                            $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
+                                            if (!empty($tblAddressAll)) {
+                                                $address = current($tblAddressAll)->getGuiString();
+                                            } else {
+                                                $address = '';
+                                            }
+                                            $export->setValue($export->getCell($columnCount++, $rowCount),
+                                                trim($address));
 
-                                        // Prospect
-                                        $level = false;
-                                        $year = false;
-                                        $option = false;
-                                        $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
-                                        if ($tblProspect) {
-                                            $tblProspectReservation = $tblProspect->getTblProspectReservation();
-                                            if ($tblProspectReservation) {
-                                                $level = $tblProspectReservation->getReservationDivision();
-                                                $year = $tblProspectReservation->getReservationYear();
-                                                $optionA = $tblProspectReservation->getServiceTblTypeOptionA();
-                                                $optionB = $tblProspectReservation->getServiceTblTypeOptionB();
-                                                if ($optionA && $optionB) {
-                                                    $option = $optionA->getName() . ', ' . $optionB->getName();
-                                                } elseif ($optionA) {
-                                                    $option = $optionA->getName();
-                                                } elseif ($optionB) {
-                                                    $option = $optionB->getName();
+                                            // Prospect
+                                            $level = false;
+                                            $year = false;
+                                            $option = false;
+                                            $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
+                                            if ($tblProspect) {
+                                                $tblProspectReservation = $tblProspect->getTblProspectReservation();
+                                                if ($tblProspectReservation) {
+                                                    $level = $tblProspectReservation->getReservationDivision();
+                                                    $year = $tblProspectReservation->getReservationYear();
+                                                    $optionA = $tblProspectReservation->getServiceTblTypeOptionA();
+                                                    $optionB = $tblProspectReservation->getServiceTblTypeOptionB();
+                                                    if ($optionA && $optionB) {
+                                                        $option = $optionA->getName() . ', ' . $optionB->getName();
+                                                    } elseif ($optionA) {
+                                                        $option = $optionA->getName();
+                                                    } elseif ($optionB) {
+                                                        $option = $optionB->getName();
+                                                    }
                                                 }
                                             }
+                                            $export->setValue($export->getCell($columnCount++, $rowCount), trim($year));
+                                            $export->setValue($export->getCell($columnCount++, $rowCount),
+                                                trim($level));
+                                            $export->setValue($export->getCell($columnCount, $rowCount), trim($option));
                                         }
-                                        $export->setValue($export->getCell($columnCount++, $rowCount), trim($year));
-                                        $export->setValue($export->getCell($columnCount++, $rowCount), trim($level));
-                                        $export->setValue($export->getCell($columnCount, $rowCount), trim($option));
                                     }
-
                                 } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
                                     $tblCompany = Company::useService()->getCompanyById($objectId);
                                     $tblObject = $tblCompany;
-                                    $export->setValue($export->getCell($columnCount, $rowCount), trim($tblCompany->getName()));
-                                } else {
-                                    $tblObject = null;
+                                    if ($tblCompany) {
+                                        $export->setValue($export->getCell($columnCount, $rowCount),
+                                            trim($tblCompany->getName()));
+                                    }
                                 }
 
-                                $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
-                                    $tblList, $tblObjectType, $tblObject
-                                );
-                                if ($tblListObjectElementList) {
-                                    foreach ($tblListObjectElementList as $item) {
-                                        $columnCount = $isProspectList ? 5 : 1;
-                                        foreach ($tblListElementListByList as $tblListElementList) {
-                                            if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
-                                                $export->setValue($export->getCell($columnCount, $rowCount),
-                                                    $item->getValue());
-                                                break;
-                                            } else {
-                                                $columnCount++;
+                                if ($tblObject) {
+                                    $tblListObjectElementList = $this->getListObjectElementListByListAndObjectTypeAndListElementListAndObject(
+                                        $tblList, $tblObjectType, $tblObject
+                                    );
+                                    if ($tblListObjectElementList) {
+                                        foreach ($tblListObjectElementList as $item) {
+                                            $columnCount = $isProspectList ? 5 : 1;
+                                            foreach ($tblListElementListByList as $tblListElementList) {
+                                                if ($tblListElementList->getId() === $item->getTblListElementList()->getId()) {
+                                                    $export->setValue($export->getCell($columnCount, $rowCount),
+                                                        $item->getValue());
+                                                    break;
+                                                } else {
+                                                    $columnCount++;
+                                                }
                                             }
                                         }
                                     }
+                                    $rowCount++;
                                 }
-                                $rowCount++;
                             }
                         }
                     }

@@ -115,7 +115,9 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                 }
                 if (isset( $Account['User'] )) {
                     $tblPerson = Person::useService()->getPersonById($Account['User']);
-                    GatekeeperAccount::useService()->addAccountPerson($tblAccount, $tblPerson);
+                    if ($tblPerson) {
+                        GatekeeperAccount::useService()->addAccountPerson($tblAccount, $tblPerson);
+                    }
                 }
                 return new Success('Das Benutzerkonnto wurde erstellt')
                 .new Redirect('/Setting/Authorization/Account', Redirect::TIMEOUT_SUCCESS);
@@ -196,7 +198,9 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                     }
                 }
                 $tblPerson = Person::useService()->getPersonById($Account['User']);
-                GatekeeperAccount::useService()->addAccountPerson($tblAccount, $tblPerson);
+                if ($tblPerson) {
+                    GatekeeperAccount::useService()->addAccountPerson($tblAccount, $tblPerson);
+                }
 
                 // Edit Access
                 $tblAccessList = GatekeeperAccount::useService()->getAuthorizationAllByAccount($tblAccount);
