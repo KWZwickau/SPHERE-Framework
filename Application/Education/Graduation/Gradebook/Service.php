@@ -781,9 +781,9 @@ class Service extends AbstractService
         );
 
         // filter by Test Return for StudentView
-        if ($isStudentView && $tblGradeList ){
+        if ($isStudentView && $tblGradeList) {
             $filteredGradeList = array();
-            foreach($tblGradeList as $tblGrade){
+            foreach ($tblGradeList as $tblGrade) {
                 $tblTest = $tblGrade->getServiceTblTest();
                 if ($tblTest) {
                     if ($tblTest->getReturnDate()) {
@@ -827,6 +827,8 @@ class Service extends AbstractService
                                         $hasGradeType = false;
                                         foreach ($tblGradeList as $tblGrade) {
                                             if (is_numeric($tblGrade->getGrade())
+                                                && $tblGrade->getTblGradeType()
+                                                && $tblScoreConditionGradeTypeList->getTblGradeType()
                                                 && ($tblGrade->getTblGradeType()->getId()
                                                     == $tblScoreConditionGradeTypeList->getTblGradeType()->getId())
                                             ) {
@@ -872,7 +874,9 @@ class Service extends AbstractService
                                 = Gradebook::useService()->getScoreGroupGradeTypeListByGroup($tblScoreGroup->getTblScoreGroup()))
                             ) {
                                 foreach ($tblScoreGroupGradeTypeListByGroup as $tblScoreGroupGradeTypeList) {
-                                    if ($tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()) {
+                                    if ($tblGrade->getTblGradeType() && $tblScoreGroupGradeTypeList->getTblGradeType()
+                                        && $tblGrade->getTblGradeType()->getId() === $tblScoreGroupGradeTypeList->getTblGradeType()->getId()
+                                    ) {
                                         $hasfoundGradeType = true;
                                         if ($tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
                                             $count++;
@@ -889,15 +893,17 @@ class Service extends AbstractService
                         }
 
                         if (!$hasfoundGradeType && $tblGrade->getGrade() && $tblGrade->getGrade() !== '' && is_numeric($tblGrade->getGrade())) {
-                            $error[$tblGrade->getTblGradeType()->getId()] =
-                                new LayoutRow(
-                                    new LayoutColumn(
-                                        new Warning('Der Zensuren-Typ: ' . $tblGrade->getTblGradeType()->getName()
-                                            . ' ist nicht in der Berechnungsvariante: ' . $tblScoreCondition->getName() . ' hinterlegt.',
-                                            new Ban()
+                            if ($tblGrade->getTblGradeType()) {
+                                $error[$tblGrade->getTblGradeType()->getId()] =
+                                    new LayoutRow(
+                                        new LayoutColumn(
+                                            new Warning('Der Zensuren-Typ: ' . $tblGrade->getTblGradeType()->getName()
+                                                . ' ist nicht in der Berechnungsvariante: ' . $tblScoreCondition->getName() . ' hinterlegt.',
+                                                new Ban()
+                                            )
                                         )
-                                    )
-                                );
+                                    );
+                            }
                         }
                     }
                 } else {
@@ -1309,10 +1315,21 @@ class Service extends AbstractService
                         if (!$tblScoreRule) {
                             $tblScoreRule = null;
                         }
-                        $tblScoreType = Gradebook::useService()->getScoreTypeById($item['Type']);
-                        if (!$tblScoreType) {
-                            $tblScoreType = null;
+
+                        $tblScoreType = null;
+                        if (isset($item['Type'])) {
+                            $tblScoreType = Gradebook::useService()->getScoreTypeById($item['Type']);
+                            if (!$tblScoreType) {
+                                $tblScoreType = null;
+                            }
+                        } else {
+                            if ($tblScoreRuleDivisionSubject) {
+                                if ($tblScoreRuleDivisionSubject->getTblScoreType()) {
+                                    $tblScoreType = $tblScoreRuleDivisionSubject->getTblScoreType();
+                                }
+                            }
                         }
+
                         if ($tblScoreRuleDivisionSubject) {
                             (new Data($this->getBinding()))->updateScoreRuleDivisionSubject(
                                 $tblScoreRuleDivisionSubject, $tblScoreRule, $tblScoreType
@@ -1328,5 +1345,40 @@ class Service extends AbstractService
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblSubject $tblSubject
+     * @param TblGradeType $tblGradeType
+     * @return false|TblGrade[]
+     */
+    public function getGradesByGradeType(TblPerson $tblPerson, TblSubject $tblSubject, TblGradeType $tblGradeType)
+    {
+
+        return (new Data($this->getBinding()))->getGradesByGradeType($tblPerson, $tblSubject, $tblGradeType);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function existsGrades(TblDivision $tblDivision, TblSubject $tblSubject)
+    {
+
+        return (new Data($this->getBinding()))->existsGrades($tblDivision, $tblSubject);
+    }
+
+    /**
+     * @param TblGradeType $tblGradeType
+     *
+     * @return bool
+     */
+    public function destroyGradeType(TblGradeType $tblGradeType)
+    {
+
+        return (new Data($this->getBinding()))->destroyGradeType($tblGradeType);
     }
 }

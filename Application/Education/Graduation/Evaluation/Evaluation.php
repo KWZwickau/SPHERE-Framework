@@ -32,12 +32,12 @@ class Evaluation implements IModuleInterface
                 new Link\Icon(new Document()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'\Headmaster\Test'), new Link\Name('Leistungsüberprüfung (Leitung)'),
+            new Link(new Link\Route(__NAMESPACE__.'\Headmaster\Test'), new Link\Name('Leistungsüberprüfung'),
                 new Link\Icon(new Document()))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'\DivisionTeacher\Task'),
-                new Link\Name('Notenaufträge (Klassenlehrer)'),
+                new Link\Name('Notenaufträge'),
                 new Link\Icon(new ClipBoard()))
         );
         Main::getDisplay()->addModuleNavigation(
@@ -57,6 +57,10 @@ class Evaluation implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Test\Edit',
                 __NAMESPACE__.'\Frontend::frontendEditTest')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Test\Destroy',
+                __NAMESPACE__.'\Frontend::frontendDestroyTest')
         );
 
         Main::getDispatcher()->registerRoute(
@@ -80,6 +84,10 @@ class Evaluation implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendHeadmasterEditTest')
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Test\Destroy',
+                __NAMESPACE__.'\Frontend::frontendHeadmasterDestroyTest')
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Test\Grade\Edit',
                 __NAMESPACE__.'\Frontend::frontendHeadmasterEditTestGrade')
         );
@@ -91,6 +99,10 @@ class Evaluation implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\Edit',
                 __NAMESPACE__.'\Frontend::frontendHeadmasterTaskEdit')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\Destroy',
+                __NAMESPACE__.'\Frontend::frontendHeadmasterTaskDestroy')
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Headmaster\Task\Division',

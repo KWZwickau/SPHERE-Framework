@@ -69,7 +69,7 @@ class Data extends AbstractData
         if ($tblTestType === null) {
             if ($tblSubjectGroup === null) {
                 if ($tblPeriod === null) {
-                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                    $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
                             TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
@@ -77,7 +77,7 @@ class Data extends AbstractData
                         )
                     );
                 } else {
-                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                    $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
                             TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
@@ -88,7 +88,7 @@ class Data extends AbstractData
                 }
             } else {
                 if ($tblPeriod === null) {
-                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                    $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
                             TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
@@ -97,7 +97,7 @@ class Data extends AbstractData
                         )
                     );
                 } else {
-                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                    $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
                             TblTest::ATTR_SERVICE_TBL_DIVISION => $tblDivision->getId(),
@@ -111,7 +111,7 @@ class Data extends AbstractData
         } else {
             if ($tblSubjectGroup === null) {
                 if ($tblPeriod === null) {
-                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                    $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
                             TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
@@ -120,7 +120,7 @@ class Data extends AbstractData
                         )
                     );
                 } else {
-                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                    $list =  $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
                             TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
@@ -132,7 +132,7 @@ class Data extends AbstractData
                 }
             } else {
                 if ($tblPeriod === null) {
-                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                    $list =  $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
                             TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
@@ -142,7 +142,7 @@ class Data extends AbstractData
                         )
                     );
                 } else {
-                    return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+                    $list = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
                         'TblTest',
                         array(
                             TblTest::ATTR_TBL_TEST_TYPE => $tblTestType->getId(),
@@ -155,6 +155,8 @@ class Data extends AbstractData
                 }
             }
         }
+
+        return $list;
     }
 
     /**
@@ -611,5 +613,32 @@ class Data extends AbstractData
                     TblTest::ATTR_SERVICE_TBL_SUBJECT_GROUP => $tblSubjectGroup->getId(),
                 )) ? true : false;
         }
+    }
+
+    /**
+     * @param TblTask $tblTask
+     *
+     * @return bool
+     */
+    public function destroyTask(TblTask $tblTask)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblTask $Entity */
+        $Entity = $Manager->getEntityById('TblTask', $tblTask->getId());
+        if (null !== $Entity) {
+
+            $tblTestAllByTask = $this->getTestAllByTask($tblTask);
+            if ($tblTestAllByTask){
+                foreach ($tblTestAllByTask as $tblTest){
+                    $this->destroyTest($tblTest);
+                }
+            }
+
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 }

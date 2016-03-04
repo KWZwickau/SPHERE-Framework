@@ -174,12 +174,19 @@ class Service extends AbstractService
                 array('DivisionSubjectId' => $tblDivisionSubject->getId()));
         }
 
+        $tblGradeType = Gradebook::useService()->getGradeTypeById($Test['GradeType']);
+        if (!$tblGradeType){
+            return new Danger(new Ban() . ' Zensuren-Typ nicht gefunden')
+            . new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_ERROR,
+                array('DivisionSubjectId' => $tblDivisionSubject->getId()));
+        }
+
         (new Data($this->getBinding()))->createTest(
             $tblDivisionSubject->getTblDivision(),
             $tblDivisionSubject->getServiceTblSubject(),
             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null,
             Term::useService()->getPeriodById($Test['Period']),
-            Gradebook::useService()->getGradeTypeById($Test['GradeType']),
+            $tblGradeType,
             $this->getTestTypeByIdentifier('TEST'),
             null,
             $Test['Description'],
@@ -658,5 +665,27 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->existsTestByTaskAndGradeType($tblTask, $tblDivision, $tblSubject,
             $tblGradeType, $tblSubjectGroup);
+    }
+
+    /**
+     * @param TblTest $tblTest
+     *
+     * @return bool
+     */
+    public function destroyTest(TblTest $tblTest)
+    {
+
+        return (new Data($this->getBinding()))->destroyTest($tblTest);
+    }
+
+    /**
+     * @param TblTask $tblTask
+     *
+     * @return bool
+     */
+    public function destroyTask(TblTask $tblTask)
+    {
+
+        return (new Data($this->getBinding()))->destroyTask($tblTask);
     }
 }
