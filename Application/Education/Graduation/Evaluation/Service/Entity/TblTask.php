@@ -13,6 +13,8 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Graduation\Evaluation\Evaluation;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\System\Database\Fitting\Element;
@@ -57,6 +59,11 @@ class TblTask extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPeriod;
+
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblScoreType;
 
     /**
      * @return string
@@ -229,4 +236,27 @@ class TblTask extends Element
 
         return false;
     }
+
+    /**
+     * @return bool|TblScoreType
+     */
+    public function getServiceTblScoreType()
+    {
+
+        if (null === $this->serviceTblScoreType) {
+            return false;
+        } else {
+            return Gradebook::useService()->getScoreTypeById($this->serviceTblScoreType);
+        }
+    }
+
+    /**
+     * @param TblScoreType|null $tblScoreType
+     */
+    public function setServiceTblScoreType(TblScoreType $tblScoreType = null)
+    {
+
+        $this->serviceTblScoreType = ( null === $tblScoreType ? null : $tblScoreType->getId() );
+    }
+
 }
