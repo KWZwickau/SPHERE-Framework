@@ -161,6 +161,18 @@ class Data extends AbstractData
     /**
      * @param $Id
      *
+     * @return false|TblDivisionStudent
+     */
+    public function getDivisionStudentById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionStudent',
+            $Id);
+    }
+
+    /**
+     * @param $Id
+     *
      * @return false|TblSubjectStudent
      */
     public function getSubjectStudentById($Id)
@@ -1202,7 +1214,7 @@ class Data extends AbstractData
     public function countDivisionStudentAllByDivision(TblDivision $tblDivision)
     {
 
-        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknï¿½pfungstabelle
 //        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionStudent',
 //            array(TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()));
 //
@@ -1235,7 +1247,7 @@ class Data extends AbstractData
     public function countDivisionTeacherAllByDivision(TblDivision $tblDivision)
     {
 
-        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknï¿½pfungstabelle
 //        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionTeacher',
 //            array(TblDivisionTeacher::ATTR_TBL_DIVISION => $tblDivision->getId()));
 //
@@ -1267,7 +1279,7 @@ class Data extends AbstractData
      */
     public function countDivisionCustodyAllByDivision(TblDivision $tblDivision)
     {
-        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknï¿½pfungstabelle
 //        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionCustody',
 //            array(TblDivisionCustody::ATTR_TBL_DIVISION => $tblDivision->getId()));
 //
@@ -1299,7 +1311,7 @@ class Data extends AbstractData
      */
     public function countDivisionSubjectAllByDivision(TblDivision $tblDivision)
     {
-        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknï¿½pfungstabelle
 //        $result = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivisionSubject',
 //            array(TblDivisionSubject::ATTR_TBL_DIVISION => $tblDivision->getId()));
 //
@@ -1470,7 +1482,7 @@ class Data extends AbstractData
         TblDivisionSubject $tblDivisionSubject
     ) {
 
-        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknüpfungstabelle
+        // Todo GCK getCachedCountBy anpassen --> ignorieren von removed entities bei Verknï¿½pfungstabelle
 //        $count = $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubjectStudent',
 //            array(
 //                TblSubjectStudent::ATTR_TBL_DIVISION_SUBJECT => $tblDivisionSubject->getId()

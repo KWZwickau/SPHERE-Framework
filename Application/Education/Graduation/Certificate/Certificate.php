@@ -22,9 +22,17 @@ class Certificate implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Zeugnisse'), new Link\Icon(new CertificateIcon()))
         );
-
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendDashboard'
+            __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendStudent'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'\Template', __NAMESPACE__.'\Frontend::frontendTemplate'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'\Data', __NAMESPACE__.'\Frontend::frontendData'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'\Create', __NAMESPACE__.'\Frontend::frontendCreate'
         ));
 
     }

@@ -618,6 +618,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param int $Id
+     *
+     * @return bool|TblDivisionStudent
+     */
+    public function getDivisionStudentById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionStudentById($Id);
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param array          $SubjectTeacher
      * @param int            $DivisionId

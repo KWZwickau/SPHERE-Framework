@@ -1,0 +1,55 @@
+<html>
+<head>
+</head>
+<body style="position: relative; clear: both;">
+
+<div style="position: relative; clear: both;">
+    <img src="/Common/Style/Resource/Logo/wortbildmarke%20freistaat%20sachsen%20gross%20148kb.jpg"
+         style="float: right; width: 200px;">
+</div>
+
+<div style="position: relative; clear: both; text-align: center;">
+    <h1>{{ Data.School.Name }}</h1>
+</div>
+<div style="position: relative; clear: both; text-align: center;">
+    <h1>{{ Data.School.Type }}</h1>
+</div>
+
+<div style="position: relative; clear: both;">
+    <hr/>
+</div>
+
+<div style="position: relative; clear: both; text-align: center;">
+    Name der Schule
+</div>
+
+<div style="position: relative; clear: both; text-align: center;">
+    <h1>Zeugnis der {{ Data.School.Type }}</h1>
+</div>
+
+<div style="position: relative; clear: both;">
+
+    <div style="float: left">
+        <h2>Klasse:
+            <small>{{ Data.Division }}</small>
+        </h2>
+    </div>
+    <div style="float: right">
+        <h2>Schuljahr:
+            <small>{{ Data.Term }}</small>
+        </h2>
+    </div>
+
+</div>
+
+<div style="position: relative; clear: both;">
+    <h2>Vor- und Nachname:
+        <small>{{ Data.Name }}</small>
+    </h2>
+</div>
+
+<div style="position: relative; clear: both;">
+    nahm am Unterricht der Schulart {{ Data.School.Type }} mit dem Ziel des {{ Data.School.Course }} teil
+</div>
+</body>
+</html>
