@@ -1258,7 +1258,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 if ($tblObjectType->getIdentifier() === 'PERSON') {
                                     $tblPerson = Person::useService()->getPersonById($objectId);
                                     $prospectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
-                                    if ($tblPerson && !Group::useService()->existsGroupPerson($prospectGroup, $tblPerson)) {
+                                    if ($tblPerson && !Group::useService()->existsGroupPerson($prospectGroup,
+                                            $tblPerson)
+                                    ) {
                                         $isProspectList = false;
                                     }
                                 } else {
@@ -1341,12 +1343,16 @@ class Frontend extends Extension implements IFrontendInterface
                                     }
                                 }
                             } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
-                                $countCompany++;
                                 $tblCompany = Company::useService()->getCompanyById($objectId);
-                                $list[$count]['Name'] = $tblCompany->getName()
-                                    . new PullRight(new Standard('', '/Corporation/Company',
-                                        new Building(),
-                                        array('Id' => $tblCompany->getId()), 'Zur Firma'));
+                                if ($tblCompany) {
+                                    $countCompany++;
+                                    $list[$count]['Name'] = $tblCompany->getName()
+                                        . new PullRight(new Standard('', '/Corporation/Company',
+                                            new Building(),
+                                            array('Id' => $tblCompany->getId()), 'Zur Firma'));
+                                } else {
+                                    $list[$count]['Name'] = '';
+                                }
                             } else {
                                 $list[$count]['Name'] = '';
                             }
@@ -1464,8 +1470,8 @@ class Frontend extends Extension implements IFrontendInterface
                             new Title(new Edit() . ' Bearbeiten'),
                             $isProspectList
                                 ? ($hasFilter
-                                    ? new Info($countPerson . ' von ' . $countTotalPerson . ' Interessenten')
-                                    : new Info($countPerson . ' Interessenten'))
+                                ? new Info($countPerson . ' von ' . $countTotalPerson . ' Interessenten')
+                                : new Info($countPerson . ' Interessenten'))
                                 : new Info(
                                 'Anzahl der Objekte: ' . ($countPerson + $countCompany) . ' (Personen: ' . $countPerson
                                 . ', Firmen: ' . $countCompany . ')'

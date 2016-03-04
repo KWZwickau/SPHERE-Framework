@@ -849,7 +849,10 @@ class Service extends AbstractService
                                 } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
                                     $tblCompany = Company::useService()->getCompanyById($objectId);
                                     $tblObject = $tblCompany;
-                                    $export->setValue($export->getCell($columnCount, $rowCount), trim($tblCompany->getName()));
+                                    if ($tblCompany) {
+                                        $export->setValue($export->getCell($columnCount, $rowCount),
+                                            trim($tblCompany->getName()));
+                                    }
                                 }
 
                                 if ($tblObject) {
