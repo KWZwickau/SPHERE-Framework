@@ -1014,7 +1014,13 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblSubject
             );
             if ($tblScoreRuleDivisionSubject) {
-                $tblScoreType = $tblScoreRuleDivisionSubject->getTblScoreType();
+
+                if ($tblTest->getTblTask() && $tblTest->getTblTask()->getServiceTblScoreType()) {
+                    $tblScoreType = $tblTest->getTblTask()->getServiceTblScoreType();
+                } else {
+                    $tblScoreType = $tblScoreRuleDivisionSubject->getTblScoreType();
+                }
+
                 if ($tblScoreRuleDivisionSubject->getTblScoreRule()) {
                     $tblScoreRule = $tblScoreRuleDivisionSubject->getTblScoreRule();
                     if ($tblScoreRule) {
@@ -1060,7 +1066,8 @@ class Frontend extends Extension implements IFrontendInterface
                             $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Attendance'] = 1;
                         } else {
                             if ($IsEdit) {
-                                $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] = $grade->getGrade();
+                                $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] =
+                                    str_replace('.', ',' ,$grade->getGrade());
 
                                 $trend = $grade->getTrend();
                                 if ($trend !== null) {
@@ -1079,7 +1086,8 @@ class Frontend extends Extension implements IFrontendInterface
                                 } else {
                                     $trend = '';
                                 }
-                                $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] = $grade->getGrade() . $trend;
+                                $Global->POST['Grade'][$grade->getServiceTblPerson()->getId()]['Grade'] =
+                                    str_replace('.', ',' ,$grade->getGrade()) . $trend;
                             }
 
                         }
@@ -1104,14 +1112,19 @@ class Frontend extends Extension implements IFrontendInterface
                 $mirror = array();
                 $count = 0;
 
+                $description = '';
                 if ($tblScoreType->getIdentifier() == 'GRADES') {
                     $minRange = 1;
                     $maxRange = 6;
                     $description = 'Note ';
-                } else {
+                } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
                     $minRange = 0;
                     $maxRange = 15;
                     $description = 'Punkte ';
+                } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1') {
+                    $minRange = 1;
+                    $maxRange = 5;
+                    $description = 'Note ';
                 }
 
                 for ($i = $minRange; $i <= $maxRange; $i++) {
@@ -1124,9 +1137,9 @@ class Frontend extends Extension implements IFrontendInterface
                         if (empty($Grade)) {
 
                             if (is_numeric($grade->getGrade())) {
-                                $gradeValue = floor(floatval($grade->getGrade()));
+                                $gradeValue = intval(round(floatval($grade->getGrade()), 0));
                                 if ($gradeValue >= $minRange && $gradeValue <= $maxRange) {
-                                    $mirror[$grade->getGrade()]++;
+                                    $mirror[$gradeValue]++;
                                     $count++;
                                 }
                             }
@@ -1472,6 +1485,9 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblScoreType->getIdentifier() == 'VERBAL') {
                     $student[$tblPerson->getId()]['Grade']
                         = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Quote()));
+                } elseif ($tblScoreType->getIdentifier() == 'GRADES_V1') {
+                    $student[$tblPerson->getId()]['Grade']
+                        = (new TextField('Grade[' . $tblPerson->getId() . '][Grade]', '', ''));
                 } elseif ($tblScoreType->getIdentifier() == 'POINTS') {
                     $student[$tblPerson->getId()]['Grade']
                         = (new NumberField('Grade[' . $tblPerson->getId() . '][Grade]', '', '', new Rate15()));
@@ -1646,27 +1662,39 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $tblScoreTypeAll = Gradebook::useService()->getScoreTypeAll();
+        if ($tblScoreTypeAll) {
+            array_push($tblScoreTypeAll, new TblScoreType());
+        }
+
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new SelectBox('Task[Type]', 'Kategorie', array('Name' => $tblTestTypeAllWhereTask)), 3
+                    new SelectBox('Task[Type]', 'Kategorie', array('Name' => $tblTestTypeAllWhereTask)), 4
                 ),
                 new FormColumn(
-                    new TextField('Task[Name]', '', 'Name'), 9
+                    new SelectBox('Task[Period]', 'Noten-Zeitraum beschränken', $periodSelect), 4
+                ),
+                new FormColumn(
+                    new SelectBox('Task[ScoreType]', 'Bewertungssystem überschreiben',
+                        array('Name' => $tblScoreTypeAll)), 4
                 ),
             )),
             new FormRow(array(
                 new FormColumn(
-                    new SelectBox('Task[Period]', 'Noten-Zeitraum beschränken', $periodSelect), 3
+                    new TextField('Task[Name]', '', 'Name'), 12
+                ),
+
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new DatePicker('Task[Date]', '', 'Stichtag', new Calendar()), 4
                 ),
                 new FormColumn(
-                    new DatePicker('Task[Date]', '', 'Stichtag', new Calendar()), 3
+                    new DatePicker('Task[FromDate]', '', 'Bearbeitungszeitraum von', new Calendar()), 4
                 ),
                 new FormColumn(
-                    new DatePicker('Task[FromDate]', '', 'Bearbeitungszeitraum von', new Calendar()), 3
-                ),
-                new FormColumn(
-                    new DatePicker('Task[ToDate]', '', 'Bearbeitungszeitraum bis', new Calendar()), 3
+                    new DatePicker('Task[ToDate]', '', 'Bearbeitungszeitraum bis', new Calendar()), 4
                 ),
             ))
         )));
@@ -1709,13 +1737,8 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->POST['Task']['Date'] = $tblTask->getDate();
             $Global->POST['Task']['FromDate'] = $tblTask->getFromDate();
             $Global->POST['Task']['ToDate'] = $tblTask->getToDate();
-            $period = $tblTask->getServiceTblPeriod();
-            if ($period) {
-                $period = $period->getId();
-            } else {
-                $period = -1;
-            }
-            $Global->POST['Task']['Period'] = $period;
+            $Global->POST['Task']['Period'] = $tblTask->getServiceTblPeriod() ? $tblTask->getServiceTblPeriod() : 0;
+            $Global->POST['Task']['ScoreType'] = $tblTask->getServiceTblScoreType() ? $tblTask->getServiceTblScoreType() : 0;
             $Global->savePost();
         }
 

@@ -175,7 +175,7 @@ class Service extends AbstractService
         }
 
         $tblGradeType = Gradebook::useService()->getGradeTypeById($Test['GradeType']);
-        if (!$tblGradeType){
+        if (!$tblGradeType) {
             return new Danger(new Ban() . ' Zensuren-Typ nicht gefunden')
             . new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_ERROR,
                 array('DivisionSubjectId' => $tblDivisionSubject->getId()));
@@ -307,9 +307,10 @@ class Service extends AbstractService
         if (!$Error) {
             $tblTestType = $this->getTestTypeById($Task['Type']);
             $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
+            $tblScoreType = Gradebook::useService()->getScoreTypeById($Task['ScoreType']);
             (new Data($this->getBinding()))->createTask(
                 $tblTestType, $Task['Name'], $Task['Date'], $Task['FromDate'], $Task['ToDate'],
-                $tblPeriod ? $tblPeriod : null
+                $tblPeriod ? $tblPeriod : null, $tblScoreType ? $tblScoreType : null
             );
             $Stage .= new Success('Notenauftrag erfolgreich angelegt',
                     new \SPHERE\Common\Frontend\Icon\Repository\Success())
@@ -349,6 +350,7 @@ class Service extends AbstractService
 
         $tblTask = $this->getTaskById($Id);
         $tblPeriod = Term::useService()->getPeriodById($Task['Period']);
+        $tblScoreType = Gradebook::useService()->getScoreTypeById($Task['ScoreType']);
         (new Data($this->getBinding()))->updateTask(
             $tblTask,
             $this->getTestTypeById($Task['Type']),
@@ -356,7 +358,8 @@ class Service extends AbstractService
             $Task['Date'],
             $Task['FromDate'],
             $Task['ToDate'],
-            $tblPeriod ? $tblPeriod : null
+            $tblPeriod ? $tblPeriod : null,
+            $tblScoreType ? $tblScoreType : null
         );
 
         $Stage .= new Success('Notenauftrag erfolgreich geändert',
@@ -543,7 +546,8 @@ class Service extends AbstractService
                                 // delete all
                                 $this->removeDivisionFromTask($tblTask, $tblDivision);
                             } elseif ($tblTest->getServiceTblGradeType()
-                                && !isset($Data['GradeType'][$tblTest->getServiceTblGradeType()->getId()])) {
+                                && !isset($Data['GradeType'][$tblTest->getServiceTblGradeType()->getId()])
+                            ) {
                                 // delete single
                                 (new Data($this->getBinding()))->destroyTest($tblTest);
                             }

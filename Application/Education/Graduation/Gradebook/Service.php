@@ -300,9 +300,9 @@ class Service extends AbstractService
         if ($minRange !== null && $maxRange !== null && !empty($Grade)) {
             $error = false;
             foreach ($Grade as $personId => $value) {
-                $gradeValue = trim($value['Grade']);
+                $gradeValue = str_replace(',', '.', trim($value['Grade']));
                 if (!isset($value['Attendance']) && $gradeValue !== '') {
-                    if ($gradeValue < $minRange || $gradeValue > $maxRange) {
+                    if (!is_numeric($gradeValue) || $gradeValue < $minRange || $gradeValue > $maxRange) {
                         $error = true;
                         break;
                     }
@@ -336,6 +336,8 @@ class Service extends AbstractService
                         $trend = 0;
                     }
 
+                    $grade = str_replace(',', '.', trim($value['Grade']));
+
                     if (!($tblGrade = Gradebook::useService()->getGradeByTestAndStudent($tblTest, $tblPerson))) {
                         if (isset($value['Attendance'])) {
                             (new Data($this->getBinding()))->createGrade(
@@ -361,7 +363,7 @@ class Service extends AbstractService
                                 $tblTest->getServiceTblGradeType() ? $tblTest->getServiceTblGradeType() : null,
                                 $tblTest,
                                 $tblTest->getTblTestType(),
-                                trim($value['Grade']),
+                                $grade,
                                 trim($value['Comment']),
                                 $trend
                             );
@@ -378,7 +380,7 @@ class Service extends AbstractService
                         } else {
                             (new Data($this->getBinding()))->updateGrade(
                                 $tblGrade,
-                                trim($value['Grade']),
+                                $grade,
                                 trim($value['Comment']),
                                 $trend
                             );

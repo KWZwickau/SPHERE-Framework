@@ -44,6 +44,7 @@ class Data extends AbstractData
         $this->createScoreType('Noten (1-6)', 'GRADES');
         $this->createScoreType('Punkte (0-15)', 'POINTS');
         $this->createScoreType('Verbale Bewertung', 'VERBAL');
+        $this->createScoreType('Noten (1-5) mit Komma', 'GRADES_V1');
     }
 
     /**
