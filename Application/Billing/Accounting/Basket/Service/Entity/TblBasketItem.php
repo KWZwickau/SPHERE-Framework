@@ -19,12 +19,12 @@ class TblBasketItem extends Element
 {
 
     const ATTR_TBL_BASKET = 'tblBasket';
-    const SERVICE_INVENTORY_ITEM = 'serviceInventory_Item';
+    const ATTR_SERVICE_TBL_ITEM = 'serviceTblItem';
 
     /**
      * @Column(type="bigint")
      */
-    protected $serviceInventory_Item;
+    protected $serviceTblItem;
     /**
      * @Column(type="bigint")
      */
@@ -65,22 +65,22 @@ class TblBasketItem extends Element
     /**
      * @return bool|TblItem $tblItem
      */
-    public function getServiceInventoryItem()
+    public function getServiceTblItem()
     {
 
-        if (null === $this->serviceInventory_Item) {
+        if (null === $this->serviceTblItem) {
             return false;
         } else {
-            return Item::useService()->getItemById($this->serviceInventory_Item);
+            return Item::useService()->getItemById($this->serviceTblItem);
         }
     }
 
     /**
      * @param null|TblItem $tblItem
      */
-    public function setServiceInventoryItem($tblItem = null)
+    public function setServiceTblItem($tblItem = null)
     {
 
-        $this->serviceInventory_Item = ( null === $tblItem ? null : $tblItem->getId() );
+        $this->serviceTblItem = ( null === $tblItem ? null : $tblItem->getId() );
     }
 }

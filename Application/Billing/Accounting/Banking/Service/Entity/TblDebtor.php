@@ -18,7 +18,7 @@ class TblDebtor extends Element
 {
 
     const ATTR_DEBTOR_NUMBER = 'DebtorNumber';
-    const SERVICE_TBL_PERSON = 'ServicePeople_Person';
+    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
 
     /**
      * @Column(type="string")
@@ -27,7 +27,7 @@ class TblDebtor extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $ServicePeople_Person;
+    protected $serviceTblPerson;
 
     /**
      * @return string $DebtorNumber
@@ -50,22 +50,22 @@ class TblDebtor extends Element
     /**
      * @return bool|TblPerson
      */
-    public function getServicePeoplePerson()
+    public function getServiceTblPerson()
     {
 
-        if (null === $this->ServicePeople_Person) {
+        if (null === $this->serviceTblPerson) {
             return false;
         } else {
-            return Person::useService()->getPersonById($this->ServicePeople_Person);
+            return Person::useService()->getPersonById($this->serviceTblPerson);
         }
     }
 
     /**
      * @param TblPerson|null $tblPerson
      */
-    public function setServicePeoplePerson(TblPerson $tblPerson = null)
+    public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
 
-        $this->ServicePeople_Person = ( null === $tblPerson ? null : $tblPerson->getId() );
+        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 }

@@ -89,11 +89,11 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblCalculation', 'Value')) {
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
-        if (!$this->getConnection()->hasColumn('tblCalculation', 'serviceStudentSiblingRank')) {
-            $Table->addColumn('serviceStudentSiblingRank', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblCalculation', 'serviceTblSiblingRank')) {
+            $Table->addColumn('serviceTblSiblingRank', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblCalculation', 'serviceSchoolTblType')) {
-            $Table->addColumn('serviceSchoolTblType', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblCalculation', 'serviceTblType')) {
+            $Table->addColumn('serviceTblType', 'bigint', array('notnull' => false));
         }
 
         return $Table;
@@ -123,8 +123,8 @@ class Setup extends AbstractSetup
 
         $Table = $this->getConnection()->createTable($Schema, 'tblItemAccount');
 
-        if (!$this->getConnection()->hasColumn('tblItemAccount', 'serviceBilling_Account')) {
-            $Table->addColumn('serviceBilling_Account', 'bigint');
+        if (!$this->getConnection()->hasColumn('tblItemAccount', 'serviceTblAccount')) {
+            $Table->addColumn('serviceTblAccount', 'bigint');
         }
 
         $this->getConnection()->addForeignKey($Table, $tblItem);

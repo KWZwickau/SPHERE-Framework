@@ -22,10 +22,10 @@ use SPHERE\System\Database\Fitting\Element;
 class TblDebtorSelection extends Element
 {
 
-    const SERVICE_PEOPLE_PERSON = 'ServicePeople_Person';
-    const SERVICE_PEOPLE_PERSON_PAYERS = 'ServicePeople_PersonPayers';
-    const SERVICE_BALANCE_PAYMENT_TYPE = 'ServicePaymentType';
-    const SERVICE_INVENTORY_ITEM = 'ServiceInventory_Item';
+    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_SERVICE_TBL_PERSON_PAYERS = 'serviceTblPersonPayers';
+    const ATTR_SERVICE_TBL_PAYMENT_TYPE = 'serviceTblPaymentType';
+    const ATTR_SERVICE_TBL_ITEM = 'serviceTblItem';
     const ATTR_TBL_DEBTOR = 'tblDebtor';
     const ATTR_TBL_BANK_ACCOUNT = 'tblBankAccount';
     const ATTR_TBL_BANK_REFERENCE = '$tblBankReference';
@@ -33,19 +33,19 @@ class TblDebtorSelection extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $ServicePeople_Person;
+    protected $serviceTblPerson;
     /**
      * @Column(type="bigint")
      */
-    protected $ServicePeople_PersonPayers;
+    protected $serviceTblPersonPayers;
     /**
      * @Column(type="bigint")
      */
-    protected $ServicePaymentType;
+    protected $serviceTblPaymentType;
     /**
      * @Column(type="bigint")
      */
-    protected $ServiceInventory_Item;
+    protected $serviceTblItem;
     /**
      * @Column(type="bigint")
      */
@@ -62,89 +62,89 @@ class TblDebtorSelection extends Element
     /**
      * @return bool|TblPerson
      */
-    public function getServicePeoplePerson()
+    public function getServiceTblPerson()
     {
 
-        if (null === $this->ServicePeople_Person) {
+        if (null === $this->serviceTblPerson) {
             return false;
         } else {
-            return Person::useService()->getPersonById($this->ServicePeople_Person);
+            return Person::useService()->getPersonById($this->serviceTblPerson);
         }
     }
 
     /**
      * @param TblPerson|null $tblPerson
      */
-    public function setServicePeoplePerson(TblPerson $tblPerson = null)
+    public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
 
-        $this->ServicePeople_Person = ( null === $tblPerson ? null : $tblPerson->getId() );
+        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**
      * @return bool|TblPerson
      */
-    public function getServicePeoplePersonPayers()
+    public function getServiceTblPersonPayers()
     {
 
-        if (null === $this->ServicePeople_PersonPayers) {
+        if (null === $this->serviceTblPersonPayers) {
             return false;
         } else {
-            return Person::useService()->getPersonById($this->ServicePeople_PersonPayers);
+            return Person::useService()->getPersonById($this->serviceTblPersonPayers);
         }
     }
 
     /**
      * @param TblPerson|null $tblPerson
      */
-    public function setServicePeoplePersonPayers(TblPerson $tblPerson = null)
+    public function setServiceTblPersonPayers(TblPerson $tblPerson = null)
     {
 
-        $this->ServicePeople_PersonPayers = ( null === $tblPerson ? null : $tblPerson->getId() );
+        $this->serviceTblPersonPayers = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**
      * @return bool|TblPaymentType
      */
-    public function getServicePaymentType()
+    public function getServiceTblPaymentType()
     {
 
-        if (null === $this->ServicePaymentType) {
+        if (null === $this->serviceTblPaymentType) {
             return false;
         } else {
-            return Balance::useService()->getPaymentTypeById($this->ServicePaymentType);
+            return Balance::useService()->getPaymentTypeById($this->serviceTblPaymentType);
         }
     }
 
     /**
      * @param TblPaymentType|null $tblPaymentType
      */
-    public function setServicePaymentType(TblPaymentType $tblPaymentType = null)
+    public function setServiceTblPaymentType(TblPaymentType $tblPaymentType = null)
     {
 
-        $this->ServicePaymentType = ( null === $tblPaymentType ? null : $tblPaymentType->getId() );
+        $this->serviceTblPaymentType = ( null === $tblPaymentType ? null : $tblPaymentType->getId() );
     }
 
     /**
      * @return bool|TblItem
      */
-    public function getServiceInventoryItem()
+    public function getServiceTblInventoryItem()
     {
 
-        if (null === $this->ServiceInventory_Item) {
+        if (null === $this->serviceTblItem) {
             return false;
         } else {
-            return Item::useService()->getItemById($this->ServiceInventory_Item);
+            return Item::useService()->getItemById($this->serviceTblItem);
         }
     }
 
     /**
      * @param TblItem|null $tblItem
      */
-    public function setServiceInventoryItem(TblItem $tblItem = null)
+    public function setServiceTblInventoryItem(TblItem $tblItem = null)
     {
 
-        $this->ServiceInventory_Item = ( null === $tblItem ? null : $tblItem->getId() );
+        $this->serviceTblItem = ( null === $tblItem ? null : $tblItem->getId() );
     }
 
     /**

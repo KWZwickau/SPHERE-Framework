@@ -17,17 +17,9 @@ use SPHERE\System\Database\Fitting\Element;
 class TblBankAccount extends Element
 {
 
-    const SERVICE_TBL_PERSON = 'ServicePeople_Person';
+    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_IBAN = 'IBAN';
 
-//    /**
-//     * @Column(type="integer")
-//     */
-//    protected $LeadTimeFirst;
-//    /**
-//     * @Column(type="integer")
-//     */
-//    protected $LeadTimeFollow;
     /**
      * @Column(type="string")
      */
@@ -51,43 +43,7 @@ class TblBankAccount extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $ServicePeople_Person;
-
-//    /**
-//     * @return integer $LeadTimeFirst
-//     */
-//    public function getLeadTimeFirst()
-//    {
-//
-//        return $this->LeadTimeFirst;
-//    }
-//
-//    /**
-//     * @param integer $LeadTimeFirst
-//     */
-//    public function setLeadTimeFirst($LeadTimeFirst)
-//    {
-//
-//        $this->LeadTimeFirst = $LeadTimeFirst;
-//    }
-//
-//    /**
-//     * @return integer $LeadTimeFollow
-//     */
-//    public function getLeadTimeFollow()
-//    {
-//
-//        return $this->LeadTimeFollow;
-//    }
-//
-//    /**
-//     * @param integer $LeadTimeFollow
-//     */
-//    public function setLeadTimeFollow($LeadTimeFollow)
-//    {
-//
-//        $this->LeadTimeFollow = $LeadTimeFollow;
-//    }
+    protected $serviceTblPerson;
 
     /**
      * @return string $BankName
@@ -182,23 +138,23 @@ class TblBankAccount extends Element
     /**
      * @return bool|TblPerson
      */
-    public function getServicePeoplePerson()
+    public function getServiceTblPerson()
     {
 
-        if (null === $this->ServicePeople_Person) {
+        if (null === $this->serviceTblPerson) {
             return false;
         } else {
-            return Person::useService()->getPersonById($this->ServicePeople_Person);
+            return Person::useService()->getPersonById($this->serviceTblPerson);
         }
     }
 
     /**
      * @param TblPerson|null $tblPerson
      */
-    public function setServicePeoplePerson(TblPerson $tblPerson = null)
+    public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
 
-        $this->ServicePeople_Person = ( null === $tblPerson ? null : $tblPerson->getId() );
+        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**

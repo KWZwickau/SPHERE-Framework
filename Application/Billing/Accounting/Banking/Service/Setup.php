@@ -27,12 +27,10 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
 
-//        $this->setTablePaymentType($Schema);
         $tblDebtor = $this->setTableDebtor($Schema);
         $tblBankAccount = $this->setTableBankAccount($Schema);
         $tblBankReference = $this->setTableBankReference($Schema);
         $this->setTableDebtorSelection($Schema, $tblDebtor, $tblBankAccount, $tblBankReference);
-//        $this->setTableDebtorCommodity($Schema, $tblDebtor);
 
         /**
          * Migration & Protocol
@@ -41,23 +39,6 @@ class Setup extends AbstractSetup
         $this->getConnection()->setMigration($Schema, $Simulate);
         return $this->getConnection()->getProtocol($Simulate);
     }
-
-//    /**
-//     * @param Schema $Schema
-//     *
-//     * @return Table
-//     */
-//    private function setTablePaymentType(Schema &$Schema)
-//    {
-//
-//        $Table = $this->getConnection()->createTable($Schema, 'tblPaymentType');
-//
-//        if (!$this->getConnection()->hasColumn('tblPaymentType', 'Name')) {
-//            $Table->addColumn('Name', 'string');
-//        }
-//
-//        return $Table;
-//    }
 
     /**
      * @param Schema $Schema
@@ -71,8 +52,8 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblDebtor', 'DebtorNumber')) {
             $Table->addColumn('DebtorNumber', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'ServicePeople_Person')) {
-            $Table->addColumn('ServicePeople_Person', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
         return $Table;
     }
@@ -86,12 +67,6 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblBankAccount');
-//        if (!$this->getConnection()->hasColumn('tblAccount', 'LeadTimeFirst')) {
-//            $Table->addColumn('LeadTimeFirst', 'integer');
-//        }
-//        if (!$this->getConnection()->hasColumn('tblAccount', 'LeadTimeFollow')) {
-//            $Table->addColumn('LeadTimeFollow', 'integer');
-//        }
         if (!$this->getConnection()->hasColumn('tblBankAccount', 'BankName')) {
             $Table->addColumn('BankName', 'string');
         }
@@ -107,10 +82,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblBankAccount', 'CashSign')) {
             $Table->addColumn('CashSign', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblBankAccount', 'ServicePeople_Person')) {
-            $Table->addColumn('ServicePeople_Person', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblBankAccount', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-
 
         return $Table;
     }
@@ -131,8 +105,8 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblBankReference', 'ReferenceDate')) {
             $Table->addColumn('ReferenceDate', 'date', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblBankReference', 'ServicePeople_Person')) {
-            $Table->addColumn('ServicePeople_Person', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblBankReference', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
         return $Table;
     }
@@ -150,17 +124,17 @@ class Setup extends AbstractSetup
 
         $Table = $this->getConnection()->createTable($Schema, 'tblDebtorSelection');
 
-        if (!$this->getConnection()->hasColumn('tblDebtorSelection', 'ServicePaymentType')) {
-            $Table->addColumn('ServicePaymentType', 'bigint');
+        if (!$this->getConnection()->hasColumn('tblDebtorSelection', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint');
         }
-        if (!$this->getConnection()->hasColumn('tblDebtorSelection', 'ServicePeople_PersonPayers')) {
-            $Table->addColumn('ServicePeople_PersonPayers', 'bigint');
+        if (!$this->getConnection()->hasColumn('tblDebtorSelection', 'serviceTblPersonPayers')) {
+            $Table->addColumn('serviceTblPersonPayers', 'bigint');
         }
-        if (!$this->getConnection()->hasColumn('tblDebtorSelection', 'ServicePeople_Person')) {
-            $Table->addColumn('ServicePeople_Person', 'bigint');
+        if (!$this->getConnection()->hasColumn('tblDebtorSelection', 'serviceTblItem')) {
+            $Table->addColumn('serviceTblItem', 'bigint');
         }
-        if (!$this->getConnection()->hasColumn('tblDebtorSelection', 'ServiceInventory_Item')) {
-            $Table->addColumn('ServiceInventory_Item', 'bigint');
+        if (!$this->getConnection()->hasColumn('tblDebtorSelection', 'serviceTblPaymentType')) {
+            $Table->addColumn('serviceTblPaymentType', 'bigint');
         }
 
         $this->getConnection()->addForeignKey($Table, $tblDebtor, true);
@@ -169,22 +143,4 @@ class Setup extends AbstractSetup
 
         return $Table;
     }
-
-//    /**
-//     * @param Schema $Schema
-//     * @param Table  $tblDebtor
-//     *
-//     * @return Table
-//     */
-//    private function setTableDebtorCommodity(Schema &$Schema, Table $tblDebtor)
-//    {
-//
-//        $Table = $this->getConnection()->createTable($Schema, 'tblDebtorCommodity');
-//
-//        if (!$this->getConnection()->hasColumn('tblDebtorCommodity', 'serviceBilling_Commodity')) {
-//            $Table->addColumn('serviceBilling_Commodity', 'bigint', array('notnull' => false));
-//        }
-//        $this->getConnection()->addForeignKey($Table, $tblDebtor);
-//        return $Table;
-//    }
 }

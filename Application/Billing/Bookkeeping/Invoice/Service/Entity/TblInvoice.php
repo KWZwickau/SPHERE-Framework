@@ -5,9 +5,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Billing\Accounting\Banking\Banking;
-use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Application\People\Person\Person;
@@ -26,7 +25,6 @@ class TblInvoice extends Element
     const ATTR_IS_VOID = 'IsVoid';
     const ATTR_DEBTOR_NUMBER = 'DebtorNumber';
     const ATTR_NUMBER = 'Number';
-    const ATTR_SERVICE_BILLING_BANKING_PAYMENT_TYPE = 'serviceBilling_Banking_Payment_Type';
 
     /**
      * @Column(type="boolean")
@@ -75,15 +73,15 @@ class TblInvoice extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceManagement_Address;
+    protected $serviceTblAddress;
     /**
      * @Column(type="bigint")
      */
-    protected $serviceManagement_Person;
+    protected $serviceTblPerson;
     /**
      * @Column(type="bigint")
      */
-    protected $serviceBilling_Banking_Payment_Type;
+    protected $serviceTblPaymentType;
     /**
      * @Column(type="boolean")
      */
@@ -105,15 +103,6 @@ class TblInvoice extends Element
     {
 
         $this->IsPaymentDateModified = $IsPaymentDateModified;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isConfirmed()
-    {
-
-        return ( Balance::useService()->getBalanceByInvoice($this) === false ? false : true );
     }
 
     /**
@@ -344,66 +333,66 @@ class TblInvoice extends Element
     /**
      * @return bool|TblAddress
      */
-    public function getServiceManagementAddress()
+    public function getServiceTblAddress()
     {
 
-        if (null === $this->serviceManagement_Address) {
+        if (null === $this->serviceTblAddress) {
             return false;
         } else {
-            return Address::useService()->getAddressById($this->serviceManagement_Address);
+            return Address::useService()->getAddressById($this->serviceTblAddress);
         }
     }
 
     /**
      * @param TblAddress $tblAddress
      */
-    public function setServiceManagementAddress(TblAddress $tblAddress = null)
+    public function setServiceTblAddress(TblAddress $tblAddress = null)
     {
 
-        $this->serviceManagement_Address = ( null === $tblAddress ? null : $tblAddress->getId() );
+        $this->serviceTblAddress = ( null === $tblAddress ? null : $tblAddress->getId() );
     }
 
     /**
      * @return bool|TblPerson
      */
-    public function getServiceManagementPerson()
+    public function getServiceTblPerson()
     {
 
-        if (null === $this->serviceManagement_Person) {
+        if (null === $this->serviceTblPerson) {
             return false;
         } else {
-            return Person::useService()->getPersonById($this->serviceManagement_Person);
+            return Person::useService()->getPersonById($this->serviceTblPerson);
         }
     }
 
     /**
      * @param TblPerson $tblPerson
      */
-    public function setServiceManagementPerson(TblPerson $tblPerson = null)
+    public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
 
-        $this->serviceManagement_Person = ( null === $tblPerson ? null : $tblPerson->getId() );
+        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**
      * @return bool|TblPaymentType
      */
-    public function getServiceBillingBankingPaymentType()
+    public function getServiceTblPaymentType()
     {
 
-        if (null === $this->serviceBilling_Banking_Payment_Type) {
+        if (null === $this->serviceTblPaymentType) {
             return false;
         } else {
-            return Banking::useService()->getPaymentTypeById($this->serviceBilling_Banking_Payment_Type);
+            return Balance::useService()->getPaymentTypeById($this->serviceTblPaymentType);
         }
     }
 
     /**
      * @param TblPaymentType $tblPaymentType
      */
-    public function setServiceBillingBankingPaymentType(TblPaymentType $tblPaymentType = null)
+    public function setServiceTblPaymentType(TblPaymentType $tblPaymentType = null)
     {
 
-        $this->serviceBilling_Banking_Payment_Type = ( null === $tblPaymentType ? null : $tblPaymentType->getId() );
+        $this->serviceTblPaymentType = ( null === $tblPaymentType ? null : $tblPaymentType->getId() );
     }
 }

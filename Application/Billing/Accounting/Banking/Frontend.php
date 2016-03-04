@@ -84,27 +84,30 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblDebtorAll, function (TblDebtor $tblDebtor) use (&$TableContent) {
 
                 $Item['DebtorNumber'] = $tblDebtor->getDebtorNumber();
-                $tblPerson = $tblDebtor->getServicePeoplePerson();
-                $Item['Person'] = $tblPerson->getFullName();
-                $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                $Item['Address'] = new Warning('Nicht hinterlegt');
-                if ($tblAddress) {
-                    $Item['Address'] = $tblAddress->getGuiString();
-                }
-                $Item['Option'] =
-                    (new Standard('', '/Billing/Accounting/Banking/Change',
-                        new Pencil(), array(
-                            'Id' => $tblDebtor->getId()
-                        ), 'Debitor bearbeiten'))->__toString();
+                $tblPerson = $tblDebtor->getServiceTblPerson();
+                if ($tblPerson) {
+                    $Item['Person'] = $tblPerson->getFullName();
+                    $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+                    $Item['Address'] = new Warning('Nicht hinterlegt');
+                    if ($tblAddress) {
+                        $Item['Address'] = $tblAddress->getGuiString();
+                    }
+                    $Item['Option'] =
+                        (new Standard('', '/Billing/Accounting/Banking/Change',
+                            new Pencil(), array(
+                                'Id' => $tblDebtor->getId()
+                            ), 'Debitor bearbeiten'))->__toString();
 //                    (new Standard('', '/Billing/Accounting/Banking/Destroy',
 //                        new Remove(), array(
 //                            'Id' => $tblDebtor->getId()
 //                        ), 'Debitor löschen'))->__toString();
-                array_push($TableContent, $Item);
+                    array_push($TableContent, $Item);
+                }
             });
         }
         $TableContentPerson = array();
         $tblPersonAll = Person::useService()->getPersonAll();
+
         if ($tblPersonAll) {
             array_walk($tblPersonAll, function (TblPerson $tblPerson) use (&$TableContentPerson) {
 
@@ -163,13 +166,17 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendBankingAdd($Id, $Debtor = null)
+    public function frontendBankingAdd($Id = null, $Debtor = null)
     {
 
         $Stage = new Stage('Debitor', 'Anlegen');
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking', new ChevronLeft()));
         $Stage->addButton(new Backward());
         $tblPerson = Person::useService()->getPersonById($Id);
+        if (!$tblPerson) {
+            $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Warning('Auf die Person konnte nicht zugegriffen werden'));
+            return $Stage.new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
+        }
 
         $Content = '';
         $tblDebtor = Banking::useService()->getDebtorByPerson($tblPerson);
@@ -177,87 +184,91 @@ class Frontend extends Extension implements IFrontendInterface
             $Content = $tblDebtor->getDebtorNumber();
         }
 
-        $PersonPanel = '';
-        if ($tblPerson) {
-            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-            $PersonPanel = new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
-                                    new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
-                                , 4),
-                            new LayoutColumn(
-                                ( !empty( $Content ) ) ?
-                                    new Panel('Debitor-Nummer der Person', array($Content)
-                                        , Panel::PANEL_TYPE_SUCCESS)
-                                    : null
-                                , 4)
-                        )
-                    ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
-                )
-            );
-        }
+        $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+        $PersonPanel = new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
+                                new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
+                            , 4),
+                        new LayoutColumn(
+                            ( !empty( $Content ) ) ?
+                                new Panel('Debitor-Nummer der Person', array($Content)
+                                    , Panel::PANEL_TYPE_SUCCESS)
+                                : null
+                            , 4)
+                    )
+                ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
+            )
+        );
 
         $Form = $this->formDebtor()
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-        if ($tblPerson) {
-            $Stage->setContent($PersonPanel
-                .new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                ( empty( $Content ) ) ?
-                                    new Well(
-                                        Banking::useService()->createDebtor(
-                                            $Form, $Debtor, $Id
-                                        )) : new \SPHERE\Common\Frontend\Message\Repository\Warning(
-                                    'Diese Person besitzt bereits eine Debitor-Nummer')
-                                , 6)
-                        ), new Title(new PlusSign().' Hinzufügen')
-                    )
+        $Stage->setContent($PersonPanel
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ( empty( $Content ) ) ?
+                                new Well(
+                                    Banking::useService()->createDebtor(
+                                        $Form, $Debtor, $Id
+                                    )) : new \SPHERE\Common\Frontend\Message\Repository\Warning(
+                                'Diese Person besitzt bereits eine Debitor-Nummer')
+                            , 6)
+                    ), new Title(new PlusSign().' Hinzufügen')
                 )
-            );
-        } else {
-            $Stage->setContent(new Warning('Person konnte nicht aufgerufen werden.'));
-        }
+            )
+        );
         return $Stage;
     }
 
-    public function frontendBankingChange($Id, $Debtor = null)
+    /**
+     * @param null $Id
+     * @param null $Debtor
+     *
+     * @return Stage|string
+     */
+    public function frontendBankingChange($Id = null, $Debtor = null)
     {
 
         $Stage = new Stage('Debitor', 'Bearbeiten');
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking', new ChevronLeft()));
         $Stage->addButton(new Backward());
         $tblDebtor = Banking::useService()->getDebtorById($Id);
-        $tblPerson = $tblDebtor->getServicePeoplePerson();
-        $PersonPanel = '';
-        if ($tblPerson) {
-            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-            $PersonPanel = new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
-                                    new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Debtor-Nummer', $tblDebtor->getDebtorNumber(), Panel::PANEL_TYPE_SUCCESS)
-                                , 4),
-                        )
-                    ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
-                )
-            );
+        if (!$tblDebtor) {
+            $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Warning('Auf den Debitor konnte nicht zugegriffen werden'));
+            return $Stage.new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
         }
+        $tblPerson = $tblDebtor->getServiceTblPerson();
+        if (!$tblPerson) {
+            $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Warning('Person konnte nicht aufgerufen werden.'));
+            return $Stage.new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
+        }
+        $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+        $PersonPanel = new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
+                                new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Debtor-Nummer', $tblDebtor->getDebtorNumber(), Panel::PANEL_TYPE_SUCCESS)
+                            , 4),
+                    )
+                ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
+            )
+        );
 
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Debtor'] )) {
@@ -269,25 +280,20 @@ class Frontend extends Extension implements IFrontendInterface
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-        if ($tblPerson) {
-            $Stage->setContent($PersonPanel
-                .
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new Well(
-                                    Banking::useService()->changeDebtor(
-                                        $Form, $tblDebtor, $Debtor
-                                    ))
-                                , 6)
-                        ), new Title(new Pencil().' Bearbeiten')
-                    )
+        $Stage->setContent($PersonPanel
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Well(
+                                Banking::useService()->changeDebtor(
+                                    $Form, $tblDebtor, $Debtor
+                                ))
+                            , 6)
+                    ), new Title(new Pencil().' Bearbeiten')
                 )
-            );
-        } else {
-            $Stage->setContent(new Warning('Person konnte nicht aufgerufen werden.'));
-        }
+            )
+        );
         return $Stage;
     }
 
@@ -328,8 +334,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['BIC'] = $tblBankAccount->getBIC();
                 $Item['CashSign'] = $tblBankAccount->getCashSign();
                 $Item['Person'] = new Warning('Person nicht gefunden');
-                if ($tblBankAccount->getServicePeoplePerson()) {
-                    $Item['Person'] = $tblBankAccount->getServicePeoplePerson()->getFullName();
+                if ($tblBankAccount->getServiceTblPerson()) {
+                    $Item['Person'] = $tblBankAccount->getServiceTblPerson()->getFullName();
                 }
                 $Item['Option'] =
                     (new Standard('', '/Billing/Accounting/BankAccount/Change',
@@ -367,40 +373,41 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param      $Id
+     * @param null $Id
      * @param null $Account
      *
      * @return Stage
      */
-    public function frontendBankAccountAdd($Id, $Account = null)
+    public function frontendBankAccountAdd($Id = null, $Account = null)
     {
 
         $Stage = new Stage('Kontodaten', 'Anlegen');
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankAccount', new ChevronLeft()));
         $Stage->addButton(new Backward());
         $tblPerson = Person::useService()->getPersonById($Id);
-        $PersonPanel = '';
-        if ($tblPerson) {
-            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-            $PersonPanel = new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
-                                    new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
-                                , 4)
-                        )
-                    ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
-                )
-            );
-            $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Account'] )) {
-                $Global->POST['Account']['Owner'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName();
-                $Global->savePost();
-            }
+        if (!$tblPerson) {
+            $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Warning('Person konnte nicht aufgerufen werden.'));
+            return $Stage.new Redirect('/Billing/Accounting/BankAccount', Redirect::TIMEOUT_ERROR);
+        }
+        $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+        $PersonPanel = new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
+                                new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
+                            , 4)
+                    )
+                ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
+            )
+        );
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Account'] )) {
+            $Global->POST['Account']['Owner'] = $tblPerson->getFirstName().' '.$tblPerson->getLastName();
+            $Global->savePost();
         }
 
         $TableContent = array();
@@ -422,39 +429,35 @@ class Frontend extends Extension implements IFrontendInterface
             ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-        if ($tblPerson) {
-            $Stage->setContent($PersonPanel
-                .new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                ( !empty( $TableContent ) ) ?
-                                    new TableData($TableContent, null,
-                                        array('Owner'    => 'Kontoinhaber',
-                                              'BankName' => 'Name der Bank',
-                                              'IBAN'     => 'IBAN',
-                                              'BIC'      => 'BIC',
-                                              'CashSign' => 'Kassenzeichen'
-                                        ), array("bPaginate" => false))
-                                    : null
-                            )
-                        ), new Title(new Briefcase().' Aufgenommene Kontodaten')
-                    )
+        $Stage->setContent($PersonPanel
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            ( !empty( $TableContent ) ) ?
+                                new TableData($TableContent, null,
+                                    array('Owner'    => 'Kontoinhaber',
+                                          'BankName' => 'Name der Bank',
+                                          'IBAN'     => 'IBAN',
+                                          'BIC'      => 'BIC',
+                                          'CashSign' => 'Kassenzeichen'
+                                    ), array("bPaginate" => false))
+                                : null
+                        )
+                    ), new Title(new Briefcase().' Aufgenommene Kontodaten')
                 )
-                .new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(new Well(
-                                Banking::useService()->createAccount(
-                                    $Form, $tblPerson, $Account)
-                            ))
-                        ), new Title(new PlusSign().' Hinzufügen')
-                    )
+            )
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            Banking::useService()->createAccount(
+                                $Form, $tblPerson, $Account)
+                        ))
+                    ), new Title(new PlusSign().' Hinzufügen')
                 )
-            );
-        } else {
-            $Stage->setContent(new Warning('Person konnte nicht aufgerufen werden.'));
-        }
+            )
+        );
         return $Stage;
     }
 
@@ -483,7 +486,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Global->savePost();
             }
 
-            $tblPerson = $tblBankAccount->getServicePeoplePerson();
+            $tblPerson = $tblBankAccount->getServiceTblPerson();
             $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
             $PersonPanel = new Layout(
                 new LayoutGroup(
@@ -510,7 +513,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(new Well(
-                                Banking::useService()->changeAccount(
+                                Banking::useService()->changeBankAccount(
                                     $Form, $tblBankAccount, $Account)
                             ))
                         ), new Title(new Pencil().' Bearbeiten')
@@ -613,8 +616,8 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item['Reference'] = $tblBankReference->getReference();
                 $Item['ReferenceDate'] = $tblBankReference->getReferenceDate();
                 $Item['Person'] = new Warning('Person nicht gefunden');
-                if ($tblBankReference->getServicePeoplePerson()) {
-                    $Item['Person'] = $tblBankReference->getServicePeoplePerson()->getFullName();
+                if ($tblBankReference->getServiceTblPerson()) {
+                    $Item['Person'] = $tblBankReference->getServiceTblPerson()->getFullName();
                 }
                 $Item['Option'] =
                     (new Standard('', '/Billing/Accounting/BankReference/Change',
@@ -740,7 +743,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankReference', new ChevronLeft()));
         $Stage->addButton(new Backward());
         $tblBankReference = Banking::useService()->getBankReferenceById($Id);
-        $tblPerson = $tblBankReference->getServicePeoplePerson();
+        $tblPerson = $tblBankReference->getServiceTblPerson();
         $PersonPanel = '';
         if ($tblPerson) {
 
@@ -906,7 +909,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBankReference = Banking::useService()->getBankReferenceById($Id);
         if ($tblBankReference) {
 
-            $tblPerson = $tblBankReference->getServicePeoplePerson();
+            $tblPerson = $tblBankReference->getServiceTblPerson();
             $PersonPanel = '';
             if ($tblPerson) {
 
@@ -1023,11 +1026,11 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblBasketVerificationList) {
             array_walk($tblBasketVerificationList, function (TblBasketVerification $tblBasketVerification) use (&$TableContent, &$Global, &$Data) {
 
-                $tblPerson = $tblBasketVerification->getServicePeoplePerson();
-                $tblItem = $tblBasketVerification->getServiceInventoryItem();
+                $tblPerson = $tblBasketVerification->getServiceTblPerson();
+                $tblItem = $tblBasketVerification->getServiceTblItem();
 
                 if (!Banking::useService()->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem)) {
-                    $Item['Person'] = $tblBasketVerification->getServicePeoplePerson()->getFullName();
+                    $Item['Person'] = $tblBasketVerification->getServiceTblPerson()->getFullName();
                     $Item['SiblingRank'] = '';
                     $Item['SchoolType'] = '';
                     $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
@@ -1098,7 +1101,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ));
                     if ($Data !== null) {
                         $Data[$tblBasketVerification->getId()]['Person'] = $tblPerson->getId();
-                        $Data[$tblBasketVerification->getId()]['Item'] = $tblBasketVerification->getServiceInventoryItem()->getId();
+                        $Data[$tblBasketVerification->getId()]['Item'] = $tblBasketVerification->getServiceTblItem()->getId();
                     }
                     array_push($TableContent, $Item);
                 }
@@ -1182,8 +1185,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblBasketVerificationList = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if ($tblBasketVerificationList) {
             foreach ($tblBasketVerificationList as $tblBasketVerification) {
-                $tblPerson = $tblBasketVerification->getServicePeoplePerson();
-                $tblItem = $tblBasketVerification->getServiceInventoryItem();
+                $tblPerson = $tblBasketVerification->getServiceTblPerson();
+                $tblItem = $tblBasketVerification->getServiceTblItem();
                 $tblDebtorSelectionList[] = Banking::useService()->getDebtorSelectionByPersonAndItem($tblPerson, $tblItem);
             }
         }
@@ -1192,11 +1195,11 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblDebtorSelectionList, function (TblDebtorSelection $tblDebtorSelection) use (&$TableContent, &$Global, &$Data) {
 
                 $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
-                if ($tblPaymentType->getId() === $tblDebtorSelection->getServicePaymentType()->getId()) {
+                if ($tblPaymentType->getId() === $tblDebtorSelection->getServiceTblPaymentType()->getId()) {
                     if (Banking::useService()->checkDebtorSelectionDebtor($tblDebtorSelection)) {   //Prüfung auf vorhandene Zuweisungen
-                        $tblPerson = $tblDebtorSelection->getServicePeoplePerson();
-                        $tblPersonPayers = $tblDebtorSelection->getServicePeoplePersonPayers();
-                        $tblItem = $tblDebtorSelection->getServiceInventoryItem();
+                        $tblPerson = $tblDebtorSelection->getServiceTblPerson();
+                        $tblPersonPayers = $tblDebtorSelection->getServiceTblPersonPayers();
+                        $tblItem = $tblDebtorSelection->getServiceTblInventoryItem();
                         $Item['Person'] = $tblPerson->getFullName();
                         $Item['PersonPayers'] = $tblPersonPayers->getFullName();
                         $Item['Item'] = $tblItem->getName();
@@ -1308,7 +1311,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if ($tblDebtorSelectionAll) {
             foreach ($tblDebtorSelectionAll as $tblDebtorSelection) {
-                $PersonIdList[] = $tblDebtorSelection->getServicePeoplePerson()->getId();
+                $PersonIdList[] = $tblDebtorSelection->getServiceTblPerson()->getId();
             }
             $PersonIdList = array_unique($PersonIdList);
         }
@@ -1328,14 +1331,14 @@ class Frontend extends Extension implements IFrontendInterface
                     $ItemPayer = array();
                     $Status = array();
                     foreach ($tblDebtorSelectionList as $tblDebtorSelection) {
-                        $ItemPayer[] = $tblDebtorSelection->getServiceInventoryItem()->getName()
-                            .' - '.$tblDebtorSelection->getServicePeoplePersonPayers()->getLastFirstName();
+                        $ItemPayer[] = $tblDebtorSelection->getServiceTblInventoryItem()->getName()
+                            .' - '.$tblDebtorSelection->getServiceTblPersonPayers()->getLastFirstName();
                         if ($tblDebtorSelection->getTblDebtor() === false && $tblDebtorSelection->getTblBankAccount() === false
                             || $tblDebtorSelection->getTblDebtor() === false && $tblDebtorSelection->getTblBankReference() === false
                         ) {
-                            if ($tblDebtorSelection->getServicePaymentType()->getName() === 'Bar') {
+                            if ($tblDebtorSelection->getServiceTblPaymentType()->getName() === 'Bar') {
                                 $Status[] = new \SPHERE\Common\Frontend\Text\Repository\Success(new Check().' Bar');
-                            } elseif ($tblDebtorSelection->getServicePaymentType()->getName() === 'SEPA-Überweisung') {
+                            } elseif ($tblDebtorSelection->getServiceTblPaymentType()->getName() === 'SEPA-Überweisung') {
                                 $Status[] = new \SPHERE\Common\Frontend\Text\Repository\Success(new Check().' SEPA-Überweisung');
                             } else {
                                 $Status[] = new Warning(new Unchecked().' Offen');
@@ -1402,10 +1405,10 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblDebtorSelectionList) {
             array_walk($tblDebtorSelectionList, function (TblDebtorSelection $tblDebtorSelection) use (&$TableContent, &$Global, &$Data) {
 
-                $tblPerson = $tblDebtorSelection->getServicePeoplePerson();
-                $tblItem = $tblDebtorSelection->getServiceInventoryItem();
+                $tblPerson = $tblDebtorSelection->getServiceTblPerson();
+                $tblItem = $tblDebtorSelection->getServiceTblInventoryItem();
 
-                $Item['Person'] = $tblDebtorSelection->getServicePeoplePerson()->getFullName();
+                $Item['Person'] = $tblDebtorSelection->getServiceTblPerson()->getFullName();
                 $Item['SiblingRank'] = '';
                 $Item['SchoolType'] = '';
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
@@ -1473,11 +1476,11 @@ class Frontend extends Extension implements IFrontendInterface
                 ));
                 if ($Data !== null) {
                     $Data[$tblDebtorSelection->getId()]['Person'] = $tblPerson->getId();
-                    $Data[$tblDebtorSelection->getId()]['Item'] = $tblDebtorSelection->getServiceInventoryItem()->getId();
+                    $Data[$tblDebtorSelection->getId()]['Item'] = $tblDebtorSelection->getServiceTblInventoryItem()->getId();
                 }
 
-                $Global->POST['Data'][$tblDebtorSelection->getId()]['PersonPayers'] = $tblDebtorSelection->getServicePeoplePersonPayers()->getId();
-                $Global->POST['Data'][$tblDebtorSelection->getId()]['Payment'] = $tblDebtorSelection->getServicePaymentType()->getId();
+                $Global->POST['Data'][$tblDebtorSelection->getId()]['PersonPayers'] = $tblDebtorSelection->getServiceTblPersonPayers()->getId();
+                $Global->POST['Data'][$tblDebtorSelection->getId()]['Payment'] = $tblDebtorSelection->getServiceTblPaymentType()->getId();
 
                 array_push($TableContent, $Item);
             });
@@ -1554,11 +1557,11 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblDebtorSelectionList, function (TblDebtorSelection $tblDebtorSelection) use (&$TableContent, &$Global, &$Data) {
 
                 $tblPaymentType = Balance::useService()->getPaymentTypeByName('SEPA-Lastschrift');
-                if ($tblPaymentType->getId() === $tblDebtorSelection->getServicePaymentType()->getId()) {
+                if ($tblPaymentType->getId() === $tblDebtorSelection->getServiceTblPaymentType()->getId()) {
 //                    if (Banking::useService()->checkDebtorSelectionDebtor($tblDebtorSelection)) { //Prüfung auf vorhandene Zuweisungen
-                    $tblPerson = $tblDebtorSelection->getServicePeoplePerson();
-                    $tblPersonPayers = $tblDebtorSelection->getServicePeoplePersonPayers();
-                    $tblItem = $tblDebtorSelection->getServiceInventoryItem();
+                    $tblPerson = $tblDebtorSelection->getServiceTblPerson();
+                    $tblPersonPayers = $tblDebtorSelection->getServiceTblPersonPayers();
+                    $tblItem = $tblDebtorSelection->getServiceTblInventoryItem();
                     $Item['Person'] = $tblPerson->getFullName();
                     $Item['PersonPayers'] = $tblPersonPayers->getFullName();
                     $Item['Item'] = $tblItem->getName();

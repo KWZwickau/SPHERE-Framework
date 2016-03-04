@@ -3,13 +3,10 @@
 namespace SPHERE\Application\Billing\Inventory\Commodity;
 
 use Doctrine\Common\Cache\ArrayCache;
-use SPHERE\Application\Billing\Accounting\Account\Account;
-use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityItem;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
-use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -17,7 +14,6 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
@@ -37,6 +33,7 @@ use SPHERE\Common\Frontend\Link\Repository\Backward;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -149,111 +146,120 @@ class Frontend extends Extension implements IFrontendInterface
         ));
     }
 
+//    /**
+//     * @param null $Id
+//     *
+//     * @return Stage
+//     */
+//    public function frontendDestroy($Id = null)
+//    {
+//
+//        $Stage = new Stage();
+//        $Stage->setTitle('Leistung');
+//        $Stage->setDescription('Entfernen');
+//
+//        $tblCommodity = Commodity::useService()->getCommodityById($Id);
+//        if(!$tblCommodity){
+//            $Stage->setContent(new Warning('Leistung nicht gefunden'));
+//            return $Stage. new Redirect('/Billing/Inventory/Commodity', Redirect::TIMEOUT_ERROR);
+//        }
+//
+//        $Stage->setContent(Commodity::useService()->destroyCommodity($tblCommodity));
+//
+//        return $Stage;
+//    }
+
     /**
-     * @param $Id
-     *
-     * @return Stage
-     */
-    public function frontendDestroy($Id)
-    {
-
-        $Stage = new Stage();
-        $Stage->setTitle('Leistung');
-        $Stage->setDescription('Entfernen');
-
-        $tblCommodity = Commodity::useService()->getCommodityById($Id);
-        $Stage->setContent(Commodity::useService()->destroyCommodity($tblCommodity));
-
-        return $Stage;
-    }
-
-    /**
-     * @param      $Id
+     * @param null $Id
      * @param null $Commodity
      *
      * @return Stage
      */
-    public function frontendChange($Id, $Commodity = null)
+    public function frontendChange($Id = null, $Commodity = null)
     {
 
-        $Stage = new Stage();
-        $Stage->setTitle('Leistungen');
-        $Stage->setDescription('Bearbeiten');
+        $Stage = new Stage('Leistungen', 'Bearbeiten');
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity',
 //            new ChevronLeft()
 //        ));
         $Stage->addButton(new Backward());
         $tblCommodity = Commodity::useService()->getCommodityById($Id);
-        if (empty( $tblCommodity )) {
+        if (!$tblCommodity) {
             $Stage->setContent(new Warning('Die Leistung konnte nicht abgerufen werden'));
-        } else {
+            return $Stage.new Redirect('/Billing/Inventory/Commodity', Redirect::TIMEOUT_ERROR);
+        }
 
-            $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Commodity'] )) {
-                $Global->POST['Commodity']['Name'] = $tblCommodity->getName();
-                $Global->POST['Commodity']['Description'] = $tblCommodity->getDescription();
-                $Global->savePost();
-            }
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Commodity'] )) {
+            $Global->POST['Commodity']['Name'] = $tblCommodity->getName();
+            $Global->POST['Commodity']['Description'] = $tblCommodity->getDescription();
+            $Global->savePost();
+        }
 
-            $PanelValue = array();
-            $PanelValue[0] = $tblCommodity->getName();
-            $PanelValue[1] = $tblCommodity->getDescription();
-            $PanelContent = new Layout(
+        $PanelValue = array();
+        $PanelValue[0] = $tblCommodity->getName();
+        $PanelValue[1] = $tblCommodity->getDescription();
+        $PanelContent = new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Name', $PanelValue[0], Panel::PANEL_TYPE_INFO)
+                        , 6),
+                    new LayoutColumn(
+                        new Panel('Beschreibung', $PanelValue[1], Panel::PANEL_TYPE_INFO)
+                        , 6),
+                ))
+            )
+        );
+
+        $Form = $this->formCommodity()
+            ->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(
+            new Layout(
                 new LayoutGroup(
-                    new LayoutRow(array(
+                    new LayoutRow(
                         new LayoutColumn(
-                            new Panel('Name', $PanelValue[0], Panel::PANEL_TYPE_INFO)
-                            , 6),
-                        new LayoutColumn(
-                            new Panel('Beschreibung', $PanelValue[1], Panel::PANEL_TYPE_INFO)
-                            , 6),
-                    ))
-                )
-            );
-
-            $Form = $this->formCommodity()
-                ->appendFormButton(new Primary('Speichern', new Save()))
-                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                $PanelContent
-                            )
+                            $PanelContent
                         )
                     )
                 )
-                .new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(new Well(
-                                Commodity::useService()->changeCommodity($Form, $tblCommodity, $Commodity)
-                            ))
-                        ), new Title(new Pencil().' Bearbeiten')
-                    )
+            )
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            Commodity::useService()->changeCommodity($Form, $tblCommodity, $Commodity)
+                        ))
+                    ), new Title(new Pencil().' Bearbeiten')
                 )
-            );
-        }
+            )
+        );
 
         return $Stage;
     }
 
     /**
-     * @param $tblCommodityId
-     * @param $tblItemId
+     * @param null $tblCommodityId
+     * @param null $tblItemId
      *
      * @return Stage
      */
-    public function frontendItemAdd($tblCommodityId, $tblItemId)
+    public function frontendItemAdd($tblCommodityId = null, $tblItemId = null)
     {
 
-        $Stage = new Stage();
-        $Stage->setTitle('Leistung');
-        $Stage->setDescription('Artikel Hinzufügen');
+        $Stage = new Stage('Leistung', 'Artikel Hinzufügen');
         $tblCommodity = Commodity::useService()->getCommodityById($tblCommodityId);
         $tblItem = Item::useService()->getItemById($tblItemId);
+        if (!$tblCommodity) {
+            $Stage->setContent(new Warning('Leistung nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Inventory/Commodity', Redirect::TIMEOUT_ERROR);
+        }
+        if (!$tblItem) {
+            $Stage->setContent(new Warning('Artikel nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Inventory/Commodity', Redirect::TIMEOUT_ERROR);
+        }
 
         if (!empty( $tblCommodityId ) && !empty( $tblItemId )) {
             $Stage->setContent(Commodity::useService()->addItemToCommodity($tblCommodity, $tblItem));
@@ -263,133 +269,22 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
      * @return Stage
      */
-    public function frontendItemAccountSelect($Id)
+    public function frontendItemSelect($Id = null)
     {
 
-        $Stage = new Stage();
-        $Stage->setTitle('Artikel');
-        $Stage->setDescription('FIBU-Konten auswählen');
-        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item',
-            new ChevronLeft()
-        ));
-
-        if (empty( $Id )) {
-            $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
-        } else {
-            $tblItem = Item::useService()->getItemById($Id);
-            if (empty( $tblItem )) {
-                $Stage->setContent(new Warning('Der Artikel konnte nicht abgerufen werden'));
-            } else {
-                $tblItemAccountByItem = Item::useService()->getItemAccountAllByItem($tblItem);
-                $tblAccountByItem = Commodity::useService()->getAccountAllByItem($tblItem);
-                $tblAccountAllByActiveState = Account::useService()->getAccountAllByActiveState();
-
-                if (!empty( $tblAccountAllByActiveState )) {
-                    $tblAccountAllByActiveState = array_udiff($tblAccountAllByActiveState, $tblAccountByItem,
-                        function (TblAccount $ObjectA, TblAccount $ObjectB) {
-
-                            return $ObjectA->getId() - $ObjectB->getId();
-                        }
-                    );
-                }
-
-                if (!empty( $tblItemAccountByItem )) {
-                    array_walk($tblItemAccountByItem, function (TblItemAccount $tblItemAccountByItem) {
-
-                        $tblItemAccountByItem->Number = $tblItemAccountByItem->getServiceBillingAccount()->getNumber();
-                        $tblItemAccountByItem->Description = $tblItemAccountByItem->getServiceBillingAccount()->getDescription();
-                        $tblItemAccountByItem->Option =
-                            new \SPHERE\Common\Frontend\Link\Repository\Primary('Entfernen', '/Billing/Inventory/Commodity/Item/Account/Remove',
-                                new Minus(), array(
-                                    'Id' => $tblItemAccountByItem->getId()
-                                ));
-                    });
-                }
-
-                if (!empty( $tblAccountAllByActiveState )) {
-                    /** @noinspection PhpUnusedParameterInspection */
-                    array_walk($tblAccountAllByActiveState,
-                        function (TblAccount $tblAccountAllByActiveState, $Index, TblItem $tblItem) {
-
-                            $tblAccountAllByActiveState->Option =
-                                new \SPHERE\Common\Frontend\Link\Repository\Primary('Hinzufügen', '/Billing/Inventory/Commodity/Item/Account/Add',
-                                    new Plus(), array(
-                                        'tblAccountId' => $tblAccountAllByActiveState->getId(),
-                                        'tblItemId'    => $tblItem->getId()
-                                    ));
-                        }, $tblItem);
-                }
-
-                $Stage->setContent(
-                    new Layout(array(
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(
-                                    new Panel('Name', $tblItem->getName(), Panel::PANEL_TYPE_SUCCESS), 4
-                                ),
-                                new LayoutColumn(
-                                    new Panel('Beschreibung', $tblItem->getDescription(), Panel::PANEL_TYPE_SUCCESS), 8
-                                )
-                            )),
-                        )),
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(array(
-                                        new TableData($tblItemAccountByItem, null,
-                                            array(
-                                                'Number'      => 'Nummer',
-                                                'Description' => 'Beschreibung',
-                                                'Option'      => ''
-                                            )
-                                        )
-                                    )
-                                )
-                            )),
-                        ), new Title('zugewiesene FIBU-Konten')),
-                        new LayoutGroup(array(
-                            new LayoutRow(array(
-                                new LayoutColumn(array(
-                                        new TableData($tblAccountAllByActiveState, null,
-                                            array(
-                                                'Number'      => 'Nummer',
-                                                'Description' => 'Beschreibung',
-                                                'Option'      => ''
-                                            )
-                                        )
-                                    )
-                                )
-                            )),
-                        ), new Title('mögliche FIBU-Konten'))
-                    ))
-                );
-            }
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return Stage
-     */
-    public function frontendItemSelect($Id)
-    {
-
-        $Stage = new Stage();
-        $Stage->setTitle('Leistung');
-        $Stage->setDescription('Artikel auswählen');
+        $Stage = new Stage('Leistung', 'Artikel auswählen');
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity',
 //            new ChevronLeft()
 //        ));
         $Stage->addButton(new Backward());
         $tblCommodity = Commodity::useService()->getCommodityById($Id);
-        if (empty( $tblCommodity )) {
+        if (!$tblCommodity) {
             $Stage->setContent(new Warning('Die Leistung konnte nicht abgerufen werden'));
+            return $Stage.new Redirect('/Billing/Inventory/Commodity', Redirect::TIMEOUT_ERROR);
         } else {
             $tblCommodityItem = Commodity::useService()->getCommodityItemAllByCommodity($tblCommodity);
             $tblItemAllByCommodity = Commodity::useService()->getItemAllByCommodity($tblCommodity);
@@ -491,61 +386,22 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
      * @return Stage
      */
-    public function frontendItemRemove($Id)
+    public function frontendItemRemove($Id = null)
     {
 
         $Stage = new Stage();
         $Stage->setTitle('Leistung');
         $Stage->setDescription('Artikel Entfernen');
         $tblCommodityItem = Commodity::useService()->getCommodityItemById($Id);
-        if (!empty( $tblCommodityItem )) {
-            $Stage->setContent(Commodity::useService()->removeItemToCommodity($tblCommodityItem));
+        if (!$tblCommodityItem) {
+            $Stage->setContent(new Warning('Verknüpfung nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Inventory/Commodity', Redirect::TIMEOUT_ERROR);
         }
-
-        return $Stage;
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return Stage
-     */
-    public function frontendItemAccountRemove($Id)
-    {
-
-        $Stage = new Stage();
-        $Stage->setTitle('Artikel');
-        $Stage->setDescription('FIBU-Konto Entfernen');
-        $tblItemAccount = Item::useService()->getItemAccountById($Id);
-        if (!empty( $tblItemAccount )) {
-            $Stage->setContent(Item::useService()->removeItemAccount($tblItemAccount));
-        }
-
-        return $Stage;
-    }
-
-    /**
-     * @param $tblItemId
-     * @param $tblAccountId
-     *
-     * @return Stage
-     */
-    public function frontendItemAccountAdd($tblItemId, $tblAccountId)
-    {
-
-        $Stage = new Stage();
-        $Stage->setTitle('Artikel');
-        $Stage->setDescription('FIBU-Konto Hinzufügen');
-        $tblItem = Item::useService()->getItemById($tblItemId);
-        $tblAccount = Account::useService()->getAccountById($tblAccountId);
-
-        if (!empty( $tblItemId ) && !empty( $tblAccountId )) {
-            $Stage->setContent(Item::useService()->addItemToAccount($tblItem, $tblAccount));
-        }
+        $Stage->setContent(Commodity::useService()->removeItemToCommodity($tblCommodityItem));
 
         return $Stage;
     }

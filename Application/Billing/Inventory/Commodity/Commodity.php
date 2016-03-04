@@ -35,38 +35,17 @@ class Commodity implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendChange'
             ));
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Account/Select',
-                __NAMESPACE__.'\Frontend::frontendItemAccountSelect'
-            )->setParameterDefault('Id', null)
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Account/Add',
-                __NAMESPACE__.'\Frontend::frontendItemAccountAdd'
-            )->setParameterDefault('tblAccountId', null)
-                ->setParameterDefault('tblItemId', null)
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Account/Remove',
-                __NAMESPACE__.'\Frontend::frontendItemAccountRemove'
-            )->setParameterDefault('Id', null)
-        );
-        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Add',
                 __NAMESPACE__.'\Frontend::frontendItemAdd'
-            )->setParameterDefault('tblCommodityId', null)
-                ->setParameterDefault('tblItemId', null)
-                ->setParameterDefault('Item', null)
-        );
+            ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Select',
                 __NAMESPACE__.'\Frontend::frontendItemSelect'
-            )->setParameterDefault('Id', null)
-        );
+            ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Remove',
                 __NAMESPACE__.'\Frontend::frontendItemRemove'
-            )->setParameterDefault('Id', null)
-        );
+            ));
     }
 
     /**

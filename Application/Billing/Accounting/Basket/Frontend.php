@@ -213,7 +213,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $Content = array();
                 if ($tblBasketItemList) {
                     foreach ($tblBasketItemList as $tblBasketItem) {
-                        $Content[] = $tblBasketItem->getServiceInventoryItem()->getName();
+                        $Content[] = $tblBasketItem->getServiceTblItem()->getName();
                     }
                 }
 
@@ -280,7 +280,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblBasketItemAll = Basket::useService()->getBasketItemAllByBasket($tblBasket);
                 if ($tblBasketItemAll) {
                     foreach ($tblBasketItemAll as $tblBasketItem) {
-                        $Item[] = new Muted(new Small($tblBasketItem->getServiceInventoryItem()->getName()));
+                        $Item[] = new Muted(new Small($tblBasketItem->getServiceTblItem()->getName()));
 //                            .'<br/>
 //                            Preis: '.$tblItem->getServiceBillingCommodityItem()->getTblItem()->getPriceString();
                     }
@@ -412,7 +412,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblBasketItem) {
             array_walk($tblBasketItem, function (TblBasketItem $tblBasketItem) use (&$TableItemContent) {
 
-                $tblItem = $tblBasketItem->getServiceInventoryItem();
+                $tblItem = $tblBasketItem->getServiceTblItem();
                 $Item['Name'] = '';
                 $Item['Description'] = '';
                 $Item['Calculation'] = '';
@@ -433,7 +433,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblBasketPerson) {
             array_walk($tblBasketPerson, function (TblBasketPerson $tblBasketPerson) use (&$TablePersonContent) {
 
-                $tblPerson = $tblBasketPerson->getServicePeople_Person();
+                $tblPerson = $tblBasketPerson->getServiceTblPerson();
                 $Item['Name'] = '';
                 $Item['Address'] = new \SPHERE\Common\Frontend\Text\Repository\Warning('Keine Adresse hinterlegt');
                 if ($tblPerson) {
@@ -516,12 +516,12 @@ class Frontend extends Extension implements IFrontendInterface
         $TableItemContent = array();
         if ($tblBasketItem) {
             foreach ($tblBasketItem as $singleItem) {
-                $tblItemUsed[] = $singleItem->getServiceInventoryItem();
+                $tblItemUsed[] = $singleItem->getServiceTblItem();
             }
 
             array_walk($tblBasketItem, function (TblBasketItem $tblBasketItem) use (&$TableItemContent) {
 
-                $tblItem = $tblBasketItem->getServiceInventoryItem();
+                $tblItem = $tblBasketItem->getServiceTblItem();
                 $Item['Name'] = '';
                 $Item['Description'] = '';
                 $Item['Type'] = $tblItem->getTblItemType()->getName();
@@ -752,7 +752,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty( $tblBasketPersonList )) {
             array_walk($tblBasketPersonList, function (TblBasketPerson $tblBasketPerson) use (&$TableContent) {
 
-                $tblPerson = $tblBasketPerson->getServicePeople_Person();
+                $tblPerson = $tblBasketPerson->getServiceTblPerson();
                 $Temp['Salutation'] = $tblPerson->getSalutation();
                 $Temp['Name'] = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
 
@@ -889,10 +889,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             ( Basket::useService()->removeBasketPerson($tblBasketPerson) )
-                                ? new Success('Die Person '.$tblBasketPerson->getServicePeople_Person()->getFullName().' wurde erfolgreich entfernt')
+                                ? new Success('Die Person '.$tblBasketPerson->getServiceTblPerson()->getFullName().' wurde erfolgreich entfernt')
                                 .new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_SUCCESS,
                                     array('Id' => $tblBasketPerson->getTblBasket()->getId()))
-                                : new Warning('Die Person '.$tblBasketPerson->getServicePeople_Person()->getFullName().' konnte nicht entfernt werden')
+                                : new Warning('Die Person '.$tblBasketPerson->getServiceTblPerson()->getFullName().' konnte nicht entfernt werden')
                                 .new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_ERROR,
                                     array('Id' => $tblBasketPerson->getTblBasket()->getId()))
                         )
@@ -990,8 +990,8 @@ class Frontend extends Extension implements IFrontendInterface
                 if (is_array($tblBasketVerificationList)) {
                     /** @var TblBasketVerification $tblBasketVerification */
                     foreach ($tblBasketVerificationList as $tblBasketVerification) {
-                        if ($tblBasketVerification->getServiceInventoryItem()) {
-                            $ItemArray[] = $tblBasketVerification->getServiceInventoryItem()->getName();
+                        if ($tblBasketVerification->getServiceTblItem()) {
+                            $ItemArray[] = $tblBasketVerification->getServiceTblItem()->getName();
                         }
                         $Sum += $tblBasketVerification->getValue();
                     }
@@ -1089,7 +1089,7 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblBasketVerification $tblBasketVerification */
             array_walk($tblBasketVerificationList, function (TblBasketVerification $tblBasketVerification) use (&$TableContent) {
 
-                $tblItem = $tblBasketVerification->getServiceInventoryItem();
+                $tblItem = $tblBasketVerification->getServiceTblItem();
                 $Item['Name'] = $tblItem->getName();
                 $Item['Description'] = $tblItem->getDescription();
                 $Item['SinglePrice'] = $tblBasketVerification->getSinglePrice();
@@ -1178,8 +1178,8 @@ class Frontend extends Extension implements IFrontendInterface
 //                  'BasketId' => $tblBasketVerification->getTblBasket()->getId())));
         $Stage->addButton(new Backward());
 
-        $tblItem = $tblBasketVerification->getServiceInventoryItem();
-        $tblPerson = $tblBasketVerification->getServicePeoplePerson();
+        $tblItem = $tblBasketVerification->getServiceTblItem();
+        $tblPerson = $tblBasketVerification->getServiceTblPerson();
         $tblBasket = $tblBasketVerification->getTblBasket();
         if (!$tblItem) {
             $Stage->setContent(new Warning('Artikel nicht gefunden'));
@@ -1315,7 +1315,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Content = array();
             if ($tblBasketVerificationList) {
                 foreach ($tblBasketVerificationList as $Key => $tblBasketVerification) {
-                    $Content[$Key] = $tblBasketVerification->getServiceInventoryItem()->getName();
+                    $Content[$Key] = $tblBasketVerification->getServiceTblItem()->getName();
                     $Content[$Key] .= ' - '.$tblBasketVerification->getSummaryPrice();
                 }
             }
@@ -1381,14 +1381,14 @@ class Frontend extends Extension implements IFrontendInterface
                 $Item = '';
                 $Price = '';
                 $ItemType = '';
-                if ($tblBasketVerification->getServicePeoplePerson()) {
-                    $Person = $tblBasketVerification->getServicePeoplePerson()->getFullName();
+                if ($tblBasketVerification->getServiceTblPerson()) {
+                    $Person = $tblBasketVerification->getServiceTblPerson()->getFullName();
                 }
-                if ($tblBasketVerification->getServiceInventoryItem()) {
-                    $Item = $tblBasketVerification->getServiceInventoryItem()->getName();
+                if ($tblBasketVerification->getServiceTblItem()) {
+                    $Item = $tblBasketVerification->getServiceTblItem()->getName();
                     $Price = $tblBasketVerification->getSummaryPrice();
-                    if ($tblBasketVerification->getServiceInventoryItem()->getTblItemType()) {
-                        $ItemType = $tblBasketVerification->getServiceInventoryItem()->getTblItemType()->getName();
+                    if ($tblBasketVerification->getServiceTblItem()->getTblItemType()) {
+                        $ItemType = $tblBasketVerification->getServiceTblItem()->getTblItemType()->getName();
                     }
                 }
 
@@ -1408,7 +1408,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                             .new Standard(
                                 'Nein', '/Billing/Accounting/Basket/Verification/Person', new Disable(),
-                                array('PersonId' => $tblBasketVerification->getServicePeoplePerson()->getId(),
+                                array('PersonId' => $tblBasketVerification->getServiceTblPerson()->getId(),
                                       'BasketId' => $tblBasketVerification->getTblBasket()->getId())
                             )
                         )
@@ -1436,8 +1436,8 @@ class Frontend extends Extension implements IFrontendInterface
                             $tblBasketVerification = $tblBasketVerificationList[0];
                             $PanelContent = array();
                             foreach ($tblBasketVerificationList as $tblBasketVerifications) {
-                                if ($tblBasketVerifications->getServiceInventoryItem()) {
-                                    $PanelContent[] = $tblBasketVerifications->getServiceInventoryItem()->getName();
+                                if ($tblBasketVerifications->getServiceTblItem()) {
+                                    $PanelContent[] = $tblBasketVerifications->getServiceTblItem()->getName();
                                 }
                             }
                             $Stage->setContent(

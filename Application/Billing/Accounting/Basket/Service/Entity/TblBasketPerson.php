@@ -19,12 +19,12 @@ class TblBasketPerson extends Element
 {
 
     const ATTR_TBL_BASKET = 'tblBasket';
-    const SERVICE_PEOPLE_PERSON = 'servicePeople_Person';
+    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
 
     /**
      * @Column(type="bigint")
      */
-    protected $servicePeople_Person;
+    protected $serviceTblPerson;
     /**
      * @Column(type="bigint")
      */
@@ -55,22 +55,22 @@ class TblBasketPerson extends Element
     /**
      * @return bool|TblPerson
      */
-    public function getServicePeople_Person()
+    public function getServiceTblPerson()
     {
 
-        if (null === $this->servicePeople_Person) {
+        if (null === $this->serviceTblPerson) {
             return false;
         } else {
-            return Person::useService()->getPersonById($this->servicePeople_Person);
+            return Person::useService()->getPersonById($this->serviceTblPerson);
         }
     }
 
     /**
-     * @param TblPerson|null $servicePeople_Person
+     * @param TblPerson|null $tblPerson
      */
-    public function setServicePeople_Person(TblPerson $servicePeople_Person = null)
+    public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
 
-        $this->servicePeople_Person = ( null === $servicePeople_Person ? null : $servicePeople_Person->getId() );
+        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 }

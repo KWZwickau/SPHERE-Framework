@@ -29,6 +29,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -150,15 +151,19 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
      * @return Stage
      */
-    public function frontendAccountFibuActivate($Id)
+    public function frontendAccountFibuActivate($Id = null)
     {
 
         $Stage = new Stage();
         $Stage->setTitle('Aktivierung');
+        if (null === $Id) {
+            $Stage->setContent(new Warning('Fehlende Parameter'));
+            return $Stage.new Redirect('/Billing/Accounting/Account', Redirect::TIMEOUT_ERROR);
+        }
 
         if (Account::useService()->changeFibuActivate($Id)) {
             $Stage->setContent(new Success('Aktivierung erfolgreich')
@@ -172,15 +177,19 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
      * @return Stage
      */
-    public function frontendAccountFibuDeactivate($Id)
+    public function frontendAccountFibuDeactivate($Id = null)
     {
 
         $Stage = new Stage();
         $Stage->setTitle('Deaktivierung');
+        if (null === $Id) {
+            $Stage->setContent(new Warning('Fehlende Parameter'));
+            return $Stage.new Redirect('/Billing/Accounting/Account', Redirect::TIMEOUT_ERROR);
+        }
 
         if (Account::useService()->changeFibuDeactivate($Id)) {
             $Stage->setContent(new Success('Deaktivierung erfolgreich')

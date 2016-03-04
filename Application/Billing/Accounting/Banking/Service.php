@@ -145,14 +145,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblBankAccount $tblAccount
+     * @param TblBankAccount $tblBankAccount
      *
      * @return bool
      */
-    public function destroyAccount(TblBankAccount $tblAccount)
+    public function destroyBankAccount(TblBankAccount $tblBankAccount)
     {
 
-        return (new Data($this->getBinding()))->destroyAccount($tblAccount);
+        return (new Data($this->getBinding()))->destroyBankAccount($tblBankAccount);
     }
 
     /**
@@ -732,7 +732,7 @@ class Service extends AbstractService
     }
 
 
-    public function changeAccount(
+    public function changeBankAccount(
         IFormInterface &$Stage = null,
         TblBankAccount $tblBankAccount,
         $Account
@@ -768,7 +768,7 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-            if ((new Data ($this->getBinding()))->updateAccount(
+            if ((new Data ($this->getBinding()))->updateBankAccount(
                 $tblBankAccount,
                 $Account['Owner'],
                 $Account['IBAN'],

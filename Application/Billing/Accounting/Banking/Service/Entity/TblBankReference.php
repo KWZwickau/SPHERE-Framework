@@ -18,21 +18,21 @@ class TblBankReference extends Element
 {
 
     const ATTR_REFERENCE_NUMBER = 'Reference';
-    const SERVICE_TBL_PERSON = 'ServicePeople_Person';
     const ATTR_IS_VOID = 'IsVoid';
+    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
 
     /**
      * @Column(type="string")
      */
     protected $Reference;
     /**
-     * @Column(type="bigint")
-     */
-    protected $ServicePeople_Person;
-    /**
      * @Column(type="date")
      */
     protected $ReferenceDate;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblPerson;
 
     /**
      * @return string $Reference
@@ -50,28 +50,6 @@ class TblBankReference extends Element
     {
 
         $this->Reference = $Reference;
-    }
-
-    /**
-     * @return bool|TblPerson
-     */
-    public function getServicePeoplePerson()
-    {
-
-        if (null === $this->ServicePeople_Person) {
-            return false;
-        } else {
-            return Person::useService()->getPersonById($this->ServicePeople_Person);
-        }
-    }
-
-    /**
-     * @param TblPerson|null $tblPerson
-     */
-    public function setServicePeoplePerson(TblPerson $tblPerson = null)
-    {
-
-        $this->ServicePeople_Person = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**
@@ -98,5 +76,27 @@ class TblBankReference extends Element
     {
 
         $this->ReferenceDate = $ReferenceDate;
+    }
+
+    /**
+     * @return bool|TblPerson
+     */
+    public function getServiceTblPerson()
+    {
+
+        if (null === $this->serviceTblPerson) {
+            return false;
+        } else {
+            return Person::useService()->getPersonById($this->serviceTblPerson);
+        }
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     */
+    public function setServiceTblPerson(TblPerson $tblPerson = null)
+    {
+
+        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 }

@@ -19,8 +19,8 @@ use SPHERE\System\Database\Fitting\Element;
 class TblCalculation extends Element
 {
 
-    const SERVICE_SCHOOL_TYPE = 'serviceSchoolTblType';
-    const SERVICE_SIBLING_RANK = 'serviceStudentSiblingRank';
+    const ATTR_SERVICE_TBL_TYPE = 'serviceTblType';
+    const ATTR_SERVICE_TBL_SIBLING_RANK = 'serviceTblSiblingRank';
 
     /**
      * @Column(type="decimal", precision=14, scale=4)
@@ -29,11 +29,11 @@ class TblCalculation extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceSchoolTblType;
+    protected $serviceTblType;
     /**
      * @Column(type="bigint")
      */
-    protected $serviceStudentSiblingRank;
+    protected $serviceTblSiblingRank;
 
     /**
      * @return (type="decimal", precision=14, scale=4)
@@ -66,44 +66,44 @@ class TblCalculation extends Element
     /**
      * @return bool|TblType
      */
-    public function getServiceSchoolType()
+    public function getServiceTblType()
     {
 
-        if (null === $this->serviceSchoolTblType) {
+        if (null === $this->serviceTblType) {
             return false;
         } else {
-            return Type::useService()->getTypeById($this->serviceSchoolTblType);
+            return Type::useService()->getTypeById($this->serviceTblType);
         }
     }
 
     /**
      * @param TblType|null $tblType
      */
-    public function setServiceSchoolType(TblType $tblType = null)
+    public function setServiceTblType(TblType $tblType = null)
     {
 
-        $this->serviceSchoolTblType = ( null === $tblType ? null : $tblType->getId() );
+        $this->serviceTblType = ( null === $tblType ? null : $tblType->getId() );
     }
 
     /**
      * @return bool|TblSiblingRank
      */
-    public function getServiceStudentChildRank()
+    public function getServiceTblSiblingRank()
     {
 
-        if (null === $this->serviceStudentSiblingRank) {
+        if (null === $this->serviceTblSiblingRank) {
             return false;
         } else {
-            return Relationship::useService()->getSiblingRankById($this->serviceStudentSiblingRank);
+            return Relationship::useService()->getSiblingRankById($this->serviceTblSiblingRank);
         }
     }
 
     /**
      * @param null|TblSiblingRank $tblSiblingRank
      */
-    public function setServiceStudentSiblingRank(TblSiblingRank $tblSiblingRank = null)
+    public function setServiceTblSiblingRank(TblSiblingRank $tblSiblingRank = null)
     {
 
-        $this->serviceStudentSiblingRank = ( null === $tblSiblingRank ? null : $tblSiblingRank->getId() );
+        $this->serviceTblSiblingRank = ( null === $tblSiblingRank ? null : $tblSiblingRank->getId() );
     }
 }

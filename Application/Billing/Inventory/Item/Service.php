@@ -453,15 +453,4 @@ class Service extends AbstractService
             .new Redirect('/Billing/Inventory/Commodity/Item/Account/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblItem->getId()));
         }
     }
-
-    /**
-     * @param int $Price
-     *
-     * @return string
-     */
-    public function formatPrice($Price)
-    {
-
-        return (new Data($this->getBinding()))->formatPrice($Price);
-    }
 }

@@ -25,7 +25,7 @@ class TblInvoiceAccount extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceBilling_Account;
+    protected $serviceTblAccount;
 
     /**
      * @return bool|TblInvoiceItem
@@ -52,22 +52,22 @@ class TblInvoiceAccount extends Element
     /**
      * @return bool|TblAccount
      */
-    public function getServiceBillingAccount()
+    public function getServiceTblAccount()
     {
 
-        if (null === $this->serviceBilling_Account) {
+        if (null === $this->serviceTblAccount) {
             return false;
         } else {
-            return Account::useService()->getAccountById($this->serviceBilling_Account);
+            return Account::useService()->getAccountById($this->serviceTblAccount);
         }
     }
 
     /**
      * @param TblAccount $tblAccount
      */
-    public function setServiceBillingAccount(TblAccount $tblAccount = null)
+    public function setServiceTblAccount(TblAccount $tblAccount = null)
     {
 
-        $this->serviceBilling_Account = ( null === $tblAccount ? null : $tblAccount->getId() );
+        $this->serviceTblAccount = ( null === $tblAccount ? null : $tblAccount->getId() );
     }
 }

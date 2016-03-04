@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Billing\Inventory\Commodity;
 
-use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Data;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityItem;
@@ -60,28 +59,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblCommodity $tblCommodity
-     *
-     * @return int
-     */
-    public function countItemAllByCommodity(TblCommodity $tblCommodity)
-    {
-
-        return (new Data($this->getBinding()))->countItemAllByCommodity($tblCommodity);
-    }
-
-//    /**
-//     * @param TblCommodity $tblCommodity
-//     *
-//     * @return string
-//     */
-//    public function sumPriceItemAllByCommodity(TblCommodity $tblCommodity)
-//    {
-//
-//        return (new Data($this->getBinding()))->sumPriceItemAllByCommodity($tblCommodity);
-//    }
-
-    /**
      * @param $Id
      *
      * @return bool|TblCommodityItem
@@ -101,28 +78,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getItemAllByCommodity($tblCommodity);
-    }
-
-    /**
-     * @param TblItem $tblItem
-     *
-     * @return bool|TblItem[]
-     */
-    public function getCommodityItemAllByItem(TblItem $tblItem)
-    {
-
-        return (new Data($this->getBinding()))->getCommodityItemAllByItem($tblItem);
-    }
-
-    /**
-     * @param TblItem $tblItem
-     *
-     * @return TblAccount[]
-     */
-    public function getAccountAllByItem(TblItem $tblItem)
-    {
-
-        return (new Data($this->getBinding()))->getAccountAllByItem($tblItem);
     }
 
     /**
@@ -294,7 +249,8 @@ class Service extends AbstractService
     {
 
         $Error = false;
-//        $tblBasketList = Basket::useService()->getBasketAll();        // ToDO Prüfung auf Warenkorb einsatz
+        /** Prüfung auf Warenkorb einsatz */
+//        $tblBasketList = Basket::useService()->getBasketAll();
 //        if($tblBasketList)
 //        {
 //            foreach ($tblBasketList as $tblBasket) {

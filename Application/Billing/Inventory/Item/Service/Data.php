@@ -86,8 +86,7 @@ class Data extends AbstractData
     public function getCalculationById($Id)
     {
 
-        $Entity = $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblCalculation', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__Method__, $this->getConnection()->getEntityManager(), 'TblCalculation', $Id);
     }
 
     /**
@@ -199,7 +198,7 @@ class Data extends AbstractData
             foreach ($TempList as $Temp) {
                 /** @var TblCalculation $tblCalculation */
                 $tblCalculation = $Temp->getTblCalculation();
-                if (!$tblCalculation->getServiceSchoolType() && !$tblCalculation->getServiceStudentChildRank()) {
+                if (!$tblCalculation->getServiceTblType() && !$tblCalculation->getServiceTblSiblingRank()) {
                     $Entity = $tblCalculation;
                 }
             }
@@ -244,11 +243,11 @@ class Data extends AbstractData
             foreach ($tblCalculationList as $tblCalculation) {
                 $tblSchoolType = '0';
                 $tblChildRank = '0';
-                if ($tblCalculation->getServiceSchoolType()) {
-                    $tblSchoolType = $tblCalculation->getServiceSchoolType()->getId();
+                if ($tblCalculation->getServiceTblType()) {
+                    $tblSchoolType = $tblCalculation->getServiceTblType()->getId();
                 }
-                if ($tblCalculation->getServiceStudentChildRank()) {
-                    $tblChildRank = $tblCalculation->getServiceStudentChildRank()->getId();
+                if ($tblCalculation->getServiceTblSiblingRank()) {
+                    $tblChildRank = $tblCalculation->getServiceTblSiblingRank()->getId();
                 }
                 if ($tblSchoolType === $SchoolType && $tblChildRank === $SiblingRank) {
                     $Exists = true;
@@ -267,23 +266,8 @@ class Data extends AbstractData
     public function existsItem($Name)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblItem')
-            ->findOneBy(array(TblItem::ATTR_NAME => $Name));
-        return ( null === $Entity ? false : $Entity );
-    }
-
-
-    /**
-     * @param int $Value
-     *
-     * @return string
-     */
-    public function formatPrice($Value)
-    {
-
-        $Value = round($Value, 2);
-        $Value = sprintf("%01.2f", $Value);
-        return str_replace('.', ',', $Value)." €";
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblItem',
+            array(TblItem::ATTR_NAME => $Name));
     }
 
     /**
@@ -359,10 +343,10 @@ class Data extends AbstractData
         $Entity = new TblCalculation();
         $Entity->setValue(str_replace(',', '.', $Value));
         if (null !== $Course) {
-            $Entity->setServiceSchoolType($Course);
+            $Entity->setServiceTblType($Course);
         }
         if (null !== $ChildRank) {
-            $Entity->setServiceStudentSiblingRank($ChildRank);
+            $Entity->setServiceTblSiblingRank($ChildRank);
         }
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -514,8 +498,8 @@ class Data extends AbstractData
 
         $Entity = $Manager->getEntity('TblItemAccount')->findOneBy(
             array(
-                TblItemAccount::ATTR_TBL_ITEM           => $tblItem->getId(),
-                TblItemAccount::SERVICE_BILLING_ACCOUNT => $tblAccount->getId()
+                TblItemAccount::ATTR_TBL_ITEM            => $tblItem->getId(),
+                TblItemAccount::ATTR_SERVICE_TBL_ACCOUNT => $tblAccount->getId()
             ));
         if (null === $Entity) {
             $Entity = new TblItemAccount();

@@ -27,8 +27,8 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
         $tblInvoice = $this->setTableInvoice($Schema);
         $tblInvoiceItem = $this->setTableInvoiceItem($Schema, $tblInvoice);
-        $tblOrder = $this->setTableOrder($Schema);
-        $this->setTableOrderItem($Schema, $tblOrder);
+//        $tblOrder = $this->setTableOrder($Schema);
+//        $this->setTableOrderItem($Schema, $tblOrder);
         $this->setTableInvoiceAccount($Schema, $tblInvoiceItem);
 
         $tblTempInvoice = $this->setTableTempInvoice($Schema);
@@ -84,14 +84,14 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorNumber')) {
             $Table->addColumn('DebtorNumber', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceManagement_Address')) {
-            $Table->addColumn('serviceManagement_Address', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblAddress')) {
+            $Table->addColumn('serviceTblAddress', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceManagement_Person')) {
-            $Table->addColumn('serviceManagement_Person', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceBilling_Banking_Payment_Type')) {
-            $Table->addColumn('serviceBilling_Banking_Payment_Type', 'bigint');
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceTblPaymentType')) {
+            $Table->addColumn('serviceTblPaymentType', 'bigint');
         }
         if (!$this->getConnection()->hasColumn('tblInvoice', 'IsPaymentDateModified')) {
             $Table->addColumn('IsPaymentDateModified', 'boolean');
@@ -135,89 +135,89 @@ class Setup extends AbstractSetup
         return $Table;
     }
 
-    /**
-     * @param Schema $Schema
-     *
-     * @return Table
-     */
-    private function setTableOrder(Schema &$Schema)
-    {
+//    /**
+//     * @param Schema $Schema
+//     *
+//     * @return Table
+//     */
+//    private function setTableOrder(Schema &$Schema)
+//    {
+//
+//        $Table = $this->getConnection()->createTable($Schema, 'tblOrder');
+//        if (!$this->getConnection()->hasColumn('tblOrder', 'BasketName')) {
+//            $Table->addColumn('BasketName', 'string');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblInvoice', 'InvoiceDate')) {
+//            $Table->addColumn('InvoiceDate', 'date');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblInvoice', 'PaymentDate')) {
+//            $Table->addColumn('PaymentDate', 'date');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblOrder', 'Discount')) {
+//            $Table->addColumn('Discount', 'decimal', array('precision' => 14, 'scale' => 4));
+//        }
+//        if (!$this->getConnection()->hasColumn('tblOrder', 'DebtorFirstName')) {
+//            $Table->addColumn('DebtorFirstName', 'string');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblOrder', 'DebtorLastName')) {
+//            $Table->addColumn('DebtorLastName', 'string');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblOrder', 'DebtorSalutation')) {
+//            $Table->addColumn('DebtorSalutation', 'string');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblOrder', 'DebtorNumber')) {
+//            $Table->addColumn('DebtorNumber', 'string');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblOrder', 'serviceManagement_Address')) {
+//            $Table->addColumn('serviceManagement_Address', 'bigint', array('notnull' => false));
+//        }
+//        if (!$this->getConnection()->hasColumn('tblOrder', 'serviceManagement_Person')) {
+//            $Table->addColumn('serviceManagement_Person', 'bigint', array('notnull' => false));
+//        }
+//        if (!$this->getConnection()->hasColumn('tblOrder', 'serviceBilling_Banking_Payment_Type')) {
+//            $Table->addColumn('serviceBilling_Banking_Payment_Type', 'bigint');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblOrder', 'IsPaymentDateModified')) {
+//            $Table->addColumn('IsPaymentDateModified', 'boolean');
+//        }
+//
+//        return $Table;
+//    }
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblOrder');
-        if (!$this->getConnection()->hasColumn('tblOrder', 'BasketName')) {
-            $Table->addColumn('BasketName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'InvoiceDate')) {
-            $Table->addColumn('InvoiceDate', 'date');
-        }
-        if (!$this->getConnection()->hasColumn('tblInvoice', 'PaymentDate')) {
-            $Table->addColumn('PaymentDate', 'date');
-        }
-        if (!$this->getConnection()->hasColumn('tblOrder', 'Discount')) {
-            $Table->addColumn('Discount', 'decimal', array('precision' => 14, 'scale' => 4));
-        }
-        if (!$this->getConnection()->hasColumn('tblOrder', 'DebtorFirstName')) {
-            $Table->addColumn('DebtorFirstName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblOrder', 'DebtorLastName')) {
-            $Table->addColumn('DebtorLastName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblOrder', 'DebtorSalutation')) {
-            $Table->addColumn('DebtorSalutation', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblOrder', 'DebtorNumber')) {
-            $Table->addColumn('DebtorNumber', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblOrder', 'serviceManagement_Address')) {
-            $Table->addColumn('serviceManagement_Address', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblOrder', 'serviceManagement_Person')) {
-            $Table->addColumn('serviceManagement_Person', 'bigint', array('notnull' => false));
-        }
-        if (!$this->getConnection()->hasColumn('tblOrder', 'serviceBilling_Banking_Payment_Type')) {
-            $Table->addColumn('serviceBilling_Banking_Payment_Type', 'bigint');
-        }
-        if (!$this->getConnection()->hasColumn('tblOrder', 'IsPaymentDateModified')) {
-            $Table->addColumn('IsPaymentDateModified', 'boolean');
-        }
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblOrder
-     *
-     * @return Table
-     */
-    private function setTableOrderItem(Schema &$Schema, Table $tblOrder)
-    {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblOrderItem');
-
-        if (!$this->getConnection()->hasColumn('tblOrderItem', 'CommodityDescription')) {
-            $Table->addColumn('CommodityDescription', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblOrderItem', 'CommodityName')) {
-            $Table->addColumn('CommodityName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblOrderItem', 'ItemDescription')) {
-            $Table->addColumn('ItemDescription', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblOrderItem', 'ItemName')) {
-            $Table->addColumn('ItemName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblOrderItem', 'ItemPrice')) {
-            $Table->addColumn('ItemPrice', 'decimal', array('precision' => 14, 'scale' => 4));
-        }
-        if (!$this->getConnection()->hasColumn('tblOrderItem', 'ItemQuantity')) {
-            $Table->addColumn('ItemQuantity', 'decimal', array('precision' => 14, 'scale' => 4));
-        }
-
-        $this->getConnection()->addForeignKey($Table, $tblOrder);
-
-        return $Table;
-    }
+//    /**
+//     * @param Schema $Schema
+//     * @param Table  $tblOrder
+//     *
+//     * @return Table
+//     */
+//    private function setTableOrderItem(Schema &$Schema, Table $tblOrder)
+//    {
+//
+//        $Table = $this->getConnection()->createTable($Schema, 'tblOrderItem');
+//
+//        if (!$this->getConnection()->hasColumn('tblOrderItem', 'CommodityDescription')) {
+//            $Table->addColumn('CommodityDescription', 'string');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblOrderItem', 'CommodityName')) {
+//            $Table->addColumn('CommodityName', 'string');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblOrderItem', 'ItemDescription')) {
+//            $Table->addColumn('ItemDescription', 'string');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblOrderItem', 'ItemName')) {
+//            $Table->addColumn('ItemName', 'string');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblOrderItem', 'ItemPrice')) {
+//            $Table->addColumn('ItemPrice', 'decimal', array('precision' => 14, 'scale' => 4));
+//        }
+//        if (!$this->getConnection()->hasColumn('tblOrderItem', 'ItemQuantity')) {
+//            $Table->addColumn('ItemQuantity', 'decimal', array('precision' => 14, 'scale' => 4));
+//        }
+//
+//        $this->getConnection()->addForeignKey($Table, $tblOrder);
+//
+//        return $Table;
+//    }
 
     /**
      * @param Schema $Schema
@@ -230,8 +230,8 @@ class Setup extends AbstractSetup
 
         $Table = $this->getConnection()->createTable($Schema, 'tblInvoiceAccount');
 
-        if (!$this->getConnection()->hasColumn('tblInvoiceAccount', 'serviceBilling_Account')) {
-            $Table->addColumn('serviceBilling_Account', 'bigint');
+        if (!$this->getConnection()->hasColumn('tblInvoiceAccount', 'serviceTblAccount')) {
+            $Table->addColumn('serviceTblAccount', 'bigint');
         }
 
         $this->getConnection()->addForeignKey($Table, $tblInvoiceItem);

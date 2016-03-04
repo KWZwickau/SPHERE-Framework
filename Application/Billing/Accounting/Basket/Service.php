@@ -47,17 +47,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblBasket $tblBasket
-     *
-     * @return bool|TblCommodity[]
-     */
-    public function getCommodityAllByBasket(TblBasket $tblBasket)
-    {
-
-        return (new Data($this->getBinding()))->getCommodityAllByBasket($tblBasket);
-    }
-
-    /**
      * @return bool|TblBasket[]
      */
     public function getBasketAll()
@@ -134,7 +123,7 @@ class Service extends AbstractService
         $tblPerson = array();
         if ($tblBasketPersonList) {
             foreach ($tblBasketPersonList as $tblBasketPerson) {
-                array_push($tblPerson, $tblBasketPerson->getServicePeople_Person());
+                array_push($tblPerson, $tblBasketPerson->getServiceTblPerson());
             }
         }
 
@@ -154,7 +143,7 @@ class Service extends AbstractService
         $tblItem = array();
         if ($tblBasketItemList) {
             foreach ($tblBasketItemList as $tblBasketItem) {
-                array_push($tblItem, $tblBasketItem->getServiceInventoryItem());
+                array_push($tblItem, $tblBasketItem->getServiceTblItem());
             }
 
         }
@@ -288,11 +277,11 @@ class Service extends AbstractService
                             $ItemChildRankId = false;
                             $ItemCourseId = false;
                             $ItemChildRankName = '';
-                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+                            $tblItemCourseType = $tblCalculation->getServiceTblType();
                             if ($tblItemCourseType) {
                                 $ItemCourseId = $tblItemCourseType->getId();
                             }
-                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+                            $tblItemChildRank = $tblCalculation->getServiceTblSiblingRank();
                             if ($tblItemChildRank) {
                                 $ItemChildRankId = $tblItemChildRank->getId();
                                 $ItemChildRankName = $tblItemChildRank->getName();
@@ -331,11 +320,11 @@ class Service extends AbstractService
                             $ItemChildRankId = false;
                             $ItemCourseId = false;
                             $ItemChildRankName = '';
-                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+                            $tblItemCourseType = $tblCalculation->getServiceTblType();
                             if ($tblItemCourseType) {
                                 $ItemCourseId = $tblItemCourseType->getId();
                             }
-                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+                            $tblItemChildRank = $tblCalculation->getServiceTblSiblingRank();
                             if ($tblItemChildRank) {
                                 $ItemChildRankId = $tblItemChildRank->getId();
                                 $ItemChildRankName = $tblItemChildRank->getName();
@@ -364,11 +353,11 @@ class Service extends AbstractService
                             }
                             $ItemChildRankId = false;
                             $ItemCourseId = false;
-                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+                            $tblItemCourseType = $tblCalculation->getServiceTblType();
                             if ($tblItemCourseType) {
                                 $ItemCourseId = $tblItemCourseType->getId();
                             }
-                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+                            $tblItemChildRank = $tblCalculation->getServiceTblSiblingRank();
                             if ($tblItemChildRank) {
                                 $ItemChildRankId = $tblItemChildRank->getId();
                             }
@@ -389,12 +378,12 @@ class Service extends AbstractService
                             $ItemChildRankName = '';
                             $ItemCourseId = false;
                             $Changed = false;
-                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+                            $tblItemCourseType = $tblCalculation->getServiceTblType();
                             if ($tblItemCourseType) {
                                 $ItemCourseId = $tblItemCourseType->getId();
                                 $Changed = true;
                             }
-                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+                            $tblItemChildRank = $tblCalculation->getServiceTblSiblingRank();
                             if ($tblItemChildRank) {
                                 $ItemChildRankId = $tblItemChildRank->getId();
                                 $ItemChildRankName = $tblItemChildRank->getName();
@@ -421,11 +410,11 @@ class Service extends AbstractService
                             }
                             $ItemChildRankId = false;
                             $ItemCourseId = false;
-                            $tblItemCourseType = $tblCalculation->getServiceSchoolType();
+                            $tblItemCourseType = $tblCalculation->getServiceTblType();
                             if ($tblItemCourseType) {
                                 $ItemCourseId = $tblItemCourseType->getId();
                             }
-                            $tblItemChildRank = $tblCalculation->getServiceStudentChildRank();
+                            $tblItemChildRank = $tblCalculation->getServiceTblSiblingRank();
                             if ($tblItemChildRank) {
                                 $ItemChildRankId = $tblItemChildRank->getId();
                             }
@@ -593,7 +582,7 @@ class Service extends AbstractService
         $ItemList = array();
         if ($tblBasketItemList) {
             foreach ($tblBasketItemList as $tblBasketItem) {
-                $ItemList[] = $tblBasketItem->getServiceInventoryItem();
+                $ItemList[] = $tblBasketItem->getServiceTblItem();
             }
         }
 
@@ -707,12 +696,12 @@ class Service extends AbstractService
 //            }
             return new Success('Der Eintrag wurde erfolgreich gelöscht')
             .new Redirect('/Billing/Accounting/Basket/Verification/Person', Redirect::TIMEOUT_SUCCESS,
-                array('PersonId' => $tblBasketVerification->getServicePeoplePerson()->getId(),
+                array('PersonId' => $tblBasketVerification->getServiceTblPerson()->getId(),
                       'BasketId' => $tblBasketVerification->getTblBasket()->getId()));
         } else {
             return new Warning('Der Eintrag konnte nicht gelöscht werden')
             .new Redirect('/Billing/Accounting/Basket/Verification/Person', Redirect::TIMEOUT_ERROR,
-                array('PersonId' => $tblBasketVerification->getServicePeoplePerson()->getId(),
+                array('PersonId' => $tblBasketVerification->getServiceTblPerson()->getId(),
                       'BasketId' => $tblBasketVerification->getTblBasket()->getId()));
         }
     }
@@ -770,10 +759,10 @@ class Service extends AbstractService
     {
 
         if ((new Data($this->getBinding()))->removeBasketItem($tblBasketItem)) {
-            return new Success('Der Artikel '.$tblBasketItem->getServiceInventoryItem()->getName().' wurde erfolgreich entfernt')
+            return new Success('Der Artikel '.$tblBasketItem->getServiceTblItem()->getName().' wurde erfolgreich entfernt')
             .new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasketItem->getTblBasket()->getId()));
         } else {
-            return new Warning('Der Artikel '.$tblBasketItem->getServiceInventoryItem()->getName().' konnte nicht entfernt werden')
+            return new Warning('Der Artikel '.$tblBasketItem->getServiceTblItem()->getName().' konnte nicht entfernt werden')
             .new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasketItem->getTblBasket()->getId()));
         }
     }
@@ -827,12 +816,12 @@ class Service extends AbstractService
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
                     .new Redirect('/Billing/Accounting/Basket/Verification/Person', Redirect::TIMEOUT_SUCCESS,
-                        array('PersonId' => $tblBasketVerification->getServicePeoplePerson()->getId(),
+                        array('PersonId' => $tblBasketVerification->getServiceTblPerson()->getId(),
                               'BasketId' => $tblBasketVerification->getTblBasket()->getId()));
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
                     .new Redirect('/Billing/Accounting/Basket/Verification/Person', Redirect::TIMEOUT_ERROR,
-                        array('PersonId' => $tblBasketVerification->getServicePeoplePerson()->getId(),
+                        array('PersonId' => $tblBasketVerification->getServiceTblPerson()->getId(),
                               'BasketId' => $tblBasketVerification->getTblBasket()->getId()));
             };
         }
@@ -862,7 +851,7 @@ class Service extends AbstractService
     public function removeBasketPerson(TblBasketPerson $tblBasketPerson)
     {
 
-        $tblPerson = $tblBasketPerson->getServicePeople_Person();
+        $tblPerson = $tblBasketPerson->getServiceTblPerson();
         $tblBasket = $tblBasketPerson->getTblBasket();
         /** Löschen aller Artikel von einer Person beim löschen dieser */
         $tblBasketVerificationList = Basket::useService()->getBasketVerificationByPersonAndBasket($tblPerson, $tblBasket);

@@ -136,7 +136,7 @@ class TblAccountKey extends Element
     /**
      * @return bool|TblAccountKeyType
      */
-    public function getTableAccountKey()
+    public function getTblAccountKey()
     {
 
         if (null === $this->tblAccountKeyType) {
@@ -149,7 +149,7 @@ class TblAccountKey extends Element
     /**
      * @param bool|TblAccountKeyType $tblAccountKeyType
      */
-    public function setTableAccountKeyType(TblAccountKeyType $tblAccountKeyType = null)
+    public function setTblAccountKeyType(TblAccountKeyType $tblAccountKeyType = null)
     {
 
         $this->tblAccountKeyType = ( null === $tblAccountKeyType ? null : $tblAccountKeyType->getId() );

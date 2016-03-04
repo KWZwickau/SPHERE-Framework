@@ -24,23 +24,19 @@ class Account implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__,
                 __NAMESPACE__.'\Frontend::frontendAccountFibu'
-            )->setParameterDefault('Account', null)
-        );
+            ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Create',
                 __NAMESPACE__.'\Frontend::frontendAccountCreate'
-            )->setParameterDefault('Account', null)
-        );
+            ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Activate',
                 __NAMESPACE__.'\Frontend::frontendAccountFibuActivate'
-            )->setParameterDefault('Id', null)
-        );
+            ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Deactivate',
                 __NAMESPACE__.'\Frontend::frontendAccountFibuDeactivate'
-            )->setParameterDefault('Id', null)
-        );
+            ));
     }
 
     /**
