@@ -121,9 +121,9 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $Item['Description'] = $tblGradeType->getDescription();
                 $Item['Option'] = (new Standard('', '/Education/Graduation/Gradebook/GradeType/Edit', new Edit(), array(
-                    'Id' => $tblGradeType->getId()
-                ), 'Zensuren-Typ bearbeiten'))
-                . (new Standard('', '/Education/Graduation/Gradebook/GradeType/Destroy', new Remove(),
+                        'Id' => $tblGradeType->getId()
+                    ), 'Zensuren-Typ bearbeiten'))
+                    . (new Standard('', '/Education/Graduation/Gradebook/GradeType/Destroy', new Remove(),
                         array('Id' => $tblGradeType->getId()), 'Löschen'));
 
                 array_push($TableContent, $Item);
@@ -722,6 +722,7 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
                         $columnSubList[] = new LayoutColumn(new Header(new Bold('&#216;')), 1);
+                        $columnSubList[] = new LayoutColumn(new Header(new Bold('P')), 1);
                         $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
                             $width);
                         $columnSecondList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSecondSubList))),
@@ -732,6 +733,12 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
             }
+
+            $columnSubList = array();
+            $columnSubList[] = new LayoutColumn(new Header(new Bold('&#216;')), 6);
+            $columnSubList[] = new LayoutColumn(new Header(new Bold('P')), 6);
+            $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),1);
+
             $rowList[] = new LayoutRow($columnSecondList);
             $rowList[] = new LayoutRow($columnList);
 
@@ -792,17 +799,30 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblPeriod,
                                 $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                             );
+                            $priority = '';
                             if (is_array($average)) {
                                 $errorRowList = $average;
                                 $average = '';
+                            } else {
+                                $posStart = strpos($average, '(');
+                                if ($posStart !== false) {
+                                    $posEnd = strpos($average, ')');
+                                    if ($posEnd !== false) {
+                                        $priority = substr($average, $posStart + 1, $posEnd - ($posStart + 1));
+                                    }
+                                    $average = substr($average, 0, $posStart);
+                                }
                             }
 
                             $columnSubList[] = new LayoutColumn(new Container(new Bold($average)), 1);
+                            $columnSubList[] = new LayoutColumn(new Container(new Bold($priority)), 1);
 
                             $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
                                 $width);
                         }
-                        $totalAverage = Gradebook::useService()->calcStudentGrade(
+
+                        // total average (Gesamtjahr)
+                        $average = Gradebook::useService()->calcStudentGrade(
                             $tblPerson,
                             $tblDivision,
                             $tblDivisionSubject->getServiceTblSubject(),
@@ -811,14 +831,28 @@ class Frontend extends Extension implements IFrontendInterface
                             null,
                             $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
                         );
-                        if (is_array($totalAverage)) {
-                            $errorRowList = $totalAverage;
-                            $totalAverage = '';
+                        $priority = '';
+                        if (is_array($average)) {
+                            $errorRowList = $average;
+                            $average = '';
+                        } else {
+                            $posStart = strpos($average, '(');
+                            if ($posStart !== false) {
+                                $posEnd = strpos($average, ')');
+                                if ($posEnd !== false) {
+                                    $priority = substr($average, $posStart + 1, $posEnd - ($posStart + 1));
+                                }
+                                $average = substr($average, 0, $posStart);
+                            }
                         }
 
-                        $columnList[] = new LayoutColumn(
-                            new Container(new Bold($totalAverage))
-                            , 2);
+                        $columnSubList = array();
+                        $columnSubList[] = new LayoutColumn(new Container(new Bold($average)), 6);
+                        $columnSubList[] = new LayoutColumn(new Container(new Bold($priority)), 6);
+
+                        $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
+                            1);
+
                         $rowList[] = new LayoutRow($columnList);
                     }
                 }
