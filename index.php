@@ -35,8 +35,17 @@ AutoLoader::getNamespaceAutoLoader('SPHERE', __DIR__ . '/', 'SPHERE');
 AutoLoader::getNamespaceAutoLoader('Markdownify', __DIR__ . '/Library/Markdownify/2.1.6/src');
 AutoLoader::getNamespaceAutoLoader('phpFastCache', __DIR__ . '/Library/PhpFastCache/4.3.6/src');
 
+// Load Application
 $Main = new Main();
 
+// Install
+if (false) {
+    Main::registerApiPlatform();
+    Main::registerGuiPlatform();
+    Main::runSelfHeal();
+}
+
+// Clear Cache
 if (false) {
     $CacheConfig = (new ConfigFactory())->createReader(__DIR__ . '/System/Cache/Configuration.ini', new IniReader());
     (new CacheFactory())->createHandler(new CookieHandler(), $CacheConfig)->clearCache();
@@ -48,6 +57,7 @@ if (false) {
     (new CacheFactory())->createHandler(new SmartyHandler(), $CacheConfig)->clearCache();
 }
 
+// Debugger
 $DebuggerConfig = (new ConfigFactory())->createReader(__DIR__ . '/System/Debugger/Configuration.ini', new IniReader());
 if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('Enabled')->getValue()) {
     Debugger::$Enabled = true;
@@ -55,4 +65,5 @@ if ($DebuggerConfig->getConfig()->getContainer('Debugger')->getContainer('Enable
     Debugger::$Enabled = false;
 }
 
+// Run Application
 $Main->runPlatform();
