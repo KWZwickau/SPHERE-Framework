@@ -93,6 +93,7 @@ class Style extends Extension
                 $this->setSource('/Common/Style/DataTable.Correction.css', false, true);
         }
 
+        $this->setSource('/Common/Style/CleanSlate/0.10.1/cleanslate.css',false,true);
         $this->setSource('/Common/Style/PhpInfo.css', false, true);
         $this->setSource('/Common/Style/Addition.css');
     }

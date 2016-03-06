@@ -18,6 +18,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
+use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -27,6 +28,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Cache\Handler\TwigHandler;
@@ -140,16 +142,23 @@ class Frontend extends Extension implements IFrontendInterface
                             );
 
                         } else {
-                            // TODO: Error
+                            $Stage->setContent(
+                                new Warning( 'Vorlage kann nicht gewählt werden, da dem Schüler in der Schülerakte keine aktuelle Schulart zugewiesen wurde.' )
+                            );
                         }
                     } else {
-                        // TODO: Error
+                        $Stage->setContent(
+                            new Warning( 'Vorlage kann nicht gewählt werden, da dem Schüler keine Schülerakte zugewiesen wurde.' )
+                            .new Standard( 'Zum Schüler', '/People/Person', new Person(), array( 'Id' => $tblPerson->getId() ) )
+                        );
                     }
                 } else {
                     // TODO: Error
                 }
             } else {
-                // TODO: Error
+                $Stage->setContent(
+                    new Warning( 'Vorlage kann nicht gewählt werden, da dem Schüler keine Klasse zugewiesen wurde.' )
+                );
             }
         } else {
             // TODO: Error
@@ -185,11 +194,13 @@ class Frontend extends Extension implements IFrontendInterface
 
                             $tblPerson = $tblStudent->getServiceTblPerson();
                             $tblDivision = $tblDivisionStudent->getTblDivision();
+                            $tblYear = $tblDivision->getServiceTblYear();
 
                             $Global = $this->getGlobal();
                             $Global->POST['Data']['School']['Name'] = $tblStudentTransfer->getServiceTblCompany()->getName();
                             $Global->POST['Data']['School']['Type'] = $tblStudentTransfer->getServiceTblType()->getName();
                             $Global->POST['Data']['School']['Course'] = $tblStudentTransfer->getServiceTblCourse()->getName();
+                            $Global->POST['Data']['School']['Year'] = $tblYear->getName();
                             $Global->POST['Data']['Name'] = $tblPerson->getLastFirstName();
                             $Global->POST['Data']['Division'] = $tblDivision->getDisplayName();
                             $Global->savePost();
@@ -222,6 +233,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                                     'Schulart')),
                                                                 (new TextField('Data[School][Course]', 'Bildungsgang',
                                                                     'Bildungsgang')),
+                                                                (new TextField('Data[School][Year]', 'Schuljahr',
+                                                                    'Schuljahr')),
                                                             )), 4),
                                                         new FormColumn(
                                                             new Panel('Schüler', array(
@@ -275,10 +288,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(new Layout(new LayoutGroup(new LayoutRow(array(
             new LayoutColumn(array(
                 $FileLocation->getFileLocation(),
-                new Well($Template->getContent())
+                '<div class="cleanslate">'.$Template->getContent().'</div>'
             ), 6),
             new LayoutColumn(array(
-                '<pre><code class="small">'.( file_get_contents($FileLocation->getFileLocation()) ).'</code></pre>'
+                '<pre><code class="small">'.( str_replace("\n"," ~~~ ",file_get_contents($FileLocation->getFileLocation())) ).'</code></pre>'
 //                FileSystem::getDownload($FileLocation->getRealPath(),
 //                    "Zeugnis ".date("Y-m-d H:i:s").".pdf")->__toString()
             ), 6),
