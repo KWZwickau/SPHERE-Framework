@@ -16,8 +16,8 @@ use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup as CompanyGroup
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Type\Type;
-use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup as PersonGroupEntity;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
@@ -1456,6 +1456,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ) : null)
                     ))
                 )),
+                ( empty( $Filter ) ?
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
@@ -1488,7 +1489,7 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         ))
                     ))
-                ))
+                )) : null )
             ))
         );
 
