@@ -29,7 +29,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -155,21 +154,18 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendAccountFibuActivate($Id = null)
+    public function frontendActivateAccountFibu($Id = null)
     {
 
         $Stage = new Stage();
         $Stage->setTitle('Aktivierung');
-        if (null === $Id) {
-            $Stage->setContent(new Warning('Fehlende Parameter'));
-            return $Stage.new Redirect('/Billing/Accounting/Account', Redirect::TIMEOUT_ERROR);
-        }
-
-        if (Account::useService()->changeFibuActivate($Id)) {
+        $tblAccount = $Id === null ? false : Account::useService()->getAccountById($Id);
+        if ($tblAccount) {
+            Account::useService()->changeFibuActivate($tblAccount);
             $Stage->setContent(new Success('Aktivierung erfolgreich')
                 .new Redirect('/Billing/Accounting/Account', Redirect::TIMEOUT_SUCCESS));
         } else {
-            $Stage->setContent(new Danger('Aktivierung fehlgeschlagen')
+            $Stage->setContent(new Danger('Aktivierung fehlgeschlagen Account nicht gefunden')
                 .new Redirect('/Billing/Accounting/Account', Redirect::TIMEOUT_ERROR));
         }
 
@@ -181,21 +177,18 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendAccountFibuDeactivate($Id = null)
+    public function frontendDeactivateAccountFibu($Id = null)
     {
 
         $Stage = new Stage();
         $Stage->setTitle('Deaktivierung');
-        if (null === $Id) {
-            $Stage->setContent(new Warning('Fehlende Parameter'));
-            return $Stage.new Redirect('/Billing/Accounting/Account', Redirect::TIMEOUT_ERROR);
-        }
-
-        if (Account::useService()->changeFibuDeactivate($Id)) {
+        $tblAccount = $Id === null ? false : Account::useService()->getAccountById($Id);
+        if ($tblAccount) {
+            Account::useService()->changeFibuDeactivate($tblAccount);
             $Stage->setContent(new Success('Deaktivierung erfolgreich')
                 .new Redirect('/Billing/Accounting/Account', Redirect::TIMEOUT_SUCCESS));
         } else {
-            $Stage->setContent(new Danger('Deaktivierung fehlgeschlagen')
+            $Stage->setContent(new Danger('Deaktivierung fehlgeschlagen Account nicht gefunden')
                 .new Redirect('/Billing/Accounting/Account', Redirect::TIMEOUT_ERROR));
         }
 

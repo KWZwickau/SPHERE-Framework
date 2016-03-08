@@ -35,8 +35,7 @@ class Data extends AbstractData
     public function getBasketById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblBasket', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasket', $Id);
     }
 
     /**
@@ -47,8 +46,7 @@ class Data extends AbstractData
     public function getBasketVerificationById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblBasketVerification', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketVerification', $Id);
     }
 
     /**
@@ -57,8 +55,7 @@ class Data extends AbstractData
     public function getBasketAll()
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblBasket')->findAll();
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasket');
     }
 
     /**
@@ -69,9 +66,22 @@ class Data extends AbstractData
     public function getBasketItemAllByBasket(TblBasket $tblBasket)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblBasketItem')
-            ->findBy(array(TblBasketItem::ATTR_TBL_BASKET => $tblBasket->getId()));
-        return ( null === $EntityList ? false : $EntityList );
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketItem',
+            array(TblBasketItem::ATTR_TBL_BASKET => $tblBasket->getId()));
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param TblItem   $tblItem
+     *
+     * @return false|TblBasketItem
+     */
+    public function getBasketItemByBasketAndItem(TblBasket $tblBasket, TblItem $tblItem)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketItem',
+            array(TblBasketItem::ATTR_TBL_BASKET       => $tblBasket->getId(),
+                  TblBasketItem::ATTR_SERVICE_TBL_ITEM => $tblItem->getId()));
     }
 
     /**
@@ -82,8 +92,7 @@ class Data extends AbstractData
     public function getBasketItemById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblBasketItem', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketItem', $Id);
     }
 
     /***
@@ -94,8 +103,7 @@ class Data extends AbstractData
     public function getBasketPersonById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblBasketPerson', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketPerson', $Id);
     }
 
     /**
@@ -106,9 +114,8 @@ class Data extends AbstractData
     public function getBasketPersonAllByBasket(TblBasket $tblBasket)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblBasketPerson')
-            ->findBy(array(TblBasketPerson::ATTR_TBL_BASKET => $tblBasket->getId()));
-        return ( null === $EntityList ? false : $EntityList );
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketPerson',
+            array(TblBasketPerson::ATTR_TBL_BASKET => $tblBasket->getId()));
     }
 
     /**
@@ -120,10 +127,52 @@ class Data extends AbstractData
     public function getBasketPersonByBasketAndPerson(TblBasket $tblBasket, TblPerson $tblPerson)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblBasketPerson')
-            ->findOneBy(array(TblBasketPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-                              TblBasketPerson::ATTR_TBL_BASKET         => $tblBasket->getId()));
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketPerson',
+            array(TblBasketPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                  TblBasketPerson::ATTR_TBL_BASKET         => $tblBasket->getId()));
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return false|TblBasketVerification[]
+     */
+    public function getBasketVerificationByBasket(TblBasket $tblBasket)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketVerification',
+            array(TblBasketVerification::ATTR_TBL_BASKET => $tblBasket->getId()));
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblBasket $tblBasket
+     *
+     * @return false|TblBasketVerification[]
+     */
+    public function getBasketVerificationByPersonAndBasket(TblPerson $tblPerson, TblBasket $tblBasket)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketVerification',
+            array(TblBasketVerification::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            , TblBasketVerification::ATTR_TBL_BASKET             => $tblBasket->getId()));
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     * @param TblPerson $tblPerson
+     * @param TblItem   $tblItem
+     *
+     * @return bool
+     */
+    public function checkBasketVerificationIsSet(TblBasket $tblBasket, TblPerson $tblPerson, TblItem $tblItem)
+    {
+
+        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketVerification',
+            array(TblBasketVerification::ATTR_TBL_BASKET         => $tblBasket->getId(),
+                  TblBasketVerification::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+                  TblBasketVerification::ATTR_SERVICE_TBL_ITEM   => $tblItem->getId()));
+        return ( $Entity === false ? false : true );
     }
 
     /**
@@ -134,9 +183,8 @@ class Data extends AbstractData
     public function countPersonByBasket(TblBasket $tblBasket)
     {
 
-        return (int)$this->getConnection()->getEntityManager()->getEntity('TblBasketPerson')->countBy(array(
-            TblBasketPerson::ATTR_TBL_BASKET => $tblBasket->getId()
-        ));
+        return $this->getCachedCountBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketPerson',
+            array(TblBasketPerson::ATTR_TBL_BASKET => $tblBasket->getId()));
     }
 
     /**
@@ -174,52 +222,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblBasket $tblBasket
-     * @param TblPerson $tblPerson
-     * @param TblItem   $tblItem
-     *
-     * @return bool
-     */
-    public function checkBasketVerificationIsSet(TblBasket $tblBasket, TblPerson $tblPerson, TblItem $tblItem)
-    {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = $Manager->getEntity('TblBasketVerification')->findOneBy(array(
-            TblBasketVerification::ATTR_TBL_BASKET         => $tblBasket->getId(),
-            TblBasketVerification::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
-            TblBasketVerification::ATTR_SERVICE_TBL_ITEM   => $tblItem->getId()
-        ));
-        return ( $Entity === null ? false : true );
-    }
-
-    /**
-     * @param TblBasket $tblBasket
-     *
-     * @return false|TblBasketVerification[]
-     */
-    public function getBasketVerificationByBasket(TblBasket $tblBasket)
-    {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketVerification',
-            array(TblBasketVerification::ATTR_TBL_BASKET => $tblBasket->getId()));
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     * @param TblBasket $tblBasket
-     *
-     * @return false|TblBasketVerification[]
-     */
-    public function getBasketVerificationByPersonAndBasket(TblPerson $tblPerson, TblBasket $tblBasket)
-    {
-
-        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblBasketVerification',
-            array(TblBasketVerification::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
-            , TblBasketVerification::ATTR_TBL_BASKET             => $tblBasket->getId()));
-    }
-
-    /**
      * @param $Name
      * @param $Description
      *
@@ -244,32 +246,33 @@ class Data extends AbstractData
 
     /**
      * @param TblBasket $tblBasket
-     * @param           $Name
+     * @param TblItem   $tblItem
      *
-     * @return bool
+     * @return TblBasket
      */
-    public function updateBasket(
-        TblBasket $tblBasket,
-        $Name,
-        $Description
-    ) {
+    public function addItemToBasket(TblBasket $tblBasket, TblItem $tblItem)
+    {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        /** @var TblBasket $Entity */
-        $Entity = $Manager->getEntityById('TblBasket', $tblBasket->getId());
-        $Protocol = clone $Entity;
-        if (null !== $Entity) {
-            $Entity->setName($Name);
-            $Entity->setDescription($Description);
+        $Entity = $Manager->getEntity('TblBasketItem')->findOneBy(array(
+            TblBasketItem::ATTR_TBL_BASKET       => $tblBasket->getId(),
+            TblBasketItem::ATTR_SERVICE_TBL_ITEM => $tblItem->getId()
+        ));
 
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
-                $Protocol,
+        if (null === $Entity) {
+            $Entity = new TblBasketItem();
+            $Entity->setServiceTblItem($tblItem);
+            $Entity->setTblBasket($tblBasket);
+
+            $Manager->bulkSaveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
-            return true;
         }
-        return false;
+
+        $Manager->flushCache();
+
+        return $tblBasket;
     }
 
     /**
@@ -315,55 +318,57 @@ class Data extends AbstractData
 
     /**
      * @param TblBasket $tblBasket
-     * @param TblItem   $tblItem
+     * @param TblPerson $tblPerson
      *
-     * @return TblBasket
+     * @return TblBasketPerson
      */
-    public function addItemToBasket(TblBasket $tblBasket, TblItem $tblItem)
-    {
+    public function addBasketPerson(
+        TblBasket $tblBasket,
+        TblPerson $tblPerson
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
-
-        $Entity = $Manager->getEntity('TblBasketItem')->findOneBy(array(
-            TblBasketItem::ATTR_TBL_BASKET       => $tblBasket->getId(),
-            TblBasketItem::ATTR_SERVICE_TBL_ITEM => $tblItem->getId()
+        $Entity = $Manager->getEntity('TblBasketPerson')->findOneBy(array(
+            TblBasketPerson::ATTR_TBL_BASKET         => $tblBasket->getId(),
+            TblBasketPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
-
         if (null === $Entity) {
-            $Entity = new TblBasketItem();
-            $Entity->setServiceTblItem($tblItem);
+            $Entity = new TblBasketPerson();
             $Entity->setTblBasket($tblBasket);
+            $Entity->setServiceTblPerson($tblPerson);
 
-            $Manager->bulkSaveEntity($Entity);
+            $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
         }
-
-        $Manager->flushCache();
-
-        return $tblBasket;
+        return $Entity;
     }
 
     /**
-     * @param TblBasketItem $tblBasketItem
+     * @param TblBasket $tblBasket
+     * @param           $Name
      *
      * @return bool
      */
-    public function removeBasketItem(
-        TblBasketItem $tblBasketItem
+    public function updateBasket(
+        TblBasket $tblBasket,
+        $Name,
+        $Description
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
-        $Entity = $Manager->getEntity('TblBasketItem')->findOneBy(
-            array(
-                'Id' => $tblBasketItem->getId()
-            ));
+        /** @var TblBasket $Entity */
+        $Entity = $Manager->getEntityById('TblBasket', $tblBasket->getId());
+        $Protocol = clone $Entity;
         if (null !== $Entity) {
-            /**@var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
                 $Entity);
-            $Manager->killEntity($Entity);
             return true;
         }
         return false;
@@ -397,31 +402,28 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblBasket $tblBasket
-     * @param TblPerson $tblPerson
+     * @param TblBasketItem $tblBasketItem
      *
-     * @return TblBasketPerson
+     * @return bool
      */
-    public function addBasketPerson(
-        TblBasket $tblBasket,
-        TblPerson $tblPerson
+    public function removeBasketItem(
+        TblBasketItem $tblBasketItem
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
-        $Entity = $Manager->getEntity('TblBasketPerson')->findOneBy(array(
-            TblBasketPerson::ATTR_TBL_BASKET         => $tblBasket->getId(),
-            TblBasketPerson::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
-        ));
-        if (null === $Entity) {
-            $Entity = new TblBasketPerson();
-            $Entity->setTblBasket($tblBasket);
-            $Entity->setServiceTblPerson($tblPerson);
 
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
+        $Entity = $Manager->getEntity('TblBasketItem')->findOneBy(
+            array(
+                'Id' => $tblBasketItem->getId()
+            ));
+        if (null !== $Entity) {
+            /**@var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
+            $Manager->killEntity($Entity);
+            return true;
         }
-        return $Entity;
+        return false;
     }
 
     /**

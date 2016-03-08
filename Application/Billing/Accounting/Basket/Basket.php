@@ -28,13 +28,13 @@ class Basket implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Change',
-                __NAMESPACE__.'\Frontend::frontendBasketChange'
+                __NAMESPACE__.'\Frontend::frontendChangeBasket'
             )->setParameterDefault('Id', null)
                 ->setParameterDefault('Basket', null)
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
-                __NAMESPACE__.'\Frontend::frontendBasketDestroy'
+                __NAMESPACE__.'\Frontend::frontendDestroyBasket'
             )->setParameterDefault('Id', null)
                 ->setParameterDefault('Confirm', null)
         );
@@ -48,15 +48,15 @@ class Basket implements IModuleInterface
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Add',
-                __NAMESPACE__.'\Frontend::frontendBasketItemAdd'
+                __NAMESPACE__.'\Frontend::frontendAddBasketItem'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Commodity/Add',
-                __NAMESPACE__.'\Frontend::frontendBasketCommodityAdd'
+                __NAMESPACE__.'\Frontend::frontendAddBasketCommodity'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Remove',
-                __NAMESPACE__.'\Frontend::frontendBasketItemRemove'
+                __NAMESPACE__.'\Frontend::frontendRemoveBasketItem'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Person/Select',
@@ -64,11 +64,11 @@ class Basket implements IModuleInterface
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Person/Add',
-                __NAMESPACE__.'\Frontend::frontendBasketPersonAdd'
+                __NAMESPACE__.'\Frontend::frontendAddBasketPerson'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Person/Remove',
-                __NAMESPACE__.'\Frontend::frontendBasketPersonRemove'
+                __NAMESPACE__.'\Frontend::frontendRemoveBasketPerson'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Calculation',
@@ -84,30 +84,16 @@ class Basket implements IModuleInterface
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Verification/Edit',
-                __NAMESPACE__.'\Frontend::frontendBasketVerificationEdit'
+                __NAMESPACE__.'\Frontend::frontendEditBasketVerification'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Verification/Person/Remove',
-                __NAMESPACE__.'\Frontend::frontendBasketVerificationPersonRemove'
+                __NAMESPACE__.'\Frontend::frontendRemoveVerificationPerson'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Verification/Destroy',
-                __NAMESPACE__.'\Frontend::frontendBasketVerificationDestroy'
+                __NAMESPACE__.'\Frontend::frontendDestroyVerification'
             ));
-//        Main::getDispatcher()->registerRoute(
-//            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Summary',
-//                __NAMESPACE__.'\Frontend::frontendBasketSummary'
-//            )->setParameterDefault('Id', null)
-//                ->setParameterDefault('Basket', null)
-//        );
-//        Main::getDispatcher()->registerRoute(
-//            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/Select',
-//                __NAMESPACE__.'\Frontend::frontendBasketDebtorSelect'
-//            )->setParameterDefault('Id', null)
-//                ->setParameterDefault('Date', null)
-//                ->setParameterDefault('Data', null)
-//                ->setParameterDefault('Save', null)
-//        );
     }
 
     /**
@@ -130,5 +116,4 @@ class Basket implements IModuleInterface
 
         return new Frontend();
     }
-
 }

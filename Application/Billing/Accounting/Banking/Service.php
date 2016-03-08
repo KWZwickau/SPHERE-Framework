@@ -86,26 +86,6 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getBankReferenceByPerson($tblPerson);
     }
 
-//    /**
-//     * @param TblDebtor $tblDebtor
-//     *
-//     * @return int
-//     */
-//    public function getLeadTimeByDebtor(TblDebtor $tblDebtor)   //ToDO get first/followLeadTime from School
-//    {
-//
-//        if (( $tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor) )) {
-//            if (Invoice::useService()->checkInvoiceFromDebtorIsPaidByDebtor($tblDebtor) ||
-//                Balance::useService()->checkPaymentFromDebtorExistsByDebtor($tblDebtor)
-//            ) {
-//                return $tblAccount->getLeadTimeFollow();
-//            } else {
-//                return $tblAccount->getLeadTimeFirst();
-//            }
-//        }
-//        return false;
-//    }
-
     public function checkDebtorSelectionDebtor(TblDebtorSelection $tblDebtorSelection)
     {
 
@@ -562,7 +542,7 @@ class Service extends AbstractService
                                 $tblBankReference = Banking::useService()->getBankReferenceById($Id);
                             }
 
-                            (new Data ($this->getBinding()))->UpdateDebtorSelection(
+                            (new Data ($this->getBinding()))->updateDebtorSelection(
                                 $tblDebtorSelection,
                                 $tblDebtor,
                                 $tblBankAccount,
@@ -706,7 +686,7 @@ class Service extends AbstractService
                                 $tblBankReference = Banking::useService()->getBankReferenceById($Id);
                             }
 
-                            (new Data ($this->getBinding()))->UpdateDebtorSelection(
+                            (new Data ($this->getBinding()))->updateDebtorSelection(
                                 $tblDebtorSelection,
                                 $tblDebtor,
                                 $tblBankAccount,

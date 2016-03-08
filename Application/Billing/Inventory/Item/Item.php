@@ -33,7 +33,7 @@ class Item implements IModuleInterface
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Change',
-                __NAMESPACE__.'\Frontend::frontendItemChange'
+                __NAMESPACE__.'\Frontend::frontendChangeItem'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Calculation',
@@ -41,11 +41,11 @@ class Item implements IModuleInterface
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Calculation/Change',
-                __NAMESPACE__.'\Frontend::frontendCalculationChange'
+                __NAMESPACE__.'\Frontend::frontendChangeCalculation'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Calculation/Destroy',
-                __NAMESPACE__.'\Frontend::frontendCalculationDestroy'
+                __NAMESPACE__.'\Frontend::frontendDestroyCalculation'
             ));
     }
 

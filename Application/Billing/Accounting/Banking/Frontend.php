@@ -161,18 +161,18 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param      $Id
+     * @param null $Id
      * @param null $Debtor
      *
      * @return Stage
      */
-    public function frontendBankingAdd($Id = null, $Debtor = null)
+    public function frontendAddBanking($Id = null, $Debtor = null)
     {
 
         $Stage = new Stage('Debitor', 'Anlegen');
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking', new ChevronLeft()));
         $Stage->addButton(new Backward());
-        $tblPerson = Person::useService()->getPersonById($Id);
+        $tblPerson = $Id === null ? false : Person::useService()->getPersonById($Id);
         if (!$tblPerson) {
             $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Warning('Auf die Person konnte nicht zugegriffen werden'));
             return $Stage.new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
@@ -235,13 +235,13 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendBankingChange($Id = null, $Debtor = null)
+    public function frontendChangeBanking($Id = null, $Debtor = null)
     {
 
         $Stage = new Stage('Debitor', 'Bearbeiten');
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking', new ChevronLeft()));
         $Stage->addButton(new Backward());
-        $tblDebtor = Banking::useService()->getDebtorById($Id);
+        $tblDebtor = $Id === null ? false : Banking::useService()->getDebtorById($Id);
         if (!$tblDebtor) {
             $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Warning('Auf den Debitor konnte nicht zugegriffen werden'));
             return $Stage.new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
@@ -378,13 +378,13 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendBankAccountAdd($Id = null, $Account = null)
+    public function frontendAddBankAccount($Id = null, $Account = null)
     {
 
         $Stage = new Stage('Kontodaten', 'Anlegen');
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankAccount', new ChevronLeft()));
         $Stage->addButton(new Backward());
-        $tblPerson = Person::useService()->getPersonById($Id);
+        $tblPerson = $Id === null ? false : Person::useService()->getPersonById($Id);
         if (!$tblPerson) {
             $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Warning('Person konnte nicht aufgerufen werden.'));
             return $Stage.new Redirect('/Billing/Accounting/BankAccount', Redirect::TIMEOUT_ERROR);
@@ -462,70 +462,72 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param      $Id
+     * @param null $Id
      * @param null $Account
      *
      * @return Stage
      */
-    public function frontendBankAccountChange($Id, $Account = null)
+    public function frontendChangeBankAccount($Id = null, $Account = null)
     {
 
         $Stage = new Stage('Konto', 'Bearbeiten');
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankAccount', new ChevronLeft()));
         $Stage->addButton(new Backward());
-        $tblBankAccount = Banking::useService()->getBankAccountById($Id);
-        if ($tblBankAccount) {
-
-            $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Account'] )) {
-                $Global->POST['Account']['Owner'] = $tblBankAccount->getOwner();
-                $Global->POST['Account']['BankName'] = $tblBankAccount->getBankName();
-                $Global->POST['Account']['IBAN'] = $tblBankAccount->getIBAN();
-                $Global->POST['Account']['BIC'] = $tblBankAccount->getBIC();
-                $Global->POST['Account']['CashSign'] = $tblBankAccount->getCashSign();
-                $Global->savePost();
-            }
-
-            $tblPerson = $tblBankAccount->getServiceTblPerson();
-            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-            $PersonPanel = new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                        new LayoutColumn(
-                            new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
-                            , 4),
-                        new LayoutColumn(
-                            new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
-                                new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
-                            , 4)
-                    )), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
-                )
-            );
-
-            $Form = $this->formAccount()
-                ->appendFormButton(new Primary('Speichern', new Save()))
-                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-
-            $Stage->setContent(
-                $PersonPanel
-                .$this->layoutBankAccount($tblBankAccount)
-                .new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(new Well(
-                                Banking::useService()->changeBankAccount(
-                                    $Form, $tblBankAccount, $Account)
-                            ))
-                        ), new Title(new Pencil().' Bearbeiten')
-                    )
-                )
-            );
-        } else {
-            $Stage->setContent(
-                new \SPHERE\Common\Frontend\Message\Repository\Warning('Konto nicht gefunden')
-                .new Redirect('/Billing/Accounting/BankAccount', Redirect::TIMEOUT_ERROR)
-            );
+        $tblBankAccount = $Id === null ? false : Banking::useService()->getBankAccountById($Id);
+        if (!$tblBankAccount) {
+            $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Warning('Konto nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Accounting/BankAccount', Redirect::TIMEOUT_ERROR);
         }
+
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Account'] )) {
+            $Global->POST['Account']['Owner'] = $tblBankAccount->getOwner();
+            $Global->POST['Account']['BankName'] = $tblBankAccount->getBankName();
+            $Global->POST['Account']['IBAN'] = $tblBankAccount->getIBAN();
+            $Global->POST['Account']['BIC'] = $tblBankAccount->getBIC();
+            $Global->POST['Account']['CashSign'] = $tblBankAccount->getCashSign();
+            $Global->savePost();
+        }
+
+        $tblPerson = $tblBankAccount->getServiceTblPerson();
+        $FullName = new Warning('Person nicht gefunden.');
+        $tblAddress = false;
+        if ($tblPerson) {
+            $FullName = $tblPerson->getFullName();
+            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+        }
+        $PersonPanel = new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Name', $FullName, Panel::PANEL_TYPE_SUCCESS)
+                        , 4),
+                    new LayoutColumn(
+                        new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
+                            new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
+                        , 4)
+                )), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
+            )
+        );
+
+        $Form = $this->formAccount()
+            ->appendFormButton(new Primary('Speichern', new Save()))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(
+            $PersonPanel
+            .$this->layoutBankAccount($tblBankAccount)
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            Banking::useService()->changeBankAccount(
+                                $Form, $tblBankAccount, $Account)
+                        ))
+                    ), new Title(new Pencil().' Bearbeiten')
+                )
+            )
+        );
         return $Stage;
     }
 
@@ -655,50 +657,50 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param      $Id
+     * @param null $Id
      * @param null $Reference
      *
      * @return Stage
      */
-    public function frontendBankReferenceAdd($Id, $Reference = null)
+    public function frontendAddBankReference($Id = null, $Reference = null)
     {
 
         $Stage = new Stage('Mandatsreferenz', 'Anlegen');
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankReference', new ChevronLeft()));
         $Stage->addButton(new Backward());
-        $tblPerson = Person::useService()->getPersonById($Id);
+        $tblPerson = $Id === null ? false : Person::useService()->getPersonById($Id);
         $ReferenceContent = array();
-        $PersonPanel = '';
-        if ($tblPerson) {
-
-            $tblBankReferenceList = Banking::useService()->getBankReferenceByPerson($tblPerson);
-            if ($tblBankReferenceList) {
-                foreach ($tblBankReferenceList as $tblBankReference) {
-                    $ReferenceContent[] = $tblBankReference->getReference().new PullRight($tblBankReference->getReferenceDate());
-                }
-            }
-
-            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-            $PersonPanel = new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
-                                    new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
-                                , 4),
-                            new LayoutColumn(( !empty( $ReferenceContent ) ) ?
-                                new Panel('Mandatsreferenz'.new PullRight('Gültig ab:'), $ReferenceContent, Panel::PANEL_TYPE_SUCCESS)
-                                : null
-                                , 4),
-                        )
-                    ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
-                )
-            );
+        if (!$tblPerson) {
+            $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Warning('Person nicht gefunden.'));
+            return $Stage.new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_ERROR);
         }
 
+        $tblBankReferenceList = Banking::useService()->getBankReferenceByPerson($tblPerson);
+        if ($tblBankReferenceList) {
+            foreach ($tblBankReferenceList as $tblBankReference) {
+                $ReferenceContent[] = $tblBankReference->getReference().new PullRight($tblBankReference->getReferenceDate());
+            }
+        }
+
+        $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+        $PersonPanel = new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
+                                new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
+                            , 4),
+                        new LayoutColumn(( !empty( $ReferenceContent ) ) ?
+                            new Panel('Mandatsreferenz'.new PullRight('Gültig ab:'), $ReferenceContent, Panel::PANEL_TYPE_SUCCESS)
+                            : null
+                            , 4),
+                    )
+                ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
+            )
+        );
 
         $Form = new Form(
             new FormGroup(
@@ -717,71 +719,75 @@ class Frontend extends Extension implements IFrontendInterface
         $Form->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-        if ($tblPerson) {
-            $Stage->setContent($PersonPanel
-                .new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(new Well(
-                                Banking::useService()->createReference(
-                                    $Form, $tblPerson, $Reference)
-                            ))
-                        )
+        $Stage->setContent($PersonPanel
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            Banking::useService()->createReference(
+                                $Form, $tblPerson, $Reference)
+                        ))
                     )
                 )
-            );
-        } else {
-            $Stage->setContent(new Warning('Person konnte nicht aufgerufen werden.'));
-        }
+            )
+        );
         return $Stage;
     }
 
-    public function frontendBankReferenceChange($Id, $Reference = null)
+    /**
+     * @param null $Id
+     * @param null $Reference
+     *
+     * @return Stage
+     */
+    public function frontendChangeBankReference($Id = null, $Reference = null)
     {
 
         $Stage = new Stage('Mandatsreferenz', 'Bearbeiten');
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/BankReference', new ChevronLeft()));
         $Stage->addButton(new Backward());
-        $tblBankReference = Banking::useService()->getBankReferenceById($Id);
-        $tblPerson = $tblBankReference->getServiceTblPerson();
-        $PersonPanel = '';
-        if ($tblPerson) {
-
-            $tblBankReferenceList = Banking::useService()->getBankReferenceByPerson($tblPerson);
-            if ($tblBankReferenceList) {
-                foreach ($tblBankReferenceList as $tblBankReferenceOne) {
-                    $ReferenceContent[] = $tblBankReferenceOne->getReference().new PullRight($tblBankReferenceOne->getReferenceDate());
-                }
-            }
-
-            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-            $PersonPanel = new Layout(
-                new LayoutGroup(
-                    new LayoutRow(array(
-                            new LayoutColumn(
-                                new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
-                                , 4),
-                            new LayoutColumn(
-                                new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
-                                    new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
-                                , 4),
-                            new LayoutColumn(( !empty( $ReferenceContent ) ) ?
-                                new Panel('Mandatsreferenz'.new PullRight('Gültig ab:'), $ReferenceContent, Panel::PANEL_TYPE_SUCCESS)
-                                : null
-                                , 4),
-                        )
-                    ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
-                )
-            );
+        $tblBankReference = $Id === null ? false : Banking::useService()->getBankReferenceById($Id);
+        if (!$tblBankReference) {
+            $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Warning('Mandatsreferenz nicht gefunden.'));
+            return $Stage.new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_ERROR);
         }
+        $tblPerson = $tblBankReference->getServiceTblPerson();
+        if (!$tblPerson) {
+            $Stage->setContent(new \SPHERE\Common\Frontend\Message\Repository\Warning('Person nicht gefunden.'));
+            return $Stage.new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_ERROR);
+        }
+
+        $tblBankReferenceList = Banking::useService()->getBankReferenceByPerson($tblPerson);
+        if ($tblBankReferenceList) {
+            foreach ($tblBankReferenceList as $tblBankReferenceOne) {
+                $ReferenceContent[] = $tblBankReferenceOne->getReference().new PullRight($tblBankReferenceOne->getReferenceDate());
+            }
+        }
+
+        $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+        $PersonPanel = new Layout(
+            new LayoutGroup(
+                new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
+                            , 4),
+                        new LayoutColumn(
+                            new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
+                                new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
+                            , 4),
+                        new LayoutColumn(( !empty( $ReferenceContent ) ) ?
+                            new Panel('Mandatsreferenz'.new PullRight('Gültig ab:'), $ReferenceContent, Panel::PANEL_TYPE_SUCCESS)
+                            : null
+                            , 4),
+                    )
+                ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
+            )
+        );
 
 
         $Form = new Form(
             new FormGroup(
                 new FormRow(array(
-//                    new FormColumn(
-//                        new TextField('Reference[Reference]', '', 'Mandatsreferenz-Nummer')
-//                        , 6),
                     new FormColumn(
                         new Panel('Mandatsreferenz: '.$tblBankReference->getReference(), array(
                             new DatePicker('Reference[ReferenceDate]', '', 'Mandatsreferenz Datum', new Time())),
@@ -793,22 +799,18 @@ class Frontend extends Extension implements IFrontendInterface
         $Form->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-        if ($tblPerson) {
-            $Stage->setContent($PersonPanel
-                .new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(new Well(
-                                Banking::useService()->changeReference(
-                                    $Form, $tblBankReference, $Reference)
-                            ), 6)
-                        ), new Title(new Pencil().' Bearbeiten')
-                    )
+        $Stage->setContent($PersonPanel
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            Banking::useService()->changeReference(
+                                $Form, $tblBankReference, $Reference)
+                        ), 6)
+                    ), new Title(new Pencil().' Bearbeiten')
                 )
-            );
-        } else {
-            $Stage->setContent(new Warning('Person konnte nicht aufgerufen werden.'));
-        }
+            )
+        );
         return $Stage;
     }
 
@@ -902,88 +904,86 @@ class Frontend extends Extension implements IFrontendInterface
         return false;
     }
 
-    public function frontendBankReferenceRemove($Id, $Confirm = false)
+    /**
+     * @param null $Id
+     * @param bool $Confirm
+     *
+     * @return Stage|string
+     */
+    public function frontendRemoveBankReference($Id = null, $Confirm = false)
     {
 
         $Stage = new Stage('Mandatsreferenz', 'Entfernen');
-        $tblBankReference = Banking::useService()->getBankReferenceById($Id);
-        if ($tblBankReference) {
+        $tblBankReference = $Id === null ? false : Banking::useService()->getBankReferenceById($Id);
+        if (!$tblBankReference) {
+            $Stage->setContent(new Danger('Mandatsreferenz nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_ERROR);
+        }
 
-            $tblPerson = $tblBankReference->getServiceTblPerson();
-            $PersonPanel = '';
-            if ($tblPerson) {
+        $tblPerson = $tblBankReference->getServiceTblPerson();
+        $PersonPanel = '';
+        if ($tblPerson) {
 
-                $tblBankReferenceList = Banking::useService()->getBankReferenceByPerson($tblPerson);
-                if ($tblBankReferenceList) {
-                    foreach ($tblBankReferenceList as $tblBankReferenceOne) {
-                        $ReferenceContent[] = $tblBankReferenceOne->getReference().new PullRight($tblBankReferenceOne->getReferenceDate());
-                    }
+            $tblBankReferenceList = Banking::useService()->getBankReferenceByPerson($tblPerson);
+            if ($tblBankReferenceList) {
+                foreach ($tblBankReferenceList as $tblBankReferenceOne) {
+                    $ReferenceContent[] = $tblBankReferenceOne->getReference().new PullRight($tblBankReferenceOne->getReferenceDate());
                 }
-
-                $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
-                $PersonPanel = new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(array(
-                                new LayoutColumn(
-                                    new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
-                                    , 4),
-                                new LayoutColumn(
-                                    new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
-                                        new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
-                                    , 4),
-                                new LayoutColumn(( !empty( $ReferenceContent ) ) ?
-                                    new Panel('Mandatsreferenzen', $ReferenceContent, Panel::PANEL_TYPE_SUCCESS)
-                                    : null
-                                    , 4),
-                            )
-                        ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
-                    )
-                );
             }
 
-
-            $Content = array();
-            $Content[] = 'Mandatsreferenz: '.$tblBankReference->getReference();
-            $Content[] = 'Datum: '.$tblBankReference->getReferenceDate();
-            if (!$Confirm) {
-                $Stage->addButton(new Backward());
-                $Stage->setContent(
-                    $PersonPanel
-                    .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        new Panel(new Question().' Mandatsreferenz wirklich entfernen?',
-                            $Content,
-                            Panel::PANEL_TYPE_DANGER,
-                            new Standard(
-                                'Ja', '/Billing/Accounting/BankReference/Remove', new Ok(),
-                                array('Id' => $Id, 'Confirm' => true)
-                            )
-                            .new Standard(
-                                'Nein', '/Billing/Accounting/BankReference', new Disable())
+            $tblAddress = Address::useService()->getAddressByPerson($tblPerson);
+            $PersonPanel = new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                            new LayoutColumn(
+                                new Panel('Name', $tblPerson->getFullName(), Panel::PANEL_TYPE_SUCCESS)
+                                , 4),
+                            new LayoutColumn(
+                                new Panel('Addresse', ( $tblAddress ) ? $tblAddress->getGuiString() :
+                                    new Warning('Nicht hinterlegt'), Panel::PANEL_TYPE_SUCCESS)
+                                , 4),
+                            new LayoutColumn(( !empty( $ReferenceContent ) ) ?
+                                new Panel('Mandatsreferenzen', $ReferenceContent, Panel::PANEL_TYPE_SUCCESS)
+                                : null
+                                , 4),
                         )
-                    ))))
-                );
-            } else {
+                    ), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Person().' Person')
+                )
+            );
+        }
 
-                // Destroy Group
-                $Stage->setContent(
-                    new Layout(new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(array(
-                            ( Banking::useService()->removeBankReference($tblBankReference)
-                                ? new Success('Mandatsreferenz entfernt')
-                                .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_SUCCESS)
-                                : new Danger('Mandatsreferenz konnte nicht entfernt werden')
-                                .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_ERROR)
-                            )
-                        )))
-                    )))
-                );
-            }
+        $Content = array();
+        $Content[] = 'Mandatsreferenz: '.$tblBankReference->getReference();
+        $Content[] = 'Datum: '.$tblBankReference->getReferenceDate();
+        if (!$Confirm) {
+            $Stage->addButton(new Backward());
+            $Stage->setContent(
+                $PersonPanel
+                .new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                    new Panel(new Question().' Mandatsreferenz wirklich entfernen?',
+                        $Content,
+                        Panel::PANEL_TYPE_DANGER,
+                        new Standard(
+                            'Ja', '/Billing/Accounting/BankReference/Remove', new Ok(),
+                            array('Id' => $Id, 'Confirm' => true)
+                        )
+                        .new Standard(
+                            'Nein', '/Billing/Accounting/BankReference', new Disable())
+                    )
+                ))))
+            );
         } else {
+
+            // Destroy Reference
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
-                        new Danger('Mandatsreferenz nicht gefunden'),
-                        new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_ERROR)
+                        ( Banking::useService()->removeBankReference($tblBankReference)
+                            ? new Success('Mandatsreferenz entfernt')
+                            .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_SUCCESS)
+                            : new Danger('Mandatsreferenz konnte nicht entfernt werden')
+                            .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_ERROR)
+                        )
                     )))
                 )))
             );
@@ -993,16 +993,16 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param      $Id
+     * @param null $Id
      * @param null $Data
      *
      * @return Stage|string
      */
-    public function frontendPaySelection($Id, $Data = null)
+    public function frontendPaySelection($Id = null, $Data = null)
     {
 
         $Stage = new Stage('Zuordnung', 'Bezahler');
-        $tblBasket = Basket::useService()->getBasketById($Id);
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
             return $Stage
@@ -1153,20 +1153,19 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param      $Id
+     * @param null $Id
      * @param null $Data
      *
      * @return Stage|string
      */
-    public function frontendPayChoose($Id, $Data = null)
+    public function frontendPayChoose($Id = null, $Data = null)
     {
 
         $Stage = new Stage('Zuordnung', 'Bezahler');
-        $tblBasket = Basket::useService()->getBasketById($Id);
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
-            return $Stage
-            .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
         // Abbruch beim löschen der Zuordnungen
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
@@ -1297,6 +1296,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendDebtorSelection()
     {
 
@@ -1381,16 +1383,16 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param      $Id
+     * @param null $Id
      * @param null $Data
      *
      * @return Stage|string
      */
-    public function frontendDebtorPaySelection($Id, $Data = null)
+    public function frontendDebtorPaySelection($Id = null, $Data = null)
     {
 
         $Stage = new Stage('Zuordnung', 'Bezahler');
-        $tblPerson = Person::useService()->getPersonById($Id);
+        $tblPerson = $Id === null ? false : Person::useService()->getPersonById($Id);
         if (!$tblPerson) {
             $Stage->setContent(new Warning('Person nicht gefunden'));
             return $Stage
@@ -1529,19 +1531,19 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param      $Id
+     * @param null $Id
      * @param null $Data
      *
      * @return Stage|string
      */
-    public function frontendDebtorPayChoose($Id, $Data = null)
+    public function frontendDebtorPayChoose($Id = null, $Data = null)
     {
 
         $Stage = new Stage('Zuordnung', 'Bezahler');
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification', new ChevronLeft()
 //            , array('Id' => $tblBasket->getId())));
         $Stage->addButton(new Backward());
-        $tblPerson = Person::useService()->getPersonById($Id);
+        $tblPerson = $Id === null ? false : Person::useService()->getPersonById($Id);
         if (!$tblPerson) {
             $Stage->setContent(new Warning('Person nicht gefunden'));
             return $Stage

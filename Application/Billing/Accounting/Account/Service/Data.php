@@ -288,17 +288,17 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Id
+     * @param TblAccount $tblAccount
      *
      * @return bool
      */
-    public function updateActivateAccount($Id)
+    public function updateActivateAccount(TblAccount $tblAccount)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblAccount $Entity */
-        $Entity = $Manager->getEntityById('TblAccount', $Id);
+        $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setActive('1');
@@ -313,17 +313,17 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Id
+     * @param TblAccount $tblAccount
      *
      * @return bool
      */
-    public function updateDeactivateAccount($Id)
+    public function updateDeactivateAccount(TblAccount $tblAccount)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblAccount $Entity */
-        $Entity = $Manager->getEntityById('TblAccount', $Id);
+        $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setActive('0');

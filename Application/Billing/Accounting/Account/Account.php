@@ -26,16 +26,12 @@ class Account implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendAccountFibu'
             ));
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Create',
-                __NAMESPACE__.'\Frontend::frontendAccountCreate'
-            ));
-        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Activate',
-                __NAMESPACE__.'\Frontend::frontendAccountFibuActivate'
+                __NAMESPACE__.'\Frontend::frontendActivateAccountFibu'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'\Deactivate',
-                __NAMESPACE__.'\Frontend::frontendAccountFibuDeactivate'
+                __NAMESPACE__.'\Frontend::frontendDeactivateAccountFibu'
             ));
     }
 

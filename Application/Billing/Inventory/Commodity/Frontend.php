@@ -246,7 +246,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendItemAdd($tblCommodityId = null, $tblItemId = null)
+    public function frontendAddItem($tblCommodityId = null, $tblItemId = null)
     {
 
         $Stage = new Stage('Leistung', 'Artikel Hinzufügen');
@@ -390,7 +390,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendItemRemove($Id = null)
+    public function frontendRemoveItem($Id = null)
     {
 
         $Stage = new Stage();

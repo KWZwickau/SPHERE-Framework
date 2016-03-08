@@ -171,7 +171,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getBasketPersonByBasketAndPerson($tblBasket, $tblPerson);
-
     }
 
     /**
@@ -726,13 +725,9 @@ class Service extends AbstractService
     public function addCommodityToBasket(TblBasket $tblBasket, TblCommodity $tblCommodity)
     {
 
-        if ((new Data($this->getBinding()))->addBasketItemsByCommodity($tblBasket, $tblCommodity)) {
-            return new Success('Die Artikelgruppe '.$tblCommodity->getName().' wurde erfolgreich hinzugefügt')
-            .new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
-        } else {
-            return new Warning('Die Artikelgruppe '.$tblCommodity->getName().' konnte nicht kmplett hinzugefügt werden')
-            .new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
-        }
+        (new Data($this->getBinding()))->addBasketItemsByCommodity($tblBasket, $tblCommodity);
+        return new Success('Die Artikelgruppe '.$tblCommodity->getName().' wurde erfolgreich hinzugefügt')
+        .new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
     }
 
     /**
@@ -744,10 +739,14 @@ class Service extends AbstractService
     public function addItemToBasket(TblBasket $tblBasket, TblItem $tblItem)
     {
 
-        (new Data($this->getBinding()))->addItemToBasket($tblBasket, $tblItem);
-
-        return new Success('Der Artikel '.$tblItem->getName().' wurde erfolgreich hinzugefügt')
-        .new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+        $checkExists = Basket::useService()->getBasketItemByBasketAndItem($tblBasket, $tblItem);
+        if (!$checkExists) {
+            (new Data($this->getBinding()))->addItemToBasket($tblBasket, $tblItem);
+            return new Success('Der Artikel '.$tblItem->getName().' wurde erfolgreich hinzugefügt')
+            .new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+        }
+        return new Warning('Der Artikel '.$tblItem->getName().' befindet sich bereits im Warenkorb')
+        .new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
     }
 
     /**
@@ -837,10 +836,15 @@ class Service extends AbstractService
     public function addBasketPerson(TblBasket $tblBasket, TblPerson $tblPerson)
     {
 
-        (new Data($this->getBinding()))->addBasketPerson($tblBasket, $tblPerson);
+        $checkExist = Basket::useService()->getBasketPersonByBasketAndPerson($tblBasket, $tblPerson);
+        if (!$checkExist) {
+            (new Data($this->getBinding()))->addBasketPerson($tblBasket, $tblPerson);
 
-        return new Success('Die Person '.$tblPerson->getFullName().' wurde erfolgreich hinzugefügt')
-        .new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+            return new Success('Die Person '.$tblPerson->getFullName().' wurde erfolgreich hinzugefügt')
+            .new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_SUCCESS, array('Id' => $tblBasket->getId()));
+        }
+        return new Warning('Die Person '.$tblPerson->getFullName().' befindet sich schon im Warenkorb')
+        .new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_ERROR, array('Id' => $tblBasket->getId()));
     }
 
     /**
@@ -874,46 +878,17 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getBasketItemAllByBasket($tblBasket);
     }
 
-//    /**
-//     * @param IFormInterface $Stage
-//     * @param                $Id
-//     * @param                $Date
-//     * @param                $Data
-//     * @param                $Save
-//     *
-//     * @return IFormInterface|string
-//     */
-//    public function checkDebtors(
-//        IFormInterface &$Stage = null,
-//        $Id,
-//        $Date,
-//        $Data,
-//        $Save
-//    ) {
-//
-//        /**
-//         * Skip to Frontend
-//         */
-//        if (null === $Data && null === $Save
-//        ) {
-//            return $Stage;
-//        }
-//
-//        $isSave = $Save == 2;
-//        $tblBasket = Basket::useService()->getBasketById($Id);
-//
-//        if ((new Data($this->getBinding()))->checkDebtors($tblBasket, $Data, $isSave)) {
-//            if (Invoice::useService()->createOrderListFromBasket($tblBasket, $Date)) {
-//                $Stage .= new Success('Die Rechnungen wurden erfolgreich erstellt')
-//                    .new Redirect('/Billing/Bookkeeping/Invoice/Order', Redirect::TIMEOUT_SUCCESS);
-//            } else {
-//                $Stage .= new Success('Die Rechnungen konnten nicht erstellt werden')
-//                    .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
-//            }
-//        }
-//
-//        return $Stage;
-//    }
+    /**
+     * @param TblBasket $tblBasket
+     * @param TblItem   $tblItem
+     *
+     * @return false|TblBasketItem
+     */
+    public function getBasketItemByBasketAndItem(TblBasket $tblBasket, TblItem $tblItem)
+    {
+
+        return (new Data($this->getBinding()))->getBasketItemByBasketAndItem($tblBasket, $tblItem);
+    }
 
     /**
      * @param $Id

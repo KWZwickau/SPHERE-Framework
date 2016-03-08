@@ -207,7 +207,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendCalculationDestroy($Id = null, $CalculationId = null, $Confirm = false)
+    public function frontendDestroyCalculation($Id = null, $CalculationId = null, $Confirm = false)
     {
 
         $Stage = new Stage('Zuordnung', 'Entfernen');
@@ -283,7 +283,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendItemChange($Id = null, $Item = null)
+    public function frontendChangeItem($Id = null, $Item = null)
     {
 
         $Stage = new Stage('Artikel', 'Bearbeiten');
@@ -502,7 +502,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendCalculationChange($Id = null, $CalculationId = null, $Calculation = null)
+    public function frontendChangeCalculation($Id = null, $CalculationId = null, $Calculation = null)
     {
 
         $Stage = new Stage('Bedinung', 'Bearbeiten');

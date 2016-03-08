@@ -52,6 +52,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
@@ -160,12 +161,12 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
-     * @param $Basket
+     * @param null $Id
+     * @param null $Basket
      *
      * @return Stage
      */
-    public function frontendBasketChange($Id, $Basket)
+    public function frontendChangeBasket($Id = null, $Basket = null)
     {
 
         $Stage = new Stage('Warenkorb', 'Bearbeiten');
@@ -175,165 +176,153 @@ class Frontend extends Extension implements IFrontendInterface
 //        ));
         $Stage->addButton(new Backward());
 
-        if (empty( $Id )) {
-            $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
-        } else {
-            $tblBasket = Basket::useService()->getBasketById($Id);
-            if (!$tblBasket) {
-                $Stage->setContent(new Warning('Der Warenkorb konnte nicht abgerufen werden'));
-                return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
-            } else {
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
+        if (!$tblBasket) {
+            $Stage->setContent(new Warning('Der Warenkorb konnte nicht abgerufen werden'));
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+        }
 
-                $Global = $this->getGlobal();
-                if (!isset( $Global->POST['Basket'] )) {
-                    $Global->POST['Basket']['Name'] = $tblBasket->getName();
-                    $Global->POST['Basket']['Description'] = $tblBasket->getDescription();
-                    $Global->savePost();
-                }
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Basket'] )) {
+            $Global->POST['Basket']['Name'] = $tblBasket->getName();
+            $Global->POST['Basket']['Description'] = $tblBasket->getDescription();
+            $Global->savePost();
+        }
 
-                $Form = new Form(array(
-                    new FormGroup(array(
-                        new FormRow(array(
-                            new FormColumn(
-                                new Panel('Warenkorb', new TextField('Basket[Name]', 'Name', 'Name', new Conversation()),
-                                    Panel::PANEL_TYPE_INFO)
-                                , 6),
-                            new FormColumn(
-                                new Panel('Sonstiges', new TextArea('Basket[Description]', 'Beschreibung', 'Beschreibung', new Conversation()),
-                                    Panel::PANEL_TYPE_INFO)
-                                , 6),
-                        ))
-                    ))
-                ));
-                $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()));
-                $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+        $Form = new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Warenkorb', new TextField('Basket[Name]', 'Name', 'Name', new Conversation()),
+                            Panel::PANEL_TYPE_INFO)
+                        , 6),
+                    new FormColumn(
+                        new Panel('Sonstiges', new TextArea('Basket[Description]', 'Beschreibung', 'Beschreibung', new Conversation()),
+                            Panel::PANEL_TYPE_INFO)
+                        , 6),
+                ))
+            ))
+        ));
+        $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Speichern', new Save()));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
-                $tblBasketItemList = Basket::useService()->getBasketItemAllByBasket($tblBasket);
+        $tblBasketItemList = Basket::useService()->getBasketItemAllByBasket($tblBasket);
 
-                $Content = array();
-                if ($tblBasketItemList) {
-                    foreach ($tblBasketItemList as $tblBasketItem) {
-                        $Content[] = $tblBasketItem->getServiceTblItem()->getName();
-                    }
-                }
-
-                $Stage->setContent(
-                    new Layout(
-                        new LayoutGroup(
-                            new LayoutRow(array(
-                                new LayoutColumn(
-                                    new Panel('Warenkorb', array(
-                                        'Nummer: '.$tblBasket->getId(),
-                                        'Name: '.$tblBasket->getName(),
-                                        'Beschreibung: '.$tblBasket->getDescription(),
-                                        'Datum: '.$tblBasket->getCreateDate()
-                                    ), Panel::PANEL_TYPE_SUCCESS)
-                                    , 6),
-                                new LayoutColumn(
-                                    new Panel('Artikel', $Content,
-                                        Panel::PANEL_TYPE_SUCCESS)
-                                    , 6)
-                            ))
-                        )
-                    )
-                    .new Layout(
-                        new LayoutGroup(
-                            new LayoutRow(
-                                new LayoutColumn(new Well(
-                                    Basket::useService()->changeBasket($Form, $tblBasket, $Basket)
-                                ), 12)
-                            ), new Title(new Pencil().' Bearbeiten')
-                        )
-                    )
-                );
+        $Content = array();
+        if ($tblBasketItemList) {
+            foreach ($tblBasketItemList as $tblBasketItem) {
+                $Content[] = $tblBasketItem->getServiceTblItem()->getName();
             }
         }
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Warenkorb', array(
+                                'Nummer: '.$tblBasket->getId(),
+                                'Name: '.$tblBasket->getName(),
+                                'Beschreibung: '.$tblBasket->getDescription(),
+                                'Datum: '.$tblBasket->getCreateDate()
+                            ), Panel::PANEL_TYPE_SUCCESS)
+                            , 6),
+                        new LayoutColumn(
+                            new Panel('Artikel', $Content,
+                                Panel::PANEL_TYPE_SUCCESS)
+                            , 6)
+                    ))
+                )
+            )
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(new Well(
+                            Basket::useService()->changeBasket($Form, $tblBasket, $Basket)
+                        ), 12)
+                    ), new Title(new Pencil().' Bearbeiten')
+                )
+            )
+        );
 
         return $Stage;
     }
 
     /**
-     * @param            $Id
+     * @param null       $Id
      * @param bool|false $Confirm
      *
      * @return Stage
      */
-    public function frontendBasketDestroy($Id, $Confirm = false)
+    public function frontendDestroyBasket($Id = null, $Confirm = false)
     {
 
         $Stage = new Stage('Warenkorb', 'Löschen');
-        if ($Id) {
-            $tblBasket = Basket::useService()->getBasketById($Id);
-            if (!$tblBasket) {
-                $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
-                return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
-            }
-            // Abbruch bei aktiver Berechnung
-            $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
-            if ($tblBasketVerification) {
-                $Stage->setContent(new Warning('Berechnung schon im Gange'));
-                return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
-            }
-            if (!$Confirm) {
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
+        if (!$tblBasket) {
+            $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+        }
+        // Abbruch bei aktiver Berechnung
+        $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
+        if ($tblBasketVerification) {
+            $Stage->setContent(new Warning('Berechnung schon im Gange'));
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+        }
+        if (!$Confirm) {
 
-                $Item = array();
-                $tblBasketItemAll = Basket::useService()->getBasketItemAllByBasket($tblBasket);
-                if ($tblBasketItemAll) {
-                    foreach ($tblBasketItemAll as $tblBasketItem) {
-                        $Item[] = new Muted(new Small($tblBasketItem->getServiceTblItem()->getName()));
+            $Item = array();
+            $tblBasketItemAll = Basket::useService()->getBasketItemAllByBasket($tblBasket);
+            if ($tblBasketItemAll) {
+                foreach ($tblBasketItemAll as $tblBasketItem) {
+                    $Item[] = new Muted(new Small($tblBasketItem->getServiceTblItem()->getName()));
 //                            .'<br/>
 //                            Preis: '.$tblItem->getServiceBillingCommodityItem()->getTblItem()->getPriceString();
-                    }
                 }
-                $Stage->addButton(new Backward());
-                $Stage->setContent(
-                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                        new Panel(new Question().' Diesen Warenkorb mit dem Namen "<b>'.$tblBasket->getName().'</b>" wirklich löschen?',
-                            array(
-                                $tblBasket->getName().' erstellt am: '.$tblBasket->getCreateDate(),
-                                new Panel('Artikel', $Item),
-                            ),
-                            Panel::PANEL_TYPE_DANGER,
-                            new Standard(
-                                'Ja', '/Billing/Accounting/Basket/Destroy', new Ok(),
-                                array('Id' => $Id, 'Confirm' => true)
-                            )
-                            .new Standard(
-                                'Nein', '/Billing/Accounting/Basket', new Disable()
-                            )
-                        )
-                        , 6))))
-                );
-            } else {
-
-                // Destroy Basket
-                $Stage->setContent(
-                    new Layout(new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(array(
-                            ( Basket::useService()->destroyBasket($tblBasket)
-                                ? new Success('Der Warenkorb wurde gelöscht')
-                                .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_SUCCESS)
-                                : new \SPHERE\Common\Frontend\Message\Repository\Danger('Der Warenkorb konnte nicht gelöscht werden')
-                                .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR)
-                            )
-                        )))
-                    )))
-                );
             }
+            $Stage->addButton(new Backward());
+            $Stage->setContent(
+                new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                    new Panel(new Question().' Diesen Warenkorb mit dem Namen "<b>'.$tblBasket->getName().'</b>" wirklich löschen?',
+                        array(
+                            $tblBasket->getName().' erstellt am: '.$tblBasket->getCreateDate(),
+                            new Panel('Artikel', $Item),
+                        ),
+                        Panel::PANEL_TYPE_DANGER,
+                        new Standard(
+                            'Ja', '/Billing/Accounting/Basket/Destroy', new Ok(),
+                            array('Id' => $Id, 'Confirm' => true)
+                        )
+                        .new Standard(
+                            'Nein', '/Billing/Accounting/Basket', new Disable()
+                        )
+                    )
+                    , 6))))
+            );
         } else {
+
+            // Destroy Basket
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
-                        new \SPHERE\Common\Frontend\Message\Repository\Danger('Der Warenkorb konnte nicht gefunden werden'),
-                        new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR)
+                        ( Basket::useService()->destroyBasket($tblBasket)
+                            ? new Success('Der Warenkorb wurde gelöscht')
+                            .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_SUCCESS)
+                            : new Danger('Der Warenkorb konnte nicht gelöscht werden')
+                            .new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR)
+                        )
                     )))
                 )))
             );
         }
-
         return $Stage;
     }
 
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return Layout
+     */
     public function layoutBasket(TblBasket $tblBasket)
     {
 
@@ -375,11 +364,11 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
      * @return Stage
      */
-    public function frontendBasketContent($Id)
+    public function frontendBasketContent($Id = null)
     {
 
         $Stage = new Stage('Warenkorb', 'Übersicht');
@@ -387,7 +376,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket', new ChevronLeft()));
         $Stage->addButton(new Backward());
 
-        $tblBasket = Basket::useService()->getBasketById($Id);
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
             return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
@@ -487,18 +476,18 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
      * @return Stage|string
      */
-    public function frontendItemSelect($Id)
+    public function frontendItemSelect($Id = null)
     {
 
         $Stage = new Stage('Artikel', 'Auswahl');
         $Stage->setMessage('Einzelne Artikel oder ganze Artikelgruppen auswählen');
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Content', new ChevronLeft(), array('Id' => $Id)));
         $Stage->addButton(new Backward());
-        $tblBasket = Basket::useService()->getBasketById($Id);
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
             return $Stage
@@ -541,7 +530,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblItemAll = Item::useService()->getItemAll();
-        /*Warenkorb entfernen*/
+        /*Warenkorb abziehen*/
         if (!empty( $tblItemUsed )) {
             $tblItemAll = array_udiff($tblItemAll, $tblItemUsed,
                 function (TblItem $ObjectA, TblItem $ObjectB) {
@@ -565,7 +554,6 @@ class Frontend extends Extension implements IFrontendInterface
                 array_push($TableItemAddContent, $Item);
             });
         }
-//        $tblCommodityAll = Commodity::useService()->getCommodityAll();
 
         $tblCommodityUnused = Basket::useService()->getUnusedCommodityByBasket($tblBasket);
 
@@ -639,21 +627,26 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
-     * @param $CommodityId
+     * @param null $Id
+     * @param null $CommodityId
      *
      * @return Stage
      */
-    public function frontendBasketCommodityAdd($Id, $CommodityId)
+    public function frontendAddBasketCommodity($Id = null, $CommodityId = null)
     {
 
         $Stage = new Stage('Warenkorb', 'Artikelgruppe Hinzufügen');
-        $tblBasket = Basket::useService()->getBasketById($Id);
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
             return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
-        $tblCommodity = Commodity::useService()->getCommodityById($CommodityId);
+        $tblCommodity = $CommodityId === null ? false : Commodity::useService()->getCommodityById($CommodityId);
+        if (!$tblCommodity) {
+            $Stage->setContent(new Warning('Leistung nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblBasket->getId()));
+        }
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if ($tblBasketVerification) {
             $Stage->setContent(new Warning('Berechnung schon im Gange'));
@@ -664,21 +657,26 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
-     * @param $ItemId
+     * @param null $Id
+     * @param null $ItemId
      *
      * @return Stage
      */
-    public function frontendBasketItemAdd($Id, $ItemId)
+    public function frontendAddBasketItem($Id = null, $ItemId = null)
     {
 
         $Stage = new Stage('Warenkorb', 'Artikel Hinzufügen');
-        $tblBasket = Basket::useService()->getBasketById($Id);
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
             return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
-        $tblItem = Item::useService()->getItemById($ItemId);
+        $tblItem = $ItemId === null ? false : Item::useService()->getItemById($ItemId);
+        if (!$tblItem) {
+            $Stage->setContent(new Warning('Artikel nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Accounting/Basket/Item/Select', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblBasket->getId()));
+        }
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if ($tblBasketVerification) {
             $Stage->setContent(new Warning('Berechnung schon im Gange'));
@@ -690,15 +688,23 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
      * @return Stage
      */
-    public function frontendBasketItemRemove($Id)
+    public function frontendRemoveBasketItem($Id = null)
     {
 
         $Stage = new Stage('Warenkorb', 'Artikel Entfernen');
-        $tblBasketItem = Basket::useService()->getBasketItemById($Id);
+        $tblBasketItem = $Id === null ? false : Basket::useService()->getBasketItemById($Id);
+        if (!$tblBasketItem) {
+            $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+        }
+        if (!$tblBasketItem->getTblBasket()) {
+            $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+        }
         $tblBasket = $tblBasketItem->getTblBasket();
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if ($tblBasketVerification) {
@@ -711,16 +717,16 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
      * @return Stage
      */
-    public function frontendBasketPersonSelect($Id)     //ToDO
+    public function frontendBasketPersonSelect($Id = null)
     {
 
         $Stage = new Stage('Warenkorb', 'Personen Auswählen');
         $Stage->setMessage('Bitte wählen Sie Personen zur Fakturierung aus');
-        $tblBasket = Basket::useService()->getBasketById($Id);
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
             return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
@@ -841,21 +847,26 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
-     * @param $PersonId
+     * @param null $Id
+     * @param null $PersonId
      *
      * @return Stage
      */
-    public function frontendBasketPersonAdd($Id, $PersonId)
+    public function frontendAddBasketPerson($Id = null, $PersonId = null)
     {
 
         $Stage = new Stage('Warenkorb', 'Person Hinzufügen');
-        $tblBasket = Basket::useService()->getBasketById($Id);
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
             return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
-        $tblPerson = Person::useService()->getPersonById($PersonId);
+        $tblPerson = $PersonId === null ? false : Person::useService()->getPersonById($PersonId);
+        if (!$tblPerson) {
+            $Stage->setContent(new Warning('Person nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Accounting/Basket/Person/Select', Redirect::TIMEOUT_ERROR,
+                array('Id' => $tblBasket->getId()));
+        }
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if ($tblBasketVerification) {
             $Stage->setContent(new Warning('Berechnung schon im Gange'));
@@ -867,15 +878,23 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
      * @return Stage
      */
-    public function frontendBasketPersonRemove($Id)
+    public function frontendRemoveBasketPerson($Id = null)
     {
 
         $Stage = new Stage('Warenkorb', 'Person Entfernen');
-        $tblBasketPerson = Basket::useService()->getBasketPersonById($Id);
+        $tblBasketPerson = $Id === null ? false : Basket::useService()->getBasketPersonById($Id);
+        if (!$tblBasketPerson) {
+            $Stage->setContent(new Warning('Person/Warenkorb nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+        }
+        if (!$tblBasketPerson->getTblBasket()) {
+            $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
+        }
         $tblBasket = $tblBasketPerson->getTblBasket();
         $tblBasketVerification = Basket::useService()->getBasketVerificationByBasket($tblBasket);
         if ($tblBasketVerification) {
@@ -905,15 +924,15 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
      * @return Stage|string
      */
-    public function frontendBasketCalculation($Id)
+    public function frontendBasketCalculation($Id = null)
     {
 
         $Stage = new Stage('Warenkorb', 'Berechnung');
-        $tblBasket = Basket::useService()->getBasketById($Id);
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
             return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
@@ -942,15 +961,15 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param null $Id
      *
      * @return Stage|string
      */
-    public function frontendBasketVerification($Id)
+    public function frontendBasketVerification($Id = null)
     {
 
         $Stage = new Stage('Warenkorb', 'Berechnung');
-        $tblBasket = Basket::useService()->getBasketById($Id);
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
             return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
@@ -1059,12 +1078,18 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendBasketVerificationPersonShow($PersonId, $BasketId)
+    /**
+     * @param null $PersonId
+     * @param null $BasketId
+     *
+     * @return Stage|string
+     */
+    public function frontendBasketVerificationPersonShow($PersonId = null, $BasketId = null)
     {
 
         $Stage = new Stage('Warenkorb', 'Berechnung');
-        $tblPerson = Person::useService()->getPersonById($PersonId);
-        $tblBasket = Basket::useService()->getBasketById($BasketId);
+        $tblPerson = $PersonId === null ? false : Person::useService()->getPersonById($PersonId);
+        $tblBasket = $BasketId === null ? false : Basket::useService()->getBasketById($BasketId);
 
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
@@ -1164,11 +1189,17 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendBasketVerificationEdit($Id, $Item = null)
+    /**
+     * @param null $Id
+     * @param null $Item
+     *
+     * @return Stage|string
+     */
+    public function frontendEditBasketVerification($Id = null, $Item = null)
     {
 
         $Stage = new Stage('Warenkorb', 'Berechnung');
-        $tblBasketVerification = Basket::useService()->getBasketVerificationById($Id);
+        $tblBasketVerification = $Id === null ? false : Basket::useService()->getBasketVerificationById($Id);
         if (!$tblBasketVerification) {
             $Stage->setContent(new Warning('Warenkorbinhalt nicht gefunden'));
             return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
@@ -1190,6 +1221,10 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(new Warning('Person nicht gefunden'));
             return $Stage.new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_ERROR,
                 array('Id' => $tblBasketVerification->getTblBasket()->getId()));
+        }
+        if (!$tblBasket) {
+            $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
+            return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
 //        $Address = 'Keine Adresse hinterlegt';
 //        if (Address::useService()->getAddressByPerson($tblPerson)) {
@@ -1287,22 +1322,22 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param      $Id
-     * @param      $PersonId
+     * @param null $Id
+     * @param null $PersonId
      * @param bool $Confirm
      *
      * @return Stage|string
      */
-    public function frontendBasketVerificationPersonRemove($Id, $PersonId, $Confirm = false)
+    public function frontendRemoveVerificationPerson($Id = null, $PersonId = null, $Confirm = false)
     {
 
         $Stage = new Stage('Eintrag', 'Löschen');
-        $tblBasket = Basket::useService()->getBasketById($Id);
+        $tblBasket = $Id === null ? false : Basket::useService()->getBasketById($Id);
         if (!$tblBasket) {
             $Stage->setContent(new Warning('Warenkorb nicht gefunden'));
             return $Stage.new Redirect('/Billing/Accounting/Basket', Redirect::TIMEOUT_ERROR);
         }
-        $tblPerson = Person::useService()->getPersonById($PersonId);
+        $tblPerson = $PersonId === null ? false : Person::useService()->getPersonById($PersonId);
         if (!$tblPerson) {
             $Stage->setContent(new Warning('Person nicht gefunden'));
             return $Stage.new Redirect('/Billing/Accounting/Basket/Verification', Redirect::TIMEOUT_ERROR,
@@ -1365,11 +1400,18 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendBasketVerificationDestroy($Id = null, $BasketId = null, $Confirm = false)
+    /**
+     * @param null $Id
+     * @param null $BasketId
+     * @param bool $Confirm
+     *
+     * @return Stage|string
+     */
+    public function frontendDestroyVerification($Id = null, $BasketId = null, $Confirm = false)
     {
 
         $Stage = new Stage('Eintrag', 'Löschen');
-        if ($Id) {
+        if ($Id !== null) {
             $tblBasketVerification = Basket::useService()->getBasketVerificationById($Id);
             if (!$tblBasketVerification) {
                 $Stage->setContent(new Warning('Artikel nicht gefunden'));
@@ -1435,15 +1477,17 @@ class Frontend extends Extension implements IFrontendInterface
                             $CountVerification = count($tblBasketVerificationList);
                             $tblBasketVerification = $tblBasketVerificationList[0];
                             $PanelContent = array();
+                            $PanelContent[] = new Bold('Enthaltene Artikel:');
                             foreach ($tblBasketVerificationList as $tblBasketVerifications) {
                                 if ($tblBasketVerifications->getServiceTblItem()) {
                                     $PanelContent[] = $tblBasketVerifications->getServiceTblItem()->getName();
                                 }
                             }
+                            $PanelContent = array_unique($PanelContent);
                             $Stage->setContent(
                                 new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                                     new Panel(new Question().' Berechnung mit '.$CountVerification.' Einträgen wirklich löschen?',
-                                        array(),
+                                        $PanelContent,
                                         Panel::PANEL_TYPE_DANGER,
                                         new Standard(
                                             'Ja', '/Billing/Accounting/Basket/Verification/Destroy', new Ok(),
@@ -1483,296 +1527,4 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
-
-//    /**
-//     * @param $Id
-//     * @param $Basket
-//     *
-//     * @return Stage
-//     */
-//    public function frontendBasketSummary($Id, $Basket = null)
-//    {
-//
-//        $Stage = new Stage();
-//        $Stage->setTitle('Warenkorb');
-//        $Stage->setDescription('Zusammenfassung');
-//
-//        $Stage->setMessage('Schließen Sie den Warenkorb zur Fakturierung ab');
-//        $Stage->addButton(new Primary('Zurück', '/Billing/Accounting/Basket/Person/Select',
-//            new ChevronLeft(), array(
-//                'Id' => $Id
-//            )));
-//
-//        $tblBasket = Basket::useService()->getBasketById($Id);
-//        $tblBasketItemList = Basket::useService()->getBasketItemAllByBasket($tblBasket);
-//        $tblPersonByBasketList = Basket::useService()->getPersonAllByBasket($tblBasket);
-//        $PersonTable = array();
-//        if (!empty( $tblPersonByBasketList )) {
-//            /** @var TblPerson $tblPerson */
-//            array_walk($tblPersonByBasketList, function (TblPerson $tblPerson) use (&$PersonTable, $tblBasketItemList, $tblPersonByBasketList) {
-//
-//                $Temp['FirstName'] = $tblPerson->getFirstName();
-//                $Temp['LastName'] = $tblPerson->getLastName();
-//                $Temp['Rank'] = '';
-//                $Temp['Type'] = '';
-//                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
-//                if ($tblStudent) {
-//                    if ($tblStudentBilling = $tblStudent->getTblStudentBilling()) {
-//                        if ($tblSiblingRank = $tblStudentBilling->getServiceTblSiblingRank()) {
-//                            $Temp['Rank'] = $tblSiblingRank->getName();
-//                        }
-//                    }
-//                    $tblTransferType = Student::useService()->getStudentTransferTypeByIdentifier('PROCESS');
-//                    if ($tblTransferType) {
-//                        $Type = Student::useService()->getStudentTransferByType($tblStudent, $tblTransferType);
-//                        if ($Type) {
-//                            if ($SchoolType = $Type->getServiceTblType()) {
-//                                $Temp['Type'] = $SchoolType->getName();
-//                            }
-//                        }
-//                    }
-//                }
-//                $Result = 0.00;
-//                $Temp['Price'] = str_replace('.', ',', $Result)." €";
-//
-//                array_push($PersonTable, $Temp);
-//            });
-//        }
-//
-//        $TableContent = array();
-//        if (!empty( $tblBasketItemList )) {
-//            array_walk($tblBasketItemList, function (TblBasketItem &$tblBasketItem) use (&$TableContent) {
-//
-//                $tblCommodity = $tblBasketItem->getServiceBillingCommodityItem()->getTblCommodity();
-//                $tblItem = $tblBasketItem->getServiceBillingCommodityItem()->getTblItem();
-//                $Temp['CommodityName'] = $tblCommodity->getName();
-//                $Temp['ItemName'] = $tblItem->getName();
-//                $Temp['Type'] = '';
-//                $Temp['Rank'] = '';
-////                if ($tblItem->getServiceStudentType()) {
-////                    $Temp['Type'] = $tblItem->getServiceStudentType()->getName();
-////                }
-////                if ($tblItem->getServiceStudentChildRank()) {
-////                    $Temp['Rank'] = $tblItem->getServiceStudentChildRank()->getName();
-////                }
-//
-//                $Temp['TotalPriceString'] = $tblBasketItem->getTotalPriceString();
-//                $Temp['QuantityString'] = str_replace('.', ',', $tblBasketItem->getQuantity());
-//                $Temp['PriceString'] = $tblBasketItem->getPriceString();
-//                array_push($TableContent, $Temp);
-//            });
-//        }
-//
-////        $Result = 0.00;
-////        foreach ($tblBasketItemAll as $tblBasketItem) {
-////            if ($tblBasketItem->getServiceBillingCommodityItem()->getTblCommodity()->getTblCommodityType()->getName() === 'Sammelleistung') {
-////                $Numerator = count($tblPersonByBasketList);
-////
-////                $Result = ( ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) / $Numerator ) + $Result;
-////            } else {
-////                $Result = ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) + $Result;
-////            }
-////        }
-//
-//        $Form = new Form(
-//            new FormGroup(array(
-//                new FormRow(array(
-//                    new FormColumn(
-//                        new DatePicker('Basket[Date]', 'Zahlungsdatum (Fälligkeit)',
-//                            'Zahlungsdatum (Fälligkeit)',
-//                            new Time())
-//                        , 3)
-//                )),
-//            ), new \SPHERE\Common\Frontend\Form\Repository\Title('Zahlungsdatum'))
-//        );
-//        $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Warenkorb fakturieren (prüfen)'));
-//        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-//
-//        $Stage->setContent(
-//            new Layout(array(
-//                new LayoutGroup(array(
-//                    new LayoutRow(array(
-//                        new LayoutColumn(
-//                            new Panel('Warenkorb - Nummer', $tblBasket->getId(),
-//                                Panel::PANEL_TYPE_SUCCESS), 3
-//                        ),
-//                        new LayoutColumn(
-//                            new Panel('Warenkorb - Name', $tblBasket->getName(),
-//                                Panel::PANEL_TYPE_SUCCESS), 6
-//                        ),
-//                        new LayoutColumn(
-//                            new Panel('Erstellt am', $tblBasket->getCreateDate(),
-//                                Panel::PANEL_TYPE_SUCCESS), 3
-//                        )
-//                    )),
-//                    new LayoutRow(
-//                        new LayoutColumn(
-//                            new Panel('Warenkorb - Beschreibung', $tblBasket->getDescription(),
-//                                Panel::PANEL_TYPE_SUCCESS), 12
-//                        )
-//                    )
-//                )),
-//                new LayoutGroup(array(
-//                    new LayoutRow(array(
-//                        new LayoutColumn(
-//                            array(
-//                                new TableData($TableContent, null,
-//                                    array(
-//                                        'CommodityName'    => 'Leistung',
-//                                        'ItemName'         => 'Artikel',
-//                                        'Type'             => 'Typ',
-//                                        'Rank'             => 'Geschwister',
-//                                        'PriceString'      => 'Preis',
-//                                        'QuantityString'   => 'Menge',
-//                                        'TotalPriceString' => 'Gesamtpreis'
-//                                    )
-//                                )
-//                            )
-//                        )
-//                    ))
-//                ), new Title('Artikel')),
-//                new LayoutGroup(array(
-//                    new LayoutRow(array(
-//                        new LayoutColumn(array(), 8),
-////                        new LayoutColumn(array(
-////                            new Panel('Preis pro Person: '.$Result.' €', '', Panel::PANEL_TYPE_PRIMARY)
-////                        ), 3)
-//                    ))
-//                )),
-//                new LayoutGroup(array(
-//                    new LayoutRow(array(
-//                        new LayoutColumn(
-//                            array(
-//                                new TableData($PersonTable, null,
-//                                    array(
-//                                        'FirstName' => 'Vorname',
-//                                        'LastName'  => 'Nachname',
-//                                        'Type'      => 'Typ',
-//                                        'Rank'      => 'Geschwister',
-//                                        'Price'     => 'Gesamt',
-//                                    )
-//                                )
-//                            )
-//                        )
-//                    ))
-//                ), new Title('Personen')),
-//                new LayoutGroup(array(
-//                    new LayoutRow(array(
-//                        new LayoutColumn(
-//                            Basket::useService()->checkBasket($Form, $tblBasket, $Basket)
-//                        )
-//                    ))
-//                ))
-//            ))
-//        );
-//
-//        return $Stage;
-//    }
-//
-//    /**
-//     * @param $Id
-//     * @param $Date
-//     * @param $Data
-//     * @param $Save
-//     *
-//     * @return Stage
-//     */
-//    public function frontendBasketDebtorSelect($Id, $Date, $Data, $Save)
-//    {
-//
-//        $Stage = new Stage();
-//        $Stage->setTitle('Warenkorb');
-//        $Stage->setDescription('Debitoren zuordnen');
-//        $Stage->setMessage('Es konnten im Warenkorb nicht zu alle Personen bei allen Leistungen eindeutig ein Debitor
-//            ermittelt werden. Es werden alle nicht automatisch zuordenbaren Kombinationen von Personen und Leistungen
-//            angezeigt. Bitte weisen Sie die entsprechenden Debitoren zu');
-//
-//        $Global = $this->getGlobal();
-//        if (!isset( $Global->POST['Save'] )) {
-//            $Global->POST['Save'] = 1;
-//        }
-//        $Global->savePost();
-//
-//        $tblBasket = Basket::useService()->getBasketById($Id);
-//        $tblBasketCommodityList = Basket::useService()->getBasketCommodityAllByBasket($tblBasket);
-//
-//        $TableContent = array();
-//        /**@var TblBasketCommodity $tblBasketCommodity */
-//        array_walk($tblBasketCommodityList, function (TblBasketCommodity $tblBasketCommodity) use (&$TableContent) {
-//
-//            $tblBasketCommodityDebtorList = Basket::useService()->getBasketCommodityDebtorAllByBasketCommodity($tblBasketCommodity);
-//
-//            $Temp['Name'] = $tblBasketCommodity->getServiceManagementPerson()->getFullName();
-//            $Temp['Commodity'] = $tblBasketCommodity->getServiceBillingCommodity()->getName();
-//
-//            $Temp['Select'] = new SelectBox('Data['.$tblBasketCommodity->getId().']', '', array(
-//                '{{ ServiceBillingDebtor.DebtorNumber }}'
-//                .' - {{ ServiceBillingDebtor.ServiceManagementPerson.FullName }}'
-//                .'{% if( ServiceBillingDebtor.Description is not empty) %} - {{ ServiceBillingDebtor.Description }}{% endif %}'
-//                => $tblBasketCommodityDebtorList
-//            ));
-//            array_push($TableContent, $Temp);
-//        });
-//
-//        $Form = new Form(
-//            new FormGroup(array(
-//                new FormRow(
-//                    new FormColumn(
-//                        new TableData(
-//                            $TableContent, null, array(
-//                            'Name'      => 'Person',
-//                            'Commodity' => 'Leistung',
-//                            'Select'    => 'Debitorennummer - Debitor - Beschreibung'
-//                        ), false)
-//                    )
-//                ),
-//                new FormRow(array(
-//                    new FormColumn(
-//                        new SelectBox('Save', '', array(
-//                            1 => 'Nicht speichern',
-//                            2 => 'Als Standard speichern'
-//                        ))
-//                        , 3),
-//                ))
-//            ))
-//        );
-//        $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Debitoren zuordnen (prüfen)'));
-//        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-//
-//        $Stage->setContent(
-//            new Layout(array(
-//                new LayoutGroup(array(
-//                    new LayoutRow(array(
-//                        new LayoutColumn(
-//                            new Panel('Warenkorb - Nummer', $tblBasket->getId(),
-//                                Panel::PANEL_TYPE_SUCCESS), 3
-//                        ),
-//                        new LayoutColumn(
-//                            new Panel('Warenkorb - Name', $tblBasket->getName(),
-//                                Panel::PANEL_TYPE_SUCCESS), 6
-//                        ),
-//                        new LayoutColumn(
-//                            new Panel('Erstellt am', $tblBasket->getCreateDate(),
-//                                Panel::PANEL_TYPE_SUCCESS), 3
-//                        )
-//                    )),
-//                    new LayoutRow(
-//                        new LayoutColumn(
-//                            new Panel('Warenkorb - Beschreibung', $tblBasket->getDescription(),
-//                                Panel::PANEL_TYPE_SUCCESS), 12
-//                        )
-//                    )
-//                )),
-//                new LayoutGroup(array(
-//                    new LayoutRow(array(
-//                        new LayoutColumn(new Well(
-//                            Basket::useService()->checkDebtors($Form, $Id, $Date, $Data, $Save)
-//                        ))
-//                    ))
-//                )),
-//            ))
-//        );
-//
-//        return $Stage;
-//    }
 }

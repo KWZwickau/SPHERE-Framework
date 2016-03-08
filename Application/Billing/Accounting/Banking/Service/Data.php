@@ -473,7 +473,7 @@ class Data extends AbstractData
      *
      * @return bool|false|TblDebtorSelection
      */
-    public function UpdateDebtorSelection(
+    public function updateDebtorSelection(
         TblDebtorSelection $tblDebtorSelection,
         TblDebtor $tblDebtor,
         TblBankAccount $tblBankAccount = null,

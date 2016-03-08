@@ -25,18 +25,13 @@ class Commodity implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__,
                 __NAMESPACE__.'\Frontend::frontendStatus'
             ));
-//        Main::getDispatcher()->registerRoute(
-//            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
-//                __NAMESPACE__.'\Frontend::frontendDestroy'
-//            )->setParameterDefault('Id', null)
-//        );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Change',
                 __NAMESPACE__.'\Frontend::frontendChange'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Add',
-                __NAMESPACE__.'\Frontend::frontendItemAdd'
+                __NAMESPACE__.'\Frontend::frontendAddItem'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Select',
@@ -44,7 +39,7 @@ class Commodity implements IModuleInterface
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Remove',
-                __NAMESPACE__.'\Frontend::frontendItemRemove'
+                __NAMESPACE__.'\Frontend::frontendRemoveItem'
             ));
     }
 
