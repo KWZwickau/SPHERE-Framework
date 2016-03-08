@@ -11,10 +11,12 @@ namespace SPHERE\Application\Reporting\CheckList;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup as CompanyGroupEntity;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Group\Group as PersonGroup;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup as PersonGroupEntity;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
@@ -71,8 +73,6 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
-use SPHERE\Application\People\Group\Group as PersonGroup;
-use SPHERE\Application\Corporation\Group\Group as CompanyGroup;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -146,8 +146,27 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @return Form
+     */
+    private function formList()
+    {
+
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new TextField('List[Name]', 'Name', 'Name'), 12
+                ),
+                new FormColumn(
+                    new TextField('List[Description]', 'Beschreibung', 'Beschreibung'), 12
+                )
+            ))
+        )));
+    }
+
+    /**
      * @param null $Id
      * @param null $List
+     *
      * @return Stage|string
      */
     public function frontendListEdit($Id = null, $List = null)
@@ -159,8 +178,8 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         if ($Id == null) {
-            return $Stage . new Danger(new Ban() . ' Daten nicht abrufbar.')
-            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+            return $Stage.new Danger(new Ban().' Daten nicht abrufbar.')
+            .new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
         }
 
         $tblList = CheckList::useService()->getListById($Id);
@@ -183,9 +202,9 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel(
                                     'Check-List',
-                                    $tblList->getName() .
-                                    ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
-                                        . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
+                                    $tblList->getName().
+                                    ( $tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                        .new Muted(new Small(new Small($tblList->getDescription()))) : '' ),
                                     Panel::PANEL_TYPE_INFO
                                 )
                             ),
@@ -197,33 +216,15 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Well(CheckList::useService()->updateList($Form, $Id, $List))
                             ),
                         ))
-                    ), new Title(new Edit() . ' Bearbeiten'))
+                    ), new Title(new Edit().' Bearbeiten'))
                 ))
             );
 
             return $Stage;
         } else {
-            return $Stage . new Danger(new Ban() . ' Liste nicht gefunden.')
-            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+            return $Stage.new Danger(new Ban().' Liste nicht gefunden.')
+            .new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
         }
-    }
-
-    /**
-     * @return Form
-     */
-    private function formList()
-    {
-
-        return new Form(new FormGroup(array(
-            new FormRow(array(
-                new FormColumn(
-                    new TextField('List[Name]', 'Name', 'Name'), 12
-                ),
-                new FormColumn(
-                    new TextField('List[Description]', 'Beschreibung', 'Beschreibung'), 12
-                )
-            ))
-        )));
     }
 
     /**
@@ -1472,7 +1473,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new FormGroup(array(
                                         new FormRow(array(
                                             new FormColumn(
-                                                new TableData($list, null, $columnDefinition, null)
+                                                new TableData($list, null, $columnDefinition, false)
                                             ),
                                             new FormColumn(   // to send only unchecked CheckBoxes
                                                 new HiddenField('HasData')
