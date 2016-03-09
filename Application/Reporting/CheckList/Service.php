@@ -11,7 +11,6 @@ namespace SPHERE\Application\Reporting\CheckList;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
-use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
@@ -33,6 +32,7 @@ use SPHERE\Application\Reporting\CheckList\Service\Entity\TblObjectType;
 use SPHERE\Application\Reporting\CheckList\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ban;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
@@ -464,10 +464,14 @@ class Service extends AbstractService
         $tblList = $this->getListById($ListId);
         $tblObjectType = $this->getObjectTypeById($ObjectTypeSelect['Id']);
 
-        return new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS, array(
-            'ListId' => $tblList->getId(),
-            'ObjectTypeId' => $tblObjectType->getId()
-        ));
+        if ($tblObjectType) {
+            return new Redirect('/Reporting/CheckList/Object/Select', Redirect::TIMEOUT_SUCCESS, array(
+                'ListId' => $tblList->getId(),
+                'ObjectTypeId' => $tblObjectType->getId()
+            ));
+        } else {
+            return $Stage . new Warning('Bitte wählen Sie einen Typ aus', new Exclamation());
+        }
     }
 
     /**
@@ -768,10 +772,10 @@ class Service extends AbstractService
                     if ($isProspectList) {
                         // set Header for prospectList
                         $export->setValue($export->getCell($columnCount++, $rowCount), 'Name');
-                        $export->setValue($export->getCell($columnCount++, $rowCount), 'Adresse');
                         $export->setValue($export->getCell($columnCount++, $rowCount), 'Schuljahr');
                         $export->setValue($export->getCell($columnCount++, $rowCount), 'Klassenstufe');
                         $export->setValue($export->getCell($columnCount++, $rowCount), 'Schulart');
+                        $export->setValue($export->getCell($columnCount++, $rowCount), 'Eingangsdatum');
 
                         $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
                         if ($tblListElementListByList) {
@@ -807,22 +811,11 @@ class Service extends AbstractService
                                         $export->setValue($export->getCell($columnCount++, $rowCount), trim($name));
 
                                         if ($isProspectList) {
-
-                                            // address
-                                            $idAddressAll = Address::useService()->fetchIdAddressAllByPerson($tblPerson);
-                                            $tblAddressAll = Address::useService()->fetchAddressAllByIdList($idAddressAll);
-                                            if (!empty($tblAddressAll)) {
-                                                $address = current($tblAddressAll)->getGuiString();
-                                            } else {
-                                                $address = '';
-                                            }
-                                            $export->setValue($export->getCell($columnCount++, $rowCount),
-                                                trim($address));
-
                                             // Prospect
                                             $level = false;
                                             $year = false;
                                             $option = false;
+                                            $reservationDate = false;
                                             $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
                                             if ($tblProspect) {
                                                 $tblProspectReservation = $tblProspect->getTblProspectReservation();
@@ -839,11 +832,18 @@ class Service extends AbstractService
                                                         $option = $optionB->getName();
                                                     }
                                                 }
+                                                $tblProspectAppointment = $tblProspect->getTblProspectAppointment();
+                                                if ($tblProspectAppointment){
+                                                    $reservationDate = $tblProspectAppointment->getReservationDate();
+                                                }
                                             }
                                             $export->setValue($export->getCell($columnCount++, $rowCount), trim($year));
                                             $export->setValue($export->getCell($columnCount++, $rowCount),
                                                 trim($level));
-                                            $export->setValue($export->getCell($columnCount, $rowCount), trim($option));
+                                            $export->setValue($export->getCell($columnCount++, $rowCount), trim($option));
+                                            if ($reservationDate){
+                                                $export->setValue($export->getCell($columnCount, $rowCount), $reservationDate);
+                                            }
                                         }
                                     }
                                 } elseif ($tblObjectType->getIdentifier() === 'COMPANY') {
