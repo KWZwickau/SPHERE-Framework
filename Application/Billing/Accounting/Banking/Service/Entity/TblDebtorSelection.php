@@ -27,7 +27,6 @@ class TblDebtorSelection extends Element
     const ATTR_SERVICE_TBL_PAYMENT_TYPE = 'serviceTblPaymentType';
     const ATTR_SERVICE_TBL_ITEM = 'serviceTblItem';
     const ATTR_TBL_DEBTOR = 'tblDebtor';
-    const ATTR_TBL_BANK_ACCOUNT = 'tblBankAccount';
     const ATTR_TBL_BANK_REFERENCE = '$tblBankReference';
 
     /**
@@ -54,10 +53,6 @@ class TblDebtorSelection extends Element
      * @Column(type="bigint")
      */
     protected $tblBankReference;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $tblBankAccount;
 
     /**
      * @return bool|TblPerson
@@ -189,27 +184,5 @@ class TblDebtorSelection extends Element
     {
 
         $this->tblBankReference = ( null === $tblBankReference ? null : $tblBankReference->getId() );
-    }
-
-    /**
-     * @return bool|TblBankAccount
-     */
-    public function getTblBankAccount()
-    {
-
-        if (null === $this->tblBankAccount) {
-            return false;
-        } else {
-            return Banking::useService()->getBankAccountById($this->tblBankAccount);
-        }
-    }
-
-    /**
-     * @param null|TblBankAccount $tblBankAccount
-     */
-    public function setTblBankAccount(TblBankAccount $tblBankAccount = null)
-    {
-
-        $this->tblBankAccount = ( null === $tblBankAccount ? null : $tblBankAccount->getId() );
     }
 }

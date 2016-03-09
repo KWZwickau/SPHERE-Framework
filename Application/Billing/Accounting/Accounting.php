@@ -6,7 +6,6 @@ use SPHERE\Application\Billing\Accounting\Account\Account;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Accounting\Basket\Basket;
 use SPHERE\Application\IApplicationInterface;
-use SPHERE\Common\Frontend\Icon\Repository\BarCode;
 use SPHERE\Common\Frontend\Icon\Repository\ClipBoard;
 use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
@@ -42,12 +41,8 @@ class Accounting implements IApplicationInterface
                 new Link\Icon(new Person()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/BankAccount'), new Link\Name('Kontodaten'),
-                new Link\Icon(new ClipBoard()))
-        );
-        Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/BankReference'), new Link\Name('Mandatsreferenz'),
-                new Link\Icon(new BarCode()))
+                new Link\Icon(new ClipBoard()))
         );
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__.'/Basket'), new Link\Name('Warenkorb'),

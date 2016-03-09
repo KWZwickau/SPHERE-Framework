@@ -36,12 +36,12 @@ class Banking implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendBanking'
             ));
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/BankAccount',
-                __NAMESPACE__.'\Frontend::frontendBankAccount'
-            ));
-        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/Billing/Accounting/BankReference',
                 __NAMESPACE__.'\Frontend::frontendBankReference'
+            ));
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/View',
+                __NAMESPACE__.'\Frontend::frontendBankingView'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Add',
@@ -52,16 +52,12 @@ class Banking implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendChangeBanking'
             ));
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/BankAccount/Add',
-                __NAMESPACE__.'\Frontend::frontendAddBankAccount'
-            ));
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('/Billing/Accounting/BankAccount/Change',
-                __NAMESPACE__.'\Frontend::frontendChangeBankAccount'
-            ));
-        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/Billing/Accounting/BankReference/Add',
                 __NAMESPACE__.'\Frontend::frontendAddBankReference'
+            ));
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/Billing/Accounting/BankReference/View',
+                __NAMESPACE__.'\Frontend::frontendBankReferenceView'
             ));
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute('/Billing/Accounting/BankReference/Change',

@@ -106,7 +106,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Item'] )) {
-            $Global->POST['Item']['ItemType'] = true;
+            $Global->POST['Item']['ItemType'] = 'Einzelleistung';
             $Global->savePost();
         }
 
@@ -160,8 +160,8 @@ class Frontend extends Extension implements IFrontendInterface
                             array(
                                 new TextField('Item[Name]', 'Name', 'Name', new Conversation()),
                                 new TextField('Item[Value]', 'Preis', 'Standard-Preis', new Money()),
-                                new RadioBox('Item[ItemType]', 'Sammelleistung', 'Sammelleistung'),
                                 new RadioBox('Item[ItemType]', 'Einzelleistung', 'Einzelleistung'),
+                                new RadioBox('Item[ItemType]', 'Sammelleistung', 'Sammelleistung'),
 
 //                                new CheckBox('Item[ItemType]', 'Einzelleistung', 'Einzelleistung', array('Item[CalculationType]')),
                             ), Panel::PANEL_TYPE_INFO)

@@ -5,8 +5,6 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -17,7 +15,6 @@ use SPHERE\System\Database\Fitting\Element;
 class TblBankAccount extends Element
 {
 
-    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_IBAN = 'IBAN';
 
     /**
@@ -40,10 +37,6 @@ class TblBankAccount extends Element
      * @Column(type="string")
      */
     protected $CashSign;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblPerson;
 
     /**
      * @return string $BankName
@@ -133,28 +126,6 @@ class TblBankAccount extends Element
     {
 
         $this->CashSign = $CashSign;
-    }
-
-    /**
-     * @return bool|TblPerson
-     */
-    public function getServiceTblPerson()
-    {
-
-        if (null === $this->serviceTblPerson) {
-            return false;
-        } else {
-            return Person::useService()->getPersonById($this->serviceTblPerson);
-        }
-    }
-
-    /**
-     * @param TblPerson|null $tblPerson
-     */
-    public function setServiceTblPerson(TblPerson $tblPerson = null)
-    {
-
-        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 
     /**

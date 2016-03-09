@@ -56,23 +56,12 @@ class Service extends AbstractService
     /**
      * @param TblPerson $Person
      *
-     * @return false|TblDebtor
+     * @return false|TblDebtor[]
      */
     public function getDebtorByPerson(TblPerson $Person)
     {
 
         return (new Data($this->getBinding()))->getDebtorByPerson($Person);
-    }
-
-    /**
-     * @param TblPerson $tblPerson
-     *
-     * @return false|Service\Entity\TblBankAccount[]
-     */
-    public function getBankAccountByPerson(TblPerson $tblPerson)
-    {
-
-        return (new Data($this->getBinding()))->getBankAccountByPerson($tblPerson);
     }
 
     /**
@@ -86,6 +75,22 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getBankReferenceByPerson($tblPerson);
     }
 
+    /**
+     * @param $Reference
+     *
+     * @return false|TblBankReference
+     */
+    public function getBankReferenceByNumber($Reference)
+    {
+
+        return (new Data($this->getBinding()))->getBankReferenceByNumber($Reference);
+    }
+
+    /**
+     * @param TblDebtorSelection $tblDebtorSelection
+     *
+     * @return false|TblDebtorSelection
+     */
     public function checkDebtorSelectionDebtor(TblDebtorSelection $tblDebtorSelection)
     {
 
@@ -236,6 +241,12 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getBankReferenceAll();
     }
 
+    public function getBankReferenceByBankAccount(TblBankAccount $tblBankAccount)
+    {
+
+        return (new Data($this->getBinding()))->getBankReferenceByBankAccount($tblBankAccount);
+    }
+
     /**
      * @param $Id
      *
@@ -287,15 +298,10 @@ class Service extends AbstractService
         if (!$Error) {
             $tblPerson = Person::useService()->getPersonById($Id);
             if ($tblPerson) {
-                if (!Banking::useService()->getDebtorByPerson($tblPerson)) {
-                    (new Data($this->getBinding()))->createDebtor($tblPerson, $Debtor['DebtorNumber']);
+                (new Data($this->getBinding()))->createDebtor($tblPerson, $Debtor['DebtorNumber']);
 
-                    return new Success('Der Debitor ist erfasst worden')
-                    .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_SUCCESS);
-                } else {
-                    return new Danger('Person beitzt bereits eine Debitor-Nummer')
-                    .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
-                }
+                return new Success('Der Debitor ist erfasst worden')
+                .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_SUCCESS);
             } else {
                 return new Danger('Person nicht gefunden')
                 .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
@@ -327,19 +333,28 @@ class Service extends AbstractService
             $Error = true;
         }
         if (isset( $Debtor['DebtorNumber'] ) && Banking::useService()->getDebtorByDebtorNumber($Debtor['DebtorNumber'])) {
+            if ($tblDebtor->getId() !== Banking::useService()->getDebtorByDebtorNumber($Debtor['DebtorNumber'])->getId()) {
+                $Stage->setError('Debtor[DebtorNumber]',
+                    'Die Debitorennummer exisitiert bereits. Bitte geben Sie eine andere Debitorennummer an');
+                $Error = true;
+            }
+        }
+        if (!$tblDebtor->getServiceTblPerson()) {
             $Stage->setError('Debtor[DebtorNumber]',
-                'Die Debitorennummer exisitiert bereits. Bitte geben Sie eine andere Debitorennummer an');
+                'Person nicht mehr gefunden');
             $Error = true;
         }
 
         if (!$Error) {
 
             if ((new Data($this->getBinding()))->updateDebtor($tblDebtor, $Debtor['DebtorNumber'])) {
-                return new Success('Die Debitor-Nummer ist geändert worden')
-                .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_SUCCESS);
+                return new Success('Die Debitor-Nummer ist erfasst')
+                .new Redirect('/Billing/Accounting/Banking/View', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblDebtor->getServiceTblPerson()->getId()));
             } else {
-                return new Danger('Die Debitor-Nummer konnte nicht geändert werden')
-                .new Redirect('/Billing/Accounting/Banking', Redirect::TIMEOUT_ERROR);
+                return new Danger('Die Debitor-Nummer konnte nicht erfasst werden')
+                .new Redirect('/Billing/Accounting/Banking/View', Redirect::TIMEOUT_ERROR,
+                    array('Id' => $tblDebtor->getServiceTblPerson()->getId()));
             }
         }
         return $Stage;
@@ -422,7 +437,7 @@ class Service extends AbstractService
 //        }
 
         if (!$Error) {
-            if ((new Data ($this->getBinding()))->createAccount(
+            if ((new Data ($this->getBinding()))->createBankAccount(
                 $tblPerson,
 //                $Account['LeadTimeFirst'],
 //                $Account['LeadTimeFollow'],
@@ -531,21 +546,12 @@ class Service extends AbstractService
                         if (!$Error) {
 
                             $tblDebtor = Banking::useService()->getDebtorById($Row['Debtor']);
-                            $tblBankAccount = null;
                             $tblBankReference = null;
-
-                            $string = substr($Row['SelectBox'], 0, 3);
-                            $Id = substr($Row['SelectBox'], 3);
-                            if ($string === 'Ban') {
-                                $tblBankAccount = Banking::useService()->getBankAccountById($Id);
-                            } elseif ($string === 'Ref') {
-                                $tblBankReference = Banking::useService()->getBankReferenceById($Id);
-                            }
+                            $tblBankReference = Banking::useService()->getBankReferenceById($Row['SelectBox']);
 
                             (new Data ($this->getBinding()))->updateDebtorSelection(
                                 $tblDebtorSelection,
                                 $tblDebtor,
-                                $tblBankAccount,
                                 $tblBankReference);
                         }
                     }
@@ -606,7 +612,6 @@ class Service extends AbstractService
 
 
                             $tblDebtor = null;
-                            $tblBankAccount = null;
                             $tblBankReference = null;
 
                             (new Data ($this->getBinding()))->changeDebtorSelection(
@@ -614,7 +619,6 @@ class Service extends AbstractService
                                 $tblPersonPayers,
                                 $tblPaymentType,
                                 $tblDebtor,
-                                $tblBankAccount,
                                 $tblBankReference);
                         }
                     }
@@ -633,7 +637,14 @@ class Service extends AbstractService
         return $Stage;
     }
 
-    public function changeDebtorSelectionInfo(IFormInterface &$Stage = null, $Data = null)
+    /**
+     * @param IFormInterface|null $Stage
+     * @param null                $Data
+     * @param null                $RadioBox
+     *
+     * @return IFormInterface|string
+     */
+    public function changeDebtorSelectionInfo(IFormInterface &$Stage = null, $Data = null, $RadioBox = null)
     {
 
         /**
@@ -643,7 +654,7 @@ class Service extends AbstractService
             return $Stage;
         }
 
-        $Error = false;
+        $Error = true;
         $Debtor = false;
         $Bank = false;
 
@@ -658,8 +669,8 @@ class Service extends AbstractService
                         $Error = true;
                         $Debtor = true;
                     }
-                    if (!isset( $Row['SelectBox'] ) || empty( $Row['SelectBox'] )) {
-                        $Stage->setError('[Data]['.$Key.'][Select]', 'Auswahl treffen!');
+                    if (!isset( $RadioBox[$Row] ) || empty( $RadioBox[$Row] )) {
+                        $Stage->setError('[SelectBox]['.$Key.']', 'Auswahl treffen!');
                         $Error = true;
                         $Bank = true;
                     }
@@ -675,21 +686,12 @@ class Service extends AbstractService
                         if (!$Error) {
 
                             $tblDebtor = Banking::useService()->getDebtorById($Row['Debtor']);
-                            $tblBankAccount = null;
                             $tblBankReference = null;
-
-                            $string = substr($Row['SelectBox'], 0, 3);
-                            $Id = substr($Row['SelectBox'], 3);
-                            if ($string === 'Ban') {
-                                $tblBankAccount = Banking::useService()->getBankAccountById($Id);
-                            } elseif ($string === 'Ref') {
-                                $tblBankReference = Banking::useService()->getBankReferenceById($Id);
-                            }
+                            $tblBankReference = Banking::useService()->getBankReferenceById($RadioBox[$Row]);
 
                             (new Data ($this->getBinding()))->updateDebtorSelection(
                                 $tblDebtorSelection,
                                 $tblDebtor,
-                                $tblBankAccount,
                                 $tblBankReference);
                         }
                     }
@@ -771,14 +773,14 @@ class Service extends AbstractService
     /**
      * @param IFormInterface|null $Stage
      * @param TblPerson           $tblPerson
-     * @param                     $Reference
+     * @param null                $Reference
      *
      * @return IFormInterface|string
      */
     public function createReference(
         IFormInterface &$Stage = null,
         TblPerson $tblPerson,
-        $Reference
+        $Reference = null
     ) {
 
         /**
@@ -800,12 +802,16 @@ class Service extends AbstractService
         }
 
         if (!$Error) {
-
             (new Data($this->getBinding()))->createReference(
                 $tblPerson,
                 $Reference['Reference'],
-                $Reference['ReferenceDate']);
-
+                $Reference['CreditorId'],
+                $Reference['ReferenceDate'],
+                $Reference['BankName'],
+                $Reference['Owner'],
+                $Reference['CashSign'],
+                $Reference['IBAN'],
+                $Reference['BIC']);
             return new Success('Die Mandatsreferenz ist erfasst worden')
             .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_SUCCESS);
         }
@@ -827,6 +833,17 @@ class Service extends AbstractService
         }
 
         $Error = false;
+        if (isset( $Reference['Reference'] ) && empty( $Reference['Reference'] )) {
+            $Stage->setError('Reference[Reference]', 'Bitte geben sie eine Mandatsreferenz an');
+            $Error = true;
+        } else {
+            if (( $FindBankReference = Banking::useService()->getBankReferenceByNumber($Reference['Reference']) )) {
+                if ($FindBankReference->getId() !== $tblBankReference->getId()) {
+                    $Stage->setError('Reference[Reference]', 'Mandatsreferenz ist schon vergeben');
+                    $Error = true;
+                }
+            }
+        }
         if (isset( $Reference['ReferenceDate'] ) && empty( $Reference['ReferenceDate'] )) {
             $Stage->setError('Reference[ReferenceDate]', 'Bitte geben sie ein Datum an');
             $Error = true;
@@ -836,10 +853,23 @@ class Service extends AbstractService
 
             (new Data($this->getBinding()))->updateReference(
                 $tblBankReference,
-                $Reference['ReferenceDate']);
+                $Reference['Reference'],
+                $Reference['CreditorId'],
+                $Reference['ReferenceDate'],
+                $Reference['Owner'],
+                $Reference['BankName'],
+                $Reference['CashSign'],
+                $Reference['IBAN'],
+                $Reference['BIC']);
+            if ($tblBankReference->getServiceTblPerson()) {
+                return new Success('Änderungen an Informationen zur Mandatsreferenz sind erfasst')
+                .new Redirect('/Billing/Accounting/BankReference/View', Redirect::TIMEOUT_SUCCESS,
+                    array('Id' => $tblBankReference->getServiceTblPerson()->getId()));
+            } else {
+                return new Warning('Person nicht mehr gefunden')
+                .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_SUCCESS);
+            }
 
-            return new Success('Das Mandatsreferenz-Datum ist geändert worden')
-            .new Redirect('/Billing/Accounting/BankReference', Redirect::TIMEOUT_SUCCESS);
         }
 
         return $Stage;

@@ -18,13 +18,18 @@ class TblBankReference extends Element
 {
 
     const ATTR_REFERENCE_NUMBER = 'Reference';
-    const ATTR_IS_VOID = 'IsVoid';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_TBL_BANK_ACCOUNT = 'tblBankAccount';
+    const ATTR_IBAN = 'IBAN';
 
     /**
      * @Column(type="string")
      */
     protected $Reference;
+    /**
+     * @Column(type="string")
+     */
+    protected $CreditorId;
     /**
      * @Column(type="date")
      */
@@ -33,6 +38,26 @@ class TblBankReference extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPerson;
+    /**
+     * @Column(type="string")
+     */
+    protected $BankName;
+    /**
+     * @Column(type="string")
+     */
+    protected $IBAN;
+    /**
+     * @Column(type="string")
+     */
+    protected $BIC;
+    /**
+     * @Column(type="string")
+     */
+    protected $Owner;
+    /**
+     * @Column(type="string")
+     */
+    protected $CashSign;
 
     /**
      * @return string $Reference
@@ -50,6 +75,24 @@ class TblBankReference extends Element
     {
 
         $this->Reference = $Reference;
+    }
+
+    /**
+     * @return string $CreditorId
+     */
+    public function getCreditorId()
+    {
+
+        return $this->CreditorId;
+    }
+
+    /**
+     * @param string $CreditorId
+     */
+    public function setCreditorId($CreditorId)
+    {
+
+        $this->CreditorId = $CreditorId;
     }
 
     /**
@@ -98,5 +141,126 @@ class TblBankReference extends Element
     {
 
         $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
+     * @return string $BankName
+     */
+    public function getBankName()
+    {
+
+        return $this->BankName;
+    }
+
+    /**
+     * @param string $BankName
+     */
+    public function setBankName($BankName)
+    {
+
+        $this->BankName = $BankName;
+    }
+
+    /**
+     * @return string $IBAN
+     */
+    public function getIBAN()
+    {
+
+        return $this->IBAN;
+    }
+
+    /**
+     * @param string $IBAN
+     */
+    public function setIBAN($IBAN)
+    {
+
+        $this->IBAN = strtoupper(substr(str_replace(' ', '', $IBAN), 0, 34));
+    }
+
+    /**
+     * @return string $BIC
+     */
+    public function getBIC()
+    {
+
+        return $this->BIC;
+    }
+
+    /**
+     * @param string $BIC
+     */
+    public function setBIC($BIC)
+    {
+
+        $this->BIC = strtoupper(substr(str_replace(' ', '', $BIC), 0, 11));
+    }
+
+    /**
+     * @return string $Owner
+     */
+    public function getOwner()
+    {
+
+        return $this->Owner;
+    }
+
+    /**
+     * @param string $Owner
+     */
+    public function setOwner($Owner)
+    {
+
+        $this->Owner = $Owner;
+    }
+
+    /**
+     * @return string $CashSign
+     */
+    public function getCashSign()
+    {
+
+        return $this->CashSign;
+    }
+
+    /**
+     * @param string $CashSign
+     */
+    public function setCashSign($CashSign)
+    {
+
+        $this->CashSign = $CashSign;
+    }
+
+    /**
+     * @return string
+     */
+    public function getIBANFrontend()
+    {
+
+        $IBAN = $this->IBAN;
+        $tmp = array();
+        for ($i = 0, $j = strlen($IBAN); $i < $j; $i += 4) {
+            array_push($tmp, substr($IBAN, $i, 4));
+        }
+        $result = implode(' ', $tmp);
+        return $result;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBICFrontend()
+    {
+
+        $BIC = $this->BIC;
+        $tmp = array();
+        array_push($tmp, substr($BIC, 0, 4));
+        array_push($tmp, substr($BIC, 4, 2));
+        array_push($tmp, substr($BIC, 6, 2));
+        array_push($tmp, substr($BIC, 8, 3));
+        $result = implode(' ', $tmp);
+        return $result;
     }
 }

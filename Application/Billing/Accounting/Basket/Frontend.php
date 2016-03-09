@@ -1235,7 +1235,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (!isset( $Global->POST['Item'] )) {
             $Global->POST['Item']['Price'] = $tblBasketVerification->getSinglePrice();
             $Global->POST['Item']['Quantity'] = $tblBasketVerification->getQuantity();
-            $Global->POST['Item']['PriceChoice'] = true;
+            $Global->POST['Item']['PriceChoice'] = 'Einzelpreis';
             $Global->savePost();
         }
 
@@ -1289,8 +1289,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Artikelpreis', array(
                                 new TextField('Item[Price]', '', 'Preis', new Money()),
-                                new RadioBox('Item[PriceChoice]', 'Gesamtpreis', 'Gesamtpreis'),
-                                new RadioBox('Item[PriceChoice]', 'Einzelpreis', 'Einzelpreis'),)
+                                new RadioBox('Item[PriceChoice]', 'Einzelpreis', 'Einzelpreis'),
+                                new RadioBox('Item[PriceChoice]', 'Gesamtpreis', 'Gesamtpreis'),)
                             , Panel::PANEL_TYPE_INFO)
                         , 6),
                     new FormColumn(

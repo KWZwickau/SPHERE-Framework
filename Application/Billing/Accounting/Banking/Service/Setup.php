@@ -28,9 +28,8 @@ class Setup extends AbstractSetup
         $Schema = clone $this->getConnection()->getSchema();
 
         $tblDebtor = $this->setTableDebtor($Schema);
-        $tblBankAccount = $this->setTableBankAccount($Schema);
         $tblBankReference = $this->setTableBankReference($Schema);
-        $this->setTableDebtorSelection($Schema, $tblDebtor, $tblBankAccount, $tblBankReference);
+        $this->setTableDebtorSelection($Schema, $tblDebtor, $tblBankReference);
 
         /**
          * Migration & Protocol
@@ -63,37 +62,6 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableBankAccount(Schema &$Schema)
-    {
-
-        $Table = $this->getConnection()->createTable($Schema, 'tblBankAccount');
-        if (!$this->getConnection()->hasColumn('tblBankAccount', 'BankName')) {
-            $Table->addColumn('BankName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblBankAccount', 'IBAN')) {
-            $Table->addColumn('IBAN', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblBankAccount', 'BIC')) {
-            $Table->addColumn('BIC', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblBankAccount', 'Owner')) {
-            $Table->addColumn('Owner', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblBankAccount', 'CashSign')) {
-            $Table->addColumn('CashSign', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblBankAccount', 'serviceTblPerson')) {
-            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
-        }
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     *
-     * @return Table
-     */
     private function setTableBankReference(Schema &$Schema)
     {
 
@@ -102,11 +70,29 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblBankReference', 'Reference')) {
             $Table->addColumn('Reference', 'string');
         }
+        if (!$this->getConnection()->hasColumn('tblBankReference', 'CreditorId')) {
+            $Table->addColumn('CreditorId', 'string');
+        }
         if (!$this->getConnection()->hasColumn('tblBankReference', 'ReferenceDate')) {
             $Table->addColumn('ReferenceDate', 'date', array('notnull' => false));
         }
         if (!$this->getConnection()->hasColumn('tblBankReference', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblBankReference', 'BankName')) {
+            $Table->addColumn('BankName', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblBankReference', 'IBAN')) {
+            $Table->addColumn('IBAN', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblBankReference', 'BIC')) {
+            $Table->addColumn('BIC', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblBankReference', 'Owner')) {
+            $Table->addColumn('Owner', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblBankReference', 'CashSign')) {
+            $Table->addColumn('CashSign', 'string');
         }
         return $Table;
     }
@@ -114,12 +100,11 @@ class Setup extends AbstractSetup
     /**
      * @param Schema $Schema
      * @param Table  $tblDebtor
-     * @param Table  $tblBankAccount
      * @param Table  $tblBankReference
      *
      * @return Table
      */
-    private function setTableDebtorSelection(Schema &$Schema, Table $tblDebtor, Table $tblBankAccount, Table $tblBankReference)
+    private function setTableDebtorSelection(Schema &$Schema, Table $tblDebtor, Table $tblBankReference)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblDebtorSelection');
@@ -138,7 +123,6 @@ class Setup extends AbstractSetup
         }
 
         $this->getConnection()->addForeignKey($Table, $tblDebtor, true);
-        $this->getConnection()->addForeignKey($Table, $tblBankAccount, true);
         $this->getConnection()->addForeignKey($Table, $tblBankReference, true);
 
         return $Table;
