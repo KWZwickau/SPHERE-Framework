@@ -880,7 +880,7 @@ class Frontend extends Extension implements IFrontendInterface
                         });
                     }
                     $tblBankReference = Banking::useService()->getBankReferenceByPerson($tblPerson);
-                    if (!empty( $tblBankReference )) { // ToDO /*!empty( $tblDebtor ) ||*/ Schüler nur mit Debitornummer auch anzeigen lassen?
+                    if (!empty( $tblBankReference )) {
                         $PaymentPerson[] = $tblPerson;
                     }
 
@@ -980,7 +980,6 @@ class Frontend extends Extension implements IFrontendInterface
 //        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Basket/Verification', new ChevronLeft()
 //            , array('Id' => $tblBasket->getId())));
         $Stage->addButton(new Backward(true));
-        $Global = $this->getGlobal();
 
         $TableContent = array();
         $tblDebtorSelectionList = array();
@@ -1010,16 +1009,18 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblBankReferenceList = Banking::useService()->getBankReferenceByPerson($tblPersonPayers);
                         if ($tblBankReferenceList) {
                             foreach ($tblBankReferenceList as $tblBankReference) {
-                                $Payment[] = 'Mandatsreferenz: '.new RadioBox('Data['.$tblDebtorSelection->getId().'][SelectBox]',
+                                $Payment[] = 'Mandatsreferenz: '.new RadioBox('Data['.$tblDebtorSelection->getId().'][RadioBox]',
                                         $tblBankReference->getReference(), $tblBankReference->getId());
                             }
                         }
                         $Debtor = array();
                         if (Banking::useService()->getDebtorByPerson($tblPerson)) {
-                            $Debtor[] = Banking::useService()->getDebtorByPerson($tblPerson);
+                            $DebtorList = Banking::useService()->getDebtorByPerson($tblPerson);
+                            $Debtor = array_merge($Debtor, $DebtorList);
                         }
                         if (Banking::useService()->getDebtorByPerson($tblPersonPayers)) {
-                            $Debtor[] = Banking::useService()->getDebtorByPerson($tblPersonPayers);
+                            $DebtorList = Banking::useService()->getDebtorByPerson($tblPersonPayers);
+                            $Debtor = array_merge($Debtor, $DebtorList);
                         }
 
                         if (!empty( $Debtor )) {
@@ -1044,8 +1045,6 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             });
         }
-
-        $Global->savePost();
 
         $Form = new Form(
             new FormGroup(
@@ -1097,8 +1096,6 @@ class Frontend extends Extension implements IFrontendInterface
         $tblPersonList = array();
         $TableContent = array();
         new Backward();
-
-        //ToDO doppeltes Array für sinnvolleres auslesen.
 
         if ($tblDebtorSelectionAll) {
             foreach ($tblDebtorSelectionAll as $tblDebtorSelection) {
@@ -1316,11 +1313,10 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param null $Id
      * @param null $Data
-     * @param null $RadioBox
      *
      * @return Stage|string
      */
-    public function frontendDebtorPayChoose($Id = null, $Data = null, $RadioBox = null)
+    public function frontendDebtorPayChoose($Id = null, $Data = null)
     {
 
         $Stage = new Stage('Zuordnung', 'Bezahler');
@@ -1356,9 +1352,10 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblBankReferenceList = Banking::useService()->getBankReferenceByPerson($tblPersonPayers);
                     if ($tblBankReferenceList) {
                         foreach ($tblBankReferenceList as $tblBankReference) {
-                            $Payment[] = 'Mandatsreferenz: '.new RadioBox('RadioBox['.$tblDebtorSelection->getId().']',
-                                    $tblBankReference->getReference().new PullRight(new Muted(' Gültig ab: ').$tblBankReference->getReferenceDate()),
-                                    $tblBankReference->getId());
+                            $Payment[] = new RadioBox('Data['.$tblDebtorSelection->getId().'][RadioBox]',
+                                'Mandatsreferenz: '.$tblBankReference->getReference().'<br/>'.
+                                new Muted(' Gültig ab: ').$tblBankReference->getReferenceDate(),
+                                $tblBankReference->getId());
                         }
                     }
                     $Debtor = array();
@@ -1374,7 +1371,7 @@ class Frontend extends Extension implements IFrontendInterface
                     if (!empty( $Debtor )) {
                         $Item['SelectDebtor'] = new SelectBox('Data['.$tblDebtorSelection->getId().'][Debtor]', '',
                             array(
-                                '{{ DebtorNumber }} - {{ ServiceTblPerson.FullName }}' //ToDO
+                                '{{ DebtorNumber }} - {{ ServiceTblPerson.FullName }}'
 //                    .'{% if( ServiceBillingDebtor.Description is not empty) %} - {{ ServiceBillingDebtor.Description }}{% endif %}'
                                 => $Debtor)
                         );
@@ -1389,8 +1386,8 @@ class Frontend extends Extension implements IFrontendInterface
                         $Item['RadioBox'] = new Warning('keine Kontoinformationen');
                     }
 
-                    if (( $tblRef = $tblDebtorSelection->getTblBankReference() )) {
-                        $Global->POST['RadioBox'][$tblDebtorSelection->getId()] = $tblRef->getId();
+                    if (( $tblRef = $tblDebtorSelection->getTblBankReference() )) {         //ToDO RadioBox füllt sich nicht
+                        $Global->POST['Data'][$tblDebtorSelection->getId()]['RadioBox'] = $tblRef->getId();
                     }
                     if (( $tblDeb = $tblDebtorSelection->getTblDebtor() )) {
                         $Global->POST['Data'][$tblDebtorSelection->getId()]['Debtor'] = $tblDeb->getId();
@@ -1406,8 +1403,9 @@ class Frontend extends Extension implements IFrontendInterface
             });
         }
 
-//        if($Data === null){
+
         Debugger::screenDump($Global);
+//        if($Data === null){
         $Global->savePost();
 //        }
 
@@ -1437,7 +1435,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutColumn(
                             ( !empty( $TableContent ) ?
                                 Banking::useService()->changeDebtorSelectionInfo(
-                                    $Form, $Data, $RadioBox)
+                                    $Form, $Data)
                                 : new Success('Debitoren der Bezahler sind bekannt.')
                                 .new Redirect('/Billing/Accounting/DebtorSelection', Redirect::TIMEOUT_SUCCESS)
                             )
