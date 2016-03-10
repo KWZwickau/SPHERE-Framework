@@ -254,6 +254,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                             foreach ($tblDivisionStudentAllByPerson as &$tblDivisionStudentTemp) {
                                 if ($tblDivisionStudent->getId() !== $tblDivisionStudentTemp->getId()
+                                    && $tblDivisionStudentTemp->getTblDivision()
                                     && (
                                         $tblDivisionStudentTemp->getTblDivision()->getTblLevel()
                                         && $tblDivisionStudent->getTblDivision()->getTblLevel()->getId()

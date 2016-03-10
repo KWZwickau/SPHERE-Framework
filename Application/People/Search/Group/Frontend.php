@@ -110,10 +110,12 @@ class Frontend extends Extension implements IFrontendInterface
                             if ($tblDivisionStudentList) {
                                 foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                                     foreach ($tblYearList as $tblYear){
-                                        $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
-                                        if ($divisionYear && $divisionYear->getId() == $tblYear->getId()){
-                                            $tblDivision = $tblDivisionStudent->getTblDivision();
-                                            break;
+                                        if ($tblDivisionStudent->getTblDivision()) {
+                                            $divisionYear = $tblDivisionStudent->getTblDivision()->getServiceTblYear();
+                                            if ($divisionYear && $divisionYear->getId() == $tblYear->getId()) {
+                                                $tblDivision = $tblDivisionStudent->getTblDivision();
+                                                break;
+                                            }
                                         }
                                     }
 

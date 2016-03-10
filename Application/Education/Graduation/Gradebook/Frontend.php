@@ -299,7 +299,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblSubjectTeacherAllByTeacher) {
                 foreach ($tblSubjectTeacherAllByTeacher as $tblSubjectTeacher) {
                     $tblDivisionSubject = $tblSubjectTeacher->getTblDivisionSubject();
-                    if ($tblDivisionSubject->getServiceTblSubject()) {
+                    if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
                         if ($tblDivisionSubject->getTblSubjectGroup()) {
                             $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
                             [$tblDivisionSubject->getServiceTblSubject()->getId()]
@@ -332,34 +332,36 @@ class Frontend extends Extension implements IFrontendInterface
             $tblDivisionTeacherAllByTeacher = Division::useService()->getDivisionTeacherAllByTeacher($tblPerson);
             if ($tblDivisionTeacherAllByTeacher) {
                 foreach ($tblDivisionTeacherAllByTeacher as $tblDivisionTeacher) {
-                    $tblDivisionSubjectAllByDivision
-                        = Division::useService()->getDivisionSubjectByDivision($tblDivisionTeacher->getTblDivision());
-                    if ($tblDivisionSubjectAllByDivision) {
-                        foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
-                            if ($tblDivisionSubject->getServiceTblSubject()) {
-                                if ($tblDivisionSubject->getTblSubjectGroup()) {
-                                    $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
-                                    [$tblDivisionSubject->getServiceTblSubject()->getId()]
-                                    [$tblDivisionSubject->getTblSubjectGroup()->getId()]
-                                        = $tblDivisionSubject->getId();
-                                } else {
-                                    $tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject
-                                        = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
-                                        $tblDivisionSubject->getTblDivision(),
-                                        $tblDivisionSubject->getServiceTblSubject()
-                                    );
-                                    if ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject) {
-                                        /** @var TblDivisionSubject $item */
-                                        foreach ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject as $item) {
-                                            $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
-                                            [$tblDivisionSubject->getServiceTblSubject()->getId()]
-                                            [$item->getTblSubjectGroup()->getId()]
-                                                = $item->getId();
-                                        }
-                                    } else {
+                    if ($tblDivisionTeacher->getTblDivision()) {
+                        $tblDivisionSubjectAllByDivision
+                            = Division::useService()->getDivisionSubjectByDivision($tblDivisionTeacher->getTblDivision());
+                        if ($tblDivisionSubjectAllByDivision) {
+                            foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
+                                if ($tblDivisionSubject && $tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
+                                    if ($tblDivisionSubject->getTblSubjectGroup()) {
                                         $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
                                         [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                        [$tblDivisionSubject->getTblSubjectGroup()->getId()]
                                             = $tblDivisionSubject->getId();
+                                    } else {
+                                        $tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject
+                                            = Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
+                                            $tblDivisionSubject->getTblDivision(),
+                                            $tblDivisionSubject->getServiceTblSubject()
+                                        );
+                                        if ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject) {
+                                            /** @var TblDivisionSubject $item */
+                                            foreach ($tblDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject as $item) {
+                                                $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                                [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                                [$item->getTblSubjectGroup()->getId()]
+                                                    = $item->getId();
+                                            }
+                                        } else {
+                                            $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
+                                            [$tblDivisionSubject->getServiceTblSubject()->getId()]
+                                                = $tblDivisionSubject->getId();
+                                        }
                                     }
                                 }
                             }
@@ -372,46 +374,48 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty($divisionSubjectList)) {
             foreach ($divisionSubjectList as $divisionId => $subjectList) {
                 $tblDivision = Division::useService()->getDivisionById($divisionId);
-                foreach ($subjectList as $subjectId => $value) {
-                    $tblSubject = Subject::useService()->getSubjectById($subjectId);
-                    if (is_array($value)) {
-                        foreach ($value as $subjectGroupId => $subValue) {
-                            /** @var TblSubjectGroup $item */
-                            $item = Division::useService()->getSubjectGroupById($subjectGroupId);
+                if ($tblDivision) {
+                    foreach ($subjectList as $subjectId => $value) {
+                        $tblSubject = Subject::useService()->getSubjectById($subjectId);
+                        if (is_array($value)) {
+                            foreach ($value as $subjectGroupId => $subValue) {
+                                /** @var TblSubjectGroup $item */
+                                $item = Division::useService()->getSubjectGroupById($subjectGroupId);
+                                $divisionSubjectTable[] = array(
+                                    'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
+                                    'Type' => $tblDivision->getTypeName(),
+                                    'Division' => $tblDivision->getDisplayName(),
+                                    'Subject' => $tblSubject->getName(),
+                                    'SubjectGroup' => $item->getName(),
+                                    'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                        $tblDivision, $tblSubject, $item
+                                    ),
+                                    'Option' => new Standard(
+                                        '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
+                                        'DivisionSubjectId' => $subValue
+                                    ),
+                                        'Auswählen'
+                                    )
+                                );
+                            }
+                        } else {
                             $divisionSubjectTable[] = array(
                                 'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
                                 'Type' => $tblDivision->getTypeName(),
                                 'Division' => $tblDivision->getDisplayName(),
                                 'Subject' => $tblSubject->getName(),
-                                'SubjectGroup' => $item->getName(),
+                                'SubjectGroup' => '',
                                 'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
-                                    $tblDivision, $tblSubject, $item
+                                    $tblDivision, $tblSubject
                                 ),
                                 'Option' => new Standard(
                                     '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
-                                    'DivisionSubjectId' => $subValue
+                                    'DivisionSubjectId' => $value
                                 ),
                                     'Auswählen'
                                 )
                             );
                         }
-                    } else {
-                        $divisionSubjectTable[] = array(
-                            'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                            'Type' => $tblDivision->getTypeName(),
-                            'Division' => $tblDivision->getDisplayName(),
-                            'Subject' => $tblSubject->getName(),
-                            'SubjectGroup' => '',
-                            'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
-                                $tblDivision, $tblSubject
-                            ),
-                            'Option' => new Standard(
-                                '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
-                                'DivisionSubjectId' => $value
-                            ),
-                                'Auswählen'
-                            )
-                        );
                     }
                 }
             }
@@ -460,7 +464,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblDivisionSubjectAllByDivision = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                 if ($tblDivisionSubjectAllByDivision) {
                     foreach ($tblDivisionSubjectAllByDivision as $tblDivisionSubject) {
-                        if ($tblDivisionSubject->getServiceTblSubject()) {
+                        if ($tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
                             if ($tblDivisionSubject->getTblSubjectGroup()) {
                                 $divisionSubjectList[$tblDivisionSubject->getTblDivision()->getId()]
                                 [$tblDivisionSubject->getServiceTblSubject()->getId()]
@@ -494,48 +498,51 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty($divisionSubjectList)) {
             foreach ($divisionSubjectList as $divisionId => $subjectList) {
                 $tblDivision = Division::useService()->getDivisionById($divisionId);
-                foreach ($subjectList as $subjectId => $value) {
-                    $tblSubject = Subject::useService()->getSubjectById($subjectId);
-                    if (is_array($value)) {
-                        foreach ($value as $subjectGroupId => $subValue) {
-                            $item = Division::useService()->getSubjectGroupById($subjectGroupId);
+                if ($tblDivision) {
+                    foreach ($subjectList as $subjectId => $value) {
+                        $tblSubject = Subject::useService()->getSubjectById($subjectId);
+                        if (is_array($value)) {
+                            foreach ($value as $subjectGroupId => $subValue) {
+                                $item = Division::useService()->getSubjectGroupById($subjectGroupId);
 
+                                $divisionSubjectTable[] = array(
+                                    'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
+                                    'Type' => $tblDivision->getTypeName(),
+                                    'Division' => $tblDivision->getDisplayName(),
+                                    'Subject' => $tblSubject->getName(),
+                                    'SubjectGroup' => $item->getName(),
+                                    'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                        $tblDivision, $tblSubject, $item
+                                    ),
+                                    'Option' => new Standard(
+                                        '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected',
+                                        new Select(),
+                                        array(
+                                            'DivisionSubjectId' => $subValue
+                                        ),
+                                        'Auswählen'
+                                    )
+                                );
+                            }
+                        } else {
                             $divisionSubjectTable[] = array(
                                 'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
                                 'Type' => $tblDivision->getTypeName(),
                                 'Division' => $tblDivision->getDisplayName(),
                                 'Subject' => $tblSubject->getName(),
-                                'SubjectGroup' => $item->getName(),
+                                'SubjectGroup' => '',
                                 'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
-                                    $tblDivision, $tblSubject, $item
+                                    $tblDivision, $tblSubject
                                 ),
                                 'Option' => new Standard(
                                     '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected', new Select(),
                                     array(
-                                        'DivisionSubjectId' => $subValue
+                                        'DivisionSubjectId' => $value
                                     ),
                                     'Auswählen'
                                 )
                             );
                         }
-                    } else {
-                        $divisionSubjectTable[] = array(
-                            'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                            'Type' => $tblDivision->getTypeName(),
-                            'Division' => $tblDivision->getDisplayName(),
-                            'Subject' => $tblSubject->getName(),
-                            'SubjectGroup' => '',
-                            'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
-                                $tblDivision, $tblSubject
-                            ),
-                            'Option' => new Standard(
-                                '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected', new Select(),
-                                array(
-                                    'DivisionSubjectId' => $value
-                                ),
-                                'Auswählen'
-                            )
-                        );
                     }
                 }
             }
@@ -1025,7 +1032,7 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblDivisionStudent $tblDivisionStudent */
             foreach ($tblDivisionStudentList as $tblDivisionStudent) {
                 $tblDivision = $tblDivisionStudent->getTblDivision();
-                if ($tblDivision->getServiceTblYear()) {
+                if ($tblDivision && $tblDivision->getServiceTblYear()) {
                     if ($tblDivision->getServiceTblYear()->getId() == $tblYear->getId()) {
 
                         // Header
@@ -1047,7 +1054,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblDivisionSubjectList = Division::useService()->getDivisionSubjectByDivision($tblDivision);
                         if ($tblDivisionSubjectList) {
                             foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                                if ($tblDivisionSubject->getServiceTblSubject()) {
+                                if ($tblDivisionSubject->getServiceTblSubject() && $tblDivisionSubject->getTblDivision()) {
                                     if (!$tblDivisionSubject->getTblSubjectGroup()) {
                                         $tblDivisionSubjectWhereGroup =
                                             Division::useService()->getDivisionSubjectAllWhereSubjectGroupByDivisionAndSubject(
@@ -2578,7 +2585,7 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
                 $tblDivision = $tblDivisionSubject->getTblDivision();
                 $tblSubject = $tblDivisionSubject->getServiceTblSubject();
-                if ($tblSubject) {
+                if ($tblDivision && $tblSubject) {
                     $tblDivisionSubject->DisplayDivision = $tblDivision->getDisplayName();
                     $tblDivisionSubject->Year = $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '';
                     $tblDivisionSubject->Type = $tblDivision->getTypeName();

@@ -168,6 +168,17 @@ class Service extends AbstractService
 
         $tblDivisionSubject = Division::useService()->getDivisionSubjectById($DivisionSubjectId);
 
+        if (!$tblDivisionSubject) {
+            return new Danger(new Ban() . ' Fach-Klasse nicht gefunden')
+            . new Redirect($BasicRoute , Redirect::TIMEOUT_ERROR);
+        }
+
+        if (!$tblDivisionSubject->getTblDivision()) {
+            return new Danger(new Ban() . ' Klasse nicht gefunden')
+            . new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_ERROR,
+                array('DivisionSubjectId' => $tblDivisionSubject->getId()));
+        }
+
         if (!$tblDivisionSubject->getServiceTblSubject()) {
             return new Danger(new Ban() . ' Fach nicht gefunden')
             . new Redirect($BasicRoute . '/Selected', Redirect::TIMEOUT_ERROR,
