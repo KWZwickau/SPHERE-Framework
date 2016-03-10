@@ -912,9 +912,9 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Show', new ChevronLeft(),
                 array('Id' => $tblDivision->getId())));
 
-            if ($tblDivision && null !== $Subject && ($Subject = Subject::useService()->getSubjectById($Subject))) {
+            if ($tblDivision && null !== $Subject && ($tblSubject = Subject::useService()->getSubjectById($Subject))) {
                 if ($Remove) {
-                    Division::useService()->removeSubjectToDivision($tblDivision, $Subject);
+                    Division::useService()->removeSubjectToDivision($tblDivision, $tblSubject);
                     $Stage->setContent(
                         new Success('Fach erfolgreich entfernt')
                         . new Redirect('/Education/Lesson/Division/Subject/Add', Redirect::TIMEOUT_SUCCESS,
@@ -922,7 +922,7 @@ class Frontend extends Extension implements IFrontendInterface
                     );
                     return $Stage;
                 } else {
-                    Division::useService()->addSubjectToDivision($tblDivision, $Subject);
+                    Division::useService()->addSubjectToDivision($tblDivision, $tblSubject);
                     $Stage->setContent(
                         new Success('Fach erfolgreich hinzugefügt')
                         . new Redirect('/Education/Lesson/Division/Subject/Add', Redirect::TIMEOUT_SUCCESS,
@@ -1445,6 +1445,10 @@ class Frontend extends Extension implements IFrontendInterface
             }
 
             $tblSubject = Subject::useService()->getSubjectById($SubjectId);
+            if (!$tblSubject) {
+                $Stage->setContent(new Warning('Kein Fach gefunden'));
+                return $Stage;
+            }
 
             $Stage->setContent(
                 new Layout(
@@ -1739,10 +1743,10 @@ class Frontend extends Extension implements IFrontendInterface
 //                    $tblDivisionSubject->Student = new Panel('Alle Schüler','aus der Klasse',Panel::PANEL_TYPE_INFO);
                     $tblDivisionSubject->Student = '';
 
-                    $tblDivisionSubject->Subject = new Panel($tblDivisionSubject->getServiceTblSubject()
+                    $tblDivisionSubject->Subject = $tblDivisionSubject->getServiceTblSubject() ? new Panel($tblDivisionSubject->getServiceTblSubject()
                         ? $tblDivisionSubject->getServiceTblSubject()->getName() : '',
                         $StudentTableCount . ' / ' . $StudentTableCount . ' Schüler aus der Klasse',
-                        Panel::PANEL_TYPE_INFO);
+                        Panel::PANEL_TYPE_INFO) : '';
 
                     $tblDivisionTeachersList = Division::useService()->getSubjectTeacherByDivisionSubject($tblDivisionSubject);
                     $TeacherArray = array();
@@ -1822,7 +1826,7 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
 
-                        if ($StudentTableCount > $StudentsGroupCount) {
+                        if ($StudentTableCount > $StudentsGroupCount && $tblDivisionSubject->getServiceTblSubject()) {
                             $tblDivisionSubject->Subject = new Panel($tblDivisionSubject->getServiceTblSubject()
                                 ? $tblDivisionSubject->getServiceTblSubject()->getName() : '',
                                 new \SPHERE\Common\Frontend\Text\Repository\Warning($StudentsGroupCount . ' / ' . $StudentTableCount . ' Schüler aus der Klasse'),

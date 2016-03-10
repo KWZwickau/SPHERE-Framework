@@ -365,7 +365,7 @@ class Service extends AbstractService
         $tblDivisionSubjectList = $this->getDivisionSubjectByDivision($tblDivision);
         if ($tblDivisionSubjectList) {
             foreach ($tblDivisionSubjectList as $tblDivisionSubject) {
-                if ($tblDivisionSubject->getServiceTblSubject()->getId()) {
+                if ($tblDivisionSubject->getServiceTblSubject()) {
                     if ($tblDivisionSubject->getServiceTblSubject()->getId() === $tblSubject->getId()) {
                         (new Data($this->getBinding()))->removeSubjectStudentByDivisionSubject($tblDivisionSubject);
                         (new Data($this->getBinding()))->removeSubjectTeacherByDivisionSubject($tblDivisionSubject);

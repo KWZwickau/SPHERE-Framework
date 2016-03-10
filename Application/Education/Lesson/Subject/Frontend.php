@@ -12,12 +12,16 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Ban;
 use SPHERE\Common\Frontend\Icon\Repository\Check;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\ListingTable;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PlusSign;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -30,6 +34,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
@@ -171,6 +176,12 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage('Fach', 'Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject/Create/Subject', new ChevronLeft()));
         $tblSubject = Subject::useService()->getSubjectById($Id);
+
+        if (!$tblSubject){
+            return $Stage . new Danger('Fach nicht gefunden.', new Ban())
+                . new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
+        }
+
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Id'] ) && $tblSubject) {
             $Global->POST['Subject']['Acronym'] = $tblSubject->getAcronym();
@@ -545,21 +556,65 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param $Id
+     * @param bool $Confirm
      *
      * @return Stage|string
      */
-    public function frontendDestroySubject($Id)
-    {
+    public function frontendDestroySubject(
+        $Id = null,
+        $Confirm = false
+    ) {
 
-        // TODO: Confirmation
-        $Stage = new Stage('Fach', 'entfernen');
+        $Stage = new Stage('Fach', 'Löschen');
+
         $tblSubject = Subject::useService()->getSubjectById($Id);
         if ($tblSubject) {
-            $Stage->setContent(Subject::useService()->destroySubject($tblSubject));
+            $Stage->addButton(
+                new Standard('Zur&uuml;ck', '/Education/Lesson/Subject/Create/Subject', new ChevronLeft())
+            );
+
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                                new Panel(
+                                    'Fach',
+                                    $tblSubject->getAcronym() . ' ' . $tblSubject->getName()
+                                    . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
+                                        $tblSubject->getDescription()))),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                                new Panel(new Question() . ' Dieses Fach wirklich löschen?',
+                                    array(
+                                        $tblSubject->getAcronym(),
+                                        $tblSubject->getName(),
+                                        $tblSubject->getDescription() ? $tblSubject->getDescription() : null
+                                    ),
+                                    Panel::PANEL_TYPE_DANGER,
+                                    new Standard(
+                                        'Ja', '/Education/Lesson/Subject/Destroy/Subject', new Ok(),
+                                        array('Id' => $Id, 'Confirm' => true)
+                                    )
+                                    . new Standard(
+                                        'Nein', '/Education/Lesson/Subject/Create/Subject', new Disable())
+                                )
+                            )
+                        )
+                    )))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            Subject::useService()->destroySubject($tblSubject)
+                        )))
+                    )))
+                );
+            }
         } else {
-            return $Stage.new Warning('Fach nicht gefunden!')
-            .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
+            return $Stage . new Danger('Fach nicht gefunden.', new Ban())
+            . new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
         }
+
         return $Stage;
     }
 

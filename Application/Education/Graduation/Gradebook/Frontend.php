@@ -377,44 +377,47 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblDivision) {
                     foreach ($subjectList as $subjectId => $value) {
                         $tblSubject = Subject::useService()->getSubjectById($subjectId);
-                        if (is_array($value)) {
-                            foreach ($value as $subjectGroupId => $subValue) {
-                                /** @var TblSubjectGroup $item */
-                                $item = Division::useService()->getSubjectGroupById($subjectGroupId);
+                        if ($tblSubject) {
+                            if (is_array($value)) {
+                                foreach ($value as $subjectGroupId => $subValue) {
+                                    /** @var TblSubjectGroup $item */
+                                    $item = Division::useService()->getSubjectGroupById($subjectGroupId);
+                                    $divisionSubjectTable[] = array(
+                                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
+                                        'Type' => $tblDivision->getTypeName(),
+                                        'Division' => $tblDivision->getDisplayName(),
+                                        'Subject' => $tblSubject->getName(),
+                                        'SubjectGroup' => $item->getName(),
+                                        'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                            $tblDivision, $tblSubject, $item
+                                        ),
+                                        'Option' => new Standard(
+                                            '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(),
+                                            array(
+                                                'DivisionSubjectId' => $subValue
+                                            ),
+                                            'Auswählen'
+                                        )
+                                    );
+                                }
+                            } else {
                                 $divisionSubjectTable[] = array(
                                     'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
                                     'Type' => $tblDivision->getTypeName(),
                                     'Division' => $tblDivision->getDisplayName(),
                                     'Subject' => $tblSubject->getName(),
-                                    'SubjectGroup' => $item->getName(),
+                                    'SubjectGroup' => '',
                                     'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
-                                        $tblDivision, $tblSubject, $item
+                                        $tblDivision, $tblSubject
                                     ),
                                     'Option' => new Standard(
                                         '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
-                                        'DivisionSubjectId' => $subValue
+                                        'DivisionSubjectId' => $value
                                     ),
                                         'Auswählen'
                                     )
                                 );
                             }
-                        } else {
-                            $divisionSubjectTable[] = array(
-                                'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                                'Type' => $tblDivision->getTypeName(),
-                                'Division' => $tblDivision->getDisplayName(),
-                                'Subject' => $tblSubject->getName(),
-                                'SubjectGroup' => '',
-                                'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
-                                    $tblDivision, $tblSubject
-                                ),
-                                'Option' => new Standard(
-                                    '', '/Education/Graduation/Gradebook/Gradebook/Selected', new Select(), array(
-                                    'DivisionSubjectId' => $value
-                                ),
-                                    'Auswählen'
-                                )
-                            );
                         }
                     }
                 }
@@ -501,47 +504,50 @@ class Frontend extends Extension implements IFrontendInterface
                 if ($tblDivision) {
                     foreach ($subjectList as $subjectId => $value) {
                         $tblSubject = Subject::useService()->getSubjectById($subjectId);
-                        if (is_array($value)) {
-                            foreach ($value as $subjectGroupId => $subValue) {
-                                $item = Division::useService()->getSubjectGroupById($subjectGroupId);
+                        if ($tblSubject) {
+                            if (is_array($value)) {
+                                foreach ($value as $subjectGroupId => $subValue) {
+                                    $item = Division::useService()->getSubjectGroupById($subjectGroupId);
 
+                                    $divisionSubjectTable[] = array(
+                                        'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
+                                        'Type' => $tblDivision->getTypeName(),
+                                        'Division' => $tblDivision->getDisplayName(),
+                                        'Subject' => $tblSubject->getName(),
+                                        'SubjectGroup' => $item->getName(),
+                                        'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
+                                            $tblDivision, $tblSubject, $item
+                                        ),
+                                        'Option' => new Standard(
+                                            '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected',
+                                            new Select(),
+                                            array(
+                                                'DivisionSubjectId' => $subValue
+                                            ),
+                                            'Auswählen'
+                                        )
+                                    );
+                                }
+                            } else {
                                 $divisionSubjectTable[] = array(
                                     'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
                                     'Type' => $tblDivision->getTypeName(),
                                     'Division' => $tblDivision->getDisplayName(),
                                     'Subject' => $tblSubject->getName(),
-                                    'SubjectGroup' => $item->getName(),
+                                    'SubjectGroup' => '',
                                     'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
-                                        $tblDivision, $tblSubject, $item
+                                        $tblDivision, $tblSubject
                                     ),
                                     'Option' => new Standard(
                                         '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected',
                                         new Select(),
                                         array(
-                                            'DivisionSubjectId' => $subValue
+                                            'DivisionSubjectId' => $value
                                         ),
                                         'Auswählen'
                                     )
                                 );
                             }
-                        } else {
-                            $divisionSubjectTable[] = array(
-                                'Year' => $tblDivision->getServiceTblYear() ? $tblDivision->getServiceTblYear()->getName() : '',
-                                'Type' => $tblDivision->getTypeName(),
-                                'Division' => $tblDivision->getDisplayName(),
-                                'Subject' => $tblSubject->getName(),
-                                'SubjectGroup' => '',
-                                'SubjectTeachers' => Division::useService()->getSubjectTeacherNameList(
-                                    $tblDivision, $tblSubject
-                                ),
-                                'Option' => new Standard(
-                                    '', '/Education/Graduation/Gradebook/Headmaster/Gradebook/Selected', new Select(),
-                                    array(
-                                        'DivisionSubjectId' => $value
-                                    ),
-                                    'Auswählen'
-                                )
-                            );
                         }
                     }
                 }
@@ -828,34 +834,36 @@ class Frontend extends Extension implements IFrontendInterface
                                 $width);
                         }
 
-                        // total average (Gesamtjahr)
-                        $average = Gradebook::useService()->calcStudentGrade(
-                            $tblPerson,
-                            $tblDivision,
-                            $tblDivisionSubject->getServiceTblSubject(),
-                            $tblTestType,
-                            $tblScoreRule ? $tblScoreRule : null,
-                            null,
-                            $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
-                        );
-                        $priority = '';
-                        if (is_array($average)) {
-                            $errorRowList = $average;
-                            $average = '';
-                        } else {
-                            $posStart = strpos($average, '(');
-                            if ($posStart !== false) {
-                                $posEnd = strpos($average, ')');
-                                if ($posEnd !== false) {
-                                    $priority = substr($average, $posStart + 1, $posEnd - ($posStart + 1));
+                        if ($tblDivisionSubject->getServiceTblSubject()) {
+                            // total average (Gesamtjahr)
+                            $average = Gradebook::useService()->calcStudentGrade(
+                                $tblPerson,
+                                $tblDivision,
+                                $tblDivisionSubject->getServiceTblSubject(),
+                                $tblTestType,
+                                $tblScoreRule ? $tblScoreRule : null,
+                                null,
+                                $tblDivisionSubject->getTblSubjectGroup() ? $tblDivisionSubject->getTblSubjectGroup() : null
+                            );
+                            $priority = '';
+                            if (is_array($average)) {
+                                $errorRowList = $average;
+                                $average = '';
+                            } else {
+                                $posStart = strpos($average, '(');
+                                if ($posStart !== false) {
+                                    $posEnd = strpos($average, ')');
+                                    if ($posEnd !== false) {
+                                        $priority = substr($average, $posStart + 1, $posEnd - ($posStart + 1));
+                                    }
+                                    $average = substr($average, 0, $posStart);
                                 }
-                                $average = substr($average, 0, $posStart);
                             }
-                        }
 
-                        $columnSubList = array();
-                        $columnSubList[] = new LayoutColumn(new Container(new Bold($average)), 6);
-                        $columnSubList[] = new LayoutColumn(new Container(new Bold($priority)), 6);
+                            $columnSubList = array();
+                            $columnSubList[] = new LayoutColumn(new Container(new Bold($average)), 6);
+                            $columnSubList[] = new LayoutColumn(new Container(new Bold($priority)), 6);
+                        }
 
                         $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
                             1);
