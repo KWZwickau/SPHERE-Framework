@@ -35,7 +35,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -623,18 +622,60 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendDestroyCategory($Id)
+    public function frontendDestroyCategory(  $Id = null,
+        $Confirm = false
+    )
     {
 
-        // TODO: Confirmation
-        $Stage = new Stage('Kategorie', 'entfernen');
+        $Stage = new Stage('Kategorie', 'Löschen');
+
         $tblCategory = Subject::useService()->getCategoryById($Id);
         if ($tblCategory) {
-            $Stage->setContent(Subject::useService()->destroyCategory($tblCategory));
+            $Stage->addButton(
+                new Standard('Zur&uuml;ck', '/Education/Lesson/Subject/Create/Category', new ChevronLeft())
+            );
+
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                                new Panel(
+                                    'Kategorie',
+                                    $tblCategory->getName()
+                                    . '&nbsp;&nbsp;' . new Muted(new Small(new Small(
+                                        $tblCategory->getDescription()))),
+                                    Panel::PANEL_TYPE_INFO
+                                ),
+                                new Panel(new Question() . ' Dieses Kategorie wirklich löschen?',
+                                    array(
+                                        $tblCategory->getName(),
+                                        $tblCategory->getDescription() ? $tblCategory->getDescription() : null
+                                    ),
+                                    Panel::PANEL_TYPE_DANGER,
+                                    new Standard(
+                                        'Ja', '/Education/Lesson/Subject/Destroy/Category', new Ok(),
+                                        array('Id' => $Id, 'Confirm' => true)
+                                    )
+                                    . new Standard(
+                                        'Nein', '/Education/Lesson/Subject/Create/Category', new Disable())
+                                )
+                            )
+                        )
+                    )))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            Subject::useService()->destroyCategory($tblCategory)
+                        )))
+                    )))
+                );
+            }
         } else {
-            return $Stage.new Warning('Kategorie nicht gefunden!')
-            .new Redirect('/Education/Lesson/Subject/Create/Subject', Redirect::TIMEOUT_ERROR);
+            return $Stage . new Danger('Kategorie nicht gefunden.', new Ban())
+            . new Redirect('/Education/Lesson/Subject/Create/Category', Redirect::TIMEOUT_ERROR);
         }
+
         return $Stage;
     }
 }
