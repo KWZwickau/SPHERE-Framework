@@ -21,39 +21,17 @@ use SPHERE\System\Database\Fitting\Element;
 class TblInvoice extends Element
 {
 
-    const ATTR_IS_PAID = 'IsPaid';
-    const ATTR_IS_VOID = 'IsVoid';
     const ATTR_DEBTOR_NUMBER = 'DebtorNumber';
-    const ATTR_NUMBER = 'Number';
+    const ATTR_INVOICE_NUMBER = 'InvoiceNumber';
 
     /**
-     * @Column(type="boolean")
-     */
-    protected $IsPaid;
-    /**
      * @Column(type="string")
      */
-    protected $Number;
-    /**
-     * @Column(type="string")
-     */
-    protected $BasketName;
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsVoid;
-    /**
-     * @Column(type="date")
-     */
-    protected $InvoiceDate;
-    /**
-     * @Column(type="date")
-     */
-    protected $PaymentDate;
-    /**
-     * @Column(type="decimal", precision=14, scale=4)
-     */
-    protected $Discount;
+    protected $InvoiceNumber;
+//    /**
+//     * @Column(type="decimal", precision=14, scale=4)
+//     */
+//    protected $Discount;
     /**
      * @Column(type="string")
      */
@@ -82,172 +60,42 @@ class TblInvoice extends Element
      * @Column(type="bigint")
      */
     protected $serviceTblPaymentType;
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsPaymentDateModified;
-
-    /**
-     * @return boolean
-     */
-    public function getPaymentDateModified()
-    {
-
-        return $this->IsPaymentDateModified;
-    }
-
-    /**
-     * @param boolean $IsPaymentDateModified
-     */
-    public function setPaymentDateModified($IsPaymentDateModified)
-    {
-
-        $this->IsPaymentDateModified = $IsPaymentDateModified;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isPaid()
-    {
-
-        return $this->IsPaid;
-    }
-
-    /**
-     * @param boolean $IsPaid
-     */
-    public function setPaid($IsPaid)
-    {
-
-        $this->IsPaid = $IsPaid;
-    }
 
     /**
      * @return string
      */
-    public function getNumber()
+    public function getInvoiceNumber()
     {
 
-        return $this->Number;
+        return $this->InvoiceNumber;
     }
 
     /**
-     * @param string $Number
+     * @param string $InvoiceNumber
      */
-    public function setNumber($Number)
+    public function setInvoiceNumber($InvoiceNumber)
     {
 
-        $this->Number = $Number;
+        $this->InvoiceNumber = $InvoiceNumber;
     }
 
-    /**
-     * @return string
-     */
-    public function getBasketName()
-    {
-
-        return $this->BasketName;
-    }
-
-    /**
-     * @param string $BasketName
-     */
-    public function setBasketName($BasketName)
-    {
-
-        $this->BasketName = $BasketName;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isVoid()
-    {
-
-        return $this->IsVoid;
-    }
-
-    /**
-     * @param boolean $IsVoid
-     */
-    public function setVoid($IsVoid)
-    {
-
-        $this->IsVoid = $IsVoid;
-    }
-
-    /**
-     * @return string
-     */
-    public function getInvoiceDate()
-    {
-
-        if (null === $this->InvoiceDate) {
-            return false;
-        }
-        /** @var \DateTime $InvoiceDate */
-        $InvoiceDate = $this->InvoiceDate;
-        if ($InvoiceDate instanceof \DateTime) {
-            return $InvoiceDate->format('d.m.Y');
-        } else {
-            return (string)$InvoiceDate;
-        }
-    }
-
-    /**
-     * @param \DateTime $InvoiceDate
-     */
-    public function setInvoiceDate(\DateTime $InvoiceDate)
-    {
-
-        $this->InvoiceDate = $InvoiceDate;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPaymentDate()
-    {
-
-        if (null === $this->PaymentDate) {
-            return false;
-        }
-        /** @var \DateTime $PaymentDate */
-        $PaymentDate = $this->PaymentDate;
-        if ($PaymentDate instanceof \DateTime) {
-            return $PaymentDate->format('d.m.Y');
-        } else {
-            return (string)$PaymentDate;
-        }
-    }
-
-    /**
-     * @param \DateTime $PaymentDate
-     */
-    public function setPaymentDate(\DateTime $PaymentDate)
-    {
-
-        $this->PaymentDate = $PaymentDate;
-    }
-
-    /**
-     * @return (type="decimal", precision=14, scale=4)
-     */
-    public function getDiscount()
-    {
-
-        return $this->Discount;
-    }
-
-    /**
-     * @param (type="decimal", precision=14, scale=4) $Price
-     */
-    public function setDiscount($Discount)
-    {
-
-        $this->Discount = $Discount;
-    }
+//    /**
+//     * @return (type="decimal", precision=14, scale=4)
+//     */
+//    public function getDiscount()
+//    {
+//
+//        return $this->Discount;
+//    }
+//
+//    /**
+//     * @param (type="decimal", precision=14, scale=4) $Price
+//     */
+//    public function setDiscount($Discount)
+//    {
+//
+//        $this->Discount = $Discount;
+//    }
 
     /**
      * @return string

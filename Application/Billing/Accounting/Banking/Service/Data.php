@@ -492,8 +492,7 @@ class Data extends AbstractData
         $CashSign = null,
         $IBAN = null,
         $BIC = null
-    )
-    {
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -638,6 +637,26 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblBankReference', $tblBankReference->getId());
         if (null !== $Entity) {
             $Manager->removeEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblDebtorSelection $tblDebtorSelection
+     *
+     * @return bool
+     */
+    public function destroyDebtorSelection(TblDebtorSelection $tblDebtorSelection)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblDebtorSelection $Entity */
+        $Entity = $Manager->getEntityById('TblDebtorSelection', $tblDebtorSelection->getId());
+        if (null !== $Entity) {
+            $Manager->killEntity($Entity);
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             return true;
         }

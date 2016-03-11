@@ -699,7 +699,7 @@ class Service extends AbstractService
     /**
      * @param TblBankReference $tblBankReference
      *
-     * @return string
+     * @return bool|string
      */
     public function removeBankReference(TblBankReference $tblBankReference)
     {
@@ -709,6 +709,41 @@ class Service extends AbstractService
         }
 
         return (new Data($this->getBinding()))->removeReference($tblBankReference);
+    }
+
+    /**
+     * @param TblDebtorSelection $tblDebtorSelection
+     *
+     * @return bool
+     */
+    public function destroyDebtorSelection(TblDebtorSelection $tblDebtorSelection)
+    {
+
+        if (null === $tblDebtorSelection) {
+            return false;
+        }
+
+        return (new Data($this->getBinding()))->destroyDebtorSelection($tblDebtorSelection);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function destroyDebtorSelectionByPerson(TblPerson $tblPerson)
+    {
+
+        $tblDebtorSelectionList = Banking::useService()->getDebtorSelectionByPerson($tblPerson);
+        $Complete = true;
+        if ($tblDebtorSelectionList) {
+            foreach ($tblDebtorSelectionList as $tblDebtorSelection) {
+                if (!$this->destroyDebtorSelection($tblDebtorSelection)) {
+                    $Complete = false;
+                }
+            }
+        }
+        return $Complete;
     }
 
     /**

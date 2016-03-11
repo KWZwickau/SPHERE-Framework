@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Balance;
 
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Data;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPayment;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Setup;
@@ -41,6 +42,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPaymentById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblInvoice
+     */
+    public function getInvoiceById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getInvoiceById($Id);
     }
 
     /**

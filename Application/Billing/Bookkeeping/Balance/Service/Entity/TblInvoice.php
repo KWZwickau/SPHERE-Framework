@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice as TblInvoiceInv;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -17,7 +18,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblInvoice extends Element
 {
 
-    const SERVICE_INVOICE_INVOICE = 'ServiceInvoice_Invoice';
+    const ATTR_SERVICE_TBL_INVOICE = 'serviceTblInvoice';
     const ATTR_TBL_PAYMENT = 'tblPayment';
     const ATTR_INVOICE_NUMBER = 'InvoiceNumber';
 
@@ -28,7 +29,7 @@ class TblInvoice extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $ServiceInvoice_Invoice;
+    protected $serviceTblInvoice;
     /**
      * @Column(boolean)
      */
@@ -63,23 +64,23 @@ class TblInvoice extends Element
     /**
      * @return bool|\SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice
      */
-    public function getServiceInvoice()
+    public function getServiceTblInvoice()
     {
 
-        if (null === $this->ServiceInvoice_Invoice) {
+        if (null === $this->serviceTblInvoice) {
             return false;
         } else {
-            return Invoice::useService()->getInvoiceById($this->ServiceInvoice_Invoice);
+            return Invoice::useService()->getInvoiceById($this->serviceTblInvoice);
         }
     }
 
     /**
-     * @param \SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice|null $tblInvoice
+     * @param TblInvoiceInv|null $tblInvoice
      */
-    public function setServiceInvoice(\SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice $tblInvoice = null)
+    public function setServiceTblInvoice(TblInvoiceInv $tblInvoice = null)
     {
 
-        $this->ServiceInvoice_Invoice = ( null === $tblInvoice ? null : $tblInvoice->getId() );
+        $this->serviceTblInvoice = ( null === $tblInvoice ? null : $tblInvoice->getId() );
     }
 
     /**

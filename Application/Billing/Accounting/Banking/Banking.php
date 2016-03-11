@@ -87,6 +87,15 @@ class Banking implements IModuleInterface
             Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/PayChoose',
                 __NAMESPACE__.'\Frontend::frontendDebtorPayChoose'
             ));
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/Destroy',
+                __NAMESPACE__.'\Frontend::frontendDestroyDebtorSelection'
+            ));
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute('/Billing/Accounting/DebtorSelection/Person/Destroy',
+                __NAMESPACE__.'\Frontend::frontendDestroyDebtorSelectionByPerson'
+            ));
+
     }
 
     /**

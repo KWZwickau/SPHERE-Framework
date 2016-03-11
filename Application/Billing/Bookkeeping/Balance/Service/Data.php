@@ -5,6 +5,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Balance\Service;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPayment;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPaymentType;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice as TblInvoiceInv;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
@@ -49,15 +50,25 @@ class Data extends AbstractData
     }
 
     /**
-     * @param integer $Id
+     * @param $Id
      *
-     * @return bool|TblPayment
+     * @return false|TblPayment
      */
     public function getPaymentById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblPayment', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPayment', $Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return false|TblInvoice
+     */
+    public function getInvoiceById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice', $Id);
     }
 
     /**
@@ -66,8 +77,7 @@ class Data extends AbstractData
     public function getPaymentAll()
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblPayment')->findAll();
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPayment');
     }
 
     /**
@@ -91,27 +101,15 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Id
-     *
-     * @return false|TblInvoice
-     */
-    public function getInvoiceById($Id)
-    {
-
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice', $Id);
-    }
-
-    /**
-     * @param \SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice $serviceInvoice
+     * @param TblInvoiceInv $serviceInvoice
      *
      * @return false|TblInvoice[]
      */
-    public function getInvoiceByServiceInvoice(
-        \SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice $serviceInvoice
+    public function getInvoiceByServiceInvoice(TblInvoiceInv $serviceInvoice
     ) {
 
         return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblInvoice',
-            array(TblInvoice::SERVICE_INVOICE_INVOICE => $serviceInvoice->getId()));
+            array(TblInvoice::ATTR_SERVICE_TBL_INVOICE => $serviceInvoice->getId()));
     }
 
     /**
@@ -157,15 +155,15 @@ class Data extends AbstractData
     }
 
     /**
-     * @param \SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice $serviceInvoice
-     * @param TblPayment                                                                $tblPayment
-     * @param                                                                           $InvoiceNumber
-     * @param bool                                                                      $IsPaid
+     * @param TblInvoiceInv $serviceInvoice
+     * @param TblPayment    $tblPayment
+     * @param               $InvoiceNumber
+     * @param bool          $IsPaid
      *
      * @return null|object|TblInvoice
      */
     public function createInvoice(
-        \SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice $serviceInvoice,
+        TblInvoiceInv $serviceInvoice,
         TblPayment $tblPayment,
         $InvoiceNumber,
         $IsPaid = false
@@ -173,14 +171,14 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblInvoice')->findOneBy(array(
-            TblInvoice::SERVICE_INVOICE_INVOICE => $serviceInvoice->getId(),
-            TblInvoice::ATTR_TBL_PAYMENT        => $tblPayment->getId(),
-            TblInvoice::ATTR_INVOICE_NUMBER     => $InvoiceNumber
+            TblInvoice::ATTR_SERVICE_TBL_INVOICE => $serviceInvoice->getId(),
+            TblInvoice::ATTR_TBL_PAYMENT         => $tblPayment->getId(),
+            TblInvoice::ATTR_INVOICE_NUMBER      => $InvoiceNumber
         ));
 
         if (null === $Entity) {
             $Entity = new TblInvoice();
-            $Entity->setServiceInvoice($serviceInvoice);
+            $Entity->setServiceTblInvoice($serviceInvoice);
             $Entity->setTblPayment($tblPayment);
             $Entity->setInvoiceNumber($InvoiceNumber);
             $Entity->setIsPaid($IsPaid);
