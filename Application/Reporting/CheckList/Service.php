@@ -555,11 +555,11 @@ class Service extends AbstractService
             return $Stage;
         }
 
-        $tblList = CheckList::useService()->getListById($Id);
+        $tblList = $this->getListById($Id);
 
         // Reset CheckBoxen
         if ($objectList === null) {
-            $tblListObjectElementListByList = CheckList::useService()->getListObjectElementListByList($tblList);
+            $tblListObjectElementListByList = $this->getListObjectElementListByList($tblList);
             if ($tblListObjectElementListByList) {
                 foreach ($tblListObjectElementListByList as $tblListObjectElementList) {
                     if ($tblListObjectElementList->getServiceTblObject()) {
@@ -634,7 +634,7 @@ class Service extends AbstractService
                             }
                             if (!empty($elements) && $tblObject) {
                                 foreach ($elements as $elementId => $value) {
-                                    $tblListElementList = CheckList::useService()->getListElementListById($elementId);
+                                    $tblListElementList = $this->getListElementListById($elementId);
                                     (new Data($this->getBinding()))->updateObjectElementToList(
                                         $tblList,
                                         $tblObjectType,
@@ -737,14 +737,17 @@ class Service extends AbstractService
 
             $tblListElementListByList = $this->getListElementListByList($tblList);
             if ($tblListElementListByList) {
-                $tblListObjectListByList = CheckList::useService()->getListObjectListByList($tblList);
+                $tblListObjectListByList = $this->getListObjectListByList($tblList);
                 $objectList = array();
                 // get Objects
-                $objectList = CheckList::useService()->getObjectList($tblListObjectListByList, $objectList);
-                if ($hasFilter){
-                    $objectList = CheckList::useService()->filterObjectList($objectList, $filterYear, $filterLevel,
+                $objectList = $this->getObjectList($tblListObjectListByList, $objectList);
+                if ($hasFilter) {
+                    $objectList = $this->filterObjectList($objectList, $filterYear, $filterLevel,
                         $filterSchoolOption1, $filterSchoolOption2);
                 }
+
+                // sort $objectList
+                $objectList = $this->sortObjectList($objectList);
 
                 if (!empty($objectList)) {
 
@@ -752,13 +755,15 @@ class Service extends AbstractService
                     $isProspectList = true;
                     if (!$hasFilter) {
                         foreach ($objectList as $objectTypeId => $objects) {
-                            $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
+                            $tblObjectType = $this->getObjectTypeById($objectTypeId);
                             if (!empty($objects)) {
                                 foreach ($objects as $objectId => $value) {
                                     if ($tblObjectType->getIdentifier() === 'PERSON') {
                                         $tblPerson = Person::useService()->getPersonById($objectId);
                                         $prospectGroup = Group::useService()->getGroupByMetaTable('PROSPECT');
-                                        if ($tblPerson && !Group::useService()->existsGroupPerson($prospectGroup, $tblPerson)) {
+                                        if ($tblPerson && !Group::useService()->existsGroupPerson($prospectGroup,
+                                                $tblPerson)
+                                        ) {
                                             $isProspectList = false;
                                         }
                                     } else {
@@ -777,7 +782,7 @@ class Service extends AbstractService
                         $export->setValue($export->getCell($columnCount++, $rowCount), 'Schulart');
                         $export->setValue($export->getCell($columnCount++, $rowCount), 'Eingangsdatum');
 
-                        $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
+                        $tblListElementListByList = $this->getListElementListByList($tblList);
                         if ($tblListElementListByList) {
                             foreach ($tblListElementListByList as $tblListElementList) {
                                 $export->setValue($export->getCell($columnCount++, $rowCount),
@@ -798,7 +803,7 @@ class Service extends AbstractService
                 $rowCount = 1;
                 if (!empty($objectList)) {
                     foreach ($objectList as $objectTypeId => $objects) {
-                        $tblObjectType = CheckList::useService()->getObjectTypeById($objectTypeId);
+                        $tblObjectType = $this->getObjectTypeById($objectTypeId);
                         if (!empty($objects)) {
                             foreach ($objects as $objectId => $value) {
                                 $tblObject = false;
@@ -833,16 +838,18 @@ class Service extends AbstractService
                                                     }
                                                 }
                                                 $tblProspectAppointment = $tblProspect->getTblProspectAppointment();
-                                                if ($tblProspectAppointment){
+                                                if ($tblProspectAppointment) {
                                                     $reservationDate = $tblProspectAppointment->getReservationDate();
                                                 }
                                             }
                                             $export->setValue($export->getCell($columnCount++, $rowCount), trim($year));
                                             $export->setValue($export->getCell($columnCount++, $rowCount),
                                                 trim($level));
-                                            $export->setValue($export->getCell($columnCount++, $rowCount), trim($option));
-                                            if ($reservationDate){
-                                                $export->setValue($export->getCell($columnCount, $rowCount), $reservationDate);
+                                            $export->setValue($export->getCell($columnCount++, $rowCount),
+                                                trim($option));
+                                            if ($reservationDate) {
+                                                $export->setValue($export->getCell($columnCount, $rowCount),
+                                                    $reservationDate);
                                             }
                                         }
                                     }
@@ -929,17 +936,19 @@ class Service extends AbstractService
                 if (($tblObject = $tblListObjectList->getServiceTblObject())) {
                     if ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSON') {
                         /** @var TblPerson $tblObject */
-                        $objectList[$tblListObjectList->getTblObjectType()->getId()][$tblObject->getId()] = 1;
+                        $objectList[$tblListObjectList->getTblObjectType()->getId()][$tblObject->getId()]
+                            = $tblObject->getLastFirstName();
                     } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANY') {
                         /** @var TblCompany $tblObject */
-                        $objectList[$tblListObjectList->getTblObjectType()->getId()][$tblObject->getId()] = 1;
+                        $objectList[$tblListObjectList->getTblObjectType()->getId()][$tblObject->getId()]
+                            = $tblObject->getName();
                     } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'PERSONGROUP') {
                         /** @var PersonGroupEntity $tblObject */
                         $tblPersonAllByGroup = PersonGroup::useService()->getPersonAllByGroup($tblObject);
                         if ($tblPersonAllByGroup) {
                             foreach ($tblPersonAllByGroup as $tblPerson) {
-                                $objectList[CheckList::useService()->getObjectTypeByIdentifier('PERSON')->getId()]
-                                [$tblPerson->getId()] = 1;
+                                $objectList[$this->getObjectTypeByIdentifier('PERSON')->getId()]
+                                [$tblPerson->getId()] = $tblPerson->getLastFirstName();
                             }
                         }
                     } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'COMPANYGROUP') {
@@ -947,8 +956,8 @@ class Service extends AbstractService
                         $tblCompanyAllByGroup = CompanyGroup::useService()->getCompanyAllByGroup($tblObject);
                         if ($tblCompanyAllByGroup) {
                             foreach ($tblCompanyAllByGroup as $tblCompany) {
-                                $objectList[CheckList::useService()->getObjectTypeByIdentifier('COMPANY')->getId()]
-                                [$tblCompany->getId()] = 1;
+                                $objectList[$this->getObjectTypeByIdentifier('COMPANY')->getId()]
+                                [$tblCompany->getId()] = $tblCompany->getName();
                             }
                         }
                     } elseif ($tblListObjectList->getTblObjectType()->getIdentifier() === 'DIVISIONGROUP') {
@@ -956,8 +965,8 @@ class Service extends AbstractService
                         $tblStudentAllByDivision = Division::useService()->getStudentAllByDivision($tblObject);
                         if ($tblStudentAllByDivision) {
                             foreach ($tblStudentAllByDivision as $tblPerson) {
-                                $objectList[CheckList::useService()->getObjectTypeByIdentifier('PERSON')->getId()]
-                                [$tblPerson->getId()] = 1;
+                                $objectList[$this->getObjectTypeByIdentifier('PERSON')->getId()]
+                                [$tblPerson->getId()] = $tblPerson->getLastFirstName();
                             }
                         }
                     }
@@ -965,6 +974,20 @@ class Service extends AbstractService
             }
 
             return $objectList;
+        }
+
+        return $objectList;
+    }
+
+
+    public function sortObjectList($objectList)
+    {
+        if (!empty($objectList)){
+            foreach ($objectList as $objectTypeId => &$objects) {
+                if (!empty($objects)) {
+                    asort($objects);
+                }
+            }
         }
 
         return $objectList;
@@ -987,7 +1010,7 @@ class Service extends AbstractService
         $filterSchoolOption = $filterSchoolOption1 || $filterSchoolOption2;
 
         if (!empty($objectList)) {
-            $tblObjectType = CheckList::useService()->getObjectTypeByIdentifier('PERSON');
+            $tblObjectType = $this->getObjectTypeByIdentifier('PERSON');
             foreach ($objectList as $objectTypeId => $list) {
                 if ($tblObjectType->getId() == $objectTypeId) {
                     if (is_array($list) && !empty($list)) {
@@ -1058,34 +1081,42 @@ class Service extends AbstractService
                                         // Filter "Und"-Verknüpfen
                                         if ($filterYear && $filterLevel && $filterSchoolOption) {
                                             if ($hasYear && $hasLevel && $hasSchoolOption) {
-                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
+                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()]
+                                                    = $tblPerson->getLastFirstName();
                                             }
                                         } elseif ($filterYear && $filterLevel) {
                                             if ($hasYear && $hasLevel) {
-                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
+                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()]
+                                                    = $tblPerson->getLastFirstName();
                                             }
                                         } elseif ($filterYear && $filterSchoolOption) {
                                             if ($hasYear && $hasSchoolOption) {
-                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
+                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()]
+                                                    = $tblPerson->getLastFirstName();
                                             }
                                         } elseif ($filterLevel && $filterSchoolOption) {
                                             if ($hasLevel && $hasSchoolOption) {
-                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
+                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()]
+                                                    = $tblPerson->getLastFirstName();
                                             }
                                         } elseif ($filterYear) {
                                             if ($hasYear) {
-                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
+                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()]
+                                                    = $tblPerson->getLastFirstName();
                                             }
                                         } elseif ($filterLevel) {
                                             if ($hasLevel) {
-                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
+                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()]
+                                                    = $tblPerson->getLastFirstName();
                                             }
                                         } elseif ($filterSchoolOption) {
                                             if ($hasSchoolOption) {
-                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
+                                                $resultList[$tblObjectType->getId()][$tblPerson->getId()]
+                                                    = $tblPerson->getLastFirstName();
                                             }
                                         } else {
-                                            $resultList[$tblObjectType->getId()][$tblPerson->getId()] = 1;
+                                            $resultList[$tblObjectType->getId()][$tblPerson->getId()]
+                                                = $tblPerson->getLastFirstName();
                                         }
                                     }
                                 }

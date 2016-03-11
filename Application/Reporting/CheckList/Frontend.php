@@ -55,6 +55,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Save;
 use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -178,8 +179,8 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         if ($Id == null) {
-            return $Stage.new Danger(new Ban().' Daten nicht abrufbar.')
-            .new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+            return $Stage . new Danger(new Ban() . ' Daten nicht abrufbar.')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
         }
 
         $tblList = CheckList::useService()->getListById($Id);
@@ -202,9 +203,9 @@ class Frontend extends Extension implements IFrontendInterface
                             new LayoutColumn(
                                 new Panel(
                                     'Check-List',
-                                    $tblList->getName().
-                                    ( $tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
-                                        .new Muted(new Small(new Small($tblList->getDescription()))) : '' ),
+                                    $tblList->getName() .
+                                    ($tblList->getDescription() !== '' ? '&nbsp;&nbsp;'
+                                        . new Muted(new Small(new Small($tblList->getDescription()))) : ''),
                                     Panel::PANEL_TYPE_INFO
                                 )
                             ),
@@ -216,14 +217,14 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Well(CheckList::useService()->updateList($Form, $Id, $List))
                             ),
                         ))
-                    ), new Title(new Edit().' Bearbeiten'))
+                    ), new Title(new Edit() . ' Bearbeiten'))
                 ))
             );
 
             return $Stage;
         } else {
-            return $Stage.new Danger(new Ban().' Liste nicht gefunden.')
-            .new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
+            return $Stage . new Danger(new Ban() . ' Liste nicht gefunden.')
+            . new Redirect('/Reporting/CheckList', Redirect::TIMEOUT_ERROR);
         }
     }
 
@@ -832,7 +833,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ))
                         ))
                     ))
-                    .  (empty($ObjectTypeSelect) ? ($tblObjectType  ?
+                    . (empty($ObjectTypeSelect) ? ($tblObjectType ?
                         new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                             new Panel('Objekt-Typ:',
                                 $tblObjectType->getName(),
@@ -1085,8 +1086,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public
-    function frontendListObjectRemove(
+    public function frontendListObjectRemove(
         $Id = null
     ) {
 
@@ -1105,8 +1105,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public
-    function frontendListObjectElementEdit(
+    public function frontendListObjectElementEdit(
         $Id = null,
         $Filter = null,
         $Data = null,
@@ -1257,6 +1256,9 @@ class Frontend extends Extension implements IFrontendInterface
                     $filterSchoolOption1, $filterSchoolOption2);
             }
 
+            // sort $objectList
+           $objectList = CheckList::useService()->sortObjectList($objectList);
+
             if (!empty($objectList)) {
 
                 // prospectList
@@ -1283,11 +1285,11 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 if ($isProspectList) {
                     $columnDefinition = array(
-                        'Name' => 'Name',
-                        'Year' => 'Schuljahr',
-                        'Level' => 'Klassenstufe',
+                        'Name' => 'Interessentenname_______',
+                        'Year' => 'Schul- jahr',
+                        'Level' => 'Kl.- stufe',
                         'SchoolOption' => 'Schulart',
-                        'ReservationDate' => 'Eingangsdatum'
+                        'ReservationDate' => 'Eingangs- datum'
                     );
                     // set Header for prospectList
                     $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
@@ -1308,9 +1310,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblPerson = Person::useService()->getPersonById($objectId);
                                 if ($tblPerson) {
                                     $list[$count]['Name'] = $tblPerson->getLastFirstName()
-                                        . new PullRight(new Standard('', '/People/Person',
+                                        . new PullClear(new PullRight(new Standard('', '/People/Person',
                                             new \SPHERE\Common\Frontend\Icon\Repository\Person(),
-                                            array('Id' => $tblPerson->getId()), 'Zur Person'));
+                                            array('Id' => $tblPerson->getId()), 'Zur Person')));
 
                                     if ($isProspectList) {
 
@@ -1355,9 +1357,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 if ($tblCompany) {
                                     $countCompany++;
                                     $list[$count]['Name'] = $tblCompany->getName()
-                                        . new PullRight(new Standard('', '/Corporation/Company',
+                                        . new PullClear(new PullRight(new Standard('', '/Corporation/Company',
                                             new Building(),
-                                            array('Id' => $tblCompany->getId()), 'Zur Firma'));
+                                            array('Id' => $tblCompany->getId()), 'Zur Firma')));
                                 } else {
                                     $list[$count]['Name'] = '';
                                 }
@@ -1393,11 +1395,11 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
                 if ($hasFilter) {
                     $columnDefinition = array(
-                        'Name' => 'Name',
-                        'Year' => 'Schuljahr',
-                        'Level' => 'Klassenstufe',
+                        'Name' => 'Interessentenname_______',
+                        'Year' => 'Schul- jahr',
+                        'Level' => 'Kl.- stufe',
                         'SchoolOption' => 'Schulart',
-                        'ReservationDate' => 'Eingangsdatum'
+                        'ReservationDate' => 'Eingangs- datum'
                     );
                     // set Header for prospectList
                     $tblListElementListByList = CheckList::useService()->getListElementListByList($tblList);
@@ -1472,40 +1474,40 @@ class Frontend extends Extension implements IFrontendInterface
                             ) : null)
                     ))
                 )),
-                ( empty( $Filter ) ?
-                new LayoutGroup(array(
-                    new LayoutRow(array(
-                        new LayoutColumn(array(
-                            new Title(new Edit() . ' Bearbeiten'),
-                            $isProspectList
-                                ? ($hasFilter
-                                ? new Info($countPerson . ' von ' . $countTotalPerson . ' Interessenten')
-                                : new Info($countPerson . ' Interessenten'))
-                                : new Info(
-                                'Anzahl der Objekte: ' . ($countPerson + $countCompany) . ' (Personen: ' . $countPerson
-                                . ', Firmen: ' . $countCompany . ')'
-                            ),
-                            CheckList::useService()->updateListObjectElementList(
-                                new Form(
-                                    new FormGroup(array(
-                                        new FormRow(array(
-                                            new FormColumn(
-                                                new TableData($list, null, $columnDefinition, false)
-                                            ),
-                                            new FormColumn(   // to send only unchecked CheckBoxes
-                                                new HiddenField('HasData')
-                                            )
+                (empty($Filter) ?
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                new Title(new Edit() . ' Bearbeiten'),
+                                $isProspectList
+                                    ? ($hasFilter
+                                    ? new Info($countPerson . ' von ' . $countTotalPerson . ' Interessenten')
+                                    : new Info($countPerson . ' Interessenten'))
+                                    : new Info(
+                                    'Anzahl der Objekte: ' . ($countPerson + $countCompany) . ' (Personen: ' . $countPerson
+                                    . ', Firmen: ' . $countCompany . ')'
+                                ),
+                                CheckList::useService()->updateListObjectElementList(
+                                    new Form(
+                                        new FormGroup(array(
+                                            new FormRow(array(
+                                                new FormColumn(
+                                                    new TableData($list, null, $columnDefinition, false)
+                                                ),
+                                                new FormColumn(   // to send only unchecked CheckBoxes
+                                                    new HiddenField('HasData')
+                                                )
+                                            ))
                                         ))
-                                    ))
-                                    , new Primary('Speichern', new Save()))
-                                , $Id, $Data, $HasData, ($hasFilter ? $objectList : null),
-                                $YearPersonId,
-                                $LevelPersonId,
-                                $SchoolOption1Id
-                            )
+                                        , new Primary('Speichern', new Save()))
+                                    , $Id, $Data, $HasData, ($hasFilter ? $objectList : null),
+                                    $YearPersonId,
+                                    $LevelPersonId,
+                                    $SchoolOption1Id
+                                )
+                            ))
                         ))
-                    ))
-                )) : null )
+                    )) : null)
             ))
         );
 
@@ -1516,8 +1518,7 @@ class Frontend extends Extension implements IFrontendInterface
      * @param $filterPersonObjectList
      * @return Form
      */
-    private
-    function formCheckListFilter(
+    private function formCheckListFilter(
         $filterPersonObjectList
     ) {
 
