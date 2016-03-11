@@ -815,17 +815,17 @@ class Service extends AbstractService
             // get ScoreCondition
             $tblScoreCondition = false;
             if ($tblScoreRule !== null) {
-                $tblScoreRuleConditionListByRule = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
-                if ($tblScoreRuleConditionListByRule) {
-                    if (count($tblScoreRuleConditionListByRule) > 1) {
-                        $tblScoreRuleConditionListByRule =
-                            $this->getSorter($tblScoreRuleConditionListByRule)->sortObjectList('Priority');
-                        if ($tblScoreRuleConditionListByRule) {
-                            /** @var TblScoreRuleConditionList $tblScoreRuleConditionList */
-                            foreach ($tblScoreRuleConditionListByRule as $tblScoreRuleConditionList) {
+                $tblScoreConditionsByRule = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
+                if ($tblScoreConditionsByRule) {
+                    if (count($tblScoreConditionsByRule) > 1) {
+                        $tblScoreConditionsByRule =
+                            $this->getSorter($tblScoreConditionsByRule)->sortObjectList('Priority');
+                        if ($tblScoreConditionsByRule) {
+                            /** @var TblScoreCondition $item */
+                            foreach ($tblScoreConditionsByRule as $item) {
                                 $tblScoreConditionGradeTypeListByCondition =
                                     Gradebook::useService()->getScoreConditionGradeTypeListByCondition(
-                                        $tblScoreRuleConditionList->getTblScoreCondition()
+                                        $item
                                     );
                                 if ($tblScoreConditionGradeTypeListByCondition) {
                                     $hasConditions = true;
@@ -850,19 +850,19 @@ class Service extends AbstractService
                                     }
 
                                     if ($hasConditions) {
-                                        $tblScoreCondition = $tblScoreRuleConditionList->getTblScoreCondition();
+                                        $tblScoreCondition = $item;
                                         break;
                                     }
 
                                 } else {
                                     // no Conditions
-                                    $tblScoreCondition = $tblScoreRuleConditionList->getTblScoreCondition();
+                                    $tblScoreCondition = $item;
                                     break;
                                 }
                             }
                         }
                     } else {
-                        $tblScoreCondition = $tblScoreRuleConditionListByRule[0]->getTblScoreCondition();
+                        $tblScoreCondition = $tblScoreConditionsByRule[0];
                     }
                 }
             }
@@ -1045,6 +1045,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getScoreRuleConditionListByRule($tblScoreRule);
+    }
+
+    /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return bool|TblScoreCondition[]
+     */
+    public function getScoreConditionsByRule(TblScoreRule $tblScoreRule)
+    {
+
+        return (new Data($this->getBinding()))->getScoreConditionsByRule($tblScoreRule);
     }
 
     /**

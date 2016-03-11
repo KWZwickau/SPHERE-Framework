@@ -634,6 +634,28 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblScoreRule $tblScoreRule
+     *
+     * @return array|TblScoreCondition[]
+     */
+    public function getScoreConditionsByRule(TblScoreRule $tblScoreRule)
+    {
+
+        $list = $this->getScoreRuleConditionListByRule($tblScoreRule);
+
+        $result = array();
+        if ($list){
+            foreach ($list as $item){
+                if ($item->getTblScoreCondition()){
+                    array_push($result, $item->getTblScoreCondition());
+                }
+            }
+        }
+
+        return empty($result) ? false : $result;
+    }
+
+    /**
      * @param        $Name
      * @param string $Description
      *

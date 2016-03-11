@@ -613,16 +613,16 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblScoreRule = $tblScoreRuleDivisionSubject->getTblScoreRule();
                     if ($tblScoreRule) {
                         $scoreRuleText[] = new Bold($tblScoreRule->getName());
-                        $tblScoreRuleConditionListByRule = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
-                        if ($tblScoreRuleConditionListByRule) {
-                            $tblScoreRuleConditionListByRule =
-                                $this->getSorter($tblScoreRuleConditionListByRule)->sortObjectList('Priority');
+                        $tblScoreConditionsByRule = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
+                        if ($tblScoreConditionsByRule) {
+                            $tblScoreConditionsByRule =
+                                $this->getSorter($tblScoreConditionsByRule)->sortObjectList('Priority');
 
-                            /** @var TblScoreRuleConditionList $tblScoreRuleConditionList */
-                            foreach ($tblScoreRuleConditionListByRule as $tblScoreRuleConditionList) {
+                            /** @var TblScoreCondition $tblScoreCondition */
+                            foreach ($tblScoreConditionsByRule as $tblScoreCondition) {
                                 $scoreRuleText[] = '&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
-                                    . $tblScoreRuleConditionList->getTblScoreCondition()->getPriority()
-                                    . '&nbsp;&nbsp;&nbsp;' . $tblScoreRuleConditionList->getTblScoreCondition()->getName();
+                                    . $tblScoreCondition->getPriority()
+                                    . '&nbsp;&nbsp;&nbsp;' . $tblScoreCondition->getName();
                             }
                         } else {
                             $scoreRuleText[] = new Bold(new \SPHERE\Common\Frontend\Text\Repository\Warning(
@@ -1334,18 +1334,19 @@ class Frontend extends Extension implements IFrontendInterface
                     $structure[] = 'Beschreibung: ' . $tblScoreRule->getDescription() . '<br>';
                 }
 
-                $tblScoreConditions = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
+                $tblScoreConditions = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
                 if ($tblScoreConditions) {
                     $tblScoreConditions = $this->getSorter($tblScoreConditions)->sortObjectList('Priority');
+
                     $count = 1;
-                    /** @var TblScoreRuleConditionList $tblScoreCondition */
+                    /** @var TblScoreCondition $tblScoreCondition */
                     foreach ($tblScoreConditions as $tblScoreCondition) {
-                        $structure[] = $count++ . '. Berechnungsvariante: ' . $tblScoreCondition->getTblScoreCondition()->getName()
-                            . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priortität: '
-                            . $tblScoreCondition->getTblScoreCondition()->getPriority();
+                        $structure[] = $count++ . '. Berechnungsvariante: ' . $tblScoreCondition->getName()
+                            . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
+                            . $tblScoreCondition->getPriority();
 
                         $tblScoreConditionGradeTypeListByCondition = Gradebook::useService()->getScoreConditionGradeTypeListByCondition(
-                            $tblScoreCondition->getTblScoreCondition()
+                            $tblScoreCondition
                         );
                         if ($tblScoreConditionGradeTypeListByCondition) {
                             $list = array();
@@ -1360,7 +1361,7 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         $tblScoreConditionGroupListByCondition = Gradebook::useService()->getScoreConditionGroupListByCondition(
-                            $tblScoreCondition->getTblScoreCondition()
+                            $tblScoreCondition
                         );
                         if ($tblScoreConditionGroupListByCondition) {
                             foreach ($tblScoreConditionGroupListByCondition as $tblScoreConditionGroupList) {
