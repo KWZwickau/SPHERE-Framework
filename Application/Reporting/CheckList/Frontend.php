@@ -1479,6 +1479,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow(array(
                             new LayoutColumn(array(
                                 new Title(new Edit() . ' Bearbeiten'),
+                                new Bold(
                                 $isProspectList
                                     ? ($hasFilter
                                     ? new Info($countPerson . ' von ' . $countTotalPerson . ' Interessenten')
@@ -1486,7 +1487,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     : new Info(
                                     'Anzahl der Objekte: ' . ($countPerson + $countCompany) . ' (Personen: ' . $countPerson
                                     . ', Firmen: ' . $countCompany . ')'
-                                ),
+                                )),
                                 CheckList::useService()->updateListObjectElementList(
                                     new Form(
                                         new FormGroup(array(
