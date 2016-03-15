@@ -13,7 +13,7 @@ use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTask;
 use SPHERE\Application\Education\Graduation\Evaluation\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGrade;
-use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreRuleConditionList;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreCondition;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblScoreType;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -1049,19 +1049,19 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblScoreRule) {
                         if ($isTestAppointedDateTask) {
                             $scoreRuleText[] = new Bold($tblScoreRule->getName());
-                            $tblScoreRuleConditionListByRule = Gradebook::useService()->getScoreRuleConditionListByRule($tblScoreRule);
-                            if ($tblScoreRuleConditionListByRule) {
+                            $tblScoreConditionsByRule = Gradebook::useService()->getScoreConditionsByRule($tblScoreRule);
+                            if ($tblScoreConditionsByRule) {
 
                                 $showPriority = true;
 
-                                $tblScoreRuleConditionListByRule =
-                                    $this->getSorter($tblScoreRuleConditionListByRule)->sortObjectList('Priority');
+                                $tblScoreConditionsByRule =
+                                    $this->getSorter($tblScoreConditionsByRule)->sortObjectList('Priority');
 
-                                /** @var TblScoreRuleConditionList $tblScoreRuleConditionList */
-                                foreach ($tblScoreRuleConditionListByRule as $tblScoreRuleConditionList) {
+                                /** @var TblScoreCondition $tblScoreCondition */
+                                foreach ($tblScoreConditionsByRule as $tblScoreCondition) {
                                     $scoreRuleText[] = '&nbsp;&nbsp;&nbsp;&nbsp;' . 'Priorität: '
-                                        . $tblScoreRuleConditionList->getTblScoreCondition()->getPriority()
-                                        . '&nbsp;&nbsp;&nbsp;' . $tblScoreRuleConditionList->getTblScoreCondition()->getName();
+                                        . $tblScoreCondition->getPriority()
+                                        . '&nbsp;&nbsp;&nbsp;' . $tblScoreCondition->getName();
                                 }
                             } else {
                                 $scoreRuleText[] = new Bold(new Warning(
