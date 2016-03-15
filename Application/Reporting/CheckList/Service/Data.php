@@ -479,6 +479,18 @@ class Data extends AbstractData
         /** @var TblListElementList $Entity */
         $Entity = $Manager->getEntityById('TblListElementList', $TblListElementList->getId());
         if (null !== $Entity) {
+            $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblListObjectElementList',
+                array(
+                    TblListObjectElementList::ATTR_TBL_LIST_ELEMENT_LIST => $Entity->getId()
+                )
+            );
+            if ($EntityList) {
+                foreach ($EntityList as $item){
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $item);
+                    $Manager->killEntity($item);
+                }
+            }
+
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
