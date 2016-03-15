@@ -105,7 +105,7 @@ var Client = (function ()
         if (useConfig[Module].isReady(Callback)) {
             return Callback();
         } else {
-            if (2000 < useConfig[Module].Retry) {
+            if (10000 < useConfig[Module].Retry) {
                 if (console && console.log) {
                     console.log('Unable to load ' + Module)
                 }
