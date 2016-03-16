@@ -278,11 +278,6 @@ class Frontend extends Extension implements IFrontendInterface
         $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
             Group::useService()->getGroupByMetaTable('SCHOOL')
         );
-        if ($tblCompanyAllSchool) {
-            array_push($tblCompanyAllSchool, new TblCompany());
-        } else {
-            $tblCompanyAllSchool = array(new TblCompany());
-        }
 
         $tblCompanyAllSchoolNursery = Group::useService()->getCompanyAllByGroup(
             Group::useService()->getGroupByMetaTable('NURSERY')
@@ -294,11 +289,6 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblSchoolTypeAll = Type::useService()->getTypeAll();
-        if ($tblSchoolTypeAll) {
-            array_push($tblSchoolTypeAll, new TblType());
-        } else {
-            $tblSchoolTypeAll = array(new TblType());
-        }
 
         $tblSchoolCourseAll = Course::useService()->getCourseAll();
         if ($tblSchoolCourseAll) {
