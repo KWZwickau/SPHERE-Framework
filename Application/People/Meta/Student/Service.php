@@ -17,6 +17,7 @@ use SPHERE\Application\People\Meta\Student\Service\Setup;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
+use SPHERE\Application\People\Relationship\Service\Entity\TblSiblingRank;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
@@ -62,6 +63,18 @@ class Service extends Integration
             $LockerNumber,
             $LockerLocation,
             $KeyNumber
+        );
+    }
+
+    /**
+     * @param TblSiblingRank $tblSiblingRank
+     * @return TblStudentBilling
+     */
+    public function insertStudentBilling(TblSiblingRank $tblSiblingRank)
+    {
+
+        return (new Data($this->getBinding()))->createStudentBilling(
+            $tblSiblingRank
         );
     }
 
