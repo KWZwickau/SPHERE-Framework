@@ -41,7 +41,7 @@ class SelectBox extends Field implements IFieldInterface
                 $Sample = current($Data[$Attribute]);
                 // Add Zero-Element -> '-[ Nicht ausgewählt ]-'
                 if (is_object($Sample)) {
-                    if ($Sample instanceof Element) {
+                    if ($Sample instanceof Element && $Sample->getId() ) {
                         /** @var Element $SampleClass */
                         $SampleClass = (new \ReflectionClass($Sample))->newInstanceWithoutConstructor();
                         $SampleClass->setId(0);
